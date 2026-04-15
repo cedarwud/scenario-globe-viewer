@@ -1,4 +1,5 @@
 import { initializeCesiumBootstrap } from "./core/cesium/bootstrap";
+import { createViewer } from "./core/cesium/viewer-factory";
 import "./styles.css";
 
 initializeCesiumBootstrap();
@@ -10,11 +11,21 @@ if (!app) {
 }
 
 app.innerHTML = `
-  <main class="shell">
-    <p class="eyebrow">Phase 0</p>
-    <h1>Scenario Globe Viewer</h1>
-    <p class="copy">
-      Repo scaffold complete. Cesium bootstrap and first render land in Phase 1.
-    </p>
+  <main class="viewer-shell">
+    <div class="viewer-root" data-viewer-root></div>
   </main>
 `;
+
+const viewerRoot = app.querySelector<HTMLDivElement>("[data-viewer-root]");
+
+if (!viewerRoot) {
+  throw new Error("Missing viewer root");
+}
+
+const viewer = createViewer(viewerRoot);
+
+if (import.meta.hot) {
+  import.meta.hot.dispose(() => {
+    viewer.destroy();
+  });
+}
