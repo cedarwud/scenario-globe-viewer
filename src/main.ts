@@ -1,4 +1,7 @@
+import { initializeCesiumBootstrap } from "./core/cesium/bootstrap";
 import "./styles.css";
+
+initializeCesiumBootstrap();
 
 const app = document.querySelector<HTMLDivElement>("#app");
 
