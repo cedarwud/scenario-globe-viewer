@@ -1,5 +1,6 @@
 import { Viewer } from "cesium";
 import { applyAtmosphereBaseline } from "../../features/globe/atmosphere";
+import { applyLightingBaseline } from "../../features/globe/lighting";
 
 export interface ViewerElements {
   container: Element | string;
@@ -28,6 +29,7 @@ export function createViewer({
   });
 
   applyAtmosphereBaseline(viewer);
+  applyLightingBaseline(viewer);
 
   return viewer;
 }
