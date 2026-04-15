@@ -11,3 +11,5 @@ The current check verifies:
 - installed-package Cesium evidence still matches the repo's recorded assumptions
 
 Runtime bootstrap and first-globe smoke are exposed through `node tests/smoke/bootstrap-loads-assets-and-workers.mjs`.
+
+Phase 1 smoke is exposed through `npm run test:phase1`, which builds the repo, serves `dist/` locally, opens the built app in a headless browser, and checks that the bootstrap state reaches `ready`.

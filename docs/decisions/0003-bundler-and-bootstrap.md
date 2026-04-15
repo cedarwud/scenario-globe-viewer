@@ -26,3 +26,6 @@ Reserve `CESIUM_BASE_URL` in `index.html` and set it before the application modu
 - The repo keeps Cesium as an external npm dependency instead of carrying a fork or vendored source tree.
 - Runtime asset lookup has a fixed delivery path that works for both local development and built artifacts.
 - Bootstrap code must continue to respect the shared `cesium/` asset root; ad hoc worker or asset paths are out of bounds.
+- Phase 1 should record bundle shape and warning provenance, but not block the first bootstrap milestone on large-scale chunk surgery.
+- Bundle optimization decisions belong after the Phase 2 globe baseline exists, because preset structure, provider choices, and visual-quality work can materially change the real optimization target.
+- If build warnings such as `protobufjs` `eval` still appear after Phase 2, the repo must explicitly document whether they are accepted as upstream dependency risk or scheduled for mitigation before later delivery phases.

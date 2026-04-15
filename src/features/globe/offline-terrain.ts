@@ -1,46 +1,62 @@
 import {
   CesiumTerrainProvider,
-  EllipsoidTerrainProvider,
-  Terrain,
-  type Viewer
+  ProviderViewModel,
+  buildModuleUrl
 } from "cesium";
+import createDefaultTerrainProviderViewModels from "@cesium/widgets/Source/BaseLayerPicker/createDefaultTerrainProviderViewModels.js";
 
-export function createTerrainFallbackProvider(): EllipsoidTerrainProvider {
-  // Keep the delivery-default terrain path offline-safe by starting from
-  // Cesium's built-in ellipsoid provider, then only opt into a hosted terrain
-  // source when this repo is explicitly configured to do so.
-  // Evidence: /home/u24/papers/project/home-globe-reference-repos/cesium/Documentation/OfflineGuide/README.md:3-15
-  // Evidence: /home/u24/papers/project/home-globe-reference-repos/cesium/packages/sandcastle/gallery/terrain/main.js:14-18
-  // Evidence: /home/u24/papers/project/home-globe-reference-repos/cesium/packages/engine/Specs/Core/EllipsoidTerrainProviderSpec.js:18-36
-  return new EllipsoidTerrainProvider();
+export interface TerrainSelectionOptions {
+  selectedTerrainProviderViewModel: ProviderViewModel;
+  terrainProviderViewModels?: ProviderViewModel[];
 }
 
-export function applyOfflineFirstTerrain(viewer: Viewer): void {
+function readConfiguredTerrainUrl(): string | undefined {
   const terrainUrl = import.meta.env.VITE_CESIUM_TERRAIN_URL?.trim();
+  return terrainUrl ? terrainUrl : undefined;
+}
+
+function resolveDefaultWorldTerrain(
+  terrainProviderViewModels: ProviderViewModel[]
+): ProviderViewModel {
+  return (
+    terrainProviderViewModels.find(
+      (providerViewModel) => providerViewModel.name === "Cesium World Terrain"
+    ) ?? terrainProviderViewModels[0]
+  );
+}
+
+export function resolveTerrainSelection(): TerrainSelectionOptions {
+  const terrainProviderViewModels = createDefaultTerrainProviderViewModels();
+  const terrainUrl = readConfiguredTerrainUrl();
+
   if (!terrainUrl) {
-    return;
+    // Keep the shell on Cesium's own BaseLayerPicker path while defaulting the
+    // terrain selection to Cesium World Terrain rather than leaving the viewer
+    // on the ellipsoid-only baseline.
+    // Evidence: /home/u24/papers/project/home-globe-reference-repos/cesium/packages/sandcastle/gallery/terrain/main.js:4-18
+    // Evidence: /home/u24/papers/project/home-globe-reference-repos/cesium/packages/widgets/Source/BaseLayerPicker/createDefaultTerrainProviderViewModels.js:12-42
+    // Evidence: /home/u24/papers/scenario-globe-viewer/node_modules/@cesium/widgets/Source/BaseLayerPicker/BaseLayerPickerViewModel.js:301-303
+    return {
+      terrainProviderViewModels,
+      selectedTerrainProviderViewModel: resolveDefaultWorldTerrain(terrainProviderViewModels)
+    };
   }
 
-  const fallbackProvider = viewer.terrainProvider;
-
-  // Use Cesium's async Terrain helper for locally hosted quantized-mesh or
-  // heightmap datasets, but fall back to the already-active ellipsoid path if
-  // the configured endpoint cannot be created.
+  // Keep the native BaseLayerPicker selection in sync with an explicitly
+  // configured terrain endpoint by representing it as a ProviderViewModel.
   // Evidence: /home/u24/papers/project/home-globe-reference-repos/cesium/packages/sandcastle/gallery/terrain/main.js:48-99
   // Evidence: /home/u24/papers/project/home-globe-reference-repos/cesium/packages/engine/Source/Core/CesiumTerrainProvider.js:1191-1207
-  // Evidence: /home/u24/papers/project/home-globe-reference-repos/cesium/packages/engine/Source/Scene/Terrain.js:43-100
-  // Evidence: /home/u24/papers/project/home-globe-reference-repos/cesium/packages/engine/Specs/Scene/TerrainSpec.js:15-58
-  const terrain = new Terrain(CesiumTerrainProvider.fromUrl(terrainUrl));
-
-  terrain.readyEvent.addEventListener(() => {
-    viewer.scene.requestRender();
+  // Evidence: /home/u24/papers/scenario-globe-viewer/node_modules/@cesium/widgets/Source/BaseLayerPicker/BaseLayerPickerViewModel.js:254-291
+  const configuredTerrain = new ProviderViewModel({
+    name: "Configured Terrain",
+    iconUrl: buildModuleUrl("Widgets/Images/TerrainProviders/CesiumWorldTerrain.png"),
+    tooltip: `CesiumTerrainProvider.fromUrl(${terrainUrl})`,
+    category: "Configured",
+    creationFunction: () => CesiumTerrainProvider.fromUrl(terrainUrl)
   });
 
-  terrain.errorEvent.addEventListener((error) => {
-    console.warn("Terrain initialization failed; using ellipsoid fallback.", error);
-    viewer.terrainProvider = fallbackProvider;
-    viewer.scene.requestRender();
-  });
-
-  viewer.scene.setTerrain(terrain);
+  return {
+    terrainProviderViewModels: [configuredTerrain, ...terrainProviderViewModels],
+    selectedTerrainProviderViewModel: configuredTerrain
+  };
 }

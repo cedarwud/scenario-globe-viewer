@@ -1,5 +1,6 @@
-import { createServer } from "node:http";
-import { existsSync, readFileSync, statSync } from "node:fs";
+import { spawn, spawnSync } from "node:child_process";
+import { existsSync, mkdtempSync, readFileSync, rmSync, statSync } from "node:fs";
+import { tmpdir } from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -50,6 +51,55 @@ function assert(condition, message) {
   }
 }
 
+function findHeadlessBrowser() {
+  const candidates = ["google-chrome", "chromium", "chromium-browser"];
+
+  for (const command of candidates) {
+    const probe = spawnSync(command, ["--version"], { encoding: "utf8" });
+
+    if (probe.status === 0) {
+      return command;
+    }
+  }
+
+  throw new Error(
+    "Missing a supported headless browser. Install google-chrome or chromium to run Phase 1 smoke."
+  );
+}
+
+function dumpDomInHeadlessBrowser(browserCommand, baseUrl, extraArgs = []) {
+  const userDataDir = mkdtempSync(path.join(tmpdir(), "scenario-globe-viewer-chrome-"));
+
+  try {
+    return spawnSync(
+      browserCommand,
+      [
+        "--headless",
+        "--no-first-run",
+        "--no-default-browser-check",
+        "--disable-background-networking",
+        "--disable-component-update",
+        "--disable-default-apps",
+        "--disable-sync",
+        "--metrics-recording-only",
+        "--run-all-compositor-stages-before-draw",
+        "--virtual-time-budget=8000",
+        `--user-data-dir=${userDataDir}`,
+        "--dump-dom",
+        ...extraArgs,
+        `${baseUrl}/`
+      ],
+      {
+        encoding: "utf8",
+        timeout: 20000,
+        maxBuffer: 5 * 1024 * 1024
+      }
+    );
+  } finally {
+    rmSync(userDataDir, { recursive: true, force: true });
+  }
+}
+
 function resolveDistPath(pathname) {
   const normalizedPath = pathname === "/" ? "/index.html" : pathname;
   const relativePath = normalizedPath.replace(/^\/+/, "");
@@ -58,23 +108,6 @@ function resolveDistPath(pathname) {
 
   assert(!relativeFromDist.startsWith(".."), `Refused path traversal: ${pathname}`);
   return absolutePath;
-}
-
-function contentTypeFor(filePath) {
-  const extension = path.extname(filePath);
-
-  switch (extension) {
-    case ".html":
-      return "text/html; charset=utf-8";
-    case ".js":
-      return "text/javascript; charset=utf-8";
-    case ".json":
-      return "application/json; charset=utf-8";
-    case ".png":
-      return "image/png";
-    default:
-      return "application/octet-stream";
-  }
 }
 
 function ensureDistBuildExists() {
@@ -87,42 +120,6 @@ function ensureDistBuildExists() {
   }
 }
 
-function startStaticServer() {
-  const server = createServer((request, response) => {
-    try {
-      const requestUrl = new URL(request.url ?? "/", "http://127.0.0.1");
-      const filePath = resolveDistPath(requestUrl.pathname);
-
-      if (!existsSync(filePath) || !statSync(filePath).isFile()) {
-        response.writeHead(404, { "content-type": "text/plain; charset=utf-8" });
-        response.end("Not found");
-        return;
-      }
-
-      response.writeHead(200, {
-        "content-type": contentTypeFor(filePath)
-      });
-      response.end(readFileSync(filePath));
-    } catch (error) {
-      response.writeHead(500, { "content-type": "text/plain; charset=utf-8" });
-      response.end(error instanceof Error ? error.message : "Unknown smoke server error");
-    }
-  });
-
-  return new Promise((resolve) => {
-    server.listen(0, "127.0.0.1", () => {
-      const address = server.address();
-      if (!address || typeof address === "string") {
-        throw new Error("Unable to determine smoke server address");
-      }
-      resolve({
-        server,
-        baseUrl: `http://127.0.0.1:${address.port}`
-      });
-    });
-  });
-}
-
 async function verifyFetches(baseUrl) {
   for (const target of smokeFetches) {
     const response = await fetch(`${baseUrl}${target.pathname}`);
@@ -132,6 +129,114 @@ async function verifyFetches(baseUrl) {
       await target.verify(response);
     }
   }
+}
+
+function verifyBootstrapInHeadlessBrowser(baseUrl) {
+  const browserCommand = findHeadlessBrowser();
+  const attempts = [
+    {
+      label: "default-headless",
+      extraArgs: []
+    },
+    {
+      label: "swiftshader-fallback",
+      extraArgs: ["--enable-unsafe-swiftshader"]
+    }
+  ];
+
+  let lastFailure = "Headless browser smoke did not run.";
+
+  for (const attempt of attempts) {
+    const result = dumpDomInHeadlessBrowser(browserCommand, baseUrl, attempt.extraArgs);
+    assert(
+      result.status === 0,
+      `Headless browser smoke failed during ${attempt.label}: ${result.stderr || result.stdout}`
+    );
+
+    const dom = result.stdout;
+    const hasReadyState = dom.includes('data-bootstrap-state="ready"');
+    const hasErrorState = dom.includes('data-bootstrap-state="error"');
+    const hasViewerShell = dom.includes("cesium-viewer");
+    const hasLightingToggle = dom.includes('data-lighting-toggle="true"');
+    const hasLightingToggleDisabled = dom.includes('data-lighting-enabled="false"');
+    const hasUnpressedLightingToggle = dom.includes('aria-pressed="false"');
+
+    if (
+      hasReadyState &&
+      !hasErrorState &&
+      hasViewerShell &&
+      hasLightingToggle &&
+      hasLightingToggleDisabled &&
+      hasUnpressedLightingToggle
+    ) {
+      return;
+    }
+
+    lastFailure = `Phase 1 smoke did not reach a ready viewer during ${attempt.label}.`;
+  }
+
+  throw new Error(lastFailure);
+}
+
+function startStaticServer() {
+  return new Promise((resolve, reject) => {
+    const serverProcess = spawn(
+      "python3",
+      ["-u", "-m", "http.server", "0", "--bind", "127.0.0.1", "-d", distRoot],
+      {
+        cwd: repoRoot,
+        stdio: ["ignore", "pipe", "pipe"]
+      }
+    );
+
+    let settled = false;
+    let serverLog = "";
+    const readyPattern = /Serving HTTP on [^ ]+ port (\d+)/;
+    const timeout = setTimeout(() => {
+      if (settled) {
+        return;
+      }
+
+      settled = true;
+      serverProcess.kill("SIGTERM");
+      reject(new Error(`Timed out waiting for smoke server. Output: ${serverLog}`));
+    }, 5000);
+
+    const handleOutput = (chunk) => {
+      serverLog += chunk.toString();
+      const match = serverLog.match(readyPattern);
+
+      if (match && !settled) {
+        settled = true;
+        clearTimeout(timeout);
+        resolve({
+          server: serverProcess,
+          baseUrl: `http://127.0.0.1:${match[1]}`
+        });
+      }
+    };
+
+    serverProcess.stdout.on("data", handleOutput);
+    serverProcess.stderr.on("data", handleOutput);
+    serverProcess.once("error", (error) => {
+      if (settled) {
+        return;
+      }
+
+      settled = true;
+      clearTimeout(timeout);
+      reject(error);
+    });
+    serverProcess.once("exit", (code) => {
+      if (settled) {
+        return;
+      }
+
+      settled = true;
+      clearTimeout(timeout);
+      reject(new Error(`Smoke server exited before readiness. Code: ${code}. Output: ${serverLog}`));
+    });
+  });
 }
 
 async function main() {
@@ -149,16 +254,14 @@ async function main() {
 
   try {
     await verifyFetches(baseUrl);
+    verifyBootstrapInHeadlessBrowser(baseUrl);
     console.log("Phase 1 smoke verification passed.");
   } finally {
-    await new Promise((resolve, reject) => {
-      server.close((error) => {
-        if (error) {
-          reject(error);
-          return;
-        }
+    await new Promise((resolve) => {
+      server.once("exit", () => {
         resolve();
       });
+      server.kill("SIGTERM");
     });
   }
 }

@@ -38,5 +38,6 @@ This repo adopts Cesium as an upstream runtime and configuration surface. It doe
 
 - The delivery repo owns bootstrap, contracts, presets, profile selection, and presentation.
 - Cesium owns rendering internals, worker internals, and packaged runtime assets.
+- Choosing local or on-prem providers is a deployment configuration decision, not a reason to pre-disable native `Viewer` capabilities.
 - Repo-local evidence for this boundary lives in [cesium-evidence.md](./cesium-evidence.md).
 - Any change that crosses this boundary needs a new ADR before code moves.

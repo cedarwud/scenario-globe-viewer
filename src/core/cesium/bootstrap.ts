@@ -26,9 +26,9 @@ export function initializeCesiumBootstrap(): void {
   const ionToken = readCesiumIonToken();
   const buildModuleUrlWithSetter = buildModuleUrl as BuildModuleUrlWithSetter;
 
-  // Keep the repo bootstrap aligned with Cesium's offline example and module
-  // URL resolver before the first Viewer exists.
-  // Evidence: /home/u24/papers/project/home-globe-reference-repos/cesium/packages/sandcastle/gallery/offline/main.js:10-17
+  // Reserve Cesium's shared module base URL before the first Viewer exists so
+  // native assets, workers, and provider catalogs stay on the upstream runtime
+  // path regardless of which deployment profile is active.
   // Evidence: /home/u24/papers/project/home-globe-reference-repos/cesium/packages/engine/Source/Core/buildModuleUrl.js:42-46
   // Evidence: /home/u24/papers/project/home-globe-reference-repos/cesium/packages/engine/Source/Core/buildModuleUrl.js:139-143
   // Evidence: /home/u24/papers/project/home-globe-reference-repos/cesium/packages/engine/Specs/Core/buildModuleUrlSpec.js:42-70

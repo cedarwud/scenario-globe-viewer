@@ -6,7 +6,7 @@ Source note: this file is a condensed manual rewrite of the active workspace eng
 
 If a Cesium API, behavior, data flow, or visual result is unclear, follow this order:
 
-1. [cesium-evidence.md](./cesium-evidence.md) for the repo's preserved bootstrap, viewer, offline-profile, and performance conclusions
+1. [cesium-evidence.md](./cesium-evidence.md) for the repo's preserved bootstrap, viewer, deployment-profile, and performance conclusions
 2. `node_modules/@cesium/engine/Source/` or `node_modules/@cesium/widgets/Source/` for the installed package source that backs this repo's current version pin
 3. If a full Cesium source checkout is available, use upstream Sandcastle, then Source, then Specs before inventing a new behavior
 
@@ -31,14 +31,14 @@ Use these when validating the version pin, bundled asset roots, and delivery-fac
 - `node_modules/@cesium/widgets/Source/widgets.css`
 - [cesium-evidence.md](./cesium-evidence.md)
 
-Use these when working on `CESIUM_BASE_URL`, asset paths, workers, or offline deployment.
+Use these when working on `CESIUM_BASE_URL`, asset paths, workers, or deployment-specific provider overrides.
 
 ### Viewer Shell
 
 - `node_modules/@cesium/widgets/Source/Viewer/Viewer.js`
 - [cesium-evidence.md](./cesium-evidence.md)
 
-Use these when choosing wrapper strategy, shutting down built-in controls, or checking what `Viewer` wires together by default.
+Use these when choosing wrapper strategy, configuring built-in controls, or checking what `Viewer` wires together by default.
 
 ### Camera And Globe Quality
 
@@ -60,7 +60,7 @@ Use these after Phase 2, when replay and overlay contracts need source-backed co
 
 ### Monorepo-Only Surfaces
 
-The npm packages do not ship Sandcastle examples, Specs, or the offline guide. If a change depends on those deeper surfaces, use a full Cesium source checkout and keep the repo-local conclusion synchronized in [cesium-evidence.md](./cesium-evidence.md) or the relevant ADR.
+The npm packages do not ship Sandcastle examples, Specs, or Cesium's historical deployment guides. If a change depends on those deeper surfaces, use a full Cesium source checkout and keep the repo-local conclusion synchronized in [cesium-evidence.md](./cesium-evidence.md) or the relevant ADR.
 
 ## Repo-Specific Reading Order
 
@@ -69,7 +69,8 @@ The npm packages do not ship Sandcastle examples, Specs, or the offline guide. I
 3. [architecture.md](./architecture.md)
 4. [delivery-phases.md](./delivery-phases.md)
 5. [cesium-adoption-boundary.md](./cesium-adoption-boundary.md)
-6. this navigation index
+6. [deployment-profiles.md](./deployment-profiles.md)
+7. this navigation index
 
 ## Archive Exclusion
 

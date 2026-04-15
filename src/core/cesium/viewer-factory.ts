@@ -1,14 +1,7 @@
 import { Viewer } from "cesium";
-import { applyAtmosphereBaseline } from "../../features/globe/atmosphere";
-import { applyCameraLanguage } from "../../features/globe/camera-language";
-import { applyFogAndPostProcessBaseline } from "../../features/globe/fog-and-post-process";
 import { applyLightingBaseline } from "../../features/globe/lighting";
-import { createOfflineImageryLayer } from "../../features/globe/offline-imagery";
-import {
-  applyOfflineFirstTerrain,
-  createTerrainFallbackProvider
-} from "../../features/globe/offline-terrain";
-import { applyStarBackground } from "../../features/globe/star-background";
+import { resolveImagerySelection } from "../../features/globe/offline-imagery";
+import { resolveTerrainSelection } from "../../features/globe/offline-terrain";
 
 export interface ViewerElements {
   container: Element | string;
@@ -21,8 +14,12 @@ export function createViewer({
   creditContainer,
   creditViewport
 }: ViewerElements): Viewer {
-  // Keep the first-globe stage on Cesium's higher-level Viewer shell and route
-  // credits into repo-owned DOM without forking Cesium internals.
+  const imagerySelection = resolveImagerySelection();
+  const terrainSelection = resolveTerrainSelection();
+
+  // Keep the runtime on Cesium's higher-level Viewer shell and preserve its
+  // native controls, imagery, terrain, and credits by default. Only override
+  // providers when this repo is explicitly configured to do so.
   // Evidence: /home/u24/papers/project/home-globe-reference-repos/cesium/packages/sandcastle/gallery/offline/main.js:10-17
   // Evidence: /home/u24/papers/project/home-globe-reference-repos/cesium/packages/widgets/Source/Viewer/Viewer.js:280-290
   // Evidence: /home/u24/papers/project/home-globe-reference-repos/cesium/packages/widgets/Source/Viewer/Viewer.js:316-317
@@ -32,20 +29,13 @@ export function createViewer({
   // Evidence: /home/u24/papers/project/home-globe-reference-repos/cesium/packages/widgets/Specs/Viewer/ViewerSpec.js:85-117
   // Evidence: /home/u24/papers/project/home-globe-reference-repos/cesium/packages/widgets/Specs/Viewer/ViewerSpec.js:146-151
   const viewer = new Viewer(container, {
-    baseLayerPicker: false,
-    geocoder: false,
-    baseLayer: createOfflineImageryLayer(),
-    terrainProvider: createTerrainFallbackProvider(),
     creditContainer,
-    creditViewport
+    creditViewport,
+    ...imagerySelection,
+    ...terrainSelection
   });
 
-  applyAtmosphereBaseline(viewer);
   applyLightingBaseline(viewer);
-  applyStarBackground(viewer);
-  applyFogAndPostProcessBaseline(viewer);
-  applyOfflineFirstTerrain(viewer);
-  applyCameraLanguage(viewer);
 
   return viewer;
 }

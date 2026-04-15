@@ -40,11 +40,11 @@ This repo needs durable Cesium evidence without depending on workspace-local ref
 
 ## Preserved Upstream Guidance
 
-The npm packages do not ship Cesium's offline guide, Sandcastle, or Specs. This repo preserves the stable conclusions it needs from those surfaces:
+The npm packages do not ship Sandcastle, Specs, or Cesium's historical deployment guides. This repo preserves the stable conclusions it needs from those surfaces:
 
-- Offline delivery must not depend on Cesium's default online imagery or online geocoding.
-- Offline delivery should disable or replace `BaseLayerPicker` and `Geocoder` rather than exposing online defaults.
-- Static Cesium assets should be served from an HTTP(S) path, not loaded from `file://`.
+- Cesium-native `Viewer` defaults remain a valid repo baseline, including native controls and provider choices, unless an explicit product or deployment requirement says otherwise.
+- Local or on-prem imagery, terrain, and tileset hosting remain supported through explicit provider configuration, but they are opt-in overrides rather than the only compliant default path.
+- Static Cesium runtime assets should be served from an HTTP(S) path, not loaded from `file://`.
 - When deeper Cesium behavior is unclear, the investigation order is Sandcastle, then Source, then Specs before any repo-local implementation is invented.
 
 These conclusions were verified against the upstream Cesium reference material during repo bootstrap on `2026-04-15`. If the Cesium version pin changes or the bootstrap approach changes, re-verify and update this file in the same change set.
@@ -95,23 +95,21 @@ This file is the delivery-local evidence anchor for Phase 0 through Phase 2.
 - `/home/u24/papers/project/home-globe-reference-repos/cesium/packages/engine/Source/Scene/PostProcessStageCollection.js:32-56` defines the built-in bloom stage and its default-disabled baseline.
 - `/home/u24/papers/project/home-globe-reference-repos/cesium/packages/engine/Specs/Scene/PostProcessStageCollectionSpec.js:13-31` verifies that the collection exposes `bloom` as a native post-process stage.
 
-### Stage 2.5 Offline Imagery Provider Setup
+### Stage 2.5 Imagery Provider Defaults And Optional Overrides
 
-- `/home/u24/papers/project/home-globe-reference-repos/cesium/packages/sandcastle/gallery/offline/main.js:10-16` shows the offline Cesium pattern: `baseLayerPicker: false`, `geocoder: false`, and `TileMapServiceImageryProvider.fromUrl(Cesium.buildModuleUrl(\"Assets/Textures/NaturalEarthII\"))`.
-- `/home/u24/papers/project/home-globe-reference-repos/cesium/packages/sandcastle/gallery/imagery-layers-texture-filters/main.js:12-20` shows `TileMapServiceImageryProvider.fromUrl` consuming the bundled `Assets/Textures/NaturalEarthII` tiles.
-- `/home/u24/papers/project/home-globe-reference-repos/cesium/packages/widgets/Source/Viewer/Viewer.js:289-299`, `/home/u24/papers/project/home-globe-reference-repos/cesium/packages/widgets/Source/Viewer/Viewer.js:416-428`, `/home/u24/papers/project/home-globe-reference-repos/cesium/packages/widgets/Source/Viewer/Viewer.js:565-588`, and `/home/u24/papers/project/home-globe-reference-repos/cesium/packages/widgets/Source/Viewer/Viewer.js:645-678` define the `baseLayer`, `baseLayerPicker`, and `geocoder` construction rules.
-- `/home/u24/papers/project/home-globe-reference-repos/cesium/packages/engine/Source/Scene/TileMapServiceImageryProvider.js:18-27` and `/home/u24/papers/project/home-globe-reference-repos/cesium/packages/engine/Source/Scene/TileMapServiceImageryProvider.js:108-149` define `fromUrl` and the `credit` option for tiled offline imagery.
-- `/home/u24/papers/project/home-globe-reference-repos/cesium/packages/widgets/Specs/Viewer/ViewerSpec.js:196-205`, `/home/u24/papers/project/home-globe-reference-repos/cesium/packages/widgets/Specs/Viewer/ViewerSpec.js:332-341`, and `/home/u24/papers/project/home-globe-reference-repos/cesium/packages/widgets/Specs/Viewer/ViewerSpec.js:549-556` verify disabling `baseLayerPicker`, disabling `geocoder`, and setting a custom `baseLayer`.
-- `/home/u24/papers/project/home-globe-reference-repos/cesium/packages/engine/Specs/Scene/TileMapServiceImageryProviderSpec.js:106-119` verifies `fromUrl`, while `/home/u24/papers/project/home-globe-reference-repos/cesium/packages/engine/Specs/Scene/TileMapServiceImageryProviderSpec.js:280-296` verifies that explicit credits remain attached to the provider.
+- `node_modules/@cesium/widgets/Source/Viewer/Viewer.js:295-299` documents the default imagery selection rules used by `Viewer`, including the `selectedImageryProviderViewModel`, `imageryProviderViewModels`, and `baseLayer` paths.
+- `node_modules/@cesium/widgets/Source/Viewer/Viewer.js:564-588` and `node_modules/@cesium/widgets/Source/Viewer/Viewer.js:645-678` show that `Geocoder`, `BaseLayerPicker`, and explicit `baseLayer` replacement are all optional runtime choices rather than a mandatory offline shell pattern.
+- `node_modules/@cesium/widgets/Source/BaseLayerPicker/createDefaultImageryProviderViewModels.js:16-118` shows Cesium's native imagery-provider catalog, including the default Cesium-ion-backed entries and other upstream-owned imagery choices.
+- `node_modules/@cesium/engine/Source/Scene/TileMapServiceImageryProvider.js:18-27` and `node_modules/@cesium/engine/Source/Scene/TileMapServiceImageryProvider.js:108-149` define the explicit TMS override path used when a deployment chooses mirrored or local imagery instead of the native default provider set.
+- `/home/u24/papers/project/home-globe-reference-repos/cesium/packages/sandcastle/gallery/offline/main.js:10-16` remains useful as an example of an explicit local-TMS configuration, but this repo no longer treats that example as the required default shell.
 
-### Stage 2.6 Terrain Provider (Offline-First)
+### Stage 2.6 Terrain Provider Defaults And Optional Overrides
 
-- `/home/u24/papers/project/home-globe-reference-repos/cesium/Documentation/OfflineGuide/README.md:3-15` states that offline apps must avoid Cesium's online defaults and either disable the picker or replace its terrain sources with offline ones.
-- `/home/u24/papers/project/home-globe-reference-repos/cesium/packages/sandcastle/gallery/terrain/main.js:4-18` shows Cesium's standard terrain boot path, while `/home/u24/papers/project/home-globe-reference-repos/cesium/packages/sandcastle/gallery/terrain/main.js:48-99` shows the supported fallback between `Terrain.fromWorldTerrain()` and `EllipsoidTerrainProvider`.
-- `/home/u24/papers/project/home-globe-reference-repos/cesium/packages/engine/Source/Core/CesiumTerrainProvider.js:1191-1207` defines `CesiumTerrainProvider.fromUrl(...)` for hosted quantized-mesh or heightmap terrain datasets.
-- `/home/u24/papers/project/home-globe-reference-repos/cesium/packages/engine/Source/Scene/Terrain.js:43-100` defines the async `Terrain` helper and its `readyEvent` / `errorEvent` fallback hooks.
-- `/home/u24/papers/project/home-globe-reference-repos/cesium/packages/widgets/Source/Viewer/Viewer.js:299-303` documents `terrainProvider` versus `terrain`, and `/home/u24/papers/project/home-globe-reference-repos/cesium/packages/widgets/Source/Viewer/Viewer.js:681-699` shows how `Viewer` applies those two terrain entry points.
-- `/home/u24/papers/project/home-globe-reference-repos/cesium/packages/engine/Specs/Scene/TerrainSpec.js:15-58` verifies `Terrain` ready/error events, `/home/u24/papers/project/home-globe-reference-repos/cesium/packages/engine/Specs/Core/EllipsoidTerrainProviderSpec.js:18-36` verifies the ellipsoid fallback provider, and `/home/u24/papers/project/home-globe-reference-repos/cesium/packages/widgets/Specs/Viewer/ViewerSpec.js:99-105` plus `/home/u24/papers/project/home-globe-reference-repos/cesium/packages/widgets/Specs/Viewer/ViewerSpec.js:425-436` verify the default ellipsoid baseline and explicit `terrainProvider` injection path.
+- `node_modules/@cesium/widgets/Source/Viewer/Viewer.js:297-303` documents the native terrain entry points, including default ellipsoid terrain plus explicit `selectedTerrainProviderViewModel`, `terrainProviderViewModels`, `terrainProvider`, and `terrain`.
+- `node_modules/@cesium/widgets/Source/Viewer/Viewer.js:681-699` shows that custom terrain injection is an explicit override path layered on top of the standard `Viewer` shell.
+- `node_modules/@cesium/widgets/Source/BaseLayerPicker/createDefaultTerrainProviderViewModels.js:12-44` shows Cesium's native terrain choices, including `WGS84 Ellipsoid` and `Cesium World Terrain`.
+- `node_modules/@cesium/engine/Source/Core/CesiumTerrainProvider.js:1191-1207` defines `CesiumTerrainProvider.fromUrl(...)` for explicit local, mirrored, or on-prem terrain datasets.
+- `node_modules/@cesium/engine/Specs/Scene/TerrainSpec.js:15-58`, `node_modules/@cesium/engine/Specs/Core/EllipsoidTerrainProviderSpec.js:18-36`, and `node_modules/@cesium/widgets/Specs/Viewer/ViewerSpec.js:99-105` plus `node_modules/@cesium/widgets/Specs/Viewer/ViewerSpec.js:425-436` verify the native terrain baseline, the ellipsoid fallback path, and the explicit terrain-injection behavior.
 
 ### Stage 2.7 Camera Language - FlyTo Tuning
 

@@ -6,22 +6,27 @@ Accepted
 
 ## Context
 
-The delivery target includes offline and on-prem operation, so the default profile cannot assume online Cesium services. The deployment baseline must also stay aligned with the same profile used during day-to-day development.
+The repo needs one deployment baseline that preserves Cesium-native quality and shell behavior. Earlier wording over-interpreted `offline-first` and encouraged turning off or replacing native `Viewer` controls and provider paths simply because they were backed by Cesium services. The repo still needs an explicit path for local or on-prem imagery, terrain, and tilesets when a deployment asks for it, but that path must stay opt-in.
 
 Evidence:
 
-- [../cesium-evidence.md](../cesium-evidence.md) preserves the offline deployment rules verified against the upstream Cesium offline guide during repo bootstrap.
+- [../deployment-profiles.md](../deployment-profiles.md) defines the current repo-level interpretation of deployment profiles.
+- [../cesium-evidence.md](../cesium-evidence.md) preserves the current provider and `Viewer` evidence used by this repo.
 - `node_modules/@cesium/widgets/Source/Viewer/Viewer.js:281-284` documents the constructor toggles for `baseLayerPicker` and `geocoder`.
-- `node_modules/@cesium/widgets/Source/Viewer/Viewer.js:416-428`, `node_modules/@cesium/widgets/Source/Viewer/Viewer.js:564-588`, and `node_modules/@cesium/widgets/Source/Viewer/Viewer.js:644-656` show how those widgets are conditionally created in the runtime shell.
+- `node_modules/@cesium/widgets/Source/Viewer/Viewer.js:295-303` documents the default imagery and terrain entry points.
+- `node_modules/@cesium/widgets/Source/BaseLayerPicker/createDefaultImageryProviderViewModels.js:16-118` and `node_modules/@cesium/widgets/Source/BaseLayerPicker/createDefaultTerrainProviderViewModels.js:12-44` show Cesium's native provider catalogs.
 
 ## Decision
 
-Adopt Profile A, fully offline or on-prem, as both the delivery default and the development default. Profile B, online service-backed visuals, is allowed only as a short-lived opt-in spike. Profile C, mixed showcase assets, remains an optional later-stage profile.
+Adopt Profile A, Cesium-native default, as both the delivery default and the development default. In this repo, `offline-first` means "stay on Cesium's upstream runtime path and avoid repo-local forks or fake substitute stacks," not "forbid Cesium-native services or controls."
+
+Profile B remains the explicit local or on-prem override path for deployments that need mirrored imagery, terrain, or tilesets. Profile C remains an optional mixed or showcase profile for later stages.
 
 Profile switching will be handled through provider-factory configuration rather than a separate Cesium fork or a separate bootstrap stack.
 
 ## Consequences
 
-- Phase 2 quality gates must be met under the offline-first profile, not under an online-only visual spike.
+- Phase 2 quality gates must first be met on the Cesium-native baseline rather than by pre-emptively degrading the runtime shell.
+- `BaseLayerPicker`, `Geocoder`, native imagery, native terrain, and other upstream-owned Cesium capabilities are not to be disabled or replaced solely to satisfy deployment wording.
 - Credits remain required even when the data source is local or on-prem.
-- Local imagery, terrain, and optional tileset hosting become explicit project responsibilities instead of hidden future work.
+- Local imagery, terrain, and optional tileset hosting remain explicit project responsibilities when a delivery actually chooses Profile B, but they are not the only compliant default path.

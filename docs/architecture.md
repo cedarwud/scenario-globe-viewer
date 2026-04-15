@@ -6,8 +6,11 @@ Source note: this file is a manual rewrite of the active workspace engineering i
 
 `scenario-globe-viewer` is an Earth-first Cesium delivery repo. The delivery surface stays neutral, keeps Cesium upstream-owned, and avoids replay or satellite implementation work until the globe foundation and shell contracts are stable.
 
+For this repo, `offline-first` is now interpreted as "stay on Cesium's upstream runtime path and avoid repo-local forks or fake substitute shells." It does not mean disabling Cesium-native controls, imagery, terrain, or geocoding simply because those defaults may be backed by Cesium services.
+
 Related roadmap: see [delivery-phases.md](./delivery-phases.md).
 Related evidence ledger: see [cesium-evidence.md](./cesium-evidence.md).
+Related deployment guidance: see [deployment-profiles.md](./deployment-profiles.md).
 
 ## System Layers
 
@@ -33,19 +36,21 @@ The repo is organized into five layers:
 
 ## Data And Control Flow
 
-Current Phase 0 flow is intentionally minimal:
+Current Phase 1 flow is now active:
 
 1. `index.html` reserves `window.CESIUM_BASE_URL` before the application module runs.
 2. Vite copies Cesium runtime assets into the delivery build under `cesium/`.
-3. The app shell renders a placeholder page until Phase 1 introduces Cesium bootstrap.
-4. `npm test` confirms the copied runtime surfaces and fixture remain intact without requiring a live Cesium render path.
+3. `src/core/cesium/bootstrap.ts` sets Cesium's runtime base URL before the first `Viewer` is created.
+4. `src/main.ts` mounts the repo-owned viewer shell, creates a `Viewer`, preserves Cesium's native credit handling, and attaches the repo-local lighting toggle inside the existing toolbar.
+5. `npm test` confirms the Phase 0 build surfaces stay intact, and `npm run test:phase1` runs a headless bootstrap smoke against the built app.
 
-Planned Phase 1-3 flow:
+Planned Phase 2-5 flow:
 
-1. Bootstrap code creates a delivery-local Cesium runtime entry.
-2. A viewer factory owns the high-level `Viewer` wrapper and later disables unused built-in controls.
+1. Globe-quality work adds atmosphere, lighting, terrain, imagery, presets, and optional provider-override handling while keeping the default baseline on Cesium-native `Viewer` behavior.
+2. A viewer factory continues to own the high-level `Viewer` wrapper and only changes built-in controls when there is an explicit product reason rather than an abstract "offline-first" requirement.
 3. Scene presets become the data-only input for globe presentation.
 4. Replay and overlay contracts attach later without leaking Cesium runtime classes into external interfaces.
+5. Fixture ingestion and the first overlay remain later phases, after the shell and time seams are stable.
 
 ## Directory Intent
 
@@ -59,7 +64,9 @@ Planned Phase 1-3 flow:
 
 - Phase 0: repo rules, ADRs, package bootstrap, asset copy, and fixture staging
 - Phase 1: Cesium bootstrap, `Viewer` wrapper, and credit-preserving first globe
-- Phase 2: globe quality, scene presets, and offline-first visual baseline
+- Phase 2: globe quality, scene presets, and a Cesium-native visual baseline with optional provider overrides
 - Phase 3: shell framing, replay clock, and overlay interfaces only
+- Phase 4: minimal fixture ingestion through an adapter seam
+- Phase 5: first overlay path without degrading the globe baseline
 
-Anything beyond Phase 3 is outside the current implementation target.
+Anything beyond Phase 5 is outside the current implementation target.
