@@ -80,10 +80,11 @@ function dumpDomInHeadlessBrowser(browserCommand, baseUrl, extraArgs = []) {
         "--disable-background-networking",
         "--disable-component-update",
         "--disable-default-apps",
+        "--disable-dev-shm-usage",
         "--disable-sync",
         "--metrics-recording-only",
         "--run-all-compositor-stages-before-draw",
-        "--virtual-time-budget=8000",
+        "--virtual-time-budget=12000",
         `--user-data-dir=${userDataDir}`,
         "--dump-dom",
         ...extraArgs,
@@ -135,12 +136,13 @@ function verifyBootstrapInHeadlessBrowser(baseUrl) {
   const browserCommand = findHeadlessBrowser();
   const attempts = [
     {
-      label: "default-headless",
-      extraArgs: []
-    },
-    {
-      label: "swiftshader-fallback",
-      extraArgs: ["--enable-unsafe-swiftshader"]
+      label: "swiftshader-headless",
+      extraArgs: [
+        "--enable-unsafe-swiftshader",
+        "--disable-gpu",
+        "--use-angle=swiftshader",
+        "--enable-webgl"
+      ]
     }
   ];
 

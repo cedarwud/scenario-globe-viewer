@@ -23,7 +23,7 @@ The repo is organized into five layers:
 3. Cesium integration seam
    Future `src/core/cesium/` modules wrap `Viewer`, provider factories, credits, and performance controls without copying Cesium internals.
 4. Feature interfaces
-   Phase 2.8 starts globe presets as a plain-data scene-preset seam for camera framing and presentation-profile selection. Replay time and satellite overlays remain contract-led later. Through Phase 3, satellite work is limited to interface boundaries and necessary hooks.
+   Phase 2.8 starts globe presets as a plain-data scene-preset seam for camera framing and presentation-profile selection, and Phase 2.9 lands the first concrete global preset on top of that seam. Replay time and satellite overlays remain contract-led later. Through Phase 3, satellite work is limited to interface boundaries and necessary hooks.
 5. Validation harness
    `scripts/verify-phase0.mjs` and `tests/smoke/` keep build output, fixture integrity, neutral wording, and preserved Cesium evidence runnable from the repo itself.
 
@@ -36,19 +36,19 @@ The repo is organized into five layers:
 
 ## Data And Control Flow
 
-Current Phase 1 flow is now active:
+Current runtime flow is now active:
 
 1. `index.html` reserves `window.CESIUM_BASE_URL` before the application module runs.
 2. Vite copies Cesium runtime assets into the delivery build under `cesium/`.
 3. `src/core/cesium/bootstrap.ts` sets Cesium's runtime base URL before the first `Viewer` is created.
-4. `src/main.ts` mounts the repo-owned viewer shell, creates a `Viewer`, preserves Cesium's native credit handling, and attaches the repo-local lighting toggle inside the existing toolbar.
+4. `src/main.ts` mounts the repo-owned viewer shell, creates a `Viewer`, applies the single global preset through the existing `Viewer` path, preserves Cesium's native credit handling, and attaches the repo-local lighting toggle inside the existing toolbar.
 5. `npm test` confirms the Phase 0 build surfaces stay intact, and `npm run test:phase1` runs a headless bootstrap smoke against the built app.
 
 Planned Phase 2-5 flow:
 
 1. Globe-quality work adds atmosphere, lighting, terrain, imagery, presets, and optional provider-override handling while keeping the default baseline on Cesium-native `Viewer` behavior.
 2. A viewer factory continues to own the high-level `Viewer` wrapper and only changes built-in controls when there is an explicit product reason rather than an abstract "offline-first" requirement.
-3. Phase 2.8 scene presets become the plain-data input for globe presentation and camera framing, while concrete global/regional/site preset implementations remain later Phase 2 work.
+3. Phase 2.8 scene presets are now consumed by a single global preset for globe presentation and camera framing, while concrete regional/site preset implementations remain later Phase 2 work.
 4. Replay and overlay contracts attach later without leaking Cesium runtime classes into external interfaces.
 5. Fixture ingestion and the first overlay remain later phases, after the shell and time seams are stable.
 

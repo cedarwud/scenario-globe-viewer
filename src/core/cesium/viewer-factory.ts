@@ -1,7 +1,8 @@
 import { Viewer } from "cesium";
-import { applyLightingBaseline } from "../../features/globe/lighting";
-import { resolveImagerySelection } from "../../features/globe/offline-imagery";
-import { resolveTerrainSelection } from "../../features/globe/offline-terrain";
+import {
+  applyGlobalPreset,
+  resolveGlobalPresetViewerOptions
+} from "../../features/globe/global-preset";
 
 export interface ViewerElements {
   container: Element | string;
@@ -14,8 +15,7 @@ export function createViewer({
   creditContainer,
   creditViewport
 }: ViewerElements): Viewer {
-  const imagerySelection = resolveImagerySelection();
-  const terrainSelection = resolveTerrainSelection();
+  const presetViewerOptions = resolveGlobalPresetViewerOptions();
 
   // Keep the runtime on Cesium's higher-level Viewer shell and preserve its
   // native controls, imagery, terrain, and credits by default. Only override
@@ -31,11 +31,10 @@ export function createViewer({
   const viewer = new Viewer(container, {
     creditContainer,
     creditViewport,
-    ...imagerySelection,
-    ...terrainSelection
+    ...presetViewerOptions
   });
 
-  applyLightingBaseline(viewer);
+  applyGlobalPreset(viewer);
 
   return viewer;
 }

@@ -38,6 +38,7 @@ The current repo snapshot includes a completed Phase 0 baseline, a stable Phase 
 - runtime Cesium bootstrap is active through `src/main.ts`
 - the native `Viewer` shell, credits, `BaseLayerPicker`, `Geocoder`, `HomeButton`, timeline, and toolbar remain available by default
 - explicit imagery and terrain URLs remain opt-in overrides, while the default terrain selection stays on Cesium's native `BaseLayerPicker` path
+- the first repo-owned global preset now consumes the Phase 2.8 scene-preset seam for globe presentation and camera framing without introducing preset switching
 - a repo-local lighting toggle lives inside the native toolbar and uses Cesium-native scene controls rather than a repo-local rendering stack
 - repo-local smoke commands exist at `npm test` and `npm run test:phase1`
 - `docs/images/phase-1-baseline.png` remains the historical first-globe capture; ad hoc Playwright screenshots under `output/` are local validation artifacts and are not part of the delivery surface

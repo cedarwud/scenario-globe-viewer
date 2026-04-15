@@ -14,7 +14,7 @@ Related deployment guidance: see [deployment-profiles.md](./deployment-profiles.
 - The default runtime keeps native `Viewer` controls, credits, and provider catalogs available while allowing explicit imagery/terrain overrides through deployment configuration.
 - The current runtime also includes a small Cesium-native refinement slice: default terrain selection stays on the native `BaseLayerPicker` path, and the lighting toggle uses Cesium scene controls plus a flattened-scene imagery compensation path instead of a repo-local post pipeline.
 - The current bootstrap smoke entry point is `node tests/smoke/bootstrap-loads-assets-and-workers.mjs`.
-- Phase 2.8 is limited to a plain-data scene preset interface plus the current baseline preset definition. Preset switching and concrete global/regional/site implementations remain later Phase 2 work.
+- Phase 2.9 now consumes the Phase 2.8 scene-preset seam through a single concrete global preset. Preset switching and concrete regional/site implementations remain later Phase 2 work.
 - `docs/images/phase-1-baseline.png` remains the historical Phase 1 first-globe capture. Ad hoc screenshots under `output/` are local validation artifacts and are not part of the delivery surface.
 
 ## Phase 0
