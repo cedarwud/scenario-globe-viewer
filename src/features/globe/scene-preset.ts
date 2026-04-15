@@ -71,16 +71,16 @@ export const CESIUM_NATIVE_BASELINE_SCENE_PRESET = {
     destination: {
       kind: "rectangleDegrees",
       rectangle: {
-        west: -145.0,
-        south: -10.0,
-        east: 35.0,
-        north: 78.0
+        west: -170.0,
+        south: -60.0,
+        east: 170.0,
+        north: 60.0
       }
     },
-    defaultViewFactor: 0.18,
+    defaultViewFactor: 0.32,
     orientation: {
-      heading: 14.0,
-      pitch: -78.0,
+      heading: 0.0,
+      pitch: -90.0,
       roll: 0.0
     },
     flight: {

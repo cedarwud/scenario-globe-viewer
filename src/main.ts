@@ -20,6 +20,28 @@ function setBootstrapState(state: BootstrapState, detail?: string): void {
   }
 }
 
+function syncVisualBaselineState(viewer: ReturnType<typeof createViewer>): void {
+  document.documentElement.dataset.sceneFogActive = viewer.scene.fog.enabled
+    ? "true"
+    : "false";
+  document.documentElement.dataset.sceneFogDensity = String(viewer.scene.fog.density);
+  document.documentElement.dataset.sceneFogVisualDensityScalar = String(
+    viewer.scene.fog.visualDensityScalar
+  );
+  document.documentElement.dataset.sceneFogHeightScalar = String(
+    viewer.scene.fog.heightScalar
+  );
+  document.documentElement.dataset.sceneFogHeightFalloff = String(
+    viewer.scene.fog.heightFalloff
+  );
+  document.documentElement.dataset.sceneFogMaxHeight = String(viewer.scene.fog.maxHeight);
+  document.documentElement.dataset.sceneFogMinimumBrightness = String(
+    viewer.scene.fog.minimumBrightness
+  );
+  document.documentElement.dataset.sceneBloomActive =
+    viewer.scene.postProcessStages.bloom.enabled ? "true" : "false";
+}
+
 function serializeBootstrapError(reason: unknown): string {
   if (reason instanceof Error) {
     return reason.message;
@@ -78,6 +100,7 @@ const viewer = createViewer({
   container: viewerRoot,
   scenePresetKey: scenePreset
 });
+syncVisualBaselineState(viewer);
 const unmountLightingToggle = mountLightingToggle(viewer);
 const removeMorphCompleteListener = viewer.scene.morphComplete.addEventListener(() => {
   refreshLightingForSceneMode(viewer);

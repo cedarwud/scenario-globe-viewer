@@ -1,7 +1,6 @@
 import type { Viewer } from "cesium";
 import { applyAtmosphereBaseline } from "./atmosphere";
 import { applyCameraLanguage } from "./camera-language";
-import { applyFogAndPostProcessBaseline } from "./fog-and-post-process";
 import { applyLightingBaseline } from "./lighting";
 import {
   type ImagerySelectionOptions,
@@ -63,7 +62,9 @@ function applyScenePresentation(
     case "phase2-native-baseline":
       applyAtmosphereBaseline(viewer);
       applyStarBackground(viewer);
-      applyFogAndPostProcessBaseline(viewer);
+      // Stage 2.4 remains historical evidence in this repo, but the current
+      // preset runtime keeps fog and bloom dormant until they can be retuned
+      // without washing out the Cesium-native baseline.
       applyLightingBaseline(viewer);
       return;
     default:

@@ -1,5 +1,6 @@
 import {
   Camera,
+  Cartesian3,
   EasingFunction,
   Math as CesiumMath,
   Rectangle,
@@ -33,13 +34,41 @@ function resolveOrientation(orientation: SceneOrientationDegrees | undefined) {
   };
 }
 
+const scaledDestinationScratch = new Cartesian3();
+const normalizedDestinationScratch = new Cartesian3();
+
+function resolveFlightDestination(
+  viewer: Viewer,
+  camera: SceneCameraDefinition
+): Rectangle | Cartesian3 {
+  const rectangle = resolveRectangleDestination(camera.destination);
+  const defaultViewFactor = camera.defaultViewFactor;
+
+  if (typeof defaultViewFactor !== "number") {
+    return rectangle;
+  }
+
+  const destination = viewer.camera.getRectangleCameraCoordinates(
+    rectangle,
+    scaledDestinationScratch
+  );
+  let magnitude = Cartesian3.magnitude(destination);
+  magnitude += magnitude * defaultViewFactor;
+
+  return Cartesian3.multiplyByScalar(
+    Cartesian3.normalize(destination, normalizedDestinationScratch),
+    magnitude,
+    scaledDestinationScratch
+  );
+}
+
 function flyCameraDefinition(
   viewer: Viewer,
   camera: SceneCameraDefinition,
   duration: number | undefined
 ): void {
   viewer.camera.flyTo({
-    destination: resolveRectangleDestination(camera.destination),
+    destination: resolveFlightDestination(viewer, camera),
     orientation: resolveOrientation(camera.orientation),
     duration,
     maximumHeight: camera.flight?.maximumHeight,

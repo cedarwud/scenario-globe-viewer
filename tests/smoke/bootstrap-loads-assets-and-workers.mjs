@@ -288,6 +288,16 @@ async function readBootstrapState(client) {
         bootstrapState: root?.dataset.bootstrapState ?? null,
         bootstrapDetail: root?.dataset.bootstrapDetail ?? null,
         scenePreset: root?.dataset.scenePreset ?? null,
+        sceneFogActive: root?.dataset.sceneFogActive ?? null,
+        sceneFogDensity: root?.dataset.sceneFogDensity ?? null,
+        sceneFogVisualDensityScalar:
+          root?.dataset.sceneFogVisualDensityScalar ?? null,
+        sceneFogHeightScalar: root?.dataset.sceneFogHeightScalar ?? null,
+        sceneFogHeightFalloff: root?.dataset.sceneFogHeightFalloff ?? null,
+        sceneFogMaxHeight: root?.dataset.sceneFogMaxHeight ?? null,
+        sceneFogMinimumBrightness:
+          root?.dataset.sceneFogMinimumBrightness ?? null,
+        sceneBloomActive: root?.dataset.sceneBloomActive ?? null,
         hasViewerShell: Boolean(document.querySelector('.cesium-viewer')),
         hasLightingToggle: Boolean(lightingToggle),
         hasLightingToggleDisabled:
@@ -311,6 +321,14 @@ async function waitForBootstrapReady(client, expectedScenePreset, scenarioLabel,
     if (
       lastState.bootstrapState === "ready" &&
       lastState.scenePreset === expectedScenePreset &&
+      lastState.sceneFogActive === "true" &&
+      lastState.sceneFogDensity === "0.0006" &&
+      lastState.sceneFogVisualDensityScalar === "0.15" &&
+      lastState.sceneFogHeightScalar === "0.001" &&
+      lastState.sceneFogHeightFalloff === "0.59" &&
+      lastState.sceneFogMaxHeight === "800000" &&
+      lastState.sceneFogMinimumBrightness === "0.03" &&
+      lastState.sceneBloomActive === "false" &&
       lastState.hasViewerShell &&
       lastState.hasLightingToggle &&
       lastState.hasLightingToggleDisabled &&

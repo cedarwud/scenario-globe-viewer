@@ -15,6 +15,7 @@ Related deployment guidance: see [deployment-profiles.md](./deployment-profiles.
 - The current runtime also includes a small Cesium-native refinement slice: default terrain selection stays on the native `BaseLayerPicker` path, and the lighting toggle uses Cesium scene controls plus a flattened-scene imagery compensation path instead of a repo-local post pipeline.
 - The current bootstrap smoke entry point is `node tests/smoke/bootstrap-loads-assets-and-workers.mjs`.
 - Phase 2.10 now consumes the Phase 2.8 scene-preset seam through concrete global and regional presets, with runtime selection kept to a bootstrap-time `scenePreset` path for those two presets only. Site preset work remains later Phase 2 work.
+- Stage 2.4 fog/post-process remains historical completion evidence in the repo, but it is currently dormant on the active preset runtime until its tuning can be reintroduced without over-brightening or over-fogging the Cesium-native baseline.
 - `docs/images/phase-1-baseline.png` remains the historical Phase 1 first-globe capture. Ad hoc screenshots under `output/` are local validation artifacts and are not part of the delivery surface.
 
 ## Phase 0
