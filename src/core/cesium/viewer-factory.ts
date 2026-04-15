@@ -1,5 +1,6 @@
 import { Viewer } from "cesium";
 import { applyAtmosphereBaseline } from "../../features/globe/atmosphere";
+import { applyCameraLanguage } from "../../features/globe/camera-language";
 import { applyFogAndPostProcessBaseline } from "../../features/globe/fog-and-post-process";
 import { applyLightingBaseline } from "../../features/globe/lighting";
 import { createOfflineImageryLayer } from "../../features/globe/offline-imagery";
@@ -44,6 +45,7 @@ export function createViewer({
   applyStarBackground(viewer);
   applyFogAndPostProcessBaseline(viewer);
   applyOfflineFirstTerrain(viewer);
+  applyCameraLanguage(viewer);
 
   return viewer;
 }
