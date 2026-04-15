@@ -1,21 +1,29 @@
 import { Viewer } from "cesium";
 import {
-  applyGlobalPreset,
-  resolveGlobalPresetViewerOptions
-} from "../../features/globe/global-preset";
+  DEFAULT_SCENE_PRESET_KEY,
+  getScenePreset,
+  type ScenePresetKey
+} from "../../features/globe/scene-preset";
+import {
+  applyScenePreset,
+  resolveScenePresetViewerOptions
+} from "../../features/globe/scene-preset-runtime";
 
 export interface ViewerElements {
   container: Element | string;
   creditContainer?: Element | string;
   creditViewport?: Element | string;
+  scenePresetKey?: ScenePresetKey;
 }
 
 export function createViewer({
   container,
   creditContainer,
-  creditViewport
+  creditViewport,
+  scenePresetKey = DEFAULT_SCENE_PRESET_KEY
 }: ViewerElements): Viewer {
-  const presetViewerOptions = resolveGlobalPresetViewerOptions();
+  const selectedPreset = getScenePreset(scenePresetKey);
+  const presetViewerOptions = resolveScenePresetViewerOptions(selectedPreset);
 
   // Keep the runtime on Cesium's higher-level Viewer shell and preserve its
   // native controls, imagery, terrain, and credits by default. Only override
@@ -34,7 +42,7 @@ export function createViewer({
     ...presetViewerOptions
   });
 
-  applyGlobalPreset(viewer);
+  applyScenePreset(viewer, selectedPreset);
 
   return viewer;
 }

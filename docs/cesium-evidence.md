@@ -133,3 +133,9 @@ This file is the delivery-local evidence anchor for Phase 0 through Phase 2.
 - `node_modules/@cesium/widgets/Source/Viewer/Viewer.js:644-703` shows `BaseLayerPicker` selection and explicit terrain overrides remaining part of the native `Viewer` construction path, so the first global preset can stay a single repo-local wiring layer instead of a separate preset shell.
 - `node_modules/@cesium/widgets/Source/Viewer/Viewer.js:564-618` and `node_modules/@cesium/widgets/Source/Viewer/Viewer.js:747-756` show `Geocoder`, `HomeButton`, and timeline remaining native shell responsibilities rather than preset-owned UI.
 - `node_modules/@cesium/engine/Source/Scene/Camera.js:290-303`, `node_modules/@cesium/engine/Source/Scene/Camera.js:1542-1575`, and `node_modules/@cesium/engine/Source/Scene/Camera.js:3310-3367` show that a global preset only needs rectangle, orientation, and flight data to drive the baseline home view and initial framing through Cesium's native camera path.
+
+### Stage 2.10 Regional Preset Implementation
+
+- `node_modules/@cesium/widgets/Source/Viewer/Viewer.js:295-303` shows bootstrap-time preset selection still staying at the plain-data `Viewer` constructor boundary: imagery, terrain, provider catalogs, and default sky behavior.
+- `node_modules/@cesium/widgets/Source/Viewer/Viewer.js:564-618`, `node_modules/@cesium/widgets/Source/Viewer/Viewer.js:644-703`, and `node_modules/@cesium/widgets/Source/Viewer/Viewer.js:747-756` show `Geocoder`, `HomeButton`, `BaseLayerPicker`, credits, and timeline remaining owned by Cesium's native shell while the repo swaps only preset data.
+- `node_modules/@cesium/engine/Source/Scene/Camera.js:1542-1575` and `node_modules/@cesium/engine/Source/Scene/Camera.js:3310-3367` show that the regional preset can reuse the same rectangle/orientation/flight contract as the global preset, without adding a repo-local camera controller or early site-specific hook fields.

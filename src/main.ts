@@ -1,5 +1,9 @@
 import { initializeCesiumBootstrap } from "./core/cesium/bootstrap";
 import { createViewer } from "./core/cesium/viewer-factory";
+import {
+  resolveScenePresetKey,
+  type ScenePresetKey
+} from "./features/globe/scene-preset";
 import { refreshLightingForSceneMode } from "./features/globe/lighting";
 import { mountLightingToggle } from "./features/globe/lighting-toggle";
 import "./styles.css";
@@ -32,6 +36,11 @@ function serializeBootstrapError(reason: unknown): string {
   }
 }
 
+function resolveBootstrapScenePreset(): ScenePresetKey {
+  const request = new URLSearchParams(window.location.search).get("scenePreset");
+  return resolveScenePresetKey(request);
+}
+
 setBootstrapState("booting");
 
 window.addEventListener("error", (event) => {
@@ -62,7 +71,13 @@ if (!viewerRoot) {
   throw new Error("Missing viewer root");
 }
 
-const viewer = createViewer({ container: viewerRoot });
+const scenePreset = resolveBootstrapScenePreset();
+document.documentElement.dataset.scenePreset = scenePreset;
+
+const viewer = createViewer({
+  container: viewerRoot,
+  scenePresetKey: scenePreset
+});
 const unmountLightingToggle = mountLightingToggle(viewer);
 const removeMorphCompleteListener = viewer.scene.morphComplete.addEventListener(() => {
   refreshLightingForSceneMode(viewer);

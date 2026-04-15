@@ -1,5 +1,5 @@
 import { spawn, spawnSync } from "node:child_process";
-import { existsSync, mkdtempSync, readFileSync, rmSync, statSync } from "node:fs";
+import { existsSync, mkdtempSync, rmSync, statSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -67,14 +67,22 @@ function findHeadlessBrowser() {
   );
 }
 
-function dumpDomInHeadlessBrowser(browserCommand, baseUrl, extraArgs = []) {
+function sleep(ms) {
+  return new Promise((resolve) => {
+    setTimeout(resolve, ms);
+  });
+}
+
+function startHeadlessBrowser(browserCommand, extraArgs = []) {
   const userDataDir = mkdtempSync(path.join(tmpdir(), "scenario-globe-viewer-chrome-"));
 
-  try {
-    return spawnSync(
+  return new Promise((resolve, reject) => {
+    const browserProcess = spawn(
       browserCommand,
       [
         "--headless",
+        "--no-sandbox",
+        "--disable-setuid-sandbox",
         "--no-first-run",
         "--no-default-browser-check",
         "--disable-background-networking",
@@ -83,32 +91,246 @@ function dumpDomInHeadlessBrowser(browserCommand, baseUrl, extraArgs = []) {
         "--disable-dev-shm-usage",
         "--disable-sync",
         "--metrics-recording-only",
-        "--run-all-compositor-stages-before-draw",
-        "--virtual-time-budget=12000",
+        "--remote-debugging-port=0",
         `--user-data-dir=${userDataDir}`,
-        "--dump-dom",
         ...extraArgs,
-        `${baseUrl}/`
+        "about:blank"
       ],
       {
-        encoding: "utf8",
-        timeout: 20000,
-        maxBuffer: 5 * 1024 * 1024
+        stdio: ["ignore", "pipe", "pipe"]
       }
     );
-  } finally {
-    rmSync(userDataDir, { recursive: true, force: true });
-  }
+
+    let settled = false;
+    let browserLog = "";
+    const readyPattern = /DevTools listening on (ws:\/\/[^\s]+)/;
+    const timeout = setTimeout(() => {
+      if (settled) {
+        return;
+      }
+
+      settled = true;
+      browserProcess.kill("SIGTERM");
+      rmSync(userDataDir, { recursive: true, force: true });
+      reject(new Error(`Timed out waiting for headless browser. Output: ${browserLog}`));
+    }, 10000);
+
+    const handleOutput = (chunk) => {
+      browserLog += chunk.toString();
+      const match = browserLog.match(readyPattern);
+
+      if (match && !settled) {
+        settled = true;
+        clearTimeout(timeout);
+        resolve({
+          browserProcess,
+          browserWebSocketUrl: match[1],
+          userDataDir
+        });
+      }
+    };
+
+    browserProcess.stdout.on("data", handleOutput);
+    browserProcess.stderr.on("data", handleOutput);
+    browserProcess.once("error", (error) => {
+      if (settled) {
+        return;
+      }
+
+      settled = true;
+      clearTimeout(timeout);
+      rmSync(userDataDir, { recursive: true, force: true });
+      reject(error);
+    });
+    browserProcess.once("exit", (code) => {
+      if (settled) {
+        return;
+      }
+
+      settled = true;
+      clearTimeout(timeout);
+      rmSync(userDataDir, { recursive: true, force: true });
+      reject(new Error(`Headless browser exited before readiness. Code: ${code}. Output: ${browserLog}`));
+    });
+  });
 }
 
-function resolveDistPath(pathname) {
-  const normalizedPath = pathname === "/" ? "/index.html" : pathname;
-  const relativePath = normalizedPath.replace(/^\/+/, "");
-  const absolutePath = path.join(distRoot, relativePath);
-  const relativeFromDist = path.relative(distRoot, absolutePath);
+async function stopHeadlessBrowser(browserProcess, userDataDir) {
+  if (!browserProcess.killed) {
+    browserProcess.kill("SIGTERM");
+  }
 
-  assert(!relativeFromDist.startsWith(".."), `Refused path traversal: ${pathname}`);
-  return absolutePath;
+  await new Promise((resolve) => {
+    browserProcess.once("exit", () => {
+      resolve();
+    });
+
+    setTimeout(() => {
+      if (!browserProcess.killed) {
+        browserProcess.kill("SIGKILL");
+      }
+
+      resolve();
+    }, 1000);
+  });
+
+  rmSync(userDataDir, { recursive: true, force: true });
+}
+
+async function resolvePageWebSocketUrl(browserWebSocketUrl) {
+  const browserUrl = new URL(browserWebSocketUrl);
+  const inspectorBaseUrl = `${browserUrl.protocol === "wss:" ? "https" : "http"}://${browserUrl.host}`;
+
+  for (let attempt = 0; attempt < 20; attempt += 1) {
+    const response = await fetch(`${inspectorBaseUrl}/json/list`);
+    const targets = await response.json();
+    const pageTarget = targets.find((target) => target.type === "page");
+
+    if (pageTarget?.webSocketDebuggerUrl) {
+      return pageTarget.webSocketDebuggerUrl;
+    }
+
+    await sleep(100);
+  }
+
+  throw new Error(`Failed to resolve page websocket from ${browserWebSocketUrl}`);
+}
+
+function connectCdp(pageWebSocketUrl) {
+  return new Promise((resolve, reject) => {
+    const socket = new WebSocket(pageWebSocketUrl);
+    const pending = new Map();
+    let nextId = 0;
+    let settled = false;
+
+    const rejectPending = (error) => {
+      for (const deferred of pending.values()) {
+        deferred.reject(error);
+      }
+
+      pending.clear();
+    };
+
+    socket.addEventListener("open", () => {
+      if (settled) {
+        return;
+      }
+
+      settled = true;
+      resolve({
+        async send(method, params = {}) {
+          const id = ++nextId;
+
+          return await new Promise((commandResolve, commandReject) => {
+            pending.set(id, {
+              resolve: commandResolve,
+              reject: commandReject
+            });
+            socket.send(JSON.stringify({ id, method, params }));
+          });
+        },
+        async close() {
+          if (socket.readyState === WebSocket.CLOSED) {
+            return;
+          }
+
+          socket.close();
+        }
+      });
+    });
+
+    socket.addEventListener("message", (event) => {
+      const payload = JSON.parse(event.data);
+
+      if (typeof payload.id !== "number") {
+        return;
+      }
+
+      const deferred = pending.get(payload.id);
+
+      if (!deferred) {
+        return;
+      }
+
+      pending.delete(payload.id);
+
+      if (payload.error) {
+        deferred.reject(new Error(payload.error.message));
+        return;
+      }
+
+      deferred.resolve(payload.result);
+    });
+
+    socket.addEventListener("error", () => {
+      const error = new Error("CDP websocket error.");
+      rejectPending(error);
+
+      if (!settled) {
+        settled = true;
+        reject(error);
+      }
+    });
+
+    socket.addEventListener("close", () => {
+      rejectPending(new Error("CDP websocket closed."));
+    });
+  });
+}
+
+async function readBootstrapState(client) {
+  const evaluation = await client.send("Runtime.evaluate", {
+    expression: `(() => {
+      const root = document.documentElement;
+      const lightingToggle = document.querySelector('[data-lighting-toggle="true"]');
+
+      return {
+        bootstrapState: root?.dataset.bootstrapState ?? null,
+        bootstrapDetail: root?.dataset.bootstrapDetail ?? null,
+        scenePreset: root?.dataset.scenePreset ?? null,
+        hasViewerShell: Boolean(document.querySelector('.cesium-viewer')),
+        hasLightingToggle: Boolean(lightingToggle),
+        hasLightingToggleDisabled:
+          lightingToggle?.getAttribute('data-lighting-enabled') === 'false',
+        hasUnpressedLightingToggle:
+          lightingToggle?.getAttribute('aria-pressed') === 'false'
+      };
+    })()`,
+    returnByValue: true
+  });
+
+  return evaluation.result.value;
+}
+
+async function waitForBootstrapReady(client, expectedScenePreset, scenarioLabel, attemptLabel) {
+  let lastState = null;
+
+  for (let attempt = 0; attempt < 80; attempt += 1) {
+    lastState = await readBootstrapState(client);
+
+    if (
+      lastState.bootstrapState === "ready" &&
+      lastState.scenePreset === expectedScenePreset &&
+      lastState.hasViewerShell &&
+      lastState.hasLightingToggle &&
+      lastState.hasLightingToggleDisabled &&
+      lastState.hasUnpressedLightingToggle
+    ) {
+      return;
+    }
+
+    if (lastState.bootstrapState === "error") {
+      throw new Error(
+        `Phase 1 smoke hit bootstrap error during ${scenarioLabel}/${attemptLabel}: ${JSON.stringify(lastState)}`
+      );
+    }
+
+    await sleep(250);
+  }
+
+  throw new Error(
+    `Phase 1 smoke did not reach a ready viewer during ${scenarioLabel}/${attemptLabel}: ${JSON.stringify(lastState)}`
+  );
 }
 
 function ensureDistBuildExists() {
@@ -132,13 +354,12 @@ async function verifyFetches(baseUrl) {
   }
 }
 
-function verifyBootstrapInHeadlessBrowser(baseUrl) {
+async function verifyBootstrapInHeadlessBrowser(baseUrl) {
   const browserCommand = findHeadlessBrowser();
   const attempts = [
     {
       label: "swiftshader-headless",
       extraArgs: [
-        "--enable-unsafe-swiftshader",
         "--disable-gpu",
         "--use-angle=swiftshader",
         "--enable-webgl"
@@ -146,38 +367,46 @@ function verifyBootstrapInHeadlessBrowser(baseUrl) {
     }
   ];
 
-  let lastFailure = "Headless browser smoke did not run.";
-
-  for (const attempt of attempts) {
-    const result = dumpDomInHeadlessBrowser(browserCommand, baseUrl, attempt.extraArgs);
-    assert(
-      result.status === 0,
-      `Headless browser smoke failed during ${attempt.label}: ${result.stderr || result.stdout}`
-    );
-
-    const dom = result.stdout;
-    const hasReadyState = dom.includes('data-bootstrap-state="ready"');
-    const hasErrorState = dom.includes('data-bootstrap-state="error"');
-    const hasViewerShell = dom.includes("cesium-viewer");
-    const hasLightingToggle = dom.includes('data-lighting-toggle="true"');
-    const hasLightingToggleDisabled = dom.includes('data-lighting-enabled="false"');
-    const hasUnpressedLightingToggle = dom.includes('aria-pressed="false"');
-
-    if (
-      hasReadyState &&
-      !hasErrorState &&
-      hasViewerShell &&
-      hasLightingToggle &&
-      hasLightingToggleDisabled &&
-      hasUnpressedLightingToggle
-    ) {
-      return;
+  const scenarios = [
+    {
+      label: "default-global",
+      requestPath: "/",
+      expectedScenePreset: "global"
+    },
+    {
+      label: "regional-query",
+      requestPath: "/?scenePreset=regional",
+      expectedScenePreset: "regional"
     }
+  ];
 
-    lastFailure = `Phase 1 smoke did not reach a ready viewer during ${attempt.label}.`;
+  for (const scenario of scenarios) {
+    for (const attempt of attempts) {
+      const browser = await startHeadlessBrowser(browserCommand, attempt.extraArgs);
+      const requestUrl = `${baseUrl}${scenario.requestPath}`;
+
+      try {
+        const pageWebSocketUrl = await resolvePageWebSocketUrl(browser.browserWebSocketUrl);
+        const client = await connectCdp(pageWebSocketUrl);
+
+        try {
+          await client.send("Page.enable");
+          await client.send("Runtime.enable");
+          await client.send("Page.navigate", { url: requestUrl });
+          await waitForBootstrapReady(
+            client,
+            scenario.expectedScenePreset,
+            scenario.label,
+            attempt.label
+          );
+        } finally {
+          await client.close();
+        }
+      } finally {
+        await stopHeadlessBrowser(browser.browserProcess, browser.userDataDir);
+      }
+    }
   }
-
-  throw new Error(lastFailure);
 }
 
 function startStaticServer() {
@@ -256,7 +485,7 @@ async function main() {
 
   try {
     await verifyFetches(baseUrl);
-    verifyBootstrapInHeadlessBrowser(baseUrl);
+    await verifyBootstrapInHeadlessBrowser(baseUrl);
     console.log("Phase 1 smoke verification passed.");
   } finally {
     await new Promise((resolve) => {

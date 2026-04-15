@@ -47,6 +47,10 @@ export interface ScenePresetDefinition {
   camera: SceneCameraDefinition;
 }
 
+export type ScenePresetKey = "global" | "regional";
+
+export const DEFAULT_SCENE_PRESET_KEY = "global";
+
 // Keep the first repo-local preset seam plain-data so later phases can select
 // views and presentation profiles without leaking Cesium runtime classes into
 // repo contracts. Phase 2.8 stops here on purpose: replay, overlay, satellite,
@@ -86,3 +90,59 @@ export const CESIUM_NATIVE_BASELINE_SCENE_PRESET = {
     }
   }
 } as const satisfies ScenePresetDefinition;
+
+export const CESIUM_NATIVE_REGIONAL_SCENE_PRESET = {
+  id: "cesium-native-regional-focus",
+  label: "Regional Focus",
+  presentation: {
+    globeStyleId: "phase2-native-baseline",
+    imageryPolicyId: "viewer-default",
+    terrainPolicyId: "viewer-default"
+  },
+  camera: {
+    destination: {
+      kind: "rectangleDegrees",
+      rectangle: {
+        west: 105.0,
+        south: 5.0,
+        east: 152.0,
+        north: 42.0
+      }
+    },
+    defaultViewFactor: 0.08,
+    orientation: {
+      heading: 9.0,
+      pitch: -66.0,
+      roll: 0.0
+    },
+    flight: {
+      durationSeconds: 2.2,
+      maximumHeight: 9_500_000.0,
+      pitchAdjustHeight: 3_800_000.0
+    }
+  }
+} as const satisfies ScenePresetDefinition;
+
+// Phase 2.10 grows the first concrete multi-preset structure, but only for the
+// global and regional family. Site hooks, tilesets, replay, overlay, adapter,
+// and satellite-specific contracts remain later work.
+export const SCENE_PRESETS = {
+  global: CESIUM_NATIVE_BASELINE_SCENE_PRESET,
+  regional: CESIUM_NATIVE_REGIONAL_SCENE_PRESET
+} as const satisfies Record<ScenePresetKey, ScenePresetDefinition>;
+
+export function resolveScenePresetKey(
+  value: string | null | undefined
+): ScenePresetKey {
+  switch (value) {
+    case "global":
+    case "regional":
+      return value;
+    default:
+      return DEFAULT_SCENE_PRESET_KEY;
+  }
+}
+
+export function getScenePreset(key: ScenePresetKey): ScenePresetDefinition {
+  return SCENE_PRESETS[key];
+}
