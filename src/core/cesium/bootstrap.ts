@@ -1,4 +1,4 @@
-import { buildModuleUrl } from "cesium";
+import { Ion, buildModuleUrl } from "cesium";
 import "cesium/Build/Cesium/Widgets/widgets.css";
 
 type BuildModuleUrlWithSetter = typeof buildModuleUrl & {
@@ -15,8 +15,15 @@ function readCesiumBaseUrl(): string {
   return baseUrl;
 }
 
+function readCesiumIonToken(): string | undefined {
+  const rawToken = import.meta.env.VITE_CESIUM_ION_TOKEN?.trim();
+
+  return rawToken ? rawToken : undefined;
+}
+
 export function initializeCesiumBootstrap(): void {
   const baseUrl = readCesiumBaseUrl();
+  const ionToken = readCesiumIonToken();
   const buildModuleUrlWithSetter = buildModuleUrl as BuildModuleUrlWithSetter;
 
   // Keep the repo bootstrap aligned with Cesium's offline example and module
@@ -30,4 +37,14 @@ export function initializeCesiumBootstrap(): void {
   // Evidence: /home/u24/papers/scenario-globe-viewer/node_modules/@cesium/engine/Source/Core/buildModuleUrl.js:139-143
   // Evidence: /home/u24/papers/scenario-globe-viewer/node_modules/cesium/Source/Cesium.d.ts:18692
   buildModuleUrlWithSetter.setBaseUrl(baseUrl);
+
+  if (ionToken) {
+    // Cesium only emits the default-token warning when requests still use the
+    // bundled demo token; overriding Ion.defaultAccessToken before Viewer
+    // startup keeps the same ion-backed runtime path without that warning.
+    // Evidence: /home/u24/papers/project/home-globe-reference-repos/cesium/packages/engine/Source/Core/Ion.js:29-54
+    // Evidence: /home/u24/papers/project/home-globe-reference-repos/cesium/packages/engine/Source/Core/IonResource.js:233-240
+    // Evidence: /home/u24/papers/project/home-globe-reference-repos/cesium/packages/engine/Specs/Core/IonResourceSpec.js:164-176
+    Ion.defaultAccessToken = ionToken;
+  }
 }
