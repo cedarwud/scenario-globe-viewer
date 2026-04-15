@@ -3,6 +3,10 @@ import { applyAtmosphereBaseline } from "../../features/globe/atmosphere";
 import { applyFogAndPostProcessBaseline } from "../../features/globe/fog-and-post-process";
 import { applyLightingBaseline } from "../../features/globe/lighting";
 import { createOfflineImageryLayer } from "../../features/globe/offline-imagery";
+import {
+  applyOfflineFirstTerrain,
+  createTerrainFallbackProvider
+} from "../../features/globe/offline-terrain";
 import { applyStarBackground } from "../../features/globe/star-background";
 
 export interface ViewerElements {
@@ -30,6 +34,7 @@ export function createViewer({
     baseLayerPicker: false,
     geocoder: false,
     baseLayer: createOfflineImageryLayer(),
+    terrainProvider: createTerrainFallbackProvider(),
     creditContainer,
     creditViewport
   });
@@ -38,6 +43,7 @@ export function createViewer({
   applyLightingBaseline(viewer);
   applyStarBackground(viewer);
   applyFogAndPostProcessBaseline(viewer);
+  applyOfflineFirstTerrain(viewer);
 
   return viewer;
 }
