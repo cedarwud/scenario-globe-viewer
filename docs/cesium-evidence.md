@@ -59,3 +59,12 @@ These conclusions were verified against the upstream Cesium reference material d
 - installed-package Cesium source surfaces referenced above
 
 This file is the delivery-local evidence anchor for Phase 0 through Phase 2.
+
+## Phase 2 Globe Evidence
+
+### Stage 2.1 Atmosphere Baseline
+
+- `/home/u24/papers/project/home-globe-reference-repos/cesium/packages/sandcastle/gallery/atmosphere/main.js:6-10` shows the atmosphere example pulling `scene.skyAtmosphere` and `scene.globe` from a standard `Viewer`.
+- `/home/u24/papers/project/home-globe-reference-repos/cesium/packages/sandcastle/gallery/atmosphere/main.js:60-97` shows the phase-relevant knobs: `showGroundAtmosphere`, `groundAtmosphere*`, and `skyAtmosphere*`.
+- `/home/u24/papers/project/home-globe-reference-repos/cesium/packages/engine/Source/Scene/Globe.js:191-246` defines the ground-atmosphere properties used by the repo baseline.
+- `/home/u24/papers/project/home-globe-reference-repos/cesium/packages/engine/Source/Scene/SkyAtmosphere.js:51-154` defines the sky-atmosphere switches and scattering controls, including `perFragmentAtmosphere`.

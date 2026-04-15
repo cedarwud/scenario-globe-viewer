@@ -1,4 +1,5 @@
 import { Viewer } from "cesium";
+import { applyAtmosphereBaseline } from "../../features/globe/atmosphere";
 
 export interface ViewerElements {
   container: Element | string;
@@ -21,8 +22,12 @@ export function createViewer({
   // Evidence: /home/u24/papers/project/home-globe-reference-repos/cesium/packages/widgets/Source/Viewer/Viewer.js:396-404
   // Evidence: /home/u24/papers/project/home-globe-reference-repos/cesium/packages/widgets/Specs/Viewer/ViewerSpec.js:85-117
   // Evidence: /home/u24/papers/project/home-globe-reference-repos/cesium/packages/widgets/Specs/Viewer/ViewerSpec.js:146-151
-  return new Viewer(container, {
+  const viewer = new Viewer(container, {
     creditContainer,
     creditViewport
   });
+
+  applyAtmosphereBaseline(viewer);
+
+  return viewer;
 }
