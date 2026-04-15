@@ -38,7 +38,8 @@ The current repo snapshot includes a completed Phase 0 baseline, a stable Phase 
 - runtime Cesium bootstrap is active through `src/main.ts`
 - the native `Viewer` shell, credits, `BaseLayerPicker`, `Geocoder`, `HomeButton`, timeline, and toolbar remain available by default
 - explicit imagery and terrain URLs remain opt-in overrides, while the default terrain selection stays on Cesium's native `BaseLayerPicker` path
-- the repo-owned preset layer now provides a global baseline plus a regional focus preset, with bootstrap-time `scenePreset` selection limited to those two presets and no preset UI shell
+- the repo-owned preset layer now provides global, regional, and site presets, with bootstrap-time `scenePreset` selection staying query-driven and no preset UI shell
+- the site preset can opt into a configured 3D tiles URL through `VITE_CESIUM_SITE_TILESET_URL`, but the hook stays lazy and inactive by default
 - a repo-local lighting toggle lives inside the native toolbar and uses Cesium-native scene controls rather than a repo-local rendering stack
 - repo-local smoke commands exist at `npm test` and `npm run test:phase1`
 - `docs/images/phase-1-baseline.png` remains the historical first-globe capture; ad hoc Playwright screenshots under `output/` are local validation artifacts and are not part of the delivery surface

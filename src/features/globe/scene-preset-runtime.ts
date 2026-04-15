@@ -11,6 +11,7 @@ import {
   resolveTerrainSelection
 } from "./offline-terrain";
 import type { ScenePresetDefinition } from "./scene-preset";
+import { applyOptionalSite3DTilesHook } from "./site-3d-tiles-hook";
 import { applyStarBackground } from "./star-background";
 
 export type ScenePresetViewerOptions = ImagerySelectionOptions &
@@ -89,10 +90,11 @@ export function applyScenePreset(
   viewer: Viewer,
   preset: ScenePresetDefinition
 ): void {
-  // Keep Phase 2.10 on the existing Cesium-native Viewer path: preset
+  // Keep Phase 2.11 on the existing Cesium-native Viewer path: preset
   // selection only swaps plain presentation and camera data, while Geocoder,
   // BaseLayerPicker, HomeButton, credit handling, timeline, and toolbar remain
-  // owned by the native shell.
+  // owned by the native shell. The first site-specific hook stays lazy and
+  // optional, and still delegates all 3D Tiles work to Cesium's native runtime.
   // Evidence: /home/u24/papers/scenario-globe-viewer/node_modules/@cesium/widgets/Source/Viewer/Viewer.js:295-303
   // Evidence: /home/u24/papers/scenario-globe-viewer/node_modules/@cesium/widgets/Source/Viewer/Viewer.js:564-618
   // Evidence: /home/u24/papers/scenario-globe-viewer/node_modules/@cesium/widgets/Source/Viewer/Viewer.js:644-703
@@ -101,4 +103,5 @@ export function applyScenePreset(
   // Evidence: /home/u24/papers/scenario-globe-viewer/node_modules/@cesium/engine/Source/Scene/Camera.js:3310-3367
   applyScenePresentation(viewer, preset);
   applyCameraLanguage(viewer, preset.camera);
+  applyOptionalSite3DTilesHook(viewer, preset);
 }

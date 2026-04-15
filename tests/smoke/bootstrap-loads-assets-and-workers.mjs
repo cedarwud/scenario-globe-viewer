@@ -395,6 +395,11 @@ async function verifyBootstrapInHeadlessBrowser(baseUrl) {
       label: "regional-query",
       requestPath: "/?scenePreset=regional",
       expectedScenePreset: "regional"
+    },
+    {
+      label: "site-query",
+      requestPath: "/?scenePreset=site",
+      expectedScenePreset: "site"
     }
   ];
 

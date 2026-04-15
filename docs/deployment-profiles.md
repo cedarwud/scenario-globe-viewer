@@ -41,8 +41,9 @@ Expected characteristics:
 Examples include:
 
 - `VITE_CESIUM_IMAGERY_URL`
+- `VITE_CESIUM_SITE_TILESET_URL`
 - `VITE_CESIUM_TERRAIN_URL`
-- future explicit tileset URLs or mirrored provider endpoints
+- other explicit mirrored provider endpoints
 
 Profile B is supported, but it is not the baseline that Phase 2 quality work should optimize against by default.
 
