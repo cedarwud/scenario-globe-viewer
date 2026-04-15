@@ -1,6 +1,16 @@
 import { Viewer } from "cesium";
 
-export function createViewer(container: Element | string): Viewer {
+export interface ViewerElements {
+  container: Element | string;
+  creditContainer?: Element | string;
+  creditViewport?: Element | string;
+}
+
+export function createViewer({
+  container,
+  creditContainer,
+  creditViewport
+}: ViewerElements): Viewer {
   // Keep the first-globe stage on Cesium's higher-level Viewer shell before any
   // repo-local widget pruning or credits wrapping begins.
   // Evidence: /home/u24/papers/project/home-globe-reference-repos/cesium/packages/sandcastle/gallery/offline/main.js:10-17
@@ -17,6 +27,8 @@ export function createViewer(container: Element | string): Viewer {
   return new Viewer(container, {
     animation: false,
     baseLayerPicker: false,
+    creditContainer,
+    creditViewport,
     fullscreenButton: false,
     geocoder: false,
     homeButton: false,
