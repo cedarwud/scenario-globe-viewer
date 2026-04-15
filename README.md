@@ -16,6 +16,7 @@
 3. Build the delivery artifact with `npm run build`.
 4. Run the Phase 0 smoke suite with `npm test`.
 5. Run the Phase 1 bootstrap smoke with `npm run test:phase1`.
+6. Capture the Phase 2.12 preset baselines with `npm run capture:phase2.12`.
 
 ## Commands
 
@@ -25,6 +26,7 @@
 | `npm run build` | Type-check and build the delivery artifact with copied Cesium runtime assets |
 | `npm test` | Build and verify Phase 0 outputs, fixture integrity, neutral wording, and installed-package Cesium evidence |
 | `npm run test:phase1` | Build the repo and verify the first-globe bootstrap path in a headless browser |
+| `npm run capture:phase2.12` | Build the repo and capture repo-owned global/regional/site baseline screenshots |
 | `npm run preview` | Preview the built artifact locally |
 
 ## Delivery Status
@@ -40,6 +42,7 @@ The current repo snapshot includes a completed Phase 0 baseline, a stable Phase 
 - explicit imagery and terrain URLs remain opt-in overrides, while the default terrain selection stays on Cesium's native `BaseLayerPicker` path
 - the repo-owned preset layer now provides global, regional, and site presets, with bootstrap-time `scenePreset` selection staying query-driven and no preset UI shell
 - the site preset can opt into a configured 3D tiles URL through `VITE_CESIUM_SITE_TILESET_URL`, but the hook stays lazy and inactive by default
+- Phase 2.12 review baselines now live under `docs/images/phase-2.12/`, with the capture method documented in `docs/visual-baselines.md`
 - a repo-local lighting toggle lives inside the native toolbar and uses Cesium-native scene controls rather than a repo-local rendering stack
 - repo-local smoke commands exist at `npm test` and `npm run test:phase1`
 - `docs/images/phase-1-baseline.png` remains the historical first-globe capture; ad hoc Playwright screenshots under `output/` are local validation artifacts and are not part of the delivery surface
@@ -63,5 +66,6 @@ Phase 0 targets the following top-level layout:
 - `scripts/`
 - `src/`
 - `tests/smoke/`
+- `tests/visual/`
 
-Detailed structure, phase sequencing, deployment-profile policy, and preserved Cesium evidence are documented in `docs/architecture.md`, `docs/delivery-phases.md`, `docs/deployment-profiles.md`, and `docs/cesium-evidence.md`.
+Detailed structure, phase sequencing, deployment-profile policy, preserved Cesium evidence, and visual baseline capture rules are documented in `docs/architecture.md`, `docs/delivery-phases.md`, `docs/deployment-profiles.md`, `docs/cesium-evidence.md`, and `docs/visual-baselines.md`.

@@ -8,6 +8,7 @@
     "build": "tsc --noEmit && vite build",
     "test": "npm run build && node scripts/verify-phase0.mjs",
     "test:phase1": "npm run build && node tests/smoke/bootstrap-loads-assets-and-workers.mjs",
+    "capture:phase2.12": "npm run build && node tests/visual/capture-three-preset-baselines.mjs",
     "preview": "vite preview"
   },
   "dependencies": {

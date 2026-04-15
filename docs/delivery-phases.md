@@ -17,7 +17,9 @@ Related deployment guidance: see [deployment-profiles.md](./deployment-profiles.
 - Phase 2.11 now consumes the Phase 2.8 scene-preset seam through concrete global, regional, and site presets, with runtime selection still kept to a bootstrap-time `scenePreset` path and no preset UI shell.
 - The site preset may lazily attach a configured 3D tileset URL, but only through an optional hook that stays inactive when no site tileset URL is configured.
 - Stage 2.4 fog/post-process remains historical completion evidence in the repo, but it is currently dormant on the active preset runtime until its tuning can be reintroduced without over-brightening or over-fogging the Cesium-native baseline.
-- `docs/images/phase-1-baseline.png` remains the historical Phase 1 first-globe capture. Ad hoc screenshots under `output/` are local validation artifacts and are not part of the delivery surface.
+- `docs/images/phase-1-baseline.png` remains the historical Phase 1 first-globe capture.
+- Phase 2.12 review baselines now live at `docs/images/phase-2.12/*.png`, captured through `tests/visual/capture-three-preset-baselines.mjs` and documented in `docs/visual-baselines.md`.
+- Ad hoc screenshots under `output/` remain local validation artifacts and are not part of the delivery surface.
 
 ## Phase 0
 

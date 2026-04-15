@@ -9,6 +9,15 @@ import { mountLightingToggle } from "./features/globe/lighting-toggle";
 import "./styles.css";
 
 type BootstrapState = "booting" | "ready" | "error";
+type ViewerInstance = ReturnType<typeof createViewer>;
+
+declare global {
+  interface Window {
+    __SCENARIO_GLOBE_VIEWER_CAPTURE__?: {
+      viewer: ViewerInstance;
+    };
+  }
+}
 
 function setBootstrapState(state: BootstrapState, detail?: string): void {
   document.documentElement.dataset.bootstrapState = state;
@@ -100,6 +109,10 @@ const viewer = createViewer({
   container: viewerRoot,
   scenePresetKey: scenePreset
 });
+// Phase 2.12 capture harnesses need a narrow viewer handle so they can wait for
+// the active camera/tiles state to settle without rewriting preset framing or
+// the native shell.
+window.__SCENARIO_GLOBE_VIEWER_CAPTURE__ = { viewer };
 syncVisualBaselineState(viewer);
 const unmountLightingToggle = mountLightingToggle(viewer);
 const removeMorphCompleteListener = viewer.scene.morphComplete.addEventListener(() => {
@@ -116,6 +129,7 @@ setBootstrapState("ready");
 
 if (import.meta.hot) {
   import.meta.hot.dispose(() => {
+    delete window.__SCENARIO_GLOBE_VIEWER_CAPTURE__;
     removeImageryLayerRemovedListener();
     removeImageryLayerAddedListener();
     removeMorphCompleteListener();

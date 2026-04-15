@@ -25,7 +25,7 @@ The repo is organized into five layers:
 4. Feature interfaces
    Phase 2.8 starts globe presets as a plain-data scene-preset seam for camera framing and presentation-profile selection, Phase 2.9 lands the first concrete global preset, Phase 2.10 adds the first regional preset, and Phase 2.11 adds the first site preset plus an optional configured-url 3D tiles hook. Replay time and satellite overlays remain contract-led later. Through Phase 3, satellite work is limited to interface boundaries and necessary hooks.
 5. Validation harness
-   `scripts/verify-phase0.mjs` and `tests/smoke/` keep build output, fixture integrity, neutral wording, and preserved Cesium evidence runnable from the repo itself.
+   `scripts/verify-phase0.mjs`, `tests/smoke/`, and the Phase 2.12 capture path under `tests/visual/` keep build output, fixture integrity, preset/bootstrap evidence, and repo-owned baseline screenshots runnable from the repo itself.
 
 ## Repo Boundaries
 
@@ -59,6 +59,7 @@ Planned Phase 2-5 flow:
 - `scripts/` stores repo-local verification entry points.
 - `src/` stores the application shell and future Cesium integration seams.
 - `tests/smoke/` is reserved for build/bootstrap and preset-level smoke coverage.
+- `tests/visual/` stores Phase 2.12-specific baseline capture harnesses.
 
 ## Phase Boundaries
 
