@@ -7,8 +7,8 @@ export default defineConfig({
       targets: [
         // Cesium resolves runtime files from a shared base URL and a Workers prefix.
         // Keep these folders together for the future bootstrap path.
-        // Evidence: project/home-globe-reference-repos/cesium/packages/engine/Source/Core/buildModuleUrl.js:36-46
-        // Evidence: project/home-globe-reference-repos/cesium/packages/engine/Source/Core/TaskProcessor.js:91-125
+        // Evidence: node_modules/@cesium/engine/Source/Core/buildModuleUrl.js:36-46
+        // Evidence: node_modules/@cesium/engine/Source/Core/TaskProcessor.js:91-125
         {
           src: "node_modules/cesium/Build/Cesium/Workers/**/*",
           dest: "cesium/Workers",
