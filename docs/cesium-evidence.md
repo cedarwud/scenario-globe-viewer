@@ -76,3 +76,12 @@ This file is the delivery-local evidence anchor for Phase 0 through Phase 2.
 - `/home/u24/papers/project/home-globe-reference-repos/cesium/packages/engine/Source/Scene/Globe.js:153-188` defines `enableLighting`, `dynamicAtmosphereLighting`, `dynamicAtmosphereLightingFromSun`, and `lambertDiffuseMultiplier`.
 - `/home/u24/papers/project/home-globe-reference-repos/cesium/packages/engine/Specs/Scene/DynamicAtmosphereLightingTypeSpec.js:3-42` verifies that lighting stays off until `enableLighting` is true and that the sun-vs-scene-light switch is driven by `dynamicAtmosphereLightingFromSun`.
 - `/home/u24/papers/project/home-globe-reference-repos/cesium/packages/engine/Specs/Scene/GlobeSpec.js:52-103` verifies the lighting and dynamic-atmosphere rendering path.
+
+### Stage 2.3 Star Background
+
+- `/home/u24/papers/project/home-globe-reference-repos/cesium/packages/sandcastle/gallery/mars/main.js:4-12` shows a `Viewer` wiring `skyBox: Cesium.SkyBox.createEarthSkyBox()` as the native star background path.
+- `/home/u24/papers/project/home-globe-reference-repos/cesium/packages/sandcastle/gallery/google-streetview-panorama/main.js:264-268` shows the scene returning to the Earth sky box through `viewer.scene.skyBox = Cesium.SkyBox.createEarthSkyBox()`.
+- `/home/u24/papers/project/home-globe-reference-repos/cesium/packages/sandcastle/gallery/scene-rendering-performance/main.js:34-41` shows Cesium treating `scene.skyBox.show` as the upstream toggle instead of a custom background implementation.
+- `/home/u24/papers/project/home-globe-reference-repos/cesium/packages/engine/Source/Scene/SkyBox.js:139-158` defines `SkyBox.createEarthSkyBox()` and the built-in Tycho star textures it resolves from Cesium assets.
+- `/home/u24/papers/project/home-globe-reference-repos/cesium/packages/engine/Source/Scene/Scene.js:284-334` defines `Scene#skyBox` and makes `backgroundColor` only the fallback when no sky box is present.
+- `/home/u24/papers/project/home-globe-reference-repos/cesium/packages/engine/Specs/Scene/SkyBoxSpec.js:33-47` verifies that a `SkyBox` assigned to `scene.skyBox` participates in rendering.
