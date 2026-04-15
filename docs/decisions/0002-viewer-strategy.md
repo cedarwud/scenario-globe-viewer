@@ -10,9 +10,9 @@ The repo needs one high-level Cesium container strategy before the first render 
 
 Evidence:
 
-- `project/home-globe-reference-repos/cesium/packages/widgets/Source/Viewer/Viewer.js:1-39` shows that `Viewer` layers a higher-level container over engine primitives and widget modules.
-- `project/home-globe-reference-repos/cesium/packages/widgets/Specs/Viewer/ViewerSpec.js:85-117` verifies that `Viewer` exposes the integrated scene, data source, camera, credit, and widget surface.
-- `project/home-globe-reference-repos/cesium/Documentation/OfflineGuide/README.md:7-16` documents the `Viewer` constructor path for supplying offline imagery and disabling online-facing widgets.
+- `node_modules/@cesium/widgets/Source/Viewer/Viewer.js:1-39` shows that `Viewer` layers a higher-level container over engine primitives and widget modules.
+- `node_modules/@cesium/widgets/Source/Viewer/Viewer.js:276-298`, `node_modules/@cesium/widgets/Source/Viewer/Viewer.js:416-428`, `node_modules/@cesium/widgets/Source/Viewer/Viewer.js:564-588`, and `node_modules/@cesium/widgets/Source/Viewer/Viewer.js:644-656` show the constructor options and creation paths for `baseLayerPicker` and `geocoder`.
+- [../cesium-evidence.md](../cesium-evidence.md) preserves the offline-oriented `Viewer` conclusions that were extracted during repo bootstrap.
 
 ## Decision
 

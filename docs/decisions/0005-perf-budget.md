@@ -10,8 +10,8 @@ Phase 0 has not executed any browser or hardware measurements yet, but the repo 
 
 Evidence:
 
-- `project/home-globe-reference-repos/cesium/packages/engine/Source/Scene/Scene.js:665-694` documents `requestRenderMode` and `maximumRenderTimeChange` as built-in rendering budget controls.
-- `project/home-globe-reference-repos/cesium/packages/engine/Source/Scene/Scene.js:698-705` shows render requests also being driven by request and task completion events.
+- `node_modules/@cesium/engine/Source/Scene/Scene.js:665-694` documents `requestRenderMode` and `maximumRenderTimeChange` as built-in rendering budget controls.
+- `node_modules/@cesium/engine/Source/Scene/Scene.js:698-705` shows render requests also being driven by request and task completion events.
 
 ## Decision
 

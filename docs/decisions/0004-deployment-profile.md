@@ -10,10 +10,9 @@ The delivery target includes offline and on-prem operation, so the default profi
 
 Evidence:
 
-- `project/home-globe-reference-repos/cesium/Documentation/OfflineGuide/README.md:3-11` states that CesiumJS defaults include online data sources and that offline applications must choose their own providers.
-- `project/home-globe-reference-repos/cesium/Documentation/OfflineGuide/README.md:11-16` recommends disabling `BaseLayerPicker` and `Geocoder` for offline applications.
-- `project/home-globe-reference-repos/cesium/Documentation/OfflineGuide/README.md:21-31` shows an offline `Viewer` setup using local Natural Earth II assets.
-- `project/home-globe-reference-repos/cesium/Documentation/OfflineGuide/README.md:33-35` requires serving static assets through a local server path rather than relying on `file://`.
+- [../cesium-evidence.md](../cesium-evidence.md) preserves the offline deployment rules verified against the upstream Cesium offline guide during repo bootstrap.
+- `node_modules/@cesium/widgets/Source/Viewer/Viewer.js:281-284` documents the constructor toggles for `baseLayerPicker` and `geocoder`.
+- `node_modules/@cesium/widgets/Source/Viewer/Viewer.js:416-428`, `node_modules/@cesium/widgets/Source/Viewer/Viewer.js:564-588`, and `node_modules/@cesium/widgets/Source/Viewer/Viewer.js:644-656` show how those widgets are conditionally created in the runtime shell.
 
 ## Decision
 

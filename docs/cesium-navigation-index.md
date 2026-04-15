@@ -6,59 +6,70 @@ Source note: this file is a condensed manual rewrite of the active workspace eng
 
 If a Cesium API, behavior, data flow, or visual result is unclear, follow this order:
 
-1. `project/home-globe-reference-repos/cesium/packages/sandcastle/gallery/`
-2. `project/home-globe-reference-repos/cesium/packages/engine/Source/` or `project/home-globe-reference-repos/cesium/packages/widgets/Source/`
-3. `project/home-globe-reference-repos/cesium/packages/engine/Specs/` or `project/home-globe-reference-repos/cesium/packages/widgets/Specs/`
+1. [cesium-evidence.md](./cesium-evidence.md) for the repo's preserved bootstrap, viewer, offline-profile, and performance conclusions
+2. `node_modules/@cesium/engine/Source/` or `node_modules/@cesium/widgets/Source/` for the installed package source that backs this repo's current version pin
+3. If a full Cesium source checkout is available, use upstream Sandcastle, then Source, then Specs before inventing a new behavior
 
 Do not fill gaps by guesswork before this check is complete.
 
 ## Entry Points By Topic
 
+### Package And Runtime Assets
+
+- `node_modules/cesium/package.json`
+- `node_modules/cesium/Build/Cesium/Workers/`
+- `node_modules/cesium/Build/Cesium/Assets/`
+- `node_modules/cesium/Build/Cesium/ThirdParty/`
+- `node_modules/cesium/Build/Cesium/Widgets/`
+
+Use these when validating the version pin, bundled asset roots, and delivery-facing copy layout.
+
 ### Bootstrap
 
-- `project/home-globe-reference-repos/cesium/packages/engine/Source/Core/buildModuleUrl.js`
-- `project/home-globe-reference-repos/cesium/packages/engine/Source/Core/TaskProcessor.js`
-- `project/home-globe-reference-repos/cesium/packages/widgets/Source/widgets.css`
-- `project/home-globe-reference-repos/cesium/Documentation/OfflineGuide/README.md`
+- `node_modules/@cesium/engine/Source/Core/buildModuleUrl.js`
+- `node_modules/@cesium/engine/Source/Core/TaskProcessor.js`
+- `node_modules/@cesium/widgets/Source/widgets.css`
+- [cesium-evidence.md](./cesium-evidence.md)
 
 Use these when working on `CESIUM_BASE_URL`, asset paths, workers, or offline deployment.
 
 ### Viewer Shell
 
-- `project/home-globe-reference-repos/cesium/packages/widgets/Source/Viewer/Viewer.js`
-- `project/home-globe-reference-repos/cesium/packages/widgets/Specs/Viewer/ViewerSpec.js`
+- `node_modules/@cesium/widgets/Source/Viewer/Viewer.js`
+- [cesium-evidence.md](./cesium-evidence.md)
 
 Use these when choosing wrapper strategy, shutting down built-in controls, or checking what `Viewer` wires together by default.
 
 ### Camera And Globe Quality
 
-- `project/home-globe-reference-repos/cesium/packages/sandcastle/gallery/camera-tutorial/main.js`
-- `project/home-globe-reference-repos/cesium/packages/sandcastle/gallery/atmosphere/`
-- `project/home-globe-reference-repos/cesium/packages/sandcastle/gallery/fog/`
-- `project/home-globe-reference-repos/cesium/packages/sandcastle/gallery/lighting/`
-- `project/home-globe-reference-repos/cesium/packages/engine/Source/Scene/Camera.js`
-- `project/home-globe-reference-repos/cesium/packages/engine/Source/Scene/Globe.js`
+- `node_modules/@cesium/engine/Source/Scene/Camera.js`
+- `node_modules/@cesium/engine/Source/Scene/Globe.js`
+- `node_modules/@cesium/engine/Source/Scene/Scene.js`
+- [cesium-evidence.md](./cesium-evidence.md)
 
 Use these when Phase 2 starts shaping globe quality, preset transitions, and camera behavior.
 
 ### Time And Overlay Contracts
 
-- `project/home-globe-reference-repos/cesium/packages/engine/Source/Core/Clock.js`
-- `project/home-globe-reference-repos/cesium/packages/engine/Source/Core/JulianDate.js`
-- `project/home-globe-reference-repos/cesium/packages/engine/Source/DataSources/Entity.js`
-- `project/home-globe-reference-repos/cesium/packages/engine/Source/DataSources/SampledPositionProperty.js`
-- `project/home-globe-reference-repos/cesium/packages/engine/Specs/Core/ClockSpec.js`
-- `project/home-globe-reference-repos/cesium/packages/engine/Specs/DataSources/SampledPositionPropertySpec.js`
+- `node_modules/@cesium/engine/Source/Core/Clock.js`
+- `node_modules/@cesium/engine/Source/Core/JulianDate.js`
+- `node_modules/@cesium/engine/Source/DataSources/Entity.js`
+- `node_modules/@cesium/engine/Source/DataSources/SampledPositionProperty.js`
 
 Use these after Phase 2, when replay and overlay contracts need source-backed confirmation.
+
+### Monorepo-Only Surfaces
+
+The npm packages do not ship Sandcastle examples, Specs, or the offline guide. If a change depends on those deeper surfaces, use a full Cesium source checkout and keep the repo-local conclusion synchronized in [cesium-evidence.md](./cesium-evidence.md) or the relevant ADR.
 
 ## Repo-Specific Reading Order
 
 1. ADR 0001-0005 in `docs/decisions/`
-2. [architecture.md](./architecture.md)
-3. [delivery-phases.md](./delivery-phases.md)
-4. [cesium-adoption-boundary.md](./cesium-adoption-boundary.md)
-5. this navigation index
+2. [cesium-evidence.md](./cesium-evidence.md)
+3. [architecture.md](./architecture.md)
+4. [delivery-phases.md](./delivery-phases.md)
+5. [cesium-adoption-boundary.md](./cesium-adoption-boundary.md)
+6. this navigation index
 
 ## Archive Exclusion
 

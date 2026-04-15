@@ -7,10 +7,11 @@ Source note: this file is a manual rewrite of the active workspace engineering i
 `scenario-globe-viewer` is an Earth-first Cesium delivery repo. The delivery surface stays neutral, keeps Cesium upstream-owned, and avoids replay or satellite implementation work until the globe foundation and shell contracts are stable.
 
 Related roadmap: see [delivery-phases.md](./delivery-phases.md).
+Related evidence ledger: see [cesium-evidence.md](./cesium-evidence.md).
 
 ## System Layers
 
-The repo is organized into four layers:
+The repo is organized into five layers:
 
 1. Delivery docs and ADRs
    `README.md`, `docs/`, and `docs/decisions/` define repo-local authority for packaging, viewer choice, bootstrap, deployment profile, and performance budget.
@@ -20,6 +21,8 @@ The repo is organized into four layers:
    Future `src/core/cesium/` modules wrap `Viewer`, provider factories, credits, and performance controls without copying Cesium internals.
 4. Feature interfaces
    Globe presets, replay time, and satellite overlays remain contract-led. Through Phase 3, satellite work is limited to interface boundaries and necessary hooks.
+5. Validation harness
+   `scripts/verify-phase0.mjs` and `tests/smoke/` keep build output, fixture integrity, neutral wording, and preserved Cesium evidence runnable from the repo itself.
 
 ## Repo Boundaries
 
@@ -35,6 +38,7 @@ Current Phase 0 flow is intentionally minimal:
 1. `index.html` reserves `window.CESIUM_BASE_URL` before the application module runs.
 2. Vite copies Cesium runtime assets into the delivery build under `cesium/`.
 3. The app shell renders a placeholder page until Phase 1 introduces Cesium bootstrap.
+4. `npm test` confirms the copied runtime surfaces and fixture remain intact without requiring a live Cesium render path.
 
 Planned Phase 1-3 flow:
 
@@ -47,6 +51,7 @@ Planned Phase 1-3 flow:
 
 - `docs/` stores delivery-side design authority and phase guidance.
 - `public/fixtures/` stores copied runtime fixtures with no build-time dependency on donor repos.
+- `scripts/` stores repo-local verification entry points.
 - `src/` stores the application shell and future Cesium integration seams.
 - `tests/smoke/` is reserved for build/bootstrap and preset-level smoke coverage.
 

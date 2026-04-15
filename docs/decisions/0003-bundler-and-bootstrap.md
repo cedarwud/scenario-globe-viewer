@@ -10,10 +10,10 @@ The repo needs a bundler path that keeps Cesium upstream-owned while still produ
 
 Evidence:
 
-- `project/home-globe-reference-repos/cesium/packages/engine/Source/Core/buildModuleUrl.js:36-46` resolves the Cesium base URL from `CESIUM_BASE_URL` or `import.meta.url`.
-- `project/home-globe-reference-repos/cesium/packages/engine/Source/Core/buildModuleUrl.js:63-75` and `project/home-globe-reference-repos/cesium/packages/engine/Source/Core/buildModuleUrl.js:139-143` show the failure mode when a base URL cannot be resolved and the setter used to override it.
-- `project/home-globe-reference-repos/cesium/packages/engine/Source/Core/TaskProcessor.js:91-125` and `project/home-globe-reference-repos/cesium/packages/engine/Source/Core/TaskProcessor.js:237-245` show worker URLs and worker messages deriving from the Cesium base URL.
-- `project/home-globe-reference-repos/cesium/packages/widgets/Source/widgets.css:1-18` shows the aggregate widget stylesheet that the future bootstrap path will load as one bundle.
+- `node_modules/@cesium/engine/Source/Core/buildModuleUrl.js:36-46` resolves the Cesium base URL from `CESIUM_BASE_URL` or `import.meta.url`.
+- `node_modules/@cesium/engine/Source/Core/buildModuleUrl.js:63-75` and `node_modules/@cesium/engine/Source/Core/buildModuleUrl.js:139-143` show the failure mode when a base URL cannot be resolved and the setter used to override it.
+- `node_modules/@cesium/engine/Source/Core/TaskProcessor.js:91-125` and `node_modules/@cesium/engine/Source/Core/TaskProcessor.js:237-245` show worker URLs and worker messages deriving from the Cesium base URL.
+- `node_modules/@cesium/widgets/Source/widgets.css:1-18` shows the aggregate widget stylesheet that the future bootstrap path will load as one bundle.
 
 ## Decision
 
