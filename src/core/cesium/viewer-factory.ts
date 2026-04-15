@@ -2,6 +2,7 @@ import { Viewer } from "cesium";
 import { applyAtmosphereBaseline } from "../../features/globe/atmosphere";
 import { applyFogAndPostProcessBaseline } from "../../features/globe/fog-and-post-process";
 import { applyLightingBaseline } from "../../features/globe/lighting";
+import { createOfflineImageryLayer } from "../../features/globe/offline-imagery";
 import { applyStarBackground } from "../../features/globe/star-background";
 
 export interface ViewerElements {
@@ -26,6 +27,9 @@ export function createViewer({
   // Evidence: /home/u24/papers/project/home-globe-reference-repos/cesium/packages/widgets/Specs/Viewer/ViewerSpec.js:85-117
   // Evidence: /home/u24/papers/project/home-globe-reference-repos/cesium/packages/widgets/Specs/Viewer/ViewerSpec.js:146-151
   const viewer = new Viewer(container, {
+    baseLayerPicker: false,
+    geocoder: false,
+    baseLayer: createOfflineImageryLayer(),
     creditContainer,
     creditViewport
   });

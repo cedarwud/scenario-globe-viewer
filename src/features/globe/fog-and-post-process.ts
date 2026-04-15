@@ -22,6 +22,6 @@ export function applyFogAndPostProcessBaseline(viewer: Viewer): void {
   fog.minimumBrightness = 0.05;
 
   bloom.enabled = true;
-  bloom.uniforms.brightness = -0.15;
-  bloom.uniforms.stepSize = 1.2;
+  bloom.uniforms.brightness = 0.15;
+  bloom.uniforms.stepSize = 2.0;
 }
