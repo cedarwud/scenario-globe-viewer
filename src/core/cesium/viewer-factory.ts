@@ -1,5 +1,6 @@
 import { Viewer } from "cesium";
 import { applyAtmosphereBaseline } from "../../features/globe/atmosphere";
+import { applyFogAndPostProcessBaseline } from "../../features/globe/fog-and-post-process";
 import { applyLightingBaseline } from "../../features/globe/lighting";
 import { applyStarBackground } from "../../features/globe/star-background";
 
@@ -32,6 +33,7 @@ export function createViewer({
   applyAtmosphereBaseline(viewer);
   applyLightingBaseline(viewer);
   applyStarBackground(viewer);
+  applyFogAndPostProcessBaseline(viewer);
 
   return viewer;
 }

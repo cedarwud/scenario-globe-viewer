@@ -85,3 +85,12 @@ This file is the delivery-local evidence anchor for Phase 0 through Phase 2.
 - `/home/u24/papers/project/home-globe-reference-repos/cesium/packages/engine/Source/Scene/SkyBox.js:139-158` defines `SkyBox.createEarthSkyBox()` and the built-in Tycho star textures it resolves from Cesium assets.
 - `/home/u24/papers/project/home-globe-reference-repos/cesium/packages/engine/Source/Scene/Scene.js:284-334` defines `Scene#skyBox` and makes `backgroundColor` only the fallback when no sky box is present.
 - `/home/u24/papers/project/home-globe-reference-repos/cesium/packages/engine/Specs/Scene/SkyBoxSpec.js:33-47` verifies that a `SkyBox` assigned to `scene.skyBox` participates in rendering.
+
+### Stage 2.4 Fog And Post-Process
+
+- `/home/u24/papers/project/home-globe-reference-repos/cesium/packages/sandcastle/gallery/fog/main.js:20-64` shows the native fog tuning path through `viewer.scene.fog`.
+- `/home/u24/papers/project/home-globe-reference-repos/cesium/packages/sandcastle/gallery/mars/main.js:37-40` shows Cesium's built-in bloom stage being enabled without adding a custom fragment shader.
+- `/home/u24/papers/project/home-globe-reference-repos/cesium/packages/engine/Source/Scene/Fog.js:11-164` defines the fog controls used here, including `density`, `visualDensityScalar`, `heightScalar`, `heightFalloff`, `maxHeight`, and `minimumBrightness`.
+- `/home/u24/papers/project/home-globe-reference-repos/cesium/packages/engine/Specs/Scene/FogSpec.js:18-58` verifies that fog disables above `maxHeight` and that the configured values pass through to frame state.
+- `/home/u24/papers/project/home-globe-reference-repos/cesium/packages/engine/Source/Scene/PostProcessStageCollection.js:32-56` defines the built-in bloom stage and its default-disabled baseline.
+- `/home/u24/papers/project/home-globe-reference-repos/cesium/packages/engine/Specs/Scene/PostProcessStageCollectionSpec.js:13-31` verifies that the collection exposes `bloom` as a native post-process stage.
