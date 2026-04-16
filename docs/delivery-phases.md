@@ -28,8 +28,8 @@ Related deployment guidance: see [deployment-profiles.md](./deployment-profiles.
 - The current Phase 3.1 app shell still mounts the repo-owned HUD-frame structure from `3.1`, but `3.5` now narrows that shell to a `data-hud-visibility="status-only"` status panel while the left/right panels remain hidden.
 - Phase 3.2 adds a plain-data replay-clock contract under `src/features/time/`, and Phases 3.3-3.5 now implement the real-time and prerecorded paths on top of Cesium's native `viewer.clock` without widening that contract into Cesium runtime classes.
 - The current replay-clock runtime is still intentionally narrow: it is exposed through the existing capture seam for targeted validation, consumed locally by the read-only timeline HUD placeholder through a plain-data formatter, prerecorded mode now behaves as a clamped playback clip on that same Cesium clock, and omitting `range` while entering prerecorded mode reuses the active `startTime`/`stopTime` interval explicitly.
-- Phase 3.6 now adds a repo-owned overlay manager interface under `src/features/overlays/`; it keeps overlay state plain-data, assigns adapter attach/detach plus top-level visibility and disposal ownership to the manager boundary, reserves only a minimal future replay-clock binding hook for adapters, and still does not wire any overlay runtime or satellite adapter into `src/main.ts`.
-- `npm run test:phase3.3` now verifies the real-time replay-clock slice directly in a headless browser, `npm run test:phase3.4` now verifies the prerecorded slice plus the return path back to real-time, `npm run test:phase3.5` now verifies the repo-owned timeline placeholder plus the preserved native toolbar/timeline/credits shell, and `npm run test:phase3.6` now verifies the overlay-manager export seam plus the absence of Cesium-runtime, fixture-ingestion, and walker-adapter leakage in that contract.
+- Phase 3.6 now adds a repo-owned overlay manager interface under `src/features/overlays/`, and Phase 3.7 now adds a formal satellite adapter interface under `src/features/satellites/`; overlay state plus satellite fixture/sample data stay plain-data, `overlay-manager` now imports the formal adapter interface, and neither seam is wired into `src/main.ts`.
+- `npm run test:phase3.3` now verifies the real-time replay-clock slice directly in a headless browser, `npm run test:phase3.4` now verifies the prerecorded slice plus the return path back to real-time, `npm run test:phase3.5` now verifies the repo-owned timeline placeholder plus the preserved native toolbar/timeline/credits shell, `npm run test:phase3.6` now verifies the overlay-manager export seam plus the absence of Cesium-runtime, fixture-ingestion, and walker-adapter leakage in that contract, and `npm run test:phase3.7` now verifies the satellite adapter export seam plus the formal `overlay-manager` dependency without turning on runtime satellite behavior.
 - Formal site dataset integration MVP now exists on the existing configured `site` hook. The committed OSM Buildings slice remains showcase-only and must not be treated as a substitute for that dataset-backed `site` delivery line. ADR `0007-formal-site-dataset-integration-governance.md` remains the governing classification and boundary document for this line.
 - Dataset-enabled validation is now separate from the dormant baseline path: `npm run test:phase1:site-dataset` verifies the dataset-backed runtime, and `npm run capture:site-dataset` writes the separate review artifact under `docs/images/formal-site-dataset-mvp/`.
 - The current repo-owned dataset fixture is a validation-only asset. This MVP does not claim that formal Tier 1 / Tier 2 Profile A measurements are closed or that a final delivery AOI has already been provided.
@@ -150,7 +150,7 @@ The current WSL-only operating assumption now uses a separate development-progre
 Current status under that model:
 
 - `3.2` is `go with constraints` for routine in-scope Phase 3 implementation slices
-- the landed `3.2-3.6` surface now includes the plain-data replay-clock contract, Cesium-backed real-time and prerecorded implementations on the same `viewer.clock`, a read-only status-panel timeline placeholder, and a repo-owned overlay-manager interface that remains off the live runtime path
+- the landed `3.2-3.7` surface now includes the plain-data replay-clock contract, Cesium-backed real-time and prerecorded implementations on the same `viewer.clock`, a read-only status-panel timeline placeholder, a repo-owned overlay-manager interface, and a formal satellite adapter interface that still remain off the live runtime path
 - this is not automatic authorization for Phase 3 close-out, deployment/profile widening, data-contract widening, or admissible-measurement closure
 - any slice that crosses those boundaries still needs a fresh governance checkpoint before implementation starts
 
@@ -179,7 +179,7 @@ Gate:
 
 - replay controls work
 - HUD framing exists
-- overlay integration points are present
+- overlay-manager imports the formal satellite adapter interface
 - no walker adapter implementation exists yet
 - satellite implementation is still absent from the runtime path
 
