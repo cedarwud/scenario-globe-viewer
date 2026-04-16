@@ -114,6 +114,7 @@ Gate:
 - validation is done under the delivery-default Cesium-native profile, with any local/on-prem provider override treated as an explicit opt-in variant rather than the only compliant baseline
 - the Phase 2 quality gate is decomposed into reviewable commits rather than a single batch change
 - repo-owned globe-only close-out evidence exists before any replay or overlay implementation lands; for the current repo state this means `npm run test:phase1` plus the Phase 2.12 screenshots and `docs/visual-baselines.md`, not an implied 24-hour soak artifact
+- that Phase 2 evidence chain is necessary but not sufficient for pre-Phase-3 readiness; separate Tier 1 / Tier 2 Profile A real-machine measurements must still be recorded
 - native Cesium controls and provider paths are not degraded solely to satisfy deployment wording
 
 Review checkpoint: mandatory before Phase 3.
@@ -122,12 +123,15 @@ Review checkpoint: mandatory before Phase 3.
 - Treat the measured imagery, terrain, site-hook, performance, and close-out evidence constraints as the new baseline. Do not keep carrying stale planning assumptions forward.
 - `docs/cesium-evidence.md` and `docs/visual-baselines.md` must explicitly point to the accepted Phase 2 evidence chain. If only smoke plus visual baselines exist and no dedicated long-duration soak artifact exists, state that plainly rather than implying one.
 - If the default Cesium-native profile, optional provider-override policy, quality bar, or performance budget changed during implementation, stop and rewrite the plan before any HUD or replay work starts.
-- Revisit bundle size now that the real globe baseline, preset structure, and provider choices are visible. This is the right point to decide whether low-risk code splitting, deferred bootstrap, or chunk-shaping work is worth doing.
-- Re-check the `protobufjs` `eval` warning after Phase 2. If it is still present and still originates from the Cesium dependency chain rather than repo code, document whether the project accepts it as an upstream dependency risk or needs a targeted mitigation before later delivery phases.
+- If the current workspace cannot produce admissible Tier 1 / Tier 2 Profile A measurements, stop and record that blocker explicitly. Do not relabel smoke, visual baselines, or SwiftShader runs as tier evidence.
+- The current authority set accepts and defers the verified large-chunk warning. Revisit mitigation only if later bundle growth or delivery constraints make that trade-off materially worse.
+- The current authority set accepts the verified `protobufjs` `eval` warning as an upstream dependency risk because it still originates from the dependency chain rather than repo code.
 
 ## Phase 3
 
 Goal: add application framing and time/overlay seams without turning on satellite implementation.
+
+Phase 3 must not start until the mandatory pre-Phase-3 checkpoint records the missing Tier 1 / Tier 2 Profile A measurements. In the current repo state, readiness remains `no-go`.
 
 Commit sequence:
 

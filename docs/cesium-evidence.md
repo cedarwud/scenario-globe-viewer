@@ -71,6 +71,19 @@ The current repo does not claim a separate 24-hour globe-only soak artifact. Pha
 
 This evidence is sufficient to describe the current Phase 2 globe-only baseline. Any future long-duration soak or multi-hardware performance campaign must be added as new evidence rather than inferred from these artifacts.
 
+## Pre-Phase-3 Measurement Feasibility
+
+As of `2026-04-16`, this workspace cannot produce admissible Tier 1 or Tier 2 Profile A performance evidence for the repo.
+
+- The accessible shell for this evidence pass is `Linux ... microsoft-standard-WSL2` on `x86_64`.
+- `lscpu` in that workspace reports `Intel(R) Core(TM) Ultra 9 285H`, and `google-chrome --version` reports `145.0.7632.67`.
+- `glxinfo -B` cannot open display `:0`, and `lspci -nn` does not expose a usable Linux VGA or 3D device surface from this workspace.
+- `tests/smoke/bootstrap-loads-assets-and-workers.mjs:379-382` launches the repo-owned browser smoke with `--use-angle=swiftshader`, which is suitable for lower-bound smoke but not for Tier 1 or Tier 2 hardware evidence.
+
+This workspace is sufficient for build, smoke, and repo-owned visual-baseline refreshes, but it is not sufficient for the required real-machine capture. Phase 3 readiness therefore remains `no-go` until exact hardware, browser, driver, and FPS measurements are recorded on admissible Profile A reference machines.
+
+ADR `0005-perf-budget.md` records the matching governance decision for build warnings: the large-chunk warning is accepted and deferred, and the upstream `protobufjs` `eval` warning is accepted as an upstream dependency risk. Those warning decisions do not replace the missing measurement gate.
+
 ## Phase 2 Globe Evidence
 
 ### Stage 2.1 Atmosphere Baseline
