@@ -45,6 +45,18 @@ const smokeFetches = [
   }
 ];
 
+const desktopViewport = {
+  width: 1440,
+  height: 900,
+  deviceScaleFactor: 1
+};
+
+const shortViewport = {
+  width: 1440,
+  height: 760,
+  deviceScaleFactor: 1
+};
+
 function assert(condition, message) {
   if (!condition) {
     throw new Error(message);
@@ -71,6 +83,15 @@ function sleep(ms) {
   return new Promise((resolve) => {
     setTimeout(resolve, ms);
   });
+}
+
+async function evaluateValue(client, expression) {
+  const evaluation = await client.send("Runtime.evaluate", {
+    expression,
+    returnByValue: true
+  });
+
+  return evaluation.result.value;
 }
 
 function startHeadlessBrowser(browserCommand, extraArgs = []) {
@@ -279,8 +300,9 @@ function connectCdp(pageWebSocketUrl) {
 }
 
 async function readBootstrapState(client) {
-  const evaluation = await client.send("Runtime.evaluate", {
-    expression: `(() => {
+  return await evaluateValue(
+    client,
+    `(() => {
       const root = document.documentElement;
       const lightingToggle = document.querySelector('[data-lighting-toggle="true"]');
       const hudFrame = document.querySelector('[data-hud-frame="true"]');
@@ -308,11 +330,442 @@ async function readBootstrapState(client) {
         hasUnpressedLightingToggle:
           lightingToggle?.getAttribute('aria-pressed') === 'false'
       };
-    })()`,
-    returnByValue: true
-  });
+    })()`
+  );
+}
 
-  return evaluation.result.value;
+async function readHudLayoutState(client) {
+  return await evaluateValue(
+    client,
+    `(() => {
+      const pickRect = (selector) => {
+        const element = document.querySelector(selector);
+
+        if (!element) {
+          return null;
+        }
+
+        const rect = element.getBoundingClientRect();
+        const style = getComputedStyle(element);
+
+        return {
+          left: rect.left,
+          top: rect.top,
+          right: rect.right,
+          bottom: rect.bottom,
+          width: rect.width,
+          height: rect.height,
+          display: style.display,
+          visibility: style.visibility,
+          opacity: style.opacity,
+          zIndex: style.zIndex,
+          pointerEvents: style.pointerEvents
+        };
+      };
+
+      const describeElementAt = (x, y) => {
+        const element = document.elementFromPoint(x, y);
+
+        if (!element) {
+          return null;
+        }
+
+        return {
+          tagName: element.tagName,
+          className: typeof element.className === "string" ? element.className : "",
+          title:
+            typeof element.getAttribute === "function"
+              ? element.getAttribute("title")
+              : null,
+          dataHudPanel:
+            typeof element.getAttribute === "function"
+              ? element.getAttribute("data-hud-panel")
+              : null
+        };
+      };
+
+      const leftPanel = pickRect(".hud-panel--left");
+      const rightPanel = pickRect(".hud-panel--right");
+      const statusPanel = pickRect(".hud-panel--status");
+      const activeElement = document.activeElement;
+      const geocoderInput = document.querySelector(".cesium-geocoder-input");
+      const geocoderRect = pickRect(".cesium-geocoder-input");
+      const geocoderSearchButton = pickRect(".cesium-geocoder-searchButton");
+      const baseLayerPickerToggle = pickRect(".cesium-baseLayerPicker-selected");
+      const baseLayerDropdown = pickRect(".cesium-baseLayerPicker-dropDown");
+      const overlapLeft =
+        rightPanel && baseLayerDropdown
+          ? Math.max(rightPanel.left, baseLayerDropdown.left)
+          : null;
+      const overlapTop =
+        rightPanel && baseLayerDropdown
+          ? Math.max(rightPanel.top, baseLayerDropdown.top)
+          : null;
+      const overlapRight =
+        rightPanel && baseLayerDropdown
+          ? Math.min(rightPanel.right, baseLayerDropdown.right)
+          : null;
+      const overlapBottom =
+        rightPanel && baseLayerDropdown
+          ? Math.min(rightPanel.bottom, baseLayerDropdown.bottom)
+          : null;
+      const overlapWidth =
+        overlapLeft !== null && overlapRight !== null
+          ? Math.max(0, overlapRight - overlapLeft)
+          : 0;
+      const overlapHeight =
+        overlapTop !== null && overlapBottom !== null
+          ? Math.max(0, overlapBottom - overlapTop)
+          : 0;
+
+      return {
+        viewport: {
+          width: window.innerWidth,
+          height: window.innerHeight
+        },
+        hudFrame: pickRect(".hud-frame"),
+        leftPanel,
+        rightPanel,
+        statusPanel,
+        toolbar: pickRect(".cesium-viewer-toolbar"),
+        animation: pickRect(".cesium-viewer-animationContainer"),
+        timeline: pickRect(".cesium-viewer-timelineContainer"),
+        bottom: pickRect(".cesium-viewer-bottom"),
+        creditText: pickRect(".cesium-credit-textContainer"),
+        activeElement:
+          activeElement instanceof HTMLElement
+            ? {
+                tagName: activeElement.tagName,
+                className:
+                  typeof activeElement.className === "string" ? activeElement.className : ""
+              }
+            : null,
+        geocoderInput: geocoderRect
+          ? {
+              ...geocoderRect,
+              value: geocoderInput instanceof HTMLInputElement ? geocoderInput.value : "",
+              className: geocoderInput instanceof HTMLInputElement ? geocoderInput.className : ""
+            }
+          : null,
+        geocoderSearchButton,
+        baseLayerPickerToggle,
+        baseLayerDropdown,
+        leftPanelCenterElement:
+          leftPanel && leftPanel.width > 0 && leftPanel.height > 0
+            ? describeElementAt(
+                leftPanel.left + leftPanel.width / 2,
+                leftPanel.top + leftPanel.height / 2
+              )
+            : null,
+        rightPanelCenterElement:
+          rightPanel && rightPanel.width > 0 && rightPanel.height > 0
+            ? describeElementAt(
+                rightPanel.left + rightPanel.width / 2,
+                rightPanel.top + rightPanel.height / 2
+              )
+            : null,
+        geocoderCenterElement:
+          geocoderRect && geocoderRect.width > 0 && geocoderRect.height > 0
+            ? describeElementAt(
+                geocoderRect.left + Math.min(geocoderRect.width / 2, geocoderRect.width - 8),
+                geocoderRect.top + geocoderRect.height / 2
+              )
+            : null,
+        geocoderSearchButtonCenterElement:
+          geocoderSearchButton &&
+          geocoderSearchButton.width > 0 &&
+          geocoderSearchButton.height > 0
+            ? describeElementAt(
+                geocoderSearchButton.left + geocoderSearchButton.width / 2,
+                geocoderSearchButton.top + geocoderSearchButton.height / 2
+              )
+            : null,
+        baseLayerPickerToggleCenterElement:
+          baseLayerPickerToggle &&
+          baseLayerPickerToggle.width > 0 &&
+          baseLayerPickerToggle.height > 0
+            ? describeElementAt(
+                baseLayerPickerToggle.left + baseLayerPickerToggle.width / 2,
+                baseLayerPickerToggle.top + baseLayerPickerToggle.height / 2
+              )
+            : null,
+        baseLayerOverlapWidth: overlapWidth,
+        baseLayerOverlapHeight: overlapHeight,
+        baseLayerOverlapElement:
+          overlapWidth > 0 && overlapHeight > 0
+            ? describeElementAt(
+                overlapLeft + overlapWidth / 2,
+                overlapTop + overlapHeight / 2
+              )
+            : null
+      };
+    })()`
+  );
+}
+
+async function waitForCondition(client, description, predicateExpression, attempts = 40) {
+  for (let attempt = 0; attempt < attempts; attempt += 1) {
+    const matched = await evaluateValue(client, predicateExpression);
+
+    if (matched) {
+      return;
+    }
+
+    await sleep(100);
+  }
+
+  throw new Error(`Timed out waiting for ${description}.`);
+}
+
+function assertVisiblePanel(panel, label) {
+  assert(panel, `Missing ${label} panel rect.`);
+  assert(panel.display !== "none", `Expected ${label} panel to be visible.`);
+  assert(panel.width > 0 && panel.height > 0, `Expected ${label} panel to have area.`);
+  assert(panel.pointerEvents === "none", `Expected ${label} panel to stay pointer-transparent.`);
+}
+
+function parseZIndex(rect) {
+  return Number.parseInt(rect?.zIndex ?? "0", 10);
+}
+
+function rectCenter(rect) {
+  return {
+    x: rect.left + rect.width / 2,
+    y: rect.top + rect.height / 2
+  };
+}
+
+async function dispatchMouseClick(client, point) {
+  await client.send("Input.dispatchMouseEvent", {
+    type: "mouseMoved",
+    x: point.x,
+    y: point.y,
+    button: "none",
+    buttons: 0
+  });
+  await client.send("Input.dispatchMouseEvent", {
+    type: "mousePressed",
+    x: point.x,
+    y: point.y,
+    button: "left",
+    buttons: 1,
+    clickCount: 1
+  });
+  await client.send("Input.dispatchMouseEvent", {
+    type: "mouseReleased",
+    x: point.x,
+    y: point.y,
+    button: "left",
+    buttons: 0,
+    clickCount: 1
+  });
+}
+
+function assertDesktopHudSafety(layoutState, scenarioLabel) {
+  assert(layoutState.viewport.width === 1440, `Expected desktop width during ${scenarioLabel}.`);
+  assert(layoutState.viewport.height === 900, `Expected desktop height during ${scenarioLabel}.`);
+  assert(layoutState.hudFrame?.pointerEvents === "none", `Expected HUD frame to stay pointer-transparent during ${scenarioLabel}.`);
+  assertVisiblePanel(layoutState.leftPanel, `left/${scenarioLabel}`);
+  assertVisiblePanel(layoutState.rightPanel, `right/${scenarioLabel}`);
+  assertVisiblePanel(layoutState.statusPanel, `status/${scenarioLabel}`);
+  assert(parseZIndex(layoutState.toolbar) > parseZIndex(layoutState.hudFrame), `Expected toolbar to stack above HUD during ${scenarioLabel}.`);
+  assert(parseZIndex(layoutState.timeline) > parseZIndex(layoutState.hudFrame), `Expected timeline to stack above HUD during ${scenarioLabel}.`);
+  assert(parseZIndex(layoutState.bottom) > parseZIndex(layoutState.hudFrame), `Expected credits band to stack above HUD during ${scenarioLabel}.`);
+  assert(
+    layoutState.leftPanelCenterElement?.tagName === "CANVAS",
+    `Expected left HUD panel to pass pointer hits through to the globe canvas during ${scenarioLabel}: ${JSON.stringify(layoutState.leftPanelCenterElement)}`
+  );
+  assert(
+    layoutState.rightPanelCenterElement?.tagName === "CANVAS",
+    `Expected right HUD panel to pass pointer hits through to the globe canvas during ${scenarioLabel}: ${JSON.stringify(layoutState.rightPanelCenterElement)}`
+  );
+  assert(
+    layoutState.statusPanel.bottom <= layoutState.bottom.top - 2,
+    `Expected desktop status band to clear the native credits band during ${scenarioLabel}: ${JSON.stringify({
+      statusPanel: layoutState.statusPanel,
+      bottom: layoutState.bottom
+    })}`
+  );
+  assert(
+    layoutState.statusPanel.bottom <= layoutState.creditText.top - 2,
+    `Expected desktop status band to clear credit text during ${scenarioLabel}: ${JSON.stringify({
+      statusPanel: layoutState.statusPanel,
+      creditText: layoutState.creditText
+    })}`
+  );
+}
+
+function assertShortHudSafety(layoutState, scenarioLabel) {
+  assert(layoutState.viewport.width === 1440, `Expected short width during ${scenarioLabel}.`);
+  assert(layoutState.viewport.height === 760, `Expected short height during ${scenarioLabel}.`);
+  assert(layoutState.hudFrame?.pointerEvents === "none", `Expected HUD frame to stay pointer-transparent during ${scenarioLabel}.`);
+  assertVisiblePanel(layoutState.leftPanel, `left/${scenarioLabel}`);
+  assertVisiblePanel(layoutState.rightPanel, `right/${scenarioLabel}`);
+  assert(
+    layoutState.statusPanel?.display === "none",
+    `Expected status band to collapse on the short shell path during ${scenarioLabel}: ${JSON.stringify(layoutState.statusPanel)}`
+  );
+  assert(
+    layoutState.leftPanelCenterElement?.tagName === "CANVAS",
+    `Expected short-view HUD panel to pass pointer hits through to the globe canvas during ${scenarioLabel}: ${JSON.stringify(layoutState.leftPanelCenterElement)}`
+  );
+}
+
+async function activateGeocoderAndInsertText(client, value) {
+  let layoutState = await readHudLayoutState(client);
+  assert(
+    layoutState.geocoderSearchButton &&
+      layoutState.geocoderSearchButton.width > 0 &&
+      layoutState.geocoderSearchButton.height > 0,
+    `Missing a user-reachable native geocoder search button: ${JSON.stringify(layoutState.geocoderSearchButton)}`
+  );
+  await client.send("Input.dispatchMouseEvent", {
+    type: "mouseMoved",
+    x: rectCenter(layoutState.geocoderSearchButton).x,
+    y: rectCenter(layoutState.geocoderSearchButton).y,
+    button: "none",
+    buttons: 0
+  });
+  await waitForCondition(
+    client,
+    "hover-expanded geocoder input",
+    `(() => {
+      const input = document.querySelector(".cesium-geocoder-input");
+      return input instanceof HTMLInputElement &&
+        input.getBoundingClientRect().width >= 200;
+    })()`
+  );
+  layoutState = await readHudLayoutState(client);
+  assert(
+    layoutState.geocoderInput &&
+      layoutState.geocoderInput.width >= 200 &&
+      layoutState.geocoderInput.height > 0,
+    `Expected hover-expanded geocoder input geometry before pointer focus: ${JSON.stringify(layoutState.geocoderInput)}`
+  );
+  assert(
+    layoutState.geocoderCenterElement?.tagName === "INPUT",
+    `Expected hover-expanded geocoder input to expose a real input hit target: ${JSON.stringify(layoutState.geocoderCenterElement)}`
+  );
+  await dispatchMouseClick(client, {
+    x: layoutState.geocoderInput.left + Math.min(32, layoutState.geocoderInput.width / 4),
+    y: layoutState.geocoderInput.top + layoutState.geocoderInput.height / 2
+  });
+  await waitForCondition(
+    client,
+    "pointer-focused geocoder input",
+    `(() => {
+      const input = document.querySelector(".cesium-geocoder-input");
+      return input instanceof HTMLInputElement &&
+        document.activeElement === input;
+    })()`
+  );
+  await client.send("Input.insertText", { text: value });
+  await waitForCondition(
+    client,
+    "expanded geocoder input",
+    `(() => {
+      const input = document.querySelector(".cesium-geocoder-input");
+      return input instanceof HTMLInputElement &&
+        input.value === ${JSON.stringify(value)} &&
+        input.classList.contains("cesium-geocoder-input-wide");
+    })()`
+  );
+}
+
+async function toggleBaseLayerPicker(client) {
+  const layoutState = await readHudLayoutState(client);
+  assert(
+    layoutState.baseLayerPickerToggle &&
+      layoutState.baseLayerPickerToggle.width > 0 &&
+      layoutState.baseLayerPickerToggle.height > 0,
+    `Missing a user-reachable native BaseLayerPicker toggle: ${JSON.stringify(layoutState.baseLayerPickerToggle)}`
+  );
+  await dispatchMouseClick(client, rectCenter(layoutState.baseLayerPickerToggle));
+}
+
+async function dismissNavigationHelpIfVisible(client) {
+  const dismissed = await evaluateValue(
+    client,
+    `(() => {
+      const visiblePanel = document.querySelector(".cesium-click-navigation-help-visible");
+      const button = document.querySelector(".cesium-navigation-help-button");
+
+      if (!visiblePanel || !(button instanceof HTMLElement)) {
+        return false;
+      }
+
+      button.click();
+      return true;
+    })()`
+  );
+
+  if (dismissed) {
+    await sleep(150);
+  }
+}
+
+async function runDesktopInteractiveHudChecks(client, scenarioLabel) {
+  await activateGeocoderAndInsertText(client, "Taipei");
+  let layoutState = await readHudLayoutState(client);
+
+  assert(
+    layoutState.geocoderInput?.className.includes("cesium-geocoder-input-wide"),
+    `Expected geocoder input to stay expanded during ${scenarioLabel}: ${JSON.stringify(layoutState.geocoderInput)}`
+  );
+  assert(
+    layoutState.activeElement?.tagName === "INPUT" &&
+      layoutState.activeElement.className.includes("cesium-geocoder-input"),
+    `Expected pointer click on the native geocoder control to focus the input during ${scenarioLabel}: ${JSON.stringify(layoutState.activeElement)}`
+  );
+  assert(
+    layoutState.geocoderCenterElement?.tagName === "INPUT",
+    `Expected geocoder input to stay above the HUD during ${scenarioLabel}: ${JSON.stringify(layoutState.geocoderCenterElement)}`
+  );
+  assert(
+    layoutState.geocoderSearchButtonCenterElement !== null,
+    `Expected a concrete geocoder search-button hit target during ${scenarioLabel}.`
+  );
+
+  await toggleBaseLayerPicker(client);
+  await waitForCondition(
+    client,
+    "opened BaseLayerPicker",
+    `(() => {
+      const dropdown = document.querySelector(".cesium-baseLayerPicker-dropDown");
+      return dropdown instanceof HTMLElement && getComputedStyle(dropdown).visibility === "visible";
+    })()`
+  );
+
+  layoutState = await readHudLayoutState(client);
+  assert(
+    layoutState.baseLayerDropdown?.visibility === "visible",
+    `Expected BaseLayerPicker dropdown to be visible during ${scenarioLabel}: ${JSON.stringify(layoutState.baseLayerDropdown)}`
+  );
+  assert(
+    layoutState.baseLayerPickerToggleCenterElement !== null,
+    `Expected a concrete BaseLayerPicker toggle hit target during ${scenarioLabel}.`
+  );
+  assert(
+    layoutState.baseLayerOverlapWidth > 0 && layoutState.baseLayerOverlapHeight > 0,
+    `Expected opened BaseLayerPicker to overlap the right HUD panel during ${scenarioLabel}: ${JSON.stringify({
+      rightPanel: layoutState.rightPanel,
+      baseLayerDropdown: layoutState.baseLayerDropdown
+    })}`
+  );
+  assert(
+    layoutState.baseLayerOverlapElement?.className.includes("cesium-baseLayerPicker"),
+    `Expected opened BaseLayerPicker to stay on top of the HUD during ${scenarioLabel}: ${JSON.stringify(layoutState.baseLayerOverlapElement)}`
+  );
+
+  await toggleBaseLayerPicker(client);
+  await waitForCondition(
+    client,
+    "closed BaseLayerPicker",
+    `(() => {
+      const dropdown = document.querySelector(".cesium-baseLayerPicker-dropDown");
+      return dropdown instanceof HTMLElement && getComputedStyle(dropdown).visibility !== "visible";
+    })()`
+  );
 }
 
 async function waitForBootstrapReady(client, expectedScenePreset, scenarioLabel, attemptLabel) {
@@ -394,17 +847,35 @@ async function verifyBootstrapInHeadlessBrowser(baseUrl) {
     {
       label: "default-global",
       requestPath: "/",
-      expectedScenePreset: "global"
+      expectedScenePreset: "global",
+      viewport: desktopViewport,
+      validateLayout: (layoutState) => {
+        assertDesktopHudSafety(layoutState, "default-global");
+      },
+      runInteractiveChecks: async (client) => {
+        await runDesktopInteractiveHudChecks(client, "default-global");
+      }
     },
     {
       label: "regional-query",
       requestPath: "/?scenePreset=regional",
-      expectedScenePreset: "regional"
+      expectedScenePreset: "regional",
+      viewport: desktopViewport
     },
     {
       label: "site-query",
       requestPath: "/?scenePreset=site",
-      expectedScenePreset: "site"
+      expectedScenePreset: "site",
+      viewport: desktopViewport
+    },
+    {
+      label: "default-global-short",
+      requestPath: "/",
+      expectedScenePreset: "global",
+      viewport: shortViewport,
+      validateLayout: (layoutState) => {
+        assertShortHudSafety(layoutState, "default-global-short");
+      }
     }
   ];
 
@@ -420,6 +891,12 @@ async function verifyBootstrapInHeadlessBrowser(baseUrl) {
         try {
           await client.send("Page.enable");
           await client.send("Runtime.enable");
+          await client.send("Emulation.setDeviceMetricsOverride", {
+            width: scenario.viewport.width,
+            height: scenario.viewport.height,
+            deviceScaleFactor: scenario.viewport.deviceScaleFactor,
+            mobile: false
+          });
           await client.send("Page.navigate", { url: requestUrl });
           await waitForBootstrapReady(
             client,
@@ -427,6 +904,13 @@ async function verifyBootstrapInHeadlessBrowser(baseUrl) {
             scenario.label,
             attempt.label
           );
+          await dismissNavigationHelpIfVisible(client);
+          if (scenario.validateLayout) {
+            scenario.validateLayout(await readHudLayoutState(client));
+          }
+          if (scenario.runInteractiveChecks) {
+            await scenario.runInteractiveChecks(client);
+          }
         } finally {
           await client.close();
         }

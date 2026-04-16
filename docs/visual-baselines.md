@@ -37,3 +37,19 @@ The capture harness does not rewrite preset framing, provider policy, or tiles b
 - `site`: site framing from `a012738`
 
 The default Phase 2.12 capture is intentionally run without `VITE_CESIUM_SITE_TILESET_URL`. Under that condition, the `site` screenshot represents the site preset camera plus the dormant optional 3D tiles hook. No placeholder tileset is injected for baseline generation.
+
+## Phase 3.1 Follow-Up Approval Artifact
+
+- `docs/images/phase-3.1-follow-up/hud-shell-global-1440x900.png`
+
+This PNG is a review-only Phase 3.1 HUD-shell follow-up artifact captured on top of commit `a45a34e`. It is not a Phase 2.12 baseline, does not replace the accepted Phase 2 close-out screenshots, and must not be cited as admissible measurement evidence.
+
+Capture conditions:
+
+- deployment profile: Profile A / Cesium-native default
+- viewport: `1440x900`
+- bootstrap selection path: default `global` preset
+- native shell: preserved, including `Geocoder`, `BaseLayerPicker`, credits, animation widget, timeline, toolbar, and lighting toggle
+- HUD scope: empty-panel frame only; no replay clock, overlay manager, or satellite runtime features enabled
+- capture note: this follow-up approval screenshot records the HUD shell after the desktop bottom-clearance adjustment from a fresh local build with the native controls idle and no dropdowns open; unlike Phase 2.12, it does not freeze the native clock
+- validation note: the interactive-state coexistence checks for expanded geocoder and opened `BaseLayerPicker` live in `npm run test:phase1` rather than in this PNG
