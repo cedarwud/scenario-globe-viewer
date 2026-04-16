@@ -76,6 +76,8 @@ The current repo does not claim a separate 24-hour globe-only soak artifact. Pha
 - `docs/visual-baselines.md:3-41` records the capture conditions and the accepted baseline framing, including the centered global baseline, the capture-time rejection of shell or repo-local `.env*` `VITE_CESIUM_SITE_TILESET_URL` pollution, and the dormant site tiles hook when that env var is unset.
 - The repo-owned screenshot artifacts are `docs/images/phase-2.12/global-preset-baseline.png`, `docs/images/phase-2.12/regional-preset-baseline.png`, and `docs/images/phase-2.12/site-preset-baseline.png`.
 
+This evidence chain intentionally describes a dormant-hook baseline. If the repo later lands a formal site dataset integration, that line needs separate runtime and visual evidence rather than retroactively rewriting the current Phase 2 close-out record.
+
 This evidence is sufficient to describe the current Phase 2 globe-only baseline. Any future long-duration soak or multi-hardware performance campaign must be added as new evidence rather than inferred from these artifacts.
 
 ## Pre-Phase-3 Measurement Feasibility

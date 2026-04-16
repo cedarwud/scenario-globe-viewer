@@ -55,6 +55,8 @@ Examples include:
 
 Profile B is supported, but it is not the baseline that Phase 2 quality work should optimize against by default.
 
+Any future formal site dataset integration belongs here: it should use the explicit configured site-hook path, keep attribution and validation explicit, and remain distinct from the Profile C showcase line.
+
 ## Profile C: Mixed Or Showcase Variant
 
 This remains an optional later-stage profile for demos or mixed asset strategies.
@@ -62,6 +64,7 @@ This remains an optional later-stage profile for demos or mixed asset strategies
 Current example: the explicit Cesium OSM Buildings showcase opt-in (`?buildingShowcase=osm` or `VITE_CESIUM_BUILDING_SHOWCASE=osm`) may be used as a mixed/showcase-only variant. It remains separate from the formal `site` preset semantics and does not turn ion-backed buildings into the default validation baseline.
 
 It must not silently replace Profile A as the normal development or validation path.
+It also must not be re-labeled as the repo's formal site dataset delivery path.
 
 ## Phase 2 Interpretation
 

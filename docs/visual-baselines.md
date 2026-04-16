@@ -40,6 +40,8 @@ The capture harness does not rewrite preset framing, provider policy, or tiles b
 
 The default Phase 2.12 capture is intentionally run without `VITE_CESIUM_SITE_TILESET_URL` and without the OSM Buildings showcase opt-in (`?buildingShowcase=osm` or `VITE_CESIUM_BUILDING_SHOWCASE=osm`). The command now refuses to run when that site-hook env var resolves through shell env or repo-local `.env*`, and the harness asserts both the disabled showcase state and `siteTilesetState=dormant` before capture. Under that condition, the `site` screenshot represents the site preset camera plus the dormant optional 3D tiles hook. No placeholder tileset is injected for baseline generation, and live ion-backed building content is not part of the baseline path.
 
+Any future formal site dataset approval must be captured as a separate artifact set. It must not overwrite the dormant-hook Phase 2.12 screenshots, and it must stay distinct from both the OSM Buildings showcase and the Phase 3.1 HUD follow-up artifact.
+
 ## Phase 3.1 Follow-Up Approval Artifact
 
 - `docs/images/phase-3.1-follow-up/hud-shell-global-1440x900.png`

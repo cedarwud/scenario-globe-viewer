@@ -25,6 +25,7 @@ Related deployment guidance: see [deployment-profiles.md](./deployment-profiles.
 - The current governance target is to capture that accepted Phase 2 close-out state as its own commit/tag before the first Phase 3.1 implementation change lands.
 - Formal Phase 3 readiness still lacks admissible Tier 1 / Tier 2 Profile A measurements, but ADR `0006-phase-3.1-execution-governance` now allows a constrained WSL-backed start for `3.1` only.
 - The current Phase 3.1 app shell still mounts the empty HUD-frame structure from `3.1`, but the placeholder chrome is hidden by default until real panel functionality exists.
+- Formal site dataset integration has not started. The committed OSM Buildings slice is showcase-only and must not be treated as a substitute for a dataset-backed `site` delivery line.
 - Ad hoc screenshots under `output/` remain local validation artifacts and are not part of the delivery surface.
 
 ## Phase 0
@@ -143,6 +144,7 @@ Current execution policy:
 - allow `3.1` (`feat(app): hud frame with empty panels`) to start on top of that fixed baseline under WSL development conditions
 - do not treat WSL smoke, WSL visual refreshes, or SwiftShader runs as admissible measurement evidence
 - do not treat this exception as automatic authorization for `3.2+` or for Phase 3 close-out
+- do not treat formal site dataset integration as covered by the narrow `3.1` exception; if that line starts, it needs its own governance checkpoint because it changes the dormant `site` hook into a real dataset-backed delivery path
 
 Commit sequence:
 
@@ -168,6 +170,7 @@ Review checkpoint: mandatory before Phase 4.
 - Refresh `docs/architecture.md`, this file, and `docs/data-contracts/*.md` so replay-clock semantics, HUD scope, overlay ownership, and adapter seams are explicit.
 - If the time model, overlay-manager responsibilities, or adapter contract changed during implementation, update docs before fixture ingestion starts.
 - Re-check governance before `3.2+` if the measurement gate is still open. The `3.1` exception is intentionally narrow and must not silently widen into an unrestricted Phase 3 rollout.
+- Re-check governance before any formal site dataset integration line starts. That work should be scoped explicitly against the existing `site` hook and the already-committed Profile C showcase rather than being folded into an undefined "next Phase 3 step."
 
 ## Phase 4
 
