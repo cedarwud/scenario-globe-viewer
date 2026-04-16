@@ -17,6 +17,7 @@ Related deployment guidance: see [deployment-profiles.md](./deployment-profiles.
 - The current bootstrap smoke entry point is `node tests/smoke/bootstrap-loads-assets-and-workers.mjs`.
 - Phase 2.11 now consumes the Phase 2.8 scene-preset seam through concrete global, regional, and site presets, with runtime selection still kept to a bootstrap-time `scenePreset` path and no preset UI shell.
 - The site preset may lazily attach a configured 3D tileset URL, but only through an optional hook that stays inactive when no site tileset URL is configured.
+- A separate Cesium OSM Buildings showcase variant may now attach through explicit bootstrap opt-in only. It stays off by default, does not redefine the `site` preset, and does not promote ion-backed buildings into the formal Profile A baseline.
 - Stage 2.4 fog/post-process remains historical completion evidence in the repo, but it is currently dormant on the active preset runtime until its tuning can be reintroduced without over-brightening or over-fogging the Cesium-native baseline.
 - `docs/images/phase-1-baseline.png` remains the historical Phase 1 first-globe capture.
 - Phase 2.12 review baselines now live at `docs/images/phase-2.12/*.png`, captured through `tests/visual/capture-three-preset-baselines.mjs` and documented in `docs/visual-baselines.md`.

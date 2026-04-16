@@ -22,6 +22,8 @@ The command rebuilds `dist/`, serves the built app locally, opens a fresh headle
 - viewport: `1440x900`
 - browser timezone: `UTC`
 - bootstrap selection path: query-driven `scenePreset`
+- building showcase guard: the harness requires `buildingShowcase=off`, `buildingShowcaseSource=default-off`, and `buildingShowcaseState=disabled` before capture
+- site hook guard: the command rejects `VITE_CESIUM_SITE_TILESET_URL` as resolved by Vite production env loading (`process.env` plus repo-local `.env*`) before build, and runtime readiness requires `siteTilesetState=dormant`
 - native shell: preserved, including `Geocoder`, `BaseLayerPicker`, credits, animation widget, timeline, and toolbar
 - visual guard: the existing fog-default / bloom-off smoke values must still pass before capture
 - overlay state: navigation-help onboarding is dismissed before the screenshot so the preset frame itself stays reviewable
@@ -36,7 +38,7 @@ The capture harness does not rewrite preset framing, provider policy, or tiles b
 - `regional`: regional focus framing from `359724f`
 - `site`: site framing from `a012738`
 
-The default Phase 2.12 capture is intentionally run without `VITE_CESIUM_SITE_TILESET_URL`. Under that condition, the `site` screenshot represents the site preset camera plus the dormant optional 3D tiles hook. No placeholder tileset is injected for baseline generation.
+The default Phase 2.12 capture is intentionally run without `VITE_CESIUM_SITE_TILESET_URL` and without the OSM Buildings showcase opt-in (`?buildingShowcase=osm` or `VITE_CESIUM_BUILDING_SHOWCASE=osm`). The command now refuses to run when that site-hook env var resolves through shell env or repo-local `.env*`, and the harness asserts both the disabled showcase state and `siteTilesetState=dormant` before capture. Under that condition, the `site` screenshot represents the site preset camera plus the dormant optional 3D tiles hook. No placeholder tileset is injected for baseline generation, and live ion-backed building content is not part of the baseline path.
 
 ## Phase 3.1 Follow-Up Approval Artifact
 

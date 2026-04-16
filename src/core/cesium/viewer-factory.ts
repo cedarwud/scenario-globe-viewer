@@ -4,6 +4,7 @@ import {
   getScenePreset,
   type ScenePresetKey
 } from "../../features/globe/scene-preset";
+import type { BuildingShowcaseKey } from "../../features/globe/osm-buildings-showcase";
 import {
   applyScenePreset,
   resolveScenePresetViewerOptions
@@ -14,13 +15,15 @@ export interface ViewerElements {
   creditContainer?: Element | string;
   creditViewport?: Element | string;
   scenePresetKey?: ScenePresetKey;
+  buildingShowcaseKey?: BuildingShowcaseKey;
 }
 
 export function createViewer({
   container,
   creditContainer,
   creditViewport,
-  scenePresetKey = DEFAULT_SCENE_PRESET_KEY
+  scenePresetKey = DEFAULT_SCENE_PRESET_KEY,
+  buildingShowcaseKey = "off"
 }: ViewerElements): Viewer {
   const selectedPreset = getScenePreset(scenePresetKey);
   const presetViewerOptions = resolveScenePresetViewerOptions(selectedPreset);
@@ -42,7 +45,9 @@ export function createViewer({
     ...presetViewerOptions
   });
 
-  applyScenePreset(viewer, selectedPreset);
+  applyScenePreset(viewer, selectedPreset, {
+    buildingShowcaseKey
+  });
 
   return viewer;
 }

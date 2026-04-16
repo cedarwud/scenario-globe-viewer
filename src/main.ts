@@ -7,6 +7,10 @@ import {
 import { mountAppShell } from "./features/app/app-shell";
 import { refreshLightingForSceneMode } from "./features/globe/lighting";
 import { mountLightingToggle } from "./features/globe/lighting-toggle";
+import {
+  mountOptionalOsmBuildingsShowcase,
+  resolveBuildingShowcaseSelection
+} from "./features/globe/osm-buildings-showcase";
 import "./styles.css";
 
 type BootstrapState = "booting" | "ready" | "error";
@@ -95,10 +99,12 @@ const { viewerRoot } = mountAppShell(app);
 
 const scenePreset = resolveBootstrapScenePreset();
 document.documentElement.dataset.scenePreset = scenePreset;
+const buildingShowcase = resolveBuildingShowcaseSelection();
 
 const viewer = createViewer({
   container: viewerRoot,
-  scenePresetKey: scenePreset
+  scenePresetKey: scenePreset,
+  buildingShowcaseKey: buildingShowcase.key
 });
 // Phase 2.12 capture harnesses need a narrow viewer handle so they can wait for
 // the active camera/tiles state to settle without rewriting preset framing or
@@ -106,6 +112,10 @@ const viewer = createViewer({
 window.__SCENARIO_GLOBE_VIEWER_CAPTURE__ = { viewer };
 syncVisualBaselineState(viewer);
 const unmountLightingToggle = mountLightingToggle(viewer);
+const unmountOsmBuildingsShowcase = mountOptionalOsmBuildingsShowcase(
+  viewer,
+  buildingShowcase
+);
 const removeMorphCompleteListener = viewer.scene.morphComplete.addEventListener(() => {
   refreshLightingForSceneMode(viewer);
 });
@@ -124,6 +134,7 @@ if (import.meta.hot) {
     removeImageryLayerRemovedListener();
     removeImageryLayerAddedListener();
     removeMorphCompleteListener();
+    unmountOsmBuildingsShowcase();
     unmountLightingToggle();
     viewer.destroy();
   });

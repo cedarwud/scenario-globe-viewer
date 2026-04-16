@@ -33,6 +33,11 @@ This repo needs durable Cesium evidence without depending on workspace-local ref
 - `node_modules/@cesium/widgets/Source/Viewer/Viewer.js:564-588` shows conditional Geocoder construction.
 - `node_modules/@cesium/widgets/Source/Viewer/Viewer.js:644-656` shows conditional BaseLayerPicker construction.
 
+### OSM Buildings Showcase
+
+- `node_modules/@cesium/engine/Source/Scene/createOsmBuildingsAsync.js:1-79` shows Cesium's native OSM Buildings helper resolving the ion-backed asset and applying Cesium-managed default styling without a repo-local buildings pipeline.
+- `node_modules/@cesium/engine/Source/Scene/Cesium3DTileset.js:2135-2140` shows that helper delegating to `Cesium3DTileset.fromIonAssetId(...)`, which keeps loading, credits, and tileset lifecycle on Cesium's standard 3D Tiles path.
+
 ### Performance Budget Anchors
 
 - `node_modules/@cesium/engine/Source/Scene/Scene.js:665-694` documents `requestRenderMode` and `maximumRenderTimeChange`.
@@ -64,9 +69,11 @@ This file is the delivery-local evidence anchor for Phase 0 through Phase 2.
 
 The current repo does not claim a separate 24-hour globe-only soak artifact. Phase 2 formal close-out relies on the repo-owned evidence chain below:
 
-- `tests/smoke/bootstrap-loads-assets-and-workers.mjs:315-430` drives default-global, regional-query, and site-query scenarios under a headless SwiftShader browser and requires `bootstrapState === "ready"`, the selected preset, the preserved native `Viewer` shell, and the fog-default / bloom-off guard.
-- `tests/visual/capture-three-preset-baselines.mjs:356-463` dismisses navigation help, freezes the native clock, waits for `scene.globe.tilesLoaded` plus camera stabilization, and then captures the preset screenshots written to `docs/images/phase-2.12/`.
-- `docs/visual-baselines.md:3-40` records the capture conditions and the accepted baseline framing, including the centered global baseline and the dormant site tiles hook when `VITE_CESIUM_SITE_TILESET_URL` is unset.
+- `scripts/site-hook-guard.mjs` plus the package-script entry points in `package.json` now resolve Vite's production env surface before build, so shell env plus repo-local `.env`, `.env.local`, `.env.production`, and `.env.production.local` all count as disallowed `VITE_CESIUM_SITE_TILESET_URL` pollution for the baseline smoke, showcase smoke, or Phase 2.12 capture.
+- `tests/smoke/bootstrap-loads-assets-and-workers.mjs:390-425`, `tests/smoke/bootstrap-loads-assets-and-workers.mjs:880-939`, `tests/smoke/bootstrap-loads-assets-and-workers.mjs:1007-1081`, and `tests/smoke/bootstrap-loads-assets-and-workers.mjs:1288-1293` drive default-global, regional-query, and site-query scenarios under a headless SwiftShader browser and require `bootstrapState === "ready"`, the selected preset, `buildingShowcase=off/default-off/disabled`, `siteTilesetState=dormant`, the preserved native `Viewer` shell, and the fog-default / bloom-off guard.
+- `tests/smoke/bootstrap-loads-assets-and-workers.mjs` plus `npm run test:phase1:site-hook-conflict` keep the OSM Buildings showcase coverage separate from that baseline gate: the showcase command verifies explicit query/env opt-in wiring while keeping `siteTilesetState=dormant`, deterministic failure handling still checks `error` / `degraded`, and the promoted site-hook conflict entry requires `siteTilesetState=blocked` when a configured site hook and `buildingShowcase=osm` are both present.
+- `tests/visual/capture-three-preset-baselines.mjs:294-360`, `tests/visual/capture-three-preset-baselines.mjs:446-468`, `tests/visual/capture-three-preset-baselines.mjs:520-545`, and `tests/visual/capture-three-preset-baselines.mjs:631-633` dismiss navigation help, freeze the native clock, wait for `scene.globe.tilesLoaded` plus camera stabilization, require `buildingShowcase=off/default-off/disabled` with `siteTilesetState=dormant`, and then capture the preset screenshots written to `docs/images/phase-2.12/`.
+- `docs/visual-baselines.md:3-41` records the capture conditions and the accepted baseline framing, including the centered global baseline, the capture-time rejection of shell or repo-local `.env*` `VITE_CESIUM_SITE_TILESET_URL` pollution, and the dormant site tiles hook when that env var is unset.
 - The repo-owned screenshot artifacts are `docs/images/phase-2.12/global-preset-baseline.png`, `docs/images/phase-2.12/regional-preset-baseline.png`, and `docs/images/phase-2.12/site-preset-baseline.png`.
 
 This evidence is sufficient to describe the current Phase 2 globe-only baseline. Any future long-duration soak or multi-hardware performance campaign must be added as new evidence rather than inferred from these artifacts.

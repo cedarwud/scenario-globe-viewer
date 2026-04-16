@@ -16,7 +16,8 @@
 3. Build the delivery artifact with `npm run build`.
 4. Run the Phase 0 smoke suite with `npm test`.
 5. Run the Phase 1 bootstrap smoke with `npm run test:phase1`.
-6. Capture the Phase 2.12 preset baselines with `npm run capture:phase2.12`.
+6. Optionally run the explicit OSM Buildings showcase smoke with `npm run test:phase1:showcase`.
+7. Capture the Phase 2.12 preset baselines with `npm run capture:phase2.12`.
 
 ## Commands
 
@@ -25,8 +26,10 @@
 | `npm run dev` | Start the local Vite development server |
 | `npm run build` | Type-check and build the delivery artifact with copied Cesium runtime assets |
 | `npm test` | Build and verify Phase 0 outputs, fixture integrity, neutral wording, and installed-package Cesium evidence |
-| `npm run test:phase1` | Build the repo and verify the first-globe bootstrap path in a headless browser |
-| `npm run capture:phase2.12` | Build the repo and capture repo-owned global/regional/site baseline screenshots |
+| `npm run test:phase1` | Reject `VITE_CESIUM_SITE_TILESET_URL` resolved from shell env or repo-local `.env*`, build the repo, and verify the repo-owned Phase 1 baseline bootstrap path in a headless browser |
+| `npm run test:phase1:showcase` | Reject `VITE_CESIUM_SITE_TILESET_URL` resolved from shell env or repo-local `.env*`, rebuild `dist/` on a sanitized baseline env, verify explicit OSM Buildings opt-in wiring plus failure-state handling separately from the baseline smoke, cover the env-driven opt-in path without hard-gating live ion happy-path success, and always restore a guarded clean baseline `dist/` rebuild afterward with ambient `VITE_CESIUM_BUILDING_SHOWCASE` and `VITE_CESIUM_SITE_TILESET_URL` stripped before a minimal post-cleanup baseline assertion |
+| `npm run test:phase1:site-hook-conflict` | Build with an explicit configured site-hook URL on the same sanitized baseline env, verify the formal mutual-exclusion path, require `siteTilesetState=blocked` while the OSM Buildings showcase is active, and always restore a guarded clean baseline `dist/` rebuild afterward with ambient `VITE_CESIUM_BUILDING_SHOWCASE` and `VITE_CESIUM_SITE_TILESET_URL` stripped before the same post-cleanup baseline assertion |
+| `npm run capture:phase2.12` | Reject `VITE_CESIUM_SITE_TILESET_URL` resolved from shell env or repo-local `.env*`, build the repo, and capture repo-owned global/regional/site baseline screenshots |
 | `npm run preview` | Preview the built artifact locally |
 
 ## Delivery Status
@@ -41,7 +44,12 @@ The current repo snapshot includes a completed Phase 0 baseline, a stable Phase 
 - the native `Viewer` shell, credits, `BaseLayerPicker`, `Geocoder`, `HomeButton`, timeline, and toolbar remain available by default
 - explicit imagery and terrain URLs remain opt-in overrides, while the default terrain selection stays on Cesium's native `BaseLayerPicker` path
 - the repo-owned preset layer now provides global, regional, and site presets, with bootstrap-time `scenePreset` selection staying query-driven and no preset UI shell
-- the site preset can opt into a configured 3D tiles URL through `VITE_CESIUM_SITE_TILESET_URL`, but the hook stays lazy and inactive by default
+- the site preset can opt into a configured 3D tiles URL through `VITE_CESIUM_SITE_TILESET_URL`, but the hook stays dormant by default, reports repo-local `siteTilesetState`, and is blocked whenever the explicit OSM showcase is active
+- an optional OSM Buildings showcase variant can be enabled explicitly through `?buildingShowcase=osm` or `VITE_CESIUM_BUILDING_SHOWCASE=osm`; it stays off by default, remains separate from the `site` preset and formal site tiles hook, and reports `loading`, `ready`, `degraded`, or `error` showcase state without failing bootstrap when ion-backed creation or later tile/content requests fail
+- the baseline smoke, showcase smoke, and Phase 2.12 capture commands now reject `VITE_CESIUM_SITE_TILESET_URL` as resolved by Vite production env loading, so shell env and repo-local `.env*` cannot pollute dormant site-hook baselines
+- the showcase default-build path plus the shared showcase/site-hook conflict cleanup rebuild now strip ambient `VITE_CESIUM_BUILDING_SHOWCASE` and `VITE_CESIUM_SITE_TILESET_URL`, and the restore path finishes with a minimal runtime assertion that the rebuilt baseline reports `buildingShowcase=off`, `buildingShowcaseSource=default-off`, `buildingShowcaseState=disabled`, and `siteTilesetState=dormant`
+- the separate showcase smoke now gates only explicit opt-in wiring plus deterministic non-fatal failure-state handling; it does not claim that a live ion-backed happy path has been hard-verified
+- the formal site-hook conflict validation now lives at `npm run test:phase1:site-hook-conflict`, which verifies `siteTilesetState=blocked` instead of leaving that path as an ad hoc harness-only scenario
 - Phase 2.12 review baselines now live under `docs/images/phase-2.12/`, with the capture method documented in `docs/visual-baselines.md`
 - a repo-local lighting toggle lives inside the native toolbar and uses Cesium-native scene controls rather than a repo-local rendering stack
 - repo-local smoke commands exist at `npm test` and `npm run test:phase1`

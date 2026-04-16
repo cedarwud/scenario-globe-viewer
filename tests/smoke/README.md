@@ -12,7 +12,13 @@ The current check verifies:
 
 Runtime bootstrap and first-globe smoke are exposed through `node tests/smoke/bootstrap-loads-assets-and-workers.mjs`.
 
-Phase 1 smoke is exposed through `npm run test:phase1`, which builds the repo, serves `dist/` locally, opens the built app in a headless browser, and checks that the bootstrap state reaches `ready`.
+Phase 1 baseline smoke is exposed through `npm run test:phase1`, which rejects `VITE_CESIUM_SITE_TILESET_URL` as resolved by Vite production env loading (`process.env` plus repo-local `.env*`) before build, serves `dist/` locally, opens the built app in a headless browser, and checks that the baseline bootstrap state reaches `ready` with `buildingShowcase=off`, `buildingShowcaseSource=default-off`, `buildingShowcaseState=disabled`, and `siteTilesetState=dormant`.
+
+The explicit OSM Buildings showcase coverage is exposed separately through `npm run test:phase1:showcase`. That command now also rejects `VITE_CESIUM_SITE_TILESET_URL` through the same Vite-resolved guard, rebuilds `dist/` on a sanitized baseline env so ambient `VITE_CESIUM_BUILDING_SHOWCASE` and `VITE_CESIUM_SITE_TILESET_URL` cannot pollute the default-build semantics, verifies explicit query-driven opt-in wiring plus injected failure-state handling while keeping `siteTilesetState=dormant`, then rebuilds with an explicit `VITE_CESIUM_BUILDING_SHOWCASE=osm` override to cover the env-driven opt-in path. Its orchestration restores a guarded clean baseline `dist/` rebuild in a `finally` path, strips both ambient env vars before that cleanup rebuild, leaves the conflict-only configured site-hook URL out of the restored baseline assets even when showcase verification fails, and finishes with a minimal post-cleanup baseline smoke assertion for `buildingShowcase=off/default-off/disabled` plus `siteTilesetState=dormant`.
+
+This showcase suite does not hard-gate live ion-backed happy-path success. Its live-network checks prove opt-in wiring and non-disabled showcase-state surfacing only, while the deterministic injected-failure scenarios verify that `error` and `degraded` handling remain non-fatal to bootstrap.
+
+For the explicit mutual-exclusion policy, the same smoke harness is now promoted to the package-level command `npm run test:phase1:site-hook-conflict`: it builds with an explicit configured site-hook URL on that same sanitized baseline env, runs `--suite=site-hook-conflict`, requires `siteTilesetState=blocked` when `buildingShowcase=osm` is present instead of attaching both tilesets, and then restores a guarded clean baseline `dist/` rebuild in the same `finally`-backed orchestration path with ambient `VITE_CESIUM_BUILDING_SHOWCASE` and `VITE_CESIUM_SITE_TILESET_URL` removed before the same post-cleanup baseline assertion.
 
 The current Phase 3.1 follow-up coverage also verifies:
 

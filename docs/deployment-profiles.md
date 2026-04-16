@@ -59,6 +59,8 @@ Profile B is supported, but it is not the baseline that Phase 2 quality work sho
 
 This remains an optional later-stage profile for demos or mixed asset strategies.
 
+Current example: the explicit Cesium OSM Buildings showcase opt-in (`?buildingShowcase=osm` or `VITE_CESIUM_BUILDING_SHOWCASE=osm`) may be used as a mixed/showcase-only variant. It remains separate from the formal `site` preset semantics and does not turn ion-backed buildings into the default validation baseline.
+
 It must not silently replace Profile A as the normal development or validation path.
 
 ## Phase 2 Interpretation

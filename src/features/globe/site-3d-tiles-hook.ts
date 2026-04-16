@@ -3,10 +3,64 @@ import type {
   ScenePresetDefinition,
   SceneSite3DTilesHookDefinition
 } from "./scene-preset";
+import type { BuildingShowcaseKey } from "./osm-buildings-showcase";
+
+export type SiteTilesetState =
+  | "dormant"
+  | "loading"
+  | "ready"
+  | "error"
+  | "blocked";
+
+export interface SiteTilesetHookPolicy {
+  buildingShowcaseKey: BuildingShowcaseKey;
+}
 
 function resolveConfiguredSiteTilesetUrl(): string | undefined {
   const configuredUrl = import.meta.env.VITE_CESIUM_SITE_TILESET_URL?.trim();
   return configuredUrl ? configuredUrl : undefined;
+}
+
+function serializeSiteTilesetError(reason: unknown): string {
+  if (reason instanceof Error) {
+    return reason.message;
+  }
+
+  if (typeof reason === "string") {
+    return reason;
+  }
+
+  try {
+    return JSON.stringify(reason);
+  } catch {
+    return "Unknown site tileset error";
+  }
+}
+
+function syncSiteTilesetDataset(
+  state: SiteTilesetState,
+  detail?: string
+): void {
+  const { dataset } = document.documentElement;
+  dataset.siteTilesetState = state;
+
+  if (detail) {
+    dataset.siteTilesetDetail = detail.slice(0, 240);
+  } else {
+    delete dataset.siteTilesetDetail;
+  }
+}
+
+function syncSiteTilesetState(
+  viewer: Viewer,
+  state: SiteTilesetState,
+  detail?: string
+): void {
+  syncSiteTilesetDataset(state, detail);
+
+  if (!viewer.isDestroyed()) {
+    viewer.scene.requestRender();
+  }
 }
 
 function assertUnsupportedSiteTilesSource(
@@ -52,25 +106,43 @@ async function loadSiteTileset(
     }
 
     viewer.scene.primitives.add(tileset);
+    syncSiteTilesetState(viewer, "ready");
     viewer.scene.requestRender();
   } catch (error) {
+    syncSiteTilesetState(
+      viewer,
+      "error",
+      serializeSiteTilesetError(error)
+    );
     console.warn(`Failed to load optional site tileset for ${preset.id}.`, error);
   }
 }
 
 export function applyOptionalSite3DTilesHook(
   viewer: Viewer,
-  preset: ScenePresetDefinition
+  preset: ScenePresetDefinition,
+  policy: SiteTilesetHookPolicy
 ): void {
   const tilesHook = preset.site?.tiles3d;
   if (!tilesHook) {
+    syncSiteTilesetDataset("dormant");
     return;
   }
 
   const tilesetUrl = resolveSceneSiteTilesetUrl(preset, tilesHook);
   if (!tilesetUrl) {
+    syncSiteTilesetDataset("dormant");
     return;
   }
 
+  if (policy.buildingShowcaseKey === "osm") {
+    syncSiteTilesetDataset(
+      "blocked",
+      "Blocked configured site tileset hook because OSM Buildings showcase is active."
+    );
+    return;
+  }
+
+  syncSiteTilesetDataset("loading");
   void loadSiteTileset(viewer, preset, tilesetUrl, tilesHook);
 }

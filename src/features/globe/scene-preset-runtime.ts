@@ -6,6 +6,7 @@ import {
   type ImagerySelectionOptions,
   resolveImagerySelection
 } from "./offline-imagery";
+import type { BuildingShowcaseKey } from "./osm-buildings-showcase";
 import {
   type TerrainSelectionOptions,
   resolveTerrainSelection
@@ -16,6 +17,10 @@ import { applyStarBackground } from "./star-background";
 
 export type ScenePresetViewerOptions = ImagerySelectionOptions &
   TerrainSelectionOptions;
+
+export interface ScenePresetRuntimeOptions {
+  buildingShowcaseKey?: BuildingShowcaseKey;
+}
 
 function assertUnsupportedPresetValue(
   preset: ScenePresetDefinition,
@@ -88,7 +93,8 @@ export function resolveScenePresetViewerOptions(
 
 export function applyScenePreset(
   viewer: Viewer,
-  preset: ScenePresetDefinition
+  preset: ScenePresetDefinition,
+  { buildingShowcaseKey = "off" }: ScenePresetRuntimeOptions = {}
 ): void {
   // Keep Phase 2.11 on the existing Cesium-native Viewer path: preset
   // selection only swaps plain presentation and camera data, while Geocoder,
@@ -103,5 +109,5 @@ export function applyScenePreset(
   // Evidence: /home/u24/papers/scenario-globe-viewer/node_modules/@cesium/engine/Source/Scene/Camera.js:3310-3367
   applyScenePresentation(viewer, preset);
   applyCameraLanguage(viewer, preset.camera);
-  applyOptionalSite3DTilesHook(viewer, preset);
+  applyOptionalSite3DTilesHook(viewer, preset, { buildingShowcaseKey });
 }

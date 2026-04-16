@@ -3,6 +3,7 @@ import { existsSync, mkdirSync, rmSync, statSync, writeFileSync } from "node:fs"
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { assertAmbientSiteTilesetUrlAllowed } from "../../scripts/site-hook-guard.mjs";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -300,6 +301,11 @@ async function readBootstrapState(client) {
         bootstrapState: root?.dataset.bootstrapState ?? null,
         bootstrapDetail: root?.dataset.bootstrapDetail ?? null,
         scenePreset: root?.dataset.scenePreset ?? null,
+        buildingShowcase: root?.dataset.buildingShowcase ?? null,
+        buildingShowcaseSource: root?.dataset.buildingShowcaseSource ?? null,
+        buildingShowcaseState: root?.dataset.buildingShowcaseState ?? null,
+        siteTilesetState: root?.dataset.siteTilesetState ?? null,
+        siteTilesetDetail: root?.dataset.siteTilesetDetail ?? null,
         sceneFogActive: root?.dataset.sceneFogActive ?? null,
         sceneFogDensity: root?.dataset.sceneFogDensity ?? null,
         sceneFogVisualDensityScalar:
@@ -327,6 +333,10 @@ async function waitForBootstrapReady(client, expectedScenePreset, scenarioKey) {
     if (
       lastState.bootstrapState === "ready" &&
       lastState.scenePreset === expectedScenePreset &&
+      lastState.buildingShowcase === "off" &&
+      lastState.buildingShowcaseSource === "default-off" &&
+      lastState.buildingShowcaseState === "disabled" &&
+      lastState.siteTilesetState === "dormant" &&
       lastState.sceneFogActive === "true" &&
       lastState.sceneFogDensity === "0.0006" &&
       lastState.sceneFogVisualDensityScalar === "0.15" &&
@@ -619,6 +629,7 @@ function startStaticServer() {
 }
 
 async function main() {
+  assertAmbientSiteTilesetUrlAllowed("Phase 2.12 capture");
   ensureDistBuildExists();
   mkdirSync(outputDir, { recursive: true });
 

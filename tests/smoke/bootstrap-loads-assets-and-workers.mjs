@@ -3,6 +3,7 @@ import { existsSync, mkdtempSync, rmSync, statSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { assertAmbientSiteTilesetUrlAllowed } from "../../scripts/site-hook-guard.mjs";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -57,10 +58,96 @@ const shortViewport = {
   deviceScaleFactor: 1
 };
 
+const OSM_BUILDINGS_PRE_ATTACH_FAILURE_INIT_SCRIPT = `
+(() => {
+  const shouldFail = (url) =>
+    typeof url === "string" && url.includes("/v1/assets/96188");
+
+  const OriginalXMLHttpRequest = window.XMLHttpRequest;
+  class FailingOsmBuildingsXMLHttpRequest extends OriginalXMLHttpRequest {
+    open(method, url, ...rest) {
+      this.__scenarioGlobeViewerUrl = typeof url === "string" ? url : String(url);
+      return super.open(method, url, ...rest);
+    }
+
+    send(...args) {
+      if (shouldFail(this.__scenarioGlobeViewerUrl)) {
+        queueMicrotask(() => {
+          this.dispatchEvent(new ProgressEvent("error"));
+        });
+        return;
+      }
+
+      return super.send(...args);
+    }
+  }
+
+  window.XMLHttpRequest = FailingOsmBuildingsXMLHttpRequest;
+})();
+`;
+
+const OSM_BUILDINGS_POST_ATTACH_FAILURE_INIT_SCRIPT = `
+(() => {
+  const shouldFail = (url) => {
+    if (typeof url !== "string" || url.includes("/v1/assets/96188")) {
+      return false;
+    }
+
+    if (url.includes("tileset.json")) {
+      return false;
+    }
+
+    return (
+      url.includes("96188") ||
+      /\\.(b3dm|cmpt|glb|i3dm|pnts|subtree)(\\?|$)/i.test(url)
+    );
+  };
+
+  const OriginalXMLHttpRequest = window.XMLHttpRequest;
+  class FailingOsmBuildingsContentXMLHttpRequest extends OriginalXMLHttpRequest {
+    open(method, url, ...rest) {
+      this.__scenarioGlobeViewerUrl = typeof url === "string" ? url : String(url);
+      return super.open(method, url, ...rest);
+    }
+
+    send(...args) {
+      if (shouldFail(this.__scenarioGlobeViewerUrl)) {
+        queueMicrotask(() => {
+          this.dispatchEvent(new ProgressEvent("error"));
+        });
+        return;
+      }
+
+      return super.send(...args);
+    }
+  }
+
+  window.XMLHttpRequest = FailingOsmBuildingsContentXMLHttpRequest;
+})();
+`;
+
 function assert(condition, message) {
   if (!condition) {
     throw new Error(message);
   }
+}
+
+function resolveSmokeSuite() {
+  const requestedSuite = process.argv.find((argument) =>
+    argument.startsWith("--suite=")
+  );
+  const suite = requestedSuite?.slice("--suite=".length) ?? "baseline";
+
+  assert(
+    suite === "baseline" ||
+      suite === "cleanup-baseline" ||
+      suite === "showcase" ||
+      suite === "showcase-env" ||
+      suite === "site-hook-conflict",
+    `Unsupported smoke suite: ${suite}`
+  );
+
+  return suite;
 }
 
 function findHeadlessBrowser() {
@@ -311,6 +398,12 @@ async function readBootstrapState(client) {
         bootstrapState: root?.dataset.bootstrapState ?? null,
         bootstrapDetail: root?.dataset.bootstrapDetail ?? null,
         scenePreset: root?.dataset.scenePreset ?? null,
+        buildingShowcase: root?.dataset.buildingShowcase ?? null,
+        buildingShowcaseSource: root?.dataset.buildingShowcaseSource ?? null,
+        buildingShowcaseState: root?.dataset.buildingShowcaseState ?? null,
+        buildingShowcaseDetail: root?.dataset.buildingShowcaseDetail ?? null,
+        siteTilesetState: root?.dataset.siteTilesetState ?? null,
+        siteTilesetDetail: root?.dataset.siteTilesetDetail ?? null,
         sceneFogActive: root?.dataset.sceneFogActive ?? null,
         sceneFogDensity: root?.dataset.sceneFogDensity ?? null,
         sceneFogVisualDensityScalar:
@@ -401,30 +494,6 @@ async function readHudLayoutState(client) {
       const geocoderSearchButton = pickRect(".cesium-geocoder-searchButton");
       const baseLayerPickerToggle = pickRect(".cesium-baseLayerPicker-selected");
       const baseLayerDropdown = pickRect(".cesium-baseLayerPicker-dropDown");
-      const overlapLeft =
-        rightPanel && baseLayerDropdown
-          ? Math.max(rightPanel.left, baseLayerDropdown.left)
-          : null;
-      const overlapTop =
-        rightPanel && baseLayerDropdown
-          ? Math.max(rightPanel.top, baseLayerDropdown.top)
-          : null;
-      const overlapRight =
-        rightPanel && baseLayerDropdown
-          ? Math.min(rightPanel.right, baseLayerDropdown.right)
-          : null;
-      const overlapBottom =
-        rightPanel && baseLayerDropdown
-          ? Math.min(rightPanel.bottom, baseLayerDropdown.bottom)
-          : null;
-      const overlapWidth =
-        overlapLeft !== null && overlapRight !== null
-          ? Math.max(0, overlapRight - overlapLeft)
-          : 0;
-      const overlapHeight =
-        overlapTop !== null && overlapBottom !== null
-          ? Math.max(0, overlapBottom - overlapTop)
-          : 0;
 
       return {
         viewport: {
@@ -500,15 +569,6 @@ async function readHudLayoutState(client) {
                 baseLayerPickerToggle.left + baseLayerPickerToggle.width / 2,
                 baseLayerPickerToggle.top + baseLayerPickerToggle.height / 2
               )
-            : null,
-        baseLayerOverlapWidth: overlapWidth,
-        baseLayerOverlapHeight: overlapHeight,
-        baseLayerOverlapElement:
-          overlapWidth > 0 && overlapHeight > 0
-            ? describeElementAt(
-                overlapLeft + overlapWidth / 2,
-                overlapTop + overlapHeight / 2
-              )
             : null
       };
     })()`
@@ -527,13 +587,6 @@ async function waitForCondition(client, description, predicateExpression, attemp
   }
 
   throw new Error(`Timed out waiting for ${description}.`);
-}
-
-function assertVisiblePanel(panel, label) {
-  assert(panel, `Missing ${label} panel rect.`);
-  assert(panel.display !== "none", `Expected ${label} panel to be visible.`);
-  assert(panel.width > 0 && panel.height > 0, `Expected ${label} panel to have area.`);
-  assert(panel.pointerEvents === "none", `Expected ${label} panel to stay pointer-transparent.`);
 }
 
 function assertHiddenHudShell(layoutState, scenarioLabel) {
@@ -694,6 +747,23 @@ async function toggleBaseLayerPicker(client) {
   await dispatchMouseClick(client, rectCenter(layoutState.baseLayerPickerToggle));
 }
 
+async function dismissBaseLayerPicker(client) {
+  const closed = await evaluateValue(
+    client,
+    `(() => {
+      const toggle = document.querySelector(".cesium-baseLayerPicker-selected");
+      if (!(toggle instanceof HTMLElement)) {
+        return false;
+      }
+
+      toggle.click();
+      return true;
+    })()`
+  );
+
+  assert(closed, "Expected BaseLayerPicker toggle to exist while dismissing dropdown.");
+}
+
 async function dismissNavigationHelpIfVisible(client) {
   const dismissed = await evaluateValue(
     client,
@@ -713,23 +783,6 @@ async function dismissNavigationHelpIfVisible(client) {
   if (dismissed) {
     await sleep(150);
   }
-}
-
-async function dismissBaseLayerPicker(client) {
-  const closed = await evaluateValue(
-    client,
-    `(() => {
-      const toggle = document.querySelector(".cesium-baseLayerPicker-selected");
-      if (!(toggle instanceof HTMLElement)) {
-        return false;
-      }
-
-      toggle.click();
-      return true;
-    })()`
-  );
-
-  assert(closed, "Expected BaseLayerPicker toggle to exist while dismissing dropdown.");
 }
 
 async function runDesktopNativeControlChecks(client, scenarioLabel) {
@@ -793,7 +846,44 @@ async function runDesktopNativeControlChecks(client, scenarioLabel) {
   );
 }
 
-async function waitForBootstrapReady(client, expectedScenePreset, scenarioLabel, attemptLabel) {
+function buildingShowcaseMatchesExpectation(lastState, expectedBuildingShowcase) {
+  return (
+    lastState.buildingShowcase === expectedBuildingShowcase.key &&
+    lastState.buildingShowcaseSource === expectedBuildingShowcase.source &&
+    expectedBuildingShowcase.allowedStates.includes(lastState.buildingShowcaseState)
+  );
+}
+
+function siteTilesetMatchesExpectation(lastState, expectedSiteTileset) {
+  return (
+    expectedSiteTileset.allowedStates.includes(lastState.siteTilesetState) &&
+    (!expectedSiteTileset.detailSubstring ||
+      lastState.siteTilesetDetail?.includes(expectedSiteTileset.detailSubstring))
+  );
+}
+
+function baselineShellMatchesExpectation(lastState) {
+  return (
+    lastState.sceneFogActive === "true" &&
+    lastState.sceneFogDensity === "0.0006" &&
+    lastState.sceneFogVisualDensityScalar === "0.15" &&
+    lastState.sceneFogHeightScalar === "0.001" &&
+    lastState.sceneFogHeightFalloff === "0.59" &&
+    lastState.sceneFogMaxHeight === "800000" &&
+    lastState.sceneFogMinimumBrightness === "0.03" &&
+    lastState.sceneBloomActive === "false" &&
+    lastState.hasViewerShell &&
+    lastState.hasHudFrame &&
+    lastState.hudVisibility === "hidden" &&
+    lastState.isHudFrameHidden &&
+    lastState.hudPanelCount >= 3 &&
+    lastState.hasLightingToggle &&
+    lastState.hasLightingToggleDisabled &&
+    lastState.hasUnpressedLightingToggle
+  );
+}
+
+async function waitForBootstrapReady(client, scenario, attemptLabel) {
   let lastState = null;
 
   for (let attempt = 0; attempt < 80; attempt += 1) {
@@ -801,30 +891,21 @@ async function waitForBootstrapReady(client, expectedScenePreset, scenarioLabel,
 
     if (
       lastState.bootstrapState === "ready" &&
-      lastState.scenePreset === expectedScenePreset &&
-      lastState.sceneFogActive === "true" &&
-      lastState.sceneFogDensity === "0.0006" &&
-      lastState.sceneFogVisualDensityScalar === "0.15" &&
-      lastState.sceneFogHeightScalar === "0.001" &&
-      lastState.sceneFogHeightFalloff === "0.59" &&
-      lastState.sceneFogMaxHeight === "800000" &&
-      lastState.sceneFogMinimumBrightness === "0.03" &&
-      lastState.sceneBloomActive === "false" &&
-      lastState.hasViewerShell &&
-      lastState.hasHudFrame &&
-      lastState.hudVisibility === "hidden" &&
-      lastState.isHudFrameHidden &&
-      lastState.hudPanelCount >= 3 &&
-      lastState.hasLightingToggle &&
-      lastState.hasLightingToggleDisabled &&
-      lastState.hasUnpressedLightingToggle
+      lastState.scenePreset === scenario.expectedScenePreset &&
+      buildingShowcaseMatchesExpectation(
+        lastState,
+        scenario.expectedBuildingShowcase
+      ) &&
+      siteTilesetMatchesExpectation(lastState, scenario.expectedSiteTileset) &&
+      (!scenario.requireFullBaselineState ||
+        baselineShellMatchesExpectation(lastState))
     ) {
       return;
     }
 
     if (lastState.bootstrapState === "error") {
       throw new Error(
-        `Phase 1 smoke hit bootstrap error during ${scenarioLabel}/${attemptLabel}: ${JSON.stringify(lastState)}`
+        `Phase 1 smoke hit bootstrap error during ${scenario.label}/${attemptLabel}: ${JSON.stringify(lastState)}`
       );
     }
 
@@ -832,8 +913,52 @@ async function waitForBootstrapReady(client, expectedScenePreset, scenarioLabel,
   }
 
   throw new Error(
-    `Phase 1 smoke did not reach a ready viewer during ${scenarioLabel}/${attemptLabel}: ${JSON.stringify(lastState)}`
+    `Phase 1 smoke did not reach a ready viewer during ${scenario.label}/${attemptLabel}: ${JSON.stringify(lastState)}`
   );
+}
+
+async function verifyInjectedOsmBuildingsFailure(
+  client,
+  scenarioLabel,
+  expectedStates,
+  expectedDetailSubstring
+) {
+  await waitForCondition(
+    client,
+    `${scenarioLabel} OSM Buildings fallback`,
+    `(() => {
+      const root = document.documentElement;
+      return root?.dataset.bootstrapState === "ready" &&
+        root?.dataset.buildingShowcase === "osm" &&
+        ${JSON.stringify(expectedStates)}.includes(root?.dataset.buildingShowcaseState ?? "") &&
+        ${
+          expectedDetailSubstring
+            ? `typeof root?.dataset.buildingShowcaseDetail === "string" &&
+              root.dataset.buildingShowcaseDetail.includes(${JSON.stringify(expectedDetailSubstring)})`
+            : "true"
+        };
+    })()`
+  );
+
+  const lastState = await readBootstrapState(client);
+  assert(
+    lastState.bootstrapState === "ready",
+    `Expected bootstrap to stay ready after OSM Buildings failure during ${scenarioLabel}: ${JSON.stringify(lastState)}`
+  );
+  assert(
+    expectedStates.includes(lastState.buildingShowcaseState),
+    `Expected injected OSM Buildings failure to surface as an opt-in showcase error during ${scenarioLabel}: ${JSON.stringify(lastState)}`
+  );
+  assert(
+    lastState.buildingShowcaseState !== "ready",
+    `Expected injected OSM Buildings failure to avoid a ready showcase state during ${scenarioLabel}: ${JSON.stringify(lastState)}`
+  );
+  if (expectedDetailSubstring) {
+    assert(
+      lastState.buildingShowcaseDetail?.includes(expectedDetailSubstring),
+      `Expected injected OSM Buildings failure detail to mention ${expectedDetailSubstring} during ${scenarioLabel}: ${JSON.stringify(lastState)}`
+    );
+  }
 }
 
 function ensureDistBuildExists() {
@@ -857,7 +982,7 @@ async function verifyFetches(baseUrl) {
   }
 }
 
-async function verifyBootstrapInHeadlessBrowser(baseUrl) {
+async function verifyBootstrapInHeadlessBrowser(baseUrl, suite) {
   const browserCommand = findHeadlessBrowser();
   const attempts = [
     {
@@ -869,42 +994,189 @@ async function verifyBootstrapInHeadlessBrowser(baseUrl) {
       ]
     }
   ];
+  const dormantSiteTileset = {
+    allowedStates: ["dormant"]
+  };
 
-  const scenarios = [
+  const baselineScenarios = [
     {
       label: "default-global",
       requestPath: "/",
       expectedScenePreset: "global",
+      expectedBuildingShowcase: {
+        key: "off",
+        source: "default-off",
+        allowedStates: ["disabled"]
+      },
+      expectedSiteTileset: dormantSiteTileset,
       viewport: desktopViewport,
       validateLayout: (layoutState) => {
         assertDesktopHudHiddenState(layoutState, "default-global");
       },
       runInteractiveChecks: async (client) => {
         await runDesktopNativeControlChecks(client, "default-global");
-      }
+      },
+      requireFullBaselineState: true
     },
     {
       label: "regional-query",
       requestPath: "/?scenePreset=regional",
       expectedScenePreset: "regional",
-      viewport: desktopViewport
+      expectedBuildingShowcase: {
+        key: "off",
+        source: "default-off",
+        allowedStates: ["disabled"]
+      },
+      expectedSiteTileset: dormantSiteTileset,
+      viewport: desktopViewport,
+      requireFullBaselineState: true
     },
     {
       label: "site-query",
       requestPath: "/?scenePreset=site",
       expectedScenePreset: "site",
-      viewport: desktopViewport
+      expectedBuildingShowcase: {
+        key: "off",
+        source: "default-off",
+        allowedStates: ["disabled"]
+      },
+      expectedSiteTileset: dormantSiteTileset,
+      viewport: desktopViewport,
+      requireFullBaselineState: true
     },
     {
       label: "default-global-short",
       requestPath: "/",
       expectedScenePreset: "global",
+      expectedBuildingShowcase: {
+        key: "off",
+        source: "default-off",
+        allowedStates: ["disabled"]
+      },
+      expectedSiteTileset: dormantSiteTileset,
       viewport: shortViewport,
       validateLayout: (layoutState) => {
         assertShortHudHiddenState(layoutState, "default-global-short");
+      },
+      requireFullBaselineState: true
+    }
+  ];
+  const cleanupBaselineScenarios = [
+    {
+      label: "cleanup-baseline-default-global",
+      requestPath: "/",
+      expectedScenePreset: "global",
+      expectedBuildingShowcase: {
+        key: "off",
+        source: "default-off",
+        allowedStates: ["disabled"]
+      },
+      expectedSiteTileset: dormantSiteTileset,
+      viewport: desktopViewport,
+      requireFullBaselineState: false
+    }
+  ];
+  const showcaseScenarios = [
+    // The live ion-backed showcase path is not a hard happy-path gate.
+    // This scenario only proves that an explicit opt-in is wired into
+    // bootstrap and surfaces a non-disabled showcase state without breaking
+    // the baseline viewer shell. Deterministic failure-state handling is
+    // covered by the injected-failure scenarios below.
+    {
+      label: "site-osm-buildings-opt-in-wiring",
+      requestPath: "/?scenePreset=site&buildingShowcase=osm",
+      expectedScenePreset: "site",
+      expectedBuildingShowcase: {
+        key: "osm",
+        source: "query-param",
+        allowedStates: ["loading", "ready", "degraded", "error"]
+      },
+      expectedSiteTileset: dormantSiteTileset,
+      viewport: desktopViewport
+    },
+    {
+      label: "site-osm-buildings-preattach-fallback",
+      requestPath: "/?scenePreset=site&buildingShowcase=osm",
+      expectedScenePreset: "site",
+      expectedBuildingShowcase: {
+        key: "osm",
+        source: "query-param",
+        allowedStates: ["loading", "error"]
+      },
+      expectedSiteTileset: dormantSiteTileset,
+      viewport: desktopViewport,
+      initScript: OSM_BUILDINGS_PRE_ATTACH_FAILURE_INIT_SCRIPT,
+      runAfterReady: async (client) => {
+        await verifyInjectedOsmBuildingsFailure(
+          client,
+          "site-osm-buildings-preattach-fallback",
+          ["error"]
+        );
+      }
+    },
+    {
+      label: "site-osm-buildings-postattach-fallback",
+      requestPath: "/?scenePreset=site&buildingShowcase=osm",
+      expectedScenePreset: "site",
+      expectedBuildingShowcase: {
+        key: "osm",
+        source: "query-param",
+        allowedStates: ["loading", "error", "degraded"]
+      },
+      expectedSiteTileset: dormantSiteTileset,
+      viewport: desktopViewport,
+      initScript: OSM_BUILDINGS_POST_ATTACH_FAILURE_INIT_SCRIPT,
+      runAfterReady: async (client) => {
+        await verifyInjectedOsmBuildingsFailure(
+          client,
+          "site-osm-buildings-postattach-fallback",
+          ["error", "degraded"],
+          "Tile/content failure after attachment"
+        );
       }
     }
   ];
+  const showcaseEnvScenarios = [
+    {
+      label: "site-osm-buildings-env-opt-in-wiring",
+      requestPath: "/?scenePreset=site",
+      expectedScenePreset: "site",
+      expectedBuildingShowcase: {
+        key: "osm",
+        source: "env",
+        allowedStates: ["loading", "ready", "degraded", "error"]
+      },
+      expectedSiteTileset: dormantSiteTileset,
+      viewport: desktopViewport
+    }
+  ];
+  const siteHookConflictScenarios = [
+    {
+      label: "site-osm-buildings-blocks-configured-site-hook",
+      requestPath: "/?scenePreset=site&buildingShowcase=osm",
+      expectedScenePreset: "site",
+      expectedBuildingShowcase: {
+        key: "osm",
+        source: "query-param",
+        allowedStates: ["loading", "ready", "degraded", "error"]
+      },
+      expectedSiteTileset: {
+        allowedStates: ["blocked"],
+        detailSubstring: "OSM Buildings showcase is active"
+      },
+      viewport: desktopViewport
+    }
+  ];
+  const scenarios =
+    suite === "baseline"
+      ? baselineScenarios
+      : suite === "cleanup-baseline"
+        ? cleanupBaselineScenarios
+        : suite === "showcase"
+        ? showcaseScenarios
+        : suite === "showcase-env"
+          ? showcaseEnvScenarios
+          : siteHookConflictScenarios;
 
   for (const scenario of scenarios) {
     for (const attempt of attempts) {
@@ -918,6 +1190,11 @@ async function verifyBootstrapInHeadlessBrowser(baseUrl) {
         try {
           await client.send("Page.enable");
           await client.send("Runtime.enable");
+          if (scenario.initScript) {
+            await client.send("Page.addScriptToEvaluateOnNewDocument", {
+              source: scenario.initScript
+            });
+          }
           await client.send("Emulation.setDeviceMetricsOverride", {
             width: scenario.viewport.width,
             height: scenario.viewport.height,
@@ -925,18 +1202,16 @@ async function verifyBootstrapInHeadlessBrowser(baseUrl) {
             mobile: false
           });
           await client.send("Page.navigate", { url: requestUrl });
-          await waitForBootstrapReady(
-            client,
-            scenario.expectedScenePreset,
-            scenario.label,
-            attempt.label
-          );
+          await waitForBootstrapReady(client, scenario, attempt.label);
           await dismissNavigationHelpIfVisible(client);
           if (scenario.validateLayout) {
             scenario.validateLayout(await readHudLayoutState(client));
           }
           if (scenario.runInteractiveChecks) {
             await scenario.runInteractiveChecks(client);
+          }
+          if (scenario.runAfterReady) {
+            await scenario.runAfterReady(client);
           }
         } finally {
           await client.close();
@@ -1010,6 +1285,10 @@ function startStaticServer() {
 }
 
 async function main() {
+  const suite = resolveSmokeSuite();
+  assertAmbientSiteTilesetUrlAllowed(`Phase 1 ${suite} smoke`, {
+    allowConfiguredSiteTileset: suite === "site-hook-conflict"
+  });
   ensureDistBuildExists();
 
   // Cesium resolves runtime assets from CESIUM_BASE_URL and derives worker
@@ -1024,8 +1303,8 @@ async function main() {
 
   try {
     await verifyFetches(baseUrl);
-    await verifyBootstrapInHeadlessBrowser(baseUrl);
-    console.log("Phase 1 smoke verification passed.");
+    await verifyBootstrapInHeadlessBrowser(baseUrl, suite);
+    console.log(`Phase 1 ${suite} smoke verification passed.`);
   } finally {
     await new Promise((resolve) => {
       server.once("exit", () => {
