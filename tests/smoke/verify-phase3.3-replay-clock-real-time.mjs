@@ -35,7 +35,7 @@ function findHeadlessBrowser() {
   }
 
   throw new Error(
-    "Missing a supported headless browser. Install google-chrome or chromium to run Phase 3.3 validation."
+    "Missing a supported headless browser. Install google-chrome or chromium to run replay-clock validation."
   );
 }
 
@@ -50,7 +50,7 @@ function ensureDistBuildExists() {
 
   for (const relativePath of requiredDistFiles) {
     const absolutePath = path.join(distRoot, relativePath);
-    assert(existsSync(absolutePath), `Missing Phase 3.3 fixture: dist/${relativePath}`);
+    assert(existsSync(absolutePath), `Missing replay-clock fixture: dist/${relativePath}`);
     assert(statSync(absolutePath).isFile(), `Expected dist/${relativePath} to be a file`);
   }
 }
@@ -76,7 +76,7 @@ function startStaticServer() {
 
       settled = true;
       serverProcess.kill("SIGTERM");
-      reject(new Error(`Timed out waiting for Phase 3.3 server. Output: ${serverLog}`));
+      reject(new Error(`Timed out waiting for replay-clock server. Output: ${serverLog}`));
     }, 5000);
 
     const handleOutput = (chunk) => {
@@ -112,7 +112,7 @@ function startStaticServer() {
       settled = true;
       clearTimeout(timeout);
       reject(
-        new Error(`Phase 3.3 server exited before readiness. Code: ${code}. Output: ${serverLog}`)
+        new Error(`Replay-clock server exited before readiness. Code: ${code}. Output: ${serverLog}`)
       );
     });
   });
@@ -388,7 +388,7 @@ async function waitForBootstrapReady(client) {
 
     if (lastState.bootstrapState === "error") {
       throw new Error(
-        `Phase 3.3 validation hit bootstrap error: ${JSON.stringify(lastState)}`
+        `Replay-clock validation hit bootstrap error: ${JSON.stringify(lastState)}`
       );
     }
 
@@ -396,62 +396,120 @@ async function waitForBootstrapReady(client) {
   }
 
   throw new Error(
-    `Phase 3.3 validation did not reach a ready viewer: ${JSON.stringify(lastState)}`
+    `Replay-clock validation did not reach a ready viewer: ${JSON.stringify(lastState)}`
   );
 }
 
-async function runReplayClockChecks(client) {
-  return await evaluateValue(
-    client,
-    `(async () => {
-      const sleep = (ms) =>
-        new Promise((resolve) => {
-          setTimeout(resolve, ms);
-        });
-
-      const assert = (condition, message) => {
-        if (!condition) {
-          throw new Error(message);
-        }
-      };
-
-      const capture = window.__SCENARIO_GLOBE_VIEWER_CAPTURE__;
-      assert(capture?.viewer, "Missing capture viewer handle.");
-      assert(capture?.replayClock, "Missing replayClock capture seam.");
-
-      const normalizeTimestampMs = (value) =>
-        typeof value === "number" ? value : Date.parse(value);
-
-      const assertSerializableState = (state, label) => {
-        assert(state && typeof state === "object", label + ": missing replay clock state.");
-        assert(state.mode === "real-time", label + ": expected real-time mode.");
-        assert(
-          typeof state.currentTime === "string" || typeof state.currentTime === "number",
-          label + ": currentTime must stay plain-data."
-        );
-        assert(
-          typeof state.startTime === "string" || typeof state.startTime === "number",
-          label + ": startTime must stay plain-data."
-        );
-        assert(
-          typeof state.stopTime === "string" || typeof state.stopTime === "number",
-          label + ": stopTime must stay plain-data."
-        );
-        assert(typeof state.multiplier === "number", label + ": multiplier must stay numeric.");
-        assert(typeof state.isPlaying === "boolean", label + ": isPlaying must stay boolean.");
-        JSON.stringify(state);
-      };
-
-      const snapshotRawClock = () => ({
-        dayNumber: capture.viewer.clock.currentTime.dayNumber,
-        secondsOfDay: capture.viewer.clock.currentTime.secondsOfDay,
-        shouldAnimate: capture.viewer.clock.shouldAnimate,
-        multiplier: capture.viewer.clock.multiplier,
-        clockRange: capture.viewer.clock.clockRange
+export function buildReplayClockEvaluation(checkBody) {
+  return `(async () => {
+    const sleep = (ms) =>
+      new Promise((resolve) => {
+        setTimeout(resolve, ms);
       });
 
+    const assert = (condition, message) => {
+      if (!condition) {
+        throw new Error(message);
+      }
+    };
+
+    const capture = window.__SCENARIO_GLOBE_VIEWER_CAPTURE__;
+    assert(capture?.viewer, "Missing capture viewer handle.");
+    assert(capture?.replayClock, "Missing replayClock capture seam.");
+
+    const normalizeTimestampMs = (value) =>
+      typeof value === "number" ? value : Date.parse(value);
+
+    const assertSerializableState = (state, label, expectedMode) => {
+      assert(state && typeof state === "object", label + ": missing replay clock state.");
+      if (expectedMode) {
+        assert(state.mode === expectedMode, label + ": expected " + expectedMode + " mode.");
+      }
+      assert(
+        typeof state.currentTime === "string" || typeof state.currentTime === "number",
+        label + ": currentTime must stay plain-data."
+      );
+      assert(
+        typeof state.startTime === "string" || typeof state.startTime === "number",
+        label + ": startTime must stay plain-data."
+      );
+      assert(
+        typeof state.stopTime === "string" || typeof state.stopTime === "number",
+        label + ": stopTime must stay plain-data."
+      );
+      assert(typeof state.multiplier === "number", label + ": multiplier must stay numeric.");
+      assert(typeof state.isPlaying === "boolean", label + ": isPlaying must stay boolean.");
+      JSON.stringify(state);
+    };
+
+    const snapshotRawClock = () => ({
+      dayNumber: capture.viewer.clock.currentTime.dayNumber,
+      secondsOfDay: capture.viewer.clock.currentTime.secondsOfDay,
+      shouldAnimate: capture.viewer.clock.shouldAnimate,
+      multiplier: capture.viewer.clock.multiplier,
+      clockRange: capture.viewer.clock.clockRange,
+      clockStep: capture.viewer.clock.clockStep
+    });
+
+${checkBody}
+  })()`;
+}
+
+async function runValidation(baseUrl, browserCommand, evaluationExpression) {
+  const browser = await startHeadlessBrowser(browserCommand);
+
+  try {
+    const pageWebSocketUrl = await resolvePageWebSocketUrl(browser.browserWebSocketUrl);
+    const client = await connectCdp(pageWebSocketUrl);
+
+    try {
+      await client.send("Page.enable");
+      await client.send("Runtime.enable");
+      await client.send("Emulation.setDeviceMetricsOverride", {
+        width: viewport.width,
+        height: viewport.height,
+        deviceScaleFactor: viewport.deviceScaleFactor,
+        mobile: false
+      });
+      await client.send("Page.navigate", {
+        url: `${baseUrl}/`
+      });
+      await waitForBootstrapReady(client);
+      return await evaluateValue(client, evaluationExpression, { awaitPromise: true });
+    } finally {
+      await client.close();
+    }
+  } finally {
+    await stopHeadlessBrowser(browser.browserProcess, browser.userDataDir);
+  }
+}
+
+export async function runReplayClockValidation({
+  phaseLabel,
+  evaluationExpression
+}) {
+  ensureDistBuildExists();
+  const browserCommand = findHeadlessBrowser();
+  const { server, baseUrl } = await startStaticServer();
+
+  try {
+    const result = await runValidation(baseUrl, browserCommand, evaluationExpression);
+    console.log(`${phaseLabel} validation passed: ${JSON.stringify(result)}`);
+  } finally {
+    await stopStaticServer(server);
+  }
+}
+
+function isMainModule() {
+  return typeof process.argv[1] === "string" && path.resolve(process.argv[1]) === __filename;
+}
+
+async function main() {
+  await runReplayClockValidation({
+    phaseLabel: "Phase 3.3 replay-clock real-time",
+    evaluationExpression: buildReplayClockEvaluation(`
       const initialState = capture.replayClock.getState();
-      assertSerializableState(initialState, "initial");
+      assertSerializableState(initialState, "initial", "real-time");
       assert(initialState.isPlaying === false, "Initial replay clock should start paused.");
       assert(capture.viewer.clock.shouldAnimate === false, "Initial viewer clock should start paused.");
 
@@ -464,7 +522,7 @@ async function runReplayClockChecks(client) {
         stop: rangeStopMs
       });
       const stateAfterMode = capture.replayClock.getState();
-      assertSerializableState(stateAfterMode, "after setMode(real-time, range)");
+      assertSerializableState(stateAfterMode, "after setMode(real-time, range)", "real-time");
       assert(
         normalizeTimestampMs(stateAfterMode.startTime) === rangeStartMs,
         "setMode(real-time, range) must update startTime."
@@ -494,7 +552,7 @@ async function runReplayClockChecks(client) {
       capture.replayClock.seek(seekTargetMs);
       const stateAfterSeek = capture.replayClock.getState();
       const rawAfterSeek = snapshotRawClock();
-      assertSerializableState(stateAfterSeek, "after seek");
+      assertSerializableState(stateAfterSeek, "after seek", "real-time");
       assert(
         normalizeTimestampMs(stateAfterSeek.currentTime) === seekTargetMs,
         "seek must update replay-clock currentTime."
@@ -507,7 +565,7 @@ async function runReplayClockChecks(client) {
 
       capture.replayClock.setMultiplier(4.5);
       const stateAfterMultiplier = capture.replayClock.getState();
-      assertSerializableState(stateAfterMultiplier, "after setMultiplier");
+      assertSerializableState(stateAfterMultiplier, "after setMultiplier", "real-time");
       assert(
         capture.viewer.clock.multiplier === 4.5,
         "setMultiplier must update the underlying viewer.clock multiplier."
@@ -537,7 +595,7 @@ async function runReplayClockChecks(client) {
         "play must update the underlying viewer.clock shouldAnimate flag."
       );
       assert(tickCount > 0, "onTick listener must receive updates while active.");
-      assertSerializableState(lastTickState, "tick listener");
+      assertSerializableState(lastTickState, "tick listener", "real-time");
       assert(
         rawAfterPlay.dayNumber !== rawBeforePlay.dayNumber ||
           Math.abs(rawAfterPlay.secondsOfDay - rawBeforePlay.secondsOfDay) > 0.0001,
@@ -549,7 +607,7 @@ async function runReplayClockChecks(client) {
       const rawAfterPause = snapshotRawClock();
       await sleep(150);
       const rawAfterPauseWait = snapshotRawClock();
-      assertSerializableState(pausedState, "after pause");
+      assertSerializableState(pausedState, "after pause", "real-time");
       assert(
         capture.viewer.clock.shouldAnimate === false,
         "pause must update the underlying viewer.clock shouldAnimate flag."
@@ -569,80 +627,18 @@ async function runReplayClockChecks(client) {
         "onTick unsubscribe must stop further replay-clock callbacks."
       );
 
-      let prerecordedMessage = null;
-      try {
-        capture.replayClock.setMode("prerecorded");
-      } catch (error) {
-        prerecordedMessage = error instanceof Error ? error.message : String(error);
-      }
-
-      assert(
-        typeof prerecordedMessage === "string" && prerecordedMessage.includes("Phase 3.4"),
-        "setMode(prerecorded) must fail with an explicit pending boundary."
-      );
-      const stateAfterPrerecordedAttempt = capture.replayClock.getState();
-      assertSerializableState(stateAfterPrerecordedAttempt, "after prerecorded rejection");
-      assert(
-        stateAfterPrerecordedAttempt.mode === "real-time",
-        "Failed prerecorded mode switch must leave the clock in real-time mode."
-      );
-
       return {
         initialState,
         stateAfterMode,
         stateAfterSeek,
         stateAfterMultiplier,
         pausedState,
-        tickCount,
-        prerecordedMessage
+        tickCount
       };
-    })()`,
-    { awaitPromise: true }
-  );
+    `)
+  });
 }
 
-async function runValidation(baseUrl, browserCommand) {
-  const browser = await startHeadlessBrowser(browserCommand);
-
-  try {
-    const pageWebSocketUrl = await resolvePageWebSocketUrl(browser.browserWebSocketUrl);
-    const client = await connectCdp(pageWebSocketUrl);
-
-    try {
-      await client.send("Page.enable");
-      await client.send("Runtime.enable");
-      await client.send("Emulation.setDeviceMetricsOverride", {
-        width: viewport.width,
-        height: viewport.height,
-        deviceScaleFactor: viewport.deviceScaleFactor,
-        mobile: false
-      });
-      await client.send("Page.navigate", {
-        url: `${baseUrl}/`
-      });
-      await waitForBootstrapReady(client);
-      const result = await runReplayClockChecks(client);
-      console.log(
-        `Phase 3.3 replay-clock real-time validation passed: ${JSON.stringify(result)}`
-      );
-    } finally {
-      await client.close();
-    }
-  } finally {
-    await stopHeadlessBrowser(browser.browserProcess, browser.userDataDir);
-  }
+if (isMainModule()) {
+  await main();
 }
-
-async function main() {
-  ensureDistBuildExists();
-  const browserCommand = findHeadlessBrowser();
-  const { server, baseUrl } = await startStaticServer();
-
-  try {
-    await runValidation(baseUrl, browserCommand);
-  } finally {
-    await stopStaticServer(server);
-  }
-}
-
-await main();

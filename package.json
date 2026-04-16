@@ -13,6 +13,7 @@
     "test:phase1:site-hook-conflict": "node scripts/phase1-cleanup-orchestration.mjs --flow=site-hook-conflict",
     "test:phase3.2": "node scripts/verify-phase3.2-replay-clock-contract.mjs",
     "test:phase3.3": "npm run build && node tests/smoke/verify-phase3.3-replay-clock-real-time.mjs",
+    "test:phase3.4": "npm run build && node tests/smoke/verify-phase3.4-replay-clock-prerecorded.mjs",
     "capture:phase2.12": "node scripts/site-hook-guard.mjs --context=phase2.12-capture && npm run build && node tests/visual/capture-three-preset-baselines.mjs",
     "capture:site-dataset": "node scripts/site-dataset-visual-orchestration.mjs",
     "preview": "vite preview"

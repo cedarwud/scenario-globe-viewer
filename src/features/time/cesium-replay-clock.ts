@@ -11,8 +11,10 @@ import type {
   ReplayClockState
 } from "./replay-clock";
 
-const UNIMPLEMENTED_PRERECORDED_MESSAGE =
-  "ReplayClock prerecorded mode remains pending until Phase 3.4.";
+interface ReplayClockRange {
+  startTime: JulianDate;
+  stopTime: JulianDate;
+}
 
 function assertFiniteTimestamp(value: ClockTimestamp): void {
   if (typeof value === "number" && !Number.isFinite(value)) {
@@ -30,6 +32,44 @@ function deserializeTimestamp(value: ClockTimestamp): JulianDate {
 
 function serializeTimestamp(value: JulianDate): ClockTimestamp {
   return JulianDate.toIso8601(value, 3);
+}
+
+function validateRange(range: ReplayClockRange, modeLabel: string): void {
+  if (JulianDate.greaterThan(range.startTime, range.stopTime)) {
+    throw new Error(
+      `ReplayClock ${modeLabel} range start must not exceed stop.`
+    );
+  }
+}
+
+function deserializeRange(range: {
+  start: ClockTimestamp;
+  stop: ClockTimestamp;
+}): ReplayClockRange {
+  const resolvedRange = {
+    startTime: deserializeTimestamp(range.start),
+    stopTime: deserializeTimestamp(range.stop)
+  };
+
+  validateRange(resolvedRange, "requested");
+  return resolvedRange;
+}
+
+function cloneActiveRange(viewer: Viewer): ReplayClockRange {
+  return {
+    startTime: JulianDate.clone(viewer.clock.startTime),
+    stopTime: JulianDate.clone(viewer.clock.stopTime)
+  };
+}
+
+// Phase 3.4 reuses the current Cesium clock interval when prerecorded mode is
+// selected without an explicit range, so range resolution is centralized here
+// before that runtime path is enabled.
+function resolveRequestedOrActiveRange(
+  viewer: Viewer,
+  range?: { start: ClockTimestamp; stop: ClockTimestamp }
+): ReplayClockRange {
+  return range ? deserializeRange(range) : cloneActiveRange(viewer);
 }
 
 function clampToActiveRange(time: JulianDate, viewer: Viewer): JulianDate {
@@ -63,10 +103,41 @@ function serializeState(viewer: Viewer, mode: ClockMode): ReplayClockState {
   };
 }
 
-function ensureRealTimeClockStep(viewer: Viewer): void {
+// Both replay modes stay on Cesium's system-time-multiplier path so the public
+// multiplier continues to behave like a speed factor instead of seconds/frame.
+function ensureReplayClockStep(viewer: Viewer): void {
   if (viewer.clock.clockStep !== ClockStep.SYSTEM_CLOCK_MULTIPLIER) {
     viewer.clock.clockStep = ClockStep.SYSTEM_CLOCK_MULTIPLIER;
   }
+}
+
+function applyClampedRange(viewer: Viewer, range: ReplayClockRange): void {
+  validateRange(range, "active");
+  viewer.clock.startTime = range.startTime;
+  viewer.clock.stopTime = range.stopTime;
+  viewer.clock.clockRange = ClockRange.CLAMPED;
+  viewer.clock.currentTime = clampToActiveRange(viewer.clock.currentTime, viewer);
+}
+
+function applyRealTimeMode(
+  viewer: Viewer,
+  range?: { start: ClockTimestamp; stop: ClockTimestamp }
+): void {
+  ensureReplayClockStep(viewer);
+
+  if (!range) {
+    return;
+  }
+
+  applyClampedRange(viewer, deserializeRange(range));
+}
+
+function applyPrerecordedMode(
+  viewer: Viewer,
+  range?: { start: ClockTimestamp; stop: ClockTimestamp }
+): void {
+  ensureReplayClockStep(viewer);
+  applyClampedRange(viewer, resolveRequestedOrActiveRange(viewer, range));
 }
 
 export function createCesiumReplayClock(viewer: Viewer): ReplayClock {
@@ -78,7 +149,7 @@ export function createCesiumReplayClock(viewer: Viewer): ReplayClock {
     },
 
     play(): void {
-      ensureRealTimeClockStep(viewer);
+      ensureReplayClockStep(viewer);
       viewer.clock.shouldAnimate = true;
     },
 
@@ -91,12 +162,12 @@ export function createCesiumReplayClock(viewer: Viewer): ReplayClock {
         throw new Error(`ReplayClock multiplier must be finite: ${x}`);
       }
 
-      ensureRealTimeClockStep(viewer);
+      ensureReplayClockStep(viewer);
       viewer.clock.multiplier = x;
     },
 
     seek(t: ClockTimestamp): void {
-      ensureRealTimeClockStep(viewer);
+      ensureReplayClockStep(viewer);
       viewer.clock.currentTime = clampToActiveRange(
         deserializeTimestamp(t),
         viewer
@@ -107,28 +178,14 @@ export function createCesiumReplayClock(viewer: Viewer): ReplayClock {
       nextMode: ClockMode,
       range?: { start: ClockTimestamp; stop: ClockTimestamp }
     ): void {
-      if (nextMode === "prerecorded") {
-        throw new Error(UNIMPLEMENTED_PRERECORDED_MESSAGE);
-      }
-
-      mode = "real-time";
-      ensureRealTimeClockStep(viewer);
-
-      if (!range) {
+      if (nextMode === "real-time") {
+        applyRealTimeMode(viewer, range);
+        mode = "real-time";
         return;
       }
 
-      const startTime = deserializeTimestamp(range.start);
-      const stopTime = deserializeTimestamp(range.stop);
-
-      if (JulianDate.greaterThan(startTime, stopTime)) {
-        throw new Error("ReplayClock real-time range start must not exceed stop.");
-      }
-
-      viewer.clock.startTime = startTime;
-      viewer.clock.stopTime = stopTime;
-      viewer.clock.clockRange = ClockRange.CLAMPED;
-      viewer.clock.currentTime = clampToActiveRange(viewer.clock.currentTime, viewer);
+      applyPrerecordedMode(viewer, range);
+      mode = "prerecorded";
     },
 
     onTick(listener: (state: ReplayClockState) => void): () => void {
@@ -138,5 +195,3 @@ export function createCesiumReplayClock(viewer: Viewer): ReplayClock {
     }
   };
 }
-
-export const PRERECORDED_MODE_PENDING_MESSAGE = UNIMPLEMENTED_PRERECORDED_MESSAGE;
