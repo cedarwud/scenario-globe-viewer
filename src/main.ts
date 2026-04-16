@@ -11,6 +11,8 @@ import {
   mountOptionalOsmBuildingsShowcase,
   resolveBuildingShowcaseSelection
 } from "./features/globe/osm-buildings-showcase";
+import { createCesiumReplayClock } from "./features/time/cesium-replay-clock";
+import type { ReplayClock } from "./features/time";
 import "./styles.css";
 
 type BootstrapState = "booting" | "ready" | "error";
@@ -20,6 +22,7 @@ declare global {
   interface Window {
     __SCENARIO_GLOBE_VIEWER_CAPTURE__?: {
       viewer: ViewerInstance;
+      replayClock: ReplayClock;
     };
   }
 }
@@ -106,10 +109,12 @@ const viewer = createViewer({
   scenePresetKey: scenePreset,
   buildingShowcaseKey: buildingShowcase.key
 });
+const replayClock = createCesiumReplayClock(viewer);
 // Phase 2.12 capture harnesses need a narrow viewer handle so they can wait for
 // the active camera/tiles state to settle without rewriting preset framing or
-// the native shell.
-window.__SCENARIO_GLOBE_VIEWER_CAPTURE__ = { viewer };
+// the native shell. Phase 3.3 extends the same seam with ReplayClock for
+// targeted real-time validation without adding product UI.
+window.__SCENARIO_GLOBE_VIEWER_CAPTURE__ = { viewer, replayClock };
 syncVisualBaselineState(viewer);
 const unmountLightingToggle = mountLightingToggle(viewer);
 const unmountOsmBuildingsShowcase = mountOptionalOsmBuildingsShowcase(
