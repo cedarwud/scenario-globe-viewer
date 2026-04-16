@@ -23,6 +23,7 @@ Related deployment guidance: see [deployment-profiles.md](./deployment-profiles.
 - The current Phase 2 close-out evidence chain is repo-owned: `npm run test:phase1` verifies the three-preset bootstrap path, and the Phase 2.12 screenshots preserve the accepted global, regional, and site baselines. No separate long-duration globe-only soak artifact is currently claimed.
 - The current governance target is to capture that accepted Phase 2 close-out state as its own commit/tag before the first Phase 3.1 implementation change lands.
 - Formal Phase 3 readiness still lacks admissible Tier 1 / Tier 2 Profile A measurements, but ADR `0006-phase-3.1-execution-governance` now allows a constrained WSL-backed start for `3.1` only.
+- The current Phase 3.1 app shell still mounts the empty HUD-frame structure from `3.1`, but the placeholder chrome is hidden by default until real panel functionality exists.
 - Ad hoc screenshots under `output/` remain local validation artifacts and are not part of the delivery surface.
 
 ## Phase 0

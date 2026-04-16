@@ -44,6 +44,8 @@ The default Phase 2.12 capture is intentionally run without `VITE_CESIUM_SITE_TI
 
 This PNG is a review-only Phase 3.1 HUD-shell follow-up artifact captured on top of commit `a45a34e`. It is not a Phase 2.12 baseline, does not replace the accepted Phase 2 close-out screenshots, and must not be cited as admissible measurement evidence.
 
+It is now also historical with respect to the active runtime shell: the empty HUD placeholder remains mounted in the DOM, but the placeholder chrome is hidden by default until real HUD functionality lands.
+
 Capture conditions:
 
 - deployment profile: Profile A / Cesium-native default

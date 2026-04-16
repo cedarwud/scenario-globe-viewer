@@ -323,6 +323,14 @@ async function readBootstrapState(client) {
         sceneBloomActive: root?.dataset.sceneBloomActive ?? null,
         hasViewerShell: Boolean(document.querySelector('.cesium-viewer')),
         hasHudFrame: Boolean(hudFrame),
+        hudVisibility:
+          hudFrame instanceof HTMLElement
+            ? hudFrame.getAttribute('data-hud-visibility')
+            : null,
+        isHudFrameHidden:
+          hudFrame instanceof HTMLElement
+            ? getComputedStyle(hudFrame).display === 'none'
+            : false,
         hudPanelCount: document.querySelectorAll('[data-hud-panel]').length,
         hasLightingToggle: Boolean(lightingToggle),
         hasLightingToggleDisabled:
@@ -424,6 +432,10 @@ async function readHudLayoutState(client) {
           height: window.innerHeight
         },
         hudFrame: pickRect(".hud-frame"),
+        hudVisibility:
+          document
+            .querySelector(".hud-frame")
+            ?.getAttribute("data-hud-visibility") ?? null,
         leftPanel,
         rightPanel,
         statusPanel,
@@ -524,8 +536,31 @@ function assertVisiblePanel(panel, label) {
   assert(panel.pointerEvents === "none", `Expected ${label} panel to stay pointer-transparent.`);
 }
 
-function parseZIndex(rect) {
-  return Number.parseInt(rect?.zIndex ?? "0", 10);
+function assertHiddenHudShell(layoutState, scenarioLabel) {
+  assert(layoutState.hudFrame, `Missing HUD frame during ${scenarioLabel}.`);
+  assert(
+    layoutState.hudVisibility === "hidden",
+    `Expected HUD shell to advertise hidden placeholder state during ${scenarioLabel}: ${JSON.stringify(layoutState.hudVisibility)}`
+  );
+  assert(
+    layoutState.hudFrame.display === "none",
+    `Expected HUD frame to stay hidden during ${scenarioLabel}: ${JSON.stringify(layoutState.hudFrame)}`
+  );
+  assert(layoutState.leftPanel, `Missing left HUD panel during ${scenarioLabel}.`);
+  assert(layoutState.rightPanel, `Missing right HUD panel during ${scenarioLabel}.`);
+  assert(layoutState.statusPanel, `Missing status HUD panel during ${scenarioLabel}.`);
+  assert(
+    layoutState.leftPanel.width === 0 && layoutState.leftPanel.height === 0,
+    `Expected hidden left HUD panel to take no layout area during ${scenarioLabel}: ${JSON.stringify(layoutState.leftPanel)}`
+  );
+  assert(
+    layoutState.rightPanel.width === 0 && layoutState.rightPanel.height === 0,
+    `Expected hidden right HUD panel to take no layout area during ${scenarioLabel}: ${JSON.stringify(layoutState.rightPanel)}`
+  );
+  assert(
+    layoutState.statusPanel.width === 0 && layoutState.statusPanel.height === 0,
+    `Expected hidden status HUD panel to take no layout area during ${scenarioLabel}: ${JSON.stringify(layoutState.statusPanel)}`
+  );
 }
 
 function rectCenter(rect) {
@@ -561,54 +596,30 @@ async function dispatchMouseClick(client, point) {
   });
 }
 
-function assertDesktopHudSafety(layoutState, scenarioLabel) {
+function assertDesktopHudHiddenState(layoutState, scenarioLabel) {
   assert(layoutState.viewport.width === 1440, `Expected desktop width during ${scenarioLabel}.`);
   assert(layoutState.viewport.height === 900, `Expected desktop height during ${scenarioLabel}.`);
-  assert(layoutState.hudFrame?.pointerEvents === "none", `Expected HUD frame to stay pointer-transparent during ${scenarioLabel}.`);
-  assertVisiblePanel(layoutState.leftPanel, `left/${scenarioLabel}`);
-  assertVisiblePanel(layoutState.rightPanel, `right/${scenarioLabel}`);
-  assertVisiblePanel(layoutState.statusPanel, `status/${scenarioLabel}`);
-  assert(parseZIndex(layoutState.toolbar) > parseZIndex(layoutState.hudFrame), `Expected toolbar to stack above HUD during ${scenarioLabel}.`);
-  assert(parseZIndex(layoutState.timeline) > parseZIndex(layoutState.hudFrame), `Expected timeline to stack above HUD during ${scenarioLabel}.`);
-  assert(parseZIndex(layoutState.bottom) > parseZIndex(layoutState.hudFrame), `Expected credits band to stack above HUD during ${scenarioLabel}.`);
+  assertHiddenHudShell(layoutState, scenarioLabel);
   assert(
-    layoutState.leftPanelCenterElement?.tagName === "CANVAS",
-    `Expected left HUD panel to pass pointer hits through to the globe canvas during ${scenarioLabel}: ${JSON.stringify(layoutState.leftPanelCenterElement)}`
+    layoutState.toolbar && layoutState.toolbar.width > 0 && layoutState.toolbar.height > 0,
+    `Expected native toolbar to remain visible during ${scenarioLabel}: ${JSON.stringify(layoutState.toolbar)}`
   );
   assert(
-    layoutState.rightPanelCenterElement?.tagName === "CANVAS",
-    `Expected right HUD panel to pass pointer hits through to the globe canvas during ${scenarioLabel}: ${JSON.stringify(layoutState.rightPanelCenterElement)}`
+    layoutState.timeline &&
+      layoutState.timeline.width > 0 &&
+      layoutState.timeline.height > 0,
+    `Expected native timeline to remain visible during ${scenarioLabel}: ${JSON.stringify(layoutState.timeline)}`
   );
   assert(
-    layoutState.statusPanel.bottom <= layoutState.bottom.top - 2,
-    `Expected desktop status band to clear the native credits band during ${scenarioLabel}: ${JSON.stringify({
-      statusPanel: layoutState.statusPanel,
-      bottom: layoutState.bottom
-    })}`
-  );
-  assert(
-    layoutState.statusPanel.bottom <= layoutState.creditText.top - 2,
-    `Expected desktop status band to clear credit text during ${scenarioLabel}: ${JSON.stringify({
-      statusPanel: layoutState.statusPanel,
-      creditText: layoutState.creditText
-    })}`
+    layoutState.bottom && layoutState.bottom.width > 0 && layoutState.bottom.height > 0,
+    `Expected native credits band to remain visible during ${scenarioLabel}: ${JSON.stringify(layoutState.bottom)}`
   );
 }
 
-function assertShortHudSafety(layoutState, scenarioLabel) {
+function assertShortHudHiddenState(layoutState, scenarioLabel) {
   assert(layoutState.viewport.width === 1440, `Expected short width during ${scenarioLabel}.`);
   assert(layoutState.viewport.height === 760, `Expected short height during ${scenarioLabel}.`);
-  assert(layoutState.hudFrame?.pointerEvents === "none", `Expected HUD frame to stay pointer-transparent during ${scenarioLabel}.`);
-  assertVisiblePanel(layoutState.leftPanel, `left/${scenarioLabel}`);
-  assertVisiblePanel(layoutState.rightPanel, `right/${scenarioLabel}`);
-  assert(
-    layoutState.statusPanel?.display === "none",
-    `Expected status band to collapse on the short shell path during ${scenarioLabel}: ${JSON.stringify(layoutState.statusPanel)}`
-  );
-  assert(
-    layoutState.leftPanelCenterElement?.tagName === "CANVAS",
-    `Expected short-view HUD panel to pass pointer hits through to the globe canvas during ${scenarioLabel}: ${JSON.stringify(layoutState.leftPanelCenterElement)}`
-  );
+  assertHiddenHudShell(layoutState, scenarioLabel);
 }
 
 async function activateGeocoderAndInsertText(client, value) {
@@ -704,7 +715,24 @@ async function dismissNavigationHelpIfVisible(client) {
   }
 }
 
-async function runDesktopInteractiveHudChecks(client, scenarioLabel) {
+async function dismissBaseLayerPicker(client) {
+  const closed = await evaluateValue(
+    client,
+    `(() => {
+      const toggle = document.querySelector(".cesium-baseLayerPicker-selected");
+      if (!(toggle instanceof HTMLElement)) {
+        return false;
+      }
+
+      toggle.click();
+      return true;
+    })()`
+  );
+
+  assert(closed, "Expected BaseLayerPicker toggle to exist while dismissing dropdown.");
+}
+
+async function runDesktopNativeControlChecks(client, scenarioLabel) {
   await activateGeocoderAndInsertText(client, "Taipei");
   let layoutState = await readHudLayoutState(client);
 
@@ -719,12 +747,13 @@ async function runDesktopInteractiveHudChecks(client, scenarioLabel) {
   );
   assert(
     layoutState.geocoderCenterElement?.tagName === "INPUT",
-    `Expected geocoder input to stay above the HUD during ${scenarioLabel}: ${JSON.stringify(layoutState.geocoderCenterElement)}`
+    `Expected geocoder input to remain directly reachable with the hidden HUD placeholder during ${scenarioLabel}: ${JSON.stringify(layoutState.geocoderCenterElement)}`
   );
   assert(
     layoutState.geocoderSearchButtonCenterElement !== null,
     `Expected a concrete geocoder search-button hit target during ${scenarioLabel}.`
   );
+  assertHiddenHudShell(layoutState, `${scenarioLabel}/geocoder`);
 
   await toggleBaseLayerPicker(client);
   await waitForCondition(
@@ -746,18 +775,14 @@ async function runDesktopInteractiveHudChecks(client, scenarioLabel) {
     `Expected a concrete BaseLayerPicker toggle hit target during ${scenarioLabel}.`
   );
   assert(
-    layoutState.baseLayerOverlapWidth > 0 && layoutState.baseLayerOverlapHeight > 0,
-    `Expected opened BaseLayerPicker to overlap the right HUD panel during ${scenarioLabel}: ${JSON.stringify({
-      rightPanel: layoutState.rightPanel,
-      baseLayerDropdown: layoutState.baseLayerDropdown
-    })}`
+    layoutState.baseLayerDropdown &&
+      layoutState.baseLayerDropdown.width > 0 &&
+      layoutState.baseLayerDropdown.height > 0,
+    `Expected opened BaseLayerPicker dropdown to remain visible with the hidden HUD placeholder during ${scenarioLabel}: ${JSON.stringify(layoutState.baseLayerDropdown)}`
   );
-  assert(
-    layoutState.baseLayerOverlapElement?.className.includes("cesium-baseLayerPicker"),
-    `Expected opened BaseLayerPicker to stay on top of the HUD during ${scenarioLabel}: ${JSON.stringify(layoutState.baseLayerOverlapElement)}`
-  );
+  assertHiddenHudShell(layoutState, `${scenarioLabel}/base-layer-picker`);
 
-  await toggleBaseLayerPicker(client);
+  await dismissBaseLayerPicker(client);
   await waitForCondition(
     client,
     "closed BaseLayerPicker",
@@ -787,6 +812,8 @@ async function waitForBootstrapReady(client, expectedScenePreset, scenarioLabel,
       lastState.sceneBloomActive === "false" &&
       lastState.hasViewerShell &&
       lastState.hasHudFrame &&
+      lastState.hudVisibility === "hidden" &&
+      lastState.isHudFrameHidden &&
       lastState.hudPanelCount >= 3 &&
       lastState.hasLightingToggle &&
       lastState.hasLightingToggleDisabled &&
@@ -850,10 +877,10 @@ async function verifyBootstrapInHeadlessBrowser(baseUrl) {
       expectedScenePreset: "global",
       viewport: desktopViewport,
       validateLayout: (layoutState) => {
-        assertDesktopHudSafety(layoutState, "default-global");
+        assertDesktopHudHiddenState(layoutState, "default-global");
       },
       runInteractiveChecks: async (client) => {
-        await runDesktopInteractiveHudChecks(client, "default-global");
+        await runDesktopNativeControlChecks(client, "default-global");
       }
     },
     {
@@ -874,7 +901,7 @@ async function verifyBootstrapInHeadlessBrowser(baseUrl) {
       expectedScenePreset: "global",
       viewport: shortViewport,
       validateLayout: (layoutState) => {
-        assertShortHudSafety(layoutState, "default-global-short");
+        assertShortHudHiddenState(layoutState, "default-global-short");
       }
     }
   ];
