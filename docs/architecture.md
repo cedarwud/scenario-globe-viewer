@@ -23,7 +23,7 @@ The repo is organized into five layers:
 3. Cesium integration seam
    Future `src/core/cesium/` modules wrap `Viewer`, provider factories, credits, and performance controls without copying Cesium internals.
 4. Feature interfaces
-   Phase 2.8 starts globe presets as a plain-data scene-preset seam for camera framing and presentation-profile selection, Phase 2.9 lands the first concrete global preset, Phase 2.10 adds the first regional preset, and Phase 2.11 adds the first site preset plus an optional configured-url 3D tiles hook. Replay time and satellite overlays remain contract-led later. Through Phase 3, satellite work is limited to interface boundaries and necessary hooks.
+   Phase 2.8 starts globe presets as a plain-data scene-preset seam for camera framing and presentation-profile selection, Phase 2.9 lands the first concrete global preset, Phase 2.10 adds the first regional preset, and Phase 2.11 adds the first site preset plus an optional configured-url 3D tiles hook. Phase 3.2 now adds a repo-local replay-clock contract under `src/features/time/`, but keeps it plain-data only and does not wire live clock behavior into the runtime yet. Through Phase 3, satellite work is limited to interface boundaries and necessary hooks.
 5. Validation harness
    `scripts/verify-phase0.mjs`, `tests/smoke/`, and the Phase 2.12 capture path under `tests/visual/` keep build output, fixture integrity, preset/bootstrap evidence, and repo-owned baseline screenshots runnable from the repo itself.
 
@@ -50,7 +50,7 @@ Planned Phase 2-5 flow:
 2. A viewer factory continues to own the high-level `Viewer` wrapper and only changes built-in controls when there is an explicit product reason rather than an abstract "offline-first" requirement.
 3. Phase 2.8 scene presets are now consumed by concrete global, regional, and site presets for globe presentation and camera framing, while the site-specific 3D tiles path remains limited to a configured-url hook rather than a full tiles subsystem. The opt-in Cesium OSM Buildings showcase remains a separate bootstrap variant and does not expand the preset contract into a multi-model system.
 4. The current formal site dataset MVP now builds on that existing configured-url `site` hook as its own dataset-backed delivery line, remains separate from the Profile C showcase path, and preserves the current Profile A baseline/capture path instead of rewriting it in place.
-5. Replay and overlay contracts attach later without leaking Cesium runtime classes into external interfaces.
+5. Phase 3.2 now defines the replay-clock interface boundary in `src/features/time/`, keeping app-facing time state serializable and leaving Cesium clock conversion inside later implementation slices. Overlay contracts still attach later without leaking Cesium runtime classes into external interfaces.
 6. Fixture ingestion and the first overlay remain later phases, after the shell and time seams are stable.
 
 ## Directory Intent

@@ -26,6 +26,7 @@ Related deployment guidance: see [deployment-profiles.md](./deployment-profiles.
 - Formal Phase 3 readiness still lacks admissible Tier 1 / Tier 2 Profile A measurements, so the formal gate remains open.
 - ADR `0008-phase-3-wsl-development-progression.md` now separates that formal no-go from a constrained WSL-backed Phase 3 development-progression gate so routine `3.2+` implementation slices do not require a fresh one-off exception each time.
 - The current Phase 3.1 app shell still mounts the empty HUD-frame structure from `3.1`, but the placeholder chrome is hidden by default until real panel functionality exists.
+- Phase 3.2 now adds a plain-data replay-clock contract under `src/features/time/`, exposing `ClockMode`, `ClockTimestamp`, `ReplayClockState`, and `ReplayClock` without wiring live clock behavior into the app shell or HUD yet.
 - Formal site dataset integration MVP now exists on the existing configured `site` hook. The committed OSM Buildings slice remains showcase-only and must not be treated as a substitute for that dataset-backed `site` delivery line. ADR `0007-formal-site-dataset-integration-governance.md` remains the governing classification and boundary document for this line.
 - Dataset-enabled validation is now separate from the dormant baseline path: `npm run test:phase1:site-dataset` verifies the dataset-backed runtime, and `npm run capture:site-dataset` writes the separate review artifact under `docs/images/formal-site-dataset-mvp/`.
 - The current repo-owned dataset fixture is a validation-only asset. This MVP does not claim that formal Tier 1 / Tier 2 Profile A measurements are closed or that a final delivery AOI has already been provided.
@@ -146,6 +147,7 @@ The current WSL-only operating assumption now uses a separate development-progre
 Current status under that model:
 
 - `3.2` is `go with constraints` for routine in-scope Phase 3 implementation slices
+- the landed `3.2` surface is interface-only so far: plain-data clock types plus the replay-clock contract, with `3.3/3.4` runtime behavior still pending
 - this is not automatic authorization for Phase 3 close-out, deployment/profile widening, data-contract widening, or admissible-measurement closure
 - any slice that crosses those boundaries still needs a fresh governance checkpoint before implementation starts
 
