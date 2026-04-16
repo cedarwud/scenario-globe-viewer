@@ -14,7 +14,9 @@ Evidence:
 - The same build copied `389` Cesium runtime items and produced `7.8M` of repo-served Cesium runtime assets under `dist/cesium/` (`Assets` `4.7M`, `Workers` `1.3M`, `ThirdParty` `1.1M`, `Widgets` `744K`).
 - The same build still emits Vite's large-chunk warning plus a direct `eval` warning from `node_modules/protobufjs/dist/minimal/protobuf.js:662`.
 - The currently accessible workspace for this governance pass is `Linux ... microsoft-standard-WSL2` on `x86_64`, with `lscpu` reporting `Intel(R) Core(TM) Ultra 9 285H` and `google-chrome --version` reporting `145.0.7632.67`.
-- In that same workspace, `glxinfo -B` cannot open display `:0`, and `lspci -nn` does not expose a usable Linux VGA or 3D device surface.
+- In that same workspace, `DISPLAY=:0` and `WAYLAND_DISPLAY=wayland-0` are present, but `glxinfo -B` still cannot open display `:0`.
+- `lspci -nn` is not available in the workspace, so this pass does not have a repo-owned Linux PCI enumeration path for a native VGA or 3D controller record.
+- A mounted Windows Chrome install tree is visible under `/mnt/c/Program Files/Google/Chrome/Application/`, but direct host-binary execution through `cmd.exe`, `powershell.exe`, and `chrome.exe` all fail from this workspace with `UtilBindVsockAnyPort:307: socket failed 1`. The current pass therefore cannot pivot to a native Windows browser measurement path either.
 - `tests/smoke/bootstrap-loads-assets-and-workers.mjs:315-430` is the current globe-only runtime smoke. It verifies the default global plus `regional` and `site` preset paths reach `ready`, preserve the native `Viewer` shell, and keep the fog-default / bloom-off guard intact under a headless SwiftShader browser.
 - `tests/smoke/bootstrap-loads-assets-and-workers.mjs:379-382` explicitly launches the repo-owned browser smoke with `--use-angle=swiftshader`.
 - `tests/visual/capture-three-preset-baselines.mjs:356-463` plus `docs/visual-baselines.md` define the repo-owned Phase 2.12 visual-baseline capture flow. The harness freezes the native clock, waits for `scene.globe.tilesLoaded`, and captures the accepted global, regional, and site framing without inventing a parallel render path.
@@ -28,7 +30,7 @@ The pre-Phase-3 governance position is:
 
 | Item | Current state | Risk | Phase 3 impact |
 |---|---|---|---|
-| Tier 1 / Tier 2 Profile A measurement gate | Missing. The required globe-only real-machine captures have not been recorded yet, and the currently accessible workspace is a WSL2 headless environment with no admissible Linux GPU / driver surface. | The repo still lacks exact reference-machine FPS evidence for the mandatory pre-Phase-3 gate. | Blocks Phase 3. Readiness stays `no-go`. |
+| Tier 1 / Tier 2 Profile A measurement gate | Missing. The required globe-only real-machine captures have not been recorded yet, and the currently accessible workspace is a WSL2 environment with no admissible Linux GPU / driver surface and no working native Windows browser interop path. | The repo still lacks exact reference-machine FPS evidence for the mandatory pre-Phase-3 gate. | Blocks Phase 3. Readiness stays `no-go`. |
 | Large chunk warning | Verified again on `2026-04-16` from the current `4,057.61 kB` main JS chunk. | Larger initial bundle cost and less headroom for later phases, but no repo-owned evidence of runtime failure from this warning alone. | Accept and defer. This warning does not block Phase 3 by itself. |
 | Upstream `protobufjs` `eval` warning | Verified again on `2026-04-16` from `node_modules/protobufjs/dist/minimal/protobuf.js:662`. | Tooling and security-review noise plus minifier constraints remain in the upstream dependency chain. | Accept as upstream dependency risk. This warning does not block Phase 3 by itself while provenance remains upstream and repo code adds no new `eval` path. |
 
@@ -40,7 +42,7 @@ Reference tiers remain:
 - Tier 2: Intel UHD 620 or 630 class integrated graphics, Chromium 120+ at 1080p full window, target at least 30 FPS and no collapse below 20 FPS during preset switching.
 - Tier 3: software raster or comparable lower-bound environment, used only to confirm the app still runs and not as a quality gate.
 
-Any admissible Tier 1 or Tier 2 record must include exact hardware, browser version, GPU or driver surface, window size, and FPS during globe-only preset switching.
+Any admissible Tier 1 or Tier 2 record must include exact machine model, OS, browser version, GPU or driver surface, window size, preset coverage, preset-switch FPS, and stability notes during globe-only Profile A runs.
 
 Measurements will use the globe-only baseline under the Cesium-native default profile, with no satellite overlays and no replay stack enabled. If an explicit local/on-prem provider override is measured, record it as a separate deployment-profile variant rather than the default baseline.
 

@@ -73,14 +73,16 @@ This evidence is sufficient to describe the current Phase 2 globe-only baseline.
 
 ## Pre-Phase-3 Measurement Feasibility
 
-As of `2026-04-16`, this workspace cannot produce admissible Tier 1 or Tier 2 Profile A performance evidence for the repo.
+As of `2026-04-16`, this workspace still cannot produce admissible Tier 1 or Tier 2 Profile A performance evidence for the repo.
 
-- The accessible shell for this evidence pass is `Linux ... microsoft-standard-WSL2` on `x86_64`.
-- `lscpu` in that workspace reports `Intel(R) Core(TM) Ultra 9 285H`, and `google-chrome --version` reports `145.0.7632.67`.
-- `glxinfo -B` cannot open display `:0`, and `lspci -nn` does not expose a usable Linux VGA or 3D device surface from this workspace.
+- `uname -a` reports `Linux ... microsoft-standard-WSL2` on `x86_64`.
+- `lscpu` in that workspace reports `Intel(R) Core(TM) Ultra 9 285H`, and Linux `google-chrome --version` reports `145.0.7632.67`.
+- `DISPLAY=:0` and `WAYLAND_DISPLAY=wayland-0` are present, but `glxinfo -B` still cannot open display `:0`, so this pass does not have a usable Linux GPU / driver surface for admissible measurement.
+- `lspci -nn` is not available in this workspace, so there is no repo-owned Linux PCI enumeration path for a native VGA or 3D controller record.
+- A mounted Windows Chrome install tree is visible under `/mnt/c/Program Files/Google/Chrome/Application/`, but direct host-binary execution through `cmd.exe`, `powershell.exe`, and `chrome.exe` all fail from this workspace with `UtilBindVsockAnyPort:307: socket failed 1`. This means the current pass cannot pivot to a native Windows browser measurement flow either.
 - `tests/smoke/bootstrap-loads-assets-and-workers.mjs:379-382` launches the repo-owned browser smoke with `--use-angle=swiftshader`, which is suitable for lower-bound smoke but not for Tier 1 or Tier 2 hardware evidence.
 
-This workspace is sufficient for build, smoke, and repo-owned visual-baseline refreshes, but it is not sufficient for the required real-machine capture. Phase 3 readiness therefore remains `no-go` until exact hardware, browser, driver, and FPS measurements are recorded on admissible Profile A reference machines.
+This workspace is sufficient for build, smoke, and repo-owned visual-baseline refreshes, but it is not sufficient for the required real-machine capture. Phase 3 readiness therefore remains `no-go` until exact machine model, OS, browser version, GPU / driver surface, 1080p window condition, preset coverage, preset-switch FPS, and stability notes are recorded on admissible Profile A Tier 1 and Tier 2 reference machines.
 
 ADR `0005-perf-budget.md` records the matching governance decision for build warnings: the large-chunk warning is accepted and deferred, and the upstream `protobufjs` `eval` warning is accepted as an upstream dependency risk. Those warning decisions do not replace the missing measurement gate.
 
