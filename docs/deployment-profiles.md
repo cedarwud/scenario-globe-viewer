@@ -1,6 +1,14 @@
 # Deployment Profiles
 
-Source note: this file records the repo's current deployment-profile interpretation after the Phase 2 offline-first rollback. Keep it synchronized with ADR 0004, `delivery-phases.md`, and `cesium-evidence.md`.
+Source note: this file records the repo's current deployment-profile interpretation after the Phase 2 close-out governance sync. Keep it synchronized with ADR 0004, `delivery-phases.md`, and `cesium-evidence.md`.
+
+## Profile Labels
+
+- Profile A: Cesium-native default
+- Profile B: explicit local or on-prem override
+- Profile C: mixed or showcase variant
+
+These labels supersede older wording that treated Profile A as the offline stack and Profile B as the ion-only spike path.
 
 ## Current Rule
 
@@ -62,4 +70,4 @@ Phase 2 should improve globe quality on top of Cesium-native behavior. It should
 - force ellipsoid fallback terrain as the default visual baseline
 - treat Cesium-native services as disallowed by definition
 
-If a deployment truly needs local or on-prem providers, add them as explicit Profile B configuration and validate them separately.
+If a deployment truly needs local or on-prem providers, add them as explicit Profile B configuration and validate them separately. Do not restore the older Profile A/Profile B label mapping in future repo docs.

@@ -6,7 +6,7 @@ Accepted
 
 ## Context
 
-The repo needs one deployment baseline that preserves Cesium-native quality and shell behavior. Earlier wording over-interpreted `offline-first` and encouraged turning off or replacing native `Viewer` controls and provider paths simply because they were backed by Cesium services. The repo still needs an explicit path for local or on-prem imagery, terrain, and tilesets when a deployment asks for it, but that path must stay opt-in.
+The repo needs one deployment baseline that preserves Cesium-native quality and shell behavior. Earlier wording over-interpreted `offline-first` and encouraged turning off or replacing native `Viewer` controls and provider paths simply because they were backed by Cesium services. Older planning text also labeled Profile A as offline/on-prem and Profile B as ion online, which now conflicts with the accepted repo runtime. The repo still needs an explicit path for local or on-prem imagery, terrain, and tilesets when a deployment asks for it, but that path must stay opt-in.
 
 Evidence:
 
@@ -20,7 +20,7 @@ Evidence:
 
 Adopt Profile A, Cesium-native default, as both the delivery default and the development default. In this repo, `offline-first` means "stay on Cesium's upstream runtime path and avoid repo-local forks or fake substitute stacks," not "forbid Cesium-native services or controls."
 
-Profile B remains the explicit local or on-prem override path for deployments that need mirrored imagery, terrain, or tilesets. Profile C remains an optional mixed or showcase profile for later stages.
+Profile B remains the explicit local or on-prem override path for deployments that need mirrored imagery, terrain, or tilesets. Profile C remains an optional mixed or showcase profile for later stages. This decision supersedes the older label mapping that treated Profile A as the offline stack and Profile B as the ion-only spike path.
 
 Profile switching will be handled through provider-factory configuration rather than a separate Cesium fork or a separate bootstrap stack.
 
@@ -30,3 +30,4 @@ Profile switching will be handled through provider-factory configuration rather 
 - `BaseLayerPicker`, `Geocoder`, native imagery, native terrain, and other upstream-owned Cesium capabilities are not to be disabled or replaced solely to satisfy deployment wording.
 - Credits remain required even when the data source is local or on-prem.
 - Local imagery, terrain, and optional tileset hosting remain explicit project responsibilities when a delivery actually chooses Profile B, but they are not the only compliant default path.
+- Any future doc that restores the older Profile A/Profile B mapping should be treated as stale governance text and corrected in the same change set.

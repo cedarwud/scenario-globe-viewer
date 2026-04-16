@@ -60,6 +60,17 @@ These conclusions were verified against the upstream Cesium reference material d
 
 This file is the delivery-local evidence anchor for Phase 0 through Phase 2.
 
+## Phase 2 Close-Out Runtime Evidence
+
+The current repo does not claim a separate 24-hour globe-only soak artifact. Phase 2 formal close-out relies on the repo-owned evidence chain below:
+
+- `tests/smoke/bootstrap-loads-assets-and-workers.mjs:315-430` drives default-global, regional-query, and site-query scenarios under a headless SwiftShader browser and requires `bootstrapState === "ready"`, the selected preset, the preserved native `Viewer` shell, and the fog-default / bloom-off guard.
+- `tests/visual/capture-three-preset-baselines.mjs:356-463` dismisses navigation help, freezes the native clock, waits for `scene.globe.tilesLoaded` plus camera stabilization, and then captures the preset screenshots written to `docs/images/phase-2.12/`.
+- `docs/visual-baselines.md:3-40` records the capture conditions and the accepted baseline framing, including the centered global baseline and the dormant site tiles hook when `VITE_CESIUM_SITE_TILESET_URL` is unset.
+- The repo-owned screenshot artifacts are `docs/images/phase-2.12/global-preset-baseline.png`, `docs/images/phase-2.12/regional-preset-baseline.png`, and `docs/images/phase-2.12/site-preset-baseline.png`.
+
+This evidence is sufficient to describe the current Phase 2 globe-only baseline. Any future long-duration soak or multi-hardware performance campaign must be added as new evidence rather than inferred from these artifacts.
+
 ## Phase 2 Globe Evidence
 
 ### Stage 2.1 Atmosphere Baseline

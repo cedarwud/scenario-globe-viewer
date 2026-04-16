@@ -6,6 +6,8 @@ Phase 2.12 captures three review baselines for the active preset runtime:
 - `docs/images/phase-2.12/regional-preset-baseline.png`
 - `docs/images/phase-2.12/site-preset-baseline.png`
 
+These PNGs are repo-owned delivery artifacts, not temporary outputs. For Phase 2 formal close-out, they are the visual half of the accepted globe-only evidence chain when paired with `npm run test:phase1` and the runtime notes in `docs/cesium-evidence.md`. They do not, by themselves, claim that a separate long-duration soak artifact already exists.
+
 Use the repo-owned capture harness:
 
 ```bash

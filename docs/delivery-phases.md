@@ -4,6 +4,7 @@ Source note: this file is a manual rewrite of the active workspace engineering i
 
 Related structure: see [architecture.md](./architecture.md).
 Related evidence: see [cesium-evidence.md](./cesium-evidence.md).
+Related visual evidence: see [visual-baselines.md](./visual-baselines.md).
 Related deployment guidance: see [deployment-profiles.md](./deployment-profiles.md).
 
 ## Current Snapshot
@@ -19,6 +20,7 @@ Related deployment guidance: see [deployment-profiles.md](./deployment-profiles.
 - Stage 2.4 fog/post-process remains historical completion evidence in the repo, but it is currently dormant on the active preset runtime until its tuning can be reintroduced without over-brightening or over-fogging the Cesium-native baseline.
 - `docs/images/phase-1-baseline.png` remains the historical Phase 1 first-globe capture.
 - Phase 2.12 review baselines now live at `docs/images/phase-2.12/*.png`, captured through `tests/visual/capture-three-preset-baselines.mjs` and documented in `docs/visual-baselines.md`.
+- The current Phase 2 close-out evidence chain is repo-owned: `npm run test:phase1` verifies the three-preset bootstrap path, and the Phase 2.12 screenshots preserve the accepted global, regional, and site baselines. No separate long-duration globe-only soak artifact is currently claimed.
 - Ad hoc screenshots under `output/` remain local validation artifacts and are not part of the delivery surface.
 
 ## Phase 0
@@ -111,13 +113,14 @@ Gate:
 - visual quality is meaningfully above the legacy baseline
 - validation is done under the delivery-default Cesium-native profile, with any local/on-prem provider override treated as an explicit opt-in variant rather than the only compliant baseline
 - the Phase 2 quality gate is decomposed into reviewable commits rather than a single batch change
-- globe-only soak evidence is captured before any replay or overlay implementation lands
+- repo-owned globe-only close-out evidence exists before any replay or overlay implementation lands; for the current repo state this means `npm run test:phase1` plus the Phase 2.12 screenshots and `docs/visual-baselines.md`, not an implied 24-hour soak artifact
 - native Cesium controls and provider paths are not degraded solely to satisfy deployment wording
 
 Review checkpoint: mandatory before Phase 3.
 
 - Refresh `docs/architecture.md`, `docs/deployment-profiles.md`, this file, and ADR `0004-deployment-profile` plus ADR `0005-perf-budget`.
-- Treat the measured imagery, terrain, site-hook, performance, and soak constraints as the new baseline. Do not keep carrying stale planning assumptions forward.
+- Treat the measured imagery, terrain, site-hook, performance, and close-out evidence constraints as the new baseline. Do not keep carrying stale planning assumptions forward.
+- `docs/cesium-evidence.md` and `docs/visual-baselines.md` must explicitly point to the accepted Phase 2 evidence chain. If only smoke plus visual baselines exist and no dedicated long-duration soak artifact exists, state that plainly rather than implying one.
 - If the default Cesium-native profile, optional provider-override policy, quality bar, or performance budget changed during implementation, stop and rewrite the plan before any HUD or replay work starts.
 - Revisit bundle size now that the real globe baseline, preset structure, and provider choices are visible. This is the right point to decide whether low-risk code splitting, deferred bootstrap, or chunk-shaping work is worth doing.
 - Re-check the `protobufjs` `eval` warning after Phase 2. If it is still present and still originates from the Cesium dependency chain rather than repo code, document whether the project accepts it as an upstream dependency risk or needs a targeted mitigation before later delivery phases.
