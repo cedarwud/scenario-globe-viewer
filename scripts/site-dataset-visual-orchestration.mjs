@@ -2,21 +2,23 @@ import { spawnSync } from "node:child_process";
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { assertAmbientSiteTilesetUrlAllowed } from "./site-hook-guard.mjs";
 import { FORMAL_SITE_DATASET_FIXTURE_URL } from "./formal-site-dataset-fixture.mjs";
+import { assertAmbientSiteTilesetUrlAllowed } from "./site-hook-guard.mjs";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const repoRoot = path.resolve(__dirname, "..");
+const captureScriptPath = path.join(
+  repoRoot,
+  "tests/visual/capture-site-dataset-integration.mjs"
+);
 const smokeScriptPath = path.join(
   repoRoot,
   "tests/smoke/bootstrap-loads-assets-and-workers.mjs"
 );
 const npmCommand = process.platform === "win32" ? "npm.cmd" : "npm";
-const conflictOnlySiteHookUrl =
-  "https://example.invalid/scenario-globe-viewer-site-hook/tileset.json";
 const guardedConfiguredSiteHookUrls = [
-  conflictOnlySiteHookUrl,
+  "https://example.invalid/scenario-globe-viewer-site-hook/tileset.json",
   FORMAL_SITE_DATASET_FIXTURE_URL
 ];
 const ambientBuildingShowcaseEnvVar = "VITE_CESIUM_BUILDING_SHOWCASE";
@@ -30,20 +32,6 @@ function assert(condition, message) {
   if (!condition) {
     throw new Error(message);
   }
-}
-
-function resolveFlow(args) {
-  const requestedFlow = args.find((argument) => argument.startsWith("--flow="));
-  const flow = requestedFlow?.slice("--flow=".length);
-
-  assert(
-    flow === "showcase" ||
-      flow === "site-dataset" ||
-      flow === "site-hook-conflict",
-    "Expected --flow=showcase, --flow=site-dataset, or --flow=site-hook-conflict"
-  );
-
-  return flow;
 }
 
 function formatFailure(error) {
@@ -77,8 +65,12 @@ function runBuild(envOverrides = {}) {
   runCommand("npm run build", npmCommand, ["run", "build"], envOverrides);
 }
 
-function runSmokeSuite(suite) {
-  runCommand("Phase 1 smoke", process.execPath, [smokeScriptPath, `--suite=${suite}`]);
+function runCleanupBaselineSmoke() {
+  runCommand("Phase 1 smoke", process.execPath, [smokeScriptPath, "--suite=cleanup-baseline"]);
+}
+
+function runDatasetCapture() {
+  runCommand("Site dataset visual capture", process.execPath, [captureScriptPath]);
 }
 
 function withSanitizedBaselineEnv(action) {
@@ -131,89 +123,46 @@ function assertGuardedBaselineDistReset(cleanupContext) {
   }
 }
 
-function restoreGuardedBaselineBuild(flow) {
-  const cleanupContext =
-    flow === "showcase"
-      ? "phase1-showcase-reset"
-      : flow === "site-dataset"
-        ? "phase1-site-dataset-reset"
-      : "phase1-site-hook-conflict-reset";
+function restoreGuardedBaselineBuild() {
+  const cleanupContext = "site-dataset-capture-reset";
 
   withSanitizedBaselineEnv(() => {
     assertAmbientSiteTilesetUrlAllowed(cleanupContext);
     runBuild();
-    runSmokeSuite("cleanup-baseline");
+    runCleanupBaselineSmoke();
   });
   assertGuardedBaselineDistReset(cleanupContext);
 }
 
-function runShowcaseFlow() {
-  withSanitizedBaselineEnv(() => {
-    runBuild();
-    runSmokeSuite("showcase");
-    runBuild({
-      VITE_CESIUM_BUILDING_SHOWCASE: "osm"
-    });
-    runSmokeSuite("showcase-env");
-  });
-}
-
-function runSiteHookConflictFlow() {
-  withSanitizedBaselineEnv(() => {
-    runBuild({
-      VITE_CESIUM_SITE_TILESET_URL: conflictOnlySiteHookUrl
-    });
-    runSmokeSuite("site-hook-conflict");
-  });
-}
-
-function runSiteDatasetFlow() {
-  withSanitizedBaselineEnv(() => {
-    runBuild({
-      VITE_CESIUM_SITE_TILESET_URL: FORMAL_SITE_DATASET_FIXTURE_URL
-    });
-    runSmokeSuite("site-dataset");
-  });
-}
-
 function main() {
-  const flow = resolveFlow(process.argv.slice(2));
-  let shouldRestoreBaseline = false;
-  let flowError;
+  let captureError;
   let cleanupError;
 
   try {
-    if (flow === "showcase") {
-      assertAmbientSiteTilesetUrlAllowed("phase1-showcase");
-      shouldRestoreBaseline = true;
-      runShowcaseFlow();
-    } else if (flow === "site-dataset") {
-      shouldRestoreBaseline = true;
-      runSiteDatasetFlow();
-    } else {
-      shouldRestoreBaseline = true;
-      runSiteHookConflictFlow();
-    }
+    withSanitizedBaselineEnv(() => {
+      runBuild({
+        VITE_CESIUM_SITE_TILESET_URL: FORMAL_SITE_DATASET_FIXTURE_URL
+      });
+      runDatasetCapture();
+    });
   } catch (error) {
-    flowError = error;
+    captureError = error;
   } finally {
-    if (shouldRestoreBaseline) {
-      try {
-        restoreGuardedBaselineBuild(flow);
-      } catch (error) {
-        cleanupError = error;
-      }
+    try {
+      restoreGuardedBaselineBuild();
+    } catch (error) {
+      cleanupError = error;
     }
   }
 
-  if (flowError && cleanupError) {
+  if (captureError && cleanupError) {
     throw new Error(
-      `${flow} flow failed and the guarded baseline rebuild also failed.\nPrimary failure: ${formatFailure(flowError)}\nCleanup failure: ${formatFailure(cleanupError)}`
+      `site-dataset capture failed and the guarded baseline rebuild also failed.\nPrimary failure: ${formatFailure(captureError)}\nCleanup failure: ${formatFailure(cleanupError)}`
     );
   }
 
-  if (flowError) {
-    throw flowError;
+  if (captureError) {
+    throw captureError;
   }
 
   if (cleanupError) {

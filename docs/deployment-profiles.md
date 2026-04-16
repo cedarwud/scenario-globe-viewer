@@ -55,7 +55,7 @@ Examples include:
 
 Profile B is supported, but it is not the baseline that Phase 2 quality work should optimize against by default.
 
-Any future formal site dataset integration belongs here: it should use the explicit configured site-hook path, keep attribution and validation explicit, and remain distinct from the Profile C showcase line.
+The current formal site dataset MVP belongs here: it uses the explicit configured site-hook path, keeps attribution and validation explicit, and remains distinct from the Profile C showcase line.
 
 ## Profile C: Mixed Or Showcase Variant
 

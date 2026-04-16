@@ -20,6 +20,8 @@ This showcase suite does not hard-gate live ion-backed happy-path success. Its l
 
 For the explicit mutual-exclusion policy, the same smoke harness is now promoted to the package-level command `npm run test:phase1:site-hook-conflict`: it builds with an explicit configured site-hook URL on that same sanitized baseline env, runs `--suite=site-hook-conflict`, requires `siteTilesetState=blocked` when `buildingShowcase=osm` is present instead of attaching both tilesets, and then restores a guarded clean baseline `dist/` rebuild in the same `finally`-backed orchestration path with ambient `VITE_CESIUM_BUILDING_SHOWCASE` and `VITE_CESIUM_SITE_TILESET_URL` removed before the same post-cleanup baseline assertion.
 
+The separate formal site dataset MVP coverage is exposed through `npm run test:phase1:site-dataset`: it builds with an explicit configured site-hook URL on that same sanitized baseline env, runs `--suite=site-dataset`, requires `scenePreset=site`, `buildingShowcase=off/default-off/disabled`, and `siteTilesetState=ready`, and then restores a guarded clean baseline `dist/` rebuild in the same `finally`-backed orchestration path with ambient `VITE_CESIUM_BUILDING_SHOWCASE` and `VITE_CESIUM_SITE_TILESET_URL` removed before the same post-cleanup baseline assertion. That suite proves the dataset-backed path separately from both the dormant baseline and the explicit OSM Buildings showcase.
+
 The current Phase 3.1 follow-up coverage also verifies:
 
 - the Phase 3.1 HUD shell remains mounted as repo-owned structure, but now advertises `data-hud-visibility="hidden"` and takes no layout area in both `1440x900` and `1440x760`

@@ -9,8 +9,10 @@
     "test": "npm run build && node scripts/verify-phase0.mjs",
     "test:phase1": "node scripts/site-hook-guard.mjs --context=phase1-baseline && npm run build && node tests/smoke/bootstrap-loads-assets-and-workers.mjs --suite=baseline",
     "test:phase1:showcase": "node scripts/phase1-cleanup-orchestration.mjs --flow=showcase",
+    "test:phase1:site-dataset": "node scripts/phase1-cleanup-orchestration.mjs --flow=site-dataset",
     "test:phase1:site-hook-conflict": "node scripts/phase1-cleanup-orchestration.mjs --flow=site-hook-conflict",
     "capture:phase2.12": "node scripts/site-hook-guard.mjs --context=phase2.12-capture && npm run build && node tests/visual/capture-three-preset-baselines.mjs",
+    "capture:site-dataset": "node scripts/site-dataset-visual-orchestration.mjs",
     "preview": "vite preview"
   },
   "dependencies": {

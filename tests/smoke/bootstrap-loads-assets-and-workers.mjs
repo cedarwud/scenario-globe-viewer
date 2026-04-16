@@ -143,6 +143,7 @@ function resolveSmokeSuite() {
       suite === "cleanup-baseline" ||
       suite === "showcase" ||
       suite === "showcase-env" ||
+      suite === "site-dataset" ||
       suite === "site-hook-conflict",
     `Unsupported smoke suite: ${suite}`
   );
@@ -1167,6 +1168,24 @@ async function verifyBootstrapInHeadlessBrowser(baseUrl, suite) {
       viewport: desktopViewport
     }
   ];
+  const siteDatasetScenarios = [
+    {
+      label: "site-configured-dataset-ready",
+      requestPath: "/?scenePreset=site",
+      expectedScenePreset: "site",
+      expectedBuildingShowcase: {
+        key: "off",
+        source: "default-off",
+        allowedStates: ["disabled"]
+      },
+      expectedSiteTileset: {
+        allowedStates: ["ready"],
+        detailSubstring: "Loaded configured site dataset"
+      },
+      viewport: desktopViewport,
+      requireFullBaselineState: true
+    }
+  ];
   const scenarios =
     suite === "baseline"
       ? baselineScenarios
@@ -1176,6 +1195,8 @@ async function verifyBootstrapInHeadlessBrowser(baseUrl, suite) {
         ? showcaseScenarios
         : suite === "showcase-env"
           ? showcaseEnvScenarios
+          : suite === "site-dataset"
+            ? siteDatasetScenarios
           : siteHookConflictScenarios;
 
   for (const scenario of scenarios) {
@@ -1287,7 +1308,8 @@ function startStaticServer() {
 async function main() {
   const suite = resolveSmokeSuite();
   assertAmbientSiteTilesetUrlAllowed(`Phase 1 ${suite} smoke`, {
-    allowConfiguredSiteTileset: suite === "site-hook-conflict"
+    allowConfiguredSiteTileset:
+      suite === "site-hook-conflict" || suite === "site-dataset"
   });
   ensureDistBuildExists();
 

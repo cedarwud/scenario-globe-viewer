@@ -76,9 +76,22 @@ The current repo does not claim a separate 24-hour globe-only soak artifact. Pha
 - `docs/visual-baselines.md:3-41` records the capture conditions and the accepted baseline framing, including the centered global baseline, the capture-time rejection of shell or repo-local `.env*` `VITE_CESIUM_SITE_TILESET_URL` pollution, and the dormant site tiles hook when that env var is unset.
 - The repo-owned screenshot artifacts are `docs/images/phase-2.12/global-preset-baseline.png`, `docs/images/phase-2.12/regional-preset-baseline.png`, and `docs/images/phase-2.12/site-preset-baseline.png`.
 
-This evidence chain intentionally describes a dormant-hook baseline. If the repo later lands a formal site dataset integration, that line needs separate runtime and visual evidence rather than retroactively rewriting the current Phase 2 close-out record.
+This evidence chain intentionally describes a dormant-hook baseline. The formal site dataset MVP therefore keeps its runtime and visual evidence separate rather than retroactively rewriting the current Phase 2 close-out record.
 
 This evidence is sufficient to describe the current Phase 2 globe-only baseline. Any future long-duration soak or multi-hardware performance campaign must be added as new evidence rather than inferred from these artifacts.
+
+## Formal Site Dataset MVP Evidence
+
+- `node_modules/@cesium/widgets/Source/Viewer/Viewer.js:1974-1992` shows the native `Viewer.zoomTo(...)` path for a `Cesium3DTileset`, which keeps dataset framing inside Cesium's viewer shell instead of a repo-local camera controller.
+- `node_modules/@cesium/engine/Source/Widget/CesiumWidget.js:1444-1464` shows that the viewer-zoom path resolves to Cesium's own `camera.viewBoundingSphere(...)` framing behavior for a `Cesium3DTileset`.
+- `node_modules/@cesium/engine/Source/Scene/Cesium3DTileset.js:589-744` documents the native `loadProgress`, `allTilesLoaded`, `initialTilesLoaded`, `tileLoad`, `tileFailed`, and `tileVisible` event surfaces used by the repo-local runtime status reporting.
+- `node_modules/@cesium/engine/Source/Scene/Cesium3DTileset.js:3305-3322` shows Cesium raising `allTilesLoaded` and `initialTilesLoaded` from the internal tiles-loaded state once pending requests and tile processing reach zero for the current view.
+- `src/features/globe/site-3d-tiles-hook.ts` keeps the formal site dataset line on `Cesium3DTileset.fromUrl(...)`, cancels the preset-level generic flight when the configured dataset attaches, reframes through the native `Viewer.zoomTo(...)` path, and reports `ready` when visible dataset-backed tile content is present.
+- `public/fixtures/site-datasets/formal-site-mvp/README.md` records that the repo-owned fixture is a validation-only dataset for this MVP and is not a claim that a final delivery AOI has already been supplied.
+- `scripts/formal-site-dataset-fixture.mjs`, `scripts/phase1-cleanup-orchestration.mjs`, `tests/smoke/bootstrap-loads-assets-and-workers.mjs`, and the package command `npm run test:phase1:site-dataset` build with an explicit configured dataset URL, require `scenePreset=site`, `buildingShowcase=off/default-off/disabled`, and `siteTilesetState=ready`, then restore a clean dormant baseline build afterward.
+- `scripts/site-dataset-visual-orchestration.mjs`, `tests/visual/capture-site-dataset-integration.mjs`, and the package command `npm run capture:site-dataset` capture the separate dataset-enabled artifact at `docs/images/formal-site-dataset-mvp/site-preset-dataset-enabled.png` and then restore the dormant baseline build afterward.
+
+This evidence is sufficient to show that the current formal site dataset MVP reaches a visible dataset-backed runtime through the accepted Cesium-native hook. It is not evidence that the final delivery dataset has already been integrated, and it does not replace the missing admissible Tier 1 / Tier 2 Profile A measurements.
 
 ## Pre-Phase-3 Measurement Feasibility
 

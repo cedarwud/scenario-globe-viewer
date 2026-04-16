@@ -41,7 +41,7 @@ Current runtime flow is now active:
 1. `index.html` reserves `window.CESIUM_BASE_URL` before the application module runs.
 2. Vite copies Cesium runtime assets into the delivery build under `cesium/`.
 3. `src/core/cesium/bootstrap.ts` sets Cesium's runtime base URL before the first `Viewer` is created.
-4. `src/main.ts` mounts the repo-owned viewer shell, leaves the current empty HUD placeholder hidden by default, resolves a bootstrap-time `scenePreset` key plus an explicit optional `buildingShowcase` selection, creates a `Viewer`, applies the selected global, regional, or site preset through the existing `Viewer` path, preserves Cesium's native credit handling, attaches the repo-local lighting toggle inside the existing toolbar, attaches Cesium OSM Buildings only when the explicit showcase opt-in is present, and only loads a site tileset when the site preset is selected, a configured URL is present, and the OSM showcase is not active. The runtime also exposes repo-local `siteTilesetState` so the harness can distinguish dormant and blocked site-hook paths.
+4. `src/main.ts` mounts the repo-owned viewer shell, leaves the current empty HUD placeholder hidden by default, resolves a bootstrap-time `scenePreset` key plus an explicit optional `buildingShowcase` selection, creates a `Viewer`, applies the selected global, regional, or site preset through the existing `Viewer` path, preserves Cesium's native credit handling, attaches the repo-local lighting toggle inside the existing toolbar, attaches Cesium OSM Buildings only when the explicit showcase opt-in is present, and only loads a site tileset when the site preset is selected, a configured URL is present, and the OSM showcase is not active. The runtime also exposes repo-local `siteTilesetState` so the harness can distinguish dormant, blocked, loading, ready, degraded, and error states across the baseline and dataset-backed site-hook lines.
 5. `npm test` confirms the Phase 0 build surfaces stay intact, and `npm run test:phase1` runs a headless bootstrap smoke against the built app.
 
 Planned Phase 2-5 flow:
@@ -49,7 +49,7 @@ Planned Phase 2-5 flow:
 1. Globe-quality work adds atmosphere, lighting, terrain, imagery, presets, and optional provider-override handling while keeping the default baseline on Cesium-native `Viewer` behavior.
 2. A viewer factory continues to own the high-level `Viewer` wrapper and only changes built-in controls when there is an explicit product reason rather than an abstract "offline-first" requirement.
 3. Phase 2.8 scene presets are now consumed by concrete global, regional, and site presets for globe presentation and camera framing, while the site-specific 3D tiles path remains limited to a configured-url hook rather than a full tiles subsystem. The opt-in Cesium OSM Buildings showcase remains a separate bootstrap variant and does not expand the preset contract into a multi-model system.
-4. Any future formal site dataset integration should build on that existing configured-url `site` hook as its own dataset-backed delivery line, remain separate from the Profile C showcase path, and preserve the current Profile A baseline/capture path instead of rewriting it in place.
+4. The current formal site dataset MVP now builds on that existing configured-url `site` hook as its own dataset-backed delivery line, remains separate from the Profile C showcase path, and preserves the current Profile A baseline/capture path instead of rewriting it in place.
 5. Replay and overlay contracts attach later without leaking Cesium runtime classes into external interfaces.
 6. Fixture ingestion and the first overlay remain later phases, after the shell and time seams are stable.
 
@@ -60,7 +60,7 @@ Planned Phase 2-5 flow:
 - `scripts/` stores repo-local verification entry points.
 - `src/` stores the application shell and future Cesium integration seams.
 - `tests/smoke/` is reserved for build/bootstrap and preset-level smoke coverage.
-- `tests/visual/` stores Phase 2.12-specific baseline capture harnesses.
+- `tests/visual/` stores the Phase 2.12 baseline capture harnesses plus the separate dataset-enabled site capture path.
 
 ## Phase Boundaries
 
