@@ -12,6 +12,7 @@ import {
   resolveBuildingShowcaseSelection
 } from "./features/globe/osm-buildings-showcase";
 import { createCesiumReplayClock } from "./features/time/cesium-replay-clock";
+import { mountTimelineHudPlaceholder } from "./features/time/timeline-hud-placeholder";
 import type { ReplayClock } from "./features/time";
 import "./styles.css";
 
@@ -98,7 +99,7 @@ if (!app) {
   throw new Error("Missing #app root");
 }
 
-const { viewerRoot } = mountAppShell(app);
+const { viewerRoot, hudFrame, statusPanel } = mountAppShell(app);
 
 const scenePreset = resolveBootstrapScenePreset();
 document.documentElement.dataset.scenePreset = scenePreset;
@@ -110,10 +111,16 @@ const viewer = createViewer({
   buildingShowcaseKey: buildingShowcase.key
 });
 const replayClock = createCesiumReplayClock(viewer);
+const unmountTimelineHudPlaceholder = mountTimelineHudPlaceholder({
+  hudFrame,
+  statusPanel,
+  replayClock
+});
 // Phase 2.12 capture harnesses need a narrow viewer handle so they can wait for
 // the active camera/tiles state to settle without rewriting preset framing or
-// the native shell. Phase 3.3 extends the same seam with ReplayClock for
-// targeted real-time validation without adding product UI.
+// the native shell. The replay-clock stays on that same narrow capture seam for
+// targeted validation even though Phase 3.5 now also reads plain clock state
+// locally for the repo-owned status-panel placeholder.
 window.__SCENARIO_GLOBE_VIEWER_CAPTURE__ = { viewer, replayClock };
 syncVisualBaselineState(viewer);
 const unmountLightingToggle = mountLightingToggle(viewer);
@@ -141,6 +148,7 @@ if (import.meta.hot) {
     removeMorphCompleteListener();
     unmountOsmBuildingsShowcase();
     unmountLightingToggle();
+    unmountTimelineHudPlaceholder();
     viewer.destroy();
   });
 }

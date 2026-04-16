@@ -22,10 +22,11 @@ For the explicit mutual-exclusion policy, the same smoke harness is now promoted
 
 The separate formal site dataset MVP coverage is exposed through `npm run test:phase1:site-dataset`: it builds with an explicit configured site-hook URL on that same sanitized baseline env, runs `--suite=site-dataset`, requires `scenePreset=site`, `buildingShowcase=off/default-off/disabled`, and `siteTilesetState=ready`, and then restores a guarded clean baseline `dist/` rebuild in the same `finally`-backed orchestration path with ambient `VITE_CESIUM_BUILDING_SHOWCASE` and `VITE_CESIUM_SITE_TILESET_URL` removed before the same post-cleanup baseline assertion. That suite proves the dataset-backed path separately from both the dormant baseline and the explicit OSM Buildings showcase.
 
-The current Phase 3.1 follow-up coverage also verifies:
+The current Phase 3.1-3.5 follow-up coverage also verifies:
 
-- the Phase 3.1 HUD shell remains mounted as repo-owned structure, but now advertises `data-hud-visibility="hidden"` and takes no layout area in both `1440x900` and `1440x760`
-- the native toolbar, timeline, and credits band remain visible while that placeholder shell stays hidden
-- CDP hover-then-click activation of the native geocoder control plus coordinate-click activation of the native `BaseLayerPicker` toggle still work while the HUD placeholder remains hidden
+- the repo-owned HUD shell remains mounted, now advertises `data-hud-visibility="status-only"`, keeps the left/right panels hidden, and leaves the status panel visible in both `1440x900` and `1440x760`
+- the status panel surfaces a read-only timeline placeholder with time-only fields and no interactive controls
+- the native toolbar, timeline, and credits band remain visible while that placeholder shell stays status-only
+- CDP hover-then-click activation of the native geocoder control plus coordinate-click activation of the native `BaseLayerPicker` toggle still work while the timeline placeholder is present
 
-This follow-up coverage does not claim full end-to-end user reachability for every downstream native-widget state. It proves the initial pointer activation path while the placeholder HUD shell is dormant only.
+This follow-up coverage does not claim full end-to-end user reachability for every downstream native-widget state. It proves the initial pointer activation path while the repo-owned HUD remains status-only and read-only.

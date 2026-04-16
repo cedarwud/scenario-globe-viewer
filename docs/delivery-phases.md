@@ -25,10 +25,10 @@ Related deployment guidance: see [deployment-profiles.md](./deployment-profiles.
 - The current governance target is to capture that accepted Phase 2 close-out state as its own commit/tag before the first Phase 3.1 implementation change lands.
 - Formal Phase 3 readiness still lacks admissible Tier 1 / Tier 2 Profile A measurements, so the formal gate remains open.
 - ADR `0008-phase-3-wsl-development-progression.md` now separates that formal no-go from a constrained WSL-backed Phase 3 development-progression gate so routine `3.2+` implementation slices do not require a fresh one-off exception each time.
-- The current Phase 3.1 app shell still mounts the empty HUD-frame structure from `3.1`, but the placeholder chrome is hidden by default until real panel functionality exists.
-- Phase 3.2 adds a plain-data replay-clock contract under `src/features/time/`, and Phases 3.3-3.4 now implement the real-time and prerecorded paths on top of Cesium's native `viewer.clock` without widening that contract into Cesium runtime classes.
-- The current replay-clock runtime is still intentionally narrow: it is exposed only through the existing capture seam for targeted validation, prerecorded mode now behaves as a clamped playback clip on that same Cesium clock, and omitting `range` while entering prerecorded mode reuses the active `startTime`/`stopTime` interval explicitly.
-- `npm run test:phase3.3` now verifies the real-time replay-clock slice directly in a headless browser, and `npm run test:phase3.4` now verifies the prerecorded slice plus the return path back to real-time.
+- The current Phase 3.1 app shell still mounts the repo-owned HUD-frame structure from `3.1`, but `3.5` now narrows that shell to a `data-hud-visibility="status-only"` status panel while the left/right panels remain hidden.
+- Phase 3.2 adds a plain-data replay-clock contract under `src/features/time/`, and Phases 3.3-3.5 now implement the real-time and prerecorded paths on top of Cesium's native `viewer.clock` without widening that contract into Cesium runtime classes.
+- The current replay-clock runtime is still intentionally narrow: it is exposed through the existing capture seam for targeted validation, consumed locally by the read-only timeline HUD placeholder through a plain-data formatter, prerecorded mode now behaves as a clamped playback clip on that same Cesium clock, and omitting `range` while entering prerecorded mode reuses the active `startTime`/`stopTime` interval explicitly.
+- `npm run test:phase3.3` now verifies the real-time replay-clock slice directly in a headless browser, `npm run test:phase3.4` now verifies the prerecorded slice plus the return path back to real-time, and `npm run test:phase3.5` now verifies the repo-owned timeline placeholder plus the preserved native toolbar/timeline/credits shell.
 - Formal site dataset integration MVP now exists on the existing configured `site` hook. The committed OSM Buildings slice remains showcase-only and must not be treated as a substitute for that dataset-backed `site` delivery line. ADR `0007-formal-site-dataset-integration-governance.md` remains the governing classification and boundary document for this line.
 - Dataset-enabled validation is now separate from the dormant baseline path: `npm run test:phase1:site-dataset` verifies the dataset-backed runtime, and `npm run capture:site-dataset` writes the separate review artifact under `docs/images/formal-site-dataset-mvp/`.
 - The current repo-owned dataset fixture is a validation-only asset. This MVP does not claim that formal Tier 1 / Tier 2 Profile A measurements are closed or that a final delivery AOI has already been provided.
@@ -149,7 +149,7 @@ The current WSL-only operating assumption now uses a separate development-progre
 Current status under that model:
 
 - `3.2` is `go with constraints` for routine in-scope Phase 3 implementation slices
-- the landed `3.2-3.4` surface now includes the plain-data replay-clock contract plus Cesium-backed real-time and prerecorded implementations on the same `viewer.clock`
+- the landed `3.2-3.5` surface now includes the plain-data replay-clock contract, Cesium-backed real-time and prerecorded implementations on the same `viewer.clock`, and a read-only status-panel timeline placeholder
 - this is not automatic authorization for Phase 3 close-out, deployment/profile widening, data-contract widening, or admissible-measurement closure
 - any slice that crosses those boundaries still needs a fresh governance checkpoint before implementation starts
 

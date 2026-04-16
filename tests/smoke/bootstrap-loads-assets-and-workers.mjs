@@ -394,6 +394,7 @@ async function readBootstrapState(client) {
       const root = document.documentElement;
       const lightingToggle = document.querySelector('[data-lighting-toggle="true"]');
       const hudFrame = document.querySelector('[data-hud-frame="true"]');
+      const timePlaceholder = document.querySelector('[data-time-placeholder="true"]');
 
       return {
         bootstrapState: root?.dataset.bootstrapState ?? null,
@@ -426,6 +427,10 @@ async function readBootstrapState(client) {
             ? getComputedStyle(hudFrame).display === 'none'
             : false,
         hudPanelCount: document.querySelectorAll('[data-hud-panel]').length,
+        hasTimePlaceholder: Boolean(timePlaceholder),
+        timePlaceholderFieldCount: timePlaceholder
+          ? timePlaceholder.querySelectorAll('[data-time-field]').length
+          : 0,
         hasLightingToggle: Boolean(lightingToggle),
         hasLightingToggleDisabled:
           lightingToggle?.getAttribute('data-lighting-enabled') === 'false',
@@ -489,6 +494,7 @@ async function readHudLayoutState(client) {
       const leftPanel = pickRect(".hud-panel--left");
       const rightPanel = pickRect(".hud-panel--right");
       const statusPanel = pickRect(".hud-panel--status");
+      const timePlaceholder = document.querySelector('[data-time-placeholder="true"]');
       const activeElement = document.activeElement;
       const geocoderInput = document.querySelector(".cesium-geocoder-input");
       const geocoderRect = pickRect(".cesium-geocoder-input");
@@ -509,6 +515,13 @@ async function readHudLayoutState(client) {
         leftPanel,
         rightPanel,
         statusPanel,
+        timePlaceholder: pickRect('[data-time-placeholder="true"]'),
+        timePlaceholderText:
+          timePlaceholder instanceof HTMLElement ? timePlaceholder.innerText : "",
+        timePlaceholderInteractiveCount:
+          timePlaceholder instanceof HTMLElement
+            ? timePlaceholder.querySelectorAll("button, input, select").length
+            : 0,
         toolbar: pickRect(".cesium-viewer-toolbar"),
         animation: pickRect(".cesium-viewer-animationContainer"),
         timeline: pickRect(".cesium-viewer-timelineContainer"),
@@ -590,15 +603,15 @@ async function waitForCondition(client, description, predicateExpression, attemp
   throw new Error(`Timed out waiting for ${description}.`);
 }
 
-function assertHiddenHudShell(layoutState, scenarioLabel) {
+function assertStatusOnlyHudShell(layoutState, scenarioLabel) {
   assert(layoutState.hudFrame, `Missing HUD frame during ${scenarioLabel}.`);
   assert(
-    layoutState.hudVisibility === "hidden",
-    `Expected HUD shell to advertise hidden placeholder state during ${scenarioLabel}: ${JSON.stringify(layoutState.hudVisibility)}`
+    layoutState.hudVisibility === "status-only",
+    `Expected HUD shell to advertise status-only placeholder state during ${scenarioLabel}: ${JSON.stringify(layoutState.hudVisibility)}`
   );
   assert(
-    layoutState.hudFrame.display === "none",
-    `Expected HUD frame to stay hidden during ${scenarioLabel}: ${JSON.stringify(layoutState.hudFrame)}`
+    layoutState.hudFrame.display !== "none",
+    `Expected HUD frame to stay mounted during ${scenarioLabel}: ${JSON.stringify(layoutState.hudFrame)}`
   );
   assert(layoutState.leftPanel, `Missing left HUD panel during ${scenarioLabel}.`);
   assert(layoutState.rightPanel, `Missing right HUD panel during ${scenarioLabel}.`);
@@ -610,10 +623,6 @@ function assertHiddenHudShell(layoutState, scenarioLabel) {
   assert(
     layoutState.rightPanel.width === 0 && layoutState.rightPanel.height === 0,
     `Expected hidden right HUD panel to take no layout area during ${scenarioLabel}: ${JSON.stringify(layoutState.rightPanel)}`
-  );
-  assert(
-    layoutState.statusPanel.width === 0 && layoutState.statusPanel.height === 0,
-    `Expected hidden status HUD panel to take no layout area during ${scenarioLabel}: ${JSON.stringify(layoutState.statusPanel)}`
   );
 }
 
@@ -650,10 +659,36 @@ async function dispatchMouseClick(client, point) {
   });
 }
 
-function assertDesktopHudHiddenState(layoutState, scenarioLabel) {
+function assertStatusOnlyHudReadout(layoutState, scenarioLabel) {
+  assert(
+    layoutState.statusPanel.width > 0 && layoutState.statusPanel.height > 0,
+    `Expected status HUD panel to stay visible during ${scenarioLabel}: ${JSON.stringify(layoutState.statusPanel)}`
+  );
+  assert(
+    layoutState.timePlaceholder &&
+      layoutState.timePlaceholder.width > 0 &&
+      layoutState.timePlaceholder.height > 0,
+    `Expected time placeholder to stay visible during ${scenarioLabel}: ${JSON.stringify(layoutState.timePlaceholder)}`
+  );
+  assert(
+    layoutState.timePlaceholderInteractiveCount === 0,
+    `Expected time placeholder to stay read-only during ${scenarioLabel}: ${JSON.stringify(layoutState.timePlaceholderInteractiveCount)}`
+  );
+  assert(
+    /timeline/i.test(layoutState.timePlaceholderText) &&
+      /mode/i.test(layoutState.timePlaceholderText) &&
+      /current/i.test(layoutState.timePlaceholderText) &&
+      /range/i.test(layoutState.timePlaceholderText) &&
+      /state/i.test(layoutState.timePlaceholderText),
+    `Expected time placeholder text fields during ${scenarioLabel}: ${JSON.stringify(layoutState.timePlaceholderText)}`
+  );
+}
+
+function assertDesktopHudStatusOnlyState(layoutState, scenarioLabel) {
   assert(layoutState.viewport.width === 1440, `Expected desktop width during ${scenarioLabel}.`);
   assert(layoutState.viewport.height === 900, `Expected desktop height during ${scenarioLabel}.`);
-  assertHiddenHudShell(layoutState, scenarioLabel);
+  assertStatusOnlyHudShell(layoutState, scenarioLabel);
+  assertStatusOnlyHudReadout(layoutState, scenarioLabel);
   assert(
     layoutState.toolbar && layoutState.toolbar.width > 0 && layoutState.toolbar.height > 0,
     `Expected native toolbar to remain visible during ${scenarioLabel}: ${JSON.stringify(layoutState.toolbar)}`
@@ -670,10 +705,25 @@ function assertDesktopHudHiddenState(layoutState, scenarioLabel) {
   );
 }
 
-function assertShortHudHiddenState(layoutState, scenarioLabel) {
+function assertShortHudStatusOnlyState(layoutState, scenarioLabel) {
   assert(layoutState.viewport.width === 1440, `Expected short width during ${scenarioLabel}.`);
   assert(layoutState.viewport.height === 760, `Expected short height during ${scenarioLabel}.`);
-  assertHiddenHudShell(layoutState, scenarioLabel);
+  assertStatusOnlyHudShell(layoutState, scenarioLabel);
+  assertStatusOnlyHudReadout(layoutState, scenarioLabel);
+  assert(
+    layoutState.toolbar && layoutState.toolbar.width > 0 && layoutState.toolbar.height > 0,
+    `Expected native toolbar to remain visible during ${scenarioLabel}: ${JSON.stringify(layoutState.toolbar)}`
+  );
+  assert(
+    layoutState.timeline &&
+      layoutState.timeline.width > 0 &&
+      layoutState.timeline.height > 0,
+    `Expected native timeline to remain visible during ${scenarioLabel}: ${JSON.stringify(layoutState.timeline)}`
+  );
+  assert(
+    layoutState.bottom && layoutState.bottom.width > 0 && layoutState.bottom.height > 0,
+    `Expected native credits band to remain visible during ${scenarioLabel}: ${JSON.stringify(layoutState.bottom)}`
+  );
 }
 
 async function activateGeocoderAndInsertText(client, value) {
@@ -801,13 +851,14 @@ async function runDesktopNativeControlChecks(client, scenarioLabel) {
   );
   assert(
     layoutState.geocoderCenterElement?.tagName === "INPUT",
-    `Expected geocoder input to remain directly reachable with the hidden HUD placeholder during ${scenarioLabel}: ${JSON.stringify(layoutState.geocoderCenterElement)}`
+    `Expected geocoder input to remain directly reachable with the status-only HUD placeholder during ${scenarioLabel}: ${JSON.stringify(layoutState.geocoderCenterElement)}`
   );
   assert(
     layoutState.geocoderSearchButtonCenterElement !== null,
     `Expected a concrete geocoder search-button hit target during ${scenarioLabel}.`
   );
-  assertHiddenHudShell(layoutState, `${scenarioLabel}/geocoder`);
+  assertStatusOnlyHudShell(layoutState, `${scenarioLabel}/geocoder`);
+  assertStatusOnlyHudReadout(layoutState, `${scenarioLabel}/geocoder`);
 
   await toggleBaseLayerPicker(client);
   await waitForCondition(
@@ -832,9 +883,10 @@ async function runDesktopNativeControlChecks(client, scenarioLabel) {
     layoutState.baseLayerDropdown &&
       layoutState.baseLayerDropdown.width > 0 &&
       layoutState.baseLayerDropdown.height > 0,
-    `Expected opened BaseLayerPicker dropdown to remain visible with the hidden HUD placeholder during ${scenarioLabel}: ${JSON.stringify(layoutState.baseLayerDropdown)}`
+    `Expected opened BaseLayerPicker dropdown to remain visible with the status-only HUD placeholder during ${scenarioLabel}: ${JSON.stringify(layoutState.baseLayerDropdown)}`
   );
-  assertHiddenHudShell(layoutState, `${scenarioLabel}/base-layer-picker`);
+  assertStatusOnlyHudShell(layoutState, `${scenarioLabel}/base-layer-picker`);
+  assertStatusOnlyHudReadout(layoutState, `${scenarioLabel}/base-layer-picker`);
 
   await dismissBaseLayerPicker(client);
   await waitForCondition(
@@ -875,9 +927,11 @@ function baselineShellMatchesExpectation(lastState) {
     lastState.sceneBloomActive === "false" &&
     lastState.hasViewerShell &&
     lastState.hasHudFrame &&
-    lastState.hudVisibility === "hidden" &&
-    lastState.isHudFrameHidden &&
+    lastState.hudVisibility === "status-only" &&
+    !lastState.isHudFrameHidden &&
     lastState.hudPanelCount >= 3 &&
+    lastState.hasTimePlaceholder &&
+    lastState.timePlaceholderFieldCount === 5 &&
     lastState.hasLightingToggle &&
     lastState.hasLightingToggleDisabled &&
     lastState.hasUnpressedLightingToggle
@@ -1012,7 +1066,7 @@ async function verifyBootstrapInHeadlessBrowser(baseUrl, suite) {
       expectedSiteTileset: dormantSiteTileset,
       viewport: desktopViewport,
       validateLayout: (layoutState) => {
-        assertDesktopHudHiddenState(layoutState, "default-global");
+        assertDesktopHudStatusOnlyState(layoutState, "default-global");
       },
       runInteractiveChecks: async (client) => {
         await runDesktopNativeControlChecks(client, "default-global");
@@ -1057,7 +1111,7 @@ async function verifyBootstrapInHeadlessBrowser(baseUrl, suite) {
       expectedSiteTileset: dormantSiteTileset,
       viewport: shortViewport,
       validateLayout: (layoutState) => {
-        assertShortHudHiddenState(layoutState, "default-global-short");
+        assertShortHudStatusOnlyState(layoutState, "default-global-short");
       },
       requireFullBaselineState: true
     }

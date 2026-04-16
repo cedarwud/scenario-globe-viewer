@@ -1,5 +1,7 @@
 export interface AppShellMount {
   viewerRoot: HTMLDivElement;
+  hudFrame: HTMLDivElement;
+  statusPanel: HTMLElement;
 }
 
 export function mountAppShell(root: HTMLDivElement): AppShellMount {
@@ -22,10 +24,22 @@ export function mountAppShell(root: HTMLDivElement): AppShellMount {
   `;
 
   const viewerRoot = root.querySelector<HTMLDivElement>("[data-viewer-root]");
+  const hudFrame = root.querySelector<HTMLDivElement>("[data-hud-frame='true']");
+  const statusPanel = root.querySelector<HTMLElement>(
+    "[data-hud-panel='status']"
+  );
 
   if (!viewerRoot) {
     throw new Error("Missing viewer root");
   }
 
-  return { viewerRoot };
+  if (!hudFrame) {
+    throw new Error("Missing HUD frame");
+  }
+
+  if (!statusPanel) {
+    throw new Error("Missing HUD status panel");
+  }
+
+  return { viewerRoot, hudFrame, statusPanel };
 }
