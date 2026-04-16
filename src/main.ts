@@ -4,6 +4,7 @@ import {
   resolveScenePresetKey,
   type ScenePresetKey
 } from "./features/globe/scene-preset";
+import { mountAppShell } from "./features/app/app-shell";
 import { refreshLightingForSceneMode } from "./features/globe/lighting";
 import { mountLightingToggle } from "./features/globe/lighting-toggle";
 import "./styles.css";
@@ -90,17 +91,7 @@ if (!app) {
   throw new Error("Missing #app root");
 }
 
-app.innerHTML = `
-  <main class="viewer-shell">
-    <div class="viewer-root" data-viewer-root></div>
-  </main>
-`;
-
-const viewerRoot = app.querySelector<HTMLDivElement>("[data-viewer-root]");
-
-if (!viewerRoot) {
-  throw new Error("Missing viewer root");
-}
+const { viewerRoot } = mountAppShell(app);
 
 const scenePreset = resolveBootstrapScenePreset();
 document.documentElement.dataset.scenePreset = scenePreset;

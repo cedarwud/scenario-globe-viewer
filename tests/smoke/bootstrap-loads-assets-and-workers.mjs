@@ -283,6 +283,7 @@ async function readBootstrapState(client) {
     expression: `(() => {
       const root = document.documentElement;
       const lightingToggle = document.querySelector('[data-lighting-toggle="true"]');
+      const hudFrame = document.querySelector('[data-hud-frame="true"]');
 
       return {
         bootstrapState: root?.dataset.bootstrapState ?? null,
@@ -299,6 +300,8 @@ async function readBootstrapState(client) {
           root?.dataset.sceneFogMinimumBrightness ?? null,
         sceneBloomActive: root?.dataset.sceneBloomActive ?? null,
         hasViewerShell: Boolean(document.querySelector('.cesium-viewer')),
+        hasHudFrame: Boolean(hudFrame),
+        hudPanelCount: document.querySelectorAll('[data-hud-panel]').length,
         hasLightingToggle: Boolean(lightingToggle),
         hasLightingToggleDisabled:
           lightingToggle?.getAttribute('data-lighting-enabled') === 'false',
@@ -330,6 +333,8 @@ async function waitForBootstrapReady(client, expectedScenePreset, scenarioLabel,
       lastState.sceneFogMinimumBrightness === "0.03" &&
       lastState.sceneBloomActive === "false" &&
       lastState.hasViewerShell &&
+      lastState.hasHudFrame &&
+      lastState.hudPanelCount >= 3 &&
       lastState.hasLightingToggle &&
       lastState.hasLightingToggleDisabled &&
       lastState.hasUnpressedLightingToggle
