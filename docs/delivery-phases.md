@@ -23,7 +23,8 @@ Related deployment guidance: see [deployment-profiles.md](./deployment-profiles.
 - Phase 2.12 review baselines now live at `docs/images/phase-2.12/*.png`, captured through `tests/visual/capture-three-preset-baselines.mjs` and documented in `docs/visual-baselines.md`.
 - The current Phase 2 close-out evidence chain is repo-owned: `npm run test:phase1` verifies the three-preset bootstrap path, and the Phase 2.12 screenshots preserve the accepted global, regional, and site baselines. No separate long-duration globe-only soak artifact is currently claimed.
 - The current governance target is to capture that accepted Phase 2 close-out state as its own commit/tag before the first Phase 3.1 implementation change lands.
-- Formal Phase 3 readiness still lacks admissible Tier 1 / Tier 2 Profile A measurements, but ADR `0006-phase-3.1-execution-governance` now allows a constrained WSL-backed start for `3.1` only.
+- Formal Phase 3 readiness still lacks admissible Tier 1 / Tier 2 Profile A measurements, so the formal gate remains open.
+- ADR `0008-phase-3-wsl-development-progression.md` now separates that formal no-go from a constrained WSL-backed Phase 3 development-progression gate so routine `3.2+` implementation slices do not require a fresh one-off exception each time.
 - The current Phase 3.1 app shell still mounts the empty HUD-frame structure from `3.1`, but the placeholder chrome is hidden by default until real panel functionality exists.
 - Formal site dataset integration MVP now exists on the existing configured `site` hook. The committed OSM Buildings slice remains showcase-only and must not be treated as a substitute for that dataset-backed `site` delivery line. ADR `0007-formal-site-dataset-integration-governance.md` remains the governing classification and boundary document for this line.
 - Dataset-enabled validation is now separate from the dormant baseline path: `npm run test:phase1:site-dataset` verifies the dataset-backed runtime, and `npm run capture:site-dataset` writes the separate review artifact under `docs/images/formal-site-dataset-mvp/`.
@@ -140,13 +141,23 @@ Goal: add application framing and time/overlay seams without turning on satellit
 
 Formal Phase 3 readiness is still held open by the missing Tier 1 / Tier 2 Profile A measurements. In the current repo state, that gate is not closed.
 
+The current WSL-only operating assumption now uses a separate development-progression gate. That gate is allowed to move forward under repo-owned implementation evidence even while formal readiness remains `no-go`.
+
+Current status under that model:
+
+- `3.2` is `go with constraints` for routine in-scope Phase 3 implementation slices
+- this is not automatic authorization for Phase 3 close-out, deployment/profile widening, data-contract widening, or admissible-measurement closure
+- any slice that crosses those boundaries still needs a fresh governance checkpoint before implementation starts
+
 Current execution policy:
 
-- cut a dedicated Phase 2 close-out commit/tag first
-- allow `3.1` (`feat(app): hud frame with empty panels`) to start on top of that fixed baseline under WSL development conditions
+- keep the dedicated Phase 2 close-out commit/tag as the historical baseline anchor
+- treat ADR `0006-phase-3.1-execution-governance.md` as the historical start authorization for `3.1`, not as the ongoing model for every later Phase 3 slice
+- allow routine `3.2+` implementation slices to proceed under the constrained WSL development-progression gate defined by ADR `0008-phase-3-wsl-development-progression.md`
+- require `npm run build`, `npm run test:phase1`, the slice-specific smoke/capture path, and source-of-truth doc updates for any Phase 3 slice that changes runtime contracts or visible behavior
 - do not treat WSL smoke, WSL visual refreshes, or SwiftShader runs as admissible measurement evidence
-- do not treat this exception as automatic authorization for `3.2+` or for Phase 3 close-out
-- do not treat formal site dataset integration as covered by the narrow `3.1` exception; the current MVP already uses its own governance checkpoint because it changes the dormant `site` hook into a real dataset-backed delivery path. Any follow-on expansion should continue to start from ADR `0007-formal-site-dataset-integration-governance.md`.
+- do not treat the development-progression gate as formal Phase 3 close-out, release readiness, or measurement closure
+- do not treat formal site dataset integration as covered by the old narrow `3.1` exception; the current MVP already uses its own governance checkpoint because it changes the dormant `site` hook into a real dataset-backed delivery path. Any follow-on expansion should continue to start from ADR `0007-formal-site-dataset-integration-governance.md`.
 
 Commit sequence:
 
@@ -171,7 +182,7 @@ Review checkpoint: mandatory before Phase 4.
 
 - Refresh `docs/architecture.md`, this file, and `docs/data-contracts/*.md` so replay-clock semantics, HUD scope, overlay ownership, and adapter seams are explicit.
 - If the time model, overlay-manager responsibilities, or adapter contract changed during implementation, update docs before fixture ingestion starts.
-- Re-check governance before `3.2+` if the measurement gate is still open. The `3.1` exception is intentionally narrow and must not silently widen into an unrestricted Phase 3 rollout.
+- Re-check governance before `3.2+` only when the next slice widens Phase 3 scope, deployment/profile semantics, data-contract seams, or other governance boundaries beyond the constrained WSL development-progression model. Do not require a fresh ad hoc exception for every routine Phase 3 implementation slice.
 - Re-check governance before any formal site dataset follow-on expands past the current MVP. That work should stay scoped explicitly against the existing `site` hook and the already-committed Profile C showcase rather than being folded into an undefined "next Phase 3 step." Use ADR `0007-formal-site-dataset-integration-governance.md` as the starting authority for that prompt.
 
 ## Phase 4

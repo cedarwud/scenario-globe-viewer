@@ -71,7 +71,9 @@ The current repo snapshot includes a completed Phase 0 baseline, a stable Phase 
 - a repo-local lighting toggle lives inside the native toolbar and uses Cesium-native scene controls rather than a repo-local rendering stack
 - repo-local smoke commands exist at `npm test` and `npm run test:phase1`
 - the accepted Phase 2 close-out baseline is now a governance handoff point that should be fixed as its own commit/tag before any Phase 3.1 code lands
-- formal multi-hardware Profile A measurement evidence is still missing, so full Phase 3 readiness is not yet closed; the current governance exception only allows a constrained WSL-backed Phase 3.1 shell-framing start
+- formal multi-hardware Profile A measurement evidence is still missing, so full Phase 3 formal readiness is still `no-go`
+- ADR `0008-phase-3-wsl-development-progression.md` now separates that formal readiness gate from a constrained WSL-backed Phase 3 development-progression gate, so routine `3.2+` implementation slices can continue under repo-owned build/smoke/capture/doc evidence without relabeling those passes as admissible measurement evidence
+- in the current repo state, `3.2` is therefore `go with constraints` only for routine in-scope Phase 3 work; it is not blanket authorization for Phase 3 close-out, deployment-profile widening, or measurement-gate closure
 - the repo-owned formal site dataset fixture under `public/fixtures/site-datasets/formal-site-mvp/` is validation-only and does not claim that a final delivery AOI has already been supplied
 - `docs/images/phase-1-baseline.png` remains the historical first-globe capture; ad hoc Playwright screenshots under `output/` are local validation artifacts and are not part of the delivery surface
 

@@ -119,9 +119,9 @@ Current pass result:
 - Gate-evidence status: no admissible measurements were produced in this workspace
 - Governance status: blocker evidence only; do not treat this pass as formal gate evidence
 
-This workspace is sufficient for build, smoke, repo-owned visual-baseline refreshes, and a constrained Phase 3.1 shell-framing development slice. It is not sufficient for the required real-machine capture. Formal Phase 3 readiness therefore remains open until exact machine model, OS, browser version, GPU / driver surface, 1080p window condition, preset coverage, preset-switch FPS, and stability notes are recorded on admissible Profile A Tier 1 and Tier 2 reference machines.
+This workspace is sufficient for build, smoke, repo-owned visual-baseline refreshes, the formal site dataset MVP validation line, and constrained Phase 3 development progression under WSL. It is not sufficient for the required real-machine capture. Formal Phase 3 readiness therefore remains open until exact machine model, OS, browser version, GPU / driver surface, 1080p window condition, preset coverage, preset-switch FPS, and stability notes are recorded on admissible Profile A Tier 1 and Tier 2 reference machines.
 
-ADR `0005-perf-budget.md` records the matching governance decision for build warnings: the large-chunk warning is accepted and deferred, and the upstream `protobufjs` `eval` warning is accepted as an upstream dependency risk. ADR `0006-phase-3.1-execution-governance.md` records the separate decision to allow a constrained WSL-backed `3.1` start without treating this workspace as admissible measurement evidence. Those decisions do not replace the missing measurement gate.
+ADR `0005-perf-budget.md` records the matching governance decision for build warnings: the large-chunk warning is accepted and deferred, and the upstream `protobufjs` `eval` warning is accepted as an upstream dependency risk. ADR `0006-phase-3.1-execution-governance.md` records the historical decision that allowed the first constrained WSL-backed `3.1` start without treating this workspace as admissible measurement evidence. ADR `0008-phase-3-wsl-development-progression.md` records the current decision to separate formal readiness from ongoing WSL-backed Phase 3 implementation progression. None of those decisions replace the missing measurement gate.
 
 ## Phase 2 Globe Evidence
 
