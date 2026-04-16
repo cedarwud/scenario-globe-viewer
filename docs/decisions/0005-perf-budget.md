@@ -6,7 +6,7 @@ Accepted
 
 ## Context
 
-Phase 2 implementation is complete, but the repo still does not have exact multi-hardware FPS captures or a dedicated long-duration globe-only soak artifact. Close-out authority therefore has to record the evidence that actually exists now rather than restating the Phase 0 plan.
+Phase 2 implementation is complete, but the repo still does not have exact multi-hardware FPS captures or a dedicated long-duration globe-only soak artifact. Close-out authority therefore has to record the evidence that actually exists now rather than restating the Phase 0 plan. The repo also needs a clear separation between "formal measurement gate still open" and "narrow WSL-backed development may continue" so that later Phase 3 work does not silently rewrite the gate semantics.
 
 Evidence:
 
@@ -30,7 +30,7 @@ The pre-Phase-3 governance position is:
 
 | Item | Current state | Risk | Phase 3 impact |
 |---|---|---|---|
-| Tier 1 / Tier 2 Profile A measurement gate | Missing. The required globe-only real-machine captures have not been recorded yet, and the currently accessible workspace is a WSL2 environment with no admissible Linux GPU / driver surface and no working native Windows browser interop path. | The repo still lacks exact reference-machine FPS evidence for the mandatory pre-Phase-3 gate. | Blocks Phase 3. Readiness stays `no-go`. |
+| Tier 1 / Tier 2 Profile A measurement gate | Missing. The required globe-only real-machine captures have not been recorded yet, and the currently accessible workspace is a WSL2 environment with no admissible Linux GPU / driver surface and no working native Windows browser interop path. | The repo still lacks exact reference-machine FPS evidence for the mandatory pre-Phase-3 gate. | Blocks formal Phase 3 readiness and close-out. ADR `0006-phase-3.1-execution-governance.md` may still allow a separately approved `3.1` shell-framing slice. |
 | Large chunk warning | Verified again on `2026-04-16` from the current `4,057.61 kB` main JS chunk. | Larger initial bundle cost and less headroom for later phases, but no repo-owned evidence of runtime failure from this warning alone. | Accept and defer. This warning does not block Phase 3 by itself. |
 | Upstream `protobufjs` `eval` warning | Verified again on `2026-04-16` from `node_modules/protobufjs/dist/minimal/protobuf.js:662`. | Tooling and security-review noise plus minifier constraints remain in the upstream dependency chain. | Accept as upstream dependency risk. This warning does not block Phase 3 by itself while provenance remains upstream and repo code adds no new `eval` path. |
 
@@ -46,10 +46,14 @@ Any admissible Tier 1 or Tier 2 record must include exact machine model, OS, bro
 
 Measurements will use the globe-only baseline under the Cesium-native default profile, with no satellite overlays and no replay stack enabled. If an explicit local/on-prem provider override is measured, record it as a separate deployment-profile variant rather than the default baseline.
 
+The `2026-04-16` admissible-measurement pass stayed within that scope, but it produced no admissible Tier 1 or Tier 2 records because the currently accessible workspace is still a WSL2 environment with no usable Linux GPU / driver surface and no working native Windows browser interop path. That pass therefore contributes blocker provenance only and must not be cited as formal gate evidence.
+
 ## Consequences
 
 - Phase 2 formal close-out may rely on the measured build output, the repo-owned smoke harness, and the repo-owned Phase 2.12 screenshots.
-- Phase 3 readiness remains `no-go` until the repo records admissible Tier 1 and Tier 2 Profile A measurement evidence in repo-owned authority.
+- The accepted Phase 2 close-out state should be fixed as its own commit/tag before the first Phase 3.1 implementation commit lands.
+- Phase 3 formal readiness remains open until the repo records admissible Tier 1 and Tier 2 Profile A measurement evidence in repo-owned authority.
+- ADR `0006-phase-3.1-execution-governance.md` may authorize a constrained WSL-backed `3.1` shell-framing start before that measurement gate closes, but that exception does not satisfy the missing measurement evidence.
 - The large chunk warning and the upstream `protobufjs` `eval` warning remain tracked, but under this decision they do not independently block Phase 3.
 - The future performance layer should prefer Cesium's explicit-render controls before introducing custom throttling behavior.
 - Any future long-duration soak artifact must be added as distinct evidence; it must not be implied retroactively by the current smoke checks or screenshots.

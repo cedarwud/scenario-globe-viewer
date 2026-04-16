@@ -82,9 +82,24 @@ As of `2026-04-16`, this workspace still cannot produce admissible Tier 1 or Tie
 - A mounted Windows Chrome install tree is visible under `/mnt/c/Program Files/Google/Chrome/Application/`, but direct host-binary execution through `cmd.exe`, `powershell.exe`, and `chrome.exe` all fail from this workspace with `UtilBindVsockAnyPort:307: socket failed 1`. This means the current pass cannot pivot to a native Windows browser measurement flow either.
 - `tests/smoke/bootstrap-loads-assets-and-workers.mjs:379-382` launches the repo-owned browser smoke with `--use-angle=swiftshader`, which is suitable for lower-bound smoke but not for Tier 1 or Tier 2 hardware evidence.
 
-This workspace is sufficient for build, smoke, and repo-owned visual-baseline refreshes, but it is not sufficient for the required real-machine capture. Phase 3 readiness therefore remains `no-go` until exact machine model, OS, browser version, GPU / driver surface, 1080p window condition, preset coverage, preset-switch FPS, and stability notes are recorded on admissible Profile A Tier 1 and Tier 2 reference machines.
+The `2026-04-16` admissible-measurement pass stayed within the intended gate scope:
 
-ADR `0005-perf-budget.md` records the matching governance decision for build warnings: the large-chunk warning is accepted and deferred, and the upstream `protobufjs` `eval` warning is accepted as an upstream dependency risk. Those warning decisions do not replace the missing measurement gate.
+- Profile A only
+- Cesium-native default only
+- globe-only baseline only
+- `global`, `regional`, and `site` preset coverage only
+- preset-switch FPS and stability only
+
+Current pass result:
+
+- Tier 1 admissible record: not collected
+- Tier 2 admissible record: not collected
+- Gate-evidence status: no admissible measurements were produced in this workspace
+- Governance status: blocker evidence only; do not treat this pass as formal gate evidence
+
+This workspace is sufficient for build, smoke, repo-owned visual-baseline refreshes, and a constrained Phase 3.1 shell-framing development slice. It is not sufficient for the required real-machine capture. Formal Phase 3 readiness therefore remains open until exact machine model, OS, browser version, GPU / driver surface, 1080p window condition, preset coverage, preset-switch FPS, and stability notes are recorded on admissible Profile A Tier 1 and Tier 2 reference machines.
+
+ADR `0005-perf-budget.md` records the matching governance decision for build warnings: the large-chunk warning is accepted and deferred, and the upstream `protobufjs` `eval` warning is accepted as an upstream dependency risk. ADR `0006-phase-3.1-execution-governance.md` records the separate decision to allow a constrained WSL-backed `3.1` start without treating this workspace as admissible measurement evidence. Those decisions do not replace the missing measurement gate.
 
 ## Phase 2 Globe Evidence
 

@@ -45,6 +45,8 @@ The current repo snapshot includes a completed Phase 0 baseline, a stable Phase 
 - Phase 2.12 review baselines now live under `docs/images/phase-2.12/`, with the capture method documented in `docs/visual-baselines.md`
 - a repo-local lighting toggle lives inside the native toolbar and uses Cesium-native scene controls rather than a repo-local rendering stack
 - repo-local smoke commands exist at `npm test` and `npm run test:phase1`
+- the accepted Phase 2 close-out baseline is now a governance handoff point that should be fixed as its own commit/tag before any Phase 3.1 code lands
+- formal multi-hardware Profile A measurement evidence is still missing, so full Phase 3 readiness is not yet closed; the current governance exception only allows a constrained WSL-backed Phase 3.1 shell-framing start
 - `docs/images/phase-1-baseline.png` remains the historical first-globe capture; ad hoc Playwright screenshots under `output/` are local validation artifacts and are not part of the delivery surface
 
 ## Phase 0 Deliverables

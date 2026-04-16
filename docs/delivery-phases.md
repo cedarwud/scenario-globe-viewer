@@ -21,6 +21,8 @@ Related deployment guidance: see [deployment-profiles.md](./deployment-profiles.
 - `docs/images/phase-1-baseline.png` remains the historical Phase 1 first-globe capture.
 - Phase 2.12 review baselines now live at `docs/images/phase-2.12/*.png`, captured through `tests/visual/capture-three-preset-baselines.mjs` and documented in `docs/visual-baselines.md`.
 - The current Phase 2 close-out evidence chain is repo-owned: `npm run test:phase1` verifies the three-preset bootstrap path, and the Phase 2.12 screenshots preserve the accepted global, regional, and site baselines. No separate long-duration globe-only soak artifact is currently claimed.
+- The current governance target is to capture that accepted Phase 2 close-out state as its own commit/tag before the first Phase 3.1 implementation change lands.
+- Formal Phase 3 readiness still lacks admissible Tier 1 / Tier 2 Profile A measurements, but ADR `0006-phase-3.1-execution-governance` now allows a constrained WSL-backed start for `3.1` only.
 - Ad hoc screenshots under `output/` remain local validation artifacts and are not part of the delivery surface.
 
 ## Phase 0
@@ -123,7 +125,7 @@ Review checkpoint: mandatory before Phase 3.
 - Treat the measured imagery, terrain, site-hook, performance, and close-out evidence constraints as the new baseline. Do not keep carrying stale planning assumptions forward.
 - `docs/cesium-evidence.md` and `docs/visual-baselines.md` must explicitly point to the accepted Phase 2 evidence chain. If only smoke plus visual baselines exist and no dedicated long-duration soak artifact exists, state that plainly rather than implying one.
 - If the default Cesium-native profile, optional provider-override policy, quality bar, or performance budget changed during implementation, stop and rewrite the plan before any HUD or replay work starts.
-- If the current workspace cannot produce admissible Tier 1 / Tier 2 Profile A measurements, stop and record that blocker explicitly. Do not relabel smoke, visual baselines, or SwiftShader runs as tier evidence.
+- If the current workspace cannot produce admissible Tier 1 / Tier 2 Profile A measurements, stop and record that blocker explicitly. Do not relabel smoke, visual baselines, or SwiftShader runs as tier evidence. That blocker keeps the formal Phase 3 gate open even if ADR `0006-phase-3.1-execution-governance` authorizes a constrained `3.1` start.
 - The current authority set accepts and defers the verified large-chunk warning. Revisit mitigation only if later bundle growth or delivery constraints make that trade-off materially worse.
 - The current authority set accepts the verified `protobufjs` `eval` warning as an upstream dependency risk because it still originates from the dependency chain rather than repo code.
 
@@ -131,7 +133,14 @@ Review checkpoint: mandatory before Phase 3.
 
 Goal: add application framing and time/overlay seams without turning on satellite implementation.
 
-Phase 3 must not start until the mandatory pre-Phase-3 checkpoint records the missing Tier 1 / Tier 2 Profile A measurements. In the current repo state, readiness remains `no-go`.
+Formal Phase 3 readiness is still held open by the missing Tier 1 / Tier 2 Profile A measurements. In the current repo state, that gate is not closed.
+
+Current execution policy:
+
+- cut a dedicated Phase 2 close-out commit/tag first
+- allow `3.1` (`feat(app): hud frame with empty panels`) to start on top of that fixed baseline under WSL development conditions
+- do not treat WSL smoke, WSL visual refreshes, or SwiftShader runs as admissible measurement evidence
+- do not treat this exception as automatic authorization for `3.2+` or for Phase 3 close-out
 
 Commit sequence:
 
@@ -156,6 +165,7 @@ Review checkpoint: mandatory before Phase 4.
 
 - Refresh `docs/architecture.md`, this file, and `docs/data-contracts/*.md` so replay-clock semantics, HUD scope, overlay ownership, and adapter seams are explicit.
 - If the time model, overlay-manager responsibilities, or adapter contract changed during implementation, update docs before fixture ingestion starts.
+- Re-check governance before `3.2+` if the measurement gate is still open. The `3.1` exception is intentionally narrow and must not silently widen into an unrestricted Phase 3 rollout.
 
 ## Phase 4
 
