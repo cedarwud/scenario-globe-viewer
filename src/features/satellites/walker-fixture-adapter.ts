@@ -29,6 +29,11 @@ interface LoadedWalkerFixture {
   records: ReadonlyArray<WalkerTleRecord>;
 }
 
+interface WalkerOrbitTrackSample {
+  id: string;
+  positionsEcef: ReadonlyArray<SatelliteSample["positionEcef"]>;
+}
+
 export interface WalkerFixtureAdapterState {
   fixtureKind: SatelliteFixture["kind"] | null;
   satCount: number;
@@ -42,6 +47,7 @@ export interface WalkerFixtureAdapterState {
 }
 
 export const DEFAULT_WALKER_TLE_EPOCH_MODE = "relative-to-now";
+const FULL_ORBIT_RADIANS = Math.PI * 2;
 
 function assertFiniteTimestamp(value: ClockTimestamp): void {
   if (typeof value === "number" && !Number.isFinite(value)) {
@@ -197,6 +203,15 @@ function propagateWalkerSample(
   };
 }
 
+function resolveOrbitPeriodMs(record: WalkerTleRecord): number {
+  const meanMotionRadPerMinute = record.satrec.no;
+  if (!Number.isFinite(meanMotionRadPerMinute) || meanMotionRadPerMinute <= 0) {
+    throw new Error(`Walker orbit period is unavailable for ${record.id}.`);
+  }
+
+  return (FULL_ORBIT_RADIANS / meanMotionRadPerMinute) * 60_000;
+}
+
 export class WalkerFixtureAdapter implements SatelliteOverlayAdapter {
   private attachedClock?: ReplayClock;
   private detachTickListener?: () => void;
@@ -271,6 +286,42 @@ export class WalkerFixtureAdapter implements SatelliteOverlayAdapter {
 
   getCurrentSamples(): ReadonlyArray<SatelliteSample> {
     return this.currentSamples;
+  }
+
+  sampleOrbitTracks(
+    referenceTime: ClockTimestamp,
+    sampleCount: number
+  ): ReadonlyArray<WalkerOrbitTrackSample> {
+    if (!this.loadedFixture) {
+      return [];
+    }
+
+    if (!Number.isInteger(sampleCount) || sampleCount < 2) {
+      throw new Error(`Walker orbit sampling requires an integer sampleCount >= 2: ${sampleCount}`);
+    }
+
+    const normalizedReferenceTime = normalizeClockTimestamp(referenceTime);
+    const referenceTimeMs = toEpochMilliseconds(normalizedReferenceTime);
+
+    return this.loadedFixture.records.map((record) => {
+      const orbitPeriodMs = resolveOrbitPeriodMs(record);
+      const orbitStartMs = referenceTimeMs - orbitPeriodMs / 2;
+      const stepMs = orbitPeriodMs / (sampleCount - 1);
+      const positionsEcef = Array.from({ length: sampleCount }, (_, index) => {
+        const orbitSampleTime = new Date(orbitStartMs + stepMs * index).toISOString();
+        return propagateWalkerSample(
+          record,
+          this.loadedFixture!.epochMode,
+          orbitSampleTime,
+          this.loadedFixture!.clockAnchorMs
+        ).sample.positionEcef;
+      });
+
+      return {
+        id: record.id,
+        positionsEcef
+      };
+    });
   }
 
   getIngestionState(): WalkerFixtureAdapterState {

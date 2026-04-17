@@ -21,7 +21,7 @@ export interface SatelliteOverlayControllerState {
   pathCount: number;
   pointCount: number;
   polylineCount: number;
-  renderMode: "point-only";
+  renderMode: "point-label-polyline";
   sampleTime: string | number | null;
   satCount: number;
   source: SatelliteOverlaySource;
@@ -87,7 +87,7 @@ function createControllerState(
     pathCount: runtimeState.pathCount,
     pointCount: runtimeState.pointCount,
     polylineCount: runtimeState.polylineCount,
-    renderMode: "point-only",
+    renderMode: "point-label-polyline",
     sampleTime: runtimeState.sampleTime,
     satCount: runtimeState.satCount,
     source,

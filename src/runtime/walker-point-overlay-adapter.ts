@@ -1,4 +1,5 @@
 import {
+  ArcType,
   Cartesian2,
   Cartesian3,
   Color,
@@ -8,6 +9,7 @@ import {
   HorizontalOrigin,
   LabelGraphics,
   LabelStyle,
+  PolylineGraphics,
   PointGraphics,
   VerticalOrigin,
   type Viewer
@@ -38,6 +40,10 @@ export interface WalkerPointOverlayRuntimeAdapter
 }
 
 const WALKER_POINT_DATA_SOURCE_NAME = "walker-point-overlay";
+const WALKER_ORBIT_POLYLINE_SAMPLE_COUNT = 49;
+const WALKER_ORBIT_POLYLINE_CACHE_BUCKET_MS = 60_000;
+const WALKER_ORBIT_POLYLINE_WIDTH = 1.25;
+const WALKER_ORBIT_POLYLINE_COLOR = Color.fromCssColorString("#8fd3ff").withAlpha(0.3);
 
 function createPointStyle() {
   return {
@@ -66,11 +72,34 @@ function createLabelStyle(text: string) {
   });
 }
 
+function createOrbitStyle(positions: ReadonlyArray<Cartesian3>) {
+  return new PolylineGraphics({
+    positions: [...positions],
+    width: WALKER_ORBIT_POLYLINE_WIDTH,
+    material: WALKER_ORBIT_POLYLINE_COLOR,
+    arcType: ArcType.NONE,
+    clampToGround: false
+  });
+}
+
 function toCartesianPosition(sample: {
   positionEcef: { x: number; y: number; z: number };
 }): Cartesian3 {
   const { x, y, z } = sample.positionEcef;
   return new Cartesian3(x, y, z);
+}
+
+function toEpochMilliseconds(value: WalkerFixtureAdapterState["sampleTime"]): number | null {
+  if (value === null) {
+    return null;
+  }
+
+  if (typeof value === "number") {
+    return Number.isFinite(value) ? value : null;
+  }
+
+  const parsed = Date.parse(value);
+  return Number.isFinite(parsed) ? parsed : null;
 }
 
 function countEntityGraphics(dataSource: CustomDataSource) {
@@ -113,6 +142,8 @@ export function createWalkerPointOverlayAdapter(
   let disposed = false;
   let visible = true;
   let detachTickListener: (() => void) | undefined;
+  let cachedOrbitSampleBucket: number | null = null;
+  let cachedOrbitPositionsById = new Map<string, ReadonlyArray<Cartesian3>>();
 
   function requestRender(): void {
     if (!viewer.isDestroyed()) {
@@ -143,23 +174,69 @@ export function createWalkerPointOverlayAdapter(
     await attachDataSourcePromise;
   }
 
+  function clearOrbitCache(): void {
+    cachedOrbitSampleBucket = null;
+    cachedOrbitPositionsById = new Map<string, ReadonlyArray<Cartesian3>>();
+  }
+
+  function getOrbitPositionsById(
+    sampleTime: WalkerFixtureAdapterState["sampleTime"]
+  ): ReadonlyMap<string, ReadonlyArray<Cartesian3>> {
+    const sampleTimeMs = toEpochMilliseconds(sampleTime);
+    if (sampleTimeMs === null || sampleTime === null) {
+      clearOrbitCache();
+      return cachedOrbitPositionsById;
+    }
+
+    const sampleBucket = Math.floor(
+      sampleTimeMs / WALKER_ORBIT_POLYLINE_CACHE_BUCKET_MS
+    );
+    if (cachedOrbitSampleBucket === sampleBucket) {
+      return cachedOrbitPositionsById;
+    }
+
+    cachedOrbitPositionsById = new Map(
+      walkerAdapter
+        .sampleOrbitTracks(sampleTime, WALKER_ORBIT_POLYLINE_SAMPLE_COUNT)
+        .map((track) => [
+          track.id,
+          track.positionsEcef.map((position) =>
+            toCartesianPosition({ positionEcef: position })
+          )
+        ])
+    );
+    cachedOrbitSampleBucket = sampleBucket;
+    return cachedOrbitPositionsById;
+  }
+
   function syncRenderedSamples(): void {
     if (disposed) {
       return;
     }
 
     const seenIds = new Set<string>();
+    const ingestionState = walkerAdapter.getIngestionState();
+    const orbitPositionsById = getOrbitPositionsById(ingestionState.sampleTime);
 
     for (const sample of walkerAdapter.getCurrentSamples()) {
       const entity = dataSource.entities.getOrCreateEntity(sample.id);
       const labelText = sample.name ?? sample.id;
+      const orbitPositions = orbitPositionsById.get(sample.id) ?? [];
       entity.name = sample.name;
       entity.position = new ConstantPositionProperty(toCartesianPosition(sample));
       entity.point = entity.point ?? new PointGraphics(createPointStyle());
       entity.label = entity.label ?? createLabelStyle(labelText);
       entity.label.text = new ConstantProperty(labelText);
       entity.path = undefined;
-      entity.polyline = undefined;
+      if (orbitPositions.length >= 2) {
+        entity.polyline =
+          entity.polyline instanceof PolylineGraphics
+            ? entity.polyline
+            : createOrbitStyle(orbitPositions);
+        entity.polyline.positions = new ConstantProperty([...orbitPositions]);
+      } else {
+        entity.polyline = undefined;
+      }
       seenIds.add(sample.id);
     }
 
@@ -176,6 +253,7 @@ export function createWalkerPointOverlayAdapter(
   return {
     async loadFixture(fixture: SatelliteFixture): Promise<{ satCount: number }> {
       const result = await walkerAdapter.loadFixture(fixture);
+      clearOrbitCache();
       await ensureDataSourceAttached();
       syncRenderedSamples();
       return result;
@@ -223,6 +301,7 @@ export function createWalkerPointOverlayAdapter(
           detachTickListener = undefined;
           dataSource.show = false;
           dataSource.entities.removeAll();
+          clearOrbitCache();
 
           let disposalError: unknown;
 

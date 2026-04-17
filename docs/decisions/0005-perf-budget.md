@@ -23,6 +23,7 @@ Evidence:
 - The default `site` baseline intentionally runs without `VITE_CESIUM_SITE_TILESET_URL`, so the optional 3D tiles hook remains dormant unless a configured dataset is supplied.
 - `node_modules/@cesium/engine/Source/Scene/Scene.js:665-694` documents `requestRenderMode` and `maximumRenderTimeChange` as built-in rendering budget controls.
 - `node_modules/@cesium/engine/Source/Scene/Scene.js:698-705` shows render requests also being driven by request and task completion events.
+- The current constrained Phase 5.3 overlay widening remains repo-local only: `src/runtime/walker-point-overlay-adapter.ts` keeps orbit rendering on Cesium entity polylines with a fixed upper bound of `49` sampled positions per satellite orbit, refreshes that orbit geometry at most once per `60_000` ms time bucket, and still keeps `Entity.path` disabled.
 
 ## Decision
 
@@ -48,6 +49,8 @@ Measurements will use the globe-only baseline under the Cesium-native default pr
 
 The `2026-04-16` admissible-measurement pass stayed within that scope, but it produced no admissible Tier 1 or Tier 2 records because the currently accessible workspace is still a WSL2 environment with no usable Linux GPU / driver surface and no working native Windows browser interop path. That pass therefore contributes blocker provenance only and must not be cited as formal gate evidence.
 
+The current constrained Phase 5.3 orbit slice does not change that measurement policy. Its bounded orbit-polyline budget is repo-local implementation guidance only, not admissible performance evidence and not a claim that overlay-inclusive measurement work has been completed. Any future overlay-inclusive performance pass must still record its own exact machine/browser/GPU details and stay separate from the globe-only Phase 2 evidence chain.
+
 ## Consequences
 
 - Phase 2 formal close-out may rely on the measured build output, the repo-owned smoke harness, and the repo-owned Phase 2.12 screenshots.
@@ -57,3 +60,4 @@ The `2026-04-16` admissible-measurement pass stayed within that scope, but it pr
 - The large chunk warning and the upstream `protobufjs` `eval` warning remain tracked, but under this decision they do not independently block Phase 3.
 - The future performance layer should prefer Cesium's explicit-render controls before introducing custom throttling behavior.
 - Any future long-duration soak artifact must be added as distinct evidence; it must not be implied retroactively by the current smoke checks or screenshots.
+- Any constrained overlay widening must keep explicit local bounds. On the current `main` line, that means bounded Cesium entity polylines only, a fixed `49`-sample orbit budget per satellite, a `60_000` ms orbit-geometry refresh bucket, `Entity.path` still disabled, and no unbounded orbit-history accumulation.

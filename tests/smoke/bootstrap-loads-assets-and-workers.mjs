@@ -476,6 +476,9 @@ async function readSatelliteOverlayRuntime(client) {
       const viewer = capture?.viewer;
       const dataSourceNames = [];
       let walkerPointDataSourceCount = 0;
+      let walkerPolylineEntityCount = 0;
+      let maxWalkerPolylinePositionCount = 0;
+      let minWalkerPolylinePositionCount = Number.POSITIVE_INFINITY;
       let projectedPointCount = 0;
       let projectedLabelCount = 0;
       const walkerOverlayEntities = [];
@@ -503,11 +506,33 @@ async function readSatelliteOverlayRuntime(client) {
             const labelText = entity.label
               ? resolvePropertyValue(entity.label.text, viewer.clock.currentTime)
               : null;
+            const polylinePositions =
+              entity.polyline?.positions
+                ? resolvePropertyValue(entity.polyline.positions, viewer.clock.currentTime)
+                : null;
+            const polylinePositionCount = Array.isArray(polylinePositions)
+              ? polylinePositions.length
+              : 0;
+
+            if (polylinePositionCount > 0) {
+              walkerPolylineEntityCount += 1;
+              maxWalkerPolylinePositionCount = Math.max(
+                maxWalkerPolylinePositionCount,
+                polylinePositionCount
+              );
+              minWalkerPolylinePositionCount = Math.min(
+                minWalkerPolylinePositionCount,
+                polylinePositionCount
+              );
+            }
+
             walkerOverlayEntities.push({
               id: String(entity.id),
               name: typeof entity.name === "string" ? entity.name : null,
               hasPoint: Boolean(entity.point),
               hasLabel: Boolean(entity.label),
+              hasPolyline: Boolean(entity.polyline),
+              polylinePositionCount,
               labelText: typeof labelText === "string" ? labelText : null
             });
 
@@ -557,6 +582,12 @@ async function readSatelliteOverlayRuntime(client) {
         controllerState,
         dataSourceNames,
         walkerPointDataSourceCount,
+        walkerPolylineEntityCount,
+        maxWalkerPolylinePositionCount,
+        minWalkerPolylinePositionCount:
+          Number.isFinite(minWalkerPolylinePositionCount)
+            ? minWalkerPolylinePositionCount
+            : 0,
         projectedPointCount,
         projectedLabelCount,
         walkerOverlayEntities
@@ -1039,6 +1070,8 @@ function siteTilesetMatchesExpectation(lastState, expectedSiteTileset) {
   );
 }
 
+const WALKER_ORBIT_POLYLINE_SAMPLE_BUDGET = 49;
+
 function baselineShellMatchesExpectation(lastState) {
   return (
     lastState.sceneFogActive === "true" &&
@@ -1062,7 +1095,7 @@ function baselineShellMatchesExpectation(lastState) {
     lastState.satelliteOverlayMode === "off" &&
     lastState.satelliteOverlaySource === "default-off" &&
     lastState.satelliteOverlayState === "disabled" &&
-    lastState.satelliteOverlayRenderMode === "point-only" &&
+    lastState.satelliteOverlayRenderMode === "point-label-polyline" &&
     lastState.satelliteOverlayPointCount === 0 &&
     lastState.satelliteOverlayControlCount === 0 &&
     lastState.perSatelliteControlCount === 0
@@ -1303,8 +1336,10 @@ function assertWalkerPointOverlayLabelsUseNameOrId(
     `Expected all walker overlay entities to stay inspectable during ${scenarioLabel}: ${JSON.stringify(runtimeState)}`
   );
   assert(
-    entities.every((entity) => entity.hasPoint && entity.hasLabel),
-    `Every walker overlay entity must keep both point and label graphics during ${scenarioLabel}: ${JSON.stringify(runtimeState)}`
+    entities.every(
+      (entity) => entity.hasPoint && entity.hasLabel && entity.hasPolyline
+    ),
+    `Every walker overlay entity must keep point, label, and orbit-polyline graphics during ${scenarioLabel}: ${JSON.stringify(runtimeState)}`
   );
   assert(
     entities.every((entity) => entity.labelText === (entity.name ?? entity.id)),
@@ -1324,12 +1359,33 @@ function assertWalkerPointOverlayLabelsUseNameOrId(
   }
 }
 
+function assertWalkerOrbitPolylines(runtimeState, scenarioLabel) {
+  assert(
+    runtimeState.controllerState?.pathCount === 0,
+    `Entity.path must stay disabled during ${scenarioLabel}: ${JSON.stringify(runtimeState)}`
+  );
+  assert(
+    runtimeState.controllerState?.polylineCount === 18,
+    `Expected one bounded orbit polyline per walker satellite during ${scenarioLabel}: ${JSON.stringify(runtimeState)}`
+  );
+  assert(
+    runtimeState.walkerPolylineEntityCount === 18,
+    `Expected orbit polylines to stay attached to every walker entity during ${scenarioLabel}: ${JSON.stringify(runtimeState)}`
+  );
+  assert(
+    runtimeState.minWalkerPolylinePositionCount > 1 &&
+      runtimeState.maxWalkerPolylinePositionCount <=
+        WALKER_ORBIT_POLYLINE_SAMPLE_BUDGET,
+    `Orbit polyline sampling must stay bounded during ${scenarioLabel}: ${JSON.stringify(runtimeState)}`
+  );
+}
+
 function assertWalkerPointOverlayReadyState(runtimeState, scenarioLabel) {
   assert(
     runtimeState.overlayMode === "walker-points" &&
       runtimeState.overlaySource === "runtime" &&
       runtimeState.overlayState === "ready" &&
-      runtimeState.overlayRenderMode === "point-only" &&
+      runtimeState.overlayRenderMode === "point-label-polyline" &&
       runtimeState.overlayPointCount === 18,
     `Expected walker point overlay to become ready during ${scenarioLabel}: ${JSON.stringify(runtimeState)}`
   );
@@ -1338,10 +1394,10 @@ function assertWalkerPointOverlayReadyState(runtimeState, scenarioLabel) {
       runtimeState.controllerState?.satCount === 18 &&
       runtimeState.controllerState?.labelCount === 18 &&
       runtimeState.controllerState?.pathCount === 0 &&
-      runtimeState.controllerState?.polylineCount === 0 &&
+      runtimeState.controllerState?.polylineCount === 18 &&
       runtimeState.controllerState?.dataSourceAttached === true &&
       runtimeState.controllerState?.visible === true,
-    `Overlay runtime must stay on the walker point path with labels only during ${scenarioLabel}: ${JSON.stringify(runtimeState)}`
+    `Overlay runtime must stay on the walker point path with fixed labels plus bounded orbit polylines during ${scenarioLabel}: ${JSON.stringify(runtimeState)}`
   );
   assert(
     runtimeState.controllerState?.overlayManager?.entries?.length === 1 &&
@@ -1359,6 +1415,7 @@ function assertWalkerPointOverlayReadyState(runtimeState, scenarioLabel) {
     `Expected at least one walker point to project into the active view during ${scenarioLabel}: ${JSON.stringify(runtimeState)}`
   );
   assertWalkerPointOverlayLabelsUseNameOrId(runtimeState, scenarioLabel);
+  assertWalkerOrbitPolylines(runtimeState, scenarioLabel);
   assertNoSatelliteOverlayControls(runtimeState, scenarioLabel);
 }
 
@@ -1371,7 +1428,7 @@ function assertWalkerPointOverlayDisabledState(
     runtimeState.overlayMode === "off" &&
       runtimeState.overlaySource === expectedSource &&
       runtimeState.overlayState === "disabled" &&
-      runtimeState.overlayRenderMode === "point-only" &&
+      runtimeState.overlayRenderMode === "point-label-polyline" &&
       runtimeState.overlayPointCount === 0,
     `Expected overlay-off cleanup state during ${scenarioLabel}: ${JSON.stringify(runtimeState)}`
   );
@@ -1388,6 +1445,10 @@ function assertWalkerPointOverlayDisabledState(
     runtimeState.walkerPointDataSourceCount === 0,
     `Walker point data source must be absent during ${scenarioLabel}: ${JSON.stringify(runtimeState)}`
   );
+  assert(
+    runtimeState.walkerPolylineEntityCount === 0,
+    `Walker orbit polyline residue must be absent during ${scenarioLabel}: ${JSON.stringify(runtimeState)}`
+  );
   assertNoSatelliteOverlayControls(runtimeState, scenarioLabel);
 }
 
@@ -1396,7 +1457,7 @@ function assertWalkerPointOverlayLoadingState(runtimeState, scenarioLabel) {
     runtimeState.overlayMode === "walker-points" &&
       runtimeState.overlaySource === "runtime" &&
       runtimeState.overlayState === "loading" &&
-      runtimeState.overlayRenderMode === "point-only" &&
+      runtimeState.overlayRenderMode === "point-label-polyline" &&
       runtimeState.overlayPointCount === 0,
     `Expected overlay loading state during ${scenarioLabel}: ${JSON.stringify(runtimeState)}`
   );
@@ -1413,6 +1474,10 @@ function assertWalkerPointOverlayLoadingState(runtimeState, scenarioLabel) {
     runtimeState.walkerPointDataSourceCount === 0,
     `Overlay loading must not attach a walker point data source before readiness during ${scenarioLabel}: ${JSON.stringify(runtimeState)}`
   );
+  assert(
+    runtimeState.walkerPolylineEntityCount === 0,
+    `Overlay loading must not attach orbit polyline residue before readiness during ${scenarioLabel}: ${JSON.stringify(runtimeState)}`
+  );
   assertNoSatelliteOverlayControls(runtimeState, scenarioLabel);
 }
 
@@ -1421,7 +1486,7 @@ function assertWalkerPointOverlayErrorState(runtimeState, scenarioLabel) {
     runtimeState.overlayMode === "walker-points" &&
       runtimeState.overlaySource === "runtime" &&
       runtimeState.overlayState === "error" &&
-      runtimeState.overlayRenderMode === "point-only" &&
+      runtimeState.overlayRenderMode === "point-label-polyline" &&
       runtimeState.overlayPointCount === 0 &&
       typeof runtimeState.overlayDetail === "string" &&
       runtimeState.overlayDetail.length > 0,
@@ -1442,6 +1507,10 @@ function assertWalkerPointOverlayErrorState(runtimeState, scenarioLabel) {
     runtimeState.walkerPointDataSourceCount === 0,
     `Failed enable must leave no walker point data source during ${scenarioLabel}: ${JSON.stringify(runtimeState)}`
   );
+  assert(
+    runtimeState.walkerPolylineEntityCount === 0,
+    `Failed enable must leave no walker orbit polyline residue during ${scenarioLabel}: ${JSON.stringify(runtimeState)}`
+  );
   assertNoSatelliteOverlayControls(runtimeState, scenarioLabel);
 }
 
@@ -1451,7 +1520,7 @@ async function verifySatelliteOverlayToggle(client, scenarioLabel) {
     initialState.overlayMode === "off" &&
       initialState.overlaySource === "default-off" &&
       initialState.overlayState === "disabled" &&
-      initialState.overlayRenderMode === "point-only" &&
+      initialState.overlayRenderMode === "point-label-polyline" &&
       initialState.overlayPointCount === 0,
     `Expected default globe-only overlay-off state during ${scenarioLabel}: ${JSON.stringify(initialState)}`
   );

@@ -179,6 +179,29 @@ for (const [index, sample] of relativeSamples.entries()) {
   assertFiniteVector(`Relative sample ${index} positionEcef`, sample.positionEcef);
 }
 
+const boundedOrbitTracks = relativeAdapter.sampleOrbitTracks(
+  "2026-04-17T12:00:00.000Z",
+  9
+);
+assert.equal(
+  boundedOrbitTracks.length,
+  18,
+  "Concrete walker adapter must expose bounded orbit sampling without widening the public contract."
+);
+for (const [index, track] of boundedOrbitTracks.entries()) {
+  assert.equal(
+    track.positionsEcef.length,
+    9,
+    `Bounded orbit track ${index} must honor the requested local sample count.`
+  );
+  for (const [positionIndex, position] of track.positionsEcef.entries()) {
+    assertFiniteVector(
+      `Bounded orbit track ${index} position ${positionIndex}`,
+      position
+    );
+  }
+}
+
 const initialPropagationTime = Date.parse(relativeState.propagationTime);
 relativeClock.tickTo("2026-04-17T12:01:00.000Z");
 

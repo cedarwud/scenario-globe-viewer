@@ -68,26 +68,45 @@ This artifact records the formal site dataset MVP only. It proves the existing `
 
 - `docs/images/phase-5.2-labels/global-preset-overlay-labels.png`
 
-Use the separate repo-owned capture harness:
-
-```bash
-npm run capture:phase5.2-labels
-```
-
 Capture conditions:
 
 - deployment profile: Profile A / Cesium-native default
 - viewport: `1440x900`
 - bootstrap selection path: default `global` preset
-- overlay state: the default startup path remains `satelliteOverlay=off/default-off/disabled`, and the capture harness then enables the existing single repo-owned top-level walker-backed overlay controller through the narrow capture seam
+- overlay state: the accepted Phase 5.2 review line records the default-off startup path followed by the existing single repo-owned top-level walker-backed overlay controller through the narrow capture seam
 - label scope: fixed runtime-local labels only, derived from existing `name` or fallback `id` on the landed point path
 - no-go guard: `pathCount=0`, `polylineCount=0`, no per-satellite controls, and no overlay HUD / user-facing overlay UI
 - shell guard: the repo-owned HUD remains status-only with left/right panels hidden, while the native toolbar, native timeline, and native credits remain visible
-- baseline guard: the command uses the default build path, rejects Vite-resolved `VITE_CESIUM_SITE_TILESET_URL`, and does not overwrite the dormant Phase 2.12 preset screenshots or the formal site dataset artifact line
+- baseline guard: this historical line remains separate from the dormant Phase 2.12 preset screenshots, the formal site dataset artifact line, and the current Phase 5.3 orbit review line
 - clock seed: the browser `Date` value is fixed to `2026-04-16T00:00:10.250Z` before app bootstrap
-- native clock stabilization: after bootstrap readiness, the harness pauses the native Cesium clock, enables the label path, waits for overlay readiness plus projected labels in view, and only then captures the screenshot
+- native clock stabilization: the original review pass paused the native Cesium clock, waited for overlay readiness plus projected labels in view, and only then captured the screenshot
 
-This artifact is a review-only cleanliness line for the bounded Phase 5.2 label-only widening. It does not replace the accepted Phase 2.12 baseline, does not replace the formal site dataset MVP artifact, and does not claim admissible measurement evidence.
+This artifact is a preserved historical cleanliness line for the bounded Phase 5.2 label-only widening. It does not replace the accepted Phase 2.12 baseline, does not replace the formal site dataset MVP artifact, does not describe the current Phase 5.3 orbit-widened runtime by itself, and does not claim admissible measurement evidence.
+
+## Phase 5.3 Orbit Review Artifact
+
+- `docs/images/phase-5.3-orbits/global-preset-overlay-orbits.png`
+
+Use the separate repo-owned capture harness:
+
+```bash
+npm run capture:phase5.3-orbits
+```
+
+Capture conditions for this separate review line:
+
+- deployment profile: Profile A / Cesium-native default
+- viewport: `1440x900`
+- bootstrap selection path: default `global` preset
+- overlay state: the default startup path remains `satelliteOverlay=off/default-off/disabled`, and the same single repo-owned top-level walker-backed overlay controller is then enabled through the narrow capture seam
+- orbit scope: the landed point path plus fixed runtime-local labels remain present, and the only new widening is bounded Cesium polyline orbits on that same path
+- no-go guard: `pathCount=0`, `polylineCount>0` only while enabled, no per-satellite controls, and no overlay HUD / user-facing overlay UI
+- shell guard: the repo-owned HUD remains status-only with left/right panels hidden, while the native toolbar, native timeline, and native credits remain visible
+- separation guard: this line must not overwrite the dormant Phase 2.12 preset screenshots, the preserved Phase 5.2 label line, or the formal site dataset artifact line
+- capture note: the current slice records the separate artifact line through its own dedicated package-level capture command while keeping the automated guardrails in `npm run test:phase5.1`
+- performance note: the orbit geometry remains a repo-local bounded path with a fixed upper sample budget; this line is review-only and not admissible measurement evidence
+
+This artifact line records the constrained Phase 5.3 orbit widening only. It stays separate from the preserved Phase 5.2 label-only review line and from the accepted Phase 2.12 close-out baseline.
 
 ## Phase 3.1 Follow-Up Approval Artifact
 
