@@ -52,7 +52,7 @@ Planned Phase 2-5 flow:
 3. Phase 2.8 scene presets are now consumed by concrete global, regional, and site presets for globe presentation and camera framing, while the site-specific 3D tiles path remains limited to a configured-url hook rather than a full tiles subsystem. The opt-in Cesium OSM Buildings showcase remains a separate bootstrap variant and does not expand the preset contract into a multi-model system.
 4. The current formal site dataset MVP now builds on that existing configured-url `site` hook as its own dataset-backed delivery line, remains separate from the Profile C showcase path, and preserves the current Profile A baseline/capture path instead of rewriting it in place.
 5. Phase 3.2 defines the replay-clock interface boundary in `src/features/time/`, and Phases 3.3-3.5 now map both the real-time and prerecorded paths onto Cesium's native `viewer.clock` inside `src/features/time/cesium-replay-clock.ts` while formatting a read-only timeline HUD placeholder from plain replay-clock state. The prerecorded path stays a clamped clip on that same clock, and when `setMode('prerecorded')` omits `range` it reuses the active `startTime`/`stopTime` interval instead of inventing a second time source. Phase 3.6 defines the repo-owned overlay-manager seam in `src/features/overlays/`, and Phase 3.7 now adds the plain-data `SatelliteOverlayAdapter` seam in `src/features/satellites/`; manager ownership stays at adapter attach/detach, top-level show/hide, and disposal, while the satellite contract stays limited to serializable fixture/sample input plus clock-binding and visibility hooks for a later concrete adapter.
-6. Fixture ingestion and the first overlay remain later phases, after the shell and time seams are stable.
+6. Phase 4 is still a later fixture-ingestion phase, and the first Phase 4.1 slice is limited to the walker smoke fixture adapter ingestion seam rather than runtime overlay activation. If a future source starts from TLE / SGP4 / TEME / ECI output, parsing, propagation, and frame conversion into repo-facing ECEF sample data or other adapter-local Cesium-consumable forms remain adapter-owned rather than `overlay-manager`-owned. Phase 5 is the first phase that may wire overlay/runtime/rendering work on top of that ingestion seam.
 
 ## Directory Intent
 
@@ -69,7 +69,7 @@ Planned Phase 2-5 flow:
 - Phase 1: Cesium bootstrap, `Viewer` wrapper, and credit-preserving first globe
 - Phase 2: globe quality, scene presets, and a Cesium-native visual baseline with optional provider overrides
 - Phase 3: shell framing, replay clock, and overlay interfaces only
-- Phase 4: minimal fixture ingestion through an adapter seam
-- Phase 5: first overlay path without degrading the globe baseline
+- Phase 4: minimal fixture ingestion through an adapter seam only; the first `4.1` slice stops at the walker fixture adapter ingestion seam and keeps runtime overlay wiring off
+- Phase 5: first overlay runtime/rendering path without degrading the globe baseline
 
 Anything beyond Phase 5 is outside the current implementation target.

@@ -196,21 +196,39 @@ Review checkpoint: mandatory before Phase 4.
 
 Goal: land the smallest real fixture-ingestion path without coupling the core to a donor format.
 
+Current repo reality before any Phase 4 implementation:
+
+- the formal `SatelliteOverlayAdapter` contract exists, but no concrete adapter implementation exists yet
+- the copied walker TLE under `public/fixtures/satellites/walker-o6-s3-i45-h698.tle` is only a smoke/source fixture
+- no satellite or overlay runtime path is wired into `src/main.ts`
+- no fixture ingestion behavior is active in the runtime
+
+Hard boundary for the first `4.1` slice:
+
+- stop at the walker fixture adapter ingestion seam
+- keep walker-specific handling inside that adapter seam rather than in `overlay-manager`, `replay-clock`, `scene-preset`, or the general satellite contract
+- keep TLE parsing, SGP4 propagation, and any TEME / ECI to repo-facing ECEF or other Cesium-consumable conversion inside the adapter layer
+- use `epochMode: "relative-to-now"` as the repo-owned default for the Phase 4 smoke TLE ingestion path, while treating that default as smoke-path-scoped rather than an immutable core-contract rule
+- do not wire the seam into `src/main.ts`
+- do not claim runtime overlay activation, entity/primitive/orbit rendering, HUD controls, or per-satellite UI in Phase 4.1
+
 Gate:
 
 - a minimal fixture can be loaded through an adapter seam
 - the fixture path is still treated as a smoke source, not the core domain model
-- time semantics and coordinate/frame conversions are documented, not left implicit
+- the walker smoke default and frame-conversion responsibility are documented, not left implicit
+- no runtime overlay path is turned on yet
 
 Review checkpoint: mandatory before Phase 5.
 
 - Refresh `docs/data-contracts/*.md`, `docs/architecture.md`, and this file.
+- Confirm that Phase 4.1 stayed at the walker fixture adapter ingestion seam and did not widen into runtime overlay wiring.
 - Explicitly record the chosen `epochMode`, frame assumptions, and the required conversion path when external propagation output is not already in the runtime-ready frame.
 - If fixture reality breaks the planned contracts, update the contracts first, then continue.
 
 ## Phase 5
 
-Goal: add the first satellite overlay without degrading the globe baseline.
+Goal: add the first satellite overlay/runtime-rendering path without degrading the globe baseline.
 
 Gate:
 

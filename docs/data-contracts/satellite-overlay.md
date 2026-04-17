@@ -2,7 +2,7 @@
 
 ## Purpose
 
-`satellite-overlay` fixes the repo-facing serializable boundary for future satellite fixture ingestion and overlay runtime work without turning that runtime on in Phase 3. In the current repo state, it documents the public data shapes, the adapter interface, and the ownership split between `overlay-manager` and a later concrete satellite adapter.
+`satellite-overlay` fixes the repo-facing serializable boundary for future satellite fixture ingestion and later overlay runtime work without claiming that either path is active in the current repo. In the current repo reality, Phase 3 stops at the public data shapes, the adapter interface, and the ownership split between `overlay-manager` and a later concrete satellite adapter. Phase 4 wording here records the smallest allowed fixture-ingestion seam while keeping Phase 5 as the first overlay runtime/rendering phase.
 
 ## Public Shape
 
@@ -66,6 +66,15 @@ The public contract does not expose Cesium runtime classes such as:
 
 The current repo state fixes the outer data contract only. Any later conversion from plain-data fixture/sample input into Cesium runtime types belongs inside a concrete adapter implementation, not in the public contract and not in `overlay-manager`.
 
+If a future fixture source arrives as TLE / SGP4 / TEME / ECI data rather than repo-facing samples, the adapter owns:
+
+- parsing the source fixture
+- propagation and time application
+- frame conversion into repo-facing ECEF sample data or other adapter-local Cesium-consumable forms
+- any later construction of Cesium runtime classes after that conversion
+
+That responsibility does not move into `overlay-manager`, and it does not widen this public contract to expose Cesium runtime classes.
+
 ## Ownership Boundary
 
 ### `SatelliteOverlayAdapter`
@@ -75,6 +84,7 @@ The adapter seam owns:
 - fixture loading through `loadFixture(...)`
 - binding itself to an external `ReplayClock`
 - adapter-local visibility application
+- adapter-local parsing, propagation, and frame conversion when the source is not already repo-facing sample data
 - final disposal of adapter-owned runtime resources
 
 The adapter seam does not currently imply:
@@ -97,7 +107,9 @@ The adapter seam does not currently imply:
 - fixture ingestion
 - TLE parsing
 - CZML interpretation
-- coordinate/frame conversion
+- SGP4 propagation
+- TEME / ECI to repo-facing ECEF or other Cesium-consumable conversion
+- Cesium runtime object construction for satellite data
 - per-satellite data modeling
 
 That split is already reflected in source: `overlay-manager` imports the formal satellite module seam, but it does not add fixture-specific methods or a concrete runtime path.
@@ -115,13 +127,39 @@ In the current repo state:
 
 ## Walker Fixture Boundary
 
-The walker 18-sat TLE line is not part of the core contract.
+The walker 18-sat TLE line is a Phase 4 smoke/source fixture, not part of the core contract.
 
-- the repo-owned copied fixture asset under `public/fixtures/satellites/walker-o6-s3-i45-h698.tle` is a smoke source, not a public contract default
+- the repo-owned copied fixture asset under `public/fixtures/satellites/walker-o6-s3-i45-h698.tle` is a smoke source for future fixture ingestion, not a public contract default
+- any walker-specific handling belongs inside a future `walker-fixture-adapter`-style ingestion seam rather than in `overlay-manager`, `replay-clock`, `scene-preset`, or the general satellite contract
 - the number `18` must not leak into `overlay-manager`, `scene-preset`, `replay-clock`, or other core repo contracts
 - this contract does not require walker-specific ids, names, counts, or preset behavior
 
 The current repo already preserves that separation by exposing only the generic `tle` / `czml` / `sample-series` fixture union and not shipping a walker-specific adapter.
+
+## Phase 4 Smoke Default
+
+For the future Phase 4 smoke/source ingestion path that uses the copied walker TLE fixture, the repo-owned default is `epochMode: "relative-to-now"`.
+
+- this default is scoped to the TLE smoke/fixture ingestion path only
+- it is not an immutable core-contract rule for all future adapters or fixture kinds
+- later formal/regression feeds may set `epochMode: "absolute"` or another explicit policy as needed
+- the current repo does not implement this default yet because no concrete adapter exists
+
+## Phase 4 And Phase 5 Boundary
+
+Current repo reality remains unchanged:
+
+- no concrete satellite adapter implementation exists yet
+- `src/features/satellites/walker-fixture-adapter.ts` does not exist
+- no satellite or overlay runtime path is wired into `src/main.ts`
+- no fixture ingestion behavior is active in the runtime
+
+Hard boundary for the future Phase 4.1 slice:
+
+- Phase 4.1 stops at the walker fixture adapter ingestion seam
+- that seam may load the copied walker TLE through `loadFixture(...)` and keep parsing, propagation, frame conversion, and ingestion-local bookkeeping inside the adapter
+- Phase 4.1 does not imply runtime overlay activation, `src/main.ts` wiring, entity/primitive/orbit rendering, HUD controls, or per-satellite UI
+- Phase 5 is the first phase that may introduce overlay runtime/rendering work on top of the Phase 4 ingestion seam
 
 ## Not-Yet-Implemented
 
@@ -132,9 +170,10 @@ This contract does not currently include:
 - live satellite entities, primitives, or sampled properties
 - TLE propagation
 - coordinate/frame conversion logic
-- a chosen default `epochMode`
+- `src/main.ts` wiring for fixture ingestion or overlay activation
 - per-satellite visibility control
-- Phase 4 fixture ingestion behavior
+- HUD controls or per-satellite UI
+- any implemented Phase 4 fixture ingestion behavior
 
 ## Related
 
