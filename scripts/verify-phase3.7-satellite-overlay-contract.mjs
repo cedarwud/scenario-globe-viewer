@@ -1,5 +1,4 @@
 import assert from "node:assert/strict";
-import { existsSync } from "node:fs";
 import { readFile } from "node:fs/promises";
 
 const satelliteAdapterPath = new URL(
@@ -15,10 +14,6 @@ const overlayManagerPath = new URL(
   import.meta.url
 );
 const mainPath = new URL("../src/main.ts", import.meta.url);
-const walkerAdapterPath = new URL(
-  "../src/features/satellites/walker-fixture-adapter.ts",
-  import.meta.url
-);
 
 const [adapterSource, indexSource, overlayManagerSource, mainSource] =
   await Promise.all([
@@ -173,8 +168,8 @@ assert(
   "Phase 3.7 must keep overlay-manager off the live runtime path."
 );
 assert(
-  !existsSync(walkerAdapterPath),
-  "Phase 3.7 must not introduce src/features/satellites/walker-fixture-adapter.ts."
+  !mainSource.includes("walker-fixture-adapter"),
+  "Phase 3.7 satellite interface must stay off the live runtime path even after Phase 4.1."
 );
 
 console.log("Phase 3.7 satellite adapter contract verification passed.");

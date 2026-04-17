@@ -196,12 +196,13 @@ Review checkpoint: mandatory before Phase 4.
 
 Goal: land the smallest real fixture-ingestion path without coupling the core to a donor format.
 
-Current repo reality before any Phase 4 implementation:
+Current repo reality after Phase 4.1:
 
-- the formal `SatelliteOverlayAdapter` contract exists, but no concrete adapter implementation exists yet
+- the formal `SatelliteOverlayAdapter` contract still defines the public serializable boundary
+- a concrete walker fixture adapter now exists at `src/features/satellites/walker-fixture-adapter.ts`
 - the copied walker TLE under `public/fixtures/satellites/walker-o6-s3-i45-h698.tle` is only a smoke/source fixture
 - no satellite or overlay runtime path is wired into `src/main.ts`
-- no fixture ingestion behavior is active in the runtime
+- fixture ingestion is now adapter-local only and remains inactive on the live runtime path
 
 Hard boundary for the first `4.1` slice:
 

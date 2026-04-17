@@ -17,12 +17,14 @@
     "test:phase3.5": "npm run build && node tests/smoke/verify-phase3.5-timeline-hud-placeholder.mjs",
     "test:phase3.6": "node scripts/verify-phase3.6-overlay-manager-contract.mjs",
     "test:phase3.7": "node scripts/verify-phase3.7-satellite-overlay-contract.mjs",
+    "test:phase4.1": "node scripts/verify-phase4.1-walker-fixture-adapter.mjs",
     "capture:phase2.12": "node scripts/site-hook-guard.mjs --context=phase2.12-capture && npm run build && node tests/visual/capture-three-preset-baselines.mjs",
     "capture:site-dataset": "node scripts/site-dataset-visual-orchestration.mjs",
     "preview": "vite preview"
   },
   "dependencies": {
-    "cesium": "1.140.0"
+    "cesium": "1.140.0",
+    "satellite.js": "7.0.0"
   },
   "devDependencies": {
     "typescript": "^6.0.2",

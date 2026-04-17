@@ -1,5 +1,4 @@
 import assert from "node:assert/strict";
-import { existsSync } from "node:fs";
 import { readFile } from "node:fs/promises";
 
 const overlayManagerPath = new URL(
@@ -8,10 +7,6 @@ const overlayManagerPath = new URL(
 );
 const overlayIndexPath = new URL("../src/features/overlays/index.ts", import.meta.url);
 const mainPath = new URL("../src/main.ts", import.meta.url);
-const walkerAdapterPath = new URL(
-  "../src/features/satellites/walker-fixture-adapter.ts",
-  import.meta.url
-);
 
 const [overlayManagerSource, overlayIndexSource, mainSource] = await Promise.all([
   readFile(overlayManagerPath, "utf8"),
@@ -107,8 +102,8 @@ assert(
 );
 
 assert(
-  !existsSync(walkerAdapterPath),
-  "Phase 3.6 must not introduce src/features/satellites/walker-fixture-adapter.ts."
+  !mainSource.includes("walker-fixture-adapter"),
+  "Phase 3.6 overlay manager seam must stay off the live runtime path even after Phase 4.1."
 );
 
 console.log("Phase 3.6 overlay-manager contract verification passed.");
