@@ -141,6 +141,7 @@ function resolveSmokeSuite() {
   assert(
     suite === "baseline" ||
       suite === "cleanup-baseline" ||
+      suite === "overlay-toggle" ||
       suite === "showcase" ||
       suite === "showcase-env" ||
       suite === "site-dataset" ||
@@ -177,6 +178,16 @@ async function evaluateValue(client, expression) {
   const evaluation = await client.send("Runtime.evaluate", {
     expression,
     returnByValue: true
+  });
+
+  return evaluation.result.value;
+}
+
+async function evaluatePromiseValue(client, expression) {
+  const evaluation = await client.send("Runtime.evaluate", {
+    expression,
+    returnByValue: true,
+    awaitPromise: true
   });
 
   return evaluation.result.value;
@@ -416,6 +427,15 @@ async function readBootstrapState(client) {
         sceneFogMinimumBrightness:
           root?.dataset.sceneFogMinimumBrightness ?? null,
         sceneBloomActive: root?.dataset.sceneBloomActive ?? null,
+        satelliteOverlayMode: root?.dataset.satelliteOverlayMode ?? null,
+        satelliteOverlaySource: root?.dataset.satelliteOverlaySource ?? null,
+        satelliteOverlayState: root?.dataset.satelliteOverlayState ?? null,
+        satelliteOverlayDetail: root?.dataset.satelliteOverlayDetail ?? null,
+        satelliteOverlayRenderMode:
+          root?.dataset.satelliteOverlayRenderMode ?? null,
+        satelliteOverlayPointCount: Number(
+          root?.dataset.satelliteOverlayPointCount ?? "0"
+        ),
         hasViewerShell: Boolean(document.querySelector('.cesium-viewer')),
         hasHudFrame: Boolean(hudFrame),
         hudVisibility:
@@ -435,7 +455,79 @@ async function readBootstrapState(client) {
         hasLightingToggleDisabled:
           lightingToggle?.getAttribute('data-lighting-enabled') === 'false',
         hasUnpressedLightingToggle:
-          lightingToggle?.getAttribute('aria-pressed') === 'false'
+          lightingToggle?.getAttribute('aria-pressed') === 'false',
+        satelliteOverlayControlCount: document.querySelectorAll(
+          '[data-satellite-overlay-control]'
+        ).length,
+        perSatelliteControlCount:
+          document.querySelectorAll('[data-satellite-control]').length
+      };
+    })()`
+  );
+}
+
+async function readSatelliteOverlayRuntime(client) {
+  return await evaluateValue(
+    client,
+    `(() => {
+      const root = document.documentElement;
+      const capture = window.__SCENARIO_GLOBE_VIEWER_CAPTURE__;
+      const controllerState = capture?.satelliteOverlay?.getState?.() ?? null;
+      const viewer = capture?.viewer;
+      const dataSourceNames = [];
+      let projectedPointCount = 0;
+
+      if (viewer) {
+        for (let index = 0; index < viewer.dataSources.length; index += 1) {
+          const dataSource = viewer.dataSources.get(index);
+          dataSourceNames.push(typeof dataSource.name === "string" ? dataSource.name : "");
+
+          if (dataSource.name !== "walker-point-overlay") {
+            continue;
+          }
+
+          for (const entity of dataSource.entities.values) {
+            if (!entity.point || !entity.position) {
+              continue;
+            }
+
+            const position =
+              typeof entity.position.getValue === "function"
+                ? entity.position.getValue(viewer.clock.currentTime)
+                : null;
+            if (!position) {
+              continue;
+            }
+
+            const canvasPoint = viewer.scene.cartesianToCanvasCoordinates(position);
+            if (
+              canvasPoint &&
+              canvasPoint.x >= 0 &&
+              canvasPoint.y >= 0 &&
+              canvasPoint.x <= viewer.canvas.clientWidth &&
+              canvasPoint.y <= viewer.canvas.clientHeight
+            ) {
+              projectedPointCount += 1;
+            }
+          }
+        }
+      }
+
+      return {
+        overlayMode: root?.dataset.satelliteOverlayMode ?? null,
+        overlaySource: root?.dataset.satelliteOverlaySource ?? null,
+        overlayState: root?.dataset.satelliteOverlayState ?? null,
+        overlayDetail: root?.dataset.satelliteOverlayDetail ?? null,
+        overlayRenderMode: root?.dataset.satelliteOverlayRenderMode ?? null,
+        overlayPointCount: Number(root?.dataset.satelliteOverlayPointCount ?? "0"),
+        satelliteOverlayControlCount: document.querySelectorAll(
+          '[data-satellite-overlay-control]'
+        ).length,
+        perSatelliteControlCount:
+          document.querySelectorAll('[data-satellite-control]').length,
+        controllerState,
+        dataSourceNames,
+        projectedPointCount
       };
     })()`
   );
@@ -934,7 +1026,154 @@ function baselineShellMatchesExpectation(lastState) {
     lastState.timePlaceholderFieldCount === 5 &&
     lastState.hasLightingToggle &&
     lastState.hasLightingToggleDisabled &&
-    lastState.hasUnpressedLightingToggle
+    lastState.hasUnpressedLightingToggle &&
+    lastState.satelliteOverlayMode === "off" &&
+    lastState.satelliteOverlaySource === "default-off" &&
+    lastState.satelliteOverlayState === "disabled" &&
+    lastState.satelliteOverlayRenderMode === "point-only" &&
+    lastState.satelliteOverlayPointCount === 0 &&
+    lastState.satelliteOverlayControlCount === 0 &&
+    lastState.perSatelliteControlCount === 0
+  );
+}
+
+async function setSatelliteOverlayMode(client, mode) {
+  return await evaluatePromiseValue(
+    client,
+    `(() => {
+      const capture = window.__SCENARIO_GLOBE_VIEWER_CAPTURE__;
+      if (!capture?.satelliteOverlay?.setMode) {
+        throw new Error("Missing repo-owned satellite overlay controller.");
+      }
+
+      return capture.satelliteOverlay.setMode(${JSON.stringify(mode)});
+    })()`
+  );
+}
+
+function assertNoSatelliteOverlayControls(runtimeState, scenarioLabel) {
+  assert(
+    runtimeState.satelliteOverlayControlCount === 0,
+    `Overlay UI controls must stay absent during ${scenarioLabel}: ${JSON.stringify(runtimeState)}`
+  );
+  assert(
+    runtimeState.perSatelliteControlCount === 0,
+    `Per-satellite controls must stay absent during ${scenarioLabel}: ${JSON.stringify(runtimeState)}`
+  );
+}
+
+async function verifySatelliteOverlayToggle(client, scenarioLabel) {
+  const initialState = await readSatelliteOverlayRuntime(client);
+  assert(
+    initialState.overlayMode === "off" &&
+      initialState.overlaySource === "default-off" &&
+      initialState.overlayState === "disabled" &&
+      initialState.overlayRenderMode === "point-only" &&
+      initialState.overlayPointCount === 0,
+    `Expected default globe-only overlay-off state during ${scenarioLabel}: ${JSON.stringify(initialState)}`
+  );
+  assertNoSatelliteOverlayControls(initialState, `${scenarioLabel}/initial-off`);
+  assert(
+    !initialState.dataSourceNames.includes("walker-point-overlay"),
+    `Overlay data source must stay detached while off during ${scenarioLabel}: ${JSON.stringify(initialState)}`
+  );
+  assert(
+    (initialState.controllerState?.overlayManager?.entries?.length ?? -1) === 0,
+    `Overlay manager must start empty during ${scenarioLabel}: ${JSON.stringify(initialState)}`
+  );
+
+  await setSatelliteOverlayMode(client, "walker-points");
+  await waitForCondition(
+    client,
+    `${scenarioLabel} overlay enabled`,
+    `(() => {
+      const root = document.documentElement;
+      return root?.dataset.satelliteOverlayMode === "walker-points" &&
+        root?.dataset.satelliteOverlaySource === "runtime" &&
+        root?.dataset.satelliteOverlayState === "ready" &&
+        root?.dataset.satelliteOverlayPointCount === "18";
+    })()`
+  );
+
+  const enabledState = await readSatelliteOverlayRuntime(client);
+  assert(
+    enabledState.overlayMode === "walker-points" &&
+      enabledState.overlaySource === "runtime" &&
+      enabledState.overlayState === "ready" &&
+      enabledState.overlayRenderMode === "point-only" &&
+      enabledState.overlayPointCount === 18,
+    `Expected walker point overlay to become ready during ${scenarioLabel}: ${JSON.stringify(enabledState)}`
+  );
+  assert(
+    enabledState.controllerState?.pointCount === 18 &&
+      enabledState.controllerState?.satCount === 18 &&
+      enabledState.controllerState?.labelCount === 0 &&
+      enabledState.controllerState?.pathCount === 0 &&
+      enabledState.controllerState?.polylineCount === 0 &&
+      enabledState.controllerState?.dataSourceAttached === true &&
+      enabledState.controllerState?.visible === true,
+    `Overlay runtime must stay point-only during ${scenarioLabel}: ${JSON.stringify(enabledState)}`
+  );
+  assert(
+    enabledState.controllerState?.overlayManager?.entries?.length === 1 &&
+      enabledState.controllerState.overlayManager.entries[0]?.overlayId === "walker-points" &&
+      enabledState.controllerState.overlayManager.entries[0]?.adapterAttached === true &&
+      enabledState.controllerState.overlayManager.entries[0]?.visible === true,
+    `Overlay manager must report one visible walker overlay during ${scenarioLabel}: ${JSON.stringify(enabledState)}`
+  );
+  assert(
+    enabledState.dataSourceNames.includes("walker-point-overlay"),
+    `Overlay runtime must attach a walker point data source during ${scenarioLabel}: ${JSON.stringify(enabledState)}`
+  );
+  assert(
+    enabledState.projectedPointCount > 0,
+    `Expected at least one walker point to project into the active view during ${scenarioLabel}: ${JSON.stringify(enabledState)}`
+  );
+  assertNoSatelliteOverlayControls(enabledState, `${scenarioLabel}/enabled`);
+  assertDesktopHudStatusOnlyState(
+    await readHudLayoutState(client),
+    `${scenarioLabel}/enabled`
+  );
+
+  await setSatelliteOverlayMode(client, "off");
+  await waitForCondition(
+    client,
+    `${scenarioLabel} overlay disabled again`,
+    `(() => {
+      const root = document.documentElement;
+      return root?.dataset.satelliteOverlayMode === "off" &&
+        root?.dataset.satelliteOverlaySource === "runtime" &&
+        root?.dataset.satelliteOverlayState === "disabled" &&
+        root?.dataset.satelliteOverlayPointCount === "0";
+    })()`
+  );
+
+  const disabledState = await readSatelliteOverlayRuntime(client);
+  assert(
+    disabledState.overlayMode === "off" &&
+      disabledState.overlaySource === "runtime" &&
+      disabledState.overlayState === "disabled" &&
+      disabledState.overlayRenderMode === "point-only" &&
+      disabledState.overlayPointCount === 0,
+    `Expected overlay-off cleanup state during ${scenarioLabel}: ${JSON.stringify(disabledState)}`
+  );
+  assert(
+    disabledState.controllerState?.overlayManager?.entries?.length === 0 &&
+      disabledState.controllerState?.dataSourceAttached === false &&
+      disabledState.controllerState?.pointCount === 0 &&
+      disabledState.controllerState?.labelCount === 0 &&
+      disabledState.controllerState?.pathCount === 0 &&
+      disabledState.controllerState?.polylineCount === 0,
+    `Overlay cleanup must fully detach the walker point runtime during ${scenarioLabel}: ${JSON.stringify(disabledState)}`
+  );
+  assert(
+    !disabledState.dataSourceNames.includes("walker-point-overlay"),
+    `Walker point data source must be removed after disabling during ${scenarioLabel}: ${JSON.stringify(disabledState)}`
+  );
+  assertNoSatelliteOverlayControls(disabledState, `${scenarioLabel}/disabled-again`);
+  assertDesktopHudStatusOnlyState(
+    await readHudLayoutState(client),
+    `${scenarioLabel}/disabled-again`
   );
 }
 
@@ -1240,11 +1479,34 @@ async function verifyBootstrapInHeadlessBrowser(baseUrl, suite) {
       requireFullBaselineState: true
     }
   ];
+  const overlayToggleScenarios = [
+    {
+      label: "default-global-overlay-toggle",
+      requestPath: "/",
+      expectedScenePreset: "global",
+      expectedBuildingShowcase: {
+        key: "off",
+        source: "default-off",
+        allowedStates: ["disabled"]
+      },
+      expectedSiteTileset: dormantSiteTileset,
+      viewport: desktopViewport,
+      validateLayout: (layoutState) => {
+        assertDesktopHudStatusOnlyState(layoutState, "default-global-overlay-toggle");
+      },
+      runAfterReady: async (client) => {
+        await verifySatelliteOverlayToggle(client, "default-global-overlay-toggle");
+      },
+      requireFullBaselineState: true
+    }
+  ];
   const scenarios =
     suite === "baseline"
       ? baselineScenarios
       : suite === "cleanup-baseline"
         ? cleanupBaselineScenarios
+        : suite === "overlay-toggle"
+          ? overlayToggleScenarios
         : suite === "showcase"
         ? showcaseScenarios
         : suite === "showcase-env"

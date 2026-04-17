@@ -2,7 +2,7 @@
 
 ## Purpose
 
-`satellite-overlay` fixes the repo-facing serializable boundary for future satellite fixture ingestion and later overlay runtime work without claiming that either path is active in the current repo. In the current repo reality, Phase 3 stops at the public data shapes, the adapter interface, and the ownership split between `overlay-manager` and a later concrete satellite adapter. Phase 4 wording here records the smallest allowed fixture-ingestion seam while keeping Phase 5 as the first overlay runtime/rendering phase.
+`satellite-overlay` fixes the repo-facing serializable boundary for satellite fixture ingestion and overlay runtime work without widening the public contract whenever the live runtime changes. In the current repo reality, Phase 3 defines the public data shapes, the adapter interface, and the ownership split between `overlay-manager` and a later concrete satellite adapter. Phase 4 records the smallest allowed fixture-ingestion seam, and Phase 5.1 now layers a minimal point-only runtime path on top of that seam while keeping the public contract itself stable.
 
 ## Public Shape
 
@@ -64,7 +64,7 @@ The public contract does not expose Cesium runtime classes such as:
 - `Entity`
 - `SampledPositionProperty`
 
-The current repo state fixes the outer data contract only. Any later conversion from plain-data fixture/sample input into Cesium runtime types belongs inside a concrete adapter implementation, not in the public contract and not in `overlay-manager`.
+The public contract fixes the outer data boundary even now that the repo has a minimal Phase 5.1 runtime path. Any conversion from plain-data fixture/sample input into Cesium runtime types belongs inside a concrete adapter implementation, not in the public contract and not in `overlay-manager`.
 
 If a future fixture source arrives as TLE / SGP4 / TEME / ECI data rather than repo-facing samples, the adapter owns:
 
@@ -87,10 +87,9 @@ The adapter seam owns:
 - adapter-local parsing, propagation, and frame conversion when the source is not already repo-facing sample data
 - final disposal of adapter-owned runtime resources
 
-The adapter seam does not currently imply:
+The adapter seam does not, by itself, imply:
 
 - a concrete implementation
-- live runtime wiring in `src/main.ts`
 - walker-specific assumptions
 - overlay registry ownership
 
@@ -121,8 +120,10 @@ In the current repo state:
 - the public contract lives in `src/features/satellites/adapter.ts` and is re-exported from `src/features/satellites/index.ts`
 - `overlay-manager` depends on the formal `SatelliteOverlayAdapter` interface through `../satellites`, not through a concrete adapter file
 - a concrete Phase 4.1 walker fixture adapter now exists at `src/features/satellites/walker-fixture-adapter.ts`
-- no satellite or overlay runtime path is wired into `src/main.ts`
-- fixture ingestion now exists only inside that adapter seam; it is still inactive on the live runtime path
+- Phase 5.1 now adds runtime-specific modules under `src/runtime/`, including `runtime-overlay-manager.ts`, `walker-point-overlay-adapter.ts`, and `satellite-overlay-controller.ts`
+- the repo-owned top-level overlay controller stays off by default, is exposed only through the existing capture seam, and is the single control surface for turning the first overlay path on or off
+- enabling that controller loads the copied walker TLE fixture through the existing walker adapter seam and renders point-only entities only
+- disabling that controller detaches the point overlay cleanly so globe-only validation remains available
 
 ## Walker Fixture Boundary
 
@@ -146,27 +147,28 @@ For the future Phase 4 smoke/source ingestion path that uses the copied walker T
 
 ## Phase 4 And Phase 5 Boundary
 
-Current repo reality remains unchanged:
+Current repo reality after Phase 5.1:
 
-- a concrete Phase 4.1 walker fixture adapter now exists at `src/features/satellites/walker-fixture-adapter.ts`
-- no satellite or overlay runtime path is wired into `src/main.ts`
-- runtime overlay activation is still inactive; fixture ingestion remains adapter-local only
+- a concrete Phase 4.1 walker fixture adapter still owns fixture loading, propagation, and frame conversion at `src/features/satellites/walker-fixture-adapter.ts`
+- Phase 5.1 now consumes that seam through runtime-specific point-only modules under `src/runtime/`
+- the default startup path keeps the overlay disabled, and the first live toggle path is limited to repo-owned walker-backed points only
+- Phase 5.1 does not widen into labels, orbit rendering, per-satellite controls, or overlay HUD controls
 
 Hard boundary for the future Phase 4.1 slice:
 
 - Phase 4.1 stops at the walker fixture adapter ingestion seam
 - that seam may load the copied walker TLE through `loadFixture(...)` and keep parsing, propagation, frame conversion, and ingestion-local bookkeeping inside the adapter
 - Phase 4.1 does not imply runtime overlay activation, `src/main.ts` wiring, entity/primitive/orbit rendering, HUD controls, or per-satellite UI
-- Phase 5 is the first phase that may introduce overlay runtime/rendering work on top of the Phase 4 ingestion seam
+- Phase 5.1 is the first landed slice that introduces overlay runtime/rendering work on top of the Phase 4 ingestion seam, and it is explicitly limited to point-only rendering plus a single top-level enable/disable control surface
 
 ## Not-Yet-Implemented
 
 This contract does not currently include:
 
-- live satellite entities, primitives, or sampled properties
-- `src/main.ts` wiring for fixture ingestion or overlay activation
+- label rendering or orbit polylines on the live satellite path
 - per-satellite visibility control
-- HUD controls or per-satellite UI
+- HUD controls or user-facing overlay UI
+- richer scenario data or additional fixture classifications beyond the current walker-backed point path
 
 ## Related
 

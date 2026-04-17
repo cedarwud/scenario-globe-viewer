@@ -1,7 +1,16 @@
+import { fileURLToPath } from "node:url";
+
 import { defineConfig } from "vite";
 import { viteStaticCopy } from "vite-plugin-static-copy";
 
 export default defineConfig({
+  resolve: {
+    alias: {
+      "satellite.js": fileURLToPath(
+        new URL("./src/vendor/satellite-js-runtime.ts", import.meta.url)
+      )
+    }
+  },
   plugins: [
     viteStaticCopy({
       targets: [

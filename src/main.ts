@@ -14,6 +14,10 @@ import {
 import { createCesiumReplayClock } from "./features/time/cesium-replay-clock";
 import { mountTimelineHudPlaceholder } from "./features/time/timeline-hud-placeholder";
 import type { ReplayClock } from "./features/time";
+import {
+  createSatelliteOverlayController,
+  type SatelliteOverlayController
+} from "./runtime/satellite-overlay-controller";
 import "./styles.css";
 
 type BootstrapState = "booting" | "ready" | "error";
@@ -24,6 +28,7 @@ declare global {
     __SCENARIO_GLOBE_VIEWER_CAPTURE__?: {
       viewer: ViewerInstance;
       replayClock: ReplayClock;
+      satelliteOverlay: SatelliteOverlayController;
     };
   }
 }
@@ -116,12 +121,20 @@ const unmountTimelineHudPlaceholder = mountTimelineHudPlaceholder({
   statusPanel,
   replayClock
 });
+const satelliteOverlay = createSatelliteOverlayController({
+  viewer,
+  replayClock
+});
 // Phase 2.12 capture harnesses need a narrow viewer handle so they can wait for
 // the active camera/tiles state to settle without rewriting preset framing or
 // the native shell. The replay-clock stays on that same narrow capture seam for
 // targeted validation even though Phase 3.5 now also reads plain clock state
 // locally for the repo-owned status-panel placeholder.
-window.__SCENARIO_GLOBE_VIEWER_CAPTURE__ = { viewer, replayClock };
+window.__SCENARIO_GLOBE_VIEWER_CAPTURE__ = {
+  viewer,
+  replayClock,
+  satelliteOverlay
+};
 syncVisualBaselineState(viewer);
 const unmountLightingToggle = mountLightingToggle(viewer);
 const unmountOsmBuildingsShowcase = mountOptionalOsmBuildingsShowcase(
@@ -149,6 +162,7 @@ if (import.meta.hot) {
     unmountOsmBuildingsShowcase();
     unmountLightingToggle();
     unmountTimelineHudPlaceholder();
+    void satelliteOverlay.dispose();
     viewer.destroy();
   });
 }

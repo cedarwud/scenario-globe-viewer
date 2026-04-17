@@ -1,0 +1,241 @@
+import type { Viewer } from "cesium";
+
+import type { OverlayManagerState } from "../features/overlays/overlay-manager";
+import type { ReplayClock } from "../features/time";
+import { createRuntimeOverlayManager } from "./runtime-overlay-manager";
+import {
+  createWalkerPointOverlayAdapter,
+  type WalkerPointOverlayRuntimeAdapter,
+  type WalkerPointOverlayRuntimeState
+} from "./walker-point-overlay-adapter";
+
+export type SatelliteOverlayMode = "off" | "walker-points";
+export type SatelliteOverlaySource = "default-off" | "runtime";
+export type SatelliteOverlayStatus = "disabled" | "loading" | "ready" | "error";
+
+export interface SatelliteOverlayControllerState {
+  detail: string | null;
+  labelCount: number;
+  mode: SatelliteOverlayMode;
+  overlayManager: OverlayManagerState;
+  pathCount: number;
+  pointCount: number;
+  polylineCount: number;
+  renderMode: "point-only";
+  sampleTime: string | number | null;
+  satCount: number;
+  source: SatelliteOverlaySource;
+  status: SatelliteOverlayStatus;
+  dataSourceAttached: boolean;
+  visible: boolean;
+}
+
+export interface SatelliteOverlayController {
+  getState(): SatelliteOverlayControllerState;
+  setMode(mode: SatelliteOverlayMode): Promise<SatelliteOverlayControllerState>;
+  toggle(): Promise<SatelliteOverlayControllerState>;
+  dispose(): Promise<void>;
+}
+
+const WALKER_OVERLAY_ID = "walker-points";
+const WALKER_TLE_FIXTURE_PATH =
+  "fixtures/satellites/walker-o6-s3-i45-h698.tle";
+
+function serializeOverlayError(reason: unknown): string {
+  if (reason instanceof Error) {
+    return reason.message;
+  }
+
+  if (typeof reason === "string") {
+    return reason;
+  }
+
+  try {
+    return JSON.stringify(reason);
+  } catch {
+    return "Unknown overlay error";
+  }
+}
+
+function createEmptyRuntimeState(): WalkerPointOverlayRuntimeState {
+  return {
+    dataSourceAttached: false,
+    entityCount: 0,
+    pointCount: 0,
+    labelCount: 0,
+    pathCount: 0,
+    polylineCount: 0,
+    sampleTime: null,
+    satCount: 0,
+    visible: false
+  };
+}
+
+function createControllerState(
+  mode: SatelliteOverlayMode,
+  source: SatelliteOverlaySource,
+  status: SatelliteOverlayStatus,
+  detail: string | null,
+  overlayManager: OverlayManagerState,
+  runtimeState: WalkerPointOverlayRuntimeState
+): SatelliteOverlayControllerState {
+  return {
+    detail,
+    labelCount: runtimeState.labelCount,
+    mode,
+    overlayManager,
+    pathCount: runtimeState.pathCount,
+    pointCount: runtimeState.pointCount,
+    polylineCount: runtimeState.polylineCount,
+    renderMode: "point-only",
+    sampleTime: runtimeState.sampleTime,
+    satCount: runtimeState.satCount,
+    source,
+    status,
+    dataSourceAttached: runtimeState.dataSourceAttached,
+    visible: runtimeState.visible
+  };
+}
+
+function syncOverlayDataset(state: SatelliteOverlayControllerState): void {
+  const { dataset } = document.documentElement;
+  dataset.satelliteOverlayMode = state.mode;
+  dataset.satelliteOverlaySource = state.source;
+  dataset.satelliteOverlayState = state.status;
+  dataset.satelliteOverlayPointCount = String(state.pointCount);
+  dataset.satelliteOverlayRenderMode = state.renderMode;
+
+  if (state.detail) {
+    dataset.satelliteOverlayDetail = state.detail.slice(0, 240);
+  } else {
+    delete dataset.satelliteOverlayDetail;
+  }
+}
+
+function resolveWalkerFixtureUrl(): string {
+  const publicBaseUrl = new URL(import.meta.env.BASE_URL, window.location.origin);
+  return new URL(WALKER_TLE_FIXTURE_PATH, publicBaseUrl).toString();
+}
+
+async function loadWalkerFixtureText(): Promise<string> {
+  const response = await fetch(resolveWalkerFixtureUrl());
+  if (!response.ok) {
+    throw new Error(
+      `Failed to load walker overlay fixture: ${response.status} ${response.statusText}`
+    );
+  }
+
+  return await response.text();
+}
+
+export function createSatelliteOverlayController({
+  viewer,
+  replayClock
+}: {
+  viewer: Viewer;
+  replayClock: ReplayClock;
+}): SatelliteOverlayController {
+  const overlayManager = createRuntimeOverlayManager();
+  let activeAdapter: WalkerPointOverlayRuntimeAdapter | undefined;
+  let currentMode: SatelliteOverlayMode = "off";
+  let currentSource: SatelliteOverlaySource = "default-off";
+  let currentStatus: SatelliteOverlayStatus = "disabled";
+  let currentDetail: string | null = null;
+
+  function readState(): SatelliteOverlayControllerState {
+    return createControllerState(
+      currentMode,
+      currentSource,
+      currentStatus,
+      currentDetail,
+      overlayManager.getState(),
+      activeAdapter?.getRuntimeState() ?? createEmptyRuntimeState()
+    );
+  }
+
+  function commitState(): SatelliteOverlayControllerState {
+    const state = readState();
+    syncOverlayDataset(state);
+    return state;
+  }
+
+  async function disableOverlay(source: SatelliteOverlaySource): Promise<void> {
+    currentMode = "off";
+    currentSource = source;
+    currentStatus = "disabled";
+    currentDetail = null;
+
+    if (activeAdapter) {
+      await overlayManager.detach(WALKER_OVERLAY_ID);
+      activeAdapter = undefined;
+    }
+
+    commitState();
+  }
+
+  async function enableWalkerOverlay(
+    source: SatelliteOverlaySource
+  ): Promise<SatelliteOverlayControllerState> {
+    if (activeAdapter) {
+      currentMode = "walker-points";
+      currentSource = source;
+      currentStatus = "ready";
+      currentDetail = null;
+      return commitState();
+    }
+
+    currentMode = "walker-points";
+    currentSource = source;
+    currentStatus = "loading";
+    currentDetail = null;
+    commitState();
+
+    const adapter = createWalkerPointOverlayAdapter(viewer);
+
+    try {
+      const fixtureText = await loadWalkerFixtureText();
+      adapter.attachToClock(replayClock);
+      await adapter.loadFixture({
+        kind: "tle",
+        tleText: fixtureText
+      });
+      await overlayManager.attach(WALKER_OVERLAY_ID, adapter);
+      activeAdapter = adapter;
+      currentStatus = "ready";
+      currentDetail = null;
+      return commitState();
+    } catch (error) {
+      await adapter.dispose();
+      currentStatus = "error";
+      currentDetail = serializeOverlayError(error);
+      commitState();
+      throw error;
+    }
+  }
+
+  commitState();
+
+  return {
+    getState(): SatelliteOverlayControllerState {
+      return commitState();
+    },
+
+    async setMode(mode: SatelliteOverlayMode): Promise<SatelliteOverlayControllerState> {
+      if (mode === "off") {
+        await disableOverlay("runtime");
+        return readState();
+      }
+
+      return await enableWalkerOverlay("runtime");
+    },
+
+    async toggle(): Promise<SatelliteOverlayControllerState> {
+      return await this.setMode(currentMode === "off" ? "walker-points" : "off");
+    },
+
+    async dispose(): Promise<void> {
+      await disableOverlay("runtime");
+      await overlayManager.dispose();
+    }
+  };
+}
