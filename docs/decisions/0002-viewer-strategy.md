@@ -24,4 +24,5 @@ When the first render path lands, keep the current built-in toolbar and timeline
 
 - Phase 1 can reach a working globe sooner because scene, data source, and attribution wiring arrive together.
 - Later UI work must account for `widgets.css` and an intentionally configured built-in control set rather than assuming either a zero-widget shell or an all-default shell forever.
+- The later repo-owned `scene-preset`, `replay-clock`, `overlay-manager`, and `SatelliteOverlayAdapter` seams remain layered on top of `Viewer` rather than replacing the native shell; see `docs/data-contracts/` for the current public contract boundaries.
 - If CSS isolation or render-loop control becomes an actual blocker, that blocker must be documented before this ADR is replaced.

@@ -6,6 +6,7 @@ Related structure: see [architecture.md](./architecture.md).
 Related evidence: see [cesium-evidence.md](./cesium-evidence.md).
 Related visual evidence: see [visual-baselines.md](./visual-baselines.md).
 Related deployment guidance: see [deployment-profiles.md](./deployment-profiles.md).
+Related contract docs: see [scene-preset.md](./data-contracts/scene-preset.md), [replay-clock.md](./data-contracts/replay-clock.md), and [satellite-overlay.md](./data-contracts/satellite-overlay.md).
 
 ## Current Snapshot
 
@@ -30,6 +31,7 @@ Related deployment guidance: see [deployment-profiles.md](./deployment-profiles.
 - The current replay-clock runtime is still intentionally narrow: it is exposed through the existing capture seam for targeted validation, consumed locally by the read-only timeline HUD placeholder through a plain-data formatter, prerecorded mode now behaves as a clamped playback clip on that same Cesium clock, and omitting `range` while entering prerecorded mode reuses the active `startTime`/`stopTime` interval explicitly.
 - Phase 3.6 now adds a repo-owned overlay manager interface under `src/features/overlays/`, and Phase 3.7 now adds a formal satellite adapter interface under `src/features/satellites/`; overlay state plus satellite fixture/sample data stay plain-data, `overlay-manager` now imports the formal adapter interface, and neither seam is wired into `src/main.ts`.
 - `npm run test:phase3.3` now verifies the real-time replay-clock slice directly in a headless browser, `npm run test:phase3.4` now verifies the prerecorded slice plus the return path back to real-time, `npm run test:phase3.5` now verifies the repo-owned timeline placeholder plus the preserved native toolbar/timeline/credits shell, `npm run test:phase3.6` now verifies the overlay-manager export seam plus the absence of Cesium-runtime, fixture-ingestion, and walker-adapter leakage in that contract, and `npm run test:phase3.7` now verifies the satellite adapter export seam plus the formal `overlay-manager` dependency without turning on runtime satellite behavior.
+- Phase 3.8 now records the landed scene-preset, replay-clock, and satellite-overlay boundaries under `docs/data-contracts/` so Phase 4 starts from explicit contract text rather than stale planning assumptions.
 - Formal site dataset integration MVP now exists on the existing configured `site` hook. The committed OSM Buildings slice remains showcase-only and must not be treated as a substitute for that dataset-backed `site` delivery line. ADR `0007-formal-site-dataset-integration-governance.md` remains the governing classification and boundary document for this line.
 - Dataset-enabled validation is now separate from the dormant baseline path: `npm run test:phase1:site-dataset` verifies the dataset-backed runtime, and `npm run capture:site-dataset` writes the separate review artifact under `docs/images/formal-site-dataset-mvp/`.
 - The current repo-owned dataset fixture is a validation-only asset. This MVP does not claim that formal Tier 1 / Tier 2 Profile A measurements are closed or that a final delivery AOI has already been provided.
