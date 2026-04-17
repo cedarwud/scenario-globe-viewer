@@ -1070,6 +1070,36 @@ async function kickSatelliteOverlayMode(client, mode) {
   );
 }
 
+async function startSatelliteOverlayModeRequest(client, mode, resultKey) {
+  return await evaluateValue(
+    client,
+    `(() => {
+      const capture = window.__SCENARIO_GLOBE_VIEWER_CAPTURE__;
+      if (!capture?.satelliteOverlay?.setMode) {
+        throw new Error("Missing repo-owned satellite overlay controller.");
+      }
+
+      const serializeError = (error) => {
+        if (error instanceof Error) {
+          return error.message;
+        }
+
+        return typeof error === "string" ? error : JSON.stringify(error);
+      };
+
+      window[${JSON.stringify(resultKey)}] = capture.satelliteOverlay
+        .setMode(${JSON.stringify(mode)})
+        .then((state) => ({ ok: true, state }))
+        .catch((error) => ({ ok: false, error: serializeError(error) }));
+      return true;
+    })()`
+  );
+}
+
+async function awaitSatelliteOverlayModeRequest(client, resultKey) {
+  return await evaluatePromiseValue(client, `window[${JSON.stringify(resultKey)}]`);
+}
+
 async function injectWalkerFixtureFetchDelay(client, delayMs) {
   return await evaluateValue(
     client,
@@ -1104,6 +1134,67 @@ async function injectWalkerFixtureFetchDelay(client, delayMs) {
 
       root[marker] = ${JSON.stringify(delayMs)};
       return true;
+    })()`
+  );
+}
+
+async function armWalkerPointOverlayRenderFailure(client) {
+  return await evaluateValue(
+    client,
+    `(() => {
+      const marker = "__SCENARIO_GLOBE_VIEWER_WALKER_POINT_RENDER_FAILURE__";
+      const capture = window.__SCENARIO_GLOBE_VIEWER_CAPTURE__;
+      const viewer = capture?.viewer;
+
+      if (!viewer?.dataSources?.add) {
+        throw new Error("Missing viewer dataSources.add for walker overlay failure injection.");
+      }
+
+      if (!window[marker]) {
+        const originalAdd = viewer.dataSources.add.bind(viewer.dataSources);
+        let failNextWalkerPointOverlay = false;
+
+        viewer.dataSources.add = function (...args) {
+          const [dataSource] = args;
+          const addResult = originalAdd(...args);
+
+          return Promise.resolve(addResult).then((resolvedDataSource) => {
+            const attachedDataSource = resolvedDataSource ?? dataSource;
+
+            if (
+              failNextWalkerPointOverlay &&
+              attachedDataSource?.name === "walker-point-overlay"
+            ) {
+              failNextWalkerPointOverlay = false;
+              const entityCollection = attachedDataSource.entities;
+              const originalGetOrCreateEntity =
+                entityCollection.getOrCreateEntity.bind(entityCollection);
+              let hasFailed = false;
+
+              entityCollection.getOrCreateEntity = function (...entityArgs) {
+                if (!hasFailed) {
+                  hasFailed = true;
+                  entityCollection.getOrCreateEntity = originalGetOrCreateEntity;
+                  throw new Error("Injected walker point overlay render failure.");
+                }
+
+                return originalGetOrCreateEntity(...entityArgs);
+              };
+            }
+
+            return resolvedDataSource;
+          });
+        };
+
+        window[marker] = {
+          arm() {
+            failNextWalkerPointOverlay = true;
+            return true;
+          }
+        };
+      }
+
+      return window[marker].arm();
     })()`
   );
 }
@@ -1206,6 +1297,35 @@ function assertWalkerPointOverlayLoadingState(runtimeState, scenarioLabel) {
   assert(
     runtimeState.walkerPointDataSourceCount === 0,
     `Overlay loading must not attach a walker point data source before readiness during ${scenarioLabel}: ${JSON.stringify(runtimeState)}`
+  );
+  assertNoSatelliteOverlayControls(runtimeState, scenarioLabel);
+}
+
+function assertWalkerPointOverlayErrorState(runtimeState, scenarioLabel) {
+  assert(
+    runtimeState.overlayMode === "walker-points" &&
+      runtimeState.overlaySource === "runtime" &&
+      runtimeState.overlayState === "error" &&
+      runtimeState.overlayRenderMode === "point-only" &&
+      runtimeState.overlayPointCount === 0 &&
+      typeof runtimeState.overlayDetail === "string" &&
+      runtimeState.overlayDetail.length > 0,
+    `Expected walker point overlay error state during ${scenarioLabel}: ${JSON.stringify(runtimeState)}`
+  );
+  assert(
+    runtimeState.controllerState?.overlayManager?.entries?.length === 0 &&
+      runtimeState.controllerState?.dataSourceAttached === false &&
+      runtimeState.controllerState?.pointCount === 0 &&
+      runtimeState.controllerState?.satCount === 0 &&
+      runtimeState.controllerState?.labelCount === 0 &&
+      runtimeState.controllerState?.pathCount === 0 &&
+      runtimeState.controllerState?.polylineCount === 0 &&
+      runtimeState.controllerState?.visible === false,
+    `Overlay error cleanup must leave no runtime residue during ${scenarioLabel}: ${JSON.stringify(runtimeState)}`
+  );
+  assert(
+    runtimeState.walkerPointDataSourceCount === 0,
+    `Failed enable must leave no walker point data source during ${scenarioLabel}: ${JSON.stringify(runtimeState)}`
   );
   assertNoSatelliteOverlayControls(runtimeState, scenarioLabel);
 }
@@ -1407,6 +1527,120 @@ async function verifySatelliteOverlayToggle(client, scenarioLabel) {
   assertDesktopHudStatusOnlyState(
     await readHudLayoutState(client),
     `${scenarioLabel}/final-disabled`
+  );
+
+  const failedEnableRequestKey =
+    "__SCENARIO_GLOBE_VIEWER_OVERLAY_FAILED_ENABLE_RESULT__";
+
+  await injectWalkerFixtureFetchDelay(client, 750);
+  await armWalkerPointOverlayRenderFailure(client);
+  await startSatelliteOverlayModeRequest(
+    client,
+    "walker-points",
+    failedEnableRequestKey
+  );
+  await waitForCondition(
+    client,
+    `${scenarioLabel} overlay loading before injected failure`,
+    `(() => {
+      const root = document.documentElement;
+      return root?.dataset.satelliteOverlayMode === "walker-points" &&
+        root?.dataset.satelliteOverlaySource === "runtime" &&
+        root?.dataset.satelliteOverlayState === "loading" &&
+        root?.dataset.satelliteOverlayPointCount === "0";
+    })()`
+  );
+
+  const loadingBeforeFailureState = await readSatelliteOverlayRuntime(client);
+  assertWalkerPointOverlayLoadingState(
+    loadingBeforeFailureState,
+    `${scenarioLabel}/loading-before-injected-failure`
+  );
+  assertDesktopHudStatusOnlyState(
+    await readHudLayoutState(client),
+    `${scenarioLabel}/loading-before-injected-failure`
+  );
+
+  await waitForCondition(
+    client,
+    `${scenarioLabel} overlay error after injected failure`,
+    `(() => {
+      const root = document.documentElement;
+      return root?.dataset.satelliteOverlayMode === "walker-points" &&
+        root?.dataset.satelliteOverlaySource === "runtime" &&
+        root?.dataset.satelliteOverlayState === "error" &&
+        root?.dataset.satelliteOverlayPointCount === "0";
+    })()`
+  );
+
+  const failedEnableResult = await awaitSatelliteOverlayModeRequest(
+    client,
+    failedEnableRequestKey
+  );
+  assert(
+    failedEnableResult?.ok === false &&
+      typeof failedEnableResult?.error === "string" &&
+      failedEnableResult.error.includes(
+        "Injected walker point overlay render failure."
+      ),
+    `Expected injected overlay enable failure during ${scenarioLabel}: ${JSON.stringify(failedEnableResult)}`
+  );
+
+  const failedEnableState = await readSatelliteOverlayRuntime(client);
+  assertWalkerPointOverlayErrorState(
+    failedEnableState,
+    `${scenarioLabel}/failed-enable`
+  );
+  assertDesktopHudStatusOnlyState(
+    await readHudLayoutState(client),
+    `${scenarioLabel}/failed-enable`
+  );
+
+  await setSatelliteOverlayMode(client, "walker-points");
+  await waitForCondition(
+    client,
+    `${scenarioLabel} overlay enabled after injected failure`,
+    `(() => {
+      const root = document.documentElement;
+      return root?.dataset.satelliteOverlayMode === "walker-points" &&
+        root?.dataset.satelliteOverlaySource === "runtime" &&
+        root?.dataset.satelliteOverlayState === "ready" &&
+        root?.dataset.satelliteOverlayPointCount === "18";
+    })()`
+  );
+
+  const enabledAfterFailureState = await readSatelliteOverlayRuntime(client);
+  assertWalkerPointOverlayReadyState(
+    enabledAfterFailureState,
+    `${scenarioLabel}/enabled-after-failure`
+  );
+  assertDesktopHudStatusOnlyState(
+    await readHudLayoutState(client),
+    `${scenarioLabel}/enabled-after-failure`
+  );
+
+  await setSatelliteOverlayMode(client, "off");
+  await waitForCondition(
+    client,
+    `${scenarioLabel} final overlay cleanup after injected failure`,
+    `(() => {
+      const root = document.documentElement;
+      return root?.dataset.satelliteOverlayMode === "off" &&
+        root?.dataset.satelliteOverlaySource === "runtime" &&
+        root?.dataset.satelliteOverlayState === "disabled" &&
+        root?.dataset.satelliteOverlayPointCount === "0";
+    })()`
+  );
+
+  const finalDisabledAfterFailureState = await readSatelliteOverlayRuntime(client);
+  assertWalkerPointOverlayDisabledState(
+    finalDisabledAfterFailureState,
+    `${scenarioLabel}/final-disabled-after-failure`,
+    "runtime"
+  );
+  assertDesktopHudStatusOnlyState(
+    await readHudLayoutState(client),
+    `${scenarioLabel}/final-disabled-after-failure`
   );
 }
 

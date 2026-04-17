@@ -163,38 +163,72 @@ export function createSatelliteOverlayController({
     return state;
   }
 
-  async function disposePendingAdapter(
-    adapter: WalkerPointOverlayRuntimeAdapter | undefined
-  ): Promise<void> {
-    if (!adapter) {
-      return;
+  async function cleanupWalkerOverlayResidue(
+    adapters: ReadonlyArray<WalkerPointOverlayRuntimeAdapter | undefined>
+  ): Promise<string | null> {
+    const cleanupErrors: string[] = [];
+
+    if (
+      overlayManager
+        .getState()
+        .entries.some((entry) => entry.overlayId === WALKER_OVERLAY_ID)
+    ) {
+      try {
+        await overlayManager.detach(WALKER_OVERLAY_ID);
+      } catch (error) {
+        cleanupErrors.push(
+          `overlay manager detach failed: ${serializeOverlayError(error)}`
+        );
+      }
     }
 
-    if (pendingAdapter === adapter) {
-      pendingAdapter = undefined;
+    const uniqueAdapters = new Set<WalkerPointOverlayRuntimeAdapter>();
+    for (const adapter of adapters) {
+      if (adapter) {
+        uniqueAdapters.add(adapter);
+      }
     }
 
-    await adapter.dispose();
+    for (const adapter of uniqueAdapters) {
+      try {
+        await adapter.dispose();
+      } catch (error) {
+        cleanupErrors.push(
+          `overlay adapter dispose failed: ${serializeOverlayError(error)}`
+        );
+      }
+    }
+
+    if (cleanupErrors.length === 0) {
+      return null;
+    }
+
+    return cleanupErrors.join("; ");
   }
 
   async function disableOverlay(source: SatelliteOverlaySource): Promise<void> {
-    currentMode = "off";
-    currentSource = source;
-    currentStatus = "disabled";
-    currentDetail = null;
-
     const adapterPendingDispose = pendingAdapter;
     pendingAdapter = undefined;
 
-    if (adapterPendingDispose) {
-      await adapterPendingDispose.dispose();
+    const adapterPendingDetach = activeAdapter;
+    activeAdapter = undefined;
+    const cleanupError = await cleanupWalkerOverlayResidue([
+      adapterPendingDispose,
+      adapterPendingDetach
+    ]);
+
+    currentMode = "off";
+    currentSource = source;
+
+    if (cleanupError) {
+      currentStatus = "error";
+      currentDetail = cleanupError;
+      commitState();
+      throw new Error(cleanupError);
     }
 
-    if (activeAdapter) {
-      activeAdapter = undefined;
-      await overlayManager.detach(WALKER_OVERLAY_ID);
-    }
-
+    currentStatus = "disabled";
+    currentDetail = null;
     commitState();
   }
 
@@ -229,7 +263,13 @@ export function createSatelliteOverlayController({
       const fixtureText = await loadWalkerFixtureText();
 
       if (!isWalkerOverlayStillDesired(adapter)) {
-        await disposePendingAdapter(adapter);
+        if (pendingAdapter === adapter) {
+          pendingAdapter = undefined;
+        }
+        const cleanupError = await cleanupWalkerOverlayResidue([adapter]);
+        if (cleanupError) {
+          throw new Error(cleanupError);
+        }
         return;
       }
 
@@ -240,7 +280,13 @@ export function createSatelliteOverlayController({
       });
 
       if (!isWalkerOverlayStillDesired(adapter)) {
-        await disposePendingAdapter(adapter);
+        if (pendingAdapter === adapter) {
+          pendingAdapter = undefined;
+        }
+        const cleanupError = await cleanupWalkerOverlayResidue([adapter]);
+        if (cleanupError) {
+          throw new Error(cleanupError);
+        }
         return;
       }
 
@@ -270,17 +316,27 @@ export function createSatelliteOverlayController({
         activeAdapter = undefined;
       }
 
-      await adapter.dispose();
+      const cleanupError = await cleanupWalkerOverlayResidue([adapter]);
 
       if (!shouldSurfaceError) {
+        if (cleanupError) {
+          throw new Error(cleanupError);
+        }
         return;
       }
 
       currentMode = "walker-points";
       currentSource = source;
       currentStatus = "error";
-      currentDetail = serializeOverlayError(error);
+      currentDetail = cleanupError
+        ? `${serializeOverlayError(error)}; cleanup: ${cleanupError}`
+        : serializeOverlayError(error);
       commitState();
+
+      if (cleanupError) {
+        throw new Error(currentDetail);
+      }
+
       throw error;
     }
   }

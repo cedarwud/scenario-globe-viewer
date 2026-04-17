@@ -84,6 +84,7 @@ export function createWalkerPointOverlayAdapter(
   const walkerAdapter = createWalkerFixtureAdapter();
   const dataSource = new CustomDataSource(WALKER_POINT_DATA_SOURCE_NAME);
   let attachDataSourcePromise: Promise<void> | undefined;
+  let disposePromise: Promise<void> | undefined;
   let dataSourceAttached = false;
   let disposed = false;
   let visible = true;
@@ -188,22 +189,52 @@ export function createWalkerPointOverlayAdapter(
     },
 
     async dispose(): Promise<void> {
-      disposed = true;
-      visible = false;
-      detachTickListener?.();
-      detachTickListener = undefined;
-      dataSource.entities.removeAll();
+      if (!disposePromise) {
+        disposePromise = (async () => {
+          disposed = true;
+          visible = false;
+          detachTickListener?.();
+          detachTickListener = undefined;
+          dataSource.show = false;
+          dataSource.entities.removeAll();
 
-      if (attachDataSourcePromise) {
-        await attachDataSourcePromise;
+          let disposalError: unknown;
+
+          if (attachDataSourcePromise) {
+            try {
+              await attachDataSourcePromise;
+            } catch (error) {
+              disposalError ??= error;
+            } finally {
+              attachDataSourcePromise = undefined;
+            }
+          }
+
+          try {
+            if (!viewer.isDestroyed() && viewer.dataSources.contains(dataSource)) {
+              viewer.dataSources.remove(dataSource);
+            }
+          } catch (error) {
+            disposalError ??= error;
+          }
+
+          dataSourceAttached = false;
+
+          try {
+            await walkerAdapter.dispose();
+          } catch (error) {
+            disposalError ??= error;
+          }
+
+          requestRender();
+
+          if (disposalError) {
+            throw disposalError;
+          }
+        })();
       }
 
-      if (!viewer.isDestroyed() && viewer.dataSources.contains(dataSource)) {
-        viewer.dataSources.remove(dataSource);
-      }
-      dataSourceAttached = false;
-      await walkerAdapter.dispose();
-      requestRender();
+      await disposePromise;
     }
   };
 }
