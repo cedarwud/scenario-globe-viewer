@@ -137,10 +137,14 @@ export function createSatelliteOverlayController({
 }): SatelliteOverlayController {
   const overlayManager = createRuntimeOverlayManager();
   let activeAdapter: WalkerPointOverlayRuntimeAdapter | undefined;
+  let pendingAdapter: WalkerPointOverlayRuntimeAdapter | undefined;
   let currentMode: SatelliteOverlayMode = "off";
   let currentSource: SatelliteOverlaySource = "default-off";
   let currentStatus: SatelliteOverlayStatus = "disabled";
   let currentDetail: string | null = null;
+  let desiredMode: SatelliteOverlayMode = "off";
+  let desiredSource: SatelliteOverlaySource = "default-off";
+  let transitionPromise: Promise<void> | undefined;
 
   function readState(): SatelliteOverlayControllerState {
     return createControllerState(
@@ -159,29 +163,57 @@ export function createSatelliteOverlayController({
     return state;
   }
 
+  async function disposePendingAdapter(
+    adapter: WalkerPointOverlayRuntimeAdapter | undefined
+  ): Promise<void> {
+    if (!adapter) {
+      return;
+    }
+
+    if (pendingAdapter === adapter) {
+      pendingAdapter = undefined;
+    }
+
+    await adapter.dispose();
+  }
+
   async function disableOverlay(source: SatelliteOverlaySource): Promise<void> {
     currentMode = "off";
     currentSource = source;
     currentStatus = "disabled";
     currentDetail = null;
 
+    const adapterPendingDispose = pendingAdapter;
+    pendingAdapter = undefined;
+
+    if (adapterPendingDispose) {
+      await adapterPendingDispose.dispose();
+    }
+
     if (activeAdapter) {
-      await overlayManager.detach(WALKER_OVERLAY_ID);
       activeAdapter = undefined;
+      await overlayManager.detach(WALKER_OVERLAY_ID);
     }
 
     commitState();
   }
 
+  function isWalkerOverlayStillDesired(
+    adapter: WalkerPointOverlayRuntimeAdapter
+  ): boolean {
+    return pendingAdapter === adapter && desiredMode === "walker-points";
+  }
+
   async function enableWalkerOverlay(
     source: SatelliteOverlaySource
-  ): Promise<SatelliteOverlayControllerState> {
+  ): Promise<void> {
     if (activeAdapter) {
       currentMode = "walker-points";
       currentSource = source;
       currentStatus = "ready";
       currentDetail = null;
-      return commitState();
+      commitState();
+      return;
     }
 
     currentMode = "walker-points";
@@ -191,26 +223,100 @@ export function createSatelliteOverlayController({
     commitState();
 
     const adapter = createWalkerPointOverlayAdapter(viewer);
+    pendingAdapter = adapter;
 
     try {
       const fixtureText = await loadWalkerFixtureText();
+
+      if (!isWalkerOverlayStillDesired(adapter)) {
+        await disposePendingAdapter(adapter);
+        return;
+      }
+
       adapter.attachToClock(replayClock);
       await adapter.loadFixture({
         kind: "tle",
         tleText: fixtureText
       });
+
+      if (!isWalkerOverlayStillDesired(adapter)) {
+        await disposePendingAdapter(adapter);
+        return;
+      }
+
       await overlayManager.attach(WALKER_OVERLAY_ID, adapter);
       activeAdapter = adapter;
+      pendingAdapter = undefined;
+
+      if (desiredMode !== "walker-points") {
+        await disableOverlay(desiredSource);
+        return;
+      }
+
       currentStatus = "ready";
       currentDetail = null;
-      return commitState();
+      commitState();
     } catch (error) {
+      const shouldSurfaceError =
+        pendingAdapter === adapter &&
+        desiredMode === "walker-points" &&
+        desiredSource === source;
+
+      if (pendingAdapter === adapter) {
+        pendingAdapter = undefined;
+      }
+
+      if (activeAdapter === adapter) {
+        activeAdapter = undefined;
+      }
+
       await adapter.dispose();
+
+      if (!shouldSurfaceError) {
+        return;
+      }
+
+      currentMode = "walker-points";
+      currentSource = source;
       currentStatus = "error";
       currentDetail = serializeOverlayError(error);
       commitState();
       throw error;
     }
+  }
+
+  async function settleDesiredMode(): Promise<void> {
+    while (true) {
+      const requestedMode = desiredMode;
+      const requestedSource = desiredSource;
+
+      if (requestedMode === "off") {
+        await disableOverlay(requestedSource);
+        if (desiredMode === requestedMode && desiredSource === requestedSource) {
+          return;
+        }
+        continue;
+      }
+
+      await enableWalkerOverlay(requestedSource);
+      if (
+        desiredMode === requestedMode &&
+        desiredSource === requestedSource &&
+        activeAdapter
+      ) {
+        return;
+      }
+    }
+  }
+
+  function requestStateTransition(): Promise<SatelliteOverlayControllerState> {
+    if (!transitionPromise) {
+      transitionPromise = settleDesiredMode().finally(() => {
+        transitionPromise = undefined;
+      });
+    }
+
+    return transitionPromise.then(() => readState());
   }
 
   commitState();
@@ -221,20 +327,21 @@ export function createSatelliteOverlayController({
     },
 
     async setMode(mode: SatelliteOverlayMode): Promise<SatelliteOverlayControllerState> {
-      if (mode === "off") {
-        await disableOverlay("runtime");
-        return readState();
-      }
-
-      return await enableWalkerOverlay("runtime");
+      desiredMode = mode;
+      desiredSource = "runtime";
+      return await requestStateTransition();
     },
 
     async toggle(): Promise<SatelliteOverlayControllerState> {
-      return await this.setMode(currentMode === "off" ? "walker-points" : "off");
+      return await this.setMode(
+        desiredMode === "off" ? "walker-points" : "off"
+      );
     },
 
     async dispose(): Promise<void> {
-      await disableOverlay("runtime");
+      desiredMode = "off";
+      desiredSource = "runtime";
+      await requestStateTransition();
       await overlayManager.dispose();
     }
   };

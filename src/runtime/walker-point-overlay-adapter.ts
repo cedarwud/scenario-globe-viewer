@@ -83,22 +83,11 @@ export function createWalkerPointOverlayAdapter(
 ): WalkerPointOverlayRuntimeAdapter {
   const walkerAdapter = createWalkerFixtureAdapter();
   const dataSource = new CustomDataSource(WALKER_POINT_DATA_SOURCE_NAME);
+  let attachDataSourcePromise: Promise<void> | undefined;
   let dataSourceAttached = false;
   let disposed = false;
   let visible = true;
   let detachTickListener: (() => void) | undefined;
-
-  const attachDataSourcePromise = viewer.dataSources.add(dataSource).then(() => {
-    if (disposed || viewer.isDestroyed()) {
-      if (!viewer.isDestroyed() && viewer.dataSources.contains(dataSource)) {
-        viewer.dataSources.remove(dataSource);
-      }
-      return;
-    }
-
-    dataSourceAttached = true;
-    dataSource.show = visible;
-  });
 
   function requestRender(): void {
     if (!viewer.isDestroyed()) {
@@ -106,7 +95,34 @@ export function createWalkerPointOverlayAdapter(
     }
   }
 
+  async function ensureDataSourceAttached(): Promise<void> {
+    if (disposed || dataSourceAttached) {
+      return;
+    }
+
+    if (!attachDataSourcePromise) {
+      attachDataSourcePromise = viewer.dataSources.add(dataSource).then(() => {
+        if (disposed || viewer.isDestroyed()) {
+          if (!viewer.isDestroyed() && viewer.dataSources.contains(dataSource)) {
+            viewer.dataSources.remove(dataSource);
+          }
+          dataSourceAttached = false;
+          return;
+        }
+
+        dataSourceAttached = true;
+        dataSource.show = visible;
+      });
+    }
+
+    await attachDataSourcePromise;
+  }
+
   function syncRenderedSamples(): void {
+    if (disposed) {
+      return;
+    }
+
     const seenIds = new Set<string>();
 
     for (const sample of walkerAdapter.getCurrentSamples()) {
@@ -133,7 +149,7 @@ export function createWalkerPointOverlayAdapter(
   return {
     async loadFixture(fixture: SatelliteFixture): Promise<{ satCount: number }> {
       const result = await walkerAdapter.loadFixture(fixture);
-      await attachDataSourcePromise;
+      await ensureDataSourceAttached();
       syncRenderedSamples();
       return result;
     },
@@ -173,10 +189,15 @@ export function createWalkerPointOverlayAdapter(
 
     async dispose(): Promise<void> {
       disposed = true;
+      visible = false;
       detachTickListener?.();
       detachTickListener = undefined;
-      await attachDataSourcePromise;
       dataSource.entities.removeAll();
+
+      if (attachDataSourcePromise) {
+        await attachDataSourcePromise;
+      }
+
       if (!viewer.isDestroyed() && viewer.dataSources.contains(dataSource)) {
         viewer.dataSources.remove(dataSource);
       }
