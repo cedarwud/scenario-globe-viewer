@@ -1071,6 +1071,7 @@ function siteTilesetMatchesExpectation(lastState, expectedSiteTileset) {
 }
 
 const WALKER_ORBIT_POLYLINE_SAMPLE_BUDGET = 49;
+const WALKER_ORBIT_POLYLINE_CACHE_BUCKET_MS = 60_000;
 
 function baselineShellMatchesExpectation(lastState) {
   return (
@@ -1252,7 +1253,7 @@ async function injectWalkerFixtureMissingFirstName(client) {
   });
 }
 
-async function armWalkerPointOverlayRenderFailure(client) {
+async function armWalkerPointOverlayRenderFailure(client, failAfterEntityCount = 0) {
   return await evaluateValue(
     client,
     `(() => {
@@ -1267,6 +1268,7 @@ async function armWalkerPointOverlayRenderFailure(client) {
       if (!window[marker]) {
         const originalAdd = viewer.dataSources.add.bind(viewer.dataSources);
         let failNextWalkerPointOverlay = false;
+        let failAfterEntityCount = 0;
 
         viewer.dataSources.add = function (...args) {
           const [dataSource] = args;
@@ -1283,15 +1285,17 @@ async function armWalkerPointOverlayRenderFailure(client) {
               const entityCollection = attachedDataSource.entities;
               const originalGetOrCreateEntity =
                 entityCollection.getOrCreateEntity.bind(entityCollection);
-              let hasFailed = false;
+              let createdEntityCount = 0;
 
               entityCollection.getOrCreateEntity = function (...entityArgs) {
-                if (!hasFailed) {
-                  hasFailed = true;
+                if (createdEntityCount >= failAfterEntityCount) {
                   entityCollection.getOrCreateEntity = originalGetOrCreateEntity;
-                  throw new Error("Injected walker point overlay render failure.");
+                  throw new Error(
+                    \`Injected walker point overlay render failure after \${failAfterEntityCount} entities.\`
+                  );
                 }
 
+                createdEntityCount += 1;
                 return originalGetOrCreateEntity(...entityArgs);
               };
             }
@@ -1301,14 +1305,19 @@ async function armWalkerPointOverlayRenderFailure(client) {
         };
 
         window[marker] = {
-          arm() {
+          arm(nextFailAfterEntityCount) {
             failNextWalkerPointOverlay = true;
+            failAfterEntityCount =
+              Number.isInteger(nextFailAfterEntityCount) &&
+              nextFailAfterEntityCount >= 0
+                ? nextFailAfterEntityCount
+                : 0;
             return true;
           }
         };
       }
 
-      return window[marker].arm();
+      return window[marker].arm(${JSON.stringify(failAfterEntityCount)});
     })()`
   );
 }
@@ -1359,6 +1368,45 @@ function assertWalkerPointOverlayLabelsUseNameOrId(
   }
 }
 
+function assertWalkerOrbitRuntimeBudget(controllerState, scenarioLabel) {
+  assert(
+    controllerState?.orbitSampleBudget === WALKER_ORBIT_POLYLINE_SAMPLE_BUDGET &&
+      controllerState?.orbitCacheBucketMs === WALKER_ORBIT_POLYLINE_CACHE_BUCKET_MS,
+    `Walker orbit runtime budget must stay fixed during ${scenarioLabel}: ${JSON.stringify(controllerState)}`
+  );
+}
+
+function assertWalkerOrbitCacheReadyState(runtimeState, scenarioLabel) {
+  const controllerState = runtimeState.controllerState;
+  const sampleTimeMs =
+    typeof controllerState?.sampleTime === "number"
+      ? controllerState.sampleTime
+      : Date.parse(controllerState?.sampleTime ?? "");
+
+  assertWalkerOrbitRuntimeBudget(controllerState, scenarioLabel);
+  assert(
+    Number.isFinite(sampleTimeMs) &&
+      controllerState?.orbitCacheBucket ===
+        Math.floor(sampleTimeMs / WALKER_ORBIT_POLYLINE_CACHE_BUCKET_MS) &&
+      controllerState?.orbitCacheTrackCount === 18 &&
+      controllerState?.orbitCachePositionCount ===
+        18 * WALKER_ORBIT_POLYLINE_SAMPLE_BUDGET,
+    `Walker orbit cache must stay aligned with the fixed runtime bucket during ${scenarioLabel}: ${JSON.stringify(runtimeState)}`
+  );
+}
+
+function assertWalkerOrbitCacheCleared(runtimeState, scenarioLabel) {
+  const controllerState = runtimeState.controllerState;
+
+  assertWalkerOrbitRuntimeBudget(controllerState, scenarioLabel);
+  assert(
+    controllerState?.orbitCacheBucket === null &&
+      controllerState?.orbitCacheTrackCount === 0 &&
+      controllerState?.orbitCachePositionCount === 0,
+    `Walker orbit cache must clear completely during ${scenarioLabel}: ${JSON.stringify(runtimeState)}`
+  );
+}
+
 function assertWalkerOrbitPolylines(runtimeState, scenarioLabel) {
   assert(
     runtimeState.controllerState?.pathCount === 0,
@@ -1373,11 +1421,18 @@ function assertWalkerOrbitPolylines(runtimeState, scenarioLabel) {
     `Expected orbit polylines to stay attached to every walker entity during ${scenarioLabel}: ${JSON.stringify(runtimeState)}`
   );
   assert(
-    runtimeState.minWalkerPolylinePositionCount > 1 &&
-      runtimeState.maxWalkerPolylinePositionCount <=
+    runtimeState.walkerOverlayEntities.every(
+      (entity) =>
+        entity.hasPolyline &&
+        entity.polylinePositionCount === WALKER_ORBIT_POLYLINE_SAMPLE_BUDGET
+    ) &&
+      runtimeState.minWalkerPolylinePositionCount ===
+        WALKER_ORBIT_POLYLINE_SAMPLE_BUDGET &&
+      runtimeState.maxWalkerPolylinePositionCount ===
         WALKER_ORBIT_POLYLINE_SAMPLE_BUDGET,
-    `Orbit polyline sampling must stay bounded during ${scenarioLabel}: ${JSON.stringify(runtimeState)}`
+    `Orbit polyline sampling must stay on the fixed Phase 5.3 budget during ${scenarioLabel}: ${JSON.stringify(runtimeState)}`
   );
+  assertWalkerOrbitCacheReadyState(runtimeState, scenarioLabel);
 }
 
 function assertWalkerPointOverlayReadyState(runtimeState, scenarioLabel) {
@@ -1449,6 +1504,7 @@ function assertWalkerPointOverlayDisabledState(
     runtimeState.walkerPolylineEntityCount === 0,
     `Walker orbit polyline residue must be absent during ${scenarioLabel}: ${JSON.stringify(runtimeState)}`
   );
+  assertWalkerOrbitCacheCleared(runtimeState, scenarioLabel);
   assertNoSatelliteOverlayControls(runtimeState, scenarioLabel);
 }
 
@@ -1478,6 +1534,7 @@ function assertWalkerPointOverlayLoadingState(runtimeState, scenarioLabel) {
     runtimeState.walkerPolylineEntityCount === 0,
     `Overlay loading must not attach orbit polyline residue before readiness during ${scenarioLabel}: ${JSON.stringify(runtimeState)}`
   );
+  assertWalkerOrbitCacheCleared(runtimeState, scenarioLabel);
   assertNoSatelliteOverlayControls(runtimeState, scenarioLabel);
 }
 
@@ -1511,7 +1568,73 @@ function assertWalkerPointOverlayErrorState(runtimeState, scenarioLabel) {
     runtimeState.walkerPolylineEntityCount === 0,
     `Failed enable must leave no walker orbit polyline residue during ${scenarioLabel}: ${JSON.stringify(runtimeState)}`
   );
+  assertWalkerOrbitCacheCleared(runtimeState, scenarioLabel);
   assertNoSatelliteOverlayControls(runtimeState, scenarioLabel);
+}
+
+async function verifyInjectedWalkerPointOverlayFailure(
+  client,
+  scenarioLabel,
+  {
+    failureEntityCount,
+    requestKey,
+    stateLabel
+  }
+) {
+  await injectWalkerFixtureFetchDelay(client, 750);
+  await armWalkerPointOverlayRenderFailure(client, failureEntityCount);
+  await startSatelliteOverlayModeRequest(client, "walker-points", requestKey);
+  await waitForCondition(
+    client,
+    `${scenarioLabel} ${stateLabel} loading`,
+    `(() => {
+      const root = document.documentElement;
+      return root?.dataset.satelliteOverlayMode === "walker-points" &&
+        root?.dataset.satelliteOverlaySource === "runtime" &&
+        root?.dataset.satelliteOverlayState === "loading" &&
+        root?.dataset.satelliteOverlayPointCount === "0";
+    })()`
+  );
+
+  const loadingState = await readSatelliteOverlayRuntime(client);
+  assertWalkerPointOverlayLoadingState(
+    loadingState,
+    `${scenarioLabel}/${stateLabel}-loading`
+  );
+  assertDesktopHudStatusOnlyState(
+    await readHudLayoutState(client),
+    `${scenarioLabel}/${stateLabel}-loading`
+  );
+
+  await waitForCondition(
+    client,
+    `${scenarioLabel} ${stateLabel} error`,
+    `(() => {
+      const root = document.documentElement;
+      return root?.dataset.satelliteOverlayMode === "walker-points" &&
+        root?.dataset.satelliteOverlaySource === "runtime" &&
+        root?.dataset.satelliteOverlayState === "error" &&
+        root?.dataset.satelliteOverlayPointCount === "0";
+    })()`
+  );
+
+  const failedEnableResult = await awaitSatelliteOverlayModeRequest(client, requestKey);
+  assert(
+    failedEnableResult?.ok === false &&
+      typeof failedEnableResult?.error === "string" &&
+      failedEnableResult.error.includes("Injected walker point overlay render failure"),
+    `Expected injected overlay enable failure during ${scenarioLabel}/${stateLabel}: ${JSON.stringify(failedEnableResult)}`
+  );
+
+  const failedEnableState = await readSatelliteOverlayRuntime(client);
+  assertWalkerPointOverlayErrorState(
+    failedEnableState,
+    `${scenarioLabel}/${stateLabel}`
+  );
+  assertDesktopHudStatusOnlyState(
+    await readHudLayoutState(client),
+    `${scenarioLabel}/${stateLabel}`
+  );
 }
 
 async function verifySatelliteOverlayToggle(client, scenarioLabel) {
@@ -1715,70 +1838,11 @@ async function verifySatelliteOverlayToggle(client, scenarioLabel) {
 
   const failedEnableRequestKey =
     "__SCENARIO_GLOBE_VIEWER_OVERLAY_FAILED_ENABLE_RESULT__";
-
-  await injectWalkerFixtureFetchDelay(client, 750);
-  await armWalkerPointOverlayRenderFailure(client);
-  await startSatelliteOverlayModeRequest(
-    client,
-    "walker-points",
-    failedEnableRequestKey
-  );
-  await waitForCondition(
-    client,
-    `${scenarioLabel} overlay loading before injected failure`,
-    `(() => {
-      const root = document.documentElement;
-      return root?.dataset.satelliteOverlayMode === "walker-points" &&
-        root?.dataset.satelliteOverlaySource === "runtime" &&
-        root?.dataset.satelliteOverlayState === "loading" &&
-        root?.dataset.satelliteOverlayPointCount === "0";
-    })()`
-  );
-
-  const loadingBeforeFailureState = await readSatelliteOverlayRuntime(client);
-  assertWalkerPointOverlayLoadingState(
-    loadingBeforeFailureState,
-    `${scenarioLabel}/loading-before-injected-failure`
-  );
-  assertDesktopHudStatusOnlyState(
-    await readHudLayoutState(client),
-    `${scenarioLabel}/loading-before-injected-failure`
-  );
-
-  await waitForCondition(
-    client,
-    `${scenarioLabel} overlay error after injected failure`,
-    `(() => {
-      const root = document.documentElement;
-      return root?.dataset.satelliteOverlayMode === "walker-points" &&
-        root?.dataset.satelliteOverlaySource === "runtime" &&
-        root?.dataset.satelliteOverlayState === "error" &&
-        root?.dataset.satelliteOverlayPointCount === "0";
-    })()`
-  );
-
-  const failedEnableResult = await awaitSatelliteOverlayModeRequest(
-    client,
-    failedEnableRequestKey
-  );
-  assert(
-    failedEnableResult?.ok === false &&
-      typeof failedEnableResult?.error === "string" &&
-      failedEnableResult.error.includes(
-        "Injected walker point overlay render failure."
-      ),
-    `Expected injected overlay enable failure during ${scenarioLabel}: ${JSON.stringify(failedEnableResult)}`
-  );
-
-  const failedEnableState = await readSatelliteOverlayRuntime(client);
-  assertWalkerPointOverlayErrorState(
-    failedEnableState,
-    `${scenarioLabel}/failed-enable`
-  );
-  assertDesktopHudStatusOnlyState(
-    await readHudLayoutState(client),
-    `${scenarioLabel}/failed-enable`
-  );
+  await verifyInjectedWalkerPointOverlayFailure(client, scenarioLabel, {
+    failureEntityCount: 0,
+    requestKey: failedEnableRequestKey,
+    stateLabel: "failed-enable"
+  });
 
   await setSatelliteOverlayMode(client, "walker-points");
   await waitForCondition(
@@ -1825,6 +1889,63 @@ async function verifySatelliteOverlayToggle(client, scenarioLabel) {
   assertDesktopHudStatusOnlyState(
     await readHudLayoutState(client),
     `${scenarioLabel}/final-disabled-after-failure`
+  );
+
+  const partialPolylineFailureRequestKey =
+    "__SCENARIO_GLOBE_VIEWER_OVERLAY_PARTIAL_POLYLINE_FAILURE_RESULT__";
+  await verifyInjectedWalkerPointOverlayFailure(client, scenarioLabel, {
+    failureEntityCount: 9,
+    requestKey: partialPolylineFailureRequestKey,
+    stateLabel: "failed-enable-after-partial-polyline"
+  });
+
+  await setSatelliteOverlayMode(client, "walker-points");
+  await waitForCondition(
+    client,
+    `${scenarioLabel} overlay enabled after partial-polyline failure`,
+    `(() => {
+      const root = document.documentElement;
+      return root?.dataset.satelliteOverlayMode === "walker-points" &&
+        root?.dataset.satelliteOverlaySource === "runtime" &&
+        root?.dataset.satelliteOverlayState === "ready" &&
+        root?.dataset.satelliteOverlayPointCount === "18";
+    })()`
+  );
+
+  const enabledAfterPartialPolylineFailureState =
+    await readSatelliteOverlayRuntime(client);
+  assertWalkerPointOverlayReadyState(
+    enabledAfterPartialPolylineFailureState,
+    `${scenarioLabel}/enabled-after-partial-polyline-failure`
+  );
+  assertDesktopHudStatusOnlyState(
+    await readHudLayoutState(client),
+    `${scenarioLabel}/enabled-after-partial-polyline-failure`
+  );
+
+  await setSatelliteOverlayMode(client, "off");
+  await waitForCondition(
+    client,
+    `${scenarioLabel} final overlay cleanup after partial-polyline failure`,
+    `(() => {
+      const root = document.documentElement;
+      return root?.dataset.satelliteOverlayMode === "off" &&
+        root?.dataset.satelliteOverlaySource === "runtime" &&
+        root?.dataset.satelliteOverlayState === "disabled" &&
+        root?.dataset.satelliteOverlayPointCount === "0";
+    })()`
+  );
+
+  const finalDisabledAfterPartialPolylineFailureState =
+    await readSatelliteOverlayRuntime(client);
+  assertWalkerPointOverlayDisabledState(
+    finalDisabledAfterPartialPolylineFailureState,
+    `${scenarioLabel}/final-disabled-after-partial-polyline-failure`,
+    "runtime"
+  );
+  assertDesktopHudStatusOnlyState(
+    await readHudLayoutState(client),
+    `${scenarioLabel}/final-disabled-after-partial-polyline-failure`
   );
 
   await injectWalkerFixtureMissingFirstName(client);

@@ -27,6 +27,11 @@ export interface WalkerPointOverlayRuntimeState {
   entityCount: number;
   pointCount: number;
   labelCount: number;
+  orbitCacheBucket: number | null;
+  orbitCacheBucketMs: number;
+  orbitCachePositionCount: number;
+  orbitCacheTrackCount: number;
+  orbitSampleBudget: number;
   pathCount: number;
   polylineCount: number;
   sampleTime: WalkerFixtureAdapterState["sampleTime"];
@@ -39,9 +44,9 @@ export interface WalkerPointOverlayRuntimeAdapter
   getRuntimeState(): WalkerPointOverlayRuntimeState;
 }
 
-const WALKER_POINT_DATA_SOURCE_NAME = "walker-point-overlay";
-const WALKER_ORBIT_POLYLINE_SAMPLE_COUNT = 49;
-const WALKER_ORBIT_POLYLINE_CACHE_BUCKET_MS = 60_000;
+export const WALKER_POINT_OVERLAY_DATA_SOURCE_NAME = "walker-point-overlay";
+export const WALKER_POINT_OVERLAY_ORBIT_SAMPLE_BUDGET = 49;
+export const WALKER_POINT_OVERLAY_ORBIT_CACHE_BUCKET_MS = 60_000;
 const WALKER_ORBIT_POLYLINE_WIDTH = 1.25;
 const WALKER_ORBIT_POLYLINE_COLOR = Color.fromCssColorString("#8fd3ff").withAlpha(0.3);
 
@@ -135,7 +140,7 @@ export function createWalkerPointOverlayAdapter(
   viewer: Viewer
 ): WalkerPointOverlayRuntimeAdapter {
   const walkerAdapter = createWalkerFixtureAdapter();
-  const dataSource = new CustomDataSource(WALKER_POINT_DATA_SOURCE_NAME);
+  const dataSource = new CustomDataSource(WALKER_POINT_OVERLAY_DATA_SOURCE_NAME);
   let attachDataSourcePromise: Promise<void> | undefined;
   let disposePromise: Promise<void> | undefined;
   let dataSourceAttached = false;
@@ -179,6 +184,18 @@ export function createWalkerPointOverlayAdapter(
     cachedOrbitPositionsById = new Map<string, ReadonlyArray<Cartesian3>>();
   }
 
+  function countCachedOrbitPositions(
+    orbitPositionsById: ReadonlyMap<string, ReadonlyArray<Cartesian3>>
+  ): number {
+    let positionCount = 0;
+
+    for (const orbitPositions of orbitPositionsById.values()) {
+      positionCount += orbitPositions.length;
+    }
+
+    return positionCount;
+  }
+
   function getOrbitPositionsById(
     sampleTime: WalkerFixtureAdapterState["sampleTime"]
   ): ReadonlyMap<string, ReadonlyArray<Cartesian3>> {
@@ -189,21 +206,31 @@ export function createWalkerPointOverlayAdapter(
     }
 
     const sampleBucket = Math.floor(
-      sampleTimeMs / WALKER_ORBIT_POLYLINE_CACHE_BUCKET_MS
+      sampleTimeMs / WALKER_POINT_OVERLAY_ORBIT_CACHE_BUCKET_MS
     );
     if (cachedOrbitSampleBucket === sampleBucket) {
       return cachedOrbitPositionsById;
     }
 
+    const orbitTracks = walkerAdapter.sampleOrbitTracks(
+      sampleTime,
+      WALKER_POINT_OVERLAY_ORBIT_SAMPLE_BUDGET
+    );
     cachedOrbitPositionsById = new Map(
-      walkerAdapter
-        .sampleOrbitTracks(sampleTime, WALKER_ORBIT_POLYLINE_SAMPLE_COUNT)
-        .map((track) => [
+      orbitTracks.map((track) => {
+        if (track.positionsEcef.length > WALKER_POINT_OVERLAY_ORBIT_SAMPLE_BUDGET) {
+          throw new Error(
+            `Walker orbit sampling exceeded the fixed budget for ${track.id}: ${track.positionsEcef.length}`
+          );
+        }
+
+        return [
           track.id,
           track.positionsEcef.map((position) =>
             toCartesianPosition({ positionEcef: position })
           )
-        ])
+        ];
+      })
     );
     cachedOrbitSampleBucket = sampleBucket;
     return cachedOrbitPositionsById;
@@ -214,40 +241,48 @@ export function createWalkerPointOverlayAdapter(
       return;
     }
 
-    const seenIds = new Set<string>();
-    const ingestionState = walkerAdapter.getIngestionState();
-    const orbitPositionsById = getOrbitPositionsById(ingestionState.sampleTime);
+    try {
+      const seenIds = new Set<string>();
+      const ingestionState = walkerAdapter.getIngestionState();
+      const orbitPositionsById = getOrbitPositionsById(ingestionState.sampleTime);
 
-    for (const sample of walkerAdapter.getCurrentSamples()) {
-      const entity = dataSource.entities.getOrCreateEntity(sample.id);
-      const labelText = sample.name ?? sample.id;
-      const orbitPositions = orbitPositionsById.get(sample.id) ?? [];
-      entity.name = sample.name;
-      entity.position = new ConstantPositionProperty(toCartesianPosition(sample));
-      entity.point = entity.point ?? new PointGraphics(createPointStyle());
-      entity.label = entity.label ?? createLabelStyle(labelText);
-      entity.label.text = new ConstantProperty(labelText);
-      entity.path = undefined;
-      if (orbitPositions.length >= 2) {
-        entity.polyline =
-          entity.polyline instanceof PolylineGraphics
-            ? entity.polyline
-            : createOrbitStyle(orbitPositions);
-        entity.polyline.positions = new ConstantProperty([...orbitPositions]);
-      } else {
-        entity.polyline = undefined;
+      for (const sample of walkerAdapter.getCurrentSamples()) {
+        const entity = dataSource.entities.getOrCreateEntity(sample.id);
+        const labelText = sample.name ?? sample.id;
+        const orbitPositions = orbitPositionsById.get(sample.id) ?? [];
+        entity.name = sample.name;
+        entity.position = new ConstantPositionProperty(toCartesianPosition(sample));
+        entity.point = entity.point ?? new PointGraphics(createPointStyle());
+        entity.label = entity.label ?? createLabelStyle(labelText);
+        entity.label.text = new ConstantProperty(labelText);
+        entity.path = undefined;
+        if (orbitPositions.length >= 2) {
+          entity.polyline =
+            entity.polyline instanceof PolylineGraphics
+              ? entity.polyline
+              : createOrbitStyle(orbitPositions);
+          entity.polyline.positions = new ConstantProperty([...orbitPositions]);
+        } else {
+          entity.polyline = undefined;
+        }
+        seenIds.add(sample.id);
       }
-      seenIds.add(sample.id);
-    }
 
-    for (const entity of [...dataSource.entities.values]) {
-      if (!seenIds.has(entity.id)) {
-        dataSource.entities.remove(entity);
+      for (const entity of [...dataSource.entities.values]) {
+        if (!seenIds.has(entity.id)) {
+          dataSource.entities.remove(entity);
+        }
       }
-    }
 
-    dataSource.show = visible;
-    requestRender();
+      dataSource.show = visible;
+      requestRender();
+    } catch (error) {
+      dataSource.show = false;
+      dataSource.entities.removeAll();
+      clearOrbitCache();
+      requestRender();
+      throw error;
+    }
   }
 
   return {
@@ -284,6 +319,11 @@ export function createWalkerPointOverlayAdapter(
         entityCount: dataSource.entities.values.length,
         pointCount: graphics.pointCount,
         labelCount: graphics.labelCount,
+        orbitCacheBucket: cachedOrbitSampleBucket,
+        orbitCacheBucketMs: WALKER_POINT_OVERLAY_ORBIT_CACHE_BUCKET_MS,
+        orbitCachePositionCount: countCachedOrbitPositions(cachedOrbitPositionsById),
+        orbitCacheTrackCount: cachedOrbitPositionsById.size,
+        orbitSampleBudget: WALKER_POINT_OVERLAY_ORBIT_SAMPLE_BUDGET,
         pathCount: graphics.pathCount,
         polylineCount: graphics.polylineCount,
         sampleTime: ingestionState.sampleTime,

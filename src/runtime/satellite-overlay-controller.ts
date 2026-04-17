@@ -5,6 +5,9 @@ import type { ReplayClock } from "../features/time";
 import { createRuntimeOverlayManager } from "./runtime-overlay-manager";
 import {
   createWalkerPointOverlayAdapter,
+  WALKER_POINT_OVERLAY_DATA_SOURCE_NAME,
+  WALKER_POINT_OVERLAY_ORBIT_CACHE_BUCKET_MS,
+  WALKER_POINT_OVERLAY_ORBIT_SAMPLE_BUDGET,
   type WalkerPointOverlayRuntimeAdapter,
   type WalkerPointOverlayRuntimeState
 } from "./walker-point-overlay-adapter";
@@ -17,6 +20,11 @@ export interface SatelliteOverlayControllerState {
   detail: string | null;
   labelCount: number;
   mode: SatelliteOverlayMode;
+  orbitCacheBucket: number | null;
+  orbitCacheBucketMs: number;
+  orbitCachePositionCount: number;
+  orbitCacheTrackCount: number;
+  orbitSampleBudget: number;
   overlayManager: OverlayManagerState;
   pathCount: number;
   pointCount: number;
@@ -63,6 +71,11 @@ function createEmptyRuntimeState(): WalkerPointOverlayRuntimeState {
     entityCount: 0,
     pointCount: 0,
     labelCount: 0,
+    orbitCacheBucket: null,
+    orbitCacheBucketMs: WALKER_POINT_OVERLAY_ORBIT_CACHE_BUCKET_MS,
+    orbitCachePositionCount: 0,
+    orbitCacheTrackCount: 0,
+    orbitSampleBudget: WALKER_POINT_OVERLAY_ORBIT_SAMPLE_BUDGET,
     pathCount: 0,
     polylineCount: 0,
     sampleTime: null,
@@ -83,6 +96,11 @@ function createControllerState(
     detail,
     labelCount: runtimeState.labelCount,
     mode,
+    orbitCacheBucket: runtimeState.orbitCacheBucket,
+    orbitCacheBucketMs: runtimeState.orbitCacheBucketMs,
+    orbitCachePositionCount: runtimeState.orbitCachePositionCount,
+    orbitCacheTrackCount: runtimeState.orbitCacheTrackCount,
+    orbitSampleBudget: runtimeState.orbitSampleBudget,
     overlayManager,
     pathCount: runtimeState.pathCount,
     pointCount: runtimeState.pointCount,
@@ -163,6 +181,48 @@ export function createSatelliteOverlayController({
     return state;
   }
 
+  function cleanupWalkerDataSourceResidue(): string | null {
+    if (viewer.isDestroyed()) {
+      return null;
+    }
+
+    const cleanupErrors: string[] = [];
+
+    for (let index = viewer.dataSources.length - 1; index >= 0; index -= 1) {
+      const dataSource = viewer.dataSources.get(index);
+      if (dataSource?.name !== WALKER_POINT_OVERLAY_DATA_SOURCE_NAME) {
+        continue;
+      }
+
+      try {
+        dataSource.show = false;
+        dataSource.entities.removeAll();
+      } catch (error) {
+        cleanupErrors.push(
+          `overlay residue clear failed: ${serializeOverlayError(error)}`
+        );
+      }
+
+      try {
+        viewer.dataSources.remove(dataSource);
+      } catch (error) {
+        cleanupErrors.push(
+          `overlay residue detach failed: ${serializeOverlayError(error)}`
+        );
+      }
+    }
+
+    if (!viewer.isDestroyed()) {
+      viewer.scene.requestRender();
+    }
+
+    if (cleanupErrors.length === 0) {
+      return null;
+    }
+
+    return cleanupErrors.join("; ");
+  }
+
   async function cleanupWalkerOverlayResidue(
     adapters: ReadonlyArray<WalkerPointOverlayRuntimeAdapter | undefined>
   ): Promise<string | null> {
@@ -197,6 +257,11 @@ export function createSatelliteOverlayController({
           `overlay adapter dispose failed: ${serializeOverlayError(error)}`
         );
       }
+    }
+
+    const dataSourceCleanupError = cleanupWalkerDataSourceResidue();
+    if (dataSourceCleanupError) {
+      cleanupErrors.push(dataSourceCleanupError);
     }
 
     if (cleanupErrors.length === 0) {
@@ -248,6 +313,18 @@ export function createSatelliteOverlayController({
       currentDetail = null;
       commitState();
       return;
+    }
+
+    const stalePendingAdapter = pendingAdapter;
+    pendingAdapter = undefined;
+    const preflightCleanupError = await cleanupWalkerOverlayResidue([stalePendingAdapter]);
+    if (preflightCleanupError) {
+      currentMode = "walker-points";
+      currentSource = source;
+      currentStatus = "error";
+      currentDetail = preflightCleanupError;
+      commitState();
+      throw new Error(preflightCleanupError);
     }
 
     currentMode = "walker-points";

@@ -28,6 +28,7 @@ const captureViewport = {
 const fixedCaptureClockIso = "2026-04-16T00:00:10.250Z";
 const fixedCaptureClockEpochMs = Date.parse(fixedCaptureClockIso);
 const WALKER_POLYLINE_SAMPLE_BUDGET = 49;
+const WALKER_POLYLINE_CACHE_BUCKET_MS = 60_000;
 
 function assert(condition, message) {
   if (!condition) {
@@ -519,6 +520,10 @@ async function waitForOverlayReady(client) {
 
   for (let attempt = 0; attempt < 240; attempt += 1) {
     lastState = await readOverlayCaptureState(client);
+    const sampleTimeMs =
+      typeof lastState?.controllerState?.sampleTime === "number"
+        ? lastState.controllerState.sampleTime
+        : Date.parse(lastState?.controllerState?.sampleTime ?? "");
 
     if (
       lastState.overlayMode === "walker-points" &&
@@ -530,9 +535,18 @@ async function waitForOverlayReady(client) {
       lastState.controllerState?.labelCount === 18 &&
       lastState.controllerState?.pathCount === 0 &&
       lastState.controllerState?.polylineCount === 18 &&
+      lastState.controllerState?.orbitSampleBudget === WALKER_POLYLINE_SAMPLE_BUDGET &&
+      lastState.controllerState?.orbitCacheBucketMs ===
+        WALKER_POLYLINE_CACHE_BUCKET_MS &&
+      Number.isFinite(sampleTimeMs) &&
+      lastState.controllerState?.orbitCacheBucket ===
+        Math.floor(sampleTimeMs / WALKER_POLYLINE_CACHE_BUCKET_MS) &&
+      lastState.controllerState?.orbitCacheTrackCount === 18 &&
+      lastState.controllerState?.orbitCachePositionCount ===
+        18 * WALKER_POLYLINE_SAMPLE_BUDGET &&
       lastState.walkerPointDataSourceCount === 1 &&
       lastState.walkerPolylineEntityCount === 18 &&
-      lastState.maxWalkerPolylinePositionCount <= WALKER_POLYLINE_SAMPLE_BUDGET &&
+      lastState.maxWalkerPolylinePositionCount === WALKER_POLYLINE_SAMPLE_BUDGET &&
       lastState.projectedPointCount > 0 &&
       lastState.projectedLabelCount > 0
     ) {

@@ -18,6 +18,7 @@ const overlayManagerPath = new URL(
   import.meta.url
 );
 const mainPath = new URL("../src/main.ts", import.meta.url);
+const WALKER_ORBIT_POLYLINE_SAMPLE_BUDGET = 49;
 
 const [
   { createWalkerFixtureAdapter, DEFAULT_WALKER_TLE_EPOCH_MODE },
@@ -201,6 +202,28 @@ for (const [index, track] of boundedOrbitTracks.entries()) {
     );
   }
 }
+
+const maxBudgetOrbitTracks = relativeAdapter.sampleOrbitTracks(
+  "2026-04-17T12:00:00.000Z",
+  WALKER_ORBIT_POLYLINE_SAMPLE_BUDGET
+);
+assert.equal(
+  maxBudgetOrbitTracks.length,
+  18,
+  "Concrete walker adapter must keep the fixed Phase 5.3 orbit sample budget available without widening the public contract."
+);
+for (const [index, track] of maxBudgetOrbitTracks.entries()) {
+  assert.equal(
+    track.positionsEcef.length,
+    WALKER_ORBIT_POLYLINE_SAMPLE_BUDGET,
+    `Fixed-budget orbit track ${index} must honor the full local sample budget.`
+  );
+}
+assert.throws(
+  () => relativeAdapter.sampleOrbitTracks("2026-04-17T12:00:00.000Z", 1),
+  /sampleCount >= 2/u,
+  "Walker orbit sampling must reject invalid unbounded-or-empty sample requests."
+);
 
 const initialPropagationTime = Date.parse(relativeState.propagationTime);
 relativeClock.tickTo("2026-04-17T12:01:00.000Z");
