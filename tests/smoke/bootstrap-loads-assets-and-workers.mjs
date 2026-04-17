@@ -477,6 +477,16 @@ async function readSatelliteOverlayRuntime(client) {
       const dataSourceNames = [];
       let walkerPointDataSourceCount = 0;
       let projectedPointCount = 0;
+      let projectedLabelCount = 0;
+      const walkerOverlayEntities = [];
+
+      const resolvePropertyValue = (property, time) => {
+        if (property && typeof property.getValue === "function") {
+          return property.getValue(time);
+        }
+
+        return property ?? null;
+      };
 
       if (viewer) {
         for (let index = 0; index < viewer.dataSources.length; index += 1) {
@@ -490,6 +500,17 @@ async function readSatelliteOverlayRuntime(client) {
           walkerPointDataSourceCount += 1;
 
           for (const entity of dataSource.entities.values) {
+            const labelText = entity.label
+              ? resolvePropertyValue(entity.label.text, viewer.clock.currentTime)
+              : null;
+            walkerOverlayEntities.push({
+              id: String(entity.id),
+              name: typeof entity.name === "string" ? entity.name : null,
+              hasPoint: Boolean(entity.point),
+              hasLabel: Boolean(entity.label),
+              labelText: typeof labelText === "string" ? labelText : null
+            });
+
             if (!entity.point || !entity.position) {
               continue;
             }
@@ -511,10 +532,15 @@ async function readSatelliteOverlayRuntime(client) {
               canvasPoint.y <= viewer.canvas.clientHeight
             ) {
               projectedPointCount += 1;
+              if (entity.label && typeof labelText === "string" && labelText.length > 0) {
+                projectedLabelCount += 1;
+              }
             }
           }
         }
       }
+
+      walkerOverlayEntities.sort((left, right) => left.id.localeCompare(right.id));
 
       return {
         overlayMode: root?.dataset.satelliteOverlayMode ?? null,
@@ -531,7 +557,9 @@ async function readSatelliteOverlayRuntime(client) {
         controllerState,
         dataSourceNames,
         walkerPointDataSourceCount,
-        projectedPointCount
+        projectedPointCount,
+        projectedLabelCount,
+        walkerOverlayEntities
       };
     })()`
   );
@@ -1100,17 +1128,23 @@ async function awaitSatelliteOverlayModeRequest(client, resultKey) {
   return await evaluatePromiseValue(client, `window[${JSON.stringify(resultKey)}]`);
 }
 
-async function injectWalkerFixtureFetchDelay(client, delayMs) {
+async function configureWalkerFixtureFetchHook(
+  client,
+  { delayMs = 0, transformMode = null } = {}
+) {
   return await evaluateValue(
     client,
     `(() => {
-      const marker = "__SCENARIO_GLOBE_VIEWER_OVERLAY_FETCH_DELAY_MS__";
+      const delayMarker = "__SCENARIO_GLOBE_VIEWER_OVERLAY_FETCH_DELAY_MS__";
+      const transformMarker =
+        "__SCENARIO_GLOBE_VIEWER_OVERLAY_FIXTURE_TEXT_TRANSFORM__";
       const fixtureSubstring = "/fixtures/satellites/walker-o6-s3-i45-h698.tle";
       const root = window;
 
-      if (typeof root[marker] !== "number") {
+      if (typeof root[delayMarker] !== "number") {
         const originalFetch = window.fetch.bind(window);
-        root[marker] = 0;
+        root[delayMarker] = 0;
+        root[transformMarker] = null;
         window.fetch = async (...args) => {
           const resource = args[0];
           const url =
@@ -1119,23 +1153,70 @@ async function injectWalkerFixtureFetchDelay(client, delayMs) {
               : resource instanceof Request
                 ? resource.url
                 : String(resource);
-          const pendingDelayMs = root[marker];
+          const pendingDelayMs = root[delayMarker];
 
           if (pendingDelayMs > 0 && url.includes(fixtureSubstring)) {
-            root[marker] = 0;
+            root[delayMarker] = 0;
             await new Promise((resolve) => {
               window.setTimeout(resolve, pendingDelayMs);
             });
           }
 
-          return await originalFetch(...args);
+          const response = await originalFetch(...args);
+          const transformMode = root[transformMarker];
+
+          if (!transformMode || !url.includes(fixtureSubstring)) {
+            return response;
+          }
+
+          root[transformMarker] = null;
+          const sourceText = await response.text();
+          let transformedText = sourceText;
+
+          if (transformMode === "drop-first-name") {
+            const lines = sourceText.split(/\\r?\\n/u);
+            const firstNameIndex = lines.findIndex((line) => {
+              const trimmed = line.trim();
+              return (
+                trimmed.length > 0 &&
+                !trimmed.startsWith("1 ") &&
+                !trimmed.startsWith("2 ")
+              );
+            });
+
+            if (firstNameIndex < 0) {
+              throw new Error("Unable to remove the first walker fixture name line.");
+            }
+
+            lines.splice(firstNameIndex, 1);
+            transformedText = lines.join("\\n");
+          } else {
+            throw new Error(\`Unsupported walker fixture transform: \${transformMode}\`);
+          }
+
+          return new Response(transformedText, {
+            status: response.status,
+            statusText: response.statusText,
+            headers: new Headers(response.headers)
+          });
         };
       }
 
-      root[marker] = ${JSON.stringify(delayMs)};
+      root[delayMarker] = ${JSON.stringify(delayMs)};
+      root[transformMarker] = ${JSON.stringify(transformMode)};
       return true;
     })()`
   );
+}
+
+async function injectWalkerFixtureFetchDelay(client, delayMs) {
+  return await configureWalkerFixtureFetchHook(client, { delayMs });
+}
+
+async function injectWalkerFixtureMissingFirstName(client) {
+  return await configureWalkerFixtureFetchHook(client, {
+    transformMode: "drop-first-name"
+  });
 }
 
 async function armWalkerPointOverlayRenderFailure(client) {
@@ -1210,6 +1291,39 @@ function assertNoSatelliteOverlayControls(runtimeState, scenarioLabel) {
   );
 }
 
+function assertWalkerPointOverlayLabelsUseNameOrId(
+  runtimeState,
+  scenarioLabel,
+  expectedFallbackIds = []
+) {
+  const entities = runtimeState.walkerOverlayEntities ?? [];
+
+  assert(
+    entities.length === 18,
+    `Expected all walker overlay entities to stay inspectable during ${scenarioLabel}: ${JSON.stringify(runtimeState)}`
+  );
+  assert(
+    entities.every((entity) => entity.hasPoint && entity.hasLabel),
+    `Every walker overlay entity must keep both point and label graphics during ${scenarioLabel}: ${JSON.stringify(runtimeState)}`
+  );
+  assert(
+    entities.every((entity) => entity.labelText === (entity.name ?? entity.id)),
+    `Walker overlay labels must use only existing name or fallback id during ${scenarioLabel}: ${JSON.stringify(runtimeState)}`
+  );
+  assert(
+    runtimeState.projectedLabelCount > 0,
+    `Expected at least one walker label to project into the active view during ${scenarioLabel}: ${JSON.stringify(runtimeState)}`
+  );
+
+  for (const expectedFallbackId of expectedFallbackIds) {
+    const entity = entities.find((candidate) => candidate.id === expectedFallbackId);
+    assert(
+      entity?.name === null && entity?.labelText === expectedFallbackId,
+      `Expected ${expectedFallbackId} to fall back to its id label during ${scenarioLabel}: ${JSON.stringify(runtimeState)}`
+    );
+  }
+}
+
 function assertWalkerPointOverlayReadyState(runtimeState, scenarioLabel) {
   assert(
     runtimeState.overlayMode === "walker-points" &&
@@ -1222,12 +1336,12 @@ function assertWalkerPointOverlayReadyState(runtimeState, scenarioLabel) {
   assert(
     runtimeState.controllerState?.pointCount === 18 &&
       runtimeState.controllerState?.satCount === 18 &&
-      runtimeState.controllerState?.labelCount === 0 &&
+      runtimeState.controllerState?.labelCount === 18 &&
       runtimeState.controllerState?.pathCount === 0 &&
       runtimeState.controllerState?.polylineCount === 0 &&
       runtimeState.controllerState?.dataSourceAttached === true &&
       runtimeState.controllerState?.visible === true,
-    `Overlay runtime must stay point-only during ${scenarioLabel}: ${JSON.stringify(runtimeState)}`
+    `Overlay runtime must stay on the walker point path with labels only during ${scenarioLabel}: ${JSON.stringify(runtimeState)}`
   );
   assert(
     runtimeState.controllerState?.overlayManager?.entries?.length === 1 &&
@@ -1244,6 +1358,7 @@ function assertWalkerPointOverlayReadyState(runtimeState, scenarioLabel) {
     runtimeState.projectedPointCount > 0,
     `Expected at least one walker point to project into the active view during ${scenarioLabel}: ${JSON.stringify(runtimeState)}`
   );
+  assertWalkerPointOverlayLabelsUseNameOrId(runtimeState, scenarioLabel);
   assertNoSatelliteOverlayControls(runtimeState, scenarioLabel);
 }
 
@@ -1641,6 +1756,59 @@ async function verifySatelliteOverlayToggle(client, scenarioLabel) {
   assertDesktopHudStatusOnlyState(
     await readHudLayoutState(client),
     `${scenarioLabel}/final-disabled-after-failure`
+  );
+
+  await injectWalkerFixtureMissingFirstName(client);
+  await setSatelliteOverlayMode(client, "walker-points");
+  await waitForCondition(
+    client,
+    `${scenarioLabel} overlay enabled with id-label fallback`,
+    `(() => {
+      const root = document.documentElement;
+      return root?.dataset.satelliteOverlayMode === "walker-points" &&
+        root?.dataset.satelliteOverlaySource === "runtime" &&
+        root?.dataset.satelliteOverlayState === "ready" &&
+        root?.dataset.satelliteOverlayPointCount === "18";
+    })()`
+  );
+
+  const fallbackLabelState = await readSatelliteOverlayRuntime(client);
+  assertWalkerPointOverlayReadyState(
+    fallbackLabelState,
+    `${scenarioLabel}/enabled-with-id-label-fallback`
+  );
+  assertWalkerPointOverlayLabelsUseNameOrId(
+    fallbackLabelState,
+    `${scenarioLabel}/enabled-with-id-label-fallback`,
+    ["sat-99001"]
+  );
+  assertDesktopHudStatusOnlyState(
+    await readHudLayoutState(client),
+    `${scenarioLabel}/enabled-with-id-label-fallback`
+  );
+
+  await setSatelliteOverlayMode(client, "off");
+  await waitForCondition(
+    client,
+    `${scenarioLabel} overlay disabled after id-label fallback`,
+    `(() => {
+      const root = document.documentElement;
+      return root?.dataset.satelliteOverlayMode === "off" &&
+        root?.dataset.satelliteOverlaySource === "runtime" &&
+        root?.dataset.satelliteOverlayState === "disabled" &&
+        root?.dataset.satelliteOverlayPointCount === "0";
+    })()`
+  );
+
+  const disabledAfterFallbackLabelState = await readSatelliteOverlayRuntime(client);
+  assertWalkerPointOverlayDisabledState(
+    disabledAfterFallbackLabelState,
+    `${scenarioLabel}/disabled-after-id-label-fallback`,
+    "runtime"
+  );
+  assertDesktopHudStatusOnlyState(
+    await readHudLayoutState(client),
+    `${scenarioLabel}/disabled-after-id-label-fallback`
   );
 }
 

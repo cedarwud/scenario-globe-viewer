@@ -64,6 +64,31 @@ Capture conditions:
 
 This artifact records the formal site dataset MVP only. It proves the existing `site` preset hook can render a configured dataset-backed building model through Cesium's native runtime. It does not claim that the final delivery AOI has already been supplied, and it does not close the missing admissible Tier 1 / Tier 2 Profile A measurement gate.
 
+## Phase 5.2 Label Review Artifact
+
+- `docs/images/phase-5.2-labels/global-preset-overlay-labels.png`
+
+Use the separate repo-owned capture harness:
+
+```bash
+npm run capture:phase5.2-labels
+```
+
+Capture conditions:
+
+- deployment profile: Profile A / Cesium-native default
+- viewport: `1440x900`
+- bootstrap selection path: default `global` preset
+- overlay state: the default startup path remains `satelliteOverlay=off/default-off/disabled`, and the capture harness then enables the existing single repo-owned top-level walker-backed overlay controller through the narrow capture seam
+- label scope: fixed runtime-local labels only, derived from existing `name` or fallback `id` on the landed point path
+- no-go guard: `pathCount=0`, `polylineCount=0`, no per-satellite controls, and no overlay HUD / user-facing overlay UI
+- shell guard: the repo-owned HUD remains status-only with left/right panels hidden, while the native toolbar, native timeline, and native credits remain visible
+- baseline guard: the command uses the default build path, rejects Vite-resolved `VITE_CESIUM_SITE_TILESET_URL`, and does not overwrite the dormant Phase 2.12 preset screenshots or the formal site dataset artifact line
+- clock seed: the browser `Date` value is fixed to `2026-04-16T00:00:10.250Z` before app bootstrap
+- native clock stabilization: after bootstrap readiness, the harness pauses the native Cesium clock, enables the label path, waits for overlay readiness plus projected labels in view, and only then captures the screenshot
+
+This artifact is a review-only cleanliness line for the bounded Phase 5.2 label-only widening. It does not replace the accepted Phase 2.12 baseline, does not replace the formal site dataset MVP artifact, and does not claim admissible measurement evidence.
+
 ## Phase 3.1 Follow-Up Approval Artifact
 
 - `docs/images/phase-3.1-follow-up/hud-shell-global-1440x900.png`

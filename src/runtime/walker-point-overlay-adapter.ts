@@ -1,9 +1,15 @@
 import {
+  Cartesian2,
   Cartesian3,
   Color,
+  ConstantProperty,
   ConstantPositionProperty,
   CustomDataSource,
+  HorizontalOrigin,
+  LabelGraphics,
+  LabelStyle,
   PointGraphics,
+  VerticalOrigin,
   type Viewer
 } from "cesium";
 
@@ -40,6 +46,24 @@ function createPointStyle() {
     outlineColor: Color.fromCssColorString("#04121c").withAlpha(0.9),
     outlineWidth: 1
   };
+}
+
+function createLabelStyle(text: string) {
+  return new LabelGraphics({
+    text: new ConstantProperty(text),
+    font: "11px sans-serif",
+    scale: 0.8,
+    style: LabelStyle.FILL_AND_OUTLINE,
+    fillColor: Color.WHITE.withAlpha(0.96),
+    outlineColor: Color.fromCssColorString("#04121c").withAlpha(0.92),
+    outlineWidth: 2,
+    showBackground: true,
+    backgroundColor: Color.fromCssColorString("#04121c").withAlpha(0.56),
+    pixelOffset: new Cartesian2(0, -14),
+    horizontalOrigin: HorizontalOrigin.CENTER,
+    verticalOrigin: VerticalOrigin.BOTTOM,
+    disableDepthTestDistance: Number.POSITIVE_INFINITY
+  });
 }
 
 function toCartesianPosition(sample: {
@@ -128,10 +152,12 @@ export function createWalkerPointOverlayAdapter(
 
     for (const sample of walkerAdapter.getCurrentSamples()) {
       const entity = dataSource.entities.getOrCreateEntity(sample.id);
+      const labelText = sample.name ?? sample.id;
       entity.name = sample.name;
       entity.position = new ConstantPositionProperty(toCartesianPosition(sample));
       entity.point = entity.point ?? new PointGraphics(createPointStyle());
-      entity.label = undefined;
+      entity.label = entity.label ?? createLabelStyle(labelText);
+      entity.label.text = new ConstantProperty(labelText);
       entity.path = undefined;
       entity.polyline = undefined;
       seenIds.add(sample.id);
