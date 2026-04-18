@@ -532,9 +532,12 @@ Phase 6.0 planning closure is now recorded in this file.
 
 The next session should:
 
-1. review and accept the repo-owned `scenario` contract doc
-2. define the first scenario source taxonomy and lifecycle boundaries
-3. decide the minimum `src/features/scenario/` boundary shape
+1. review and accept the repo-owned `scenario` contract doc plus the landed
+   `src/features/scenario/` boundary
+2. confirm the first scenario source taxonomy and lifecycle boundaries against
+   that module shape
+3. plan the thinnest coordination seam that can read scenario inputs without
+   taking over preset/time/overlay apply logic
 4. keep runtime implementation work out of scope until the contract boundary is
    accepted
 

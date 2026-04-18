@@ -23,9 +23,24 @@ but it does not yet have a single repo-owned surface that answers:
 
 ## Planned Public Shape
 
-Planned public source of truth: a future module under `src/features/scenario/`.
+Current public source of truth: `src/features/scenario/scenario.ts`.
+That module reuses the existing repo-local `ScenePresetKey`, `ClockMode`,
+`ClockTimestamp`, `SceneSite3DTilesSource`, and satellite fixture kinds instead
+of forking a second vocabulary for the same seams.
 
 ```ts
+interface ScenarioPresentationRef {
+  presetKey: ScenePresetKey;
+}
+
+interface ScenarioTimeDefinition {
+  mode: ClockMode;
+  range?: {
+    start: ClockTimestamp;
+    stop: ClockTimestamp;
+  };
+}
+
 // Transitional flat union for Phase 6.1 planning. It currently mixes
 // time-family values with broader scenario-intent families. A later accepted
 // implementation may split this into separate fields such as `timeMode` and
@@ -43,16 +58,8 @@ interface ScenarioDefinition {
   // If `kind` is "site-dataset" or "validation-bridge", `time.mode` is chosen
   // independently and `kind` expresses the broader scenario intent.
   kind: ScenarioKind;
-  presentation: {
-    presetKey: string;
-  };
-  time: {
-    mode: "real-time" | "prerecorded";
-    range?: {
-      start: string | number;
-      stop: string | number;
-    };
-  };
+  presentation: ScenarioPresentationRef;
+  time: ScenarioTimeDefinition;
   sources: {
     satellite?: ScenarioSatelliteSourceRef;
     siteDataset?: ScenarioSiteDatasetRef;
@@ -72,7 +79,7 @@ type ScenarioSatelliteSourceRef =
     };
 
 interface ScenarioSiteDatasetRef {
-  source: "configured-url";
+  source: SceneSite3DTilesSource;
   datasetRef: string;
 }
 
@@ -207,13 +214,14 @@ into full validation-stack ownership, statistics, or decision-layer behavior.
 In the current repo state:
 
 - this document is the first repo-owned scenario contract planning surface
-- no `src/features/scenario/` module exists yet
+- a type-only `src/features/scenario/` module now records the public scenario
+  contract boundary
 - `scene-preset`, `replay-clock`, and `satellite-overlay` remain separate seams
 - the live runtime is still bounded to the current preset/time/overlay structure
 - the walker proof path remains an overlay proof line, not a scenario model
 
-That means this document is a contract-planning input, not proof that Phase 6.1
-implementation has already started.
+That means this document plus `src/features/scenario/` are contract-planning
+inputs, not proof that runtime Phase 6.1 coordination has already started.
 
 ## Must Stay Out Of Scope
 
