@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { pathToFileURL } from "node:url";
@@ -19,6 +19,10 @@ const scenarioPlanRunnerPath = new URL(
 );
 const scenarioSessionPath = new URL(
   "../src/features/scenario/scenario-session.ts",
+  import.meta.url
+);
+const scenarioRuntimePlanDriverPath = new URL(
+  "../src/runtime/scenario-runtime-plan-driver.ts",
   import.meta.url
 );
 const scenarioShapePath = new URL(
@@ -43,12 +47,18 @@ function transpileTypeScript(source, fileName) {
 
 const tempModuleDir = await mkdtemp(join(tmpdir(), "sgv-phase6.1-"));
 
+await Promise.all([
+  mkdir(join(tempModuleDir, "features/globe"), { recursive: true }),
+  mkdir(join(tempModuleDir, "runtime"), { recursive: true })
+]);
+
 const [
   scenarioShapeSource,
   scenarioModuleSource,
   scenarioFacadeSource,
   scenarioPlanRunnerSource,
   scenarioSessionSource,
+  scenarioRuntimePlanDriverSource,
   scenarioIndexSource,
   mainSource
 ] = await Promise.all([
@@ -57,6 +67,7 @@ const [
   readFile(scenarioFacadePath, "utf8"),
   readFile(scenarioPlanRunnerPath, "utf8"),
   readFile(scenarioSessionPath, "utf8"),
+  readFile(scenarioRuntimePlanDriverPath, "utf8"),
   readFile(scenarioIndexPath, "utf8"),
   readFile(mainPath, "utf8")
 ]);
@@ -81,6 +92,30 @@ await Promise.all([
   writeFile(
     join(tempModuleDir, "scenario-session"),
     transpileTypeScript(scenarioSessionSource, "scenario-session.ts")
+  ),
+  writeFile(
+    join(tempModuleDir, "runtime/scenario-runtime-plan-driver"),
+    transpileTypeScript(
+      scenarioRuntimePlanDriverSource,
+      "runtime/scenario-runtime-plan-driver.ts"
+    )
+  ),
+  writeFile(
+    join(tempModuleDir, "features/globe/scene-preset"),
+    [
+      "export function getScenePreset(key) {",
+      "  return { id: `preset-${key}`, label: key };",
+      "}"
+    ].join("\n")
+  ),
+  writeFile(
+    join(tempModuleDir, "features/globe/scene-preset-runtime"),
+    [
+      "export const SCENE_PRESET_RUNTIME_CALLS = [];",
+      "export function applyScenePreset(viewer, preset, options = {}) {",
+      "  SCENE_PRESET_RUNTIME_CALLS.push({ viewer, preset, options });",
+      "}"
+    ].join("\n")
   )
 ]);
 
@@ -102,6 +137,16 @@ const { executeScenarioSwitchPlan, executeScenarioUnloadPlan } = await import(
 );
 const { createScenarioSession } = await import(
   pathToFileURL(join(tempModuleDir, "scenario-session")).href
+);
+const {
+  createRuntimeSatellitePlanBinding,
+  createScenarioRuntimePlanDriver,
+  createViewerScenarioRuntimePlanDriver
+} = await import(
+  pathToFileURL(join(tempModuleDir, "runtime/scenario-runtime-plan-driver")).href
+);
+const { SCENE_PRESET_RUNTIME_CALLS } = await import(
+  pathToFileURL(join(tempModuleDir, "features/globe/scene-preset-runtime")).href
 );
 
 const requiredScenarioModuleSnippets = [
@@ -187,6 +232,23 @@ for (const snippet of requiredScenarioSessionSnippets) {
   );
 }
 
+const requiredScenarioRuntimeDriverSnippets = [
+  "export interface ScenarioRuntimePlanBindings {",
+  "export interface ScenarioRuntimePlanDriverOptions {",
+  "export interface ScenarioRuntimeSatelliteBindingOptions {",
+  "export function createScenarioRuntimePlanDriver(",
+  "export function createRuntimeSatellitePlanBinding(",
+  "export function createViewerScenarioRuntimePlanDriver(",
+  "Scenario runtime plan driver does not support"
+];
+
+for (const snippet of requiredScenarioRuntimeDriverSnippets) {
+  assert(
+    scenarioRuntimePlanDriverSource.includes(snippet),
+    `Missing required scenario runtime driver snippet: ${snippet}`
+  );
+}
+
 const requiredScenarioIndexSnippets = [
   "ScenarioResolvedInputs",
   "ScenarioSwitchPlan",
@@ -259,6 +321,11 @@ for (const { pattern, message } of forbiddenScenarioPatterns) {
   assert(!pattern.test(scenarioPlanRunnerSource), `Scenario plan-runner: ${message}`);
   assert(!pattern.test(scenarioSessionSource), `Scenario session: ${message}`);
 }
+
+assert(
+  !/\bscenario-runtime-plan-driver\b/.test(mainSource),
+  "Phase 6.1 runtime adapter must stay off the live runtime path for now."
+);
 
 const liveScenario = {
   id: "ops-live",
@@ -625,6 +692,163 @@ assert.deepEqual(
   },
   "Scenario session must not commit current-scenario state before driver execution succeeds."
 );
+
+const runtimeDriverCalls = [];
+const runtimeDriver = createScenarioRuntimePlanDriver({
+  setPresentation(presentation) {
+    runtimeDriverCalls.push(`set-presentation:${presentation.presetKey}`);
+  },
+  setTime(time) {
+    runtimeDriverCalls.push(`set-time:${time.mode}`);
+  }
+});
+
+runtimeDriver.setPresentation({ presetKey: "regional" });
+runtimeDriver.setTime({
+  mode: "prerecorded",
+  range: {
+    start: "2026-04-18T00:00:00.000Z",
+    stop: "2026-04-18T00:10:00.000Z"
+  }
+});
+assert.deepEqual(runtimeDriverCalls, [
+  "set-presentation:regional",
+  "set-time:prerecorded"
+]);
+
+assert.throws(
+  () =>
+    runtimeDriver.attachSiteDataset({
+      source: "configured-url",
+      datasetRef: "formal-site-mvp"
+    }),
+  /does not support site dataset attach/u,
+  "Minimal runtime adapter must keep site-dataset attach unsupported until an explicit binding is supplied."
+);
+assert.throws(
+  () => runtimeDriver.detachSiteDataset(),
+  /does not support site dataset detach/u,
+  "Minimal runtime adapter must keep site-dataset detach unsupported until an explicit binding is supplied."
+);
+assert.throws(
+  () =>
+    runtimeDriver.attachSatelliteSource({
+      kind: "feed-ref",
+      feedId: "ops-feed"
+    }),
+  /does not support satellite attach/u,
+  "Minimal runtime adapter must keep satellite attach unsupported until an explicit binding is supplied."
+);
+assert.throws(
+  () => runtimeDriver.detachSatelliteSource(),
+  /does not support satellite detach/u,
+  "Minimal runtime adapter must keep satellite detach unsupported until an explicit binding is supplied."
+);
+assert.throws(
+  () =>
+    runtimeDriver.attachValidation({
+      mode: "placeholder",
+      transport: "placeholder"
+    }),
+  /does not support validation attach/u,
+  "Minimal runtime adapter must keep validation attach unsupported until an explicit binding is supplied."
+);
+
+const siteDatasetCalls = [];
+const siteDatasetRuntimeDriver = createScenarioRuntimePlanDriver({
+  setPresentation() {},
+  setTime() {},
+  attachSiteDataset(siteDataset) {
+    siteDatasetCalls.push(`attach:${siteDataset.datasetRef}`);
+  },
+  detachSiteDataset() {
+    siteDatasetCalls.push("detach");
+  }
+});
+
+siteDatasetRuntimeDriver.attachSiteDataset({
+  source: "configured-url",
+  datasetRef: "formal-site-mvp"
+});
+siteDatasetRuntimeDriver.detachSiteDataset();
+assert.deepEqual(siteDatasetCalls, [
+  "attach:formal-site-mvp",
+  "detach"
+]);
+
+const satelliteOverlayCalls = [];
+const satelliteBinding = createRuntimeSatellitePlanBinding({
+  satelliteOverlay: {
+    setMode(mode) {
+      satelliteOverlayCalls.push(mode);
+      return Promise.resolve({
+        mode,
+        status: mode === "off" ? "disabled" : "ready"
+      });
+    }
+  },
+  resolveMode(satellite) {
+    if (satellite.kind === "fixture-ref") {
+      return "walker-points";
+    }
+    return "off";
+  }
+});
+
+await satelliteBinding.attach({
+  kind: "fixture-ref",
+  fixtureType: "tle",
+  fixtureId: "walker-o6-s3-i45-h698"
+});
+await satelliteBinding.detach();
+assert.deepEqual(satelliteOverlayCalls, ["walker-points", "off"]);
+
+const replayClockCalls = [];
+const fakeViewer = { id: "viewer-handle" };
+const fakeReplayClock = {
+  setMode(mode, range) {
+    replayClockCalls.push({ mode, range });
+  }
+};
+
+const viewerRuntimeDriver = createViewerScenarioRuntimePlanDriver({
+  viewer: fakeViewer,
+  replayClock: fakeReplayClock,
+  scenePresetRuntime: {
+    buildingShowcaseKey: "off"
+  }
+});
+
+viewerRuntimeDriver.setPresentation({ presetKey: "site" });
+viewerRuntimeDriver.setTime({
+  mode: "prerecorded",
+  range: {
+    start: 1_744_934_800_000,
+    stop: 1_744_935_100_000
+  }
+});
+
+assert.deepEqual(SCENE_PRESET_RUNTIME_CALLS, [
+  {
+    viewer: fakeViewer,
+    preset: {
+      id: "preset-site",
+      label: "site"
+    },
+    options: {
+      buildingShowcaseKey: "off"
+    }
+  }
+]);
+assert.deepEqual(replayClockCalls, [
+  {
+    mode: "prerecorded",
+    range: {
+      start: 1_744_934_800_000,
+      stop: 1_744_935_100_000
+    }
+  }
+]);
 
 assert(
   !/\bfeatures\/scenario\b/.test(mainSource),
