@@ -256,4 +256,8 @@ Review checkpoint: mandatory before any Phase 6+ expansion.
 
 ## Beyond Phase 5
 
-Phase 6 and later introduce richer scenario data contracts, denser overlays, and full-system validation. Treat those as explicit follow-on phases, not an automatic continuation once Phase 5 lands.
+Phase 6 and later are no longer treated as an automatic continuation of the
+current overlay/showcase line. Use the repo-owned follow-on SDD:
+[Phase 6+ Requirement-Centered Plan](./sdd/phase-6-plus-requirement-centered-plan.md).
+That SDD now records the Phase 6.0 planning closure and the Phase 6.1 entry
+decision; do not start Phase 6.1 implementation from this file alone.
