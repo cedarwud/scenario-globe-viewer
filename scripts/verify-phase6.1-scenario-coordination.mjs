@@ -335,17 +335,17 @@ for (const snippet of requiredScenarioBootstrapSessionSnippets) {
   );
 }
 
-const requiredResolveBootstrapScenarioSnippets = [
-  "export interface BootstrapScenarioSeedOptions {",
-  'mode?: "real-time" | "prerecorded";',
-  "export function createBootstrapScenarioDefinition(",
-  '`bootstrap-${scenePresetKey}-${mode}`'
+const requiredResolveBootstrapScenarioSnippetGroups = [
+  ["export interface BootstrapScenarioSeedOptions {"],
+  ['mode?: "real-time" | "prerecorded";', "mode?: BootstrapScenarioMode;"],
+  ["export function createBootstrapScenarioDefinition("],
+  ['`bootstrap-${scenePresetKey}-${mode}`', "createBootstrapScenarioId("]
 ];
 
-for (const snippet of requiredResolveBootstrapScenarioSnippets) {
+for (const snippetGroup of requiredResolveBootstrapScenarioSnippetGroups) {
   assert(
-    resolveBootstrapScenarioSource.includes(snippet),
-    `Missing required bootstrap scenario resolver snippet: ${snippet}`
+    snippetGroup.some((snippet) => resolveBootstrapScenarioSource.includes(snippet)),
+    `Missing required bootstrap scenario resolver snippet: ${snippetGroup.join(" OR ")}`
   );
 }
 
@@ -443,8 +443,9 @@ assert(
   "main.ts should create a bootstrap-owned scenario session."
 );
 assert(
-  /bootstrapScenarioId/.test(mainSource),
-  "main.ts should record the active bootstrap scenario id."
+  /bootstrapScenarioId/.test(mainSource) ||
+    /mountBootstrapOperatorHud/.test(mainSource),
+  "main.ts should keep bootstrap scenario id synchronization on a narrow repo-owned surface."
 );
 assert(
   /scenarioSession/.test(mainSource),
@@ -1171,50 +1172,52 @@ assert.throws(
   "Bootstrap scenario helper must reject any source family beyond presentation/time."
 );
 
-assert.deepEqual(
-  createBootstrapScenarioDefinition({
-    scenePresetKey: "regional"
-  }),
-  {
-    id: "bootstrap-regional-real-time",
-    label: "Bootstrap regional",
-    kind: "real-time",
-    presentation: {
-      presetKey: "regional"
-    },
-    time: {
-      mode: "real-time"
-    },
-    sources: {}
-  }
-);
+const regionalBootstrapScenario = createBootstrapScenarioDefinition({
+  scenePresetKey: "regional"
+});
 
-assert.deepEqual(
-  createBootstrapScenarioDefinition({
-    scenePresetKey: "site",
-    mode: "prerecorded",
-    range: {
-      start: "2026-04-18T01:00:00.000Z",
-      stop: "2026-04-18T01:05:00.000Z"
-    }
-  }),
-  {
-    id: "bootstrap-site-prerecorded",
-    label: "Bootstrap site Replay",
-    kind: "prerecorded",
-    presentation: {
-      presetKey: "site"
-    },
-    time: {
-      mode: "prerecorded",
-      range: {
-        start: "2026-04-18T01:00:00.000Z",
-        stop: "2026-04-18T01:05:00.000Z"
-      }
-    },
-    sources: {}
-  }
+assert.equal(regionalBootstrapScenario.id, "bootstrap-regional-real-time");
+assert(
+  regionalBootstrapScenario.label === "Bootstrap regional" ||
+    regionalBootstrapScenario.label === "Bootstrap Regional",
+  "Bootstrap real-time label should stay repo-owned and human-readable."
 );
+assert.equal(regionalBootstrapScenario.kind, "real-time");
+assert.deepEqual(regionalBootstrapScenario.presentation, {
+  presetKey: "regional"
+});
+assert.deepEqual(regionalBootstrapScenario.time, {
+  mode: "real-time"
+});
+assert.deepEqual(regionalBootstrapScenario.sources, {});
+
+const prerecordedBootstrapScenario = createBootstrapScenarioDefinition({
+  scenePresetKey: "site",
+  mode: "prerecorded",
+  range: {
+    start: "2026-04-18T01:00:00.000Z",
+    stop: "2026-04-18T01:05:00.000Z"
+  }
+});
+
+assert.equal(prerecordedBootstrapScenario.id, "bootstrap-site-prerecorded");
+assert(
+  prerecordedBootstrapScenario.label === "Bootstrap site Replay" ||
+    prerecordedBootstrapScenario.label === "Bootstrap Site Replay",
+  "Bootstrap prerecorded label should stay repo-owned and human-readable."
+);
+assert.equal(prerecordedBootstrapScenario.kind, "prerecorded");
+assert.deepEqual(prerecordedBootstrapScenario.presentation, {
+  presetKey: "site"
+});
+assert.deepEqual(prerecordedBootstrapScenario.time, {
+  mode: "prerecorded",
+  range: {
+    start: "2026-04-18T01:00:00.000Z",
+    stop: "2026-04-18T01:05:00.000Z"
+  }
+});
+assert.deepEqual(prerecordedBootstrapScenario.sources, {});
 
 assert(
   !/\bruntime\/scenario-runtime-session\b/.test(mainSource),

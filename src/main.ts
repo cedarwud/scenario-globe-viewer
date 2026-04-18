@@ -12,14 +12,15 @@ import {
   resolveBuildingShowcaseSelection
 } from "./features/globe/osm-buildings-showcase";
 import { createCesiumReplayClock } from "./features/time/cesium-replay-clock";
-import { mountTimelineHudPlaceholder } from "./features/time/timeline-hud-placeholder";
 import type { ReplayClock } from "./features/time";
+import { mountBootstrapOperatorHud } from "./features/operator/bootstrap-operator-hud";
 import {
   createSatelliteOverlayController,
   type SatelliteOverlayController
 } from "./runtime/satellite-overlay-controller";
+import { createBootstrapOperatorController } from "./runtime/bootstrap-operator-controller";
 import { createBootstrapScenarioSession } from "./runtime/scenario-bootstrap-session";
-import { createBootstrapScenarioDefinition } from "./runtime/resolve-bootstrap-scenario";
+import { createBootstrapScenarioCatalog } from "./runtime/resolve-bootstrap-scenario";
 import "./styles.css";
 
 type BootstrapState = "booting" | "ready" | "error";
@@ -119,23 +120,28 @@ const viewer = createViewer({
   buildingShowcaseKey: buildingShowcase.key
 });
 const replayClock = createCesiumReplayClock(viewer);
-const bootstrapScenario = createBootstrapScenarioDefinition({
-  scenePresetKey: scenePreset
+const bootstrapScenarioCatalog = createBootstrapScenarioCatalog({
+  initialScenePresetKey: scenePreset,
+  baselineTime: replayClock.getState()
 });
 const scenarioSession = createBootstrapScenarioSession({
-  definitions: [bootstrapScenario],
-  initialScenarioId: bootstrapScenario.id,
+  definitions: bootstrapScenarioCatalog.definitions,
+  initialScenarioId: bootstrapScenarioCatalog.initialScenarioId,
   viewer,
   replayClock,
   scenePresetRuntime: {
     buildingShowcaseKey: buildingShowcase.key
   }
 });
-document.documentElement.dataset.bootstrapScenarioId = bootstrapScenario.id;
-const unmountTimelineHudPlaceholder = mountTimelineHudPlaceholder({
+const bootstrapOperatorController = createBootstrapOperatorController({
+  scenarioSession,
+  scenarioCatalog: bootstrapScenarioCatalog,
+  replayClock
+});
+const unmountBootstrapOperatorHud = mountBootstrapOperatorHud({
   hudFrame,
   statusPanel,
-  replayClock
+  controller: bootstrapOperatorController
 });
 const satelliteOverlay = createSatelliteOverlayController({
   viewer,
@@ -178,7 +184,8 @@ if (import.meta.hot) {
     removeMorphCompleteListener();
     unmountOsmBuildingsShowcase();
     unmountLightingToggle();
-    unmountTimelineHudPlaceholder();
+    unmountBootstrapOperatorHud();
+    bootstrapOperatorController.dispose();
     void satelliteOverlay.dispose();
     viewer.destroy();
   });

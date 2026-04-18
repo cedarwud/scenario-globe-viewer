@@ -11,8 +11,7 @@ interface TimelineHudPlaceholderElements {
 }
 
 interface TimelineHudPlaceholderMountOptions {
-  hudFrame: HTMLElement;
-  statusPanel: HTMLElement;
+  container: HTMLElement;
   replayClock: ReplayClock;
 }
 
@@ -25,8 +24,8 @@ function createField(label: string, field: keyof TimelineHudPlaceholderElements)
   `;
 }
 
-function createElements(statusPanel: HTMLElement): TimelineHudPlaceholderElements {
-  statusPanel.innerHTML = `
+function createElements(container: HTMLElement): TimelineHudPlaceholderElements {
+  container.innerHTML = `
     <div class="timeline-hud-placeholder" data-time-placeholder="true">
       <div class="timeline-hud-placeholder__header">
         <span class="timeline-hud-placeholder__eyebrow">Read-only</span>
@@ -41,18 +40,18 @@ function createElements(statusPanel: HTMLElement): TimelineHudPlaceholderElement
     </div>
   `;
 
-  const root = statusPanel.querySelector<HTMLDivElement>("[data-time-placeholder='true']");
-  const heading = statusPanel.querySelector<HTMLSpanElement>(
+  const root = container.querySelector<HTMLDivElement>("[data-time-placeholder='true']");
+  const heading = container.querySelector<HTMLSpanElement>(
     "[data-time-field='heading']"
   );
-  const mode = statusPanel.querySelector<HTMLSpanElement>("[data-time-field='mode']");
-  const currentTime = statusPanel.querySelector<HTMLSpanElement>(
+  const mode = container.querySelector<HTMLSpanElement>("[data-time-field='mode']");
+  const currentTime = container.querySelector<HTMLSpanElement>(
     "[data-time-field='currentTime']"
   );
-  const activeRange = statusPanel.querySelector<HTMLSpanElement>(
+  const activeRange = container.querySelector<HTMLSpanElement>(
     "[data-time-field='activeRange']"
   );
-  const playbackState = statusPanel.querySelector<HTMLSpanElement>(
+  const playbackState = container.querySelector<HTMLSpanElement>(
     "[data-time-field='playbackState']"
   );
 
@@ -86,14 +85,10 @@ function renderState(
 }
 
 export function mountTimelineHudPlaceholder({
-  hudFrame,
-  statusPanel,
+  container,
   replayClock
 }: TimelineHudPlaceholderMountOptions): () => void {
-  hudFrame.dataset.hudVisibility = "status-only";
-  hudFrame.setAttribute("aria-hidden", "false");
-
-  const elements = createElements(statusPanel);
+  const elements = createElements(container);
   renderState(elements, replayClock.getState());
 
   const unsubscribe = replayClock.onTick((state) => {
@@ -102,8 +97,6 @@ export function mountTimelineHudPlaceholder({
 
   return () => {
     unsubscribe();
-    statusPanel.replaceChildren();
-    hudFrame.dataset.hudVisibility = "hidden";
-    hudFrame.setAttribute("aria-hidden", "true");
+    container.replaceChildren();
   };
 }
