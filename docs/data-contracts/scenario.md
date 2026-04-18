@@ -225,6 +225,10 @@ In the current repo state:
 - a thin `src/runtime/scenario-runtime-plan-driver.ts` adapter now exists for
   bounded runtime consumers, but it only executes plan steps through explicit
   bindings and still stays off the live `src/main.ts` coordination path
+- `src/runtime/scenario-runtime-session.ts` now provides the first bounded
+  runtime consumer factory for that adapter, composing it back into the repo-
+  owned session host without turning `scenario` into a live top-level
+  coordinator
 - `scene-preset`, `replay-clock`, and `satellite-overlay` remain separate seams
 - the live runtime is still bounded to the current preset/time/overlay structure
 - the walker proof path remains an overlay proof line, not a scenario model

@@ -25,6 +25,10 @@ const scenarioRuntimePlanDriverPath = new URL(
   "../src/runtime/scenario-runtime-plan-driver.ts",
   import.meta.url
 );
+const scenarioRuntimeSessionPath = new URL(
+  "../src/runtime/scenario-runtime-session.ts",
+  import.meta.url
+);
 const scenarioShapePath = new URL(
   "../src/features/scenario/scenario.ts",
   import.meta.url
@@ -59,6 +63,7 @@ const [
   scenarioPlanRunnerSource,
   scenarioSessionSource,
   scenarioRuntimePlanDriverSource,
+  scenarioRuntimeSessionSource,
   scenarioIndexSource,
   mainSource
 ] = await Promise.all([
@@ -68,6 +73,7 @@ const [
   readFile(scenarioPlanRunnerPath, "utf8"),
   readFile(scenarioSessionPath, "utf8"),
   readFile(scenarioRuntimePlanDriverPath, "utf8"),
+  readFile(scenarioRuntimeSessionPath, "utf8"),
   readFile(scenarioIndexPath, "utf8"),
   readFile(mainPath, "utf8")
 ]);
@@ -99,6 +105,17 @@ await Promise.all([
       scenarioRuntimePlanDriverSource,
       "runtime/scenario-runtime-plan-driver.ts"
     )
+  ),
+  writeFile(
+    join(tempModuleDir, "runtime/scenario-runtime-session"),
+    transpileTypeScript(
+      scenarioRuntimeSessionSource,
+      "runtime/scenario-runtime-session.ts"
+    )
+  ),
+  writeFile(
+    join(tempModuleDir, "features/scenario"),
+    ['export { createScenarioSession } from "../scenario-session";'].join("\n")
   ),
   writeFile(
     join(tempModuleDir, "features/globe/scene-preset"),
@@ -144,6 +161,12 @@ const {
   createViewerScenarioRuntimePlanDriver
 } = await import(
   pathToFileURL(join(tempModuleDir, "runtime/scenario-runtime-plan-driver")).href
+);
+const {
+  createScenarioRuntimeSession,
+  createViewerScenarioRuntimeSession
+} = await import(
+  pathToFileURL(join(tempModuleDir, "runtime/scenario-runtime-session")).href
 );
 const { SCENE_PRESET_RUNTIME_CALLS } = await import(
   pathToFileURL(join(tempModuleDir, "features/globe/scene-preset-runtime")).href
@@ -249,6 +272,21 @@ for (const snippet of requiredScenarioRuntimeDriverSnippets) {
   );
 }
 
+const requiredScenarioRuntimeSessionSnippets = [
+  "export interface ScenarioRuntimeSessionOptions {",
+  "export interface ViewerScenarioRuntimeSessionOptions",
+  "export function createScenarioRuntimeSession(",
+  "export function createViewerScenarioRuntimeSession(",
+  "first bounded runtime consumer of the Phase 6.1 scenario session"
+];
+
+for (const snippet of requiredScenarioRuntimeSessionSnippets) {
+  assert(
+    scenarioRuntimeSessionSource.includes(snippet),
+    `Missing required scenario runtime session snippet: ${snippet}`
+  );
+}
+
 const requiredScenarioIndexSnippets = [
   "ScenarioResolvedInputs",
   "ScenarioSwitchPlan",
@@ -325,6 +363,10 @@ for (const { pattern, message } of forbiddenScenarioPatterns) {
 assert(
   !/\bscenario-runtime-plan-driver\b/.test(mainSource),
   "Phase 6.1 runtime adapter must stay off the live runtime path for now."
+);
+assert(
+  !/\bscenario-runtime-session\b/.test(mainSource),
+  "Phase 6.1 runtime session host must stay off the live runtime path for now."
 );
 
 const liveScenario = {
@@ -849,6 +891,134 @@ assert.deepEqual(replayClockCalls, [
     }
   }
 ]);
+
+const runtimeSessionCalls = [];
+const runtimeSession = createScenarioRuntimeSession({
+  definitions: [siteReviewScenario],
+  bindings: {
+    setPresentation(presentation) {
+      runtimeSessionCalls.push(`set-presentation:${presentation.presetKey}`);
+    },
+    setTime(time) {
+      runtimeSessionCalls.push(`set-time:${time.mode}`);
+    },
+    attachSiteDataset(siteDataset) {
+      runtimeSessionCalls.push(`attach-site-dataset:${siteDataset.datasetRef}`);
+    },
+    detachSiteDataset() {
+      runtimeSessionCalls.push("detach-site-dataset");
+    }
+  }
+});
+
+const runtimeSessionSelect = await runtimeSession.selectScenario("site-review");
+assert.deepEqual(runtimeSessionCalls, [
+  "set-presentation:site",
+  "set-time:prerecorded",
+  "attach-site-dataset:formal-site-mvp"
+]);
+assert.deepEqual(runtimeSessionSelect.state, {
+  scenarioIds: ["site-review"],
+  currentScenarioId: "site-review",
+  currentScenario: resolveScenarioInputs(siteReviewScenario)
+});
+
+runtimeSessionCalls.length = 0;
+
+const runtimeSessionClear = await runtimeSession.clearScenario();
+assert.deepEqual(runtimeSessionCalls, ["detach-site-dataset"]);
+assert.deepEqual(runtimeSessionClear.state, {
+  scenarioIds: ["site-review"]
+});
+
+SCENE_PRESET_RUNTIME_CALLS.length = 0;
+replayClockCalls.length = 0;
+
+const viewerRuntimeSession = createViewerScenarioRuntimeSession({
+  definitions: [
+    {
+      id: "shell-preview",
+      label: "Shell Preview",
+      kind: "prerecorded",
+      presentation: {
+        presetKey: "regional"
+      },
+      time: {
+        mode: "prerecorded",
+        range: {
+          start: "2026-04-18T00:00:00.000Z",
+          stop: "2026-04-18T00:10:00.000Z"
+        }
+      },
+      sources: {}
+    }
+  ],
+  viewer: fakeViewer,
+  replayClock: fakeReplayClock,
+  scenePresetRuntime: {
+    buildingShowcaseKey: "off"
+  }
+});
+
+const viewerRuntimeSessionSelect = await viewerRuntimeSession.selectScenario(
+  "shell-preview"
+);
+assert.deepEqual(viewerRuntimeSessionSelect.switchPlan.steps.map((step) => step.kind), [
+  "set-presentation",
+  "set-time"
+]);
+assert.deepEqual(viewerRuntimeSessionSelect.state, {
+  scenarioIds: ["shell-preview"],
+  currentScenarioId: "shell-preview",
+  currentScenario: resolveScenarioInputs({
+    id: "shell-preview",
+    label: "Shell Preview",
+    kind: "prerecorded",
+    presentation: {
+      presetKey: "regional"
+    },
+    time: {
+      mode: "prerecorded",
+      range: {
+        start: "2026-04-18T00:00:00.000Z",
+        stop: "2026-04-18T00:10:00.000Z"
+      }
+    },
+    sources: {}
+  })
+});
+assert.deepEqual(SCENE_PRESET_RUNTIME_CALLS, [
+  {
+    viewer: fakeViewer,
+    preset: {
+      id: "preset-regional",
+      label: "regional"
+    },
+    options: {
+      buildingShowcaseKey: "off"
+    }
+  }
+]);
+assert.deepEqual(replayClockCalls, [
+  {
+    mode: "prerecorded",
+    range: {
+      start: "2026-04-18T00:00:00.000Z",
+      stop: "2026-04-18T00:10:00.000Z"
+    }
+  }
+]);
+
+await assert.rejects(
+  () =>
+    createViewerScenarioRuntimeSession({
+      definitions: [siteReviewScenario],
+      viewer: fakeViewer,
+      replayClock: fakeReplayClock
+    }).selectScenario("site-review"),
+  /does not support site dataset attach/u,
+  "Viewer runtime session must fail fast when a selected source family has no runtime binding yet."
+);
 
 assert(
   !/\bfeatures\/scenario\b/.test(mainSource),
