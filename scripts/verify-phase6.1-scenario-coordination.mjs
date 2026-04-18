@@ -291,6 +291,7 @@ for (const snippet of requiredScenarioRuntimeDriverSnippets) {
 const requiredScenarioRuntimeSessionSnippets = [
   "export interface ScenarioRuntimeSessionOptions {",
   "export interface ViewerScenarioRuntimeSessionOptions",
+  "initialScenarioId?: string;",
   "export function createScenarioRuntimeSession(",
   "export function createViewerScenarioRuntimeSession(",
   "first bounded runtime consumer of the Phase 6.1 scenario session"
@@ -400,8 +401,20 @@ assert(
   "Phase 6.1 runtime session host must stay off the live runtime path for now."
 );
 assert(
-  !/\bscenario-bootstrap-session\b/.test(mainSource),
-  "Phase 6.1 bootstrap scenario helper must stay off the live runtime path for now."
+  /\bscenario-bootstrap-session\b/.test(mainSource),
+  "Phase 6.1 bootstrap scenario helper should now be the only scenario-side module referenced from main.ts."
+);
+assert(
+  /createBootstrapScenarioSession/.test(mainSource),
+  "main.ts should create a bootstrap-owned scenario session."
+);
+assert(
+  /bootstrapScenarioId/.test(mainSource),
+  "main.ts should record the active bootstrap scenario id."
+);
+assert(
+  /scenarioSession/.test(mainSource),
+  "main.ts should keep the bootstrap scenario session on the narrow capture seam."
 );
 
 const liveScenario = {
@@ -1125,8 +1138,16 @@ assert.throws(
 );
 
 assert(
+  !/\bruntime\/scenario-runtime-session\b/.test(mainSource),
+  "main.ts should not skip the bootstrap helper and import the generic runtime session factory directly."
+);
+assert(
+  !/\bruntime\/scenario-runtime-plan-driver\b/.test(mainSource),
+  "main.ts should not import the runtime plan driver directly."
+);
+assert(
   !/\bfeatures\/scenario\b/.test(mainSource),
-  "Phase 6.1 bounded coordination must stay off the live runtime path for now."
+  "main.ts should not import feature-level scenario modules directly."
 );
 
 await rm(tempModuleDir, { recursive: true, force: true });

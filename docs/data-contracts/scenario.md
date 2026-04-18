@@ -233,6 +233,9 @@ In the current repo state:
   further for future bootstrap-owned callers: it only accepts
   `presentation + time` scenarios and rejects satellite/site/validation source
   families up front
+- `src/main.ts` now only seeds that bootstrap helper with the currently
+  selected bootstrap scenario so the app shell has a repo-owned scenario caller
+  surface without starting live scenario switching
 - `scene-preset`, `replay-clock`, and `satellite-overlay` remain separate seams
 - the live runtime is still bounded to the current preset/time/overlay structure
 - the walker proof path remains an overlay proof line, not a scenario model

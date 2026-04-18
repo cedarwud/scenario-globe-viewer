@@ -18,6 +18,7 @@ import {
   createSatelliteOverlayController,
   type SatelliteOverlayController
 } from "./runtime/satellite-overlay-controller";
+import { createBootstrapScenarioSession } from "./runtime/scenario-bootstrap-session";
 import "./styles.css";
 
 type BootstrapState = "booting" | "ready" | "error";
@@ -29,6 +30,7 @@ declare global {
       viewer: ViewerInstance;
       replayClock: ReplayClock;
       satelliteOverlay: SatelliteOverlayController;
+      scenarioSession: ReturnType<typeof createBootstrapScenarioSession>;
     };
   }
 }
@@ -116,6 +118,28 @@ const viewer = createViewer({
   buildingShowcaseKey: buildingShowcase.key
 });
 const replayClock = createCesiumReplayClock(viewer);
+const bootstrapScenario = {
+  id: `bootstrap-${scenePreset}`,
+  label: `Bootstrap ${scenePreset}`,
+  kind: "real-time",
+  presentation: {
+    presetKey: scenePreset
+  },
+  time: {
+    mode: "real-time"
+  },
+  sources: {}
+} as const;
+const scenarioSession = createBootstrapScenarioSession({
+  definitions: [bootstrapScenario],
+  initialScenarioId: bootstrapScenario.id,
+  viewer,
+  replayClock,
+  scenePresetRuntime: {
+    buildingShowcaseKey: buildingShowcase.key
+  }
+});
+document.documentElement.dataset.bootstrapScenarioId = bootstrapScenario.id;
 const unmountTimelineHudPlaceholder = mountTimelineHudPlaceholder({
   hudFrame,
   statusPanel,
@@ -133,7 +157,8 @@ const satelliteOverlay = createSatelliteOverlayController({
 window.__SCENARIO_GLOBE_VIEWER_CAPTURE__ = {
   viewer,
   replayClock,
-  satelliteOverlay
+  satelliteOverlay,
+  scenarioSession
 };
 syncVisualBaselineState(viewer);
 const unmountLightingToggle = mountLightingToggle(viewer);

@@ -13,11 +13,13 @@ import {
 export interface ScenarioRuntimeSessionOptions {
   definitions: ReadonlyArray<ScenarioDefinition>;
   bindings: ScenarioRuntimePlanBindings;
+  initialScenarioId?: string;
 }
 
 export interface ViewerScenarioRuntimeSessionOptions
   extends ScenarioRuntimePlanDriverOptions {
   definitions: ReadonlyArray<ScenarioDefinition>;
+  initialScenarioId?: string;
 }
 
 // This is the first bounded runtime consumer of the Phase 6.1 scenario session
@@ -26,20 +28,24 @@ export interface ViewerScenarioRuntimeSessionOptions
 // slice instead of wiring anything through main.ts.
 export function createScenarioRuntimeSession({
   definitions,
-  bindings
+  bindings,
+  initialScenarioId
 }: ScenarioRuntimeSessionOptions): ScenarioSession {
   return createScenarioSession(
     definitions,
-    createScenarioRuntimePlanDriver(bindings)
+    createScenarioRuntimePlanDriver(bindings),
+    { initialScenarioId }
   );
 }
 
 export function createViewerScenarioRuntimeSession({
   definitions,
+  initialScenarioId,
   ...driverOptions
 }: ViewerScenarioRuntimeSessionOptions): ScenarioSession {
   return createScenarioSession(
     definitions,
-    createViewerScenarioRuntimePlanDriver(driverOptions)
+    createViewerScenarioRuntimePlanDriver(driverOptions),
+    { initialScenarioId }
   );
 }
