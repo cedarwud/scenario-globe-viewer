@@ -112,4 +112,4 @@ Phase 0 targets the following top-level layout:
 - `tests/smoke/`
 - `tests/visual/`
 
-Detailed structure, phase sequencing, deployment-profile policy, preserved Cesium evidence, visual baseline capture rules, and the current Phase 2 / Phase 3 contract seams are documented in `docs/architecture.md`, `docs/delivery-phases.md`, `docs/deployment-profiles.md`, `docs/cesium-evidence.md`, `docs/visual-baselines.md`, and `docs/data-contracts/{scene-preset,replay-clock,satellite-overlay}.md`.
+Detailed structure, phase sequencing, deployment-profile policy, preserved Cesium evidence, visual baseline capture rules, and the current repo-owned contract surfaces are documented in `docs/architecture.md`, `docs/delivery-phases.md`, `docs/deployment-profiles.md`, `docs/cesium-evidence.md`, `docs/visual-baselines.md`, and `docs/data-contracts/{scene-preset,replay-clock,satellite-overlay,scenario}.md`.

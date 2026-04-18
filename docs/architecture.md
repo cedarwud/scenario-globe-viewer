@@ -11,7 +11,7 @@ For this repo, `offline-first` is now interpreted as "stay on Cesium's upstream 
 Related roadmap: see [delivery-phases.md](./delivery-phases.md).
 Related evidence ledger: see [cesium-evidence.md](./cesium-evidence.md).
 Related deployment guidance: see [deployment-profiles.md](./deployment-profiles.md).
-Related contract docs: see [scene-preset.md](./data-contracts/scene-preset.md), [replay-clock.md](./data-contracts/replay-clock.md), and [satellite-overlay.md](./data-contracts/satellite-overlay.md).
+Related contract docs: see [scene-preset.md](./data-contracts/scene-preset.md), [replay-clock.md](./data-contracts/replay-clock.md), [satellite-overlay.md](./data-contracts/satellite-overlay.md), and [scenario.md](./data-contracts/scenario.md).
 
 ## System Layers
 

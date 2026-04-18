@@ -9,8 +9,9 @@ hard link.
 Related structure: see [architecture.md](../architecture.md).
 Related phase history: see [delivery-phases.md](../delivery-phases.md).
 Related contract docs: see [scene-preset.md](../data-contracts/scene-preset.md),
-[replay-clock.md](../data-contracts/replay-clock.md), and
-[satellite-overlay.md](../data-contracts/satellite-overlay.md).
+[replay-clock.md](../data-contracts/replay-clock.md),
+[satellite-overlay.md](../data-contracts/satellite-overlay.md), and
+[scenario.md](../data-contracts/scenario.md).
 
 ## Status
 
@@ -531,9 +532,9 @@ Phase 6.0 planning closure is now recorded in this file.
 
 The next session should:
 
-1. start Phase 6.1 contract planning from the new `scenario` surface
-2. write the repo-owned scenario contract doc
-3. define the first scenario source taxonomy and lifecycle boundaries
+1. review and accept the repo-owned `scenario` contract doc
+2. define the first scenario source taxonomy and lifecycle boundaries
+3. decide the minimum `src/features/scenario/` boundary shape
 4. keep runtime implementation work out of scope until the contract boundary is
    accepted
 
