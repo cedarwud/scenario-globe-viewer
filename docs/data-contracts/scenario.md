@@ -23,8 +23,9 @@ but it does not yet have a single repo-owned surface that answers:
 
 ## Planned Public Shape
 
-Current public source of truth: `src/features/scenario/scenario.ts`.
-That module reuses the existing repo-local `ScenePresetKey`, `ClockMode`,
+Current public source of truth: `src/features/scenario/scenario.ts` plus
+`src/features/scenario/resolve-scenario-inputs.ts`.
+Those modules reuse the existing repo-local `ScenePresetKey`, `ClockMode`,
 `ClockTimestamp`, `SceneSite3DTilesSource`, and satellite fixture kinds instead
 of forking a second vocabulary for the same seams.
 
@@ -214,14 +215,15 @@ into full validation-stack ownership, statistics, or decision-layer behavior.
 In the current repo state:
 
 - this document is the first repo-owned scenario contract planning surface
-- a type-only `src/features/scenario/` module now records the public scenario
-  contract boundary
+- a plain-data `src/features/scenario/` module now records the public scenario
+  contract boundary and the first pure coordination helpers
 - `scene-preset`, `replay-clock`, and `satellite-overlay` remain separate seams
 - the live runtime is still bounded to the current preset/time/overlay structure
 - the walker proof path remains an overlay proof line, not a scenario model
 
-That means this document plus `src/features/scenario/` are contract-planning
-inputs, not proof that runtime Phase 6.1 coordination has already started.
+That means this document plus `src/features/scenario/` now define the Phase 6.1
+public boundary, but they are still not proof that runtime Phase 6.1
+coordination has already started.
 
 ## Must Stay Out Of Scope
 

@@ -16,3 +16,18 @@ export {
   isScenarioKindCompatibleWithClockMode,
   resolveScenarioClockMode
 } from "./scenario";
+export {
+  createScenarioSwitchPlan,
+  resolveScenarioInputs,
+  resolveScenarioPresentationRef,
+  resolveScenarioSatelliteSource,
+  resolveScenarioSiteDatasetRef,
+  resolveScenarioTimeInput,
+  resolveScenarioValidationRef
+} from "./resolve-scenario-inputs";
+export type {
+  ScenarioResolvedInputs,
+  ScenarioResolvedTimeInput,
+  ScenarioSwitchPlan,
+  ScenarioSwitchPlanStep
+} from "./resolve-scenario-inputs";
