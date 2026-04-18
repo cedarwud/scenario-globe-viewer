@@ -13,6 +13,10 @@ const scenarioFacadePath = new URL(
   "../src/features/scenario/scenario-facade.ts",
   import.meta.url
 );
+const scenarioPlanRunnerPath = new URL(
+  "../src/features/scenario/scenario-plan-runner.ts",
+  import.meta.url
+);
 const scenarioShapePath = new URL(
   "../src/features/scenario/scenario.ts",
   import.meta.url
@@ -39,12 +43,14 @@ const [
   scenarioShapeSource,
   scenarioModuleSource,
   scenarioFacadeSource,
+  scenarioPlanRunnerSource,
   scenarioIndexSource,
   mainSource
 ] = await Promise.all([
   readFile(scenarioShapePath, "utf8"),
   readFile(scenarioModulePath, "utf8"),
   readFile(scenarioFacadePath, "utf8"),
+  readFile(scenarioPlanRunnerPath, "utf8"),
   readFile(scenarioIndexPath, "utf8"),
   readFile(mainPath, "utf8")
 ]);
@@ -61,6 +67,10 @@ await Promise.all([
   writeFile(
     join(tempModuleDir, "scenario-facade"),
     transpileTypeScript(scenarioFacadeSource, "scenario-facade.ts")
+  ),
+  writeFile(
+    join(tempModuleDir, "scenario-plan-runner"),
+    transpileTypeScript(scenarioPlanRunnerSource, "scenario-plan-runner.ts")
   )
 ]);
 
@@ -76,6 +86,9 @@ const {
 } = await import(pathToFileURL(join(tempModuleDir, "resolve-scenario-inputs")).href);
 const { createScenarioFacade } = await import(
   pathToFileURL(join(tempModuleDir, "scenario-facade")).href
+);
+const { executeScenarioSwitchPlan, executeScenarioUnloadPlan } = await import(
+  pathToFileURL(join(tempModuleDir, "scenario-plan-runner")).href
 );
 
 const requiredScenarioModuleSnippets = [
@@ -123,6 +136,26 @@ for (const snippet of requiredScenarioFacadeSnippets) {
   );
 }
 
+const requiredScenarioPlanRunnerSnippets = [
+  "export interface ScenarioPlanDriver {",
+  "detachValidation(): Promise<void> | void;",
+  "setPresentation(presentation: ScenarioPresentationRef): Promise<void> | void;",
+  "setTime(time: ScenarioResolvedTimeInput): Promise<void> | void;",
+  "attachSatelliteSource(",
+  "export interface ScenarioSwitchExecutionResult {",
+  "export interface ScenarioUnloadExecutionResult {",
+  "async function executeScenarioStep(",
+  "export async function executeScenarioSwitchPlan(",
+  "export async function executeScenarioUnloadPlan("
+];
+
+for (const snippet of requiredScenarioPlanRunnerSnippets) {
+  assert(
+    scenarioPlanRunnerSource.includes(snippet),
+    `Missing required scenario plan-runner snippet: ${snippet}`
+  );
+}
+
 const requiredScenarioIndexSnippets = [
   "ScenarioResolvedInputs",
   "ScenarioSwitchPlan",
@@ -133,9 +166,15 @@ const requiredScenarioIndexSnippets = [
   "ScenarioFacadeState",
   "ScenarioSelectionResult",
   "ScenarioClearResult",
+  "ScenarioPlanDriver",
+  "ScenarioPlanExecutionTraceStep",
+  "ScenarioSwitchExecutionResult",
+  "ScenarioUnloadExecutionResult",
   "createScenarioFacade",
   "createScenarioUnloadPlan",
   "createScenarioSwitchPlan",
+  "executeScenarioSwitchPlan",
+  "executeScenarioUnloadPlan",
   "resolveScenarioInputs",
   "resolveScenarioPresentationRef",
   "resolveScenarioSatelliteSource",
@@ -181,6 +220,7 @@ const forbiddenScenarioPatterns = [
 for (const { pattern, message } of forbiddenScenarioPatterns) {
   assert(!pattern.test(scenarioModuleSource), message);
   assert(!pattern.test(scenarioFacadeSource), `Scenario facade: ${message}`);
+  assert(!pattern.test(scenarioPlanRunnerSource), `Scenario plan-runner: ${message}`);
 }
 
 const liveScenario = {
@@ -419,6 +459,67 @@ assert.throws(
   /Unknown scenario id/u,
   "Scenario facade must reject unknown scenario ids."
 );
+
+const driverCalls = [];
+const fakeDriver = {
+  detachValidation() {
+    driverCalls.push("detach-validation");
+  },
+  detachSiteDataset() {
+    driverCalls.push("detach-site-dataset");
+  },
+  detachSatelliteSource() {
+    driverCalls.push("detach-satellite-source");
+  },
+  setPresentation(presentation) {
+    driverCalls.push(`set-presentation:${presentation.presetKey}`);
+  },
+  setTime(time) {
+    driverCalls.push(`set-time:${time.mode}`);
+  },
+  attachSatelliteSource(satellite) {
+    driverCalls.push(`attach-satellite:${satellite.kind}`);
+  },
+  attachSiteDataset(siteDataset) {
+    driverCalls.push(`attach-site-dataset:${siteDataset.datasetRef}`);
+  },
+  attachValidation(validation) {
+    driverCalls.push(`attach-validation:${validation.mode}`);
+  }
+};
+
+const switchExecutionResult = await executeScenarioSwitchPlan(
+  siteSwitchPlan,
+  fakeDriver
+);
+assert.deepEqual(driverCalls, [
+  "detach-satellite-source",
+  "set-presentation:site",
+  "set-time:prerecorded",
+  "attach-site-dataset:formal-site-mvp"
+]);
+assert.deepEqual(switchExecutionResult, {
+  fromScenarioId: "ops-live",
+  toScenarioId: "site-review",
+  appliedSteps: [
+    { kind: "detach-satellite-source" },
+    { kind: "set-presentation" },
+    { kind: "set-time" },
+    { kind: "attach-site-dataset" }
+  ]
+});
+
+driverCalls.length = 0;
+
+const unloadExecutionResult = await executeScenarioUnloadPlan(
+  unloadPlan,
+  fakeDriver
+);
+assert.deepEqual(driverCalls, ["detach-site-dataset"]);
+assert.deepEqual(unloadExecutionResult, {
+  fromScenarioId: "site-review",
+  appliedSteps: [{ kind: "detach-site-dataset" }]
+});
 
 assert(
   !/\bfeatures\/scenario\b/.test(mainSource),

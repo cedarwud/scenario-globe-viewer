@@ -42,3 +42,13 @@ export type {
   ScenarioFacadeState,
   ScenarioSelectionResult
 } from "./scenario-facade";
+export {
+  executeScenarioSwitchPlan,
+  executeScenarioUnloadPlan
+} from "./scenario-plan-runner";
+export type {
+  ScenarioPlanDriver,
+  ScenarioPlanExecutionTraceStep,
+  ScenarioSwitchExecutionResult,
+  ScenarioUnloadExecutionResult
+} from "./scenario-plan-runner";
