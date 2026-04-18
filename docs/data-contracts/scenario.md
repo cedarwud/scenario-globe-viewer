@@ -23,8 +23,9 @@ but it does not yet have a single repo-owned surface that answers:
 
 ## Planned Public Shape
 
-Current public source of truth: `src/features/scenario/scenario.ts` plus
-`src/features/scenario/resolve-scenario-inputs.ts`.
+Current public source of truth: `src/features/scenario/scenario.ts`,
+`src/features/scenario/resolve-scenario-inputs.ts`, and
+`src/features/scenario/scenario-facade.ts`.
 Those modules reuse the existing repo-local `ScenePresetKey`, `ClockMode`,
 `ClockTimestamp`, `SceneSite3DTilesSource`, and satellite fixture kinds instead
 of forking a second vocabulary for the same seams.
@@ -216,7 +217,8 @@ In the current repo state:
 
 - this document is the first repo-owned scenario contract planning surface
 - a plain-data `src/features/scenario/` module now records the public scenario
-  contract boundary and the first pure coordination helpers
+  contract boundary, the first pure coordination helpers, and a thin app-facing
+  facade for current-scenario selection state
 - `scene-preset`, `replay-clock`, and `satellite-overlay` remain separate seams
 - the live runtime is still bounded to the current preset/time/overlay structure
 - the walker proof path remains an overlay proof line, not a scenario model

@@ -9,6 +9,10 @@ const scenarioModulePath = new URL(
   "../src/features/scenario/resolve-scenario-inputs.ts",
   import.meta.url
 );
+const scenarioFacadePath = new URL(
+  "../src/features/scenario/scenario-facade.ts",
+  import.meta.url
+);
 const scenarioShapePath = new URL(
   "../src/features/scenario/scenario.ts",
   import.meta.url
@@ -34,11 +38,13 @@ const tempModuleDir = await mkdtemp(join(tmpdir(), "sgv-phase6.1-"));
 const [
   scenarioShapeSource,
   scenarioModuleSource,
+  scenarioFacadeSource,
   scenarioIndexSource,
   mainSource
 ] = await Promise.all([
   readFile(scenarioShapePath, "utf8"),
   readFile(scenarioModulePath, "utf8"),
+  readFile(scenarioFacadePath, "utf8"),
   readFile(scenarioIndexPath, "utf8"),
   readFile(mainPath, "utf8")
 ]);
@@ -51,10 +57,15 @@ await Promise.all([
   writeFile(
     join(tempModuleDir, "resolve-scenario-inputs"),
     transpileTypeScript(scenarioModuleSource, "resolve-scenario-inputs.ts")
+  ),
+  writeFile(
+    join(tempModuleDir, "scenario-facade"),
+    transpileTypeScript(scenarioFacadeSource, "scenario-facade.ts")
   )
 ]);
 
 const {
+  createScenarioUnloadPlan,
   createScenarioSwitchPlan,
   resolveScenarioInputs,
   resolveScenarioPresentationRef,
@@ -63,14 +74,19 @@ const {
   resolveScenarioTimeInput,
   resolveScenarioValidationRef
 } = await import(pathToFileURL(join(tempModuleDir, "resolve-scenario-inputs")).href);
+const { createScenarioFacade } = await import(
+  pathToFileURL(join(tempModuleDir, "scenario-facade")).href
+);
 
 const requiredScenarioModuleSnippets = [
   "export interface ScenarioResolvedInputs {",
   "export type ScenarioSwitchPlanStep =",
+  "export interface ScenarioUnloadPlan {",
   'kind: "detach-satellite-source"',
   'kind: "set-presentation";',
   'kind: "set-time";',
   'kind: "attach-site-dataset";',
+  "export function createScenarioUnloadPlan(",
   "export function resolveScenarioPresentationRef(",
   "export function resolveScenarioTimeInput(",
   "export function resolveScenarioSatelliteSource(",
@@ -87,10 +103,38 @@ for (const snippet of requiredScenarioModuleSnippets) {
   );
 }
 
+const requiredScenarioFacadeSnippets = [
+  "export interface ScenarioFacadeState {",
+  "export interface ScenarioSelectionResult {",
+  "export interface ScenarioClearResult {",
+  "export interface ScenarioFacade {",
+  "getState(): ScenarioFacadeState;",
+  "listScenarios(): ReadonlyArray<ScenarioDefinition>;",
+  "previewScenario(id: string): ScenarioResolvedInputs;",
+  "selectScenario(id: string): ScenarioSelectionResult;",
+  "clearScenario(): ScenarioClearResult;",
+  "export function createScenarioFacade("
+];
+
+for (const snippet of requiredScenarioFacadeSnippets) {
+  assert(
+    scenarioFacadeSource.includes(snippet),
+    `Missing required scenario facade snippet: ${snippet}`
+  );
+}
+
 const requiredScenarioIndexSnippets = [
   "ScenarioResolvedInputs",
   "ScenarioSwitchPlan",
   "ScenarioSwitchPlanStep",
+  "ScenarioUnloadPlan",
+  "ScenarioUnloadPlanStep",
+  "ScenarioFacade",
+  "ScenarioFacadeState",
+  "ScenarioSelectionResult",
+  "ScenarioClearResult",
+  "createScenarioFacade",
+  "createScenarioUnloadPlan",
   "createScenarioSwitchPlan",
   "resolveScenarioInputs",
   "resolveScenarioPresentationRef",
@@ -136,6 +180,7 @@ const forbiddenScenarioPatterns = [
 
 for (const { pattern, message } of forbiddenScenarioPatterns) {
   assert(!pattern.test(scenarioModuleSource), message);
+  assert(!pattern.test(scenarioFacadeSource), `Scenario facade: ${message}`);
 }
 
 const liveScenario = {
@@ -306,6 +351,73 @@ assert.equal(
   sameScenarioPlan.steps.length,
   0,
   "Switching to the same resolved scenario should not fabricate work."
+);
+
+const unloadPlan = createScenarioUnloadPlan(siteReviewScenario);
+assert.deepEqual(
+  unloadPlan,
+  {
+    fromScenarioId: "site-review",
+    steps: [{ kind: "detach-site-dataset" }]
+  },
+  "Unload planning must stay narrow and detach only the current scenario-owned attachments."
+);
+
+const facade = createScenarioFacade(
+  [liveScenario, siteReviewScenario, validationScenario],
+  {
+    initialScenarioId: "ops-live"
+  }
+);
+
+assert.deepEqual(facade.getState(), {
+  scenarioIds: ["ops-live", "site-review", "validation-smoke"],
+  currentScenarioId: "ops-live"
+});
+
+assert.equal(
+  facade.listScenarios().length,
+  3,
+  "Scenario facade must retain a repo-owned list of available scenarios."
+);
+
+assert.deepEqual(facade.previewScenario("site-review"), resolveScenarioInputs(siteReviewScenario));
+
+const facadeSwitch = facade.selectScenario("site-review");
+assert.deepEqual(facadeSwitch.state, {
+  scenarioIds: ["ops-live", "site-review", "validation-smoke"],
+  currentScenarioId: "site-review"
+});
+assert.deepEqual(
+  facadeSwitch.switchPlan.steps.map((step) => step.kind),
+  ["detach-satellite-source", "set-presentation", "set-time", "attach-site-dataset"]
+);
+
+const facadeClear = facade.clearScenario();
+assert.deepEqual(facadeClear.state, {
+  scenarioIds: ["ops-live", "site-review", "validation-smoke"]
+});
+assert.deepEqual(facadeClear.unloadPlan, {
+  fromScenarioId: "site-review",
+  steps: [{ kind: "detach-site-dataset" }]
+});
+
+const emptyClear = facade.clearScenario();
+assert.deepEqual(emptyClear, {
+  state: {
+    scenarioIds: ["ops-live", "site-review", "validation-smoke"]
+  }
+});
+
+assert.throws(
+  () => createScenarioFacade([liveScenario, liveScenario]),
+  /Duplicate scenario id/u,
+  "Scenario facade must reject duplicate ids."
+);
+assert.throws(
+  () => facade.getScenario("missing-scenario"),
+  /Unknown scenario id/u,
+  "Scenario facade must reject unknown scenario ids."
 );
 
 assert(

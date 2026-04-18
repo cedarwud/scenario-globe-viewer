@@ -17,6 +17,7 @@ export {
   resolveScenarioClockMode
 } from "./scenario";
 export {
+  createScenarioUnloadPlan,
   createScenarioSwitchPlan,
   resolveScenarioInputs,
   resolveScenarioPresentationRef,
@@ -29,5 +30,15 @@ export type {
   ScenarioResolvedInputs,
   ScenarioResolvedTimeInput,
   ScenarioSwitchPlan,
-  ScenarioSwitchPlanStep
+  ScenarioSwitchPlanStep,
+  ScenarioUnloadPlan,
+  ScenarioUnloadPlanStep
 } from "./resolve-scenario-inputs";
+export { createScenarioFacade } from "./scenario-facade";
+export type {
+  ScenarioClearResult,
+  ScenarioFacade,
+  ScenarioFacadeOptions,
+  ScenarioFacadeState,
+  ScenarioSelectionResult
+} from "./scenario-facade";

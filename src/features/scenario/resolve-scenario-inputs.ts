@@ -43,6 +43,18 @@ export interface ScenarioSwitchPlan {
   steps: ReadonlyArray<ScenarioSwitchPlanStep>;
 }
 
+export type ScenarioUnloadPlanStep = Extract<
+  ScenarioSwitchPlanStep,
+  | { kind: "detach-validation" }
+  | { kind: "detach-site-dataset" }
+  | { kind: "detach-satellite-source" }
+>;
+
+export interface ScenarioUnloadPlan {
+  fromScenarioId: string;
+  steps: ReadonlyArray<ScenarioUnloadPlanStep>;
+}
+
 function cloneScenarioTimeRange(
   range: ScenarioTimeRange | undefined
 ): ScenarioTimeRange | undefined {
@@ -310,6 +322,30 @@ export function createScenarioSwitchPlan(
   return {
     fromScenarioId: currentInputs?.scenarioId,
     toScenarioId: nextInputs.scenarioId,
+    steps
+  };
+}
+
+export function createScenarioUnloadPlan(
+  current: ScenarioDefinition
+): ScenarioUnloadPlan {
+  const currentInputs = resolveScenarioInputs(current);
+  const steps: ScenarioUnloadPlanStep[] = [];
+
+  if (currentInputs.validation) {
+    steps.push({ kind: "detach-validation" });
+  }
+
+  if (currentInputs.siteDataset) {
+    steps.push({ kind: "detach-site-dataset" });
+  }
+
+  if (currentInputs.satellite) {
+    steps.push({ kind: "detach-satellite-source" });
+  }
+
+  return {
+    fromScenarioId: currentInputs.scenarioId,
     steps
   };
 }
