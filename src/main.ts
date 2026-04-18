@@ -19,6 +19,7 @@ import {
   type SatelliteOverlayController
 } from "./runtime/satellite-overlay-controller";
 import { createBootstrapScenarioSession } from "./runtime/scenario-bootstrap-session";
+import { createBootstrapScenarioDefinition } from "./runtime/resolve-bootstrap-scenario";
 import "./styles.css";
 
 type BootstrapState = "booting" | "ready" | "error";
@@ -118,18 +119,9 @@ const viewer = createViewer({
   buildingShowcaseKey: buildingShowcase.key
 });
 const replayClock = createCesiumReplayClock(viewer);
-const bootstrapScenario = {
-  id: `bootstrap-${scenePreset}`,
-  label: `Bootstrap ${scenePreset}`,
-  kind: "real-time",
-  presentation: {
-    presetKey: scenePreset
-  },
-  time: {
-    mode: "real-time"
-  },
-  sources: {}
-} as const;
+const bootstrapScenario = createBootstrapScenarioDefinition({
+  scenePresetKey: scenePreset
+});
 const scenarioSession = createBootstrapScenarioSession({
   definitions: [bootstrapScenario],
   initialScenarioId: bootstrapScenario.id,

@@ -33,6 +33,10 @@ const scenarioBootstrapSessionPath = new URL(
   "../src/runtime/scenario-bootstrap-session.ts",
   import.meta.url
 );
+const resolveBootstrapScenarioPath = new URL(
+  "../src/runtime/resolve-bootstrap-scenario.ts",
+  import.meta.url
+);
 const scenarioShapePath = new URL(
   "../src/features/scenario/scenario.ts",
   import.meta.url
@@ -69,6 +73,7 @@ const [
   scenarioRuntimePlanDriverSource,
   scenarioRuntimeSessionSource,
   scenarioBootstrapSessionSource,
+  resolveBootstrapScenarioSource,
   scenarioIndexSource,
   mainSource
 ] = await Promise.all([
@@ -80,6 +85,7 @@ const [
   readFile(scenarioRuntimePlanDriverPath, "utf8"),
   readFile(scenarioRuntimeSessionPath, "utf8"),
   readFile(scenarioBootstrapSessionPath, "utf8"),
+  readFile(resolveBootstrapScenarioPath, "utf8"),
   readFile(scenarioIndexPath, "utf8"),
   readFile(mainPath, "utf8")
 ]);
@@ -124,6 +130,13 @@ await Promise.all([
     transpileTypeScript(
       scenarioBootstrapSessionSource,
       "runtime/scenario-bootstrap-session.ts"
+    )
+  ),
+  writeFile(
+    join(tempModuleDir, "runtime/resolve-bootstrap-scenario"),
+    transpileTypeScript(
+      resolveBootstrapScenarioSource,
+      "runtime/resolve-bootstrap-scenario.ts"
     )
   ),
   writeFile(
@@ -183,6 +196,9 @@ const {
 );
 const { createBootstrapScenarioSession } = await import(
   pathToFileURL(join(tempModuleDir, "runtime/scenario-bootstrap-session")).href
+);
+const { createBootstrapScenarioDefinition } = await import(
+  pathToFileURL(join(tempModuleDir, "runtime/resolve-bootstrap-scenario")).href
 );
 const { SCENE_PRESET_RUNTIME_CALLS } = await import(
   pathToFileURL(join(tempModuleDir, "features/globe/scene-preset-runtime")).href
@@ -319,6 +335,20 @@ for (const snippet of requiredScenarioBootstrapSessionSnippets) {
   );
 }
 
+const requiredResolveBootstrapScenarioSnippets = [
+  "export interface BootstrapScenarioSeedOptions {",
+  'mode?: "real-time" | "prerecorded";',
+  "export function createBootstrapScenarioDefinition(",
+  '`bootstrap-${scenePresetKey}-${mode}`'
+];
+
+for (const snippet of requiredResolveBootstrapScenarioSnippets) {
+  assert(
+    resolveBootstrapScenarioSource.includes(snippet),
+    `Missing required bootstrap scenario resolver snippet: ${snippet}`
+  );
+}
+
 const requiredScenarioIndexSnippets = [
   "ScenarioResolvedInputs",
   "ScenarioSwitchPlan",
@@ -403,6 +433,10 @@ assert(
 assert(
   /\bscenario-bootstrap-session\b/.test(mainSource),
   "Phase 6.1 bootstrap scenario helper should now be the only scenario-side module referenced from main.ts."
+);
+assert(
+  /\bresolve-bootstrap-scenario\b/.test(mainSource),
+  "main.ts should route bootstrap scenario definition through the dedicated resolver."
 );
 assert(
   /createBootstrapScenarioSession/.test(mainSource),
@@ -1135,6 +1169,51 @@ assert.throws(
     }),
   /cannot attach site datasets yet/u,
   "Bootstrap scenario helper must reject any source family beyond presentation/time."
+);
+
+assert.deepEqual(
+  createBootstrapScenarioDefinition({
+    scenePresetKey: "regional"
+  }),
+  {
+    id: "bootstrap-regional-real-time",
+    label: "Bootstrap regional",
+    kind: "real-time",
+    presentation: {
+      presetKey: "regional"
+    },
+    time: {
+      mode: "real-time"
+    },
+    sources: {}
+  }
+);
+
+assert.deepEqual(
+  createBootstrapScenarioDefinition({
+    scenePresetKey: "site",
+    mode: "prerecorded",
+    range: {
+      start: "2026-04-18T01:00:00.000Z",
+      stop: "2026-04-18T01:05:00.000Z"
+    }
+  }),
+  {
+    id: "bootstrap-site-prerecorded",
+    label: "Bootstrap site Replay",
+    kind: "prerecorded",
+    presentation: {
+      presetKey: "site"
+    },
+    time: {
+      mode: "prerecorded",
+      range: {
+        start: "2026-04-18T01:00:00.000Z",
+        stop: "2026-04-18T01:05:00.000Z"
+      }
+    },
+    sources: {}
+  }
 );
 
 assert(
