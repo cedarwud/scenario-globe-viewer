@@ -229,6 +229,10 @@ In the current repo state:
   runtime consumer factory for that adapter, composing it back into the repo-
   owned session host without turning `scenario` into a live top-level
   coordinator
+- `src/runtime/scenario-bootstrap-session.ts` now narrows that path one step
+  further for future bootstrap-owned callers: it only accepts
+  `presentation + time` scenarios and rejects satellite/site/validation source
+  families up front
 - `scene-preset`, `replay-clock`, and `satellite-overlay` remain separate seams
 - the live runtime is still bounded to the current preset/time/overlay structure
 - the walker proof path remains an overlay proof line, not a scenario model

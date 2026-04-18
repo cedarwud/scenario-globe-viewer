@@ -29,6 +29,10 @@ const scenarioRuntimeSessionPath = new URL(
   "../src/runtime/scenario-runtime-session.ts",
   import.meta.url
 );
+const scenarioBootstrapSessionPath = new URL(
+  "../src/runtime/scenario-bootstrap-session.ts",
+  import.meta.url
+);
 const scenarioShapePath = new URL(
   "../src/features/scenario/scenario.ts",
   import.meta.url
@@ -64,6 +68,7 @@ const [
   scenarioSessionSource,
   scenarioRuntimePlanDriverSource,
   scenarioRuntimeSessionSource,
+  scenarioBootstrapSessionSource,
   scenarioIndexSource,
   mainSource
 ] = await Promise.all([
@@ -74,6 +79,7 @@ const [
   readFile(scenarioSessionPath, "utf8"),
   readFile(scenarioRuntimePlanDriverPath, "utf8"),
   readFile(scenarioRuntimeSessionPath, "utf8"),
+  readFile(scenarioBootstrapSessionPath, "utf8"),
   readFile(scenarioIndexPath, "utf8"),
   readFile(mainPath, "utf8")
 ]);
@@ -111,6 +117,13 @@ await Promise.all([
     transpileTypeScript(
       scenarioRuntimeSessionSource,
       "runtime/scenario-runtime-session.ts"
+    )
+  ),
+  writeFile(
+    join(tempModuleDir, "runtime/scenario-bootstrap-session"),
+    transpileTypeScript(
+      scenarioBootstrapSessionSource,
+      "runtime/scenario-bootstrap-session.ts"
     )
   ),
   writeFile(
@@ -167,6 +180,9 @@ const {
   createViewerScenarioRuntimeSession
 } = await import(
   pathToFileURL(join(tempModuleDir, "runtime/scenario-runtime-session")).href
+);
+const { createBootstrapScenarioSession } = await import(
+  pathToFileURL(join(tempModuleDir, "runtime/scenario-bootstrap-session")).href
 );
 const { SCENE_PRESET_RUNTIME_CALLS } = await import(
   pathToFileURL(join(tempModuleDir, "features/globe/scene-preset-runtime")).href
@@ -287,6 +303,21 @@ for (const snippet of requiredScenarioRuntimeSessionSnippets) {
   );
 }
 
+const requiredScenarioBootstrapSessionSnippets = [
+  "export interface BootstrapScenarioDefinition",
+  "export interface BootstrapScenarioSessionOptions",
+  "function assertBootstrapScenarioSources(",
+  "export function createBootstrapScenarioSession(",
+  "must stay presentation/time-only"
+];
+
+for (const snippet of requiredScenarioBootstrapSessionSnippets) {
+  assert(
+    scenarioBootstrapSessionSource.includes(snippet),
+    `Missing required scenario bootstrap-session snippet: ${snippet}`
+  );
+}
+
 const requiredScenarioIndexSnippets = [
   "ScenarioResolvedInputs",
   "ScenarioSwitchPlan",
@@ -367,6 +398,10 @@ assert(
 assert(
   !/\bscenario-runtime-session\b/.test(mainSource),
   "Phase 6.1 runtime session host must stay off the live runtime path for now."
+);
+assert(
+  !/\bscenario-bootstrap-session\b/.test(mainSource),
+  "Phase 6.1 bootstrap scenario helper must stay off the live runtime path for now."
 );
 
 const liveScenario = {
@@ -1018,6 +1053,75 @@ await assert.rejects(
     }).selectScenario("site-review"),
   /does not support site dataset attach/u,
   "Viewer runtime session must fail fast when a selected source family has no runtime binding yet."
+);
+
+SCENE_PRESET_RUNTIME_CALLS.length = 0;
+replayClockCalls.length = 0;
+
+const bootstrapScenario = {
+  id: "bootstrap-shell-preview",
+  label: "Bootstrap Shell Preview",
+  kind: "prerecorded",
+  presentation: {
+    presetKey: "global"
+  },
+  time: {
+    mode: "prerecorded",
+    range: {
+      start: "2026-04-18T00:20:00.000Z",
+      stop: "2026-04-18T00:25:00.000Z"
+    }
+  },
+  sources: {}
+};
+
+const bootstrapSession = createBootstrapScenarioSession({
+  definitions: [bootstrapScenario],
+  viewer: fakeViewer,
+  replayClock: fakeReplayClock
+});
+
+const bootstrapSelect = await bootstrapSession.selectScenario(
+  "bootstrap-shell-preview"
+);
+assert.deepEqual(bootstrapSelect.switchPlan.steps.map((step) => step.kind), [
+  "set-presentation",
+  "set-time"
+]);
+assert.deepEqual(bootstrapSelect.state, {
+  scenarioIds: ["bootstrap-shell-preview"],
+  currentScenarioId: "bootstrap-shell-preview",
+  currentScenario: resolveScenarioInputs(bootstrapScenario)
+});
+assert.deepEqual(SCENE_PRESET_RUNTIME_CALLS, [
+  {
+    viewer: fakeViewer,
+    preset: {
+      id: "preset-global",
+      label: "global"
+    },
+    options: {}
+  }
+]);
+assert.deepEqual(replayClockCalls, [
+  {
+    mode: "prerecorded",
+    range: {
+      start: "2026-04-18T00:20:00.000Z",
+      stop: "2026-04-18T00:25:00.000Z"
+    }
+  }
+]);
+
+assert.throws(
+  () =>
+    createBootstrapScenarioSession({
+      definitions: [siteReviewScenario],
+      viewer: fakeViewer,
+      replayClock: fakeReplayClock
+    }),
+  /cannot attach site datasets yet/u,
+  "Bootstrap scenario helper must reject any source family beyond presentation/time."
 );
 
 assert(
