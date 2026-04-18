@@ -26,7 +26,8 @@ but it does not yet have a single repo-owned surface that answers:
 Current public source of truth: `src/features/scenario/scenario.ts`,
 `src/features/scenario/resolve-scenario-inputs.ts`, and
 `src/features/scenario/scenario-facade.ts`, plus
-`src/features/scenario/scenario-plan-runner.ts`.
+`src/features/scenario/scenario-plan-runner.ts` and
+`src/features/scenario/scenario-session.ts`.
 Those modules reuse the existing repo-local `ScenePresetKey`, `ClockMode`,
 `ClockTimestamp`, `SceneSite3DTilesSource`, and satellite fixture kinds instead
 of forking a second vocabulary for the same seams.
@@ -220,7 +221,8 @@ In the current repo state:
 - a plain-data `src/features/scenario/` module now records the public scenario
   contract boundary, the first pure coordination helpers, and a thin app-facing
   facade for current-scenario selection state together with a plan-driver
-  boundary that still stops short of runtime apply ownership
+  boundary plus an in-memory session host that still stops short of runtime
+  apply ownership
 - `scene-preset`, `replay-clock`, and `satellite-overlay` remain separate seams
 - the live runtime is still bounded to the current preset/time/overlay structure
 - the walker proof path remains an overlay proof line, not a scenario model

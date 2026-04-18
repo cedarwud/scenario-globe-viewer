@@ -17,6 +17,10 @@ const scenarioPlanRunnerPath = new URL(
   "../src/features/scenario/scenario-plan-runner.ts",
   import.meta.url
 );
+const scenarioSessionPath = new URL(
+  "../src/features/scenario/scenario-session.ts",
+  import.meta.url
+);
 const scenarioShapePath = new URL(
   "../src/features/scenario/scenario.ts",
   import.meta.url
@@ -44,6 +48,7 @@ const [
   scenarioModuleSource,
   scenarioFacadeSource,
   scenarioPlanRunnerSource,
+  scenarioSessionSource,
   scenarioIndexSource,
   mainSource
 ] = await Promise.all([
@@ -51,6 +56,7 @@ const [
   readFile(scenarioModulePath, "utf8"),
   readFile(scenarioFacadePath, "utf8"),
   readFile(scenarioPlanRunnerPath, "utf8"),
+  readFile(scenarioSessionPath, "utf8"),
   readFile(scenarioIndexPath, "utf8"),
   readFile(mainPath, "utf8")
 ]);
@@ -71,6 +77,10 @@ await Promise.all([
   writeFile(
     join(tempModuleDir, "scenario-plan-runner"),
     transpileTypeScript(scenarioPlanRunnerSource, "scenario-plan-runner.ts")
+  ),
+  writeFile(
+    join(tempModuleDir, "scenario-session"),
+    transpileTypeScript(scenarioSessionSource, "scenario-session.ts")
   )
 ]);
 
@@ -89,6 +99,9 @@ const { createScenarioFacade } = await import(
 );
 const { executeScenarioSwitchPlan, executeScenarioUnloadPlan } = await import(
   pathToFileURL(join(tempModuleDir, "scenario-plan-runner")).href
+);
+const { createScenarioSession } = await import(
+  pathToFileURL(join(tempModuleDir, "scenario-session")).href
 );
 
 const requiredScenarioModuleSnippets = [
@@ -156,6 +169,24 @@ for (const snippet of requiredScenarioPlanRunnerSnippets) {
   );
 }
 
+const requiredScenarioSessionSnippets = [
+  "export interface ScenarioSessionState {",
+  "export interface ScenarioSessionSelectResult {",
+  "export interface ScenarioSessionClearResult {",
+  "export interface ScenarioSession {",
+  "getCurrentScenario(): ScenarioResolvedInputs | undefined;",
+  "selectScenario(id: string): Promise<ScenarioSessionSelectResult>;",
+  "clearScenario(): Promise<ScenarioSessionClearResult>;",
+  "export function createScenarioSession("
+];
+
+for (const snippet of requiredScenarioSessionSnippets) {
+  assert(
+    scenarioSessionSource.includes(snippet),
+    `Missing required scenario session snippet: ${snippet}`
+  );
+}
+
 const requiredScenarioIndexSnippets = [
   "ScenarioResolvedInputs",
   "ScenarioSwitchPlan",
@@ -170,7 +201,12 @@ const requiredScenarioIndexSnippets = [
   "ScenarioPlanExecutionTraceStep",
   "ScenarioSwitchExecutionResult",
   "ScenarioUnloadExecutionResult",
+  "ScenarioSession",
+  "ScenarioSessionState",
+  "ScenarioSessionSelectResult",
+  "ScenarioSessionClearResult",
   "createScenarioFacade",
+  "createScenarioSession",
   "createScenarioUnloadPlan",
   "createScenarioSwitchPlan",
   "executeScenarioSwitchPlan",
@@ -221,6 +257,7 @@ for (const { pattern, message } of forbiddenScenarioPatterns) {
   assert(!pattern.test(scenarioModuleSource), message);
   assert(!pattern.test(scenarioFacadeSource), `Scenario facade: ${message}`);
   assert(!pattern.test(scenarioPlanRunnerSource), `Scenario plan-runner: ${message}`);
+  assert(!pattern.test(scenarioSessionSource), `Scenario session: ${message}`);
 }
 
 const liveScenario = {
@@ -520,6 +557,74 @@ assert.deepEqual(unloadExecutionResult, {
   fromScenarioId: "site-review",
   appliedSteps: [{ kind: "detach-site-dataset" }]
 });
+
+driverCalls.length = 0;
+
+const session = createScenarioSession(
+  [liveScenario, siteReviewScenario, validationScenario],
+  fakeDriver,
+  {
+    initialScenarioId: "ops-live"
+  }
+);
+
+assert.deepEqual(session.getState(), {
+  scenarioIds: ["ops-live", "site-review", "validation-smoke"],
+  currentScenarioId: "ops-live",
+  currentScenario: resolveScenarioInputs(liveScenario)
+});
+assert.deepEqual(session.getCurrentScenario(), resolveScenarioInputs(liveScenario));
+
+const sessionSwitch = await session.selectScenario("site-review");
+assert.deepEqual(driverCalls, [
+  "detach-satellite-source",
+  "set-presentation:site",
+  "set-time:prerecorded",
+  "attach-site-dataset:formal-site-mvp"
+]);
+assert.deepEqual(sessionSwitch.state, {
+  scenarioIds: ["ops-live", "site-review", "validation-smoke"],
+  currentScenarioId: "site-review",
+  currentScenario: resolveScenarioInputs(siteReviewScenario)
+});
+
+driverCalls.length = 0;
+
+const sessionClear = await session.clearScenario();
+assert.deepEqual(driverCalls, ["detach-site-dataset"]);
+assert.deepEqual(sessionClear.state, {
+  scenarioIds: ["ops-live", "site-review", "validation-smoke"]
+});
+assert.equal(session.getCurrentScenario(), undefined);
+
+const failingDriver = {
+  ...fakeDriver,
+  setTime() {
+    throw new Error("time-step-failed");
+  }
+};
+const failingSession = createScenarioSession(
+  [liveScenario, siteReviewScenario],
+  failingDriver,
+  {
+    initialScenarioId: "ops-live"
+  }
+);
+
+await assert.rejects(
+  () => failingSession.selectScenario("site-review"),
+  /time-step-failed/u,
+  "Scenario session must surface driver failures."
+);
+assert.deepEqual(
+  failingSession.getState(),
+  {
+    scenarioIds: ["ops-live", "site-review"],
+    currentScenarioId: "ops-live",
+    currentScenario: resolveScenarioInputs(liveScenario)
+  },
+  "Scenario session must not commit current-scenario state before driver execution succeeds."
+);
 
 assert(
   !/\bfeatures\/scenario\b/.test(mainSource),

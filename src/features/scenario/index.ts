@@ -42,6 +42,14 @@ export type {
   ScenarioFacadeState,
   ScenarioSelectionResult
 } from "./scenario-facade";
+export { createScenarioSession } from "./scenario-session";
+export type {
+  ScenarioSession,
+  ScenarioSessionClearResult,
+  ScenarioSessionOptions,
+  ScenarioSessionSelectResult,
+  ScenarioSessionState
+} from "./scenario-session";
 export {
   executeScenarioSwitchPlan,
   executeScenarioUnloadPlan
