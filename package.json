@@ -24,6 +24,7 @@
     "test:phase6.3": "npm run build && node scripts/verify-phase6.3-bootstrap-communication-time.mjs && node tests/smoke/verify-phase6.3-bootstrap-communication-time.mjs",
     "test:phase6.4": "npm run build && node scripts/verify-phase6.4-bootstrap-handover-decision.mjs && node tests/smoke/verify-phase6.4-bootstrap-handover-decision.mjs",
     "test:phase6.5": "npm run build && node scripts/verify-phase6.5-bootstrap-physical-input.mjs && node tests/smoke/verify-phase6.5-bootstrap-physical-input.mjs",
+    "test:phase6.6": "npm run build && node scripts/verify-phase6.6-bootstrap-validation-state.mjs && node tests/smoke/verify-phase6.6-bootstrap-validation-state.mjs",
     "capture:phase2.12": "node scripts/site-hook-guard.mjs --context=phase2.12-capture && npm run build && node tests/visual/capture-three-preset-baselines.mjs",
     "capture:phase5.3-orbits": "node scripts/site-hook-guard.mjs --context=phase5.3-orbit-capture && npm run build && node tests/visual/capture-phase5.3-orbit-review.mjs",
     "capture:site-dataset": "node scripts/site-dataset-visual-orchestration.mjs",
