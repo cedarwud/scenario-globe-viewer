@@ -17,8 +17,7 @@ Related contract docs: see [scene-preset.md](../data-contracts/scene-preset.md),
 
 - Phase 1-5 remain preserved as the foundation track.
 - Phase 6.0 planning closure is recorded in this file.
-- Phase 6 implementation remains paused until the Phase 6.1 contract entry work
-  is accepted.
+- Phase 6 close-out is complete and Phase 6 can be formally closed.
 - Structural refactor is not part of this plan.
 - This plan is requirement-centered by design; it does not reopen the earlier
   reset audit.
@@ -304,6 +303,12 @@ turning the app into a decorative shell rewrite.
 - Changes are observable by downstream statistics, decision, or validation layers
 - The UI does not silently widen into a presentation-first rewrite
 
+### Closure Note
+
+- Close-out accepted on `2026-04-19`
+- `npm run test:phase6.2` passed
+- Next active entry: `Phase 6.3`
+
 ## Phase 6.3
 
 ### Name
@@ -333,6 +338,12 @@ communication-time behavior.
 - Statistics can be tied to a scenario and time range
 - Export structure is stable enough for later validation/report work
 - The readout is not a one-off overlay artifact
+
+### Closure Note
+
+- Close-out accepted on `2026-04-19`
+- `npm run test:phase6.3` passed
+- Next active entry: `Phase 6.4`
 
 ## Phase 6.4
 
@@ -372,6 +383,12 @@ Dependency note:
 - The decision layer can feed both statistics and later presentation layers
 - Presentation repos remain downstream consumers, not ordering authorities
 
+### Closure Note
+
+- Close-out accepted on `2026-04-19`
+- `npm run test:phase6.4` passed
+- Next active entry: `Phase 6.5`
+
 ## Phase 6.5
 
 ### Name
@@ -400,6 +417,12 @@ Add the requirement-bearing model inputs that the decision layer depends on.
 - The decision layer can consume them deterministically
 - Provenance is recorded for each input family
 - The repo does not pretend these inputs are merely optional demo spice
+
+### Closure Note
+
+- Close-out accepted on `2026-04-19`
+- `npm run test:phase6.5` passed
+- Next active entry: `Phase 6.6`
 
 ## Phase 6.6
 
@@ -430,6 +453,12 @@ of the requirement package.
 - External connectivity responsibilities are named
 - The repo has a clear adapter/boundary for validation work
 - The plan distinguishes viewer ownership from external stack ownership
+
+### Closure Note
+
+- Close-out accepted on `2026-04-19`
+- `npm run test:phase6.6` passed
+- Next active entry: `Phase 7.0`
 
 ## Phase 7.0
 
@@ -535,19 +564,8 @@ cycle.
 
 ## Immediate Next Step
 
-Phase 6.0 planning closure is now recorded in this file.
+Phase 6 formal close-out is complete.
 
-The next session should:
+The next active entry is `Phase 7.0`.
 
-1. review and accept the repo-owned `scenario` contract doc plus the landed
-   `src/features/scenario/` boundary
-2. confirm the first scenario source taxonomy and lifecycle boundaries against
-   that module shape
-3. review the landed coordination seam that reads scenario inputs without taking
-   over preset/time/overlay apply logic, and decide whether any thinner facade
-   is still needed before runtime work
-4. keep runtime implementation work out of scope until the contract boundary is
-   accepted
-
-No new overlay-heavy runtime slice should start before that contract work is
-accepted.
+`Phase 7.0` is limited to `24h` soak / stability evidence.
