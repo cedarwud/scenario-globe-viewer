@@ -251,12 +251,16 @@ body {
 
 .operator-status-hud__telemetry {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
   gap: 0.75rem 1rem;
   min-width: 0;
 }
 
 .operator-status-hud__communication {
+  min-width: 0;
+}
+
+.operator-status-hud__decision {
   min-width: 0;
 }
 
@@ -278,8 +282,18 @@ body {
   color: rgba(235, 243, 250, 0.95);
 }
 
+.handover-decision-panel {
+  display: grid;
+  grid-template-columns: minmax(8rem, 11rem) minmax(0, 1fr);
+  gap: 0.65rem 1.5rem;
+  min-height: 4rem;
+  padding-top: 0.15rem;
+  color: rgba(235, 243, 250, 0.95);
+}
+
 .timeline-hud-placeholder__header,
-.communication-time-panel__header {
+.communication-time-panel__header,
+.handover-decision-panel__header {
   display: grid;
   align-content: center;
   gap: 0.28rem;
@@ -287,7 +301,8 @@ body {
 }
 
 .timeline-hud-placeholder__eyebrow,
-.communication-time-panel__eyebrow {
+.communication-time-panel__eyebrow,
+.handover-decision-panel__eyebrow {
   color: rgba(150, 196, 226, 0.74);
   font-size: 0.68rem;
   font-weight: 600;
@@ -296,7 +311,8 @@ body {
 }
 
 .timeline-hud-placeholder__heading,
-.communication-time-panel__heading {
+.communication-time-panel__heading,
+.handover-decision-panel__heading {
   min-width: 0;
   color: #f7fbff;
   font-size: 1.15rem;
@@ -304,14 +320,16 @@ body {
   letter-spacing: 0.03em;
 }
 
-.communication-time-panel__note {
+.communication-time-panel__note,
+.handover-decision-panel__note {
   color: rgba(166, 201, 224, 0.82);
   font-size: 0.72rem;
   line-height: 1.3;
 }
 
 .timeline-hud-placeholder__grid,
-.communication-time-panel__grid {
+.communication-time-panel__grid,
+.handover-decision-panel__grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 0.55rem 1.25rem;
@@ -319,14 +337,16 @@ body {
 }
 
 .timeline-hud-placeholder__field,
-.communication-time-panel__field {
+.communication-time-panel__field,
+.handover-decision-panel__field {
   display: grid;
   gap: 0.2rem;
   min-width: 0;
 }
 
 .timeline-hud-placeholder__label,
-.communication-time-panel__label {
+.communication-time-panel__label,
+.handover-decision-panel__label {
   color: rgba(158, 191, 216, 0.72);
   font-size: 0.66rem;
   letter-spacing: 0.1em;
@@ -334,7 +354,8 @@ body {
 }
 
 .timeline-hud-placeholder__value,
-.communication-time-panel__value {
+.communication-time-panel__value,
+.handover-decision-panel__value {
   min-width: 0;
   color: rgba(240, 247, 252, 0.96);
   font-size: 0.85rem;
@@ -396,7 +417,8 @@ body {
   }
 
   .timeline-hud-placeholder,
-  .communication-time-panel {
+  .communication-time-panel,
+  .handover-decision-panel {
     grid-template-columns: minmax(7rem, 9rem) minmax(0, 1fr);
     gap: 0.55rem 1rem;
   }
@@ -429,7 +451,8 @@ body {
   }
 
   .timeline-hud-placeholder,
-  .communication-time-panel {
+  .communication-time-panel,
+  .handover-decision-panel {
     grid-template-columns: minmax(6.75rem, 8rem) minmax(0, 1fr);
     gap: 0.45rem 0.95rem;
     min-height: 3.75rem;
@@ -437,12 +460,14 @@ body {
   }
 
   .timeline-hud-placeholder__heading,
-  .communication-time-panel__heading {
+  .communication-time-panel__heading,
+  .handover-decision-panel__heading {
     font-size: 1rem;
   }
 
   .timeline-hud-placeholder__value,
-  .communication-time-panel__value {
+  .communication-time-panel__value,
+  .handover-decision-panel__value {
     font-size: 0.78rem;
   }
 }
@@ -470,13 +495,15 @@ body {
   }
 
   .timeline-hud-placeholder,
-  .communication-time-panel {
+  .communication-time-panel,
+  .handover-decision-panel {
     grid-template-columns: 1fr;
     gap: 0.7rem;
   }
 
   .timeline-hud-placeholder__grid,
-  .communication-time-panel__grid {
+  .communication-time-panel__grid,
+  .handover-decision-panel__grid {
     grid-template-columns: 1fr;
   }
 }

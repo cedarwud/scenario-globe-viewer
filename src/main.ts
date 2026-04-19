@@ -20,6 +20,7 @@ import {
 } from "./runtime/satellite-overlay-controller";
 import { createBootstrapOperatorController } from "./runtime/bootstrap-operator-controller";
 import { createBootstrapCommunicationTimeController } from "./runtime/bootstrap-communication-time-controller";
+import { createBootstrapHandoverDecisionController } from "./runtime/bootstrap-handover-decision-controller";
 import { createBootstrapScenarioSession } from "./runtime/scenario-bootstrap-session";
 import { createBootstrapScenarioCatalog } from "./runtime/resolve-bootstrap-scenario";
 import "./styles.css";
@@ -35,6 +36,7 @@ declare global {
       satelliteOverlay: SatelliteOverlayController;
       scenarioSession: ReturnType<typeof createBootstrapScenarioSession>;
       communicationTime: ReturnType<typeof createBootstrapCommunicationTimeController>;
+      handoverDecision: ReturnType<typeof createBootstrapHandoverDecisionController>;
     };
   }
 }
@@ -144,11 +146,16 @@ const bootstrapCommunicationTimeController = createBootstrapCommunicationTimeCon
   operatorState: bootstrapOperatorController,
   scenarioCatalog: bootstrapScenarioCatalog
 });
+const bootstrapHandoverDecisionController = createBootstrapHandoverDecisionController({
+  operatorState: bootstrapOperatorController,
+  scenarioCatalog: bootstrapScenarioCatalog
+});
 const unmountBootstrapOperatorHud = mountBootstrapOperatorHud({
   hudFrame,
   statusPanel,
   controller: bootstrapOperatorController,
-  communicationTimeController: bootstrapCommunicationTimeController
+  communicationTimeController: bootstrapCommunicationTimeController,
+  handoverDecisionController: bootstrapHandoverDecisionController
 });
 const satelliteOverlay = createSatelliteOverlayController({
   viewer,
@@ -164,7 +171,8 @@ window.__SCENARIO_GLOBE_VIEWER_CAPTURE__ = {
   replayClock,
   satelliteOverlay,
   scenarioSession,
-  communicationTime: bootstrapCommunicationTimeController
+  communicationTime: bootstrapCommunicationTimeController,
+  handoverDecision: bootstrapHandoverDecisionController
 };
 syncVisualBaselineState(viewer);
 const unmountLightingToggle = mountLightingToggle(viewer);
@@ -193,6 +201,7 @@ if (import.meta.hot) {
     unmountOsmBuildingsShowcase();
     unmountLightingToggle();
     unmountBootstrapOperatorHud();
+    bootstrapHandoverDecisionController.dispose();
     bootstrapCommunicationTimeController.dispose();
     bootstrapOperatorController.dispose();
     void satelliteOverlay.dispose();
