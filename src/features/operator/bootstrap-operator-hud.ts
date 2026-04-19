@@ -1,17 +1,20 @@
 import type { ScenePresetKey } from "../globe/scene-preset";
 import type { ReplayClock, ReplayClockState } from "../time";
 import { mountTimelineHudPlaceholder } from "../time/timeline-hud-placeholder";
+import { mountBootstrapCommunicationTimePanel } from "../communication-time";
 import type {
   BootstrapOperatorController,
   BootstrapOperatorControllerState,
   BootstrapReplaySpeedPreset
 } from "../../runtime/bootstrap-operator-controller";
 import type { BootstrapScenarioMode } from "../../runtime/resolve-bootstrap-scenario";
+import type { BootstrapCommunicationTimeController } from "../../runtime/bootstrap-communication-time-controller";
 
 interface BootstrapOperatorHudOptions {
   hudFrame: HTMLElement;
   statusPanel: HTMLElement;
   controller: BootstrapOperatorController;
+  communicationTimeController: BootstrapCommunicationTimeController;
 }
 
 interface BootstrapOperatorHudElements {
@@ -21,6 +24,7 @@ interface BootstrapOperatorHudElements {
   modeButtons: Record<BootstrapScenarioMode, HTMLButtonElement>;
   speedButtons: ReadonlyArray<HTMLButtonElement>;
   timeSlot: HTMLDivElement;
+  communicationSlot: HTMLDivElement;
 }
 
 function formatReplaySpeedLabel(multiplier: BootstrapReplaySpeedPreset): string {
@@ -120,7 +124,13 @@ function createElements(
           </div>
         </div>
       </div>
-      <div class="operator-status-hud__timeline" data-operator-time-slot="true"></div>
+      <div class="operator-status-hud__telemetry">
+        <div class="operator-status-hud__timeline" data-operator-time-slot="true"></div>
+        <div
+          class="operator-status-hud__communication"
+          data-operator-communication-slot="true"
+        ></div>
+      </div>
     </div>
   `;
 
@@ -147,6 +157,9 @@ function createElements(
   const timeSlot = statusPanel.querySelector<HTMLDivElement>(
     "[data-operator-time-slot='true']"
   );
+  const communicationSlot = statusPanel.querySelector<HTMLDivElement>(
+    "[data-operator-communication-slot='true']"
+  );
 
   if (
     !root ||
@@ -155,7 +168,8 @@ function createElements(
     !realTimeButton ||
     !prerecordedButton ||
     speedButtons.length === 0 ||
-    !timeSlot
+    !timeSlot ||
+    !communicationSlot
   ) {
     throw new Error("Missing bootstrap operator HUD elements");
   }
@@ -169,7 +183,8 @@ function createElements(
       prerecorded: prerecordedButton
     },
     speedButtons,
-    timeSlot
+    timeSlot,
+    communicationSlot
   };
 }
 
@@ -210,7 +225,8 @@ function renderState(
 export function mountBootstrapOperatorHud({
   hudFrame,
   statusPanel,
-  controller
+  controller,
+  communicationTimeController
 }: BootstrapOperatorHudOptions): () => void {
   hudFrame.dataset.hudVisibility = "status-only";
   hudFrame.setAttribute("aria-hidden", "false");
@@ -250,6 +266,10 @@ export function mountBootstrapOperatorHud({
   const unmountTimelineHudPlaceholder = mountTimelineHudPlaceholder({
     container: elements.timeSlot,
     replayClock: operatorTimelineClock
+  });
+  const unmountCommunicationTimePanel = mountBootstrapCommunicationTimePanel({
+    container: elements.communicationSlot,
+    controller: communicationTimeController
   });
 
   const updateBusyState = (busy: boolean): void => {
@@ -344,6 +364,7 @@ export function mountBootstrapOperatorHud({
 
   return () => {
     unsubscribe();
+    unmountCommunicationTimePanel();
     unmountTimelineHudPlaceholder();
     elements.scenarioSelect.removeEventListener("change", handleScenarioChange);
     elements.modeButtons["real-time"].removeEventListener("click", handleRealTimeClick);

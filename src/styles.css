@@ -249,6 +249,17 @@ body {
   min-width: 0;
 }
 
+.operator-status-hud__telemetry {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem 1rem;
+  min-width: 0;
+}
+
+.operator-status-hud__communication {
+  min-width: 0;
+}
+
 .timeline-hud-placeholder {
   display: grid;
   grid-template-columns: minmax(8rem, 11rem) minmax(0, 1fr);
@@ -258,14 +269,25 @@ body {
   color: rgba(235, 243, 250, 0.95);
 }
 
-.timeline-hud-placeholder__header {
+.communication-time-panel {
+  display: grid;
+  grid-template-columns: minmax(8rem, 11rem) minmax(0, 1fr);
+  gap: 0.65rem 1.5rem;
+  min-height: 4rem;
+  padding-top: 0.15rem;
+  color: rgba(235, 243, 250, 0.95);
+}
+
+.timeline-hud-placeholder__header,
+.communication-time-panel__header {
   display: grid;
   align-content: center;
   gap: 0.28rem;
   min-width: 0;
 }
 
-.timeline-hud-placeholder__eyebrow {
+.timeline-hud-placeholder__eyebrow,
+.communication-time-panel__eyebrow {
   color: rgba(150, 196, 226, 0.74);
   font-size: 0.68rem;
   font-weight: 600;
@@ -273,7 +295,8 @@ body {
   text-transform: uppercase;
 }
 
-.timeline-hud-placeholder__heading {
+.timeline-hud-placeholder__heading,
+.communication-time-panel__heading {
   min-width: 0;
   color: #f7fbff;
   font-size: 1.15rem;
@@ -281,27 +304,31 @@ body {
   letter-spacing: 0.03em;
 }
 
-.timeline-hud-placeholder__grid {
+.timeline-hud-placeholder__grid,
+.communication-time-panel__grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 0.55rem 1.25rem;
   min-width: 0;
 }
 
-.timeline-hud-placeholder__field {
+.timeline-hud-placeholder__field,
+.communication-time-panel__field {
   display: grid;
   gap: 0.2rem;
   min-width: 0;
 }
 
-.timeline-hud-placeholder__label {
+.timeline-hud-placeholder__label,
+.communication-time-panel__label {
   color: rgba(158, 191, 216, 0.72);
   font-size: 0.66rem;
   letter-spacing: 0.1em;
   text-transform: uppercase;
 }
 
-.timeline-hud-placeholder__value {
+.timeline-hud-placeholder__value,
+.communication-time-panel__value {
   min-width: 0;
   color: rgba(240, 247, 252, 0.96);
   font-size: 0.85rem;
@@ -358,7 +385,12 @@ body {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .timeline-hud-placeholder {
+  .operator-status-hud__telemetry {
+    grid-template-columns: 1fr;
+  }
+
+  .timeline-hud-placeholder,
+  .communication-time-panel {
     grid-template-columns: minmax(7rem, 9rem) minmax(0, 1fr);
     gap: 0.55rem 1rem;
   }
@@ -390,18 +422,21 @@ body {
     gap: 0.65rem;
   }
 
-  .timeline-hud-placeholder {
+  .timeline-hud-placeholder,
+  .communication-time-panel {
     grid-template-columns: minmax(6.75rem, 8rem) minmax(0, 1fr);
     gap: 0.45rem 0.95rem;
     min-height: 3.75rem;
     padding-top: 0;
   }
 
-  .timeline-hud-placeholder__heading {
+  .timeline-hud-placeholder__heading,
+  .communication-time-panel__heading {
     font-size: 1rem;
   }
 
-  .timeline-hud-placeholder__value {
+  .timeline-hud-placeholder__value,
+  .communication-time-panel__value {
     font-size: 0.78rem;
   }
 }
@@ -428,12 +463,14 @@ body {
     min-height: 14rem;
   }
 
-  .timeline-hud-placeholder {
+  .timeline-hud-placeholder,
+  .communication-time-panel {
     grid-template-columns: 1fr;
     gap: 0.7rem;
   }
 
-  .timeline-hud-placeholder__grid {
+  .timeline-hud-placeholder__grid,
+  .communication-time-panel__grid {
     grid-template-columns: 1fr;
   }
 }
