@@ -35,6 +35,7 @@ const SOAK_SCHEMA_VERSION = "phase7.0-soak-evidence.v1";
 const DEFAULT_MEMORY_THRESHOLD_MB = 512;
 const MIN_STALE_WINDOW_MS = 45_000;
 const BOOTSTRAP_READY_TIMEOUT_MS = 12_000;
+const TERMINATION_SIGNALS = ["SIGINT", "SIGTERM", "SIGHUP"];
 const FAILURE_BUFFER_INIT_SCRIPT = `(() => {
   const serialize = (value) => {
     if (value instanceof Error) {
@@ -134,6 +135,79 @@ function sleep(ms) {
   return new Promise((resolve) => {
     setTimeout(resolve, ms);
   });
+}
+
+function createTerminationController() {
+  let requestedSignal = null;
+  let resolveTermination;
+  const terminationPromise = new Promise((resolve) => {
+    resolveTermination = resolve;
+  });
+
+  return {
+    request(signal) {
+      if (requestedSignal) {
+        return false;
+      }
+
+      requestedSignal = signal;
+      resolveTermination(signal);
+      return true;
+    },
+    wait() {
+      return terminationPromise;
+    },
+    get requested() {
+      return requestedSignal !== null;
+    },
+    get signal() {
+      return requestedSignal;
+    }
+  };
+}
+
+function installTerminationHandlers(termination) {
+  const handlers = TERMINATION_SIGNALS.map((signal) => {
+    const handler = () => {
+      termination.request(signal);
+    };
+
+    process.on(signal, handler);
+    return { signal, handler };
+  });
+
+  return () => {
+    for (const { signal, handler } of handlers) {
+      process.off(signal, handler);
+    }
+  };
+}
+
+function createTerminationError(signal) {
+  const error = new Error(`Soak harness received ${signal} before completion.`);
+  error.name = "SoakTerminationError";
+  error.signal = signal;
+  return error;
+}
+
+function isTerminationError(error) {
+  return error instanceof Error && error.name === "SoakTerminationError";
+}
+
+function throwIfTerminationRequested(termination) {
+  if (termination.requested) {
+    throw createTerminationError(termination.signal);
+  }
+}
+
+async function waitForNextSample(waitMs, termination) {
+  if (waitMs <= 0) {
+    return;
+  }
+
+  throwIfTerminationRequested(termination);
+  await Promise.race([sleep(waitMs), termination.wait()]);
+  throwIfTerminationRequested(termination);
 }
 
 function parseArgs(argv) {
@@ -669,13 +743,14 @@ async function waitForBootstrapReady(client) {
         return {
           bootstrapState: root?.dataset.bootstrapState ?? null,
           bootstrapDetail: root?.dataset.bootstrapDetail ?? null,
+          // Keep the ready gate aligned with the Phase 7.0 evidence surfaces the
+          // harness actually samples, instead of coupling readiness to unrelated
+          // runtime attachments.
           captureReady: Boolean(
             capture?.viewer &&
               capture?.replayClock &&
-              capture?.satelliteOverlay &&
               capture?.scenarioSession &&
               capture?.communicationTime &&
-              capture?.physicalInput &&
               capture?.handoverDecision &&
               capture?.validationState
           )
@@ -813,7 +888,8 @@ function serializeErrorDetail(error) {
     return {
       name: error.name,
       message: error.message,
-      stack: error.stack
+      stack: error.stack,
+      ...(typeof error.signal === "string" ? { signal: error.signal } : {})
     };
   }
 
@@ -867,6 +943,22 @@ function createBootstrapErrorFailure(message, detail) {
   };
 }
 
+function createTerminationFailure(signal) {
+  return createBootstrapErrorFailure(
+    `Soak harness received ${signal} before completion.`,
+    {
+      signal
+    }
+  );
+}
+
+function createTeardownFailure(stage, error) {
+  return createBootstrapErrorFailure(`Soak harness failed during ${stage}.`, {
+    stage,
+    error: serializeErrorDetail(error)
+  });
+}
+
 async function runSoakHarness({
   params,
   outputPaths,
@@ -877,6 +969,8 @@ async function runSoakHarness({
   writeHarnessMetadata(outputPaths.paramsFile, params, policy, null);
 
   const browserCommand = findHeadlessBrowser();
+  const termination = createTerminationController();
+  const removeTerminationHandlers = installTerminationHandlers(termination);
   const failures = [];
   let sampleCount = 0;
   let server;
@@ -887,10 +981,16 @@ async function runSoakHarness({
   const startedAt = new Date().toISOString();
 
   try {
+    throwIfTerminationRequested(termination);
     const startedServer = await startStaticServer();
     server = startedServer.server;
+    throwIfTerminationRequested(termination);
+
     browser = await startHeadlessBrowser(browserCommand);
+    throwIfTerminationRequested(termination);
+
     const pageWebSocketUrl = await resolvePageWebSocketUrl(browser.browserWebSocketUrl);
+    throwIfTerminationRequested(termination);
     client = await connectCdp(pageWebSocketUrl);
 
     await client.send("Page.enable");
@@ -909,6 +1009,7 @@ async function runSoakHarness({
     });
 
     await waitForBootstrapReady(client);
+    throwIfTerminationRequested(termination);
     writeHarnessMetadata(
       outputPaths.paramsFile,
       params,
@@ -919,6 +1020,7 @@ async function runSoakHarness({
     const deadlineMs = Date.now() + params.durationMs;
 
     while (true) {
+      throwIfTerminationRequested(termination);
       const { sample, bootstrapDetail } = await takeSoakSample(client);
       sampleCount += 1;
       appendNdjson(outputPaths.samplesFile, sample);
@@ -1010,30 +1112,61 @@ async function runSoakHarness({
         break;
       }
 
-      await sleep(Math.min(params.sampleIntervalMs, deadlineMs - nowMs));
+      await waitForNextSample(
+        Math.min(params.sampleIntervalMs, deadlineMs - nowMs),
+        termination
+      );
     }
   } catch (error) {
     await recordFailure({
-      failure: createBootstrapErrorFailure(
-        error instanceof Error ? error.message : "Soak harness failed",
-        serializeErrorDetail(error)
-      ),
+      failure:
+        isTerminationError(error) && typeof error.signal === "string"
+          ? createTerminationFailure(error.signal)
+          : createBootstrapErrorFailure(
+              error instanceof Error ? error.message : "Soak harness failed",
+              serializeErrorDetail(error)
+            ),
       failures,
       outputPaths,
       params,
-      client
+      client: isTerminationError(error) ? undefined : client
     });
   } finally {
+    removeTerminationHandlers();
+
+    const teardownFailures = [];
+
     if (client) {
-      await client.close();
+      try {
+        await client.close();
+      } catch (error) {
+        teardownFailures.push(createTeardownFailure("CDP client close", error));
+      }
     }
 
     if (browser) {
-      await stopHeadlessBrowser(browser.browserProcess, browser.userDataDir);
+      try {
+        await stopHeadlessBrowser(browser.browserProcess, browser.userDataDir);
+      } catch (error) {
+        teardownFailures.push(createTeardownFailure("headless browser stop", error));
+      }
     }
 
     if (server) {
-      await stopStaticServer(server);
+      try {
+        await stopStaticServer(server);
+      } catch (error) {
+        teardownFailures.push(createTeardownFailure("static server stop", error));
+      }
+    }
+
+    for (const failure of teardownFailures) {
+      await recordFailure({
+        failure,
+        failures,
+        outputPaths,
+        params
+      });
     }
   }
 
