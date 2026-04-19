@@ -9,6 +9,14 @@ const handoverDecisionModulePath = new URL(
   "../src/features/handover-decision/handover-decision.ts",
   import.meta.url
 );
+const physicalInputModulePath = new URL(
+  "../src/features/physical-input/physical-input.ts",
+  import.meta.url
+);
+const physicalInputSourceModulePath = new URL(
+  "../src/runtime/bootstrap-physical-input-source.ts",
+  import.meta.url
+);
 const handoverDecisionPanelPath = new URL(
   "../src/features/handover-decision/bootstrap-handover-decision-panel.ts",
   import.meta.url
@@ -52,6 +60,14 @@ function localizeTempImports(source) {
       "./handover-decision.mjs"
     )
     .replace(
+      /\.\.\/features\/physical-input\/physical-input\.mjs/g,
+      "./physical-input.mjs"
+    )
+    .replace(
+      /\.\/bootstrap-physical-input-source\.mjs/g,
+      "./bootstrap-physical-input-source.mjs"
+    )
+    .replace(
       /\.\/bootstrap-handover-decision-source\.mjs/g,
       "./bootstrap-handover-decision-source.mjs"
     );
@@ -86,6 +102,8 @@ const tempModuleDir = await mkdtemp(join(tmpdir(), "sgv-phase6.4-"));
 try {
   const [
     handoverDecisionSource,
+    physicalInputSource,
+    physicalInputSourceCode,
     handoverDecisionPanelSource,
     handoverDecisionSourceCode,
     handoverDecisionControllerCode,
@@ -93,6 +111,8 @@ try {
     mainSource
   ] = await Promise.all([
     readFile(handoverDecisionModulePath, "utf8"),
+    readFile(physicalInputModulePath, "utf8"),
+    readFile(physicalInputSourceModulePath, "utf8"),
     readFile(handoverDecisionPanelPath, "utf8"),
     readFile(handoverDecisionSourceModulePath, "utf8"),
     readFile(handoverDecisionControllerModulePath, "utf8"),
@@ -128,6 +148,14 @@ try {
     "Bootstrap handover decision source catalog must exist."
   );
   assert(
+    handoverDecisionSourceCode.includes("resolveBootstrapPhysicalProjectedMetrics"),
+    "Bootstrap handover decision source must consume projected physical-input metrics."
+  );
+  assert(
+    physicalInputSourceCode.includes("createBootstrapPhysicalInputSourceCatalog"),
+    "Bootstrap physical-input source catalog must exist for Phase 6.5 integration."
+  );
+  assert(
     handoverDecisionControllerCode.includes("createBootstrapHandoverDecisionController"),
     "Bootstrap handover decision controller must exist."
   );
@@ -149,6 +177,23 @@ try {
       join(tempModuleDir, "handover-decision.mjs"),
       rewriteRelativeImports(
         transpileTypeScript(handoverDecisionSource, "handover-decision.ts")
+      )
+    ),
+    writeFile(
+      join(tempModuleDir, "physical-input.mjs"),
+      rewriteRelativeImports(
+        transpileTypeScript(physicalInputSource, "physical-input.ts")
+      )
+    ),
+    writeFile(
+      join(tempModuleDir, "bootstrap-physical-input-source.mjs"),
+      localizeTempImports(
+        rewriteRelativeImports(
+          transpileTypeScript(
+            physicalInputSourceCode,
+            "bootstrap-physical-input-source.ts"
+          )
+        )
       )
     ),
     writeFile(

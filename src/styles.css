@@ -260,6 +260,10 @@ body {
   min-width: 0;
 }
 
+.operator-status-hud__physical {
+  min-width: 0;
+}
+
 .operator-status-hud__decision {
   min-width: 0;
 }
@@ -282,6 +286,15 @@ body {
   color: rgba(235, 243, 250, 0.95);
 }
 
+.physical-input-panel {
+  display: grid;
+  grid-template-columns: minmax(8rem, 11rem) minmax(0, 1fr);
+  gap: 0.65rem 1.5rem;
+  min-height: 4rem;
+  padding-top: 0.15rem;
+  color: rgba(235, 243, 250, 0.95);
+}
+
 .handover-decision-panel {
   display: grid;
   grid-template-columns: minmax(8rem, 11rem) minmax(0, 1fr);
@@ -293,6 +306,7 @@ body {
 
 .timeline-hud-placeholder__header,
 .communication-time-panel__header,
+.physical-input-panel__header,
 .handover-decision-panel__header {
   display: grid;
   align-content: center;
@@ -302,6 +316,7 @@ body {
 
 .timeline-hud-placeholder__eyebrow,
 .communication-time-panel__eyebrow,
+.physical-input-panel__eyebrow,
 .handover-decision-panel__eyebrow {
   color: rgba(150, 196, 226, 0.74);
   font-size: 0.68rem;
@@ -312,6 +327,7 @@ body {
 
 .timeline-hud-placeholder__heading,
 .communication-time-panel__heading,
+.physical-input-panel__heading,
 .handover-decision-panel__heading {
   min-width: 0;
   color: #f7fbff;
@@ -321,6 +337,7 @@ body {
 }
 
 .communication-time-panel__note,
+.physical-input-panel__note,
 .handover-decision-panel__note {
   color: rgba(166, 201, 224, 0.82);
   font-size: 0.72rem;
@@ -329,6 +346,7 @@ body {
 
 .timeline-hud-placeholder__grid,
 .communication-time-panel__grid,
+.physical-input-panel__grid,
 .handover-decision-panel__grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -338,6 +356,7 @@ body {
 
 .timeline-hud-placeholder__field,
 .communication-time-panel__field,
+.physical-input-panel__field,
 .handover-decision-panel__field {
   display: grid;
   gap: 0.2rem;
@@ -346,6 +365,7 @@ body {
 
 .timeline-hud-placeholder__label,
 .communication-time-panel__label,
+.physical-input-panel__label,
 .handover-decision-panel__label {
   color: rgba(158, 191, 216, 0.72);
   font-size: 0.66rem;
@@ -355,6 +375,7 @@ body {
 
 .timeline-hud-placeholder__value,
 .communication-time-panel__value,
+.physical-input-panel__value,
 .handover-decision-panel__value {
   min-width: 0;
   color: rgba(240, 247, 252, 0.96);
@@ -418,6 +439,7 @@ body {
 
   .timeline-hud-placeholder,
   .communication-time-panel,
+  .physical-input-panel,
   .handover-decision-panel {
     grid-template-columns: minmax(7rem, 9rem) minmax(0, 1fr);
     gap: 0.55rem 1rem;
@@ -452,6 +474,7 @@ body {
 
   .timeline-hud-placeholder,
   .communication-time-panel,
+  .physical-input-panel,
   .handover-decision-panel {
     grid-template-columns: minmax(6.75rem, 8rem) minmax(0, 1fr);
     gap: 0.45rem 0.95rem;
@@ -461,12 +484,14 @@ body {
 
   .timeline-hud-placeholder__heading,
   .communication-time-panel__heading,
+  .physical-input-panel__heading,
   .handover-decision-panel__heading {
     font-size: 1rem;
   }
 
   .timeline-hud-placeholder__value,
   .communication-time-panel__value,
+  .physical-input-panel__value,
   .handover-decision-panel__value {
     font-size: 0.78rem;
   }
@@ -496,6 +521,7 @@ body {
 
   .timeline-hud-placeholder,
   .communication-time-panel,
+  .physical-input-panel,
   .handover-decision-panel {
     grid-template-columns: 1fr;
     gap: 0.7rem;
@@ -503,6 +529,7 @@ body {
 
   .timeline-hud-placeholder__grid,
   .communication-time-panel__grid,
+  .physical-input-panel__grid,
   .handover-decision-panel__grid {
     grid-template-columns: 1fr;
   }

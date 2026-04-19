@@ -21,6 +21,7 @@ import {
 import { createBootstrapOperatorController } from "./runtime/bootstrap-operator-controller";
 import { createBootstrapCommunicationTimeController } from "./runtime/bootstrap-communication-time-controller";
 import { createBootstrapHandoverDecisionController } from "./runtime/bootstrap-handover-decision-controller";
+import { createBootstrapPhysicalInputController } from "./runtime/bootstrap-physical-input-controller";
 import { createBootstrapScenarioSession } from "./runtime/scenario-bootstrap-session";
 import { createBootstrapScenarioCatalog } from "./runtime/resolve-bootstrap-scenario";
 import "./styles.css";
@@ -36,6 +37,7 @@ declare global {
       satelliteOverlay: SatelliteOverlayController;
       scenarioSession: ReturnType<typeof createBootstrapScenarioSession>;
       communicationTime: ReturnType<typeof createBootstrapCommunicationTimeController>;
+      physicalInput: ReturnType<typeof createBootstrapPhysicalInputController>;
       handoverDecision: ReturnType<typeof createBootstrapHandoverDecisionController>;
     };
   }
@@ -146,6 +148,10 @@ const bootstrapCommunicationTimeController = createBootstrapCommunicationTimeCon
   operatorState: bootstrapOperatorController,
   scenarioCatalog: bootstrapScenarioCatalog
 });
+const bootstrapPhysicalInputController = createBootstrapPhysicalInputController({
+  operatorState: bootstrapOperatorController,
+  scenarioCatalog: bootstrapScenarioCatalog
+});
 const bootstrapHandoverDecisionController = createBootstrapHandoverDecisionController({
   operatorState: bootstrapOperatorController,
   scenarioCatalog: bootstrapScenarioCatalog
@@ -155,6 +161,7 @@ const unmountBootstrapOperatorHud = mountBootstrapOperatorHud({
   statusPanel,
   controller: bootstrapOperatorController,
   communicationTimeController: bootstrapCommunicationTimeController,
+  physicalInputController: bootstrapPhysicalInputController,
   handoverDecisionController: bootstrapHandoverDecisionController
 });
 const satelliteOverlay = createSatelliteOverlayController({
@@ -172,6 +179,7 @@ window.__SCENARIO_GLOBE_VIEWER_CAPTURE__ = {
   satelliteOverlay,
   scenarioSession,
   communicationTime: bootstrapCommunicationTimeController,
+  physicalInput: bootstrapPhysicalInputController,
   handoverDecision: bootstrapHandoverDecisionController
 };
 syncVisualBaselineState(viewer);
@@ -202,6 +210,7 @@ if (import.meta.hot) {
     unmountLightingToggle();
     unmountBootstrapOperatorHud();
     bootstrapHandoverDecisionController.dispose();
+    bootstrapPhysicalInputController.dispose();
     bootstrapCommunicationTimeController.dispose();
     bootstrapOperatorController.dispose();
     void satelliteOverlay.dispose();

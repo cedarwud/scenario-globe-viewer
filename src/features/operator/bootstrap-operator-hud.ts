@@ -3,6 +3,7 @@ import type { ReplayClock, ReplayClockState } from "../time";
 import { mountTimelineHudPlaceholder } from "../time/timeline-hud-placeholder";
 import { mountBootstrapCommunicationTimePanel } from "../communication-time";
 import { mountBootstrapHandoverDecisionPanel } from "../handover-decision";
+import { mountBootstrapPhysicalInputPanel } from "../physical-input";
 import type {
   BootstrapOperatorController,
   BootstrapOperatorControllerState,
@@ -11,12 +12,14 @@ import type {
 import type { BootstrapScenarioMode } from "../../runtime/resolve-bootstrap-scenario";
 import type { BootstrapCommunicationTimeController } from "../../runtime/bootstrap-communication-time-controller";
 import type { BootstrapHandoverDecisionController } from "../../runtime/bootstrap-handover-decision-controller";
+import type { BootstrapPhysicalInputController } from "../../runtime/bootstrap-physical-input-controller";
 
 interface BootstrapOperatorHudOptions {
   hudFrame: HTMLElement;
   statusPanel: HTMLElement;
   controller: BootstrapOperatorController;
   communicationTimeController: BootstrapCommunicationTimeController;
+  physicalInputController: BootstrapPhysicalInputController;
   handoverDecisionController: BootstrapHandoverDecisionController;
 }
 
@@ -28,6 +31,7 @@ interface BootstrapOperatorHudElements {
   speedButtons: ReadonlyArray<HTMLButtonElement>;
   timeSlot: HTMLDivElement;
   communicationSlot: HTMLDivElement;
+  physicalSlot: HTMLDivElement;
   decisionSlot: HTMLDivElement;
 }
 
@@ -135,6 +139,10 @@ function createElements(
           data-operator-communication-slot="true"
         ></div>
         <div
+          class="operator-status-hud__physical"
+          data-operator-physical-slot="true"
+        ></div>
+        <div
           class="operator-status-hud__decision"
           data-operator-decision-slot="true"
         ></div>
@@ -168,6 +176,9 @@ function createElements(
   const communicationSlot = statusPanel.querySelector<HTMLDivElement>(
     "[data-operator-communication-slot='true']"
   );
+  const physicalSlot = statusPanel.querySelector<HTMLDivElement>(
+    "[data-operator-physical-slot='true']"
+  );
   const decisionSlot = statusPanel.querySelector<HTMLDivElement>(
     "[data-operator-decision-slot='true']"
   );
@@ -181,6 +192,7 @@ function createElements(
     speedButtons.length === 0 ||
     !timeSlot ||
     !communicationSlot ||
+    !physicalSlot ||
     !decisionSlot
   ) {
     throw new Error("Missing bootstrap operator HUD elements");
@@ -197,6 +209,7 @@ function createElements(
     speedButtons,
     timeSlot,
     communicationSlot,
+    physicalSlot,
     decisionSlot
   };
 }
@@ -240,6 +253,7 @@ export function mountBootstrapOperatorHud({
   statusPanel,
   controller,
   communicationTimeController,
+  physicalInputController,
   handoverDecisionController
 }: BootstrapOperatorHudOptions): () => void {
   hudFrame.dataset.hudVisibility = "status-only";
@@ -284,6 +298,10 @@ export function mountBootstrapOperatorHud({
   const unmountCommunicationTimePanel = mountBootstrapCommunicationTimePanel({
     container: elements.communicationSlot,
     controller: communicationTimeController
+  });
+  const unmountPhysicalInputPanel = mountBootstrapPhysicalInputPanel({
+    container: elements.physicalSlot,
+    controller: physicalInputController
   });
   const unmountHandoverDecisionPanel = mountBootstrapHandoverDecisionPanel({
     container: elements.decisionSlot,
@@ -383,6 +401,7 @@ export function mountBootstrapOperatorHud({
   return () => {
     unsubscribe();
     unmountHandoverDecisionPanel();
+    unmountPhysicalInputPanel();
     unmountCommunicationTimePanel();
     unmountTimelineHudPlaceholder();
     elements.scenarioSelect.removeEventListener("change", handleScenarioChange);
