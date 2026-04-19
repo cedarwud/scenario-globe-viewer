@@ -20,7 +20,7 @@
     "test:phase4.1": "node scripts/verify-phase4.1-walker-fixture-adapter.mjs",
     "test:phase5.1": "npm run build && node tests/smoke/bootstrap-loads-assets-and-workers.mjs --suite=overlay-toggle",
     "test:phase6.1": "node scripts/verify-phase6.1-scenario-coordination.mjs",
-    "test:phase6.2": "node scripts/verify-phase6.2-bootstrap-operator-controls.mjs && node tests/smoke/verify-phase6.2-bootstrap-operator-controls.mjs",
+    "test:phase6.2": "npm run build && node scripts/verify-phase6.2-bootstrap-operator-controls.mjs && node tests/smoke/verify-phase6.2-bootstrap-operator-controls.mjs",
     "test:phase6.3": "npm run build && node scripts/verify-phase6.3-bootstrap-communication-time.mjs && node tests/smoke/verify-phase6.3-bootstrap-communication-time.mjs",
     "capture:phase2.12": "node scripts/site-hook-guard.mjs --context=phase2.12-capture && npm run build && node tests/visual/capture-three-preset-baselines.mjs",
     "capture:phase5.3-orbits": "node scripts/site-hook-guard.mjs --context=phase5.3-orbit-capture && npm run build && node tests/visual/capture-phase5.3-orbit-review.mjs",

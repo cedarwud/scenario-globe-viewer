@@ -21,6 +21,7 @@ await runReplayClockValidation({
     };
 
     const readOperatorSnapshot = () => {
+      const hudFrame = document.querySelector('[data-hud-frame="true"]');
       const root = document.querySelector('[data-operator-hud="bootstrap"]');
       const scenarioSelect = document.querySelector('[data-operator-control="scenario"]');
       const readText = (selector) => {
@@ -29,7 +30,8 @@ await runReplayClockValidation({
       };
 
       return {
-        hudVisibility: document.documentElement.dataset.hudVisibility || null,
+        hudVisibility:
+          hudFrame instanceof HTMLElement ? hudFrame.dataset.hudVisibility || null : null,
         bootstrapScenarioId: document.documentElement.dataset.bootstrapScenarioId || null,
         scenePreset: document.documentElement.dataset.scenePreset || null,
         replayMode: document.documentElement.dataset.replayMode || null,
@@ -82,6 +84,10 @@ await runReplayClockValidation({
       const selectedScenario = capture.scenarioSession.getCurrentScenario();
 
       assert(snapshot.rootPresent, label + ": operator HUD root must exist.");
+      assert(
+        snapshot.hudVisibility === "status-only",
+        label + ": HUD frame must stay in status-only visibility mode."
+      );
       assert(snapshot.controlError === null, label + ": operator HUD must not report control errors.");
       assert(snapshot.rootBusy === "false", label + ": operator HUD must not stay busy.");
       assert(

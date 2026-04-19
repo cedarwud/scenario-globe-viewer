@@ -264,6 +264,13 @@ work without hard-coding the walker proof line into the public contract.
 - Real-time and prerecorded paths share one scenario model instead of branching
   into unrelated code paths
 
+### Closure Note
+
+- Close-out accepted on `2026-04-19`
+- `npm run build` passed
+- `npm run test:phase6.1` passed
+- Next active entry: `Phase 6.2`
+
 ## Phase 6.2
 
 ### Name
