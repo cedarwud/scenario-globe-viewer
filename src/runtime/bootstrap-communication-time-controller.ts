@@ -3,7 +3,6 @@ import {
   type CommunicationTimeState
 } from "../features/communication-time/communication-time";
 import type {
-  BootstrapOperatorController,
   BootstrapOperatorControllerState
 } from "./bootstrap-operator-controller";
 import type { BootstrapScenarioCatalog } from "./resolve-bootstrap-scenario";
@@ -20,8 +19,15 @@ export interface BootstrapCommunicationTimeController {
 }
 
 export interface BootstrapCommunicationTimeControllerOptions {
-  operatorController: BootstrapOperatorController;
+  operatorState: BootstrapCommunicationTimeStateReadable;
   scenarioCatalog: BootstrapScenarioCatalog;
+}
+
+export interface BootstrapCommunicationTimeStateReadable {
+  getState(): BootstrapOperatorControllerState;
+  subscribe(
+    listener: (state: BootstrapOperatorControllerState) => void
+  ): () => void;
 }
 
 function resolveState(
@@ -51,13 +57,13 @@ function resolveState(
 }
 
 export function createBootstrapCommunicationTimeController({
-  operatorController,
+  operatorState,
   scenarioCatalog
 }: BootstrapCommunicationTimeControllerOptions): BootstrapCommunicationTimeController {
   const listeners = new Set<(state: CommunicationTimeState) => void>();
   const sourceCatalog =
     createBootstrapProxyCommunicationTimeSourceCatalog(scenarioCatalog.definitions);
-  let lastState = resolveState(operatorController.getState(), sourceCatalog);
+  let lastState = resolveState(operatorState.getState(), sourceCatalog);
 
   const notify = (nextState: CommunicationTimeState): CommunicationTimeState => {
     lastState = nextState;
@@ -69,8 +75,8 @@ export function createBootstrapCommunicationTimeController({
     return lastState;
   };
 
-  const unsubscribe = operatorController.subscribe((operatorState) => {
-    notify(resolveState(operatorState, sourceCatalog));
+  const unsubscribe = operatorState.subscribe((nextOperatorState) => {
+    notify(resolveState(nextOperatorState, sourceCatalog));
   });
 
   return {

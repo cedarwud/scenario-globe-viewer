@@ -67,6 +67,15 @@ function resolveBootstrapScenarioMode(
   definition: BootstrapScenarioDefinition
 ): BootstrapScenarioMode {
   if (
+    definition.kind !== "real-time" &&
+    definition.kind !== "prerecorded"
+  ) {
+    throw new Error(
+      `Bootstrap communication-time source must stay on bootstrap-safe scenario kinds: ${definition.id}`
+    );
+  }
+
+  if (
     definition.time.mode !== "real-time" &&
     definition.time.mode !== "prerecorded"
   ) {
@@ -76,6 +85,28 @@ function resolveBootstrapScenarioMode(
   }
 
   return definition.time.mode;
+}
+
+function assertBootstrapCommunicationTimeSources(
+  definition: BootstrapScenarioDefinition
+): void {
+  if (definition.sources.satellite) {
+    throw new Error(
+      `Bootstrap communication-time source must not attach satellite sources: ${definition.id}`
+    );
+  }
+
+  if (definition.sources.siteDataset) {
+    throw new Error(
+      `Bootstrap communication-time source must not attach site datasets: ${definition.id}`
+    );
+  }
+
+  if (definition.sources.validation) {
+    throw new Error(
+      `Bootstrap communication-time source must not attach validation refs: ${definition.id}`
+    );
+  }
 }
 
 function cloneWindowTemplates(
@@ -92,7 +123,15 @@ export function createBootstrapProxyCommunicationTimeSourceCatalog(
 ): BootstrapProxyCommunicationTimeSourceCatalog {
   return {
     entries: definitions.map((definition) => {
+      assertBootstrapCommunicationTimeSources(definition);
       const mode = resolveBootstrapScenarioMode(definition);
+
+      if (definition.kind !== mode) {
+        throw new Error(
+          `Bootstrap communication-time source must keep scenario kind aligned with replay mode: ${definition.id}`
+        );
+      }
+
       const templates =
         BOOTSTRAP_PROXY_WINDOW_TEMPLATES[definition.presentation.presetKey][mode];
 

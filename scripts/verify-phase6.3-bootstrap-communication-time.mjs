@@ -96,6 +96,7 @@ try {
   ]);
 
   const requiredCommunicationSnippets = [
+    "BOOTSTRAP_PROXY_PROVENANCE_DETAIL",
     "export interface CommunicationTimeState {",
     "export interface CommunicationTimeReport {",
     "export function createCommunicationTimeState(",
@@ -207,6 +208,26 @@ try {
     sourceCatalog.entries.every((entry) => entry.sourceKind === "bootstrap-proxy"),
     "Bootstrap proxy source catalog must stay provenance-tagged."
   );
+  assert.throws(
+    () =>
+      createBootstrapProxyCommunicationTimeSourceCatalog([
+        {
+          id: "bootstrap-invalid-site-dataset",
+          label: "Bootstrap Invalid Site Dataset",
+          kind: "real-time",
+          presentation: { presetKey: "site" },
+          time: { mode: "real-time" },
+          sources: {
+            siteDataset: {
+              source: "none",
+              datasetRef: "should-not-attach"
+            }
+          }
+        }
+      ]),
+    /must not attach site datasets/,
+    "Bootstrap communication-time source catalog must reject site-dataset attachments."
+  );
 
   const directState = createCommunicationTimeState({
     scenario: {
@@ -230,6 +251,11 @@ try {
     "Communication-time state must preserve bootstrap proxy provenance."
   );
   assert.equal(
+    directState.provenance.detail.includes("not a real network measurement"),
+    true,
+    "Communication-time provenance must explicitly describe the bootstrap proxy boundary."
+  );
+  assert.equal(
     directState.report.schemaVersion,
     COMMUNICATION_TIME_REPORT_SCHEMA_VERSION,
     "Communication-time report must expose the stable Phase 6.3 schema version."
@@ -248,6 +274,11 @@ try {
     directState.summary.totalCommunicatingMs + directState.summary.totalUnavailableMs,
     "Communication-time summary must preserve communicating/unavailable complements."
   );
+  assert.equal(
+    directState.report.provenance.detail.includes("active scenario range"),
+    true,
+    "Export-ready report must retain the explicit bootstrap proxy provenance detail."
+  );
   JSON.stringify(directState);
 
   const operatorController = createOperatorControllerMock({
@@ -262,7 +293,7 @@ try {
     isPlaying: false
   });
   const controller = createBootstrapCommunicationTimeController({
-    operatorController,
+    operatorState: operatorController,
     scenarioCatalog: {
       definitions: scenarioDefinitions,
       options: [],
@@ -307,6 +338,11 @@ try {
       (window) => window.sourceKind === "bootstrap-proxy"
     ),
     "Communication-time report windows must preserve bootstrap proxy provenance."
+  );
+  assert.equal(
+    observedStates.at(-1)?.report.provenance.detail.includes("not a real network measurement"),
+    true,
+    "Communication-time controller must keep provenance detail aligned with export-ready report state."
   );
   JSON.stringify(observedStates.at(-1));
 

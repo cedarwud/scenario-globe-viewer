@@ -17,6 +17,7 @@ interface BootstrapCommunicationTimePanelOptions {
 interface BootstrapCommunicationTimePanelElements {
   root: HTMLDivElement;
   heading: HTMLSpanElement;
+  note: HTMLSpanElement;
   status: HTMLSpanElement;
   available: HTMLSpanElement;
   unavailable: HTMLSpanElement;
@@ -47,12 +48,16 @@ function createElements(
           class="communication-time-panel__heading"
           data-communication-field="heading"
         ></span>
+        <span
+          class="communication-time-panel__note"
+          data-communication-field="note"
+        ></span>
       </div>
       <div class="communication-time-panel__grid">
         ${createField("Status", "status")}
         ${createField("Available", "available")}
         ${createField("Unavailable", "unavailable")}
-        ${createField("Remaining", "remaining")}
+        ${createField("Remaining Available", "remaining")}
         ${createField("Provenance", "provenance")}
       </div>
     </div>
@@ -63,6 +68,9 @@ function createElements(
   );
   const heading = container.querySelector<HTMLSpanElement>(
     "[data-communication-field='heading']"
+  );
+  const note = container.querySelector<HTMLSpanElement>(
+    "[data-communication-field='note']"
   );
   const status = container.querySelector<HTMLSpanElement>(
     "[data-communication-field='status']"
@@ -83,6 +91,7 @@ function createElements(
   if (
     !root ||
     !heading ||
+    !note ||
     !status ||
     !available ||
     !unavailable ||
@@ -95,6 +104,7 @@ function createElements(
   return {
     root,
     heading,
+    note,
     status,
     available,
     unavailable,
@@ -108,11 +118,13 @@ function renderViewModel(
   viewModel: CommunicationTimePanelViewModel
 ): void {
   elements.heading.textContent = viewModel.heading;
+  elements.note.textContent = viewModel.provenanceNote;
   elements.status.textContent = viewModel.status;
   elements.available.textContent = viewModel.available;
   elements.unavailable.textContent = viewModel.unavailable;
   elements.remaining.textContent = viewModel.remaining;
   elements.provenance.textContent = viewModel.provenance;
+  elements.provenance.title = viewModel.provenanceDetail;
 }
 
 function renderState(
@@ -125,12 +137,15 @@ function renderState(
   elements.root.dataset.communicationStatus = state.currentStatus.kind;
   elements.root.dataset.communicationSourceKind = state.provenance.sourceKind;
   elements.root.dataset.communicationSchemaVersion = state.report.schemaVersion;
+  elements.root.dataset.communicationProvenanceDetail = state.provenance.detail;
   document.documentElement.dataset.communicationScenarioId = state.scenario.id;
   document.documentElement.dataset.communicationStatus = state.currentStatus.kind;
   document.documentElement.dataset.communicationSourceKind =
     state.provenance.sourceKind;
   document.documentElement.dataset.communicationReportSchemaVersion =
     state.report.schemaVersion;
+  document.documentElement.dataset.communicationProvenanceDetail =
+    state.provenance.detail;
 }
 
 function clearDocumentState(): void {
@@ -138,6 +153,7 @@ function clearDocumentState(): void {
   delete document.documentElement.dataset.communicationStatus;
   delete document.documentElement.dataset.communicationSourceKind;
   delete document.documentElement.dataset.communicationReportSchemaVersion;
+  delete document.documentElement.dataset.communicationProvenanceDetail;
 }
 
 export function mountBootstrapCommunicationTimePanel({

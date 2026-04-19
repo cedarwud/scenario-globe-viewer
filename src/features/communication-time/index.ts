@@ -1,4 +1,6 @@
 export {
+  BOOTSTRAP_PROXY_PROVENANCE_DETAIL,
+  BOOTSTRAP_PROXY_PROVENANCE_NOTE,
   COMMUNICATION_TIME_REPORT_SCHEMA_VERSION,
   createCommunicationTimeState,
   formatCommunicationDurationLabel

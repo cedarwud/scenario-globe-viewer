@@ -3,6 +3,9 @@ import type { ClockMode, ClockTimestamp } from "../time";
 
 export const COMMUNICATION_TIME_REPORT_SCHEMA_VERSION =
   "phase6.3-bootstrap-communication-time-report.v1";
+export const BOOTSTRAP_PROXY_PROVENANCE_DETAIL =
+  "Deterministic bootstrap communication windows projected from the active scenario range; not a real network measurement.";
+export const BOOTSTRAP_PROXY_PROVENANCE_NOTE = "Proxy only; not measured.";
 
 export type CommunicationTimeSourceKind = "bootstrap-proxy";
 export type CommunicationTimeStatusKind = "communicating" | "unavailable";
@@ -39,6 +42,7 @@ export interface CommunicationTimeSummaryScope {
 export interface CommunicationTimeProvenance {
   sourceKind: CommunicationTimeSourceKind;
   label: string;
+  detail: string;
 }
 
 export interface CommunicationTimeCurrentStatus {
@@ -307,7 +311,8 @@ function createProvenance(
 ): CommunicationTimeProvenance {
   return {
     sourceKind,
-    label: sourceKind
+    label: sourceKind,
+    detail: BOOTSTRAP_PROXY_PROVENANCE_DETAIL
   };
 }
 

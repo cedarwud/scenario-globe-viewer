@@ -41,17 +41,26 @@ await runReplayClockValidation({
           root instanceof HTMLElement ? root.dataset.communicationSourceKind || null : null,
         rootSchemaVersion:
           root instanceof HTMLElement ? root.dataset.communicationSchemaVersion || null : null,
+        rootProvenanceDetail:
+          root instanceof HTMLElement ? root.dataset.communicationProvenanceDetail || null : null,
         summaryLabel: readText('[data-communication-field="heading"]'),
+        note: readText('[data-communication-field="note"]'),
         status: readText('[data-communication-field="status"]'),
         available: readText('[data-communication-field="available"]'),
         unavailable: readText('[data-communication-field="unavailable"]'),
         remaining: readText('[data-communication-field="remaining"]'),
         provenance: readText('[data-communication-field="provenance"]'),
+        provenanceTitle: (() => {
+          const element = document.querySelector('[data-communication-field="provenance"]');
+          return element instanceof HTMLElement ? element.title : "";
+        })(),
         documentScenarioId: document.documentElement.dataset.communicationScenarioId || null,
         documentStatus: document.documentElement.dataset.communicationStatus || null,
         documentSourceKind: document.documentElement.dataset.communicationSourceKind || null,
         documentSchemaVersion:
-          document.documentElement.dataset.communicationReportSchemaVersion || null
+          document.documentElement.dataset.communicationReportSchemaVersion || null,
+        documentProvenanceDetail:
+          document.documentElement.dataset.communicationProvenanceDetail || null
       };
     };
 
@@ -87,6 +96,14 @@ await runReplayClockValidation({
           snapshot.documentSourceKind === "bootstrap-proxy" &&
           snapshot.provenance === "bootstrap-proxy",
         label + ": bootstrap proxy provenance must stay explicit."
+      );
+      assert(
+        snapshot.rootProvenanceDetail === communicationState.provenance.detail &&
+          snapshot.documentProvenanceDetail === communicationState.provenance.detail &&
+          snapshot.provenanceTitle === communicationState.provenance.detail &&
+          /proxy only; not measured/i.test(snapshot.note) &&
+          /not a real network measurement/i.test(communicationState.provenance.detail),
+        label + ": bootstrap proxy provenance detail must stay explicit about the non-measurement boundary."
       );
       assert(
         snapshot.rootSchemaVersion === "phase6.3-bootstrap-communication-time-report.v1" &&

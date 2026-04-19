@@ -141,7 +141,7 @@ const bootstrapOperatorController = createBootstrapOperatorController({
   replayClock
 });
 const bootstrapCommunicationTimeController = createBootstrapCommunicationTimeController({
-  operatorController: bootstrapOperatorController,
+  operatorState: bootstrapOperatorController,
   scenarioCatalog: bootstrapScenarioCatalog
 });
 const unmountBootstrapOperatorHud = mountBootstrapOperatorHud({
