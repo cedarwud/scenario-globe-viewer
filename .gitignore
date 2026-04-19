@@ -4,7 +4,10 @@ dist/
 .env
 .env.*
 !.env*.example
-output/
+output/*
+!output/soak/
+output/soak/*
+!output/soak/.gitkeep
 
 AGENTS.md
 CLAUDE.md
