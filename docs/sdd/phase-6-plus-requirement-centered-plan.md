@@ -101,7 +101,7 @@ The current repo direction is not wrong, but its next-step priority has drift ri
 | Physical-layer / antenna / rain attenuation / ITU inputs | `kickoff.pptx` Slide 2 and 6: `physical layer`, antenna parameters, rain attenuation, `ITU` inputs | No formal model-input seam exists in the delivery repo | `6.5` | Input families are explicit, provenance-tagged, and consumable by the decision layer | Medium-high: proxy logic may drift away from named requirement inputs |
 | Scenario loading / prerecorded vs real-time | `kickoff.pptx` Slide 5 and 6: `real time` vs prerecorded scenario/demo modes | `scene-preset` covers framing only and `replay-clock` covers time only; no repo-owned scenario identity/source/lifecycle contract exists | `6.1` | One plain-data scenario model coordinates identity, source type, load/unload lifecycle, and mode switching | High: prerecorded vs real-time has no stable ownership boundary |
 | Validation bridge / NAT / tunnel / DUT | `kickoff.pptx` Slide 3 and 6: Windows tunneling, NAT routing, virtual/physical DUT, ESTNeT/INET bridge | Site tileset hook exists, but it is only a visual dataset seam and not a validation-environment seam | `6.6` | Validation modes, DUT boundaries, and NAT/tunnel/bridge ownership notes are explicit and repo-owned | High: external validation requirement has no named home in the current delivery repo |
-| 24h soak | `r1.docx` WP1 close-out and `kickoff.pptx` Slide 6: stable for at least `24` hours | Formal soak contract/harness plus retained rehearsal and bounded full-path probe artifacts now exist, but no retained `24h` full-run pass artifact exists yet | `7.0` | Repeatable soak procedure, pass/fail rule, and retained `24h` full-run evidence exist | Medium-high: short smoke or bounded probes may be mistaken for acceptance evidence |
+| 24h soak | `r1.docx` WP1 close-out and `kickoff.pptx` Slide 6: stable for at least `24` hours | Formal soak contract/harness now has retained rehearsal evidence plus a retained `24h` full-run pass artifact from the canonical package entry | `7.0` | Repeatable soak procedure, pass/fail rule, and retained `24h` full-run evidence exist | Lower after close-out: the formal soak gate is now evidenced rather than inferred |
 | 500 LEO validation | `r1.docx`: `支援 ≥ 500 LEO 模擬`.<br>`kickoff.pptx` Slide 5: `支援 ≥ 500 LEO 模擬` | Current runtime remains bounded to the copied walker proof fixture and constrained orbit rendering | `7.1` | Explicit scale validation closes the gap between walker proof and named requirement scale | High: scale requirement is currently unproven |
 | Showcase / presentation work | `kickoff.pptx` Slide 6: demo intent exists, but only after requirement-bearing surfaces are mapped | OSM showcase, orbit/label artifact lines, and handover-demo presentation work already exist as useful but non-authoritative later lines | `8.0` | Presentation work resumes only after Phases `6.1-7.1` close or are explicitly waived | Low if deferred; high only if allowed to keep driving ordering |
 
@@ -488,6 +488,13 @@ Promote current hygiene into formal stability evidence.
 - Failures produce actionable outputs
 - The repo can show a clear gate between "tested briefly" and "stable enough"
 
+### Closure Note
+
+- Close-out accepted on `2026-04-20`
+- `npm run test:phase7.0:rehearsal` passed
+- `npm run test:phase7.0:full` passed with a retained `24h` full-run artifact
+- Next active entry: `Phase 7.1`
+
 ## Phase 7.1
 
 ### Name
@@ -566,6 +573,8 @@ cycle.
 
 Phase 6 formal close-out is complete.
 
-The next active entry is `Phase 7.0`.
+Phase 7.0 close-out is accepted.
 
-`Phase 7.0` is limited to `24h` soak / stability evidence.
+The next active entry is `Phase 7.1`.
+
+`Phase 7.1` is limited to multi-orbit and `500 LEO` validation.
