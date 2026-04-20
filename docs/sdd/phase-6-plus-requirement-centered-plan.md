@@ -490,7 +490,7 @@ Promote current hygiene into formal stability evidence.
 
 ### Closure Note
 
-- Close-out accepted on `2026-04-20`
+- Close-out accepted on `2026-04-20` via `11732e3` (`docs: close out phase 7.0 soak evidence`)
 - `npm run test:phase7.0:rehearsal` passed
 - `npm run test:phase7.0:full` passed with a retained `24h` full-run artifact
 - Next active entry: `Phase 7.1`
@@ -505,6 +505,15 @@ Multi-orbit and 500 LEO validation
 
 Close the gap between the current walker proof path and the requirement-bearing
 scope/scale signals.
+
+### Entry Note
+
+- The first slice is a viewer-side validation/evidence boundary, not a
+  presentation slice.
+- It must converge the orbit-scope matrix, retained `>= 500 LEO` evidence, and
+  explicit known-gap reporting.
+- It does not include `Phase 8.0` local-view/presentation work.
+- It does not close external NAT / `iperf` / DUT truth.
 
 ### In Scope
 
@@ -573,8 +582,11 @@ cycle.
 
 Phase 6 formal close-out is complete.
 
-Phase 7.0 close-out is accepted.
+`Phase 7.0` is closed via accepted soak-evidence close-out commit `11732e3`.
 
 The next active entry is `Phase 7.1`.
 
-`Phase 7.1` is limited to multi-orbit and `500 LEO` validation.
+`Phase 7.1` starts with the viewer-side validation/evidence boundary. Its first
+slice must converge the orbit-scope matrix, retained `>= 500 LEO` evidence, and
+explicit known-gap reporting without pulling in `Phase 8.0`
+local-view/presentation work or external NAT / `iperf` / DUT truth closure.
