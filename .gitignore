@@ -6,8 +6,11 @@ dist/
 !.env*.example
 output/*
 !output/soak/
+!output/validation/
 output/soak/*
 !output/soak/.gitkeep
+output/validation/*
+!output/validation/.gitkeep
 
 AGENTS.md
 CLAUDE.md
