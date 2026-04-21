@@ -33,8 +33,14 @@ Related authority:
 - Proposed on `2026-04-21`
 - Created after a repo-structure audit of active runtime, test harness, and
   authority docs
-- `SR0` authority sync is in progress across `README.md`,
-  `docs/architecture.md`, and `docs/delivery-phases.md`
+- `SR0` authority sync has landed
+- `SR1` bootstrap composition extraction has landed
+- `SR2` document telemetry centralization has landed
+- `SR3` seed-heavy bootstrap source extraction has landed for the highest-risk
+  runtime seed surfaces
+- `SR4` has reached a conservative stop point after extracting smoke scenario,
+  browser/CDP, and static-server/fetch helpers; the remaining top-level smoke
+  file is now primarily evidence-reading, readiness, and assertion surface
 - This plan does not change product scope, phase ordering, or requirement
   authority
 - This plan exists because the repo has reached a stage where structural drift
@@ -372,13 +378,37 @@ evidence contract.
 
 ### Acceptance Criteria
 
-- the top-level smoke entry file becomes primarily orchestration
+- the top-level smoke entry file becomes primarily orchestration, or reaches a
+  conservative stop point where the remaining bulk is evidence-reading,
+  readiness, and assertion logic that would be risky to split further without a
+  dedicated evidence-contract slice
 - failure injection and suite routing remain readable and auditable
 - `npm run test:phase1` remains green
 - `npm run test:phase1:showcase` remains green
 - `npm run test:phase1:site-dataset` remains green
 - `npm run test:phase1:site-hook-conflict` remains green
 - `npm run test:phase5.1` remains green
+
+### Current Assessment
+
+The low-risk `SR4` seams are now extracted:
+
+- suite scenario tables
+- browser lifecycle and CDP connection helpers
+- static-server lifecycle, dist preflight, and fetch smoke helpers
+
+After those cuts, the remaining `tests/smoke/bootstrap-loads-assets-and-workers.mjs`
+surface is dominated by:
+
+- dataset/runtime state readers
+- bootstrap readiness polling
+- HUD/layout/native-control assertions
+- satellite overlay assertion and failure-injection helpers
+
+That remaining surface is tightly coupled to the accepted smoke evidence
+contract. Further refactoring inside `SR4` should be treated as optional and
+should not proceed by default unless a new slice can prove that the evidence
+contract remains equally auditable and unchanged.
 
 ## Phase SR5
 
