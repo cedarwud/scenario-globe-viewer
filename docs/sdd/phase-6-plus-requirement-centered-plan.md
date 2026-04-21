@@ -18,6 +18,9 @@ Related contract docs: see [scene-preset.md](../data-contracts/scene-preset.md),
 - Phase 1-5 remain preserved as the foundation track.
 - Phase 6.0 planning closure is recorded in this file.
 - Phase 6 close-out is complete and Phase 6 can be formally closed.
+- Phase 6.7 bootstrap scene-starter import is accepted repo reality and should
+  be treated as a downstream bridge between Phase 6 closure and later local-view
+  presentation work. It does not reopen Phase 6 ordering authority.
 - Structural refactor is not part of this plan.
 - This plan is requirement-centered by design; it does not reopen the earlier
   reset audit.
@@ -537,19 +540,37 @@ scope/scale signals.
 
 ### Name
 
-Showcase and richer overlay only if still justified
+Viewer-local same-page local-view integration only if still justified
 
 ### Goal
 
 Resume presentation-facing work only after requirement-critical closure is in
 place or explicitly accepted as complete enough for a later presentation pass.
+For current repo reality, this means productizing selected same-page local-view
+capabilities from `scenario-globe-handover-demo` into
+`scenario-globe-viewer` as a downstream presentation consumer of the viewer's
+repo-owned scenario, replay-clock, communication-time, handover-decision,
+physical-input, validation-state, and accepted `6.7` scene-starter seams.
+
+### Locked Interpretation
+
+- `scenario-globe-handover-demo` remains a presentation/design probe and
+  implementation reference only.
+- Phase 8 does not merge repos or promote demo-runtime synthetic logic into
+  roadmap authority.
+- Phase 8 is the correct home for same-page local-view work in
+  `scenario-globe-viewer`, but only after Phase `7.0-7.1` closure or explicit
+  requirement-owner waiver.
+- The accepted detailed execution plan for this interpretation now lives at
+  `docs/sdd/phase-8-local-view-integration-plan.md`.
 
 ### Possible Candidates
 
-- Richer overlay semantics
-- Presentation-polish work
-- Handover-demo follow-on composition work
+- Viewer-local focus activation and camera choreography
+- Starter-export-aware local truth/presentation consumption
 - More expressive local-sky storytelling
+- Richer downstream overlay semantics for local focus only
+- Presentation-polish work that stays downstream of viewer-owned semantics
 
 ### Hard Guardrail
 
