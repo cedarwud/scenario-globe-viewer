@@ -34,6 +34,10 @@ const operatorHudModulePath = new URL(
   import.meta.url
 );
 const mainPath = new URL("../src/main.ts", import.meta.url);
+const bootstrapCompositionPath = new URL(
+  "../src/runtime/bootstrap/composition.ts",
+  import.meta.url
+);
 
 function transpileTypeScript(source, fileName) {
   return ts.transpileModule(source, {
@@ -104,7 +108,8 @@ try {
     handoverDecisionSource,
     handoverDecisionSourceCode,
     operatorHudSource,
-    mainSource
+    mainSource,
+    bootstrapCompositionSource
   ] = await Promise.all([
     readFile(physicalInputModulePath, "utf8"),
     readFile(physicalInputPanelPath, "utf8"),
@@ -113,7 +118,8 @@ try {
     readFile(handoverDecisionModulePath, "utf8"),
     readFile(handoverDecisionSourceModulePath, "utf8"),
     readFile(operatorHudModulePath, "utf8"),
-    readFile(mainPath, "utf8")
+    readFile(mainPath, "utf8"),
+    readFile(bootstrapCompositionPath, "utf8")
   ]);
 
   const requiredPhysicalInputSnippets = [
@@ -155,12 +161,18 @@ try {
     "Operator HUD must accept the narrow physical-input controller."
   );
   assert(
-    mainSource.includes("createBootstrapPhysicalInputController"),
-    "main.ts must create the bootstrap physical-input controller."
+    mainSource.includes("startBootstrapComposition"),
+    "main.ts must hand off bootstrap wiring to the dedicated bootstrap composition."
   );
   assert(
-    mainSource.includes("physicalInput: bootstrapPhysicalInputController"),
-    "main.ts capture seam must expose physical-input state for bounded verification."
+    bootstrapCompositionSource.includes("createBootstrapPhysicalInputController"),
+    "Bootstrap composition must create the bootstrap physical-input controller."
+  );
+  assert(
+    bootstrapCompositionSource.includes(
+      "physicalInput: controllerGraph.physicalInputController"
+    ),
+    "Bootstrap composition capture seam must expose physical-input state for bounded verification."
   );
 
   await Promise.all([

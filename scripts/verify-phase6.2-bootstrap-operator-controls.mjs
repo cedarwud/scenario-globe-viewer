@@ -22,6 +22,10 @@ const bootstrapOperatorHudPath = new URL(
   import.meta.url
 );
 const mainPath = new URL("../src/main.ts", import.meta.url);
+const bootstrapCompositionPath = new URL(
+  "../src/runtime/bootstrap/composition.ts",
+  import.meta.url
+);
 
 function transpileTypeScript(source, fileName) {
   return ts.transpileModule(source, {
@@ -116,13 +120,15 @@ try {
     bootstrapOperatorControllerSource,
     bootstrapScenarioSessionSource,
     bootstrapOperatorHudSource,
-    mainSource
+    mainSource,
+    bootstrapCompositionSource
   ] = await Promise.all([
     readFile(bootstrapScenarioModulePath, "utf8"),
     readFile(bootstrapOperatorControllerPath, "utf8"),
     readFile(bootstrapScenarioSessionPath, "utf8"),
     readFile(bootstrapOperatorHudPath, "utf8"),
-    readFile(mainPath, "utf8")
+    readFile(mainPath, "utf8"),
+    readFile(bootstrapCompositionPath, "utf8")
   ]);
 
   const requiredScenarioSnippets = [
@@ -173,16 +179,20 @@ try {
     "Operator HUD must expose replay speed controls."
   );
   assert(
-    mainSource.includes("createBootstrapScenarioCatalog"),
-    "main.ts must seed the bootstrap scenario catalog."
+    mainSource.includes("startBootstrapComposition"),
+    "main.ts must hand off bootstrap wiring to the dedicated bootstrap composition."
   );
   assert(
-    mainSource.includes("createBootstrapOperatorController"),
-    "main.ts must use the narrow bootstrap operator controller facade."
+    bootstrapCompositionSource.includes("createBootstrapScenarioCatalog"),
+    "Bootstrap composition must seed the bootstrap scenario catalog."
   );
   assert(
-    mainSource.includes("mountBootstrapOperatorHud"),
-    "main.ts must mount the operator HUD into the status panel."
+    bootstrapCompositionSource.includes("createBootstrapOperatorController"),
+    "Bootstrap composition must use the narrow bootstrap operator controller facade."
+  );
+  assert(
+    bootstrapCompositionSource.includes("mountBootstrapOperatorHud"),
+    "Bootstrap composition must mount the operator HUD into the status panel."
   );
 
   await Promise.all([

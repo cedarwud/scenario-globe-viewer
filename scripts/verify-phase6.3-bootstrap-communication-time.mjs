@@ -26,6 +26,10 @@ const operatorHudModulePath = new URL(
   import.meta.url
 );
 const mainPath = new URL("../src/main.ts", import.meta.url);
+const bootstrapCompositionPath = new URL(
+  "../src/runtime/bootstrap/composition.ts",
+  import.meta.url
+);
 
 function transpileTypeScript(source, fileName) {
   return ts.transpileModule(source, {
@@ -85,14 +89,16 @@ try {
     communicationControllerCode,
     communicationHudSource,
     operatorHudSource,
-    mainSource
+    mainSource,
+    bootstrapCompositionSource
   ] = await Promise.all([
     readFile(communicationTimeModulePath, "utf8"),
     readFile(communicationSourceModulePath, "utf8"),
     readFile(communicationControllerModulePath, "utf8"),
     readFile(communicationHudModulePath, "utf8"),
     readFile(operatorHudModulePath, "utf8"),
-    readFile(mainPath, "utf8")
+    readFile(mainPath, "utf8"),
+    readFile(bootstrapCompositionPath, "utf8")
   ]);
 
   const requiredCommunicationSnippets = [
@@ -128,12 +134,18 @@ try {
     "Operator HUD must accept the narrow communication-time controller."
   );
   assert(
-    mainSource.includes("createBootstrapCommunicationTimeController"),
-    "main.ts must create the bootstrap communication-time controller."
+    mainSource.includes("startBootstrapComposition"),
+    "main.ts must hand off bootstrap wiring to the dedicated bootstrap composition."
   );
   assert(
-    mainSource.includes("communicationTime: bootstrapCommunicationTimeController"),
-    "main.ts capture seam must expose communication-time state for bounded verification."
+    bootstrapCompositionSource.includes("createBootstrapCommunicationTimeController"),
+    "Bootstrap composition must create the bootstrap communication-time controller."
+  );
+  assert(
+    bootstrapCompositionSource.includes(
+      "communicationTime: controllerGraph.communicationTimeController"
+    ),
+    "Bootstrap composition capture seam must expose communication-time state for bounded verification."
   );
 
   await Promise.all([

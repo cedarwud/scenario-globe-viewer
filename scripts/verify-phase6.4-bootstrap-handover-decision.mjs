@@ -34,6 +34,10 @@ const operatorHudModulePath = new URL(
   import.meta.url
 );
 const mainPath = new URL("../src/main.ts", import.meta.url);
+const bootstrapCompositionPath = new URL(
+  "../src/runtime/bootstrap/composition.ts",
+  import.meta.url
+);
 
 function transpileTypeScript(source, fileName) {
   return ts.transpileModule(source, {
@@ -108,7 +112,8 @@ try {
     handoverDecisionSourceCode,
     handoverDecisionControllerCode,
     operatorHudSource,
-    mainSource
+    mainSource,
+    bootstrapCompositionSource
   ] = await Promise.all([
     readFile(handoverDecisionModulePath, "utf8"),
     readFile(physicalInputModulePath, "utf8"),
@@ -117,7 +122,8 @@ try {
     readFile(handoverDecisionSourceModulePath, "utf8"),
     readFile(handoverDecisionControllerModulePath, "utf8"),
     readFile(operatorHudModulePath, "utf8"),
-    readFile(mainPath, "utf8")
+    readFile(mainPath, "utf8"),
+    readFile(bootstrapCompositionPath, "utf8")
   ]);
 
   const requiredDecisionSnippets = [
@@ -164,12 +170,18 @@ try {
     "Operator HUD must accept the narrow handover decision controller."
   );
   assert(
-    mainSource.includes("createBootstrapHandoverDecisionController"),
-    "main.ts must create the bootstrap handover decision controller."
+    mainSource.includes("startBootstrapComposition"),
+    "main.ts must hand off bootstrap wiring to the dedicated bootstrap composition."
   );
   assert(
-    mainSource.includes("handoverDecision: bootstrapHandoverDecisionController"),
-    "main.ts capture seam must expose handover decision state for bounded verification."
+    bootstrapCompositionSource.includes("createBootstrapHandoverDecisionController"),
+    "Bootstrap composition must create the bootstrap handover decision controller."
+  );
+  assert(
+    bootstrapCompositionSource.includes(
+      "handoverDecision: controllerGraph.handoverDecisionController"
+    ),
+    "Bootstrap composition capture seam must expose handover decision state for bounded verification."
   );
 
   await Promise.all([

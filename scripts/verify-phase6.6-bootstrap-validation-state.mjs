@@ -26,6 +26,10 @@ const operatorHudModulePath = new URL(
   import.meta.url
 );
 const mainPath = new URL("../src/main.ts", import.meta.url);
+const bootstrapCompositionPath = new URL(
+  "../src/runtime/bootstrap/composition.ts",
+  import.meta.url
+);
 
 function transpileTypeScript(source, fileName) {
   return ts.transpileModule(source, {
@@ -90,14 +94,16 @@ try {
     validationStateSourceCode,
     validationStateControllerCode,
     operatorHudSource,
-    mainSource
+    mainSource,
+    bootstrapCompositionSource
   ] = await Promise.all([
     readFile(validationStateModulePath, "utf8"),
     readFile(validationStatePanelPath, "utf8"),
     readFile(validationStateSourceModulePath, "utf8"),
     readFile(validationStateControllerModulePath, "utf8"),
     readFile(operatorHudModulePath, "utf8"),
-    readFile(mainPath, "utf8")
+    readFile(mainPath, "utf8"),
+    readFile(bootstrapCompositionPath, "utf8")
   ]);
 
   const requiredValidationSnippets = [
@@ -141,12 +147,18 @@ try {
     "Operator HUD must accept the narrow validation-state controller."
   );
   assert(
-    mainSource.includes("createBootstrapValidationStateController"),
-    "main.ts must create the bootstrap validation-state controller."
+    mainSource.includes("startBootstrapComposition"),
+    "main.ts must hand off bootstrap wiring to the dedicated bootstrap composition."
   );
   assert(
-    mainSource.includes("validationState: bootstrapValidationStateController"),
-    "main.ts capture seam must expose validation-state for bounded verification."
+    bootstrapCompositionSource.includes("createBootstrapValidationStateController"),
+    "Bootstrap composition must create the bootstrap validation-state controller."
+  );
+  assert(
+    bootstrapCompositionSource.includes(
+      "validationState: controllerGraph.validationStateController"
+    ),
+    "Bootstrap composition capture seam must expose validation-state for bounded verification."
   );
 
   await Promise.all([

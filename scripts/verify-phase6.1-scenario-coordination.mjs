@@ -46,6 +46,10 @@ const scenarioIndexPath = new URL(
   import.meta.url
 );
 const mainPath = new URL("../src/main.ts", import.meta.url);
+const bootstrapCompositionPath = new URL(
+  "../src/runtime/bootstrap/composition.ts",
+  import.meta.url
+);
 
 function transpileTypeScript(source, fileName) {
   return ts.transpileModule(source, {
@@ -75,7 +79,8 @@ const [
   scenarioBootstrapSessionSource,
   resolveBootstrapScenarioSource,
   scenarioIndexSource,
-  mainSource
+  mainSource,
+  bootstrapCompositionSource
 ] = await Promise.all([
   readFile(scenarioShapePath, "utf8"),
   readFile(scenarioModulePath, "utf8"),
@@ -87,7 +92,8 @@ const [
   readFile(scenarioBootstrapSessionPath, "utf8"),
   readFile(resolveBootstrapScenarioPath, "utf8"),
   readFile(scenarioIndexPath, "utf8"),
-  readFile(mainPath, "utf8")
+  readFile(mainPath, "utf8"),
+  readFile(bootstrapCompositionPath, "utf8")
 ]);
 
 await Promise.all([
@@ -431,25 +437,29 @@ assert(
   "Phase 6.1 runtime session host must stay off the live runtime path for now."
 );
 assert(
-  /\bscenario-bootstrap-session\b/.test(mainSource),
-  "Phase 6.1 bootstrap scenario helper should now be the only scenario-side module referenced from main.ts."
+  /\bstartBootstrapComposition\b/.test(mainSource),
+  "main.ts should hand off bootstrap wiring to the dedicated bootstrap composition."
 );
 assert(
-  /\bresolve-bootstrap-scenario\b/.test(mainSource),
-  "main.ts should route bootstrap scenario definition through the dedicated resolver."
+  /\bscenario-bootstrap-session\b/.test(bootstrapCompositionSource),
+  "Phase 6.1 bootstrap scenario helper should now be the only scenario-side module referenced from the bootstrap composition."
 );
 assert(
-  /createBootstrapScenarioSession/.test(mainSource),
-  "main.ts should create a bootstrap-owned scenario session."
+  /\bresolve-bootstrap-scenario\b/.test(bootstrapCompositionSource),
+  "Bootstrap composition should route bootstrap scenario definition through the dedicated resolver."
 );
 assert(
-  /bootstrapScenarioId/.test(mainSource) ||
-    /mountBootstrapOperatorHud/.test(mainSource),
-  "main.ts should keep bootstrap scenario id synchronization on a narrow repo-owned surface."
+  /createBootstrapScenarioSession/.test(bootstrapCompositionSource),
+  "Bootstrap composition should create a bootstrap-owned scenario session."
 );
 assert(
-  /scenarioSession/.test(mainSource),
-  "main.ts should keep the bootstrap scenario session on the narrow capture seam."
+  /bootstrapScenarioId/.test(bootstrapCompositionSource) ||
+    /mountBootstrapOperatorHud/.test(bootstrapCompositionSource),
+  "Bootstrap composition should keep bootstrap scenario id synchronization on a narrow repo-owned surface."
+);
+assert(
+  /scenarioSession/.test(bootstrapCompositionSource),
+  "Bootstrap composition should keep the bootstrap scenario session on the narrow capture seam."
 );
 
 const liveScenario = {
