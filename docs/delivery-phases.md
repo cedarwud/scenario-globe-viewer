@@ -6,7 +6,8 @@ Related structure: see [architecture.md](./architecture.md).
 Related evidence: see [cesium-evidence.md](./cesium-evidence.md).
 Related visual evidence: see [visual-baselines.md](./visual-baselines.md).
 Related deployment guidance: see [deployment-profiles.md](./deployment-profiles.md).
-Related contract docs: see [scene-preset.md](./data-contracts/scene-preset.md), [replay-clock.md](./data-contracts/replay-clock.md), [satellite-overlay.md](./data-contracts/satellite-overlay.md), [scenario.md](./data-contracts/scenario.md), and [phase7.1-validation-evidence.md](./data-contracts/phase7.1-validation-evidence.md).
+Related contract docs: see [scene-preset.md](./data-contracts/scene-preset.md), [replay-clock.md](./data-contracts/replay-clock.md), [satellite-overlay.md](./data-contracts/satellite-overlay.md), [scenario.md](./data-contracts/scenario.md), [physical-input.md](./data-contracts/physical-input.md), [soak-evidence.md](./data-contracts/soak-evidence.md), and [phase7.1-validation-evidence.md](./data-contracts/phase7.1-validation-evidence.md).
+Related follow-on SDDs: see [phase-6-plus-requirement-centered-plan.md](./sdd/phase-6-plus-requirement-centered-plan.md), [phase-8-local-view-integration-plan.md](./sdd/phase-8-local-view-integration-plan.md), and [safe-structural-refactor-plan.md](./sdd/safe-structural-refactor-plan.md).
 
 ## Current Snapshot
 
@@ -32,8 +33,10 @@ Related contract docs: see [scene-preset.md](./data-contracts/scene-preset.md), 
 - Phase 3.6 now adds a repo-owned overlay manager interface under `src/features/overlays/`, and Phase 3.7 now adds a formal satellite adapter interface under `src/features/satellites/`; overlay state plus satellite fixture/sample data stay plain-data, `overlay-manager` now imports the formal adapter interface, and those public contract files remain the stable boundary even though the current Phase 5.1-5.3 runtime now consumes them indirectly through runtime-specific modules under `src/runtime/`.
 - `npm run test:phase3.3` now verifies the real-time replay-clock slice directly in a headless browser, `npm run test:phase3.4` now verifies the prerecorded slice plus the return path back to real-time, `npm run test:phase3.5` now verifies the repo-owned timeline placeholder plus the preserved native toolbar/timeline/credits shell, `npm run test:phase3.6` now verifies the overlay-manager export seam plus the absence of Cesium-runtime, fixture-ingestion, and walker-adapter leakage in that contract, `npm run test:phase3.7` now verifies the satellite adapter export seam plus the formal `overlay-manager` dependency without turning on runtime satellite behavior, and `npm run test:phase5.1` now verifies the default-off overlay toggle path plus the constrained orbit-polyline widening on the existing walker point path without widening the HUD or native Cesium shell.
 - Phase 3.8 now records the landed scene-preset, replay-clock, and satellite-overlay boundaries under `docs/data-contracts/` so Phase 4 starts from explicit contract text rather than stale planning assumptions.
+- The accepted Phase 6.1-6.7 runtime line now exists under the repo-owned follow-on SDD: scenario coordination, operator controls, communication-time, handover-decision, physical-input, validation-state, and the scene-starter bridge all have accepted repo-local source/controller surfaces plus slice-specific validation.
 - Phase 7.0 soak evidence now has a repo-owned boundary in `docs/data-contracts/soak-evidence.md` plus a repeatable harness at `tests/soak/run-soak.mjs`; rehearsal and retained `24h` full-run pass artifacts now exist locally under `output/soak/`, stay out of git, and remain local evidence rather than delivery-surface assets.
 - Phase 7.1 first-slice viewer validation evidence now has its own repo-owned boundary in `docs/data-contracts/phase7.1-validation-evidence.md` plus a repeatable harness at `tests/validation/run-phase7.1-viewer-scope-validation.mjs`; retained artifacts write to `output/validation/phase7.1/`, stay out of git, keep the orbit-scope matrix explicit, and record walker-only or `>= 500 LEO` gaps honestly instead of implying closure.
+- Phase 8.0 is now explicitly unlocked as a downstream same-page local-view planning line under `docs/sdd/phase-8-local-view-integration-plan.md`; that work stays separate from current runtime authority until a later accepted execution slice lands.
 - Formal site dataset integration MVP now exists on the existing configured `site` hook. The committed OSM Buildings slice remains showcase-only and must not be treated as a substitute for that dataset-backed `site` delivery line. ADR `0007-formal-site-dataset-integration-governance.md` remains the governing classification and boundary document for this line.
 - Dataset-enabled validation is now separate from the dormant baseline path: `npm run test:phase1:site-dataset` verifies the dataset-backed runtime, and `npm run capture:site-dataset` writes the separate review artifact under `docs/images/formal-site-dataset-mvp/`.
 - The current repo-owned dataset fixture is a validation-only asset. This MVP does not claim that formal Tier 1 / Tier 2 Profile A measurements are closed or that a final delivery AOI has already been provided.
@@ -258,8 +261,20 @@ Review checkpoint: mandatory before any Phase 6+ expansion.
 
 ## Beyond Phase 5
 
-Phase 6 and later are no longer treated as an automatic continuation of the
-current overlay/showcase line. Use the repo-owned follow-on SDD:
+This file stays summary-level after Phase 5.
+
+Detailed requirement ordering, acceptance, and closure for the accepted Phase
+6.0-7.1 line live in
 [Phase 6+ Requirement-Centered Plan](./sdd/phase-6-plus-requirement-centered-plan.md).
-That SDD now records the Phase 6.0 planning closure and the Phase 6.1 entry
-decision; do not start Phase 6.1 implementation from this file alone.
+That follow-on SDD now records the accepted Phase 6.1-6.7 runtime slices, the
+Phase 7.0 soak-evidence close-out, the Phase 7.1 viewer-validation close-out,
+and the Phase 8.0 unlock decision.
+
+Detailed Phase 8 local-view execution belongs to
+[Phase 8 Local-View Integration Plan](./sdd/phase-8-local-view-integration-plan.md).
+
+Structural cleanup and refactor sequencing belong to
+[Safe Structural Refactor Plan](./sdd/safe-structural-refactor-plan.md).
+
+Do not start Phase 6+ implementation or structural-refactor work from this file
+alone.

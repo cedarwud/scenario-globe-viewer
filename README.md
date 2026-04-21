@@ -5,7 +5,10 @@
 ## Scope
 
 - Use `cesium` as an npm dependency. Do not fork or vendor Cesium source into this repository.
-- Build the globe foundation first. Phases 0-3 keep satellite work at the interface and hook level only.
+- The repo was intentionally built globe-first. Phases 0-3 established the
+  foundation before live overlay, scenario, validation, and evidence work were
+  promoted; current repo reality now extends through the accepted later-phase
+  surfaces documented below.
 - Treat archived viewer lines as postmortem-only references. Delivery authority lives in this repo's README, ADRs, and docs.
 - Keep the default visual baseline on Cesium's native `Viewer` path. Local or on-prem imagery/terrain mirrors are opt-in deployment configuration, not a reason to disable native controls or replace native providers by default.
 
@@ -57,7 +60,8 @@ Use the OSM Buildings line only as an explicit showcase variant.
 
 ## Delivery Status
 
-The current repo snapshot includes a completed Phase 0 baseline, a stable Phase 1 bootstrap path, and a small Cesium-native shell refinement slice:
+The current repo snapshot preserves the completed Phase 0-5 foundation and also
+includes accepted Phase 6.x runtime surfaces plus Phase 7.x evidence surfaces:
 
 - repo-local authority docs and ADRs are present
 - `cesium@1.140.0` is pinned as the package strategy
@@ -114,4 +118,10 @@ Phase 0 targets the following top-level layout:
 - `tests/smoke/`
 - `tests/visual/`
 
-Detailed structure, phase sequencing, deployment-profile policy, preserved Cesium evidence, visual baseline capture rules, and the current repo-owned contract surfaces are documented in `docs/architecture.md`, `docs/delivery-phases.md`, `docs/deployment-profiles.md`, `docs/cesium-evidence.md`, `docs/visual-baselines.md`, and `docs/data-contracts/{scene-preset,replay-clock,satellite-overlay,scenario}.md`.
+Detailed structure, phase sequencing, deployment-profile policy, preserved
+Cesium evidence, visual baseline capture rules, and the current repo-owned
+contract surfaces are documented in `docs/architecture.md`,
+`docs/delivery-phases.md`, `docs/deployment-profiles.md`,
+`docs/cesium-evidence.md`, `docs/visual-baselines.md`,
+`docs/data-contracts/{scene-preset,replay-clock,satellite-overlay,scenario,physical-input,soak-evidence,phase7.1-validation-evidence}.md`, and
+`docs/sdd/{phase-6-plus-requirement-centered-plan,phase-8-local-view-integration-plan,safe-structural-refactor-plan}.md`.
