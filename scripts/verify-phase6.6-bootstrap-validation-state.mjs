@@ -17,6 +17,10 @@ const validationStateSourceModulePath = new URL(
   "../src/runtime/bootstrap-validation-state-source.ts",
   import.meta.url
 );
+const validationStateSeedsModulePath = new URL(
+  "../src/runtime/bootstrap-validation-state-seeds.ts",
+  import.meta.url
+);
 const validationStateControllerModulePath = new URL(
   "../src/runtime/bootstrap-validation-state-controller.ts",
   import.meta.url
@@ -92,6 +96,7 @@ try {
     validationStateSource,
     validationStatePanelSource,
     validationStateSourceCode,
+    validationStateSeedsCode,
     validationStateControllerCode,
     operatorHudSource,
     mainSource,
@@ -100,6 +105,7 @@ try {
     readFile(validationStateModulePath, "utf8"),
     readFile(validationStatePanelPath, "utf8"),
     readFile(validationStateSourceModulePath, "utf8"),
+    readFile(validationStateSeedsModulePath, "utf8"),
     readFile(validationStateControllerModulePath, "utf8"),
     readFile(operatorHudModulePath, "utf8"),
     readFile(mainPath, "utf8"),
@@ -176,6 +182,15 @@ try {
             validationStateSourceCode,
             "bootstrap-validation-state-source.ts"
           )
+        )
+      )
+    ),
+    writeFile(
+      join(tempModuleDir, "bootstrap-validation-state-seeds.mjs"),
+      rewriteRelativeImports(
+        transpileTypeScript(
+          validationStateSeedsCode,
+          "bootstrap-validation-state-seeds.ts"
         )
       )
     ),
