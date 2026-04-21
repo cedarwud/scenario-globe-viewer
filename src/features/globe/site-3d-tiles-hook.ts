@@ -9,6 +9,10 @@ import type {
   SceneSite3DTilesHookDefinition
 } from "./scene-preset";
 import type { BuildingShowcaseKey } from "./osm-buildings-showcase";
+import {
+  syncDocumentTelemetry,
+  truncateDocumentTelemetryDetail
+} from "../telemetry/document-telemetry";
 
 export type SiteTilesetState =
   | "dormant"
@@ -70,14 +74,10 @@ function syncSiteTilesetDataset(
   state: SiteTilesetState,
   detail?: string
 ): void {
-  const { dataset } = document.documentElement;
-  dataset.siteTilesetState = state;
-
-  if (detail) {
-    dataset.siteTilesetDetail = detail.slice(0, 240);
-  } else {
-    delete dataset.siteTilesetDetail;
-  }
+  syncDocumentTelemetry({
+    siteTilesetState: state,
+    siteTilesetDetail: truncateDocumentTelemetryDetail(detail)
+  });
 }
 
 function syncSiteTilesetState(

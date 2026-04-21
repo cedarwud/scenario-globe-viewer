@@ -1,5 +1,9 @@
 import type { ScenePresetKey } from "../globe/scene-preset";
 import type { ReplayClock, ReplayClockState } from "../time";
+import {
+  clearDocumentTelemetry,
+  syncDocumentTelemetry
+} from "../telemetry/document-telemetry";
 import { mountTimelineHudPlaceholder } from "../time/timeline-hud-placeholder";
 import { mountBootstrapCommunicationTimePanel } from "../communication-time";
 import { mountBootstrapHandoverDecisionPanel } from "../handover-decision";
@@ -42,6 +46,14 @@ interface BootstrapOperatorHudElements {
   starterSlot: HTMLDivElement;
   validationSlot: HTMLDivElement;
 }
+
+const OPERATOR_TELEMETRY_KEYS = [
+  "bootstrapScenarioId",
+  "scenePreset",
+  "replayMode",
+  "replaySpeed",
+  "operatorControlError"
+] as const;
 
 function formatReplaySpeedLabel(multiplier: BootstrapReplaySpeedPreset): string {
   return Number.isInteger(multiplier)
@@ -268,10 +280,12 @@ function renderState(
     button.setAttribute("aria-pressed", multiplier === replaySpeed ? "true" : "false");
   }
 
-  document.documentElement.dataset.bootstrapScenarioId = state.scenarioId;
-  document.documentElement.dataset.scenePreset = state.scenePresetKey;
-  document.documentElement.dataset.replayMode = state.replayMode;
-  document.documentElement.dataset.replaySpeed = replaySpeed;
+  syncDocumentTelemetry({
+    bootstrapScenarioId: state.scenarioId,
+    scenePreset: state.scenePresetKey,
+    replayMode: state.replayMode,
+    replaySpeed
+  });
 }
 
 export function mountBootstrapOperatorHud({
@@ -357,13 +371,15 @@ export function mountBootstrapOperatorHud({
 
   const clearControlError = (): void => {
     delete elements.root.dataset.controlError;
-    delete document.documentElement.dataset.operatorControlError;
+    clearDocumentTelemetry(["operatorControlError"]);
   };
 
   const reportControlError = (reason: unknown): void => {
     const message = serializeControlError(reason);
     elements.root.dataset.controlError = message;
-    document.documentElement.dataset.operatorControlError = message;
+    syncDocumentTelemetry({
+      operatorControlError: message
+    });
     console.error(reason);
   };
 
@@ -454,6 +470,7 @@ export function mountBootstrapOperatorHud({
     }
 
     statusPanel.replaceChildren();
+    clearDocumentTelemetry(OPERATOR_TELEMETRY_KEYS);
     hudFrame.dataset.hudVisibility = "hidden";
     hudFrame.setAttribute("aria-hidden", "true");
   };

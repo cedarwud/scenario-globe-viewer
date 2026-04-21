@@ -6,7 +6,7 @@ Related structure: see [architecture.md](./architecture.md).
 Related evidence: see [cesium-evidence.md](./cesium-evidence.md).
 Related visual evidence: see [visual-baselines.md](./visual-baselines.md).
 Related deployment guidance: see [deployment-profiles.md](./deployment-profiles.md).
-Related contract docs: see [scene-preset.md](./data-contracts/scene-preset.md), [replay-clock.md](./data-contracts/replay-clock.md), [satellite-overlay.md](./data-contracts/satellite-overlay.md), [scenario.md](./data-contracts/scenario.md), [physical-input.md](./data-contracts/physical-input.md), [soak-evidence.md](./data-contracts/soak-evidence.md), and [phase7.1-validation-evidence.md](./data-contracts/phase7.1-validation-evidence.md).
+Related contract docs: see [scene-preset.md](./data-contracts/scene-preset.md), [replay-clock.md](./data-contracts/replay-clock.md), [satellite-overlay.md](./data-contracts/satellite-overlay.md), [scenario.md](./data-contracts/scenario.md), [physical-input.md](./data-contracts/physical-input.md), [document-telemetry.md](./data-contracts/document-telemetry.md), [soak-evidence.md](./data-contracts/soak-evidence.md), and [phase7.1-validation-evidence.md](./data-contracts/phase7.1-validation-evidence.md).
 Related follow-on SDDs: see [phase-6-plus-requirement-centered-plan.md](./sdd/phase-6-plus-requirement-centered-plan.md), [phase-8-local-view-integration-plan.md](./sdd/phase-8-local-view-integration-plan.md), and [safe-structural-refactor-plan.md](./sdd/safe-structural-refactor-plan.md).
 
 ## Current Snapshot

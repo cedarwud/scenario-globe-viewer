@@ -2,6 +2,10 @@ import {
   formatSceneStarterSatelliteIds,
   type BootstrapSceneStarterState
 } from "./scene-starter";
+import {
+  clearDocumentTelemetry,
+  syncDocumentTelemetry
+} from "../telemetry/document-telemetry";
 
 interface BootstrapSceneStarterReadable {
   getState(): BootstrapSceneStarterState;
@@ -24,6 +28,31 @@ interface BootstrapSceneStarterPanelElements {
   focus: HTMLSpanElement;
   satellites: HTMLSpanElement;
 }
+
+const SCENE_STARTER_TELEMETRY_KEYS = [
+  "sceneStarterScenarioId",
+  "sceneStarterScenePreset",
+  "sceneStarterReplayMode",
+  "sceneStarterScopeActive",
+  "sceneStarterDeterministicPathId",
+  "sceneStarterSourceMode",
+  "sceneStarterSourceProfileId",
+  "sceneStarterTruthSourceLabel",
+  "sceneStarterSceneServingSatId",
+  "sceneStarterPublishedServingSatId",
+  "sceneStarterSnapshotRelationship",
+  "sceneStarterNativeServingTransitionKind",
+  "sceneStarterBundleProducerHandoverKind",
+  "sceneStarterPresentationFocusMode",
+  "sceneStarterPresentationNarrativePhase",
+  "sceneStarterDisplaySatIds",
+  "sceneStarterBeamSatIds",
+  "sceneStarterSourceLine",
+  "sceneStarterTruthLine",
+  "sceneStarterPresentationLine",
+  "sceneStarterSchemaVersion",
+  "sceneStarterOwnershipNote"
+] as const;
 
 function createField(
   label: string,
@@ -193,73 +222,37 @@ function renderState(
   elements.root.dataset.sceneStarterSchemaVersion = state.schemaVersion;
   elements.root.dataset.sceneStarterOwnershipNote = state.ownershipNote;
 
-  document.documentElement.dataset.sceneStarterScenarioId = state.scenario.id;
-  document.documentElement.dataset.sceneStarterScenePreset =
-    state.scenario.presetKey;
-  document.documentElement.dataset.sceneStarterReplayMode =
-    state.scenario.replayMode;
-  document.documentElement.dataset.sceneStarterScopeActive =
-    state.scenario.isScopeActive ? "true" : "false";
-  document.documentElement.dataset.sceneStarterDeterministicPathId =
-    state.entry.deterministicPathId;
-  document.documentElement.dataset.sceneStarterSourceMode = state.source.mode;
-  document.documentElement.dataset.sceneStarterSourceProfileId =
-    state.source.profileId;
-  document.documentElement.dataset.sceneStarterTruthSourceLabel =
-    state.source.truthSourceLabel;
-  document.documentElement.dataset.sceneStarterSceneServingSatId =
-    state.truth.sceneServingSatId ?? "";
-  document.documentElement.dataset.sceneStarterPublishedServingSatId =
-    state.truth.publishedServingSatId ?? "";
-  document.documentElement.dataset.sceneStarterSnapshotRelationship =
-    state.truth.snapshotRelationship;
-  document.documentElement.dataset.sceneStarterNativeServingTransitionKind =
-    state.truth.nativeServingTransitionKind ?? "";
-  document.documentElement.dataset.sceneStarterBundleProducerHandoverKind =
-    state.truth.bundleProducerHandoverKind ?? "";
-  document.documentElement.dataset.sceneStarterPresentationFocusMode =
-    state.presentation.focusMode ?? "";
-  document.documentElement.dataset.sceneStarterPresentationNarrativePhase =
-    state.presentation.narrativePhase ?? "";
-  document.documentElement.dataset.sceneStarterDisplaySatIds = JSON.stringify(
-    state.presentation.displaySatIds
-  );
-  document.documentElement.dataset.sceneStarterBeamSatIds = JSON.stringify(
-    state.presentation.beamSatIds
-  );
-  document.documentElement.dataset.sceneStarterSourceLine =
-    state.summary.sourceLine;
-  document.documentElement.dataset.sceneStarterTruthLine = state.summary.truthLine;
-  document.documentElement.dataset.sceneStarterPresentationLine =
-    state.summary.presentationLine;
-  document.documentElement.dataset.sceneStarterSchemaVersion = state.schemaVersion;
-  document.documentElement.dataset.sceneStarterOwnershipNote =
-    state.ownershipNote;
+  syncDocumentTelemetry({
+    sceneStarterScenarioId: state.scenario.id,
+    sceneStarterScenePreset: state.scenario.presetKey,
+    sceneStarterReplayMode: state.scenario.replayMode,
+    sceneStarterScopeActive: state.scenario.isScopeActive ? "true" : "false",
+    sceneStarterDeterministicPathId: state.entry.deterministicPathId,
+    sceneStarterSourceMode: state.source.mode,
+    sceneStarterSourceProfileId: state.source.profileId,
+    sceneStarterTruthSourceLabel: state.source.truthSourceLabel,
+    sceneStarterSceneServingSatId: state.truth.sceneServingSatId ?? "",
+    sceneStarterPublishedServingSatId: state.truth.publishedServingSatId ?? "",
+    sceneStarterSnapshotRelationship: state.truth.snapshotRelationship,
+    sceneStarterNativeServingTransitionKind:
+      state.truth.nativeServingTransitionKind ?? "",
+    sceneStarterBundleProducerHandoverKind:
+      state.truth.bundleProducerHandoverKind ?? "",
+    sceneStarterPresentationFocusMode: state.presentation.focusMode ?? "",
+    sceneStarterPresentationNarrativePhase:
+      state.presentation.narrativePhase ?? "",
+    sceneStarterDisplaySatIds: JSON.stringify(state.presentation.displaySatIds),
+    sceneStarterBeamSatIds: JSON.stringify(state.presentation.beamSatIds),
+    sceneStarterSourceLine: state.summary.sourceLine,
+    sceneStarterTruthLine: state.summary.truthLine,
+    sceneStarterPresentationLine: state.summary.presentationLine,
+    sceneStarterSchemaVersion: state.schemaVersion,
+    sceneStarterOwnershipNote: state.ownershipNote
+  });
 }
 
 function clearDocumentState(): void {
-  delete document.documentElement.dataset.sceneStarterScenarioId;
-  delete document.documentElement.dataset.sceneStarterScenePreset;
-  delete document.documentElement.dataset.sceneStarterReplayMode;
-  delete document.documentElement.dataset.sceneStarterScopeActive;
-  delete document.documentElement.dataset.sceneStarterDeterministicPathId;
-  delete document.documentElement.dataset.sceneStarterSourceMode;
-  delete document.documentElement.dataset.sceneStarterSourceProfileId;
-  delete document.documentElement.dataset.sceneStarterTruthSourceLabel;
-  delete document.documentElement.dataset.sceneStarterSceneServingSatId;
-  delete document.documentElement.dataset.sceneStarterPublishedServingSatId;
-  delete document.documentElement.dataset.sceneStarterSnapshotRelationship;
-  delete document.documentElement.dataset.sceneStarterNativeServingTransitionKind;
-  delete document.documentElement.dataset.sceneStarterBundleProducerHandoverKind;
-  delete document.documentElement.dataset.sceneStarterPresentationFocusMode;
-  delete document.documentElement.dataset.sceneStarterPresentationNarrativePhase;
-  delete document.documentElement.dataset.sceneStarterDisplaySatIds;
-  delete document.documentElement.dataset.sceneStarterBeamSatIds;
-  delete document.documentElement.dataset.sceneStarterSourceLine;
-  delete document.documentElement.dataset.sceneStarterTruthLine;
-  delete document.documentElement.dataset.sceneStarterPresentationLine;
-  delete document.documentElement.dataset.sceneStarterSchemaVersion;
-  delete document.documentElement.dataset.sceneStarterOwnershipNote;
+  clearDocumentTelemetry(SCENE_STARTER_TELEMETRY_KEYS);
 }
 
 export function mountBootstrapSceneStarterPanel({

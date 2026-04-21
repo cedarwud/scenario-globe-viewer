@@ -2,6 +2,10 @@ import {
   createHandoverDecisionPanelViewModel,
   type HandoverDecisionPanelViewModel
 } from "./handover-decision-view-model";
+import {
+  clearDocumentTelemetry,
+  syncDocumentTelemetry
+} from "../telemetry/document-telemetry";
 import type { HandoverDecisionState } from "./handover-decision";
 
 interface HandoverDecisionReadable {
@@ -25,6 +29,19 @@ interface BootstrapHandoverDecisionPanelElements {
   reasons: HTMLSpanElement;
   provenance: HTMLSpanElement;
 }
+
+const HANDOVER_TELEMETRY_KEYS = [
+  "handoverScenarioId",
+  "handoverEvaluatedAt",
+  "handoverDecisionKind",
+  "handoverServingCandidateId",
+  "handoverTruthState",
+  "handoverPolicyId",
+  "handoverProvenance",
+  "handoverReasonSignals",
+  "handoverSchemaVersion",
+  "handoverProvenanceDetail"
+] as const;
 
 function createField(
   label: string,
@@ -155,33 +172,22 @@ function renderState(
   elements.root.dataset.handoverSchemaVersion = state.report.schemaVersion;
   elements.root.dataset.handoverProvenanceDetail = state.provenance.detail;
 
-  document.documentElement.dataset.handoverScenarioId = state.snapshot.scenarioId;
-  document.documentElement.dataset.handoverEvaluatedAt = state.snapshot.evaluatedAt;
-  document.documentElement.dataset.handoverDecisionKind = state.result.decisionKind;
-  document.documentElement.dataset.handoverServingCandidateId =
-    state.result.servingCandidateId ?? "";
-  document.documentElement.dataset.handoverTruthState =
-    state.result.semanticsBridge.truthState;
-  document.documentElement.dataset.handoverPolicyId = state.snapshot.policyId;
-  document.documentElement.dataset.handoverProvenance = state.provenance.inputKind;
-  document.documentElement.dataset.handoverReasonSignals = state.result.reasonSignals
-    .map((signal) => signal.code)
-    .join(",");
-  document.documentElement.dataset.handoverSchemaVersion = state.report.schemaVersion;
-  document.documentElement.dataset.handoverProvenanceDetail = state.provenance.detail;
+  syncDocumentTelemetry({
+    handoverScenarioId: state.snapshot.scenarioId,
+    handoverEvaluatedAt: state.snapshot.evaluatedAt,
+    handoverDecisionKind: state.result.decisionKind,
+    handoverServingCandidateId: state.result.servingCandidateId ?? "",
+    handoverTruthState: state.result.semanticsBridge.truthState,
+    handoverPolicyId: state.snapshot.policyId,
+    handoverProvenance: state.provenance.inputKind,
+    handoverReasonSignals: state.result.reasonSignals.map((signal) => signal.code).join(","),
+    handoverSchemaVersion: state.report.schemaVersion,
+    handoverProvenanceDetail: state.provenance.detail
+  });
 }
 
 function clearDocumentState(): void {
-  delete document.documentElement.dataset.handoverScenarioId;
-  delete document.documentElement.dataset.handoverEvaluatedAt;
-  delete document.documentElement.dataset.handoverDecisionKind;
-  delete document.documentElement.dataset.handoverServingCandidateId;
-  delete document.documentElement.dataset.handoverTruthState;
-  delete document.documentElement.dataset.handoverPolicyId;
-  delete document.documentElement.dataset.handoverProvenance;
-  delete document.documentElement.dataset.handoverReasonSignals;
-  delete document.documentElement.dataset.handoverSchemaVersion;
-  delete document.documentElement.dataset.handoverProvenanceDetail;
+  clearDocumentTelemetry(HANDOVER_TELEMETRY_KEYS);
 }
 
 export function mountBootstrapHandoverDecisionPanel({

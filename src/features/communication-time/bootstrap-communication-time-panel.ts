@@ -2,6 +2,10 @@ import {
   createCommunicationTimePanelViewModel,
   type CommunicationTimePanelViewModel
 } from "./communication-time-view-model";
+import {
+  clearDocumentTelemetry,
+  syncDocumentTelemetry
+} from "../telemetry/document-telemetry";
 import type { CommunicationTimeState } from "./communication-time";
 
 interface CommunicationTimeReadable {
@@ -24,6 +28,14 @@ interface BootstrapCommunicationTimePanelElements {
   remaining: HTMLSpanElement;
   provenance: HTMLSpanElement;
 }
+
+const COMMUNICATION_TELEMETRY_KEYS = [
+  "communicationScenarioId",
+  "communicationStatus",
+  "communicationSourceKind",
+  "communicationReportSchemaVersion",
+  "communicationProvenanceDetail"
+] as const;
 
 function createField(
   label: string,
@@ -138,22 +150,17 @@ function renderState(
   elements.root.dataset.communicationSourceKind = state.provenance.sourceKind;
   elements.root.dataset.communicationSchemaVersion = state.report.schemaVersion;
   elements.root.dataset.communicationProvenanceDetail = state.provenance.detail;
-  document.documentElement.dataset.communicationScenarioId = state.scenario.id;
-  document.documentElement.dataset.communicationStatus = state.currentStatus.kind;
-  document.documentElement.dataset.communicationSourceKind =
-    state.provenance.sourceKind;
-  document.documentElement.dataset.communicationReportSchemaVersion =
-    state.report.schemaVersion;
-  document.documentElement.dataset.communicationProvenanceDetail =
-    state.provenance.detail;
+  syncDocumentTelemetry({
+    communicationScenarioId: state.scenario.id,
+    communicationStatus: state.currentStatus.kind,
+    communicationSourceKind: state.provenance.sourceKind,
+    communicationReportSchemaVersion: state.report.schemaVersion,
+    communicationProvenanceDetail: state.provenance.detail
+  });
 }
 
 function clearDocumentState(): void {
-  delete document.documentElement.dataset.communicationScenarioId;
-  delete document.documentElement.dataset.communicationStatus;
-  delete document.documentElement.dataset.communicationSourceKind;
-  delete document.documentElement.dataset.communicationReportSchemaVersion;
-  delete document.documentElement.dataset.communicationProvenanceDetail;
+  clearDocumentTelemetry(COMMUNICATION_TELEMETRY_KEYS);
 }
 
 export function mountBootstrapCommunicationTimePanel({

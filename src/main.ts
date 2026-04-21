@@ -1,17 +1,18 @@
 import { initializeCesiumBootstrap } from "./core/cesium/bootstrap";
+import {
+  syncDocumentTelemetry,
+  truncateDocumentTelemetryDetail
+} from "./features/telemetry/document-telemetry";
 import { startBootstrapComposition } from "./runtime/bootstrap/composition";
 import "./styles.css";
 
 type BootstrapState = "booting" | "ready" | "error";
 
 function setBootstrapState(state: BootstrapState, detail?: string): void {
-  document.documentElement.dataset.bootstrapState = state;
-
-  if (detail) {
-    document.documentElement.dataset.bootstrapDetail = detail.slice(0, 240);
-  } else {
-    delete document.documentElement.dataset.bootstrapDetail;
-  }
+  syncDocumentTelemetry({
+    bootstrapState: state,
+    bootstrapDetail: truncateDocumentTelemetryDetail(detail)
+  });
 }
 
 function serializeBootstrapError(reason: unknown): string {

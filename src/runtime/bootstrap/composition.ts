@@ -11,6 +11,7 @@ import {
   type ScenePresetKey
 } from "../../features/globe/scene-preset";
 import { mountBootstrapOperatorHud } from "../../features/operator/bootstrap-operator-hud";
+import { syncDocumentTelemetry } from "../../features/telemetry/document-telemetry";
 import { createCesiumReplayClock } from "../../features/time/cesium-replay-clock";
 import type { ReplayClock } from "../../features/time";
 import { createBootstrapCommunicationTimeController } from "../bootstrap-communication-time-controller";
@@ -66,25 +67,16 @@ function resolveBootstrapScenePreset(): ScenePresetKey {
 }
 
 function syncVisualBaselineState(viewer: ViewerInstance): void {
-  document.documentElement.dataset.sceneFogActive = viewer.scene.fog.enabled
-    ? "true"
-    : "false";
-  document.documentElement.dataset.sceneFogDensity = String(viewer.scene.fog.density);
-  document.documentElement.dataset.sceneFogVisualDensityScalar = String(
-    viewer.scene.fog.visualDensityScalar
-  );
-  document.documentElement.dataset.sceneFogHeightScalar = String(
-    viewer.scene.fog.heightScalar
-  );
-  document.documentElement.dataset.sceneFogHeightFalloff = String(
-    viewer.scene.fog.heightFalloff
-  );
-  document.documentElement.dataset.sceneFogMaxHeight = String(viewer.scene.fog.maxHeight);
-  document.documentElement.dataset.sceneFogMinimumBrightness = String(
-    viewer.scene.fog.minimumBrightness
-  );
-  document.documentElement.dataset.sceneBloomActive =
-    viewer.scene.postProcessStages.bloom.enabled ? "true" : "false";
+  syncDocumentTelemetry({
+    sceneFogActive: viewer.scene.fog.enabled ? "true" : "false",
+    sceneFogDensity: String(viewer.scene.fog.density),
+    sceneFogVisualDensityScalar: String(viewer.scene.fog.visualDensityScalar),
+    sceneFogHeightScalar: String(viewer.scene.fog.heightScalar),
+    sceneFogHeightFalloff: String(viewer.scene.fog.heightFalloff),
+    sceneFogMaxHeight: String(viewer.scene.fog.maxHeight),
+    sceneFogMinimumBrightness: String(viewer.scene.fog.minimumBrightness),
+    sceneBloomActive: viewer.scene.postProcessStages.bloom.enabled ? "true" : "false"
+  });
 }
 
 function createValidationServingContext(
@@ -218,7 +210,9 @@ function bindLightingRefresh(viewer: ViewerInstance): () => void {
 export function startBootstrapComposition(app: HTMLDivElement): BootstrapComposition {
   const { viewerRoot, hudFrame, statusPanel } = mountAppShell(app);
   const scenePreset = resolveBootstrapScenePreset();
-  document.documentElement.dataset.scenePreset = scenePreset;
+  syncDocumentTelemetry({
+    scenePreset
+  });
   const buildingShowcase = resolveBuildingShowcaseSelection();
   const viewer = createViewer({
     container: viewerRoot,

@@ -3,6 +3,10 @@ import {
   type Cesium3DTileset,
   type Viewer
 } from "cesium";
+import {
+  syncDocumentTelemetry,
+  truncateDocumentTelemetryDetail
+} from "../telemetry/document-telemetry";
 
 export type BuildingShowcaseKey = "off" | "osm";
 export type BuildingShowcaseSource = "default-off" | "query-param" | "env";
@@ -63,16 +67,12 @@ function syncBuildingShowcaseDataset(
   state: BuildingShowcaseState,
   detail?: string
 ): void {
-  const { dataset } = document.documentElement;
-  dataset.buildingShowcase = selection.key;
-  dataset.buildingShowcaseSource = selection.source;
-  dataset.buildingShowcaseState = state;
-
-  if (detail) {
-    dataset.buildingShowcaseDetail = detail.slice(0, 240);
-  } else {
-    delete dataset.buildingShowcaseDetail;
-  }
+  syncDocumentTelemetry({
+    buildingShowcase: selection.key,
+    buildingShowcaseSource: selection.source,
+    buildingShowcaseState: state,
+    buildingShowcaseDetail: truncateDocumentTelemetryDetail(detail)
+  });
 }
 
 function syncBuildingShowcaseState(

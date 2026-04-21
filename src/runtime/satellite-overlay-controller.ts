@@ -1,6 +1,10 @@
 import type { Viewer } from "cesium";
 
 import type { OverlayManagerState } from "../features/overlays/overlay-manager";
+import {
+  syncDocumentTelemetry,
+  truncateDocumentTelemetryDetail
+} from "../features/telemetry/document-telemetry";
 import type { ReplayClock } from "../features/time";
 import {
   createLeoScaleWalkerFixtureText,
@@ -149,21 +153,17 @@ function createControllerState(
 }
 
 function syncOverlayDataset(state: SatelliteOverlayControllerState): void {
-  const { dataset } = document.documentElement;
-  dataset.satelliteOverlayMode = state.mode;
-  dataset.satelliteOverlaySource = state.source;
-  dataset.satelliteOverlayState = state.status;
-  dataset.satelliteOverlayPointCount = String(state.pointCount);
-  dataset.satelliteOverlayRenderMode = state.renderMode;
-  dataset.satelliteOverlayLeoCount = String(state.orbitClassCounts.leo);
-  dataset.satelliteOverlayMeoCount = String(state.orbitClassCounts.meo);
-  dataset.satelliteOverlayGeoCount = String(state.orbitClassCounts.geo);
-
-  if (state.detail) {
-    dataset.satelliteOverlayDetail = state.detail.slice(0, 240);
-  } else {
-    delete dataset.satelliteOverlayDetail;
-  }
+  syncDocumentTelemetry({
+    satelliteOverlayMode: state.mode,
+    satelliteOverlaySource: state.source,
+    satelliteOverlayState: state.status,
+    satelliteOverlayPointCount: String(state.pointCount),
+    satelliteOverlayRenderMode: state.renderMode,
+    satelliteOverlayLeoCount: String(state.orbitClassCounts.leo),
+    satelliteOverlayMeoCount: String(state.orbitClassCounts.meo),
+    satelliteOverlayGeoCount: String(state.orbitClassCounts.geo),
+    satelliteOverlayDetail: truncateDocumentTelemetryDetail(state.detail ?? undefined)
+  });
 }
 
 function resolveWalkerFixtureUrl(): string {

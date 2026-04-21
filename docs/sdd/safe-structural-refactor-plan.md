@@ -24,6 +24,7 @@ Related authority:
 - `docs/data-contracts/satellite-overlay.md`
 - `docs/data-contracts/scenario.md`
 - `docs/data-contracts/physical-input.md`
+- `docs/data-contracts/document-telemetry.md`
 - `docs/data-contracts/soak-evidence.md`
 - `docs/data-contracts/phase7.1-validation-evidence.md`
 
@@ -298,6 +299,7 @@ across ad hoc dataset writers.
 ### In Scope
 
 - define one repo-owned capture/telemetry boundary document
+- keep `docs/data-contracts/document-telemetry.md` aligned with runtime writers
 - centralize document-level dataset writes behind named helpers or modules
 - distinguish panel-local DOM state from document-level test telemetry
 - keep existing smoke/soak/validation readers working
@@ -310,6 +312,7 @@ across ad hoc dataset writers.
 ### Acceptance Criteria
 
 - document-level telemetry has a named owner
+- `docs/data-contracts/document-telemetry.md` matches the landed writer surface
 - feature panels no longer each reinvent document-level sync patterns
 - accepted smoke and validation harnesses continue to read the same evidence
   semantics

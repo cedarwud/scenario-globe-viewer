@@ -2,6 +2,10 @@ import {
   createPhysicalInputPanelViewModel,
   type PhysicalInputPanelViewModel
 } from "./physical-input-view-model";
+import {
+  clearDocumentTelemetry,
+  syncDocumentTelemetry
+} from "../telemetry/document-telemetry";
 import type { PhysicalInputState } from "./physical-input";
 
 interface PhysicalInputReadable {
@@ -23,6 +27,16 @@ interface BootstrapPhysicalInputPanelElements {
   projection: HTMLSpanElement;
   provenance: HTMLSpanElement;
 }
+
+const PHYSICAL_INPUT_TELEMETRY_KEYS = [
+  "physicalScenarioId",
+  "physicalEvaluatedAt",
+  "physicalContextLabel",
+  "physicalFamilies",
+  "physicalSchemaVersion",
+  "physicalProjectionTarget",
+  "physicalDisclaimer"
+] as const;
 
 function createField(
   label: string,
@@ -117,25 +131,19 @@ function renderState(
   elements.root.dataset.physicalProjectionTarget = state.projectionTarget;
   elements.root.dataset.physicalDisclaimer = state.disclaimer;
 
-  document.documentElement.dataset.physicalScenarioId = state.scenario.id;
-  document.documentElement.dataset.physicalEvaluatedAt = state.evaluatedAt;
-  document.documentElement.dataset.physicalContextLabel = state.activeWindow.contextLabel;
-  document.documentElement.dataset.physicalFamilies = state.provenance
-    .map((entry) => entry.family)
-    .join(",");
-  document.documentElement.dataset.physicalSchemaVersion = state.report.schemaVersion;
-  document.documentElement.dataset.physicalProjectionTarget = state.projectionTarget;
-  document.documentElement.dataset.physicalDisclaimer = state.disclaimer;
+  syncDocumentTelemetry({
+    physicalScenarioId: state.scenario.id,
+    physicalEvaluatedAt: state.evaluatedAt,
+    physicalContextLabel: state.activeWindow.contextLabel,
+    physicalFamilies: state.provenance.map((entry) => entry.family).join(","),
+    physicalSchemaVersion: state.report.schemaVersion,
+    physicalProjectionTarget: state.projectionTarget,
+    physicalDisclaimer: state.disclaimer
+  });
 }
 
 function clearDocumentState(): void {
-  delete document.documentElement.dataset.physicalScenarioId;
-  delete document.documentElement.dataset.physicalEvaluatedAt;
-  delete document.documentElement.dataset.physicalContextLabel;
-  delete document.documentElement.dataset.physicalFamilies;
-  delete document.documentElement.dataset.physicalSchemaVersion;
-  delete document.documentElement.dataset.physicalProjectionTarget;
-  delete document.documentElement.dataset.physicalDisclaimer;
+  clearDocumentTelemetry(PHYSICAL_INPUT_TELEMETRY_KEYS);
 }
 
 export function mountBootstrapPhysicalInputPanel({

@@ -2,6 +2,10 @@ import {
   createValidationStatePanelViewModel,
   type ValidationStatePanelViewModel
 } from "./validation-state-view-model";
+import {
+  clearDocumentTelemetry,
+  syncDocumentTelemetry
+} from "../telemetry/document-telemetry";
 import type { ValidationState } from "./validation-state";
 
 interface ValidationStateReadable {
@@ -25,6 +29,20 @@ interface BootstrapValidationStatePanelElements {
   servingCandidate: HTMLSpanElement;
   provenance: HTMLSpanElement;
 }
+
+const VALIDATION_TELEMETRY_KEYS = [
+  "validationScenarioId",
+  "validationEvaluatedAt",
+  "validationEnvironmentMode",
+  "validationTransportKind",
+  "validationDutKind",
+  "validationAttachState",
+  "validationServingCandidateId",
+  "validationSchemaVersion",
+  "validationOwnershipNote",
+  "validationProvenanceKind",
+  "validationProvenanceDetail"
+] as const;
 
 function createField(
   label: string,
@@ -154,35 +172,23 @@ function renderState(
   elements.root.dataset.validationProvenanceKind = state.provenance.kind;
   elements.root.dataset.validationProvenanceDetail = state.provenance.detail;
 
-  document.documentElement.dataset.validationScenarioId = state.scenarioId;
-  document.documentElement.dataset.validationEvaluatedAt = state.evaluatedAt;
-  document.documentElement.dataset.validationEnvironmentMode =
-    state.environmentMode;
-  document.documentElement.dataset.validationTransportKind = state.transportKind;
-  document.documentElement.dataset.validationDutKind = state.dutKind;
-  document.documentElement.dataset.validationAttachState = state.attachState;
-  document.documentElement.dataset.validationServingCandidateId =
-    state.servingCandidateId ?? "";
-  document.documentElement.dataset.validationSchemaVersion =
-    state.report.schemaVersion;
-  document.documentElement.dataset.validationOwnershipNote = state.ownershipNote;
-  document.documentElement.dataset.validationProvenanceKind = state.provenance.kind;
-  document.documentElement.dataset.validationProvenanceDetail =
-    state.provenance.detail;
+  syncDocumentTelemetry({
+    validationScenarioId: state.scenarioId,
+    validationEvaluatedAt: state.evaluatedAt,
+    validationEnvironmentMode: state.environmentMode,
+    validationTransportKind: state.transportKind,
+    validationDutKind: state.dutKind,
+    validationAttachState: state.attachState,
+    validationServingCandidateId: state.servingCandidateId ?? "",
+    validationSchemaVersion: state.report.schemaVersion,
+    validationOwnershipNote: state.ownershipNote,
+    validationProvenanceKind: state.provenance.kind,
+    validationProvenanceDetail: state.provenance.detail
+  });
 }
 
 function clearDocumentState(): void {
-  delete document.documentElement.dataset.validationScenarioId;
-  delete document.documentElement.dataset.validationEvaluatedAt;
-  delete document.documentElement.dataset.validationEnvironmentMode;
-  delete document.documentElement.dataset.validationTransportKind;
-  delete document.documentElement.dataset.validationDutKind;
-  delete document.documentElement.dataset.validationAttachState;
-  delete document.documentElement.dataset.validationServingCandidateId;
-  delete document.documentElement.dataset.validationSchemaVersion;
-  delete document.documentElement.dataset.validationOwnershipNote;
-  delete document.documentElement.dataset.validationProvenanceKind;
-  delete document.documentElement.dataset.validationProvenanceDetail;
+  clearDocumentTelemetry(VALIDATION_TELEMETRY_KEYS);
 }
 
 export function mountBootstrapValidationStatePanel({
@@ -202,4 +208,3 @@ export function mountBootstrapValidationStatePanel({
     container.replaceChildren();
   };
 }
-
