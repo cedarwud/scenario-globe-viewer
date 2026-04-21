@@ -52,8 +52,10 @@ const VALIDATION_SCHEMA_VERSION = "phase7.1-viewer-validation-evidence.v1";
 const DEFAULT_PROFILE_ID = "first-slice";
 const DEFAULT_TARGET_LEO_COUNT = 500;
 const DEFAULT_RETENTION_DAYS = 14;
-const DEFAULT_OVERLAY_MODE = "leo-scale-points";
+const DEFAULT_OVERLAY_MODE = "multi-orbit-scale-points";
 const WALKER_OVERLAY_MODE = "walker-points";
+const LEO_SCALE_OVERLAY_MODE = "leo-scale-points";
+const MULTI_ORBIT_SCALE_OVERLAY_MODE = "multi-orbit-scale-points";
 const REQUIRED_ORBIT_CLASSES = ["leo", "meo", "geo"];
 
 function parseArgs(argv) {
@@ -587,6 +589,11 @@ async function readOverlayObservation(client) {
       const root = document.documentElement;
       const capture = window.__SCENARIO_GLOBE_VIEWER_CAPTURE__;
       const controllerState = capture?.satelliteOverlay?.getState?.() ?? null;
+      const datasetOrbitClassCounts = {
+        leo: Number(root?.dataset.satelliteOverlayLeoCount ?? "0"),
+        meo: Number(root?.dataset.satelliteOverlayMeoCount ?? "0"),
+        geo: Number(root?.dataset.satelliteOverlayGeoCount ?? "0")
+      };
 
       return {
         overlayMode: root?.dataset.satelliteOverlayMode ?? null,
@@ -594,6 +601,11 @@ async function readOverlayObservation(client) {
         overlayState: root?.dataset.satelliteOverlayState ?? null,
         overlayRenderMode: root?.dataset.satelliteOverlayRenderMode ?? null,
         overlayPointCount: Number(root?.dataset.satelliteOverlayPointCount ?? "0"),
+        overlayOrbitClassCounts: {
+          leo: Number(controllerState?.orbitClassCounts?.leo ?? datasetOrbitClassCounts.leo),
+          meo: Number(controllerState?.orbitClassCounts?.meo ?? datasetOrbitClassCounts.meo),
+          geo: Number(controllerState?.orbitClassCounts?.geo ?? datasetOrbitClassCounts.geo)
+        },
         controllerState
       };
     })()`
@@ -740,6 +752,9 @@ function inspectContractSignals() {
       overlayControllerSource.includes('"walker-points"') ? "walker-points" : null,
       overlayControllerSource.includes('"leo-scale-points"')
         ? "leo-scale-points"
+        : null,
+      overlayControllerSource.includes('"multi-orbit-scale-points"')
+        ? "multi-orbit-scale-points"
         : null
     ].filter(Boolean),
     liveRenderModes: [
@@ -766,8 +781,8 @@ function inspectContractSignals() {
   );
   assert.deepEqual(
     signals.liveOverlayModes,
-    ["off", "walker-points", "leo-scale-points"],
-    "Live overlay controller must expose the accepted walker baseline plus the second-slice leo-scale-points runtime mode."
+    ["off", "walker-points", "leo-scale-points", "multi-orbit-scale-points"],
+    "Live overlay controller must expose the accepted walker baseline plus the leo-scale and multi-orbit Phase 7.1 runtime modes."
   );
   assert.deepEqual(
     signals.liveRenderModes,
@@ -782,9 +797,20 @@ function createOrbitScopeMatrix(contractSignals, runtimeObservation) {
   const walkerOnlyLiveRuntime =
     runtimeObservation.overlayState === "ready" &&
     runtimeObservation.overlayMode === WALKER_OVERLAY_MODE;
+  const orbitClassCounts = runtimeObservation.overlayOrbitClassCounts ?? {
+    leo: 0,
+    meo: 0,
+    geo: 0
+  };
   const leoScaleLiveRuntime =
     runtimeObservation.overlayState === "ready" &&
-    runtimeObservation.overlayMode === DEFAULT_OVERLAY_MODE;
+    runtimeObservation.overlayMode === LEO_SCALE_OVERLAY_MODE;
+  const multiOrbitLiveRuntime =
+    runtimeObservation.overlayState === "ready" &&
+    runtimeObservation.overlayMode === MULTI_ORBIT_SCALE_OVERLAY_MODE;
+
+  const hasObservedOrbitCoverage = (orbitClass) =>
+    Number.isFinite(orbitClassCounts[orbitClass]) && orbitClassCounts[orbitClass] > 0;
 
   return REQUIRED_ORBIT_CLASSES.map((orbitClass) => {
     const orbitClassDeclared = contractSignals.physicalInputOrbitClasses.includes(
@@ -806,7 +832,7 @@ function createOrbitScopeMatrix(contractSignals, runtimeObservation) {
         },
         liveRuntimeCoverage: {
           status:
-            leoScaleLiveRuntime
+            hasObservedOrbitCoverage("leo") && !walkerOnlyLiveRuntime
               ? "observed"
               : runtimeObservation.overlayState === "ready" && walkerOnlyLiveRuntime
               ? "walker-only"
@@ -817,7 +843,7 @@ function createOrbitScopeMatrix(contractSignals, runtimeObservation) {
                   : "not-implemented",
           detail:
             runtimeObservation.overlayState === "ready"
-              ? `Live runtime observed overlayMode=${runtimeObservation.overlayMode}, renderMode=${runtimeObservation.overlayRenderMode}, pointCount=${runtimeObservation.overlayPointCount}.`
+              ? `Live runtime observed overlayMode=${runtimeObservation.overlayMode}, renderMode=${runtimeObservation.overlayRenderMode}, totalPointCount=${runtimeObservation.overlayPointCount}, leoCount=${orbitClassCounts.leo}.`
               : "Live runtime did not expose a ready satellite overlay path."
         },
         walkerOnlyKnownGap:
@@ -835,9 +861,20 @@ function createOrbitScopeMatrix(contractSignals, runtimeObservation) {
           "Physical-input declares the orbit class and the repo keeps generic scenario/source descriptors, but the viewer runtime does not yet wire a distinct orbit-class-specific live source."
       },
       liveRuntimeCoverage: {
-        status: "not-implemented",
+        status:
+          runtimeObservation.overlayState === "ready" &&
+          hasObservedOrbitCoverage(orbitClass) &&
+          !walkerOnlyLiveRuntime
+            ? "observed"
+            : "not-implemented",
         detail:
-          leoScaleLiveRuntime
+          runtimeObservation.overlayState === "ready" &&
+          hasObservedOrbitCoverage(orbitClass) &&
+          !walkerOnlyLiveRuntime
+            ? `Live runtime observed overlayMode=${runtimeObservation.overlayMode}, ${orbitClass}Count=${orbitClassCounts[orbitClass]}, totalPointCount=${runtimeObservation.overlayPointCount}.`
+            : multiOrbitLiveRuntime
+            ? `The current viewer runtime exposes multi-orbit live coverage, but ${orbitClass} count was still reported as ${orbitClassCounts[orbitClass]}.`
+            : leoScaleLiveRuntime
             ? "The current viewer runtime now exposes a non-walker LEO scale path, but still no distinct live MEO/GEO source path."
             : "The current viewer runtime exposes only the walker-backed overlay line and no distinct live MEO/GEO source path."
       },
@@ -851,6 +888,7 @@ function createOrbitScopeMatrix(contractSignals, runtimeObservation) {
 
 function createKnownGaps(matrix, runtimeObservation, targetLeoCount) {
   const knownGaps = [];
+  const observedLeoCount = runtimeObservation.overlayOrbitClassCounts?.leo ?? 0;
 
   if (
     matrix.some(
@@ -862,9 +900,9 @@ function createKnownGaps(matrix, runtimeObservation, targetLeoCount) {
     );
   }
 
-  if (runtimeObservation.overlayPointCount < targetLeoCount) {
+  if (observedLeoCount < targetLeoCount) {
     knownGaps.push(
-      `Observed live runtime pointCount=${runtimeObservation.overlayPointCount} is below the Phase 7.1 target of ${targetLeoCount} LEO.`
+      `Observed live runtime leoCount=${observedLeoCount} is below the Phase 7.1 target of ${targetLeoCount} LEO.`
     );
   }
 
@@ -883,6 +921,7 @@ function createKnownGaps(matrix, runtimeObservation, targetLeoCount) {
 
 function createPassFailSummary(matrix, contractSignals, runtimeObservation, config, knownGaps) {
   const captureReady = Object.values(runtimeObservation.captureHandles).every(Boolean);
+  const observedLeoCount = runtimeObservation.overlayOrbitClassCounts?.leo ?? 0;
   const contractScopeSignalsPassed =
     contractSignals.scenarioSatelliteSourceKinds.length === 2 &&
     contractSignals.satelliteFixtureKinds.length === 3 &&
@@ -898,7 +937,7 @@ function createPassFailSummary(matrix, contractSignals, runtimeObservation, conf
     (entry) => entry.liveRuntimeCoverage.status === "observed"
   );
   const scaleGatePassed =
-    runtimeObservation.overlayPointCount >= config.scaleRunParams.targetLeoCount;
+    observedLeoCount >= config.scaleRunParams.targetLeoCount;
   const knownGapReportingPassed =
     multiOrbitLiveCoveragePassed && scaleGatePassed
       ? knownGaps.length === 0
@@ -920,7 +959,7 @@ function createPassFailSummary(matrix, contractSignals, runtimeObservation, conf
     {
       id: "overlay-observed",
       passed: overlayObserved,
-      detail: `Requested overlayMode=${config.validationProfile.requestedOverlayMode}, observed overlayState=${runtimeObservation.overlayState}, observed pointCount=${runtimeObservation.overlayPointCount}.`
+      detail: `Requested overlayMode=${config.validationProfile.requestedOverlayMode}, observed overlayState=${runtimeObservation.overlayState}, observed pointCount=${runtimeObservation.overlayPointCount}, observed leoCount=${observedLeoCount}.`
     },
     {
       id: "multi-orbit-live-coverage",
@@ -931,7 +970,7 @@ function createPassFailSummary(matrix, contractSignals, runtimeObservation, conf
     {
       id: "500-leo-scale",
       passed: scaleGatePassed,
-      detail: `Observed live runtime pointCount=${runtimeObservation.overlayPointCount}; targetLeoCount=${config.scaleRunParams.targetLeoCount}.`
+      detail: `Observed live runtime leoCount=${observedLeoCount}; targetLeoCount=${config.scaleRunParams.targetLeoCount}.`
     },
     {
       id: "known-gap-reporting",
@@ -990,6 +1029,7 @@ async function observeRuntime(baseUrl, browserCommand, requestedOverlayMode) {
         overlayState: overlayObservation.overlayState,
         overlayRenderMode: overlayObservation.overlayRenderMode,
         overlayPointCount: overlayObservation.overlayPointCount,
+        overlayOrbitClassCounts: overlayObservation.overlayOrbitClassCounts,
         overlaySource: overlayObservation.overlaySource,
         overlayControllerState: overlayObservation.controllerState
       };
@@ -1065,6 +1105,7 @@ async function main() {
     overlayState: runtimeObservation.overlayState,
     overlayRenderMode: runtimeObservation.overlayRenderMode,
     overlayPointCount: runtimeObservation.overlayPointCount,
+    overlayOrbitClassCounts: runtimeObservation.overlayOrbitClassCounts,
     captureHandles: runtimeObservation.captureHandles
   };
 
@@ -1087,7 +1128,7 @@ async function main() {
     orbitScopeMatrix,
     scaleRunParams: {
       ...config.scaleRunParams,
-      observedLeoCount: runtimeObservation.overlayPointCount,
+      observedLeoCount: runtimeObservation.overlayOrbitClassCounts?.leo ?? 0,
       observedOverlayRenderMode: runtimeObservation.overlayRenderMode
     },
     observedRuntimeVariant,

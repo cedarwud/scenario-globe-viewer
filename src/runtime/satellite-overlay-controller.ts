@@ -7,7 +7,11 @@ import {
   LEO_SCALE_OVERLAY_MODE,
   LEO_SCALE_OVERLAY_PLANE_COUNT,
   LEO_SCALE_OVERLAY_SAT_COUNT,
-  LEO_SCALE_OVERLAY_SATS_PER_PLANE
+  LEO_SCALE_OVERLAY_SATS_PER_PLANE,
+  createMultiOrbitScaleFixtureText,
+  MULTI_ORBIT_SCALE_OVERLAY_COUNTS,
+  MULTI_ORBIT_SCALE_OVERLAY_MODE,
+  type OverlayOrbitClassCounts
 } from "./leo-scale-overlay-fixture";
 import { createRuntimeOverlayManager } from "./runtime-overlay-manager";
 import {
@@ -22,7 +26,8 @@ import {
 export type SatelliteOverlayMode =
   | "off"
   | "walker-points"
-  | "leo-scale-points";
+  | "leo-scale-points"
+  | "multi-orbit-scale-points";
 export type SatelliteOverlaySource = "default-off" | "runtime";
 export type SatelliteOverlayStatus = "disabled" | "loading" | "ready" | "error";
 
@@ -35,6 +40,7 @@ export interface SatelliteOverlayControllerState {
   orbitCachePositionCount: number;
   orbitCacheTrackCount: number;
   orbitSampleBudget: number;
+  orbitClassCounts: OverlayOrbitClassCounts;
   overlayManager: OverlayManagerState;
   pathCount: number;
   pointCount: number;
@@ -57,11 +63,13 @@ export interface SatelliteOverlayController {
 
 const WALKER_OVERLAY_ID = "walker-points";
 const LEO_SCALE_OVERLAY_ID = LEO_SCALE_OVERLAY_MODE;
+const MULTI_ORBIT_SCALE_OVERLAY_ID = MULTI_ORBIT_SCALE_OVERLAY_MODE;
 const WALKER_TLE_FIXTURE_PATH =
   "fixtures/satellites/walker-o6-s3-i45-h698.tle";
 const MANAGED_OVERLAY_IDS = new Set([
   WALKER_OVERLAY_ID,
-  LEO_SCALE_OVERLAY_ID
+  LEO_SCALE_OVERLAY_ID,
+  MULTI_ORBIT_SCALE_OVERLAY_ID
 ]);
 
 function serializeOverlayError(reason: unknown): string {
@@ -99,11 +107,20 @@ function createEmptyRuntimeState(): WalkerPointOverlayRuntimeState {
   };
 }
 
+function createEmptyOrbitClassCounts(): OverlayOrbitClassCounts {
+  return {
+    leo: 0,
+    meo: 0,
+    geo: 0
+  };
+}
+
 function createControllerState(
   mode: SatelliteOverlayMode,
   source: SatelliteOverlaySource,
   status: SatelliteOverlayStatus,
   detail: string | null,
+  orbitClassCounts: OverlayOrbitClassCounts,
   overlayManager: OverlayManagerState,
   runtimeState: WalkerPointOverlayRuntimeState
 ): SatelliteOverlayControllerState {
@@ -116,6 +133,7 @@ function createControllerState(
     orbitCachePositionCount: runtimeState.orbitCachePositionCount,
     orbitCacheTrackCount: runtimeState.orbitCacheTrackCount,
     orbitSampleBudget: runtimeState.orbitSampleBudget,
+    orbitClassCounts,
     overlayManager,
     pathCount: runtimeState.pathCount,
     pointCount: runtimeState.pointCount,
@@ -137,6 +155,9 @@ function syncOverlayDataset(state: SatelliteOverlayControllerState): void {
   dataset.satelliteOverlayState = state.status;
   dataset.satelliteOverlayPointCount = String(state.pointCount);
   dataset.satelliteOverlayRenderMode = state.renderMode;
+  dataset.satelliteOverlayLeoCount = String(state.orbitClassCounts.leo);
+  dataset.satelliteOverlayMeoCount = String(state.orbitClassCounts.meo);
+  dataset.satelliteOverlayGeoCount = String(state.orbitClassCounts.geo);
 
   if (state.detail) {
     dataset.satelliteOverlayDetail = state.detail.slice(0, 240);
@@ -169,6 +190,7 @@ async function resolveOverlayFixture(
     kind: "tle";
     tleText: string;
   };
+  orbitClassCounts: OverlayOrbitClassCounts;
   overlayId: string;
 }> {
   const walkerFixtureText = await loadWalkerFixtureText();
@@ -180,17 +202,41 @@ async function resolveOverlayFixture(
         kind: "tle",
         tleText: walkerFixtureText
       },
+      orbitClassCounts: {
+        leo: 18,
+        meo: 0,
+        geo: 0
+      },
       overlayId: WALKER_OVERLAY_ID
     };
   }
 
+  if (mode === LEO_SCALE_OVERLAY_MODE) {
+    return {
+      detail: `Generated ${LEO_SCALE_OVERLAY_SAT_COUNT} live LEO satellites across ${LEO_SCALE_OVERLAY_PLANE_COUNT} planes x ${LEO_SCALE_OVERLAY_SATS_PER_PLANE} slots from walker-derived TLE templates.`,
+      fixture: {
+        kind: "tle",
+        tleText: createLeoScaleWalkerFixtureText(walkerFixtureText)
+      },
+      orbitClassCounts: {
+        leo: LEO_SCALE_OVERLAY_SAT_COUNT,
+        meo: 0,
+        geo: 0
+      },
+      overlayId: LEO_SCALE_OVERLAY_ID
+    };
+  }
+
   return {
-    detail: `Generated ${LEO_SCALE_OVERLAY_SAT_COUNT} live LEO satellites across ${LEO_SCALE_OVERLAY_PLANE_COUNT} planes x ${LEO_SCALE_OVERLAY_SATS_PER_PLANE} slots from walker-derived TLE templates.`,
+    detail: `Generated ${MULTI_ORBIT_SCALE_OVERLAY_COUNTS.leo} LEO plus ${MULTI_ORBIT_SCALE_OVERLAY_COUNTS.meo} MEO and ${MULTI_ORBIT_SCALE_OVERLAY_COUNTS.geo} GEO live satellites from walker-derived TLE templates.`,
     fixture: {
       kind: "tle",
-      tleText: createLeoScaleWalkerFixtureText(walkerFixtureText)
+      tleText: createMultiOrbitScaleFixtureText(walkerFixtureText)
     },
-    overlayId: LEO_SCALE_OVERLAY_ID
+    orbitClassCounts: {
+      ...MULTI_ORBIT_SCALE_OVERLAY_COUNTS
+    },
+    overlayId: MULTI_ORBIT_SCALE_OVERLAY_ID
   };
 }
 
@@ -208,6 +254,7 @@ export function createSatelliteOverlayController({
   let currentSource: SatelliteOverlaySource = "default-off";
   let currentStatus: SatelliteOverlayStatus = "disabled";
   let currentDetail: string | null = null;
+  let currentOrbitClassCounts = createEmptyOrbitClassCounts();
   let desiredMode: SatelliteOverlayMode = "off";
   let desiredSource: SatelliteOverlaySource = "default-off";
   let transitionPromise: Promise<void> | undefined;
@@ -218,6 +265,7 @@ export function createSatelliteOverlayController({
       currentSource,
       currentStatus,
       currentDetail,
+      currentOrbitClassCounts,
       overlayManager.getState(),
       activeAdapter?.getRuntimeState() ?? createEmptyRuntimeState()
     );
@@ -332,6 +380,7 @@ export function createSatelliteOverlayController({
 
     currentMode = "off";
     currentSource = source;
+    currentOrbitClassCounts = createEmptyOrbitClassCounts();
 
     if (cleanupError) {
       currentStatus = "error";
@@ -385,6 +434,7 @@ export function createSatelliteOverlayController({
     currentSource = source;
     currentStatus = "loading";
     currentDetail = null;
+    currentOrbitClassCounts = createEmptyOrbitClassCounts();
     commitState();
 
     const adapter = createWalkerPointOverlayAdapter(viewer);
@@ -429,6 +479,7 @@ export function createSatelliteOverlayController({
 
       currentStatus = "ready";
       currentDetail = fixtureConfig.detail;
+      currentOrbitClassCounts = fixtureConfig.orbitClassCounts;
       commitState();
     } catch (error) {
       const shouldSurfaceError =
@@ -459,6 +510,7 @@ export function createSatelliteOverlayController({
       currentDetail = cleanupError
         ? `${serializeOverlayError(error)}; cleanup: ${cleanupError}`
         : serializeOverlayError(error);
+      currentOrbitClassCounts = createEmptyOrbitClassCounts();
       commitState();
 
       if (cleanupError) {

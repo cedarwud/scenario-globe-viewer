@@ -51,7 +51,10 @@ interface ValidationProfile {
   id: string;
   description: string;
   requiredOrbitClasses: ReadonlyArray<OrbitScopeClass>;
-  requestedOverlayMode: "walker-points" | "leo-scale-points";
+  requestedOverlayMode:
+    | "walker-points"
+    | "leo-scale-points"
+    | "multi-orbit-scale-points";
   retentionDays: number;
 }
 
@@ -72,7 +75,10 @@ interface ScaleRunParams {
   runId: string;
   targetLeoCount: number;
   observedLeoCount: number;
-  requestedOverlayMode: "walker-points" | "leo-scale-points";
+  requestedOverlayMode:
+    | "walker-points"
+    | "leo-scale-points"
+    | "multi-orbit-scale-points";
   observedOverlayRenderMode: string | null;
   enforcePass: boolean;
 }
@@ -92,6 +98,11 @@ interface ObservedRuntimeVariant {
   overlayState: string | null;
   overlayRenderMode: string | null;
   overlayPointCount: number;
+  overlayOrbitClassCounts: {
+    leo: number;
+    meo: number;
+    geo: number;
+  };
   captureHandles: {
     viewer: boolean;
     replayClock: boolean;
@@ -144,6 +155,9 @@ interface Phase71ValidationSummary {
 - If the live runtime reaches `leo-scale-points`, the retained artifact may mark
   the LEO row as `observed`, but it must still keep any unresolved MEO/GEO gap
   explicit instead of implying multi-orbit closure.
+- If the live runtime reaches `multi-orbit-scale-points`, the retained artifact
+  may mark `leo/meo/geo` as `observed` only when repo-owned runtime state also
+  reports non-zero orbit-class counts for each class.
 - `walkerOnlyKnownGap` is mandatory whenever the live runtime still collapses
   back to the copied walker proof line.
 
@@ -186,6 +200,12 @@ The second slice may improve only part of the gate. A walker-derived
 `leo-scale-points` runtime can legitimately satisfy the LEO scale leg while the
 overall requirement gate remains `false` until MEO/GEO live coverage is also
 observed.
+
+A later multi-orbit slice may close the full gate only when it keeps the same
+runtime overlay path and the retained artifact shows both:
+
+- `observedLeoCount >= 500`
+- non-zero `leo/meo/geo` live runtime counts
 
 `--enforce-pass` converts a failing requirement gate into a non-zero process
 exit so the same runner has an explicit pass/fail path.
