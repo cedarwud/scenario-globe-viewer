@@ -13,6 +13,10 @@ const communicationSourceModulePath = new URL(
   "../src/runtime/bootstrap-communication-time-source.ts",
   import.meta.url
 );
+const communicationSeedsModulePath = new URL(
+  "../src/runtime/bootstrap-communication-time-seeds.ts",
+  import.meta.url
+);
 const communicationControllerModulePath = new URL(
   "../src/runtime/bootstrap-communication-time-controller.ts",
   import.meta.url
@@ -86,6 +90,7 @@ try {
   const [
     communicationTimeSource,
     communicationSourceCode,
+    communicationSeedsCode,
     communicationControllerCode,
     communicationHudSource,
     operatorHudSource,
@@ -94,6 +99,7 @@ try {
   ] = await Promise.all([
     readFile(communicationTimeModulePath, "utf8"),
     readFile(communicationSourceModulePath, "utf8"),
+    readFile(communicationSeedsModulePath, "utf8"),
     readFile(communicationControllerModulePath, "utf8"),
     readFile(communicationHudModulePath, "utf8"),
     readFile(operatorHudModulePath, "utf8"),
@@ -161,6 +167,15 @@ try {
         transpileTypeScript(
           communicationSourceCode,
           "bootstrap-communication-time-source.ts"
+        )
+      )
+    ),
+    writeFile(
+      join(tempModuleDir, "bootstrap-communication-time-seeds.mjs"),
+      rewriteRelativeImports(
+        transpileTypeScript(
+          communicationSeedsCode,
+          "bootstrap-communication-time-seeds.ts"
         )
       )
     ),
