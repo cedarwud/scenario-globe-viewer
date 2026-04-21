@@ -17,6 +17,10 @@ const physicalInputSourceModulePath = new URL(
   "../src/runtime/bootstrap-physical-input-source.ts",
   import.meta.url
 );
+const physicalInputSeedsModulePath = new URL(
+  "../src/runtime/bootstrap-physical-input-seeds.ts",
+  import.meta.url
+);
 const physicalInputControllerModulePath = new URL(
   "../src/runtime/bootstrap-physical-input-controller.ts",
   import.meta.url
@@ -104,6 +108,7 @@ try {
     physicalInputSource,
     physicalInputPanelSource,
     physicalInputSourceCode,
+    physicalInputSeedsCode,
     physicalInputControllerCode,
     handoverDecisionSource,
     handoverDecisionSourceCode,
@@ -114,6 +119,7 @@ try {
     readFile(physicalInputModulePath, "utf8"),
     readFile(physicalInputPanelPath, "utf8"),
     readFile(physicalInputSourceModulePath, "utf8"),
+    readFile(physicalInputSeedsModulePath, "utf8"),
     readFile(physicalInputControllerModulePath, "utf8"),
     readFile(handoverDecisionModulePath, "utf8"),
     readFile(handoverDecisionSourceModulePath, "utf8"),
@@ -190,6 +196,15 @@ try {
             physicalInputSourceCode,
             "bootstrap-physical-input-source.ts"
           )
+        )
+      )
+    ),
+    writeFile(
+      join(tempModuleDir, "bootstrap-physical-input-seeds.mjs"),
+      rewriteRelativeImports(
+        transpileTypeScript(
+          physicalInputSeedsCode,
+          "bootstrap-physical-input-seeds.ts"
         )
       )
     ),
