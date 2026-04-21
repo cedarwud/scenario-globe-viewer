@@ -2,6 +2,13 @@ import type { Viewer } from "cesium";
 
 import type { OverlayManagerState } from "../features/overlays/overlay-manager";
 import type { ReplayClock } from "../features/time";
+import {
+  createLeoScaleWalkerFixtureText,
+  LEO_SCALE_OVERLAY_MODE,
+  LEO_SCALE_OVERLAY_PLANE_COUNT,
+  LEO_SCALE_OVERLAY_SAT_COUNT,
+  LEO_SCALE_OVERLAY_SATS_PER_PLANE
+} from "./leo-scale-overlay-fixture";
 import { createRuntimeOverlayManager } from "./runtime-overlay-manager";
 import {
   createWalkerPointOverlayAdapter,
@@ -12,7 +19,10 @@ import {
   type WalkerPointOverlayRuntimeState
 } from "./walker-point-overlay-adapter";
 
-export type SatelliteOverlayMode = "off" | "walker-points";
+export type SatelliteOverlayMode =
+  | "off"
+  | "walker-points"
+  | "leo-scale-points";
 export type SatelliteOverlaySource = "default-off" | "runtime";
 export type SatelliteOverlayStatus = "disabled" | "loading" | "ready" | "error";
 
@@ -46,8 +56,13 @@ export interface SatelliteOverlayController {
 }
 
 const WALKER_OVERLAY_ID = "walker-points";
+const LEO_SCALE_OVERLAY_ID = LEO_SCALE_OVERLAY_MODE;
 const WALKER_TLE_FIXTURE_PATH =
   "fixtures/satellites/walker-o6-s3-i45-h698.tle";
+const MANAGED_OVERLAY_IDS = new Set([
+  WALKER_OVERLAY_ID,
+  LEO_SCALE_OVERLAY_ID
+]);
 
 function serializeOverlayError(reason: unknown): string {
   if (reason instanceof Error) {
@@ -146,6 +161,39 @@ async function loadWalkerFixtureText(): Promise<string> {
   return await response.text();
 }
 
+async function resolveOverlayFixture(
+  mode: Exclude<SatelliteOverlayMode, "off">
+): Promise<{
+  detail: string | null;
+  fixture: {
+    kind: "tle";
+    tleText: string;
+  };
+  overlayId: string;
+}> {
+  const walkerFixtureText = await loadWalkerFixtureText();
+
+  if (mode === "walker-points") {
+    return {
+      detail: null,
+      fixture: {
+        kind: "tle",
+        tleText: walkerFixtureText
+      },
+      overlayId: WALKER_OVERLAY_ID
+    };
+  }
+
+  return {
+    detail: `Generated ${LEO_SCALE_OVERLAY_SAT_COUNT} live LEO satellites across ${LEO_SCALE_OVERLAY_PLANE_COUNT} planes x ${LEO_SCALE_OVERLAY_SATS_PER_PLANE} slots from walker-derived TLE templates.`,
+    fixture: {
+      kind: "tle",
+      tleText: createLeoScaleWalkerFixtureText(walkerFixtureText)
+    },
+    overlayId: LEO_SCALE_OVERLAY_ID
+  };
+}
+
 export function createSatelliteOverlayController({
   viewer,
   replayClock
@@ -228,13 +276,13 @@ export function createSatelliteOverlayController({
   ): Promise<string | null> {
     const cleanupErrors: string[] = [];
 
-    if (
-      overlayManager
-        .getState()
-        .entries.some((entry) => entry.overlayId === WALKER_OVERLAY_ID)
-    ) {
+    for (const entry of overlayManager.getState().entries) {
+      if (!MANAGED_OVERLAY_IDS.has(entry.overlayId)) {
+        continue;
+      }
+
       try {
-        await overlayManager.detach(WALKER_OVERLAY_ID);
+        await overlayManager.detach(entry.overlayId);
       } catch (error) {
         cleanupErrors.push(
           `overlay manager detach failed: ${serializeOverlayError(error)}`
@@ -297,29 +345,35 @@ export function createSatelliteOverlayController({
     commitState();
   }
 
-  function isWalkerOverlayStillDesired(
-    adapter: WalkerPointOverlayRuntimeAdapter
+  function isOverlayStillDesired(
+    adapter: WalkerPointOverlayRuntimeAdapter,
+    mode: Exclude<SatelliteOverlayMode, "off">
   ): boolean {
-    return pendingAdapter === adapter && desiredMode === "walker-points";
+    return pendingAdapter === adapter && desiredMode === mode;
   }
 
-  async function enableWalkerOverlay(
+  async function enableOverlayMode(
+    mode: Exclude<SatelliteOverlayMode, "off">,
     source: SatelliteOverlaySource
   ): Promise<void> {
-    if (activeAdapter) {
-      currentMode = "walker-points";
+    if (activeAdapter && currentMode === mode) {
+      currentMode = mode;
       currentSource = source;
       currentStatus = "ready";
-      currentDetail = null;
       commitState();
       return;
     }
 
     const stalePendingAdapter = pendingAdapter;
     pendingAdapter = undefined;
-    const preflightCleanupError = await cleanupWalkerOverlayResidue([stalePendingAdapter]);
+    const adapterPendingDetach = activeAdapter;
+    activeAdapter = undefined;
+    const preflightCleanupError = await cleanupWalkerOverlayResidue([
+      stalePendingAdapter,
+      adapterPendingDetach
+    ]);
     if (preflightCleanupError) {
-      currentMode = "walker-points";
+      currentMode = mode;
       currentSource = source;
       currentStatus = "error";
       currentDetail = preflightCleanupError;
@@ -327,7 +381,7 @@ export function createSatelliteOverlayController({
       throw new Error(preflightCleanupError);
     }
 
-    currentMode = "walker-points";
+    currentMode = mode;
     currentSource = source;
     currentStatus = "loading";
     currentDetail = null;
@@ -337,9 +391,9 @@ export function createSatelliteOverlayController({
     pendingAdapter = adapter;
 
     try {
-      const fixtureText = await loadWalkerFixtureText();
+      const fixtureConfig = await resolveOverlayFixture(mode);
 
-      if (!isWalkerOverlayStillDesired(adapter)) {
+      if (!isOverlayStillDesired(adapter, mode)) {
         if (pendingAdapter === adapter) {
           pendingAdapter = undefined;
         }
@@ -351,12 +405,9 @@ export function createSatelliteOverlayController({
       }
 
       adapter.attachToClock(replayClock);
-      await adapter.loadFixture({
-        kind: "tle",
-        tleText: fixtureText
-      });
+      await adapter.loadFixture(fixtureConfig.fixture);
 
-      if (!isWalkerOverlayStillDesired(adapter)) {
+      if (!isOverlayStillDesired(adapter, mode)) {
         if (pendingAdapter === adapter) {
           pendingAdapter = undefined;
         }
@@ -367,22 +418,22 @@ export function createSatelliteOverlayController({
         return;
       }
 
-      await overlayManager.attach(WALKER_OVERLAY_ID, adapter);
+      await overlayManager.attach(fixtureConfig.overlayId, adapter);
       activeAdapter = adapter;
       pendingAdapter = undefined;
 
-      if (desiredMode !== "walker-points") {
+      if (desiredMode !== mode) {
         await disableOverlay(desiredSource);
         return;
       }
 
       currentStatus = "ready";
-      currentDetail = null;
+      currentDetail = fixtureConfig.detail;
       commitState();
     } catch (error) {
       const shouldSurfaceError =
         pendingAdapter === adapter &&
-        desiredMode === "walker-points" &&
+        desiredMode === mode &&
         desiredSource === source;
 
       if (pendingAdapter === adapter) {
@@ -402,7 +453,7 @@ export function createSatelliteOverlayController({
         return;
       }
 
-      currentMode = "walker-points";
+      currentMode = mode;
       currentSource = source;
       currentStatus = "error";
       currentDetail = cleanupError
@@ -431,7 +482,7 @@ export function createSatelliteOverlayController({
         continue;
       }
 
-      await enableWalkerOverlay(requestedSource);
+      await enableOverlayMode(requestedMode, requestedSource);
       if (
         desiredMode === requestedMode &&
         desiredSource === requestedSource &&

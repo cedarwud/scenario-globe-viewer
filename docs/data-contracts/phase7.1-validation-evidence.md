@@ -51,7 +51,7 @@ interface ValidationProfile {
   id: string;
   description: string;
   requiredOrbitClasses: ReadonlyArray<OrbitScopeClass>;
-  requestedOverlayMode: "walker-points";
+  requestedOverlayMode: "walker-points" | "leo-scale-points";
   retentionDays: number;
 }
 
@@ -72,7 +72,7 @@ interface ScaleRunParams {
   runId: string;
   targetLeoCount: number;
   observedLeoCount: number;
-  requestedOverlayMode: "walker-points";
+  requestedOverlayMode: "walker-points" | "leo-scale-points";
   observedOverlayRenderMode: string | null;
   enforcePass: boolean;
 }
@@ -141,6 +141,9 @@ interface Phase71ValidationSummary {
 - `liveRuntimeCoverage` is derived from the currently built viewer runtime only.
 - If the live runtime still exposes only `off | walker-points`, that state must
   be recorded as `walker-only` rather than paraphrased as multi-orbit closure.
+- If the live runtime reaches `leo-scale-points`, the retained artifact may mark
+  the LEO row as `observed`, but it must still keep any unresolved MEO/GEO gap
+  explicit instead of implying multi-orbit closure.
 - `walkerOnlyKnownGap` is mandatory whenever the live runtime still collapses
   back to the copied walker proof line.
 
@@ -179,6 +182,11 @@ while the requirement-critical gate still fails.
 The default command writes retained artifacts even when `requirementGatePassed`
 is `false`.
 
+The second slice may improve only part of the gate. A walker-derived
+`leo-scale-points` runtime can legitimately satisfy the LEO scale leg while the
+overall requirement gate remains `false` until MEO/GEO live coverage is also
+observed.
+
 `--enforce-pass` converts a failing requirement gate into a non-zero process
 exit so the same runner has an explicit pass/fail path.
 
@@ -206,4 +214,3 @@ The Phase 7.1 validation runner may not:
 - redefine `validation-state` ownership
 - claim external NAT / tunnel / DUT / `iperf` / `ping` truth
 - claim Phase 8 local-view or presentation closure
-

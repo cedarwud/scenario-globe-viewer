@@ -52,7 +52,8 @@ const VALIDATION_SCHEMA_VERSION = "phase7.1-viewer-validation-evidence.v1";
 const DEFAULT_PROFILE_ID = "first-slice";
 const DEFAULT_TARGET_LEO_COUNT = 500;
 const DEFAULT_RETENTION_DAYS = 14;
-const DEFAULT_OVERLAY_MODE = "walker-points";
+const DEFAULT_OVERLAY_MODE = "leo-scale-points";
+const WALKER_OVERLAY_MODE = "walker-points";
 const REQUIRED_ORBIT_CLASSES = ["leo", "meo", "geo"];
 
 function parseArgs(argv) {
@@ -735,11 +736,10 @@ function inspectContractSignals() {
       physicalInputSource.includes('"geo"') ? "geo" : null
     ].filter(Boolean),
     liveOverlayModes: [
-      overlayControllerSource.includes('type SatelliteOverlayMode = "off" | "walker-points"')
-        ? "off"
-        : null,
-      overlayControllerSource.includes('type SatelliteOverlayMode = "off" | "walker-points"')
-        ? "walker-points"
+      overlayControllerSource.includes('"off"') ? "off" : null,
+      overlayControllerSource.includes('"walker-points"') ? "walker-points" : null,
+      overlayControllerSource.includes('"leo-scale-points"')
+        ? "leo-scale-points"
         : null
     ].filter(Boolean),
     liveRenderModes: [
@@ -766,8 +766,8 @@ function inspectContractSignals() {
   );
   assert.deepEqual(
     signals.liveOverlayModes,
-    ["off", "walker-points"],
-    "Live overlay controller is expected to stay on the current off|walker-points runtime line for this first slice."
+    ["off", "walker-points", "leo-scale-points"],
+    "Live overlay controller must expose the accepted walker baseline plus the second-slice leo-scale-points runtime mode."
   );
   assert.deepEqual(
     signals.liveRenderModes,
@@ -780,9 +780,11 @@ function inspectContractSignals() {
 
 function createOrbitScopeMatrix(contractSignals, runtimeObservation) {
   const walkerOnlyLiveRuntime =
-    contractSignals.liveOverlayModes.length === 2 &&
-    contractSignals.liveOverlayModes.includes("off") &&
-    contractSignals.liveOverlayModes.includes("walker-points");
+    runtimeObservation.overlayState === "ready" &&
+    runtimeObservation.overlayMode === WALKER_OVERLAY_MODE;
+  const leoScaleLiveRuntime =
+    runtimeObservation.overlayState === "ready" &&
+    runtimeObservation.overlayMode === DEFAULT_OVERLAY_MODE;
 
   return REQUIRED_ORBIT_CLASSES.map((orbitClass) => {
     const orbitClassDeclared = contractSignals.physicalInputOrbitClasses.includes(
@@ -804,7 +806,9 @@ function createOrbitScopeMatrix(contractSignals, runtimeObservation) {
         },
         liveRuntimeCoverage: {
           status:
-            runtimeObservation.overlayState === "ready" && walkerOnlyLiveRuntime
+            leoScaleLiveRuntime
+              ? "observed"
+              : runtimeObservation.overlayState === "ready" && walkerOnlyLiveRuntime
               ? "walker-only"
               : runtimeObservation.overlayState === "ready"
                 ? "observed"
@@ -833,10 +837,14 @@ function createOrbitScopeMatrix(contractSignals, runtimeObservation) {
       liveRuntimeCoverage: {
         status: "not-implemented",
         detail:
-          "The current viewer runtime exposes only the walker-backed overlay line and no distinct live MEO/GEO source path."
+          leoScaleLiveRuntime
+            ? "The current viewer runtime now exposes a non-walker LEO scale path, but still no distinct live MEO/GEO source path."
+            : "The current viewer runtime exposes only the walker-backed overlay line and no distinct live MEO/GEO source path."
       },
       walkerOnlyKnownGap:
-        "The current live runtime collapses satellite scope back to the walker proof line, so this orbit class has no live validation coverage yet."
+        walkerOnlyLiveRuntime
+          ? "The current live runtime collapses satellite scope back to the walker proof line, so this orbit class has no live validation coverage yet."
+          : null
     };
   });
 }
