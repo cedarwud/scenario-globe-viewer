@@ -41,6 +41,8 @@ Related authority:
 - `SR4` has reached a conservative stop point after extracting smoke scenario,
   browser/CDP, and static-server/fetch helpers; the remaining top-level smoke
   file is now primarily evidence-reading, readiness, and assertion surface
+- `SR5` has been re-audited at the repo-import/config/doc level; no automatic
+  deletion-safe `src/` candidate is currently approved
 - This plan does not change product scope, phase ordering, or requirement
   authority
 - This plan exists because the repo has reached a stage where structural drift
@@ -442,6 +444,35 @@ Keep, do not treat as automatic cleanup candidates:
 Any future deletion or downgrade must re-check current imports, docs, active
 test paths, and documented phase history immediately before the change, and it
 must update the affected authority/evidence chain in the same slice.
+
+Zero-import is not enough to qualify a file for cleanup. The current repo also
+contains active zero-import surfaces that remain required because they are:
+
+- entry/config-owned surfaces such as `src/main.ts` and
+  `src/vendor/satellite-js-runtime.ts`
+- ambient type/include surfaces such as `src/cesium-widgets-source.d.ts` and
+  `src/vite-env.d.ts`
+- historical phase evidence or contract-verifier targets listed above
+
+### Current Assessment
+
+The current `src/` zero-import list has been re-checked against runtime entry,
+Vite config, TypeScript ambient include behavior, authority docs, and active
+contract verifiers.
+
+Current result:
+
+- no `src/` file is currently approved as an automatic deletion-safe cleanup
+  candidate
+- the remaining zero-import runtime-looking files are already covered by
+  historical evidence or active verifier locks
+- the remaining zero-import non-runtime files are active entry/config or
+  ambient-type support surfaces rather than dead code
+
+That means `SR5` should not open with file deletion by default. A future `SR5`
+slice should begin only when it can name a specific candidate and show, in the
+same change, that imports, config, docs, and verifiers all agree the surface is
+truly removable or downgradeable.
 
 ### Out Of Scope
 
