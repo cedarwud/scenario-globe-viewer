@@ -536,6 +536,15 @@ scope/scale signals.
 - Any remaining limitation is documented as a known gap, not hidden behind a
   showcase baseline
 
+### Closure Note
+
+- Close-out accepted on `2026-04-21`
+- Validation/evidence boundary landed via `b83ed0b` (`feat(phase7.1): add viewer validation evidence boundary`)
+- Live LEO scale expansion landed via `28fdcb8` (`feat(phase7.1): expand live leo runtime scope`)
+- Multi-orbit live runtime gate closure landed via `d6b0d85` (`feat(phase7.1): close multi-orbit live runtime gate`)
+- `node scripts/run-phase7.1-viewer-validation.mjs --profile first-slice --enforce-pass` passed with retained artifact under `output/validation/phase7.1/2026-04-21T05-43-35.639Z-phase7-1-first-slice/summary.json`
+- Next active entry: `Phase 8.0`
+
 ## Phase 8.0
 
 ### Name
@@ -605,9 +614,12 @@ Phase 6 formal close-out is complete.
 
 `Phase 7.0` is closed via accepted soak-evidence close-out commit `11732e3`.
 
-The next active entry is `Phase 7.1`.
+`Phase 7.1` is closed via the accepted validation-evidence boundary, live LEO
+scale expansion, and multi-orbit gate closure commits `b83ed0b`, `28fdcb8`,
+and `d6b0d85`.
 
-`Phase 7.1` starts with the viewer-side validation/evidence boundary. Its first
-slice must converge the orbit-scope matrix, retained `>= 500 LEO` evidence, and
-explicit known-gap reporting without pulling in `Phase 8.0`
-local-view/presentation work or external NAT / `iperf` / DUT truth closure.
+The next active entry is `Phase 8.0`.
+
+`Phase 8.0` may now proceed as downstream same-page local-view integration
+work, provided it stays inside the accepted authority/boundary rules and does
+not reopen Phase 7 requirement-critical closure by accident.

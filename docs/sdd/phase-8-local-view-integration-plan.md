@@ -16,7 +16,7 @@ Related authority:
 ## Status
 
 - Proposed detailed Phase 8 interpretation as of `2026-04-20`
-- Phase 8 entry remains gated by Phase `7.0-7.1` closure or explicit waiver
+- Phase `7.0-7.1` closure is now established as of `2026-04-21`
 - Phase 6.7 accepted repo reality is treated as the seed bridge for this line
 
 ## Decision Summary
@@ -50,9 +50,11 @@ requirement-critical spine.
 
 Practical implication:
 
-- if Phase `7.1` is still open, Phase 8 must remain planned but not started
-- if the requirement owner waives `7.1`, Phase 8 may start with that waiver
-  recorded explicitly
+- Phase 8 may now start under the current repo state because Phase `7.0-7.1`
+  closure is established
+- if a later issue reopens requirement-critical scope, it must be recorded
+  explicitly as a deviation instead of being silently absorbed into local-view
+  work
 
 ## Current Repo Comparison
 
