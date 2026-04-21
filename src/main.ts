@@ -22,6 +22,7 @@ import { createBootstrapOperatorController } from "./runtime/bootstrap-operator-
 import { createBootstrapCommunicationTimeController } from "./runtime/bootstrap-communication-time-controller";
 import { createBootstrapHandoverDecisionController } from "./runtime/bootstrap-handover-decision-controller";
 import { createBootstrapPhysicalInputController } from "./runtime/bootstrap-physical-input-controller";
+import { createBootstrapSceneStarterController } from "./runtime/bootstrap-scene-starter-controller";
 import { createBootstrapValidationStateController } from "./runtime/bootstrap-validation-state-controller";
 import { createBootstrapScenarioSession } from "./runtime/scenario-bootstrap-session";
 import { createBootstrapScenarioCatalog } from "./runtime/resolve-bootstrap-scenario";
@@ -40,6 +41,7 @@ declare global {
       communicationTime: ReturnType<typeof createBootstrapCommunicationTimeController>;
       physicalInput: ReturnType<typeof createBootstrapPhysicalInputController>;
       handoverDecision: ReturnType<typeof createBootstrapHandoverDecisionController>;
+      sceneStarter: ReturnType<typeof createBootstrapSceneStarterController>;
       validationState: ReturnType<typeof createBootstrapValidationStateController>;
     };
   }
@@ -158,6 +160,9 @@ const bootstrapHandoverDecisionController = createBootstrapHandoverDecisionContr
   operatorState: bootstrapOperatorController,
   scenarioCatalog: bootstrapScenarioCatalog
 });
+const bootstrapSceneStarterController = createBootstrapSceneStarterController({
+  operatorState: bootstrapOperatorController
+});
 const bootstrapValidationStateController = createBootstrapValidationStateController({
   operatorState: bootstrapOperatorController,
   servingContext: {
@@ -186,6 +191,7 @@ const unmountBootstrapOperatorHud = mountBootstrapOperatorHud({
   communicationTimeController: bootstrapCommunicationTimeController,
   physicalInputController: bootstrapPhysicalInputController,
   handoverDecisionController: bootstrapHandoverDecisionController,
+  sceneStarterController: bootstrapSceneStarterController,
   validationStateController: bootstrapValidationStateController
 });
 const satelliteOverlay = createSatelliteOverlayController({
@@ -205,6 +211,7 @@ window.__SCENARIO_GLOBE_VIEWER_CAPTURE__ = {
   communicationTime: bootstrapCommunicationTimeController,
   physicalInput: bootstrapPhysicalInputController,
   handoverDecision: bootstrapHandoverDecisionController,
+  sceneStarter: bootstrapSceneStarterController,
   validationState: bootstrapValidationStateController
 };
 syncVisualBaselineState(viewer);
@@ -235,6 +242,7 @@ if (import.meta.hot) {
     unmountLightingToggle();
     unmountBootstrapOperatorHud();
     bootstrapValidationStateController.dispose();
+    bootstrapSceneStarterController.dispose();
     bootstrapHandoverDecisionController.dispose();
     bootstrapPhysicalInputController.dispose();
     bootstrapCommunicationTimeController.dispose();
