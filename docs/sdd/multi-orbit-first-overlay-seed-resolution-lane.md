@@ -8,6 +8,8 @@ not replace it with a symlink or hard link.
 
 Related governance checkpoint: see
 [../decisions/0009-multi-orbit-first-intake-contract-ordering.md](../decisions/0009-multi-orbit-first-intake-contract-ordering.md).
+Related program skeleton: see
+[multi-orbit-program-skeleton.md](./multi-orbit-program-skeleton.md).
 Related adoption proposal: see
 [multi-orbit-contract-adoption-proposal.md](./multi-orbit-contract-adoption-proposal.md).
 Related intake checklist: see
