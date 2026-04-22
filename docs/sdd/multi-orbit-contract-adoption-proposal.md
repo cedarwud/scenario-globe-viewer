@@ -1,14 +1,19 @@
-# Multi-Orbit Contract Adoption Proposal
+# Multi-Orbit Contract Adoption Proposal (Closed Pre-Contract Proposal Reference)
 
-Source note: this file is a planning-stage repo-local proposal for adopting the
-first real-world multi-orbit service handover case into `scenario-globe-viewer`
-without skipping the existing plain-data contract boundaries. Keep it
-synchronized by editing this repo directly. Do not replace it with a symlink or
-hard link.
+Source note: this file is a closed pre-contract proposal reference for the
+original repo-local planning pass that framed the first real-world multi-orbit
+service handover case in `scenario-globe-viewer`. It is retained for
+historical/provenance context only. Live continuation authority for this lane
+remains
+[multi-orbit-first-overlay-seed-resolution-lane.md](./multi-orbit-first-overlay-seed-resolution-lane.md).
+Keep it synchronized by editing this repo directly. Do not replace it with a
+symlink or hard link.
 
 Related structure: see [../architecture.md](../architecture.md).
 Related governance checkpoint: see
 [../decisions/0009-multi-orbit-first-intake-contract-ordering.md](../decisions/0009-multi-orbit-first-intake-contract-ordering.md).
+Related continuation lane authority: see
+[multi-orbit-first-overlay-seed-resolution-lane.md](./multi-orbit-first-overlay-seed-resolution-lane.md).
 Related requirement-centered plan: see
 [phase-6-plus-requirement-centered-plan.md](./phase-6-plus-requirement-centered-plan.md).
 Related current contracts: see [../data-contracts/scenario.md](../data-contracts/scenario.md),
@@ -29,7 +34,11 @@ and
 
 ## Status
 
-- Planning only
+- Closed pre-contract proposal reference
+- Historical/provenance reference only
+- Not live continuation authority for this lane
+- Live continuation authority remains
+  `multi-orbit-first-overlay-seed-resolution-lane.md`
 - No contract widening is accepted by this document alone
 - No runtime code change is implied by this proposal
 - The target is a first repo-owned contract delta for a real-world case, not a

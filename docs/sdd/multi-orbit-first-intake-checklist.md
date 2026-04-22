@@ -1,12 +1,18 @@
-# Multi-Orbit First Intake Checklist
+# Multi-Orbit First Intake Checklist (Closed Pre-Contract Gate Reference)
 
-Source note: this file is a planning-stage intake checklist for the first
-real-world multi-orbit contract-adoption slice in `scenario-globe-viewer`.
+Source note: this file is a closed pre-contract gate reference for the
+original intake checkpoint that preceded the first real-world multi-orbit
+contract-adoption slice in `scenario-globe-viewer`. It is retained for
+historical/provenance context only. Live continuation authority for this lane
+remains
+[multi-orbit-first-overlay-seed-resolution-lane.md](./multi-orbit-first-overlay-seed-resolution-lane.md).
 Keep it synchronized by editing this repo directly. Do not replace it with a
 symlink or hard link.
 
 Related proposal: see
 [multi-orbit-contract-adoption-proposal.md](./multi-orbit-contract-adoption-proposal.md).
+Related continuation lane authority: see
+[multi-orbit-first-overlay-seed-resolution-lane.md](./multi-orbit-first-overlay-seed-resolution-lane.md).
 Related scenario contract: see [../data-contracts/scenario.md](../data-contracts/scenario.md).
 Related physical-input contract: see [../data-contracts/physical-input.md](../data-contracts/physical-input.md).
 Upstream research authority: see
@@ -16,6 +22,15 @@ Related prep bridge: see
 [../../../itri/multi-orbit/prep/endpoint-overlay-seed-draft.md](../../../itri/multi-orbit/prep/endpoint-overlay-seed-draft.md),
 and
 [../../../itri/multi-orbit/prep/seeds/oneweb-intelsat-geo-aviation.seed.json](../../../itri/multi-orbit/prep/seeds/oneweb-intelsat-geo-aviation.seed.json).
+
+## Status
+
+- Closed pre-contract gate reference
+- Historical/provenance reference only
+- Not live continuation authority for this lane
+- Live continuation authority remains
+  `multi-orbit-first-overlay-seed-resolution-lane.md`
+- Does not reopen contract work or implementation work
 
 ## Purpose
 
