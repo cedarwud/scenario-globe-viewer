@@ -48,6 +48,17 @@ export type {
   StaticBoundedMetricCalibrationState
 } from "./static-bounded-metric-profile";
 export {
+  FIRST_INTAKE_PATH_PROJECTION_CANDIDATE_IDS,
+  adaptFirstIntakeSeedToCandidatePhysicalInputs,
+  adaptFirstIntakeSeedToPhysicalInputSourceEntry,
+  adaptFirstIntakeSeedToPhysicalInputWindows
+} from "./path-projection-adapter";
+export type {
+  FirstIntakePathProjectionCandidateId,
+  FirstIntakePathProjectionCandidatePath,
+  FirstIntakePathProjectionSeed
+} from "./path-projection-adapter";
+export {
   createPhysicalInputPanelViewModel
 } from "./physical-input-view-model";
 export type { PhysicalInputPanelViewModel } from "./physical-input-view-model";
