@@ -9,6 +9,14 @@ const overlaySeedsPath = new URL(
   "../src/features/overlays/overlay-seeds.ts",
   import.meta.url
 );
+const firstIntakeOverlaySeedsPath = new URL(
+  "../src/features/overlays/first-intake-overlay-seeds.ts",
+  import.meta.url
+);
+const overlaySeedResolutionPath = new URL(
+  "../src/features/overlays/overlay-seed-resolution.ts",
+  import.meta.url
+);
 const overlayIndexPath = new URL(
   "../src/features/overlays/index.ts",
   import.meta.url
@@ -29,8 +37,15 @@ const tempModuleDir = await mkdtemp(join(tmpdir(), "sgv-overlay-seeds-"));
 try {
   await mkdir(join(tempModuleDir, "features/overlays"), { recursive: true });
 
-  const [overlaySeedsSource, overlayIndexSource] = await Promise.all([
+  const [
+    overlaySeedsSource,
+    firstIntakeOverlaySeedsSource,
+    overlaySeedResolutionSource,
+    overlayIndexSource
+  ] = await Promise.all([
     readFile(overlaySeedsPath, "utf8"),
+    readFile(firstIntakeOverlaySeedsPath, "utf8"),
+    readFile(overlaySeedResolutionPath, "utf8"),
     readFile(overlayIndexPath, "utf8")
   ]);
 
@@ -104,6 +119,20 @@ try {
     writeFile(
       join(tempModuleDir, "features/overlays/overlay-seeds"),
       transpileTypeScript(overlaySeedsSource, "features/overlays/overlay-seeds.ts")
+    ),
+    writeFile(
+      join(tempModuleDir, "features/overlays/first-intake-overlay-seeds"),
+      transpileTypeScript(
+        firstIntakeOverlaySeedsSource,
+        "features/overlays/first-intake-overlay-seeds.ts"
+      )
+    ),
+    writeFile(
+      join(tempModuleDir, "features/overlays/overlay-seed-resolution"),
+      transpileTypeScript(
+        overlaySeedResolutionSource,
+        "features/overlays/overlay-seed-resolution.ts"
+      )
     ),
     writeFile(
       join(tempModuleDir, "features/overlays/index"),
