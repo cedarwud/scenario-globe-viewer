@@ -18,6 +18,15 @@ export {
   isScenarioKindCompatibleWithClockMode,
   resolveScenarioClockMode
 } from "./scenario";
+export type {
+  FirstIntakeScenarioSeed,
+  ScenarioSeedRecommendedMode
+} from "./scenario-seed-adapter";
+export {
+  adaptFirstIntakeScenarioSeedToDefinition,
+  FIRST_INTAKE_ENDPOINT_OVERLAY_PROFILE_ID,
+  FIRST_INTAKE_INFRASTRUCTURE_OVERLAY_PROFILE_ID
+} from "./scenario-seed-adapter";
 export {
   createScenarioUnloadPlan,
   createScenarioSwitchPlan,
