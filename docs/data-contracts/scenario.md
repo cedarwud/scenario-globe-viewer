@@ -21,7 +21,7 @@ but it does not yet have a single repo-owned surface that answers:
 - how scenario switching coordinates preset, time, overlay, site-dataset, and
   later validation-mode state
 
-## Planned Public Shape
+## Current Public Shape
 
 Current public source of truth: `src/features/scenario/scenario.ts`,
 `src/features/scenario/resolve-scenario-inputs.ts`, and
@@ -64,6 +64,15 @@ interface ScenarioDefinition {
   kind: ScenarioKind;
   presentation: ScenarioPresentationRef;
   time: ScenarioTimeDefinition;
+  // First multi-orbit intake widens scenario only with a narrow optional
+  // metadata block that stays parallel to `presentation`, `time`, and
+  // `sources`.
+  context?: {
+    vertical?: string;
+    truthBoundaryLabel?: "real-pairing-bounded-runtime-projection";
+    endpointProfileId?: string;
+    infrastructureProfileId?: string;
+  };
   sources: {
     satellite?: ScenarioSatelliteSourceRef;
     siteDataset?: ScenarioSiteDatasetRef;
@@ -95,9 +104,12 @@ interface ScenarioValidationRef {
 }
 ```
 
-This shape is intentionally narrow and still planning-stage. The purpose of this
-document is to lock the boundary, not to overcommit to field names that future
-implementation evidence may need to tighten.
+This shape is intentionally narrow. The first accepted multi-orbit intake now
+lands the optional top-level `context` block. That block accepts only
+`vertical`, `truthBoundaryLabel`, `endpointProfileId`, and
+`infrastructureProfileId`, rejects unknown keys during
+scenario-definition validation, and rejects any `truthBoundaryLabel` other than
+`real-pairing-bounded-runtime-projection`.
 
 ## First Source Taxonomy
 

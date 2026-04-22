@@ -1,4 +1,7 @@
-import type { ScenarioDefinition } from "./scenario";
+import {
+  assertScenarioDefinitionContext,
+  type ScenarioDefinition
+} from "./scenario";
 import {
   createScenarioSwitchPlan,
   createScenarioUnloadPlan,
@@ -66,6 +69,7 @@ export function createScenarioFacade(
   const scenarioIds: string[] = [];
 
   for (const definition of definitions) {
+    assertScenarioDefinitionContext(definition);
     if (definitionsById.has(definition.id)) {
       throw new Error(`Duplicate scenario id: ${definition.id}`);
     }

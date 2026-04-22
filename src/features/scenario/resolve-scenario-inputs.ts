@@ -1,5 +1,7 @@
 import type { ClockMode } from "../time";
 import {
+  assertScenarioDefinitionContext,
+  type ScenarioContextRef,
   type ScenarioDefinition,
   type ScenarioKind,
   type ScenarioPresentationRef,
@@ -22,6 +24,7 @@ export interface ScenarioResolvedInputs {
   scenarioKind: ScenarioKind;
   presentation: ScenarioPresentationRef;
   time: ScenarioResolvedTimeInput;
+  context?: ScenarioContextRef;
   satellite?: ScenarioSatelliteSourceRef;
   siteDataset?: ScenarioSiteDatasetRef;
   validation?: ScenarioValidationRef;
@@ -73,6 +76,28 @@ function cloneScenarioPresentationRef(
   return {
     presetKey: presentation.presetKey
   };
+}
+
+function cloneScenarioContextRef(context: ScenarioContextRef): ScenarioContextRef {
+  const clone: ScenarioContextRef = {};
+
+  if (context.vertical !== undefined) {
+    clone.vertical = context.vertical;
+  }
+
+  if (context.truthBoundaryLabel !== undefined) {
+    clone.truthBoundaryLabel = context.truthBoundaryLabel;
+  }
+
+  if (context.endpointProfileId !== undefined) {
+    clone.endpointProfileId = context.endpointProfileId;
+  }
+
+  if (context.infrastructureProfileId !== undefined) {
+    clone.infrastructureProfileId = context.infrastructureProfileId;
+  }
+
+  return clone;
 }
 
 function cloneScenarioSatelliteSource(
@@ -228,6 +253,11 @@ export function resolveScenarioValidationRef(
 export function resolveScenarioInputs(
   definition: ScenarioDefinition
 ): ScenarioResolvedInputs {
+  assertScenarioDefinitionContext(definition);
+
+  const context = definition.context
+    ? cloneScenarioContextRef(definition.context)
+    : undefined;
   const satellite = resolveScenarioSatelliteSource(definition);
   const siteDataset = resolveScenarioSiteDatasetRef(definition);
   const validation = resolveScenarioValidationRef(definition);
@@ -237,6 +267,7 @@ export function resolveScenarioInputs(
     scenarioKind: definition.kind,
     presentation: resolveScenarioPresentationRef(definition),
     time: resolveScenarioTimeInput(definition),
+    ...(context ? { context } : {}),
     ...(satellite ? { satellite } : {}),
     ...(siteDataset ? { siteDataset } : {}),
     ...(validation ? { validation } : {})

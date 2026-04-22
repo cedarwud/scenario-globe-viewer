@@ -1,4 +1,5 @@
 export type {
+  ScenarioContextRef,
   ScenarioDefinition,
   ScenarioKind,
   ScenarioPresentationRef,
@@ -7,6 +8,7 @@ export type {
   ScenarioSiteDatasetRef,
   ScenarioTimeDefinition,
   ScenarioTimeRange,
+  ScenarioTruthBoundaryLabel,
   ScenarioValidationRef
 } from "./scenario";
 

@@ -206,9 +206,26 @@ const { createBootstrapScenarioSession } = await import(
 const { createBootstrapScenarioDefinition } = await import(
   pathToFileURL(join(tempModuleDir, "runtime/resolve-bootstrap-scenario")).href
 );
+const { assertScenarioDefinitionContext } = await import(
+  pathToFileURL(join(tempModuleDir, "scenario")).href
+);
 const { SCENE_PRESET_RUNTIME_CALLS } = await import(
   pathToFileURL(join(tempModuleDir, "features/globe/scene-preset-runtime")).href
 );
+
+const requiredScenarioShapeSnippets = [
+  "export type ScenarioTruthBoundaryLabel",
+  "export interface ScenarioContextRef {",
+  "context?: ScenarioContextRef;",
+  "export function assertScenarioDefinitionContext("
+];
+
+for (const snippet of requiredScenarioShapeSnippets) {
+  assert(
+    scenarioShapeSource.includes(snippet),
+    `Missing required scenario shape snippet: ${snippet}`
+  );
+}
 
 const requiredScenarioModuleSnippets = [
   "export interface ScenarioResolvedInputs {",
@@ -356,11 +373,13 @@ for (const snippetGroup of requiredResolveBootstrapScenarioSnippetGroups) {
 }
 
 const requiredScenarioIndexSnippets = [
+  "ScenarioContextRef",
   "ScenarioResolvedInputs",
   "ScenarioSwitchPlan",
   "ScenarioSwitchPlanStep",
   "ScenarioUnloadPlan",
   "ScenarioUnloadPlanStep",
+  "ScenarioTruthBoundaryLabel",
   "ScenarioFacade",
   "ScenarioFacadeState",
   "ScenarioSelectionResult",
@@ -524,12 +543,38 @@ const validationScenario = {
   }
 };
 
+const multiOrbitScenario = {
+  id: "multi-orbit-oneweb-intelsat-aviation",
+  label: "OneWeb + Intelsat GEO Aviation",
+  kind: "prerecorded",
+  presentation: {
+    presetKey: "global"
+  },
+  time: {
+    mode: "prerecorded"
+  },
+  context: {
+    vertical: "commercial_aviation",
+    truthBoundaryLabel: "real-pairing-bounded-runtime-projection",
+    endpointProfileId: "aviation-endpoint-overlay-profile",
+    infrastructureProfileId: "oneweb-gateway-pool-profile"
+  },
+  sources: {}
+};
+
 const livePresentation = resolveScenarioPresentationRef(liveScenario);
 assert.deepEqual(livePresentation, { presetKey: "global" });
 assert.notStrictEqual(livePresentation, liveScenario.presentation);
 
 const liveTimeInput = resolveScenarioTimeInput(liveScenario);
 assert.deepEqual(liveTimeInput, { mode: "real-time" });
+
+const liveInputs = resolveScenarioInputs(liveScenario);
+assert.equal(
+  Object.hasOwn(liveInputs, "context"),
+  false,
+  "Scenario inputs should omit context when the definition does not provide it."
+);
 
 const liveSatelliteSource = resolveScenarioSatelliteSource(liveScenario);
 assert.deepEqual(liveSatelliteSource, {
@@ -583,6 +628,20 @@ assert.deepEqual(validationInputs, {
   }
 });
 
+assert.doesNotThrow(
+  () => assertScenarioDefinitionContext(multiOrbitScenario),
+  "Scenario context validation should accept the first narrow multi-orbit context shape."
+);
+
+const multiOrbitInputs = resolveScenarioInputs(multiOrbitScenario);
+assert.deepEqual(multiOrbitInputs.context, {
+  vertical: "commercial_aviation",
+  truthBoundaryLabel: "real-pairing-bounded-runtime-projection",
+  endpointProfileId: "aviation-endpoint-overlay-profile",
+  infrastructureProfileId: "oneweb-gateway-pool-profile"
+});
+assert.notStrictEqual(multiOrbitInputs.context, multiOrbitScenario.context);
+
 assert.throws(
   () =>
     resolveScenarioTimeInput({
@@ -599,6 +658,56 @@ assert.throws(
     }),
   /must agree with time\.mode/u,
   "Confirmed time-family scenario kinds must agree with time.mode."
+);
+
+const invalidTruthBoundaryScenario = {
+  ...multiOrbitScenario,
+  id: "multi-orbit-invalid-truth-boundary",
+  context: {
+    ...multiOrbitScenario.context,
+    truthBoundaryLabel: "open-string-not-allowed"
+  }
+};
+
+assert.throws(
+  () => assertScenarioDefinitionContext(invalidTruthBoundaryScenario),
+  /context\.truthBoundaryLabel must be real-pairing-bounded-runtime-projection/u,
+  "Scenario context validation must keep truthBoundaryLabel closed to the accepted single value."
+);
+assert.throws(
+  () => resolveScenarioInputs(invalidTruthBoundaryScenario),
+  /context\.truthBoundaryLabel must be real-pairing-bounded-runtime-projection/u,
+  "Scenario input resolution must reject invalid truthBoundaryLabel values."
+);
+assert.throws(
+  () => createScenarioFacade([invalidTruthBoundaryScenario]),
+  /context\.truthBoundaryLabel must be real-pairing-bounded-runtime-projection/u,
+  "Scenario facade should fail fast on invalid context truth-boundary values."
+);
+
+const invalidExtraContextKeyScenario = {
+  ...multiOrbitScenario,
+  id: "multi-orbit-invalid-extra-context-key",
+  context: {
+    ...multiOrbitScenario.context,
+    extraField: "not-allowed"
+  }
+};
+
+assert.throws(
+  () => assertScenarioDefinitionContext(invalidExtraContextKeyScenario),
+  /context must not include unsupported keys: extraField/u,
+  "Scenario context validation must reject unknown context keys."
+);
+assert.throws(
+  () => resolveScenarioInputs(invalidExtraContextKeyScenario),
+  /context must not include unsupported keys: extraField/u,
+  "Scenario input resolution must reject unknown context keys."
+);
+assert.throws(
+  () => createScenarioFacade([invalidExtraContextKeyScenario]),
+  /context must not include unsupported keys: extraField/u,
+  "Scenario facade should fail fast on unknown context keys."
 );
 
 const firstLoadPlan = createScenarioSwitchPlan(undefined, liveScenario);
