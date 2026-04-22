@@ -45,6 +45,18 @@ const scenarioIndexPath = new URL(
   "../src/features/scenario/index.ts",
   import.meta.url
 );
+const overlaySeedsPath = new URL(
+  "../src/features/overlays/overlay-seeds.ts",
+  import.meta.url
+);
+const firstIntakeOverlaySeedsPath = new URL(
+  "../src/features/overlays/first-intake-overlay-seeds.ts",
+  import.meta.url
+);
+const overlaySeedResolutionPath = new URL(
+  "../src/features/overlays/overlay-seed-resolution.ts",
+  import.meta.url
+);
 const mainPath = new URL("../src/main.ts", import.meta.url);
 const bootstrapCompositionPath = new URL(
   "../src/runtime/bootstrap/composition.ts",
@@ -59,6 +71,12 @@ function transpileTypeScript(source, fileName) {
     },
     fileName
   }).outputText;
+}
+
+function normalizeScenarioModuleSource(source) {
+  return source
+    .replace("../overlays/overlay-seed-resolution", "./overlay-seed-resolution")
+    .replace("../overlays/overlay-seeds", "./overlay-seeds");
 }
 
 const tempModuleDir = await mkdtemp(join(tmpdir(), "sgv-phase6.1-"));
@@ -79,6 +97,9 @@ const [
   scenarioBootstrapSessionSource,
   resolveBootstrapScenarioSource,
   scenarioIndexSource,
+  overlaySeedsSource,
+  firstIntakeOverlaySeedsSource,
+  overlaySeedResolutionSource,
   mainSource,
   bootstrapCompositionSource
 ] = await Promise.all([
@@ -92,6 +113,9 @@ const [
   readFile(scenarioBootstrapSessionPath, "utf8"),
   readFile(resolveBootstrapScenarioPath, "utf8"),
   readFile(scenarioIndexPath, "utf8"),
+  readFile(overlaySeedsPath, "utf8"),
+  readFile(firstIntakeOverlaySeedsPath, "utf8"),
+  readFile(overlaySeedResolutionPath, "utf8"),
   readFile(mainPath, "utf8"),
   readFile(bootstrapCompositionPath, "utf8")
 ]);
@@ -103,7 +127,28 @@ await Promise.all([
   ),
   writeFile(
     join(tempModuleDir, "resolve-scenario-inputs"),
-    transpileTypeScript(scenarioModuleSource, "resolve-scenario-inputs.ts")
+    transpileTypeScript(
+      normalizeScenarioModuleSource(scenarioModuleSource),
+      "resolve-scenario-inputs.ts"
+    )
+  ),
+  writeFile(
+    join(tempModuleDir, "overlay-seeds"),
+    transpileTypeScript(overlaySeedsSource, "overlay-seeds.ts")
+  ),
+  writeFile(
+    join(tempModuleDir, "first-intake-overlay-seeds"),
+    transpileTypeScript(
+      firstIntakeOverlaySeedsSource,
+      "first-intake-overlay-seeds.ts"
+    )
+  ),
+  writeFile(
+    join(tempModuleDir, "overlay-seed-resolution"),
+    transpileTypeScript(
+      overlaySeedResolutionSource,
+      "overlay-seed-resolution.ts"
+    )
   ),
   writeFile(
     join(tempModuleDir, "scenario-facade"),
@@ -209,6 +254,10 @@ const { createBootstrapScenarioDefinition } = await import(
 const { assertScenarioDefinitionContext } = await import(
   pathToFileURL(join(tempModuleDir, "scenario")).href
 );
+const {
+  FIRST_INTAKE_ENDPOINT_OVERLAY_SEEDS,
+  FIRST_INTAKE_INFRASTRUCTURE_OVERLAY_SEEDS
+} = await import(pathToFileURL(join(tempModuleDir, "first-intake-overlay-seeds")).href);
 const { SCENE_PRESET_RUNTIME_CALLS } = await import(
   pathToFileURL(join(tempModuleDir, "features/globe/scene-preset-runtime")).href
 );
@@ -228,7 +277,9 @@ for (const snippet of requiredScenarioShapeSnippets) {
 }
 
 const requiredScenarioModuleSnippets = [
+  "export interface ScenarioResolvedFirstIntakeOverlaySeeds {",
   "export interface ScenarioResolvedInputs {",
+  "resolvedFirstIntakeOverlaySeeds?: ScenarioResolvedFirstIntakeOverlaySeeds;",
   "export type ScenarioSwitchPlanStep =",
   "export interface ScenarioUnloadPlan {",
   'kind: "detach-satellite-source"',
@@ -242,6 +293,7 @@ const requiredScenarioModuleSnippets = [
   "export function resolveScenarioSiteDatasetRef(",
   "export function resolveScenarioValidationRef(",
   "export function resolveScenarioInputs(",
+  "resolveFirstIntakeOverlaySeeds(",
   "export function createScenarioSwitchPlan("
 ];
 
@@ -374,6 +426,7 @@ for (const snippetGroup of requiredResolveBootstrapScenarioSnippetGroups) {
 
 const requiredScenarioIndexSnippets = [
   "ScenarioContextRef",
+  "ScenarioResolvedFirstIntakeOverlaySeeds",
   "ScenarioResolvedInputs",
   "ScenarioSwitchPlan",
   "ScenarioSwitchPlanStep",
@@ -425,6 +478,14 @@ const forbiddenScenarioPatterns = [
   {
     pattern: /\bJulianDate\b/,
     message: "Scenario coordination module must not mention JulianDate."
+  },
+  {
+    pattern: /\bOverlayManager\b/,
+    message: "Scenario coordination module must not widen overlay-manager ownership."
+  },
+  {
+    pattern: /\bHandoverDecision\b/,
+    message: "Scenario coordination module must not widen handover ownership."
   },
   {
     pattern: /applyScenePreset/,
@@ -562,6 +623,15 @@ const multiOrbitScenario = {
   sources: {}
 };
 
+const multiOrbitMetadataOnlyScenario = {
+  ...multiOrbitScenario,
+  id: "multi-orbit-metadata-only",
+  context: {
+    vertical: "commercial_aviation",
+    truthBoundaryLabel: "real-pairing-bounded-runtime-projection"
+  }
+};
+
 const livePresentation = resolveScenarioPresentationRef(liveScenario);
 assert.deepEqual(livePresentation, { presetKey: "global" });
 assert.notStrictEqual(livePresentation, liveScenario.presentation);
@@ -574,6 +644,11 @@ assert.equal(
   Object.hasOwn(liveInputs, "context"),
   false,
   "Scenario inputs should omit context when the definition does not provide it."
+);
+assert.equal(
+  Object.hasOwn(liveInputs, "resolvedFirstIntakeOverlaySeeds"),
+  false,
+  "Non-first-intake scenarios must keep their existing plain-data shape."
 );
 
 const liveSatelliteSource = resolveScenarioSatelliteSource(liveScenario);
@@ -641,6 +716,89 @@ assert.deepEqual(multiOrbitInputs.context, {
   infrastructureProfileId: "oneweb-gateway-pool-profile"
 });
 assert.notStrictEqual(multiOrbitInputs.context, multiOrbitScenario.context);
+assert.deepEqual(multiOrbitInputs.resolvedFirstIntakeOverlaySeeds, {
+  resolvedEndpointSeed: FIRST_INTAKE_ENDPOINT_OVERLAY_SEEDS[0],
+  resolvedInfrastructureSeed: FIRST_INTAKE_INFRASTRUCTURE_OVERLAY_SEEDS[0]
+});
+assert.notStrictEqual(
+  multiOrbitInputs.resolvedFirstIntakeOverlaySeeds.resolvedEndpointSeed,
+  FIRST_INTAKE_ENDPOINT_OVERLAY_SEEDS[0],
+  "Scenario-side first-intake output should clone the resolved endpoint bundle."
+);
+assert.notStrictEqual(
+  multiOrbitInputs.resolvedFirstIntakeOverlaySeeds.resolvedInfrastructureSeed,
+  FIRST_INTAKE_INFRASTRUCTURE_OVERLAY_SEEDS[0],
+  "Scenario-side first-intake output should clone the resolved infrastructure bundle."
+);
+
+const multiOrbitMetadataOnlyInputs = resolveScenarioInputs(
+  multiOrbitMetadataOnlyScenario
+);
+assert.deepEqual(multiOrbitMetadataOnlyInputs.context, {
+  vertical: "commercial_aviation",
+  truthBoundaryLabel: "real-pairing-bounded-runtime-projection"
+});
+assert.equal(
+  Object.hasOwn(multiOrbitMetadataOnlyInputs, "resolvedFirstIntakeOverlaySeeds"),
+  false,
+  "Scenarios without first-intake profile IDs must stay on the existing plain-data path."
+);
+
+assert.throws(
+  () =>
+    resolveScenarioInputs({
+      ...multiOrbitScenario,
+      id: "multi-orbit-missing-infrastructure-profile",
+      context: {
+        ...multiOrbitScenario.context,
+        infrastructureProfileId: undefined
+      }
+    }),
+  /Missing infrastructureProfileId/u,
+  "Scenario-side first-intake consumption must propagate missing profileId errors."
+);
+
+assert.throws(
+  () =>
+    resolveScenarioInputs({
+      ...multiOrbitScenario,
+      id: "multi-orbit-unsupported-endpoint-profile",
+      context: {
+        ...multiOrbitScenario.context,
+        endpointProfileId: "unsupported-endpoint-profile"
+      }
+    }),
+  /Unsupported endpointProfileId/u,
+  "Scenario-side first-intake consumption must propagate unsupported profileId errors."
+);
+
+FIRST_INTAKE_ENDPOINT_OVERLAY_SEEDS.push({
+  ...FIRST_INTAKE_ENDPOINT_OVERLAY_SEEDS[0]
+});
+
+try {
+  assert.throws(
+    () => resolveScenarioInputs(multiOrbitScenario),
+    /Duplicate endpointProfileId/u,
+    "Scenario-side first-intake consumption must propagate duplicate endpoint profileId errors."
+  );
+} finally {
+  FIRST_INTAKE_ENDPOINT_OVERLAY_SEEDS.pop();
+}
+
+FIRST_INTAKE_INFRASTRUCTURE_OVERLAY_SEEDS.push({
+  ...FIRST_INTAKE_INFRASTRUCTURE_OVERLAY_SEEDS[0]
+});
+
+try {
+  assert.throws(
+    () => resolveScenarioInputs(multiOrbitScenario),
+    /Duplicate infrastructureProfileId/u,
+    "Scenario-side first-intake consumption must propagate duplicate infrastructure profileId errors."
+  );
+} finally {
+  FIRST_INTAKE_INFRASTRUCTURE_OVERLAY_SEEDS.pop();
+}
 
 assert.throws(
   () =>

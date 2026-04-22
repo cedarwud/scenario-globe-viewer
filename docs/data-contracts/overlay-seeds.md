@@ -16,6 +16,8 @@ This contract exists so:
 ## Current Public Source Of Truth
 
 - `src/features/overlays/overlay-seeds.ts`
+- `src/features/overlays/first-intake-overlay-seeds.ts`
+- `src/features/overlays/overlay-seed-resolution.ts`
 - `src/features/overlays/index.ts`
 
 ## Current Public Shape
@@ -75,6 +77,9 @@ interface InfrastructureOverlayNode {
 - `provider-managed-anchor` endpoints may omit `coordinates`
 - infrastructure stays a profile-owned node pool and must not imply active
   gateway assignment
+- first-intake asset resolution consumes only `endpointProfileId` /
+  `infrastructureProfileId`, applies exact profile-id match only, and raises
+  explicit missing, unsupported, and duplicate `profileId` errors
 - both seeds stay serializable plain-data only and must not expose Cesium
   runtime classes, adapter instances, or HUD/render handles
 

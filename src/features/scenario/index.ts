@@ -38,6 +38,7 @@ export {
   resolveScenarioValidationRef
 } from "./resolve-scenario-inputs";
 export type {
+  ScenarioResolvedFirstIntakeOverlaySeeds,
   ScenarioResolvedInputs,
   ScenarioResolvedTimeInput,
   ScenarioSwitchPlan,

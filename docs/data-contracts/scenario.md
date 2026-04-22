@@ -28,6 +28,9 @@ Current public source of truth: `src/features/scenario/scenario.ts`,
 `src/features/scenario/scenario-facade.ts`, plus
 `src/features/scenario/scenario-plan-runner.ts` and
 `src/features/scenario/scenario-session.ts`.
+The first scenario-side multi-orbit consumer also reuses the existing plain-
+data resolver in `src/features/overlays/overlay-seed-resolution.ts`; runtime,
+render, HUD, and overlay-manager ownership remain outside `scenario`.
 Those modules reuse the existing repo-local `ScenePresetKey`, `ClockMode`,
 `ClockTimestamp`, `SceneSite3DTilesSource`, and satellite fixture kinds instead
 of forking a second vocabulary for the same seams.
@@ -102,6 +105,14 @@ interface ScenarioValidationRef {
   mode: string;
   transport: string;
 }
+
+interface ScenarioResolvedInputs {
+  ...
+  resolvedFirstIntakeOverlaySeeds?: {
+    resolvedEndpointSeed: EndpointOverlaySeed;
+    resolvedInfrastructureSeed: InfrastructureOverlaySeed;
+  };
+}
 ```
 
 This shape is intentionally narrow. The first accepted multi-orbit intake now
@@ -113,7 +124,12 @@ scenario-definition validation, and rejects any `truthBoundaryLabel` other than
 separate repo-owned plain-data seeds documented in
 `docs/data-contracts/overlay-seeds.md` and implemented in
 `src/features/overlays/overlay-seeds.ts`; `scenario` still carries only the
-string references.
+string references. When `resolve-scenario-inputs` sees one or both first-
+intake profile-id fields, it calls the existing overlay-seed resolver and
+surfaces the plain-data result as `resolvedFirstIntakeOverlaySeeds`. When
+those profile IDs are absent, `scenario` keeps the existing plain-data behavior
+and does not force a first-intake resolution path. Missing, unsupported, and
+duplicate `profileId` failures remain explicit resolver errors.
 
 ## First Source Taxonomy
 

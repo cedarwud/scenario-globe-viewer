@@ -1,4 +1,9 @@
 import type { ClockMode } from "../time";
+import { resolveFirstIntakeOverlaySeeds } from "../overlays/overlay-seed-resolution";
+import type {
+  EndpointOverlaySeed,
+  InfrastructureOverlaySeed
+} from "../overlays/overlay-seeds";
 import {
   assertScenarioDefinitionContext,
   type ScenarioContextRef,
@@ -18,6 +23,11 @@ export interface ScenarioResolvedTimeInput {
   range?: ScenarioTimeRange;
 }
 
+export interface ScenarioResolvedFirstIntakeOverlaySeeds {
+  resolvedEndpointSeed: EndpointOverlaySeed;
+  resolvedInfrastructureSeed: InfrastructureOverlaySeed;
+}
+
 export interface ScenarioResolvedInputs {
   scenarioId: string;
   scenarioLabel: string;
@@ -25,6 +35,7 @@ export interface ScenarioResolvedInputs {
   presentation: ScenarioPresentationRef;
   time: ScenarioResolvedTimeInput;
   context?: ScenarioContextRef;
+  resolvedFirstIntakeOverlaySeeds?: ScenarioResolvedFirstIntakeOverlaySeeds;
   satellite?: ScenarioSatelliteSourceRef;
   siteDataset?: ScenarioSiteDatasetRef;
   validation?: ScenarioValidationRef;
@@ -98,6 +109,85 @@ function cloneScenarioContextRef(context: ScenarioContextRef): ScenarioContextRe
   }
 
   return clone;
+}
+
+function cloneEndpointOverlaySeed(
+  seed: EndpointOverlaySeed
+): EndpointOverlaySeed {
+  return {
+    profileId: seed.profileId,
+    endpoints: seed.endpoints.map((endpoint) => ({
+      endpointId: endpoint.endpointId,
+      role: endpoint.role,
+      entityType: endpoint.entityType,
+      positionMode: endpoint.positionMode,
+      mobilityKind: endpoint.mobilityKind,
+      renderClass: endpoint.renderClass,
+      ...(endpoint.coordinates
+        ? {
+            coordinates: {
+              lat: endpoint.coordinates.lat,
+              lon: endpoint.coordinates.lon,
+              precision: endpoint.coordinates.precision
+            }
+          }
+        : {}),
+      ...(endpoint.notes !== undefined ? { notes: endpoint.notes } : {})
+    }))
+  };
+}
+
+function cloneInfrastructureOverlaySeed(
+  seed: InfrastructureOverlaySeed
+): InfrastructureOverlaySeed {
+  return {
+    profileId: seed.profileId,
+    nodes: seed.nodes.map((node) => ({
+      nodeId: node.nodeId,
+      provider: node.provider,
+      nodeType: node.nodeType,
+      networkRoles: [...node.networkRoles],
+      lat: node.lat,
+      lon: node.lon,
+      precision: node.precision,
+      ...(node.sourceAuthority !== undefined
+        ? { sourceAuthority: node.sourceAuthority }
+        : {}),
+      ...(node.notes !== undefined ? { notes: node.notes } : {})
+    }))
+  };
+}
+
+function shouldResolveFirstIntakeOverlaySeeds(
+  context: ScenarioContextRef | undefined
+): boolean {
+  if (!context) {
+    return false;
+  }
+
+  return (
+    context.endpointProfileId !== undefined ||
+    context.infrastructureProfileId !== undefined
+  );
+}
+
+function resolveScenarioFirstIntakeOverlaySeeds(
+  context: ScenarioContextRef | undefined
+): ScenarioResolvedFirstIntakeOverlaySeeds | undefined {
+  if (!context || !shouldResolveFirstIntakeOverlaySeeds(context)) {
+    return undefined;
+  }
+
+  const resolution = resolveFirstIntakeOverlaySeeds(context);
+
+  return {
+    resolvedEndpointSeed: cloneEndpointOverlaySeed(
+      resolution.resolvedEndpointSeed
+    ),
+    resolvedInfrastructureSeed: cloneInfrastructureOverlaySeed(
+      resolution.resolvedInfrastructureSeed
+    )
+  };
 }
 
 function cloneScenarioSatelliteSource(
@@ -258,6 +348,8 @@ export function resolveScenarioInputs(
   const context = definition.context
     ? cloneScenarioContextRef(definition.context)
     : undefined;
+  const resolvedFirstIntakeOverlaySeeds =
+    resolveScenarioFirstIntakeOverlaySeeds(context);
   const satellite = resolveScenarioSatelliteSource(definition);
   const siteDataset = resolveScenarioSiteDatasetRef(definition);
   const validation = resolveScenarioValidationRef(definition);
@@ -268,6 +360,9 @@ export function resolveScenarioInputs(
     presentation: resolveScenarioPresentationRef(definition),
     time: resolveScenarioTimeInput(definition),
     ...(context ? { context } : {}),
+    ...(resolvedFirstIntakeOverlaySeeds
+      ? { resolvedFirstIntakeOverlaySeeds }
+      : {}),
     ...(satellite ? { satellite } : {}),
     ...(siteDataset ? { siteDataset } : {}),
     ...(validation ? { validation } : {})
