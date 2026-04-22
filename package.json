@@ -20,6 +20,7 @@
     "test:phase4.1": "node scripts/verify-phase4.1-walker-fixture-adapter.mjs",
     "test:phase5.1": "npm run build && node tests/smoke/bootstrap-loads-assets-and-workers.mjs --suite=overlay-toggle",
     "test:phase6.1": "node scripts/verify-phase6.1-scenario-coordination.mjs",
+    "test:phase6.1:overlay-seeds": "node scripts/verify-phase6.1-overlay-seed-contracts.mjs",
     "test:phase6.2": "npm run build && node scripts/verify-phase6.2-bootstrap-operator-controls.mjs && node tests/smoke/verify-phase6.2-bootstrap-operator-controls.mjs",
     "test:phase6.3": "npm run build && node scripts/verify-phase6.3-bootstrap-communication-time.mjs && node tests/smoke/verify-phase6.3-bootstrap-communication-time.mjs",
     "test:phase6.4": "npm run build && node scripts/verify-phase6.4-bootstrap-handover-decision.mjs && node tests/smoke/verify-phase6.4-bootstrap-handover-decision.mjs",

@@ -109,7 +109,11 @@ lands the optional top-level `context` block. That block accepts only
 `vertical`, `truthBoundaryLabel`, `endpointProfileId`, and
 `infrastructureProfileId`, rejects unknown keys during
 scenario-definition validation, and rejects any `truthBoundaryLabel` other than
-`real-pairing-bounded-runtime-projection`.
+`real-pairing-bounded-runtime-projection`. The two profile IDs now point at the
+separate repo-owned plain-data seeds documented in
+`docs/data-contracts/overlay-seeds.md` and implemented in
+`src/features/overlays/overlay-seeds.ts`; `scenario` still carries only the
+string references.
 
 ## First Source Taxonomy
 

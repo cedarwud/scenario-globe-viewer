@@ -44,6 +44,7 @@
 | `npm run test:phase4.1` | Verify the walker fixture adapter keeps TLE parsing, SGP4 propagation, frame conversion, and bounded orbit sampling inside the adapter seam while staying off the live runtime path |
 | `npm run test:phase5.1` | Build the repo, open the default runtime in a headless browser, and verify the default-off walker-backed overlay toggle path keeps points plus fixed labels while widening only into bounded Cesium polyline orbits on that same path without widening into per-satellite or overlay UI work |
 | `npm run test:phase6.1` | Verify the Phase 6.1 scenario coordination module resolves plain-data downstream inputs, emits a deterministic switch plan, and stays off the live runtime path |
+| `npm run test:phase6.1:overlay-seeds` | Verify the plain-data `EndpointOverlaySeed` / `InfrastructureOverlaySeed` seam stays keyed by `profileId`, allows the accepted coordinate-free endpoint states, and does not imply runtime/render ownership or active gateway assignment |
 | `npm run capture:phase2.12` | Reject `VITE_CESIUM_SITE_TILESET_URL` resolved from shell env or repo-local `.env*`, build the repo, and capture repo-owned global/regional/site baseline screenshots |
 | `npm run capture:phase5.3-orbits` | Reject `VITE_CESIUM_SITE_TILESET_URL` resolved from shell env or repo-local `.env*`, build the repo, enable the bounded orbit-widened overlay path on the global preset through the capture seam, and write the separate Phase 5.3 orbit review artifact |
 | `npm run capture:site-dataset` | Build with an explicit configured site-hook URL on the same sanitized baseline env, capture the separate dataset-enabled `site` artifact, and always restore a guarded clean baseline `dist/` rebuild afterward |
@@ -123,5 +124,5 @@ Cesium evidence, visual baseline capture rules, and the current repo-owned
 contract surfaces are documented in `docs/architecture.md`,
 `docs/delivery-phases.md`, `docs/deployment-profiles.md`,
 `docs/cesium-evidence.md`, `docs/visual-baselines.md`,
-`docs/data-contracts/{scene-preset,replay-clock,satellite-overlay,scenario,physical-input,document-telemetry,soak-evidence,phase7.1-validation-evidence}.md`, and
+`docs/data-contracts/{scene-preset,replay-clock,satellite-overlay,overlay-seeds,scenario,physical-input,document-telemetry,soak-evidence,phase7.1-validation-evidence}.md`, and
 `docs/sdd/{phase-6-plus-requirement-centered-plan,multi-orbit-contract-adoption-proposal,multi-orbit-first-intake-checklist,multi-orbit-first-intake-contract-sketch,phase-8-local-view-integration-plan,safe-structural-refactor-plan}.md`.
