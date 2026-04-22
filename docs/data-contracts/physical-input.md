@@ -70,6 +70,17 @@ The runtime bootstrap slice keeps an extra per-window `contextLabel`, but that
 is still downstream of the same repo-owned source entry and does not widen the
 core contract into presentation ownership.
 
+Multi-orbit planning consequence:
+
+- as long as `CandidatePhysicalInputs` keeps `antenna`, `rain`, and `itu` as
+  required families, any future first-round path-semantics widening must land
+  together with a repo-owned bounded profile or equivalent static source of
+  those families
+- path semantics alone are not enough to materialize a valid
+  `CandidatePhysicalInputs`
+- this prevents adapters from emitting hardcoded, provenance-free metric
+  literals just to satisfy the contract
+
 ## Projection Ownership
 
 Deterministic consumption path in the first slice is:

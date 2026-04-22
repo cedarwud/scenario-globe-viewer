@@ -124,4 +124,4 @@ contract surfaces are documented in `docs/architecture.md`,
 `docs/delivery-phases.md`, `docs/deployment-profiles.md`,
 `docs/cesium-evidence.md`, `docs/visual-baselines.md`,
 `docs/data-contracts/{scene-preset,replay-clock,satellite-overlay,scenario,physical-input,document-telemetry,soak-evidence,phase7.1-validation-evidence}.md`, and
-`docs/sdd/{phase-6-plus-requirement-centered-plan,phase-8-local-view-integration-plan,safe-structural-refactor-plan}.md`.
+`docs/sdd/{phase-6-plus-requirement-centered-plan,multi-orbit-contract-adoption-proposal,multi-orbit-first-intake-checklist,multi-orbit-first-intake-contract-sketch,phase-8-local-view-integration-plan,safe-structural-refactor-plan}.md`.

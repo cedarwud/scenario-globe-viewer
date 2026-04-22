@@ -16,7 +16,7 @@ Related roadmap: see [delivery-phases.md](./delivery-phases.md).
 Related evidence ledger: see [cesium-evidence.md](./cesium-evidence.md).
 Related deployment guidance: see [deployment-profiles.md](./deployment-profiles.md).
 Related contract docs: see [scene-preset.md](./data-contracts/scene-preset.md), [replay-clock.md](./data-contracts/replay-clock.md), [satellite-overlay.md](./data-contracts/satellite-overlay.md), [scenario.md](./data-contracts/scenario.md), [physical-input.md](./data-contracts/physical-input.md), [document-telemetry.md](./data-contracts/document-telemetry.md), [soak-evidence.md](./data-contracts/soak-evidence.md), and [phase7.1-validation-evidence.md](./data-contracts/phase7.1-validation-evidence.md).
-Related follow-on planning: see [phase-6-plus-requirement-centered-plan.md](./sdd/phase-6-plus-requirement-centered-plan.md), [phase-8-local-view-integration-plan.md](./sdd/phase-8-local-view-integration-plan.md), and [safe-structural-refactor-plan.md](./sdd/safe-structural-refactor-plan.md).
+Related follow-on planning: see [phase-6-plus-requirement-centered-plan.md](./sdd/phase-6-plus-requirement-centered-plan.md), [multi-orbit-contract-adoption-proposal.md](./sdd/multi-orbit-contract-adoption-proposal.md), [multi-orbit-first-intake-checklist.md](./sdd/multi-orbit-first-intake-checklist.md), [multi-orbit-first-intake-contract-sketch.md](./sdd/multi-orbit-first-intake-contract-sketch.md), [phase-8-local-view-integration-plan.md](./sdd/phase-8-local-view-integration-plan.md), and [safe-structural-refactor-plan.md](./sdd/safe-structural-refactor-plan.md). Related governance checkpoint: see [ADR 0009: Multi-Orbit First Intake Contract Ordering](./decisions/0009-multi-orbit-first-intake-contract-ordering.md).
 
 ## System Layers
 
