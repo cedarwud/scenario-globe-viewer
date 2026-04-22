@@ -12,6 +12,16 @@ export const PHYSICAL_INPUT_PROJECTION_TARGET =
 export type PhysicalInputFamily = "antenna" | "rain-attenuation" | "itu-style";
 export type PhysicalInputProvenanceKind = "bounded-proxy";
 export type PhysicalInputOrbitClass = "leo" | "meo" | "geo";
+export type PhysicalInputPathRole = "primary" | "secondary" | "contrast";
+export const PHYSICAL_INPUT_FIRST_VALIDATED_PATH_CONTROL_MODE =
+  "managed_service_switching";
+export type PathControlMode =
+  | typeof PHYSICAL_INPUT_FIRST_VALIDATED_PATH_CONTROL_MODE
+  | (string & {});
+export type InfrastructureSelectionMode =
+  | "provider-managed"
+  | "eligible-pool"
+  | "resolved-fixed-node";
 
 export interface PhysicalInputProvenance {
   family: PhysicalInputFamily;
@@ -43,6 +53,9 @@ export interface ItuStylePhysicalInputs {
 export interface CandidatePhysicalInputs {
   candidateId: string;
   orbitClass: PhysicalInputOrbitClass;
+  pathRole?: PhysicalInputPathRole;
+  pathControlMode?: PathControlMode;
+  infrastructureSelectionMode?: InfrastructureSelectionMode;
   antenna: AntennaPhysicalInputs;
   rain: RainPhysicalInputs;
   itu: ItuStylePhysicalInputs;
@@ -105,6 +118,9 @@ export interface PhysicalInputReport {
   candidates: ReadonlyArray<{
     candidateId: string;
     orbitClass: PhysicalInputOrbitClass;
+    pathRole?: PhysicalInputPathRole;
+    pathControlMode?: PathControlMode;
+    infrastructureSelectionMode?: InfrastructureSelectionMode;
     antenna: AntennaPhysicalInputs;
     rain: RainPhysicalInputs;
     itu: ItuStylePhysicalInputs;
@@ -248,6 +264,16 @@ function cloneCandidatePhysicalInputs(
   return {
     candidateId: candidate.candidateId,
     orbitClass: candidate.orbitClass,
+    ...(candidate.pathRole ? { pathRole: candidate.pathRole } : {}),
+    ...(candidate.pathControlMode
+      ? { pathControlMode: candidate.pathControlMode }
+      : {}),
+    ...(candidate.infrastructureSelectionMode
+      ? {
+          infrastructureSelectionMode:
+            candidate.infrastructureSelectionMode
+        }
+      : {}),
     antenna: cloneAntennaInputs(candidate.antenna),
     rain: cloneRainInputs(candidate.rain),
     itu: cloneItuInputs(candidate.itu),
@@ -285,6 +311,16 @@ function assertRatioWindow(window: PhysicalInputWindow): void {
   ) {
     throw new Error(
       `Physical-input window ratios must stay within [0, 1] and preserve ordering: ${JSON.stringify(window)}`
+    );
+  }
+}
+
+export function assertRepoOwnedPathControlMode(
+  value: PathControlMode
+): asserts value is typeof PHYSICAL_INPUT_FIRST_VALIDATED_PATH_CONTROL_MODE {
+  if (value !== PHYSICAL_INPUT_FIRST_VALIDATED_PATH_CONTROL_MODE) {
+    throw new Error(
+      "Physical-input currently validates only the repo-owned pathControlMode managed_service_switching."
     );
   }
 }
@@ -562,6 +598,16 @@ export function createPhysicalInputState({
         return {
           candidateId: candidate.candidateId,
           orbitClass: candidate.orbitClass,
+          ...(candidate.pathRole ? { pathRole: candidate.pathRole } : {}),
+          ...(candidate.pathControlMode
+            ? { pathControlMode: candidate.pathControlMode }
+            : {}),
+          ...(candidate.infrastructureSelectionMode
+            ? {
+                infrastructureSelectionMode:
+                  candidate.infrastructureSelectionMode
+              }
+            : {}),
           antenna: cloneAntennaInputs(candidate.antenna),
           rain: cloneRainInputs(candidate.rain),
           itu: cloneItuInputs(candidate.itu),

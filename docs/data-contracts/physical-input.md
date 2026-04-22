@@ -19,10 +19,12 @@ decision layer 可消費的 candidate metrics。
 ## Current Public Source Of Truth
 
 - `src/features/physical-input/physical-input.ts`
+- `src/features/physical-input/static-bounded-metric-profile.ts`
 - `src/features/physical-input/physical-input-view-model.ts`
 - `src/features/physical-input/bootstrap-physical-input-panel.ts`
 - `src/runtime/bootstrap-physical-input-source.ts`
 - `src/runtime/bootstrap-physical-input-controller.ts`
+- `scripts/verify-phase6.5-physical-input-contract-widening.mjs`
 
 ## First-Slice Public Shape
 
@@ -43,6 +45,12 @@ interface PhysicalInputProvenance {
 interface CandidatePhysicalInputs {
   candidateId: string;
   orbitClass: "leo" | "meo" | "geo";
+  pathRole?: "primary" | "secondary" | "contrast";
+  pathControlMode?: "managed_service_switching" | (string & {});
+  infrastructureSelectionMode?:
+    | "provider-managed"
+    | "eligible-pool"
+    | "resolved-fixed-node";
   antenna: AntennaPhysicalInputs;
   rain: RainPhysicalInputs;
   itu: ItuStylePhysicalInputs;
@@ -69,6 +77,33 @@ interface PhysicalInputSourceEntry {
 The runtime bootstrap slice keeps an extra per-window `contextLabel`, but that
 is still downstream of the same repo-owned source entry and does not widen the
 core contract into presentation ownership.
+
+## First Intake Static Bounded Metric Profile
+
+The first repo-owned static bounded metric profile now lives at:
+
+- `src/features/physical-input/static-bounded-metric-profile.ts`
+
+This profile is intentionally narrow:
+
+- first-intake-only for `app-oneweb-intelsat-geo-aviation`
+- bounded-proxy only
+- explicitly `non-calibrated`
+- explicitly not measurement truth
+- limited to `oneweb-leo-service-path` and `intelsat-geo-service-path`
+
+The first repo-owned validated `pathControlMode` is still only:
+
+- `managed_service_switching`
+
+That means:
+
+- the widened `PathControlMode` type stays open-ended for later accepted intake
+  work
+- the current repo-owned static profile rejects later values until a later slice
+  explicitly widens validation
+- this slice does not imply `handover-decision`, runtime bootstrap controller,
+  adapter, render, HUD, or trajectory widening
 
 Multi-orbit planning consequence:
 

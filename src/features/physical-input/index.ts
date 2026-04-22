@@ -1,8 +1,10 @@
 export {
   PHYSICAL_INPUT_BOUNDARY_DETAIL,
   PHYSICAL_INPUT_BOUNDARY_NOTE,
+  PHYSICAL_INPUT_FIRST_VALIDATED_PATH_CONTROL_MODE,
   PHYSICAL_INPUT_PROJECTION_TARGET,
   PHYSICAL_INPUT_REPORT_SCHEMA_VERSION,
+  assertRepoOwnedPathControlMode,
   createPhysicalInputSourceCatalog,
   createPhysicalInputState,
   formatPhysicalInputFamilyLabel,
@@ -17,10 +19,13 @@ export {
 export type {
   AntennaPhysicalInputs,
   CandidatePhysicalInputs,
+  InfrastructureSelectionMode,
   ItuStylePhysicalInputs,
+  PathControlMode,
   PhysicalInputActiveWindow,
   PhysicalInputFamily,
   PhysicalInputOrbitClass,
+  PhysicalInputPathRole,
   PhysicalInputProvenance,
   PhysicalInputProvenanceKind,
   PhysicalInputReport,
@@ -33,6 +38,15 @@ export type {
   ProjectedPhysicalDecisionMetrics,
   RainPhysicalInputs
 } from "./physical-input";
+export {
+  ONEWEB_INTELSAT_GEO_AVIATION_STATIC_BOUNDED_METRIC_PROFILE,
+  assertPhysicalInputStaticBoundedMetricProfile
+} from "./static-bounded-metric-profile";
+export type {
+  FirstIntakePhysicalInputCaseId,
+  PhysicalInputStaticBoundedMetricProfile,
+  StaticBoundedMetricCalibrationState
+} from "./static-bounded-metric-profile";
 export {
   createPhysicalInputPanelViewModel
 } from "./physical-input-view-model";
