@@ -18,6 +18,8 @@ Related authority:
 - Proposed detailed Phase 8 interpretation as of `2026-04-20`
 - Phase `7.0-7.1` closure is now established as of `2026-04-21`
 - Phase 6.7 accepted repo reality is treated as the seed bridge for this line
+- Refreshed on `2026-04-21` against the latest
+  `scenario-globe-handover-demo` authority docs and controller architecture
 
 ## Decision Summary
 
@@ -75,16 +77,21 @@ Practical implication:
 - UE-anchor interaction and Home reset
 - a local camera move without leaving the Cesium page
 - a readable three-proxy local sky band
-- beam/link/cone staging
+- a resident serving beam plus a phase-gated pending preview cue while the
+  context proxy remains unlinked
 - a strong visual grammar for local focus storytelling
+- a single-Viewer truth/presentation/shell separation direction inside the
+  local-focus controller rather than a second Viewer or separate page
 
 ### `scenario-globe-viewer` still lacks
 
 - any local-focus activation seam
 - any UE-anchor or site-pick lifecycle
 - any local camera choreography
-- any runtime-local proxy stage for serving/pending/context presentation
-- any local-focus-specific HUD surface
+- any single-Viewer local-focus truth/presentation/shell seam
+- any runtime-local proxy stage for serving/pending/context presentation under
+  the updated resident-serving / preview-pending grammar
+- any local-focus explainer projection that fits the existing operator surface
 - any reusable active-satellite sample bridge for downstream local ranking
 
 ## What Must Be Integrated
@@ -96,10 +103,12 @@ line:
 2. UE anchor selection on the globe
 3. local camera glide/fly behavior plus Home reset
 4. a readable three-proxy local sky band
-5. serving / pending / context beam and link staging
-6. a local-focus HUD surface that explains local state without replacing the
-   viewer's operator controls
-7. optional preset-site entry such as NTPU when it still improves repeatable QA
+5. the updated cue grammar:
+   resident serving beam, phase-gated pending preview cue, and unlinked context
+6. a single-Viewer truth/presentation/shell split for local-focus rendering
+7. local-focus explainer readouts that fit the existing operator HUD instead of
+   requiring a separate demo panel
+8. optional preset-site entry such as NTPU when it still improves repeatable QA
 
 ## What Must Not Be Ported As Authority
 
@@ -110,6 +119,8 @@ Phase 8 must not promote these demo-only surfaces into viewer authority:
 3. the demo's static local-density lookup as requirement-bearing truth
 4. the demo's hidden/optional panels as the viewer's primary operator surface
 5. the demo repo's roadmap language as `scenario-globe-viewer` phase authority
+6. any reading of the latest demo split as permission to introduce a second
+   Cesium `Viewer` or a separate local-view page in the viewer repo
 
 ## Boundary Lock
 
@@ -131,6 +142,7 @@ It does not own:
 - validation-stack implementation
 - satellite source ingestion or propagation ownership
 - Cesium shell ownership
+- a second-Viewer architecture
 
 ## Required New Seams
 
@@ -175,6 +187,9 @@ Purpose:
 
 - map imported `scene-starter` fields, handover-decision state, and active
   scenario metadata into one local-focus truth snapshot
+- establish the serving / pending / context state that presentation later
+  renders without letting shell wording or Cesium mutation become the source of
+  truth
 
 Priority order:
 
@@ -182,17 +197,23 @@ Priority order:
 2. handover-decision and validation/communication summaries
 3. active satellite sample bridge for ranking and placement
 
-### 4. local-focus stage runtime
+### 4. local-focus presentation and shell projection seam
 
 Purpose:
 
+- keep the viewer on one Cesium `Viewer` while separating:
+  - local-focus truth
+  - local-focus presentation derivation
+  - local-focus shell/explainer projection
+  - Cesium render application
 - own stage entities, camera choreography, stage attach/detach, and rendering
-  of proxies/links/cones/background cast
+  of proxies/beam cues/background cast
 
 Boundary:
 
 - runtime-local only
 - does not rewrite the Cesium shell or operator HUD ownership
+- does not justify a separate Viewer instance or separate local-view runtime
 
 ## High-Level Data Flow
 
@@ -200,11 +221,13 @@ Boundary:
 scenarioSession + replayClock + sceneStarter + handoverDecision
   + communicationTime + validationState + activeSatelliteSampleBridge
     -> localFocusTruthBridge
-      -> localFocusController
-        -> UE anchor lifecycle
-        -> camera choreography
-        -> proxy band / links / cones
-        -> local-focus HUD projection
+      -> localFocusPresentationBridge
+        -> localFocusShellProjection
+          -> localFocusController
+            -> UE anchor lifecycle
+            -> camera choreography
+            -> proxy band / beam cues
+            -> existing-operator-surface explainer projection
 ```
 
 ## Phase 8 Execution Stages
@@ -224,6 +247,7 @@ Create the plain-data local-focus boundary before any rendering work lands.
 - local-focus capability/eligibility by scenario
 - UE-anchor shape and lifecycle
 - local-focus truth-vs-presentation separation
+- one-Viewer truth / presentation / shell split for local-focus execution
 - runtime-local active-satellite sample bridge design
 - ownership notes between `scenario`, `scene-starter`, `handover-decision`,
   and `local-focus`
@@ -240,6 +264,7 @@ Create the plain-data local-focus boundary before any rendering work lands.
 - `docs/data-contracts/local-focus.md`
 - `src/features/local-focus/` plain-data state and view-model boundary
 - runtime-local sample-bridge interface and ownership note
+- runtime-local projection-seam note for truth -> presentation -> shell flow
 
 ### Acceptance Criteria
 
@@ -247,6 +272,8 @@ Create the plain-data local-focus boundary before any rendering work lands.
 - viewer-owned truth seams remain upstream of local focus
 - no Cesium runtime classes leak into the public contract
 - local-focus eligibility is explicit per scenario instead of implied by UI
+- the local-focus plan stays on one Viewer and does not assume a separate local
+  runtime page
 
 ## Phase 8.2
 
@@ -276,7 +303,8 @@ executable local-view seed inside `scenario-globe-viewer`.
 ### Acceptance Criteria
 
 - local focus can consume starter `displaySatIds`, `beamSatIds`,
-  `sceneServingSatId`, and `publishedServingSatId`
+  `sceneServingSatId`, `publishedServingSatId`, `focusMode`, and
+  `narrativePhase`
 - local focus remains explicitly downstream of starter semantics
 - viewer shell, replay, and scenario ownership stay local
 - failure to enter the scoped starter path is diagnosable through repo-owned
@@ -304,6 +332,7 @@ Bring the core interaction grammar into the viewer:
 - Home button reset
 - local-focus active/inactive lifecycle
 - camera glide/fly choreography
+- keep all of the above inside the existing Cesium `Viewer`
 - site-preset-first entry, then bounded fallback for non-dataset terrain-only
   local focus when later generalized
 
@@ -334,7 +363,9 @@ Land the readable local-view stage itself inside the viewer.
 
 - three primary proxies: serving / pending / context
 - elevated local sky band / corridor
-- beam links and cones
+- resident serving beam/link/cone
+- pending preview-only cue during `prepared` / `switching`
+- unlinked context proxy that still stays in the corridor narrative
 - HO/BH channel separation
 - optional bounded background cast
 - presentation-only local-density helper when still useful
@@ -350,6 +381,10 @@ Land the readable local-view stage itself inside the viewer.
 - the local stage is readable without depending on HUD visibility
 - proxy motion reads as one simultaneous upper-sky cast, not as disconnected
   pop-ins
+- the serving path stays resident while the pending cue reads as preparation
+  rather than as a second resident service path
+- the context proxy stays visible but unlinked unless a later accepted SDD
+  explicitly changes that rule
 - HO and BH remain visually distinguishable
 - any synthetic fallback remains labeled as presentation-only
 
@@ -385,6 +420,8 @@ demo path.
 ### Acceptance Criteria
 
 - local-focus HUD content is derived from viewer-owned semantics
+- local-focus readouts fit the existing operator surface instead of reviving the
+  demo's hidden left/right panel structure as viewer authority
 - the feature works beyond the initial starter-only pilot path
 - Phase 7.1 scenario/source closure is consumed rather than bypassed
 - the viewer still reads as one coherent repo-owned operator surface
@@ -432,8 +469,8 @@ This is the smoothest order:
    prove viewer-local consumption of truth/presentation semantics.
 3. `8.3` third, because interaction lifecycle and camera ownership must settle
    before the richer stage is layered on top.
-4. `8.4` fourth, because the proxy band and beam cues depend on the earlier
-   truth bridge plus entry lifecycle.
+4. `8.4` fourth, because the proxy band and updated serving/pending/context cue
+   grammar depend on the earlier truth bridge plus entry lifecycle.
 5. `8.5` fifth, because HUD integration and source generalization should happen
    only after the local stage exists.
 6. `8.6` last, because close-out evidence should test the landed shape rather
@@ -456,15 +493,19 @@ Phase 8 should add these repo-owned checks.
 
 ## Main Risks
 
-1. Phase 7.1 may still be open, which means Phase 8 can be well-planned but not
-   legitimately started yet.
+1. A later regression or reopened scope dispute could force Phase 8 work to
+   pause even though `7.0-7.1` is currently closed.
 2. The viewer currently lacks a reusable active-satellite sample bridge.
 3. The demo's synthetic vocabulary can easily leak upward unless the truth
    bridge order is enforced.
 4. Local-focus stage entities may interact badly with Cesium async loading and
    clock progression if lifecycle cleanup is sloppy.
-5. HUD sprawl can turn a clean operator surface into a mixed demo/operator
+5. Reintroducing the older "all three proxies stay fully linked" grammar would
+   drift away from the latest accepted demo semantics.
+6. HUD sprawl can turn a clean operator surface into a mixed demo/operator
    shell if placement is not controlled.
+7. A mistaken second-Viewer interpretation would create unnecessary runtime and
+   ownership complexity.
 
 ## Exit Statement
 

@@ -577,8 +577,10 @@ physical-input, validation-state, and accepted `6.7` scene-starter seams.
 
 - Viewer-local focus activation and camera choreography
 - Starter-export-aware local truth/presentation consumption
+- Single-Viewer local-focus truth / presentation / shell separation
 - More expressive local-sky storytelling
-- Richer downstream overlay semantics for local focus only
+- Updated local cue grammar: resident serving beam, pending preview cue, and
+  unlinked context proxy
 - Presentation-polish work that stays downstream of viewer-owned semantics
 
 ### Hard Guardrail
