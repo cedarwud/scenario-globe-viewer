@@ -14,9 +14,9 @@ Related first active-case narrative surface: see
 
 ## Status
 
-- Planning-only satcom-info SDD
-- No runtime implementation authority by itself
+- `M8A.4` implementation surface landed in repo-owned runtime code
 - Bounded to first-case-plus-nearby-second-endpoint only
+- Does not authorize any post-`M8A` expansion by itself
 
 ## Purpose
 
@@ -40,11 +40,11 @@ before it considers:
 
 ## Planned Runtime Surface
 
-The future runtime surface is planned as:
+The implemented runtime surface is:
 
 - `first-intake-nearby-second-endpoint-info`
 
-The future controller home is planned as:
+The controller home is:
 
 - `src/runtime/first-intake-nearby-second-endpoint-info-controller.ts`
 
@@ -58,6 +58,15 @@ It must not side-read:
 - raw endpoint package files
 - raw corridor package files
 - external research JSON at runtime
+
+Runtime proof:
+
+- capture:
+  `window.__SCENARIO_GLOBE_VIEWER_CAPTURE__.firstIntakeNearbySecondEndpointInfo`
+- document telemetry namespace:
+  `firstIntakeNearbySecondEndpointInfo*`
+- default bootstrap route:
+  no info capture or telemetry seam
 
 ## Allowed Facts
 

@@ -9,6 +9,8 @@ Related north star: see
 [../../../itri/multi-orbit/north-star.md](../../../itri/multi-orbit/north-star.md).
 Related M8 expansion authority: see
 [../../../itri/multi-orbit/m8-expansion-authority.md](../../../itri/multi-orbit/m8-expansion-authority.md).
+Related follow-on roadmap: see
+[./multi-orbit-follow-on-roadmap.md](./multi-orbit-follow-on-roadmap.md).
 Related governance checkpoint: see
 [../decisions/0009-multi-orbit-first-intake-contract-ordering.md](../decisions/0009-multi-orbit-first-intake-contract-ordering.md).
 Related first accepted intake case: see
@@ -323,6 +325,11 @@ Current state:
   - `m8a-nearby-two-endpoint-expression-plan.md`
   - `m8a-satcom-info-expansion-plan.md`
   - `m8a-implementation-readiness-checklist.md`
+- if `M8A` closes, the first planned continuation is a read-only confirmed
+  points catalog and grouping surface, documented in:
+  - `m8a-read-only-catalog-follow-on-plan.md`
+- broader post-`M8A` follow-on ordering now lives in:
+  - `multi-orbit-follow-on-roadmap.md`
 - arbitrary global two-endpoint selection remains out of scope
 - second operator-pair expansion remains out of scope
 - `MEO` exploratory remains out of scope

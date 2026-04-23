@@ -17,6 +17,8 @@ Related detailed planning surfaces: see
 [./m8a-nearby-two-endpoint-expression-plan.md](./m8a-nearby-two-endpoint-expression-plan.md),
 [./m8a-satcom-info-expansion-plan.md](./m8a-satcom-info-expansion-plan.md), and
 [./m8a-implementation-readiness-checklist.md](./m8a-implementation-readiness-checklist.md).
+Related post-`M8A` follow-on: see
+[./m8a-read-only-catalog-follow-on-plan.md](./m8a-read-only-catalog-follow-on-plan.md).
 Related accepted first-case corridor package: see
 [../../../itri/multi-orbit/download/aircraft-corridors/ac-cgojz-crj900-c06aa4-2026-04-21](</home/u24/papers/itri/multi-orbit/download/aircraft-corridors/ac-cgojz-crj900-c06aa4-2026-04-21>).
 
@@ -246,3 +248,23 @@ This file does **not** authorize:
 - `M8C` MEO exploratory work
 
 If those lines are needed later, they must be planned separately.
+
+## Planned Follow-On After M8A
+
+If `M8A` closes successfully, the next planned continuation should not be a
+third runtime endpoint.
+
+The next planned continuation is:
+
+- a read-only confirmed-points catalog with grouping/filter taxonomy
+
+That follow-on is documented separately in:
+
+- [m8a-read-only-catalog-follow-on-plan.md](./m8a-read-only-catalog-follow-on-plan.md)
+
+This ordering is intentional:
+
+1. first prove the second endpoint in runtime
+2. then expose a broader confirmed-points catalog safely
+3. only later revisit whether any additional runtime endpoint authority should
+   exist

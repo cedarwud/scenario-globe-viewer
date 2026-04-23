@@ -36,6 +36,9 @@ import { createBootstrapValidationStateController } from "../bootstrap-validatio
 import { createFirstIntakeActiveScenarioSession } from "../first-intake-active-scenario-session";
 import { createFirstIntakeHandoverDecisionController } from "../first-intake-handover-decision-controller";
 import { createFirstIntakeActiveCaseNarrativeController } from "../first-intake-active-case-narrative-controller";
+import { createFirstIntakeNearbySecondEndpointController } from "../first-intake-nearby-second-endpoint-controller";
+import { createFirstIntakeNearbySecondEndpointExpressionController } from "../first-intake-nearby-second-endpoint-expression-controller";
+import { createFirstIntakeNearbySecondEndpointInfoController } from "../first-intake-nearby-second-endpoint-info-controller";
 import { createFirstIntakeMobileEndpointTrajectoryConsumerController } from "../first-intake-mobile-endpoint-trajectory-consumer-controller";
 import { createFirstIntakeMobileEndpointTrajectoryController } from "../first-intake-mobile-endpoint-trajectory-controller";
 import {
@@ -77,6 +80,12 @@ export interface BootstrapCapture {
     ReturnType<typeof createFirstIntakeOperatorExplainerController>;
   firstIntakeActiveCaseNarrative?:
     ReturnType<typeof createFirstIntakeActiveCaseNarrativeController>;
+  firstIntakeNearbySecondEndpoint?:
+    ReturnType<typeof createFirstIntakeNearbySecondEndpointController>;
+  firstIntakeNearbySecondEndpointExpression?:
+    ReturnType<typeof createFirstIntakeNearbySecondEndpointExpressionController>;
+  firstIntakeNearbySecondEndpointInfo?:
+    ReturnType<typeof createFirstIntakeNearbySecondEndpointInfoController>;
   firstIntakeMobileEndpointTrajectory?:
     ReturnType<typeof createFirstIntakeMobileEndpointTrajectoryController>;
   firstIntakeMobileEndpointTrajectoryConsumer?:
@@ -375,6 +384,11 @@ export function startBootstrapComposition(app: HTMLDivElement): BootstrapComposi
         scenarioSurface: firstIntakeScenarioSurface
       })
     : undefined;
+  const firstIntakeNearbySecondEndpoint = adoptFirstIntakeAsActiveOwner
+    ? createFirstIntakeNearbySecondEndpointController({
+        scenarioSurface: firstIntakeScenarioSurface
+      })
+    : undefined;
   const firstIntakeMobileEndpointTrajectoryConsumer =
     adoptFirstIntakeAsActiveOwner && firstIntakeMobileEndpointTrajectory
       ? createFirstIntakeMobileEndpointTrajectoryConsumerController({
@@ -394,6 +408,20 @@ export function startBootstrapComposition(app: HTMLDivElement): BootstrapComposi
         scenarioSurface: firstIntakeScenarioSurface
       })
     : undefined;
+  const firstIntakeNearbySecondEndpointExpression =
+    adoptFirstIntakeAsActiveOwner &&
+    firstIntakeNearbySecondEndpoint &&
+    firstIntakeMobileEndpointTrajectory &&
+    firstIntakeOverlayExpression
+      ? createFirstIntakeNearbySecondEndpointExpressionController({
+          viewer,
+          replayClock,
+          scenarioSurface: firstIntakeScenarioSurface,
+          nearbySecondEndpointController: firstIntakeNearbySecondEndpoint,
+          trajectoryController: firstIntakeMobileEndpointTrajectory,
+          overlayExpressionController: firstIntakeOverlayExpression
+        })
+      : undefined;
   const firstIntakeOperatorExplainer = adoptFirstIntakeAsActiveOwner
     ? createFirstIntakeOperatorExplainerController({
         hudFrame,
@@ -424,6 +452,17 @@ export function startBootstrapComposition(app: HTMLDivElement): BootstrapComposi
             firstIntakeMobileEndpointTrajectoryConsumer
         })
       : undefined;
+  const firstIntakeNearbySecondEndpointInfo =
+    adoptFirstIntakeAsActiveOwner &&
+    firstIntakeNearbySecondEndpoint &&
+    firstIntakeActiveCaseNarrative
+      ? createFirstIntakeNearbySecondEndpointInfoController({
+          hudFrame,
+          scenarioSurface: firstIntakeScenarioSurface,
+          nearbySecondEndpointController: firstIntakeNearbySecondEndpoint,
+          activeCaseNarrativeController: firstIntakeActiveCaseNarrative
+        })
+      : undefined;
   const satelliteOverlay = createSatelliteOverlayController({
     viewer,
     replayClock
@@ -447,6 +486,15 @@ export function startBootstrapComposition(app: HTMLDivElement): BootstrapComposi
       : {}),
     ...(firstIntakeActiveCaseNarrative
       ? { firstIntakeActiveCaseNarrative }
+      : {}),
+    ...(firstIntakeNearbySecondEndpoint
+      ? { firstIntakeNearbySecondEndpoint }
+      : {}),
+    ...(firstIntakeNearbySecondEndpointExpression
+      ? { firstIntakeNearbySecondEndpointExpression }
+      : {}),
+    ...(firstIntakeNearbySecondEndpointInfo
+      ? { firstIntakeNearbySecondEndpointInfo }
       : {}),
     ...(firstIntakeMobileEndpointTrajectory
       ? { firstIntakeMobileEndpointTrajectory }
@@ -476,9 +524,12 @@ export function startBootstrapComposition(app: HTMLDivElement): BootstrapComposi
       disposeLightingRefresh();
       unmountOsmBuildingsShowcase();
       unmountLightingToggle();
+      firstIntakeNearbySecondEndpointInfo?.dispose();
       firstIntakeActiveCaseNarrative?.dispose();
       firstIntakeOperatorExplainer?.dispose();
+      firstIntakeNearbySecondEndpointExpression?.dispose();
       firstIntakeOverlayExpression?.dispose();
+      firstIntakeNearbySecondEndpoint?.dispose();
       firstIntakeMobileEndpointTrajectoryConsumer?.dispose();
       firstIntakeMobileEndpointTrajectory?.dispose();
       firstIntakeHandoverDecisionController.dispose();

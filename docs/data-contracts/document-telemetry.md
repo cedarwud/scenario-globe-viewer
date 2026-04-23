@@ -20,6 +20,9 @@ substitute for the document-level evidence surface.
 - `src/features/telemetry/document-telemetry.ts`
 - `src/main.ts`
 - `src/runtime/bootstrap/composition.ts`
+- `src/runtime/first-intake-nearby-second-endpoint-info-controller.ts`
+- `src/runtime/first-intake-nearby-second-endpoint-expression-controller.ts`
+- `src/runtime/first-intake-nearby-second-endpoint-controller.ts`
 - `src/runtime/first-intake-mobile-endpoint-trajectory-controller.ts`
 - `src/features/operator/bootstrap-operator-hud.ts`
 - `src/features/communication-time/bootstrap-communication-time-panel.ts`
@@ -68,6 +71,56 @@ The current document-level telemetry surface includes these groups:
   `firstIntakeMobileTrajectoryServiceTruth`,
   `firstIntakeMobileTrajectoryProofSeam`,
   `firstIntakeMobileTrajectorySourceLineage`
+- first-intake nearby second-endpoint state
+  `firstIntakeNearbySecondEndpointState`,
+  `firstIntakeNearbySecondEndpointScenarioId`,
+  `firstIntakeNearbySecondEndpointEndpointId`,
+  `firstIntakeNearbySecondEndpointEndpointLabel`,
+  `firstIntakeNearbySecondEndpointEndpointType`,
+  `firstIntakeNearbySecondEndpointGeographyBucket`,
+  `firstIntakeNearbySecondEndpointPositionPrecision`,
+  `firstIntakeNearbySecondEndpointCoordinateReference`,
+  `firstIntakeNearbySecondEndpointNarrativeRole`,
+  `firstIntakeNearbySecondEndpointActiveGatewayAssignment`,
+  `firstIntakeNearbySecondEndpointPairSpecificGeoTeleport`,
+  `firstIntakeNearbySecondEndpointMeasurementTruth`,
+  `firstIntakeNearbySecondEndpointProofSeam`,
+  `firstIntakeNearbySecondEndpointSourceLineage`
+- first-intake nearby second-endpoint expression state
+  `firstIntakeNearbySecondEndpointExpressionState`,
+  `firstIntakeNearbySecondEndpointExpressionScenarioId`,
+  `firstIntakeNearbySecondEndpointExpressionCurrentMobileEndpointId`,
+  `firstIntakeNearbySecondEndpointExpressionCurrentMobileWaypointSequence`,
+  `firstIntakeNearbySecondEndpointExpressionCurrentMobileWaypointTimeUtc`,
+  `firstIntakeNearbySecondEndpointExpressionFixedEndpointId`,
+  `firstIntakeNearbySecondEndpointExpressionFixedEndpointPositionPrecision`,
+  `firstIntakeNearbySecondEndpointExpressionRelationCueKind`,
+  `firstIntakeNearbySecondEndpointExpressionRelationCueLabel`,
+  `firstIntakeNearbySecondEndpointExpressionRelationCuePresentationBoundary`,
+  `firstIntakeNearbySecondEndpointExpressionRelationCueSatellitePathTruth`,
+  `firstIntakeNearbySecondEndpointExpressionRelationCueActiveGatewayTruth`,
+  `firstIntakeNearbySecondEndpointExpressionRelationCueGeoTeleportTruth`,
+  `firstIntakeNearbySecondEndpointExpressionRelationCueRfBeamTruth`,
+  `firstIntakeNearbySecondEndpointExpressionDataSourceAttached`,
+  `firstIntakeNearbySecondEndpointExpressionDataSourceName`,
+  `firstIntakeNearbySecondEndpointExpressionProofSeam`
+- first-intake nearby second-endpoint info state
+  `firstIntakeNearbySecondEndpointInfoState`,
+  `firstIntakeNearbySecondEndpointInfoScenarioId`,
+  `firstIntakeNearbySecondEndpointInfoEndpointLabel`,
+  `firstIntakeNearbySecondEndpointInfoEndpointType`,
+  `firstIntakeNearbySecondEndpointInfoPositionPrecision`,
+  `firstIntakeNearbySecondEndpointInfoGeographyBucket`,
+  `firstIntakeNearbySecondEndpointInfoNarrativeRole`,
+  `firstIntakeNearbySecondEndpointInfoNearbyRelation`,
+  `firstIntakeNearbySecondEndpointInfoActiveGatewayAssignment`,
+  `firstIntakeNearbySecondEndpointInfoPairSpecificGeoTeleport`,
+  `firstIntakeNearbySecondEndpointInfoMeasurementTruth`,
+  `firstIntakeNearbySecondEndpointInfoFirstCaseLabel`,
+  `firstIntakeNearbySecondEndpointInfoServiceSwitchingSemantics`,
+  `firstIntakeNearbySecondEndpointInfoNativeRfHandover`,
+  `firstIntakeNearbySecondEndpointInfoTruthBoundaryMode`,
+  `firstIntakeNearbySecondEndpointInfoProofSeam`
 - communication-time state
   `communicationScenarioId`, `communicationStatus`,
   `communicationSourceKind`, `communicationReportSchemaVersion`,
