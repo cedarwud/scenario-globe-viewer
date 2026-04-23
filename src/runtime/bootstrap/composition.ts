@@ -7,19 +7,43 @@ import {
   resolveBuildingShowcaseSelection
 } from "../../features/globe/osm-buildings-showcase";
 import {
+  type FirstIntakePathProjectionSeed
+} from "../../features/physical-input/path-projection-adapter";
+import {
   resolveScenePresetKey,
   type ScenePresetKey
 } from "../../features/globe/scene-preset";
 import { mountBootstrapOperatorHud } from "../../features/operator/bootstrap-operator-hud";
+import {
+  createFirstIntakeRuntimeScenarioSurface,
+  FIRST_INTAKE_RUNTIME_ADDRESS_QUERY_PARAM,
+  type ScenarioSession,
+  type FirstIntakeRuntimeScenarioSurface,
+  type FirstIntakeScenarioSeed
+} from "../../features/scenario";
+import type { HandoverDecisionState } from "../../features/handover-decision/handover-decision";
+import type { PhysicalInputState } from "../../features/physical-input/physical-input";
 import { syncDocumentTelemetry } from "../../features/telemetry/document-telemetry";
 import { createCesiumReplayClock } from "../../features/time/cesium-replay-clock";
 import type { ReplayClock } from "../../features/time";
+import onewebIntelsatGeoAviationSeed from "../../../../itri/multi-orbit/prep/seeds/oneweb-intelsat-geo-aviation.seed.json";
 import { createBootstrapCommunicationTimeController } from "../bootstrap-communication-time-controller";
 import { createBootstrapHandoverDecisionController } from "../bootstrap-handover-decision-controller";
 import { createBootstrapOperatorController } from "../bootstrap-operator-controller";
 import { createBootstrapPhysicalInputController } from "../bootstrap-physical-input-controller";
 import { createBootstrapSceneStarterController } from "../bootstrap-scene-starter-controller";
 import { createBootstrapValidationStateController } from "../bootstrap-validation-state-controller";
+import { createFirstIntakeActiveScenarioSession } from "../first-intake-active-scenario-session";
+import { createFirstIntakeHandoverDecisionController } from "../first-intake-handover-decision-controller";
+import { createFirstIntakeActiveCaseNarrativeController } from "../first-intake-active-case-narrative-controller";
+import { createFirstIntakeMobileEndpointTrajectoryConsumerController } from "../first-intake-mobile-endpoint-trajectory-consumer-controller";
+import { createFirstIntakeMobileEndpointTrajectoryController } from "../first-intake-mobile-endpoint-trajectory-controller";
+import {
+  createFirstIntakeOperatorExplainerController,
+  type FirstIntakeOperatorExplainerSeed
+} from "../first-intake-operator-explainer-controller";
+import { createFirstIntakeOverlayExpressionController } from "../first-intake-overlay-expression-controller";
+import { createFirstIntakePhysicalInputController } from "../first-intake-physical-input-controller";
 import { createBootstrapScenarioCatalog } from "../resolve-bootstrap-scenario";
 import {
   createSatelliteOverlayController,
@@ -29,14 +53,43 @@ import { createBootstrapScenarioSession } from "../scenario-bootstrap-session";
 
 type ViewerInstance = ReturnType<typeof createViewer>;
 
+interface ActivePhysicalInputController {
+  getState(): PhysicalInputState;
+  subscribe(listener: (state: PhysicalInputState) => void): () => void;
+  dispose(): void;
+}
+
+interface ActiveHandoverDecisionController {
+  getState(): HandoverDecisionState;
+  subscribe(listener: (state: HandoverDecisionState) => void): () => void;
+  dispose(): void;
+}
+
 export interface BootstrapCapture {
   viewer: ViewerInstance;
   replayClock: ReplayClock;
   satelliteOverlay: SatelliteOverlayController;
-  scenarioSession: ReturnType<typeof createBootstrapScenarioSession>;
+  scenarioSession: ScenarioSession;
+  firstIntakeScenarioSurface: FirstIntakeRuntimeScenarioSurface;
+  firstIntakeOverlayExpression?:
+    ReturnType<typeof createFirstIntakeOverlayExpressionController>;
+  firstIntakeOperatorExplainer?:
+    ReturnType<typeof createFirstIntakeOperatorExplainerController>;
+  firstIntakeActiveCaseNarrative?:
+    ReturnType<typeof createFirstIntakeActiveCaseNarrativeController>;
+  firstIntakeMobileEndpointTrajectory?:
+    ReturnType<typeof createFirstIntakeMobileEndpointTrajectoryController>;
+  firstIntakeMobileEndpointTrajectoryConsumer?:
+    ReturnType<
+      typeof createFirstIntakeMobileEndpointTrajectoryConsumerController
+    >;
+  firstIntakePhysicalInput:
+    ReturnType<typeof createFirstIntakePhysicalInputController>;
+  firstIntakeHandoverDecision:
+    ReturnType<typeof createFirstIntakeHandoverDecisionController>;
   communicationTime: ReturnType<typeof createBootstrapCommunicationTimeController>;
-  physicalInput: ReturnType<typeof createBootstrapPhysicalInputController>;
-  handoverDecision: ReturnType<typeof createBootstrapHandoverDecisionController>;
+  physicalInput: ActivePhysicalInputController;
+  handoverDecision: ActiveHandoverDecisionController;
   sceneStarter: ReturnType<typeof createBootstrapSceneStarterController>;
   validationState: ReturnType<typeof createBootstrapValidationStateController>;
 }
@@ -66,6 +119,37 @@ function resolveBootstrapScenePreset(): ScenePresetKey {
   return resolveScenePresetKey(request);
 }
 
+function resolveFirstIntakeRequestedScenarioId(): string | undefined {
+  const request = new URLSearchParams(window.location.search).get(
+    FIRST_INTAKE_RUNTIME_ADDRESS_QUERY_PARAM
+  );
+
+  return request?.trim().length ? request : undefined;
+}
+
+function syncFirstIntakeRuntimeTelemetry(
+  firstIntakeScenarioSurface: FirstIntakeRuntimeScenarioSurface
+): void {
+  const state = firstIntakeScenarioSurface.getState();
+  const addressedEntry = firstIntakeScenarioSurface.getAddressedEntry();
+
+  syncDocumentTelemetry({
+    firstIntakeRuntimeState: state.runtimeState,
+    firstIntakeScenarioId: addressedEntry.scenarioId,
+    firstIntakeAddressParam: state.queryParam,
+    firstIntakeAddressableEntry: addressedEntry.addressQuery,
+    firstIntakeAddressResolution: state.addressResolution,
+    firstIntakeAdoptionMode: state.adoptionMode,
+    firstIntakeTruthBoundaryLabel:
+      addressedEntry.resolvedInputs.context?.truthBoundaryLabel,
+    firstIntakeSourceLineage: [
+      state.sourceLineage.seedPath,
+      state.sourceLineage.adapter,
+      state.sourceLineage.resolver
+    ].join(" -> ")
+  });
+}
+
 function syncVisualBaselineState(viewer: ViewerInstance): void {
   syncDocumentTelemetry({
     sceneFogActive: viewer.scene.fog.enabled ? "true" : "false",
@@ -77,6 +161,28 @@ function syncVisualBaselineState(viewer: ViewerInstance): void {
     sceneFogMinimumBrightness: String(viewer.scene.fog.minimumBrightness),
     sceneBloomActive: viewer.scene.postProcessStages.bloom.enabled ? "true" : "false"
   });
+}
+
+function shouldAdoptFirstIntakeAsActiveOwner(
+  firstIntakeScenarioSurface: FirstIntakeRuntimeScenarioSurface
+): boolean {
+  return firstIntakeScenarioSurface.getState().addressResolution === "matched";
+}
+
+function createActiveFirstIntakePhysicalInputController(
+  controller: ReturnType<typeof createFirstIntakePhysicalInputController>
+): ActivePhysicalInputController {
+  return {
+    getState(): PhysicalInputState {
+      return controller.getState().physicalInput;
+    },
+    subscribe(listener: (state: PhysicalInputState) => void): () => void {
+      return controller.subscribe((state) => {
+        listener(state.physicalInput);
+      });
+    },
+    dispose(): void {}
+  };
 }
 
 function createValidationServingContext(
@@ -210,9 +316,18 @@ function bindLightingRefresh(viewer: ViewerInstance): () => void {
 export function startBootstrapComposition(app: HTMLDivElement): BootstrapComposition {
   const { viewerRoot, hudFrame, statusPanel } = mountAppShell(app);
   const scenePreset = resolveBootstrapScenePreset();
+  const firstIntakeSeed = onewebIntelsatGeoAviationSeed as
+    FirstIntakeScenarioSeed &
+    FirstIntakePathProjectionSeed &
+    FirstIntakeOperatorExplainerSeed;
+  const firstIntakeScenarioSurface = createFirstIntakeRuntimeScenarioSurface({
+    seeds: [firstIntakeSeed],
+    requestedScenarioId: resolveFirstIntakeRequestedScenarioId()
+  });
   syncDocumentTelemetry({
     scenePreset
   });
+  syncFirstIntakeRuntimeTelemetry(firstIntakeScenarioSurface);
   const buildingShowcase = resolveBuildingShowcaseSelection();
   const viewer = createViewer({
     container: viewerRoot,
@@ -220,6 +335,20 @@ export function startBootstrapComposition(app: HTMLDivElement): BootstrapComposi
     buildingShowcaseKey: buildingShowcase.key
   });
   const replayClock = createCesiumReplayClock(viewer);
+  const firstIntakePhysicalInputController =
+    createFirstIntakePhysicalInputController({
+      replayClock,
+      scenarioSurface: firstIntakeScenarioSurface,
+      seeds: [firstIntakeSeed]
+    });
+  const firstIntakeScenarioSession = createFirstIntakeActiveScenarioSession(
+    firstIntakeScenarioSurface
+  );
+  const firstIntakeHandoverDecisionController =
+    createFirstIntakeHandoverDecisionController({
+      replayClock,
+      scenarioSurface: firstIntakeScenarioSurface
+    });
   const controllerGraph = createBootstrapControllerGraph({
     viewer,
     replayClock,
@@ -228,6 +357,73 @@ export function startBootstrapComposition(app: HTMLDivElement): BootstrapComposi
     hudFrame,
     statusPanel
   });
+  const adoptFirstIntakeAsActiveOwner =
+    shouldAdoptFirstIntakeAsActiveOwner(firstIntakeScenarioSurface);
+  const activeScenarioSession = adoptFirstIntakeAsActiveOwner
+    ? firstIntakeScenarioSession
+    : controllerGraph.scenarioSession;
+  const activePhysicalInputController = adoptFirstIntakeAsActiveOwner
+    ? createActiveFirstIntakePhysicalInputController(
+        firstIntakePhysicalInputController
+      )
+    : controllerGraph.physicalInputController;
+  const activeHandoverDecisionController = adoptFirstIntakeAsActiveOwner
+    ? firstIntakeHandoverDecisionController
+    : controllerGraph.handoverDecisionController;
+  const firstIntakeMobileEndpointTrajectory = adoptFirstIntakeAsActiveOwner
+    ? createFirstIntakeMobileEndpointTrajectoryController({
+        scenarioSurface: firstIntakeScenarioSurface
+      })
+    : undefined;
+  const firstIntakeMobileEndpointTrajectoryConsumer =
+    adoptFirstIntakeAsActiveOwner && firstIntakeMobileEndpointTrajectory
+      ? createFirstIntakeMobileEndpointTrajectoryConsumerController({
+          hudFrame,
+          scenarioSession: firstIntakeScenarioSession,
+          scenarioSurface: firstIntakeScenarioSurface,
+          trajectoryController: firstIntakeMobileEndpointTrajectory,
+          // M7 slice B keeps the older M6 seam capture-owned while the
+          // integrated narrative owns the viewer-facing first-case panel.
+          mountPanel: false
+        })
+      : undefined;
+  const firstIntakeOverlayExpression = adoptFirstIntakeAsActiveOwner
+    ? createFirstIntakeOverlayExpressionController({
+        viewer,
+        hudFrame,
+        scenarioSurface: firstIntakeScenarioSurface
+      })
+    : undefined;
+  const firstIntakeOperatorExplainer = adoptFirstIntakeAsActiveOwner
+    ? createFirstIntakeOperatorExplainerController({
+        hudFrame,
+        scenarioSession: firstIntakeScenarioSession,
+        scenarioSurface: firstIntakeScenarioSurface,
+        physicalInputController: firstIntakePhysicalInputController,
+        handoverDecisionController: firstIntakeHandoverDecisionController,
+        seed: firstIntakeSeed,
+        // M7 slice B keeps the older M5 seam capture-owned while the
+        // integrated narrative owns the viewer-facing first-case panel.
+        mountPanel: false
+      })
+    : undefined;
+  const firstIntakeActiveCaseNarrative =
+    adoptFirstIntakeAsActiveOwner &&
+    firstIntakeOverlayExpression &&
+    firstIntakeMobileEndpointTrajectory &&
+    firstIntakeMobileEndpointTrajectoryConsumer
+      ? createFirstIntakeActiveCaseNarrativeController({
+          hudFrame,
+          scenarioSession: firstIntakeScenarioSession,
+          scenarioSurface: firstIntakeScenarioSurface,
+          physicalInputController: firstIntakePhysicalInputController,
+          handoverDecisionController: firstIntakeHandoverDecisionController,
+          overlayExpressionController: firstIntakeOverlayExpression,
+          trajectoryController: firstIntakeMobileEndpointTrajectory,
+          trajectoryConsumerController:
+            firstIntakeMobileEndpointTrajectoryConsumer
+        })
+      : undefined;
   const satelliteOverlay = createSatelliteOverlayController({
     viewer,
     replayClock
@@ -241,10 +437,28 @@ export function startBootstrapComposition(app: HTMLDivElement): BootstrapComposi
     viewer,
     replayClock,
     satelliteOverlay,
-    scenarioSession: controllerGraph.scenarioSession,
+    scenarioSession: activeScenarioSession,
+    firstIntakeScenarioSurface,
+    ...(firstIntakeOverlayExpression
+      ? { firstIntakeOverlayExpression }
+      : {}),
+    ...(firstIntakeOperatorExplainer
+      ? { firstIntakeOperatorExplainer }
+      : {}),
+    ...(firstIntakeActiveCaseNarrative
+      ? { firstIntakeActiveCaseNarrative }
+      : {}),
+    ...(firstIntakeMobileEndpointTrajectory
+      ? { firstIntakeMobileEndpointTrajectory }
+      : {}),
+    ...(firstIntakeMobileEndpointTrajectoryConsumer
+      ? { firstIntakeMobileEndpointTrajectoryConsumer }
+      : {}),
+    firstIntakePhysicalInput: firstIntakePhysicalInputController,
+    firstIntakeHandoverDecision: firstIntakeHandoverDecisionController,
     communicationTime: controllerGraph.communicationTimeController,
-    physicalInput: controllerGraph.physicalInputController,
-    handoverDecision: controllerGraph.handoverDecisionController,
+    physicalInput: activePhysicalInputController,
+    handoverDecision: activeHandoverDecisionController,
     sceneStarter: controllerGraph.sceneStarterController,
     validationState: controllerGraph.validationStateController
   };
@@ -262,6 +476,13 @@ export function startBootstrapComposition(app: HTMLDivElement): BootstrapComposi
       disposeLightingRefresh();
       unmountOsmBuildingsShowcase();
       unmountLightingToggle();
+      firstIntakeActiveCaseNarrative?.dispose();
+      firstIntakeOperatorExplainer?.dispose();
+      firstIntakeOverlayExpression?.dispose();
+      firstIntakeMobileEndpointTrajectoryConsumer?.dispose();
+      firstIntakeMobileEndpointTrajectory?.dispose();
+      firstIntakeHandoverDecisionController.dispose();
+      firstIntakePhysicalInputController.dispose();
       controllerGraph.dispose();
       void satelliteOverlay.dispose();
       viewer.destroy();

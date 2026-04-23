@@ -24,6 +24,8 @@ decision layer 可消費的 candidate metrics。
 - `src/features/physical-input/bootstrap-physical-input-panel.ts`
 - `src/runtime/bootstrap-physical-input-source.ts`
 - `src/runtime/bootstrap-physical-input-controller.ts`
+- `src/runtime/first-intake-physical-input-source.ts`
+- `src/runtime/first-intake-physical-input-controller.ts`
 - `scripts/verify-phase6.5-physical-input-contract-widening.mjs`
 
 ## First-Slice Public Shape
@@ -116,6 +118,27 @@ Multi-orbit planning consequence:
 - this prevents adapters from emitting hardcoded, provenance-free metric
   literals just to satisfy the contract
 
+## M3 First-Intake Runtime Adoption
+
+`M3 Slice C` adds a dedicated non-bootstrap runtime lane for
+`app-oneweb-intelsat-geo-aviation`.
+
+That lane resolves from:
+
+- the first-intake seed lineage
+- repo-owned scenario/runtime wiring
+- `adaptFirstIntakeSeedToPhysicalInputSourceEntry()`
+- `ONEWEB_INTELSAT_GEO_AVIATION_STATIC_BOUNDED_METRIC_PROFILE`
+- `createPhysicalInputState()`
+
+It does not resolve from:
+
+- `BOOTSTRAP_PHYSICAL_SOURCE_SEEDS`
+- bootstrap fallback catalogs
+
+Bootstrap physical-input behavior stays unchanged, and first-intake handover
+remains explicitly unsupported/no-op outside this dedicated physical-input seam.
+
 ## Projection Ownership
 
 Deterministic consumption path in the first slice is:
@@ -163,9 +186,8 @@ measured truth, or validated ITU calibration.
 - validation / NAT / tunnel / DUT integration
 - presentation-led contract definitions
 
-## First-Slice Note
+## Scope Note
 
-This contract is intentionally scoped to the `Phase 6.5` bootstrap slice only.
-It proves a repo-owned physical-input seam and deterministic decision
-consumption without claiming final truth calibration or opening `Phase 6.6`
-validation paths.
+This contract still preserves the original `Phase 6.5` bootstrap seam while
+also allowing the narrow `M3 Slice C` first-intake runtime adoption lane above.
+Neither path claims final truth calibration or widens runtime handover semantics.

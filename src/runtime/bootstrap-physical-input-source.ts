@@ -28,6 +28,9 @@ export interface BootstrapPhysicalInputSourceCatalog {
   entries: ReadonlyArray<BootstrapPhysicalInputSourceEntry>;
 }
 
+export const BOOTSTRAP_PHYSICAL_INPUT_INACTIVE_CONTEXT_LABEL =
+  "Bootstrap physical-input inactive for unsupported scenarioId";
+
 function cloneCandidate(candidate: CandidatePhysicalInputs): CandidatePhysicalInputs {
   return {
     candidateId: candidate.candidateId,
@@ -100,6 +103,28 @@ function findContextLabel(
   return matchingWindow?.contextLabel ?? "Active physical window";
 }
 
+function findBootstrapPhysicalInputSourceEntry(
+  catalog: BootstrapPhysicalInputSourceCatalog,
+  scenarioId: string
+): BootstrapPhysicalInputSourceEntry | undefined {
+  return catalog.entries.find((candidate) => candidate.scenarioId === scenarioId);
+}
+
+function cloneEntry(
+  entry: BootstrapPhysicalInputSourceEntry
+): BootstrapPhysicalInputSourceEntry {
+  return {
+    scenarioId: entry.scenarioId,
+    windows: entry.windows.map((window) => ({
+      startRatio: window.startRatio,
+      stopRatio: window.stopRatio,
+      contextLabel: window.contextLabel,
+      candidates: window.candidates.map((candidate) => cloneCandidate(candidate))
+    })),
+    provenance: cloneProvenance(entry.provenance)
+  };
+}
+
 function assertBootstrapPhysicalInputSources(
   definition: BootstrapScenarioDefinition
 ): void {
@@ -149,7 +174,7 @@ export function resolveBootstrapPhysicalInputSourceEntry(
   catalog: BootstrapPhysicalInputSourceCatalog,
   scenarioId: string
 ): BootstrapPhysicalInputSourceEntry {
-  const entry = catalog.entries.find((candidate) => candidate.scenarioId === scenarioId);
+  const entry = findBootstrapPhysicalInputSourceEntry(catalog, scenarioId);
 
   if (!entry) {
     throw new Error(
@@ -157,16 +182,40 @@ export function resolveBootstrapPhysicalInputSourceEntry(
     );
   }
 
-  return {
-    scenarioId: entry.scenarioId,
-    windows: entry.windows.map((window) => ({
-      startRatio: window.startRatio,
-      stopRatio: window.stopRatio,
-      contextLabel: window.contextLabel,
-      candidates: window.candidates.map((candidate) => cloneCandidate(candidate))
-    })),
-    provenance: cloneProvenance(entry.provenance)
+  return cloneEntry(entry);
+}
+
+function createInactiveBootstrapPhysicalInputState(options: {
+  scenarioId: string;
+  scenarioLabel: string;
+  evaluatedAt: string;
+  activeRange: {
+    start: string;
+    stop: string;
   };
+}): PhysicalInputState {
+  // Unsupported scenario ids stay outside bootstrap-owned catalogs and resolve
+  // to an explicit empty window instead of borrowing another bootstrap seed.
+  return createPhysicalInputState({
+    scenario: {
+      id: options.scenarioId,
+      label: options.scenarioLabel
+    },
+    activeRange: options.activeRange,
+    evaluatedAt: options.evaluatedAt,
+    sourceEntry: {
+      scenarioId: options.scenarioId,
+      windows: [
+        {
+          startRatio: 0,
+          stopRatio: 1,
+          candidates: []
+        }
+      ],
+      provenance: []
+    },
+    activeContextLabel: BOOTSTRAP_PHYSICAL_INPUT_INACTIVE_CONTEXT_LABEL
+  });
 }
 
 export function resolveBootstrapPhysicalInputState(
@@ -181,7 +230,12 @@ export function resolveBootstrapPhysicalInputState(
     };
   }
 ): PhysicalInputState {
-  const entry = resolveBootstrapPhysicalInputSourceEntry(catalog, options.scenarioId);
+  const entry = findBootstrapPhysicalInputSourceEntry(catalog, options.scenarioId);
+
+  if (!entry) {
+    return createInactiveBootstrapPhysicalInputState(options);
+  }
+
   const progressRatio = resolvePhysicalInputProgressRatio(
     options.evaluatedAt,
     options.activeRange

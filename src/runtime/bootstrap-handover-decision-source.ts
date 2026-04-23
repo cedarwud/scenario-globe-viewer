@@ -11,6 +11,8 @@ import {
 import type { BootstrapScenarioDefinition } from "./scenario-bootstrap-session";
 
 export const BOOTSTRAP_HANDOVER_POLICY_ID = "bootstrap-balanced-v1";
+export const BOOTSTRAP_HANDOVER_UNSUPPORTED_POLICY_ID =
+  "bootstrap-unsupported-scenario-noop-v1";
 const INTERNAL_PHYSICAL_CATALOG_KEY = "__physicalInputCatalog";
 
 export interface BootstrapProxyHandoverDecisionSourceEntry {
@@ -26,6 +28,13 @@ export interface BootstrapProxyHandoverDecisionSourceCatalog {
 interface InternalBootstrapProxyHandoverDecisionSourceCatalog
   extends BootstrapProxyHandoverDecisionSourceCatalog {
   [INTERNAL_PHYSICAL_CATALOG_KEY]: BootstrapPhysicalInputSourceCatalog;
+}
+
+function findBootstrapProxyHandoverDecisionSourceEntry(
+  catalog: BootstrapProxyHandoverDecisionSourceCatalog,
+  scenarioId: string
+): BootstrapProxyHandoverDecisionSourceEntry | undefined {
+  return catalog.entries.find((candidate) => candidate.scenarioId === scenarioId);
 }
 
 function toHandoverCandidateMetrics(
@@ -75,7 +84,7 @@ export function resolveBootstrapProxyHandoverDecisionSourceEntry(
   catalog: BootstrapProxyHandoverDecisionSourceCatalog,
   scenarioId: string
 ): BootstrapProxyHandoverDecisionSourceEntry {
-  const entry = catalog.entries.find((candidate) => candidate.scenarioId === scenarioId);
+  const entry = findBootstrapProxyHandoverDecisionSourceEntry(catalog, scenarioId);
 
   if (!entry) {
     throw new Error(
@@ -92,6 +101,28 @@ export function resolveBootstrapProxyHandoverDecisionSourceEntry(
   };
 }
 
+function createUnsupportedBootstrapProxyHandoverDecisionSnapshot(options: {
+  scenarioId: string;
+  evaluatedAt: string;
+  activeRange: {
+    start: string;
+    stop: string;
+  };
+}): HandoverDecisionSnapshot {
+  // Keep non-bootstrap scenario ids explicit and empty rather than pretending
+  // they belong to the bootstrap handover policy/catalog.
+  return {
+    scenarioId: options.scenarioId,
+    evaluatedAt: options.evaluatedAt,
+    activeRange: {
+      start: options.activeRange.start,
+      stop: options.activeRange.stop
+    },
+    policyId: BOOTSTRAP_HANDOVER_UNSUPPORTED_POLICY_ID,
+    candidates: []
+  };
+}
+
 export function resolveBootstrapProxyHandoverDecisionSnapshot(
   catalog: BootstrapProxyHandoverDecisionSourceCatalog,
   options: {
@@ -104,20 +135,25 @@ export function resolveBootstrapProxyHandoverDecisionSnapshot(
     currentServingCandidateId?: string;
   }
 ): HandoverDecisionSnapshot {
-  const entry = resolveBootstrapProxyHandoverDecisionSourceEntry(
+  const entry = findBootstrapProxyHandoverDecisionSourceEntry(
     catalog,
     options.scenarioId
   );
+
+  if (!entry) {
+    return createUnsupportedBootstrapProxyHandoverDecisionSnapshot(options);
+  }
+
   const projectedMetrics = resolveBootstrapPhysicalProjectedMetrics(
     assertInternalPhysicalCatalog(catalog),
     {
-    scenarioId: entry.scenarioId,
-    scenarioLabel: entry.scenarioId,
-    evaluatedAt: options.evaluatedAt,
-    activeRange: {
-      start: options.activeRange.start,
-      stop: options.activeRange.stop
-    }
+      scenarioId: entry.scenarioId,
+      scenarioLabel: entry.scenarioId,
+      evaluatedAt: options.evaluatedAt,
+      activeRange: {
+        start: options.activeRange.start,
+        stop: options.activeRange.stop
+      }
     }
   );
 

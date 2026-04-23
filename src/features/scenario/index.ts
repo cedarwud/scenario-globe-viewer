@@ -23,6 +23,20 @@ export type {
   ScenarioSeedRecommendedMode
 } from "./scenario-seed-adapter";
 export {
+  FIRST_INTAKE_RUNTIME_ADDRESS_QUERY_PARAM,
+  FIRST_INTAKE_RUNTIME_ADOPTION_MODE,
+  FIRST_INTAKE_RUNTIME_STATE,
+  FIRST_INTAKE_RUNTIME_SEED_PATH,
+  createFirstIntakeRuntimeScenarioSurface
+} from "./first-intake-runtime-surface";
+export type {
+  FirstIntakeRuntimeAddressResolution,
+  FirstIntakeRuntimeScenarioEntry,
+  FirstIntakeRuntimeScenarioSurface,
+  FirstIntakeRuntimeScenarioSurfaceOptions,
+  FirstIntakeRuntimeScenarioSurfaceState
+} from "./first-intake-runtime-surface";
+export {
   adaptFirstIntakeScenarioSeedToDefinition,
   FIRST_INTAKE_ENDPOINT_OVERLAY_PROFILE_ID,
   FIRST_INTAKE_INFRASTRUCTURE_OVERLAY_PROFILE_ID

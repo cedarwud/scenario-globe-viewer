@@ -25,7 +25,8 @@ but it does not yet have a single repo-owned surface that answers:
 
 Current public source of truth: `src/features/scenario/scenario.ts`,
 `src/features/scenario/resolve-scenario-inputs.ts`, and
-`src/features/scenario/scenario-facade.ts`, plus
+`src/features/scenario/scenario-facade.ts`,
+`src/features/scenario/first-intake-runtime-surface.ts`, plus
 `src/features/scenario/scenario-plan-runner.ts` and
 `src/features/scenario/scenario-session.ts`.
 The first scenario-side multi-orbit consumer also reuses the existing plain-
@@ -265,6 +266,16 @@ In the current repo state:
   further for future bootstrap-owned callers: it only accepts
   `presentation + time` scenarios and rejects satellite/site/validation source
   families up front
+- `src/features/scenario/first-intake-runtime-surface.ts` now adds a separate
+  URL-addressed active-entry runtime surface for the first accepted intake
+  case; it adapts the repo-owned seed into the existing scenario facade and
+  exposes a live app capture/telemetry seam without inserting that scenario
+  into the bootstrap operator catalog
+- `src/runtime/first-intake-active-scenario-session.ts` now materializes that
+  addressed first-intake definition into a real repo-owned `ScenarioSession`
+  current-scenario owner, and `src/runtime/bootstrap/composition.ts` switches
+  the primary live capture `scenarioSession` seam to that addressed owner
+  whenever `firstIntakeScenarioId=app-oneweb-intelsat-geo-aviation` is matched
 - `src/main.ts` now only seeds that bootstrap helper with the currently
   selected bootstrap scenario so the app shell has a repo-owned scenario caller
   surface without starting live scenario switching
@@ -273,8 +284,9 @@ In the current repo state:
 - the walker proof path remains an overlay proof line, not a scenario model
 
 That means this document plus `src/features/scenario/` now define the Phase 6.1
-public boundary, but they are still not proof that runtime Phase 6.1
-coordination has already started.
+public boundary, and the addressed first-intake session seam is now the narrow
+live-app proof that runtime coordination has moved beyond a sidecar preview
+object without adopting general scenario switching.
 
 ## Must Stay Out Of Scope
 
@@ -293,7 +305,8 @@ For Phase 6.1 contract planning and first implementation:
 This contract does not yet define:
 
 - the final full scenario taxonomy beyond the first four source families
-- a runtime registry implementation
+- a general-purpose runtime registry implementation beyond the first preview-
+  only intake surface
 - a scenario-management UI
 - final validation ownership details
 - the concrete virtual/physical DUT, NAT, tunnel, or bridge sub-taxonomy that

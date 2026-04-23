@@ -7,6 +7,8 @@ agents do not mistake a completed slice for completion of the program itself.
 
 Related north star: see
 [../../../itri/multi-orbit/north-star.md](../../../itri/multi-orbit/north-star.md).
+Related M8 expansion authority: see
+[../../../itri/multi-orbit/m8-expansion-authority.md](../../../itri/multi-orbit/m8-expansion-authority.md).
 Related governance checkpoint: see
 [../decisions/0009-multi-orbit-first-intake-contract-ordering.md](../decisions/0009-multi-orbit-first-intake-contract-ordering.md).
 Related first accepted intake case: see
@@ -53,9 +55,10 @@ Unless a later accepted authority explicitly changes them, keep these fixed:
 - mobile corridor package = `ac-cgojz-crj900-c06aa4-2026-04-21`
 - first validated `pathControlMode` = `managed_service_switching`
 - first delivery line stays `bounded-proxy`
-- `handover-decision` widening remains deferred until a first consumer exists
+- `handover-decision` widening stays bounded to the approved first-intake
+  unsupported/no-op metadata lane
 
-## Current Repo Reality As Of 2026-04-22
+## Current Repo Reality As Of 2026-04-23
 
 The repo is no longer at "pre-code" or "slice 1 only".
 
@@ -68,14 +71,21 @@ Already landed in repo-owned code/doc surfaces:
 5. first static bounded metric profile
 6. first path-projection adapter
 7. first scenario-seed adapter
+8. URL-addressed first-intake active scenario-session owner seam in the live app
+9. dedicated first-intake non-bootstrap physical-input runtime lane
+10. first operator-facing first-intake explainer/diagnostic consumer panel
+11. dedicated mobile-endpoint trajectory contract plus accepted corridor-package
+    ingestion seam with runtime-visible proof state
 
-Not yet landed as a finished viewer-delivered capability:
+First-case baseline reconciliation:
 
-1. runtime adoption of the first intake case into the live scenario/runtime path
-2. overlay runtime/render expression for endpoint/infrastructure semantics
-3. any repo-owned consumer for `handover-decision` multi-orbit semantics
-4. aircraft corridor ingestion seam
-5. end-to-end first-case operator-facing explanation inside the running viewer
+- `M3` through `M7` are closed for the defendable first-case baseline
+- that closed baseline now includes runtime scenario adoption, overlay
+  expression, operator-facing semantics, corridor-backed mobile trajectory
+  proof, and the active-case narrative in the running viewer
+- general `M8` expansion remains forbidden by default
+- the first accepted reopen path is now narrowed to `M8A`:
+  corridor-adjacent second-endpoint expansion
 
 ## Program Phases
 
@@ -181,7 +191,9 @@ Exit:
 
 Current state:
 
-- not yet complete
+- complete on the addressed first-intake scenario-session owner seam, with
+  dedicated non-bootstrap physical-input adoption and explicit unsupported
+  first-intake handover
 
 ### Phase M4 — Overlay Runtime Expression
 
@@ -209,7 +221,9 @@ Exit:
 
 Current state:
 
-- not yet complete
+- closed for the defendable first-case baseline through the repo-owned
+  first-intake overlay-expression runtime seam and browser-visible overlay
+  expression panel
 
 ### Phase M5 — First Consumer For Deferred Multi-Orbit Semantics
 
@@ -232,7 +246,15 @@ Only after a consumer exists may the repo consider:
 
 Current state:
 
-- not yet started
+- slice A landed as a repo-owned operator-facing explainer/diagnostic panel
+  tied to the active addressed first-intake case through the existing
+  scenario-session and physical-input seams
+- slice B landed only the approved widening seam:
+  `HandoverDecisionSnapshot.decisionModel`,
+  `HandoverDecisionSnapshot.isNativeRfHandover`, and
+  `HandoverDecisionResult.semanticsBridge.truthBoundaryLabel`
+  for the explicit first-intake unsupported/no-op lane, with the operator
+  explainer now consuming those semantics from the runtime handover state
 
 ### Phase M6 — Mobile Endpoint Trajectory Seam
 
@@ -254,7 +276,13 @@ Must not include:
 
 Current state:
 
-- explicitly deferred
+- slice A landed as a dedicated repo-owned `mobile-endpoint-trajectory`
+  contract, accepted corridor-package ingestion adapter, and runtime-visible
+  proof seam through capture plus document telemetry
+- slice B landed the first active-case runtime-local consumer surface for
+  `firstIntakeMobileEndpointTrajectory`, keeping corridor truth bounded to the
+  historical replay package and leaving equipage/service truth explicitly
+  unproven
 
 ### Phase M7 — First Delivery-Grade Viewer Narrative
 
@@ -272,36 +300,39 @@ Must visibly communicate:
 
 Current state:
 
-- not yet complete
+- closed for the defendable first-case baseline through the active-case
+  narrative surface in the running viewer
 
 ### Phase M8 — Expansion Beyond The First Case
 
 Goal:
 
-- only after the first case is end-to-end defendable, decide whether to adopt
-  a second case such as tactical or cruise
-
-Must not happen before:
-
-- M3 and M4 are solid
-- M5 decision semantics have a real consumer
-- the first case reads coherently in the viewer
+- reserved only for explicit authority-directed expansion beyond the closed
+  first-case baseline
 
 Current state:
 
-- forbidden for now
+- no blanket reopen
+- first accepted direction is now `M8A`, defined as:
+  corridor-adjacent second-endpoint expansion near the accepted first-case
+  geography
+- detailed planning now lives in:
+  - `m8a-nearby-second-endpoint-expansion-plan.md`
+  - `m8a-second-endpoint-authority-package-plan.md`
+  - `m8a-runtime-ownership-widening-plan.md`
+  - `m8a-nearby-two-endpoint-expression-plan.md`
+  - `m8a-satcom-info-expansion-plan.md`
+  - `m8a-implementation-readiness-checklist.md`
+- arbitrary global two-endpoint selection remains out of scope
+- second operator-pair expansion remains out of scope
+- `MEO` exploratory remains out of scope
 
-## Immediate Next Questions
+## Reconciliation Note
 
-The next live planning questions should now be:
-
-1. Which runtime seam should own first-intake scenario adoption in M3?
-2. How should first-intake physical-input adoption coexist with existing
-   bootstrap physical-input sources?
-3. What is the smallest runtime-visible expression that proves M3 is real
-   without prematurely opening M4 or M5?
-
-These are better next-step questions than asking whether Slice 1 is done.
+- `M3` through `M7` are closed for the defendable first-case baseline
+- `M8A` is now the only accepted first reopen direction for expansion planning
+- broader `M8` expansion remains forbidden unless explicit authority reopens it
+- the north-star boundary and bounded-proxy truth line remain unchanged
 
 ## Hard Guardrails
 
@@ -321,9 +352,10 @@ Before any new implementation or control thread continues this line, it should
 read:
 
 1. [north-star.md](/home/u24/papers/itri/multi-orbit/north-star.md)
-2. [0009-multi-orbit-first-intake-contract-ordering.md](../decisions/0009-multi-orbit-first-intake-contract-ordering.md)
-3. this file
-4. the most specific live lane document that applies to the next slice
+2. [m8-expansion-authority.md](/home/u24/papers/itri/multi-orbit/m8-expansion-authority.md)
+3. [0009-multi-orbit-first-intake-contract-ordering.md](../decisions/0009-multi-orbit-first-intake-contract-ordering.md)
+4. this file
+5. the most specific live lane document that applies to the next slice
 
 If those four are not enough to answer "what remains after the current slice?",
 the agent should stop and repair the planning surface before implementing.

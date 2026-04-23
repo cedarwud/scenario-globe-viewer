@@ -11,7 +11,10 @@ export const HANDOVER_DECISION_PROXY_PROVENANCE_DETAIL =
 export type OrbitClass = "leo" | "meo" | "geo";
 export type DecisionInputProvenance = typeof HANDOVER_DECISION_PROXY_PROVENANCE;
 export type HandoverDecisionKind = "hold" | "switch" | "unavailable";
+export type HandoverDecisionModel = "service-layer-switching";
 export type HandoverTruthState = "serving" | "switching" | "unavailable";
+export type HandoverTruthBoundaryLabel =
+  "real-pairing-bounded-runtime-projection";
 export type HandoverReasonSignalCode =
   | "latency-better"
   | "jitter-better"
@@ -38,6 +41,8 @@ export interface HandoverDecisionSnapshot {
   };
   currentServingCandidateId?: string;
   policyId: string;
+  decisionModel?: HandoverDecisionModel;
+  isNativeRfHandover?: boolean;
   candidates: ReadonlyArray<HandoverCandidateMetrics>;
 }
 
@@ -53,6 +58,7 @@ export interface HandoverDecisionResult {
   reasonSignals: ReadonlyArray<HandoverReasonSignal>;
   semanticsBridge: {
     truthState: HandoverTruthState;
+    truthBoundaryLabel?: HandoverTruthBoundaryLabel;
   };
 }
 
@@ -128,6 +134,12 @@ function cloneSnapshot(
       ? { currentServingCandidateId: snapshot.currentServingCandidateId }
       : {}),
     policyId: snapshot.policyId,
+    ...(snapshot.decisionModel
+      ? { decisionModel: snapshot.decisionModel }
+      : {}),
+    ...(snapshot.isNativeRfHandover !== undefined
+      ? { isNativeRfHandover: snapshot.isNativeRfHandover }
+      : {}),
     candidates: snapshot.candidates.map((candidate) => cloneCandidateMetrics(candidate))
   };
 }
@@ -148,7 +160,12 @@ function cloneResult(result: HandoverDecisionResult): HandoverDecisionResult {
       code: signal.code
     })),
     semanticsBridge: {
-      truthState: result.semanticsBridge.truthState
+      truthState: result.semanticsBridge.truthState,
+      ...(result.semanticsBridge.truthBoundaryLabel
+        ? {
+            truthBoundaryLabel: result.semanticsBridge.truthBoundaryLabel
+          }
+        : {})
     }
   };
 }
@@ -166,6 +183,24 @@ function assertSnapshot(snapshot: HandoverDecisionSnapshot): void {
 
   if (!snapshot.policyId) {
     throw new Error("Handover decision snapshot must include a policyId.");
+  }
+
+  if (
+    snapshot.decisionModel !== undefined &&
+    snapshot.decisionModel !== "service-layer-switching"
+  ) {
+    throw new Error(
+      "Handover decision snapshot decisionModel must stay on the approved bounded value."
+    );
+  }
+
+  if (
+    snapshot.isNativeRfHandover !== undefined &&
+    typeof snapshot.isNativeRfHandover !== "boolean"
+  ) {
+    throw new Error(
+      "Handover decision snapshot isNativeRfHandover must stay boolean when provided."
+    );
   }
 
   const startMs = toEpochMilliseconds(snapshot.activeRange.start);

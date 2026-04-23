@@ -20,6 +20,7 @@ substitute for the document-level evidence surface.
 - `src/features/telemetry/document-telemetry.ts`
 - `src/main.ts`
 - `src/runtime/bootstrap/composition.ts`
+- `src/runtime/first-intake-mobile-endpoint-trajectory-controller.ts`
 - `src/features/operator/bootstrap-operator-hud.ts`
 - `src/features/communication-time/bootstrap-communication-time-panel.ts`
 - `src/features/handover-decision/bootstrap-handover-decision-panel.ts`
@@ -52,6 +53,21 @@ The current document-level telemetry surface includes these groups:
   `sceneFogMinimumBrightness`, `sceneBloomActive`
 - operator and replay state
   `bootstrapScenarioId`, `replayMode`, `replaySpeed`, `operatorControlError`
+- first-intake active addressed runtime state
+  `firstIntakeRuntimeState`, `firstIntakeScenarioId`, `firstIntakeAddressParam`,
+  `firstIntakeAddressableEntry`, `firstIntakeAddressResolution`,
+  `firstIntakeAdoptionMode`, `firstIntakeTruthBoundaryLabel`,
+  `firstIntakeSourceLineage`
+- first-intake mobile-endpoint trajectory state
+  `firstIntakeMobileTrajectoryState`, `firstIntakeMobileTrajectoryScenarioId`,
+  `firstIntakeMobileTrajectoryEndpointId`, `firstIntakeMobileTrajectoryRecordId`,
+  `firstIntakeMobileTrajectoryWaypointCount`,
+  `firstIntakeMobileTrajectoryCoordinateReference`,
+  `firstIntakeMobileTrajectoryCorridorTruth`,
+  `firstIntakeMobileTrajectoryEquipageTruth`,
+  `firstIntakeMobileTrajectoryServiceTruth`,
+  `firstIntakeMobileTrajectoryProofSeam`,
+  `firstIntakeMobileTrajectorySourceLineage`
 - communication-time state
   `communicationScenarioId`, `communicationStatus`,
   `communicationSourceKind`, `communicationReportSchemaVersion`,

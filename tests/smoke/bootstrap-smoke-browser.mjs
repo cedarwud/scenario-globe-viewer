@@ -109,7 +109,20 @@ export function startHeadlessBrowser(browserCommand, extraArgs = []) {
   });
 }
 
-export async function stopHeadlessBrowser(browserProcess, userDataDir) {
+export async function stopHeadlessBrowser(browserOrHandle, userDataDir) {
+  const browserProcess =
+    typeof browserOrHandle?.kill === "function"
+      ? browserOrHandle
+      : browserOrHandle?.browserProcess;
+  const resolvedUserDataDir = userDataDir ?? browserOrHandle?.userDataDir;
+
+  if (!browserProcess) {
+    if (resolvedUserDataDir) {
+      rmSync(resolvedUserDataDir, { recursive: true, force: true });
+    }
+    return;
+  }
+
   if (!browserProcess.killed) {
     browserProcess.kill("SIGTERM");
   }
@@ -128,7 +141,9 @@ export async function stopHeadlessBrowser(browserProcess, userDataDir) {
     }, 1000);
   });
 
-  rmSync(userDataDir, { recursive: true, force: true });
+  if (resolvedUserDataDir) {
+    rmSync(resolvedUserDataDir, { recursive: true, force: true });
+  }
 }
 
 export async function resolvePageWebSocketUrl(browserWebSocketUrl) {
@@ -230,4 +245,44 @@ export function connectCdp(pageWebSocketUrl) {
       rejectPending(new Error("CDP websocket closed."));
     });
   });
+}
+
+function resolveRuntimeEvaluateExceptionMessage(evaluation) {
+  const exceptionDetails = evaluation.exceptionDetails;
+  const description =
+    exceptionDetails?.exception?.description ??
+    exceptionDetails?.text ??
+    "Browser Runtime.evaluate failed without exception details.";
+  const lineNumber =
+    typeof exceptionDetails?.lineNumber === "number"
+      ? exceptionDetails.lineNumber + 1
+      : null;
+  const columnNumber =
+    typeof exceptionDetails?.columnNumber === "number"
+      ? exceptionDetails.columnNumber + 1
+      : null;
+  const location =
+    lineNumber === null || columnNumber === null
+      ? ""
+      : ` (line ${lineNumber}, column ${columnNumber})`;
+
+  return `Browser Runtime.evaluate threw${location}: ${description}`;
+}
+
+export async function evaluateRuntimeValue(
+  client,
+  expression,
+  { awaitPromise = false } = {}
+) {
+  const evaluation = await client.send("Runtime.evaluate", {
+    expression,
+    awaitPromise,
+    returnByValue: true
+  });
+
+  if (evaluation.exceptionDetails) {
+    throw new Error(resolveRuntimeEvaluateExceptionMessage(evaluation));
+  }
+
+  return evaluation.result.value;
 }
