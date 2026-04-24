@@ -164,6 +164,10 @@ async function main() {
             );
             const panelData = infoPanel?.dataset ?? {};
             const panelText = infoPanel?.textContent?.replace(/\\s+/g, " ").trim() ?? "";
+            const panelRect = infoPanel?.getBoundingClientRect?.() ?? {
+              width: -1,
+              height: -1
+            };
 
             assert(
               scenarioSurfaceState.addressResolution === "matched" &&
@@ -175,6 +179,7 @@ async function main() {
               infoState.infoState === "active-addressed-case" &&
                 infoState.infoSurface ===
                   "supplemental-nearby-second-endpoint-info-panel" &&
+                infoState.panelVisible === false &&
                 infoState.proofSeam === "${EXPECTED_PROOF_SEAM}" &&
                 infoState.scenarioId === "${TARGET_SCENARIO_ID}",
               "M8A.4 must expose the addressed supplemental info proof seam."
@@ -258,6 +263,10 @@ async function main() {
                   "interior-bc-corridor-adjacent" &&
                 panelData.nearbyRelation ===
                   "first-corridor-nearby-second-endpoint" &&
+                panelData.panelVisible === "false" &&
+                panelData.presentationState === "suppressed" &&
+                panelData.presentationSuppression ===
+                  "r1v1-default-floating-panel-suppression" &&
                 panelData.activeGatewayAssignment === "not-claimed" &&
                 panelData.pairSpecificGeoTeleport === "not-claimed" &&
                 panelData.measurementTruth === "not-claimed" &&
@@ -266,7 +275,10 @@ async function main() {
             );
 
             assert(
-              panelText.includes("YKA Kamloops Airport Operations Office") &&
+              infoPanel.hidden === true &&
+                panelRect.width === 0 &&
+                panelRect.height === 0 &&
+                panelText.includes("YKA Kamloops Airport Operations Office") &&
                 panelText.includes(
                   "airport-adjacent-fixed-service-endpoint"
                 ) &&
@@ -280,7 +292,7 @@ async function main() {
                 panelText.includes(
                   "No measurement-truth performance claim"
                 ),
-              "M8A.4 info panel must make the endpoint facts, precision, nearby relation, and non-claims visible."
+              "M8A.4 info panel must keep endpoint facts, precision, nearby relation, and non-claims populated while hidden by R1V.1 presentation suppression."
             );
 
             assert(
@@ -299,6 +311,8 @@ async function main() {
                 "active-addressed-case" &&
                 rootData.firstIntakeNearbySecondEndpointInfoScenarioId ===
                   "${TARGET_SCENARIO_ID}" &&
+                rootData.firstIntakeNearbySecondEndpointInfoPanelVisible ===
+                  "false" &&
                 rootData.firstIntakeNearbySecondEndpointInfoEndpointLabel ===
                   "YKA Kamloops Airport Operations Office" &&
                 rootData.firstIntakeNearbySecondEndpointInfoEndpointType ===

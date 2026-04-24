@@ -186,7 +186,7 @@ async function main() {
             );
             assert(
               panel instanceof HTMLElement,
-              "Missing browser-visible first-intake active-case narrative panel."
+              "Missing first-intake active-case narrative panel DOM ownership."
             );
 
             narrativeState = capture.firstIntakeActiveCaseNarrative.getState();
@@ -215,13 +215,17 @@ async function main() {
               "${TRAJECTORY_CONSUMER_SELECTOR}"
             );
             const panelRect = panel.getBoundingClientRect();
-            const panelText = panel.innerText.replace(/\\s+/g, " ").trim();
+            const panelText = panel.textContent.replace(/\\s+/g, " ").trim();
             const panelDataset = {
               scenarioId: panel.dataset.scenarioId ?? null,
               addressResolution: panel.dataset.addressResolution ?? null,
               activeScenarioId: panel.dataset.activeScenarioId ?? null,
               narrativeState: panel.dataset.narrativeState ?? null,
               narrativeSurface: panel.dataset.narrativeSurface ?? null,
+              panelVisible: panel.dataset.panelVisible ?? null,
+              presentationState: panel.dataset.presentationState ?? null,
+              presentationSuppression:
+                panel.dataset.presentationSuppression ?? null,
               caseLabel: panel.dataset.caseLabel ?? null,
               serviceSwitchingSemantics:
                 panel.dataset.serviceSwitchingSemantics ?? null,
@@ -271,7 +275,7 @@ async function main() {
             const geoAnchorEndpoint = overlayState.endpoints.find(
               (endpoint) => endpoint.role === "endpoint-b"
             );
-            const visiblePrimaryNarrativePanels = [
+            const mountedPrimaryNarrativePanels = [
               {
                 name: "firstIntakeActiveCaseNarrative",
                 present: panel instanceof HTMLElement
@@ -297,15 +301,15 @@ async function main() {
               narrativeState.narrativeState === "active-addressed-case" &&
                 narrativeState.narrativeSurface ===
                   "integrated-active-case-narrative-panel" &&
-                narrativeState.panelVisible === true &&
+                narrativeState.panelVisible === false &&
                 narrativeState.activeScenarioId === "${TARGET_SCENARIO_ID}" &&
                 narrativeState.proofSeam === "${EXPECTED_NARRATIVE_PROOF_SEAM}",
-              "M7 slice B must keep firstIntakeActiveCaseNarrative as the visible active-case narrative surface."
+              "M7 slice B must keep firstIntakeActiveCaseNarrative as the active-case narrative seam while R1V.1 suppresses panel presentation."
             );
             assert(
-              JSON.stringify(visiblePrimaryNarrativePanels) ===
+              JSON.stringify(mountedPrimaryNarrativePanels) ===
                 JSON.stringify(["firstIntakeActiveCaseNarrative"]),
-              "Only firstIntakeActiveCaseNarrative may remain mounted as a viewer-facing first-case narrative panel."
+              "Only firstIntakeActiveCaseNarrative may remain mounted as the first-case narrative panel DOM owner."
             );
             assert(
               operatorExplainerState.panelVisible === false &&
@@ -455,8 +459,9 @@ async function main() {
               "Narrative seam must name the runtime reads it composes and explicitly forbid raw seed/package side-reads."
             );
             assert(
-              panelRect.width > 0 &&
-                panelRect.height > 0 &&
+              panel.hidden === true &&
+                panelRect.width === 0 &&
+                panelRect.height === 0 &&
                 panelText.includes("OneWeb LEO + Intelsat GEO aviation") &&
                 panelText.includes("service-layer switching") &&
                 panelText.includes("not native RF handover") &&
@@ -468,7 +473,7 @@ async function main() {
                 ) &&
                 panelText.includes("not-proven-at-tail-level") &&
                 panelText.includes("not-proven-active-on-this-flight"),
-              "Narrative panel must visibly communicate every required M7 fact."
+              "Narrative panel must keep every required M7 fact populated while hidden by R1V.1 presentation suppression."
             );
             assert(
               panelDataset.scenarioId === narrativeState.scenarioId &&
@@ -480,6 +485,11 @@ async function main() {
                   narrativeState.narrativeState &&
                 panelDataset.narrativeSurface ===
                   narrativeState.narrativeSurface &&
+                panelDataset.panelVisible ===
+                  String(narrativeState.panelVisible) &&
+                panelDataset.presentationState === "suppressed" &&
+                panelDataset.presentationSuppression ===
+                  "r1v1-default-floating-panel-suppression" &&
                 panelDataset.caseLabel === narrativeState.caseLabel &&
                 panelDataset.serviceSwitchingSemantics ===
                   narrativeState.serviceSwitchingSemantics &&
@@ -515,7 +525,7 @@ async function main() {
                   narrativeState.sourceLineage.rawSeedSideReadOwnership &&
                 panelDataset.lineageRawPackageSideReadOwnership ===
                   narrativeState.sourceLineage.rawPackageSideReadOwnership,
-              "Browser-visible narrative DOM markers must stay aligned with the runtime capture state."
+              "Suppressed narrative DOM markers must stay aligned with the runtime capture state."
             );
             assert(
               JSON.stringify(
@@ -591,7 +601,7 @@ async function main() {
               consolidationSeam: "startBootstrapComposition",
               primaryProofSeam:
                 "window.__SCENARIO_GLOBE_VIEWER_CAPTURE__.firstIntakeActiveCaseNarrative",
-              visiblePrimaryNarrativePanels,
+              mountedPrimaryNarrativePanels,
               hiddenRepoOwnedSeams: [
                 {
                   seam: "window.__SCENARIO_GLOBE_VIEWER_CAPTURE__.firstIntakeOperatorExplainer",

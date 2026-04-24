@@ -202,7 +202,7 @@ async function main() {
               "[data-first-intake-mobile-endpoint-trajectory-consumer='true']"
             );
             const narrativePanelRect = narrativePanel.getBoundingClientRect();
-            const narrativePanelText = narrativePanel.innerText
+            const narrativePanelText = narrativePanel.textContent
               .replace(/\\s+/g, " ")
               .trim();
             const rootData = document.documentElement.dataset;
@@ -227,15 +227,16 @@ async function main() {
               "M6 slice B must not reclaim a viewer-facing duplicate panel from the M7 primary narrative."
             );
             assert(
-              narrativeState.panelVisible === true &&
+              narrativeState.panelVisible === false &&
                 narrativePanel instanceof HTMLElement &&
                 narrativeState.activeScenarioId === "${TARGET_SCENARIO_ID}" &&
-                narrativePanelRect.width > 0 &&
-                narrativePanelRect.height > 0 &&
+                narrativePanel.hidden === true &&
+                narrativePanelRect.width === 0 &&
+                narrativePanelRect.height === 0 &&
                 narrativePanelText.includes(
                   "accepted corridor package = historical replay package"
                 ),
-              "M7 active-case narrative must retain the viewer-facing first-case ownership."
+              "M7 active-case narrative must retain first-case ownership while R1V.1 suppresses the floating panel presentation."
             );
 
             assert(

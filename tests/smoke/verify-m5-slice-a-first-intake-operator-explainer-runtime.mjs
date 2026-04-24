@@ -186,7 +186,7 @@ async function main() {
             const activeHandoverState = capture.firstIntakeHandoverDecision.getState();
             const overlayState = capture.firstIntakeOverlayExpression.getState();
             const narrativePanelRect = narrativePanel.getBoundingClientRect();
-            const narrativePanelText = narrativePanel.innerText
+            const narrativePanelText = narrativePanel.textContent
               .replace(/\\s+/g, " ")
               .trim();
             const handoverSnapshotKeys = Object.keys(activeHandoverState.snapshot).sort();
@@ -210,9 +210,9 @@ async function main() {
             assert(
               narrativeState.scenarioId === "${TARGET_SCENARIO_ID}" &&
                 narrativeState.activeScenarioId === "${TARGET_SCENARIO_ID}" &&
-                narrativeState.panelVisible === true &&
+                narrativeState.panelVisible === false &&
                 narrativePanel instanceof HTMLElement,
-              "M7 active-case narrative must retain the viewer-facing first-case panel."
+              "M7 active-case narrative must retain the active-case seam while R1V.1 suppresses the floating panel presentation."
             );
             assert(
               explainerState.caseLabel ===
@@ -265,13 +265,14 @@ async function main() {
               "Explainer must expose the seed -> active owner -> physical-input -> handover-runtime lineage."
             );
             assert(
-              narrativePanelRect.width > 0 &&
-                narrativePanelRect.height > 0 &&
+              narrativePanel.hidden === true &&
+                narrativePanelRect.width === 0 &&
+                narrativePanelRect.height === 0 &&
                 narrativePanelText.includes("OneWeb LEO + Intelsat GEO aviation") &&
                 narrativePanelText.includes("service-layer switching") &&
                 narrativePanelText.includes("not native RF handover") &&
                 narrativePanelText.includes("bounded-proxy, not measurement truth"),
-              "M7 active-case narrative must remain the visible single-primary first-case explanation."
+              "M7 active-case narrative must keep its first-case explanation data while hidden by R1V.1 presentation suppression."
             );
             assert(
               JSON.stringify(

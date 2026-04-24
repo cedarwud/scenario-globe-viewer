@@ -169,7 +169,7 @@ async function main() {
             );
             assert(
               panel instanceof HTMLElement,
-              "Missing browser-visible first-intake overlay expression panel."
+              "Missing first-intake overlay expression panel DOM ownership."
             );
 
             overlayState = capture.firstIntakeOverlayExpression.getState();
@@ -179,7 +179,6 @@ async function main() {
             const firstIntakeHandoverState =
               capture.firstIntakeHandoverDecision.getState();
             const panelRect = panel.getBoundingClientRect();
-            const panelText = panel.innerText;
             const dataSources = capture.viewer.dataSources.getByName(
               "${OVERLAY_DATA_SOURCE_NAME}"
             );
@@ -204,6 +203,9 @@ async function main() {
                 null,
               activeGatewayClaim:
                 document.documentElement.dataset.firstIntakeOverlayActiveGatewayClaim ??
+                null,
+              panelVisible:
+                document.documentElement.dataset.firstIntakeOverlayPanelVisible ??
                 null,
               coordinateFreeEndpointCount:
                 document.documentElement.dataset
@@ -232,6 +234,10 @@ async function main() {
                 panel.dataset.infrastructureExpressionMode ?? null,
               gatewayPoolSemantics: panel.dataset.gatewayPoolSemantics ?? null,
               activeGatewayClaim: panel.dataset.activeGatewayClaim ?? null,
+              panelVisible: panel.dataset.panelVisible ?? null,
+              presentationState: panel.dataset.presentationState ?? null,
+              presentationSuppression:
+                panel.dataset.presentationSuppression ?? null,
               coordinateFreeEndpointCount:
                 panel.dataset.coordinateFreeEndpointCount ?? null,
               coordinateFreeEndpointIds:
@@ -253,6 +259,10 @@ async function main() {
                 overlayState.endpointExpressionMode === "runtime-local-panel" &&
                 overlayState.infrastructureExpressionMode === "globe-pool-markers",
               "First-intake overlay expression seam must expose the M4 runtime expression modes."
+            );
+            assert(
+              overlayState.panelVisible === false,
+              "First-intake overlay expression panel presentation must be suppressed by default while the seam stays available."
             );
             assert(
               overlayState.gatewayPoolSemantics === "eligible-gateway-pool" &&
@@ -283,11 +293,12 @@ async function main() {
               "Infrastructure overlay expression must attach through the repo-owned runtime data-source seam."
             );
             assert(
-              panelRect.width > 0 &&
-                panelRect.height > 0 &&
-                panelText.includes("eligible pool") &&
-                panelText.includes("invented globe coordinates"),
-              "Overlay expression must be visibly present through a browser-visible runtime panel."
+              panel.hidden === true &&
+                panelRect.width === 0 &&
+                panelRect.height === 0 &&
+                panel.textContent.includes("eligible pool") &&
+                panel.textContent.includes("invented globe coordinates"),
+              "Overlay expression runtime panel must keep populated DOM markers while hidden by R1V.1 presentation suppression."
             );
             assert(
               dataSources.length === 1 &&
@@ -310,6 +321,7 @@ async function main() {
                 documentTelemetry.gatewayPoolSemantics ===
                   "eligible-gateway-pool" &&
                 documentTelemetry.activeGatewayClaim === "not-claimed" &&
+                documentTelemetry.panelVisible === "false" &&
                 documentTelemetry.coordinateFreeEndpointCount === "2" &&
                 documentTelemetry.onGlobeInfrastructureNodeCount === "6" &&
                 documentTelemetry.dataSourceAttached === "true" &&
@@ -328,6 +340,10 @@ async function main() {
                   documentTelemetry.gatewayPoolSemantics &&
                 panelDataset.activeGatewayClaim ===
                   documentTelemetry.activeGatewayClaim &&
+                panelDataset.panelVisible === documentTelemetry.panelVisible &&
+                panelDataset.presentationState === "suppressed" &&
+                panelDataset.presentationSuppression ===
+                  "r1v1-default-floating-panel-suppression" &&
                 panelDataset.coordinateFreeEndpointCount ===
                   documentTelemetry.coordinateFreeEndpointCount &&
                 panelDataset.coordinateFreeEndpointIds ===
@@ -339,7 +355,7 @@ async function main() {
                 panelDataset.dataSourceAttached ===
                   documentTelemetry.dataSourceAttached &&
                 panelDataset.dataSourceName === documentTelemetry.dataSourceName,
-              "Browser-visible DOM markers must stay aligned with document telemetry."
+              "Suppressed DOM markers must stay aligned with document telemetry."
             );
             assert(
               JSON.stringify(
@@ -383,7 +399,7 @@ async function main() {
             return {
               proofSeams: [
                 "capture:firstIntakeOverlayExpression",
-                "browser-visible-dom-markers",
+                "suppressed-dom-markers",
                 "document-telemetry"
               ],
               overlayState,
