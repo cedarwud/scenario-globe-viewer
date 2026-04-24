@@ -2,10 +2,9 @@
 
 ## Purpose
 
-`nearby-second-endpoint-info` is the dedicated `M8A.4` viewer-facing
-information surface for the accepted nearby second endpoint. It is
-supplemental to the integrated first active-case narrative and exists only to
-answer:
+`nearby-second-endpoint-info` is the dedicated `M8A.4` information surface for
+the accepted nearby second endpoint. It is supplemental to the integrated first
+active-case narrative and exists only to answer:
 
 1. what the second endpoint is
 2. where it is expressed, at what accepted precision
@@ -34,9 +33,9 @@ It must not import or read raw package files under:
 - `itri/multi-orbit/download/nearby-second-endpoints/...`
 - `itri/multi-orbit/download/aircraft-corridors/...`
 
-## Viewer-Facing Facts
+## Contract Facts
 
-The first `M8A.4` surface exposes only:
+The `M8A.4` surface carries only:
 
 - second endpoint label:
   `YKA Kamloops Airport Operations Office`
@@ -54,7 +53,7 @@ The first `M8A.4` surface exposes only:
 
 ## Explicit Non-Claims
 
-The surface must make these non-claims visible:
+The surface must preserve these non-claims:
 
 - no active gateway assignment
 - no pair-specific GEO teleport
@@ -70,6 +69,11 @@ The addressed first-intake route publishes:
 
 - `window.__SCENARIO_GLOBE_VIEWER_CAPTURE__.firstIntakeNearbySecondEndpointInfo`
 - document telemetry under `firstIntakeNearbySecondEndpointInfo*`
+
+After `R1V.1`, the default floating panel presentation is hidden/collapsed on
+the addressed route. `panelVisible=false` and
+`firstIntakeNearbySecondEndpointInfoPanelVisible=false` mean presentation is
+suppressed, not that the `M8A.4` runtime data is missing.
 
 The default bootstrap route must not publish either proof seam.
 

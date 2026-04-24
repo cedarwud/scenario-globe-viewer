@@ -20,6 +20,10 @@ substitute for the document-level evidence surface.
 - `src/features/telemetry/document-telemetry.ts`
 - `src/main.ts`
 - `src/runtime/bootstrap/composition.ts`
+- `src/runtime/first-intake-overlay-expression-controller.ts`
+- `src/runtime/first-intake-replay-time-authority-controller.ts`
+- `src/runtime/first-intake-cinematic-camera-preset-controller.ts`
+- `src/runtime/first-intake-satcom-context-overlay-controller.ts`
 - `src/runtime/first-intake-nearby-second-endpoint-info-controller.ts`
 - `src/runtime/first-intake-nearby-second-endpoint-expression-controller.ts`
 - `src/runtime/first-intake-nearby-second-endpoint-controller.ts`
@@ -71,6 +75,67 @@ The current document-level telemetry surface includes these groups:
   `firstIntakeMobileTrajectoryServiceTruth`,
   `firstIntakeMobileTrajectoryProofSeam`,
   `firstIntakeMobileTrajectorySourceLineage`
+- first-intake replay time authority state
+  `firstIntakeReplayTimeAuthorityState`,
+  `firstIntakeReplayTimeAuthorityScenarioId`,
+  `firstIntakeReplayTimeAuthorityReplayStartUtc`,
+  `firstIntakeReplayTimeAuthorityReplayStopUtc`,
+  `firstIntakeReplayTimeAuthorityCurrentTimeUtc`,
+  `firstIntakeReplayTimeAuthorityMode`,
+  `firstIntakeReplayTimeAuthorityMultiplier`,
+  `firstIntakeReplayTimeAuthorityIsPlaying`,
+  `firstIntakeReplayTimeAuthorityDefaultMultiplier`,
+  `firstIntakeReplayTimeAuthorityAllowedMultipliers`,
+  `firstIntakeReplayTimeAuthorityAnimationWidgetBound`,
+  `firstIntakeReplayTimeAuthorityTimelineBound`,
+  `firstIntakeReplayTimeAuthorityResetPolicy`,
+  `firstIntakeReplayTimeAuthorityStopBehavior`,
+  `firstIntakeReplayTimeAuthorityTrajectoryProofSeam`,
+  `firstIntakeReplayTimeAuthorityReplayClockProofSeam`,
+  `firstIntakeReplayTimeAuthorityProofSeam`
+- first-intake cinematic camera preset state
+  `firstIntakeCameraPresetState`,
+  `firstIntakeCameraPresetScenarioId`,
+  `firstIntakeCameraPresetKey`,
+  `firstIntakeCameraPresetAffordanceMounted`,
+  `firstIntakeCameraPresetAffordancePlacement`,
+  `firstIntakeCameraPresetSelectionModel`,
+  `firstIntakeCameraPresetActivationState`,
+  `firstIntakeCameraPresetActivationCount`,
+  `firstIntakeCameraPresetFitStrategy`,
+  `firstIntakeCameraPresetMobileEndpointId`,
+  `firstIntakeCameraPresetFixedEndpointId`,
+  `firstIntakeCameraPresetRelationCueKind`,
+  `firstIntakeCameraPresetTrajectoryWaypointCount`,
+  `firstIntakeCameraPresetBoundsWest`,
+  `firstIntakeCameraPresetBoundsSouth`,
+  `firstIntakeCameraPresetBoundsEast`,
+  `firstIntakeCameraPresetBoundsNorth`,
+  `firstIntakeCameraPresetTargetLat`,
+  `firstIntakeCameraPresetTargetLon`,
+  `firstIntakeCameraPresetRangeMeters`,
+  `firstIntakeCameraPresetHeadingDegrees`,
+  `firstIntakeCameraPresetPitchDegrees`,
+  `firstIntakeCameraPresetRawPackageSideReadOwnership`,
+  `firstIntakeCameraPresetProofSeam`
+- first-intake satcom context overlay state
+  `firstIntakeSatcomContextOverlayState`,
+  `firstIntakeSatcomContextOverlayScenarioId`,
+  `firstIntakeSatcomContextOverlaySurface`,
+  `firstIntakeSatcomContextOverlayPlacement`,
+  `firstIntakeSatcomContextOverlayVisible`,
+  `firstIntakeSatcomContextOverlayVisibleFacts`,
+  `firstIntakeSatcomContextOverlayInspectableFacts`,
+  `firstIntakeSatcomContextOverlayRequiredNonClaims`,
+  `firstIntakeSatcomContextOverlayReplayTimeUtc`,
+  `firstIntakeSatcomContextOverlayReplayClockProofSeam`,
+  `firstIntakeSatcomContextOverlayTimeStateSource`,
+  `firstIntakeSatcomContextOverlayUsesSharedReplayClock`,
+  `firstIntakeSatcomContextOverlaySuppressedPanelRevival`,
+  `firstIntakeSatcomContextOverlayAvoidsTimeline`,
+  `firstIntakeSatcomContextOverlayAvoidsCinematicAffordance`,
+  `firstIntakeSatcomContextOverlayRawPackageSideReadOwnership`,
+  `firstIntakeSatcomContextOverlayProofSeam`
 - first-intake nearby second-endpoint state
   `firstIntakeNearbySecondEndpointState`,
   `firstIntakeNearbySecondEndpointScenarioId`,
@@ -92,6 +157,12 @@ The current document-level telemetry surface includes these groups:
   `firstIntakeNearbySecondEndpointExpressionCurrentMobileEndpointId`,
   `firstIntakeNearbySecondEndpointExpressionCurrentMobileWaypointSequence`,
   `firstIntakeNearbySecondEndpointExpressionCurrentMobileWaypointTimeUtc`,
+  `firstIntakeNearbySecondEndpointExpressionAnimationState`,
+  `firstIntakeNearbySecondEndpointExpressionAnimationReplayTimeUtc`,
+  `firstIntakeNearbySecondEndpointExpressionAnimationIsPlaying`,
+  `firstIntakeNearbySecondEndpointExpressionAnimationInterpolationRatio`,
+  `firstIntakeNearbySecondEndpointExpressionAnimationSegmentStartWaypointSequence`,
+  `firstIntakeNearbySecondEndpointExpressionAnimationSegmentEndWaypointSequence`,
   `firstIntakeNearbySecondEndpointExpressionFixedEndpointId`,
   `firstIntakeNearbySecondEndpointExpressionFixedEndpointPositionPrecision`,
   `firstIntakeNearbySecondEndpointExpressionRelationCueKind`,
@@ -104,9 +175,24 @@ The current document-level telemetry surface includes these groups:
   `firstIntakeNearbySecondEndpointExpressionDataSourceAttached`,
   `firstIntakeNearbySecondEndpointExpressionDataSourceName`,
   `firstIntakeNearbySecondEndpointExpressionProofSeam`
+- first-intake overlay expression state
+  `firstIntakeOverlayExpressionState`,
+  `firstIntakeOverlayTruthBoundaryLabel`,
+  `firstIntakeOverlayEndpointExpressionMode`,
+  `firstIntakeOverlayInfrastructureExpressionMode`,
+  `firstIntakeOverlayGatewayPoolSemantics`,
+  `firstIntakeOverlayActiveGatewayClaim`,
+  `firstIntakeOverlayPanelVisible`,
+  `firstIntakeOverlayCoordinateFreeEndpointCount`,
+  `firstIntakeOverlayCoordinateFreeEndpointIds`,
+  `firstIntakeOverlayOnGlobeInfrastructureNodeCount`,
+  `firstIntakeOverlayInfrastructureNodeIds`,
+  `firstIntakeOverlayDataSourceAttached`,
+  `firstIntakeOverlayDataSourceName`
 - first-intake nearby second-endpoint info state
   `firstIntakeNearbySecondEndpointInfoState`,
   `firstIntakeNearbySecondEndpointInfoScenarioId`,
+  `firstIntakeNearbySecondEndpointInfoPanelVisible`,
   `firstIntakeNearbySecondEndpointInfoEndpointLabel`,
   `firstIntakeNearbySecondEndpointInfoEndpointType`,
   `firstIntakeNearbySecondEndpointInfoPositionPrecision`,

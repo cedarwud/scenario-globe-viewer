@@ -129,6 +129,32 @@ In the current repo state:
 - the same plain-data state is also consumed locally by the read-only timeline HUD placeholder
 - the native Cesium timeline, toolbar, and credits remain present in the runtime shell
 
+## R1V.2 Addressed-Route Policy
+
+`R1V.2` does not replace the base `ReplayClock` contract. It adds an
+addressed-route policy layer in
+`src/runtime/first-intake-replay-time-authority-controller.ts` for the matched
+first-intake scene only.
+
+On that addressed route:
+
+- the capture seam still exposes `window.__SCENARIO_GLOBE_VIEWER_CAPTURE__.replayClock`
+- that replay-clock seam is the bounded addressed-route authority used by the
+  first-intake runtime
+- replay `startTime` / `stopTime` are derived from
+  `firstIntakeMobileEndpointTrajectory.trajectory.windowStartUtc` and
+  `windowEndUtc`
+- the route is forced onto `prerecorded` mode for this slice
+- the route initializes paused at replay start with `60x`
+- the first allowed multiplier set is `1x`, `10x`, `30x`, `60x`, `120x`
+- Cesium's animation widget keeps those same shuttle-ring ticks
+- Cesium's bottom timeline is zoomed to that same replay window
+- reaching replay stop clamps and pauses
+- the repo exposes
+  `window.__SCENARIO_GLOBE_VIEWER_CAPTURE__.firstIntakeReplayTimeAuthority`
+  only on that addressed route so smoke can prove reset and stop-boundary
+  behavior without introducing a second timer
+
 ## Non-Goals And Not-Yet-Implemented
 
 This contract does not currently include:
