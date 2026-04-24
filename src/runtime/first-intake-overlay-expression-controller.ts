@@ -5,6 +5,7 @@ import {
   ConstantProperty,
   ConstantPositionProperty,
   CustomDataSource,
+  DistanceDisplayCondition,
   HorizontalOrigin,
   LabelGraphics,
   LabelStyle,
@@ -114,6 +115,13 @@ function createInfrastructurePointStyle(): PointGraphics {
   });
 }
 
+// M8A-V3.2 §Composition Priority / §Default Visible Surface Budget: the
+// eligible-gateway-pool nodes are priority-5 "secondary inspectable detail".
+// Hide their labels beyond ~3000 km so priority-2 aircraft + YKA endpoints
+// read first at the default global preset; labels reappear on zoom-in, and
+// the entity's description stays available via the Cesium click infobox.
+const INFRASTRUCTURE_LABEL_INSPECT_DISTANCE_METERS = 3_000_000;
+
 function createInfrastructureLabelStyle(text: string): LabelGraphics {
   return new LabelGraphics({
     text: new ConstantProperty(text),
@@ -128,7 +136,13 @@ function createInfrastructureLabelStyle(text: string): LabelGraphics {
     pixelOffset: new Cartesian2(0, -18),
     horizontalOrigin: HorizontalOrigin.CENTER,
     verticalOrigin: VerticalOrigin.BOTTOM,
-    disableDepthTestDistance: Number.POSITIVE_INFINITY
+    disableDepthTestDistance: Number.POSITIVE_INFINITY,
+    distanceDisplayCondition: new ConstantProperty(
+      new DistanceDisplayCondition(
+        0,
+        INFRASTRUCTURE_LABEL_INSPECT_DISTANCE_METERS
+      )
+    )
   });
 }
 
