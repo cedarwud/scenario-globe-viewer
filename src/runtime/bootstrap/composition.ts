@@ -39,14 +39,17 @@ import { createFirstIntakeActiveCaseNarrativeController } from "../first-intake-
 import { createFirstIntakeNearbySecondEndpointController } from "../first-intake-nearby-second-endpoint-controller";
 import { createFirstIntakeNearbySecondEndpointExpressionController } from "../first-intake-nearby-second-endpoint-expression-controller";
 import { createFirstIntakeNearbySecondEndpointInfoController } from "../first-intake-nearby-second-endpoint-info-controller";
+import { createFirstIntakeCinematicCameraPresetController } from "../first-intake-cinematic-camera-preset-controller";
 import { createFirstIntakeMobileEndpointTrajectoryConsumerController } from "../first-intake-mobile-endpoint-trajectory-consumer-controller";
 import { createFirstIntakeMobileEndpointTrajectoryController } from "../first-intake-mobile-endpoint-trajectory-controller";
+import { createFirstIntakeSatcomContextOverlayController } from "../first-intake-satcom-context-overlay-controller";
 import {
   createFirstIntakeOperatorExplainerController,
   type FirstIntakeOperatorExplainerSeed
 } from "../first-intake-operator-explainer-controller";
 import { createFirstIntakeOverlayExpressionController } from "../first-intake-overlay-expression-controller";
 import { createFirstIntakePhysicalInputController } from "../first-intake-physical-input-controller";
+import { createFirstIntakeReplayTimeAuthorityController } from "../first-intake-replay-time-authority-controller";
 import { createBootstrapScenarioCatalog } from "../resolve-bootstrap-scenario";
 import {
   createSatelliteOverlayController,
@@ -86,12 +89,18 @@ export interface BootstrapCapture {
     ReturnType<typeof createFirstIntakeNearbySecondEndpointExpressionController>;
   firstIntakeNearbySecondEndpointInfo?:
     ReturnType<typeof createFirstIntakeNearbySecondEndpointInfoController>;
+  firstIntakeCinematicCameraPreset?:
+    ReturnType<typeof createFirstIntakeCinematicCameraPresetController>;
+  firstIntakeSatcomContextOverlay?:
+    ReturnType<typeof createFirstIntakeSatcomContextOverlayController>;
   firstIntakeMobileEndpointTrajectory?:
     ReturnType<typeof createFirstIntakeMobileEndpointTrajectoryController>;
   firstIntakeMobileEndpointTrajectoryConsumer?:
     ReturnType<
       typeof createFirstIntakeMobileEndpointTrajectoryConsumerController
     >;
+  firstIntakeReplayTimeAuthority?:
+    ReturnType<typeof createFirstIntakeReplayTimeAuthorityController>;
   firstIntakePhysicalInput:
     ReturnType<typeof createFirstIntakePhysicalInputController>;
   firstIntakeHandoverDecision:
@@ -123,17 +132,32 @@ interface BootstrapControllerGraph {
   dispose(): void;
 }
 
+const R1V_VISUAL_ACCEPTANCE_HUD_CLEANUP_REASON =
+  "r1v-visual-acceptance-addressed-route-scene-clearance";
+const R1V_HOME_DEFAULT_SCENARIO_ID = "app-oneweb-intelsat-geo-aviation";
+
 function resolveBootstrapScenePreset(): ScenePresetKey {
   const request = new URLSearchParams(window.location.search).get("scenePreset");
   return resolveScenePresetKey(request);
 }
 
 function resolveFirstIntakeRequestedScenarioId(): string | undefined {
-  const request = new URLSearchParams(window.location.search).get(
+  const search = new URLSearchParams(window.location.search);
+  const request = search.get(
     FIRST_INTAKE_RUNTIME_ADDRESS_QUERY_PARAM
   );
 
-  return request?.trim().length ? request : undefined;
+  if (request?.trim().length) {
+    return request;
+  }
+
+  // The bare homepage is the viewer demo entry, while query-bearing default
+  // routes remain available for legacy/default-route smoke coverage.
+  if (window.location.pathname === "/" && window.location.search === "") {
+    return R1V_HOME_DEFAULT_SCENARIO_ID;
+  }
+
+  return undefined;
 }
 
 function syncFirstIntakeRuntimeTelemetry(
@@ -176,6 +200,72 @@ function shouldAdoptFirstIntakeAsActiveOwner(
   firstIntakeScenarioSurface: FirstIntakeRuntimeScenarioSurface
 ): boolean {
   return firstIntakeScenarioSurface.getState().addressResolution === "matched";
+}
+
+function markR1vVisualAcceptanceHudSurface(
+  element: HTMLElement,
+  surface: string
+): void {
+  element.hidden = true;
+  element.setAttribute("aria-hidden", "true");
+  element.dataset.r1vVisualAcceptanceSurface = surface;
+  element.dataset.r1vVisualAcceptancePresentation = "collapsed";
+  element.dataset.r1vVisualAcceptanceReason =
+    R1V_VISUAL_ACCEPTANCE_HUD_CLEANUP_REASON;
+}
+
+function applyR1vVisualAcceptanceHudCleanup({
+  hudFrame,
+  statusPanel
+}: {
+  hudFrame: HTMLElement;
+  statusPanel: HTMLElement;
+}): () => void {
+  const surfaces = [
+    {
+      surface: "hud-panel--status",
+      element: statusPanel
+    },
+    {
+      surface: "timeline-hud-placeholder",
+      element: statusPanel.querySelector<HTMLElement>(".timeline-hud-placeholder")
+    },
+    {
+      surface: "communication-time-panel",
+      element: statusPanel.querySelector<HTMLElement>(".communication-time-panel")
+    },
+    {
+      surface: "physical-input-panel",
+      element: statusPanel.querySelector<HTMLElement>(".physical-input-panel")
+    }
+  ];
+
+  hudFrame.dataset.r1vVisualAcceptanceHudCleanup = "addressed-route";
+  hudFrame.dataset.r1vVisualAcceptanceReason =
+    R1V_VISUAL_ACCEPTANCE_HUD_CLEANUP_REASON;
+
+  for (const { element, surface } of surfaces) {
+    if (element) {
+      markR1vVisualAcceptanceHudSurface(element, surface);
+    }
+  }
+
+  return () => {
+    delete hudFrame.dataset.r1vVisualAcceptanceHudCleanup;
+    delete hudFrame.dataset.r1vVisualAcceptanceReason;
+
+    for (const { element } of surfaces) {
+      if (!element) {
+        continue;
+      }
+
+      element.hidden = false;
+      element.removeAttribute("aria-hidden");
+      delete element.dataset.r1vVisualAcceptanceSurface;
+      delete element.dataset.r1vVisualAcceptancePresentation;
+      delete element.dataset.r1vVisualAcceptanceReason;
+    }
+  };
 }
 
 function createActiveFirstIntakePhysicalInputController(
@@ -344,18 +434,36 @@ export function startBootstrapComposition(app: HTMLDivElement): BootstrapComposi
     buildingShowcaseKey: buildingShowcase.key
   });
   const replayClock = createCesiumReplayClock(viewer);
-  const firstIntakePhysicalInputController =
-    createFirstIntakePhysicalInputController({
-      replayClock,
-      scenarioSurface: firstIntakeScenarioSurface,
-      seeds: [firstIntakeSeed]
-    });
   const firstIntakeScenarioSession = createFirstIntakeActiveScenarioSession(
     firstIntakeScenarioSurface
   );
+  const adoptFirstIntakeAsActiveOwner =
+    shouldAdoptFirstIntakeAsActiveOwner(firstIntakeScenarioSurface);
+  const firstIntakeMobileEndpointTrajectory = adoptFirstIntakeAsActiveOwner
+    ? createFirstIntakeMobileEndpointTrajectoryController({
+        scenarioSurface: firstIntakeScenarioSurface
+      })
+    : undefined;
+  const firstIntakeReplayTimeAuthority =
+    adoptFirstIntakeAsActiveOwner && firstIntakeMobileEndpointTrajectory
+      ? createFirstIntakeReplayTimeAuthorityController({
+          viewer,
+          replayClock,
+          scenarioSurface: firstIntakeScenarioSurface,
+          trajectoryController: firstIntakeMobileEndpointTrajectory
+        })
+      : undefined;
+  const firstIntakeReplayClock =
+    firstIntakeReplayTimeAuthority?.replayClock ?? replayClock;
+  const firstIntakePhysicalInputController =
+    createFirstIntakePhysicalInputController({
+      replayClock: firstIntakeReplayClock,
+      scenarioSurface: firstIntakeScenarioSurface,
+      seeds: [firstIntakeSeed]
+    });
   const firstIntakeHandoverDecisionController =
     createFirstIntakeHandoverDecisionController({
-      replayClock,
+      replayClock: firstIntakeReplayClock,
       scenarioSurface: firstIntakeScenarioSurface
     });
   const controllerGraph = createBootstrapControllerGraph({
@@ -366,8 +474,12 @@ export function startBootstrapComposition(app: HTMLDivElement): BootstrapComposi
     hudFrame,
     statusPanel
   });
-  const adoptFirstIntakeAsActiveOwner =
-    shouldAdoptFirstIntakeAsActiveOwner(firstIntakeScenarioSurface);
+  const restoreR1vVisualAcceptanceHudCleanup = adoptFirstIntakeAsActiveOwner
+    ? applyR1vVisualAcceptanceHudCleanup({
+        hudFrame,
+        statusPanel
+      })
+    : () => {};
   const activeScenarioSession = adoptFirstIntakeAsActiveOwner
     ? firstIntakeScenarioSession
     : controllerGraph.scenarioSession;
@@ -379,11 +491,6 @@ export function startBootstrapComposition(app: HTMLDivElement): BootstrapComposi
   const activeHandoverDecisionController = adoptFirstIntakeAsActiveOwner
     ? firstIntakeHandoverDecisionController
     : controllerGraph.handoverDecisionController;
-  const firstIntakeMobileEndpointTrajectory = adoptFirstIntakeAsActiveOwner
-    ? createFirstIntakeMobileEndpointTrajectoryController({
-        scenarioSurface: firstIntakeScenarioSurface
-      })
-    : undefined;
   const firstIntakeNearbySecondEndpoint = adoptFirstIntakeAsActiveOwner
     ? createFirstIntakeNearbySecondEndpointController({
         scenarioSurface: firstIntakeScenarioSurface
@@ -415,7 +522,7 @@ export function startBootstrapComposition(app: HTMLDivElement): BootstrapComposi
     firstIntakeOverlayExpression
       ? createFirstIntakeNearbySecondEndpointExpressionController({
           viewer,
-          replayClock,
+          replayClock: firstIntakeReplayClock,
           scenarioSurface: firstIntakeScenarioSurface,
           nearbySecondEndpointController: firstIntakeNearbySecondEndpoint,
           trajectoryController: firstIntakeMobileEndpointTrajectory,
@@ -463,6 +570,34 @@ export function startBootstrapComposition(app: HTMLDivElement): BootstrapComposi
           activeCaseNarrativeController: firstIntakeActiveCaseNarrative
         })
       : undefined;
+  const firstIntakeCinematicCameraPreset =
+    adoptFirstIntakeAsActiveOwner &&
+    firstIntakeMobileEndpointTrajectory &&
+    firstIntakeNearbySecondEndpoint &&
+    firstIntakeNearbySecondEndpointExpression
+      ? createFirstIntakeCinematicCameraPresetController({
+          viewer,
+          scenarioSurface: firstIntakeScenarioSurface,
+          trajectoryController: firstIntakeMobileEndpointTrajectory,
+          nearbySecondEndpointController: firstIntakeNearbySecondEndpoint,
+          expressionController: firstIntakeNearbySecondEndpointExpression
+        })
+      : undefined;
+  const firstIntakeSatcomContextOverlay =
+    adoptFirstIntakeAsActiveOwner &&
+    firstIntakeNearbySecondEndpointInfo &&
+    firstIntakeNearbySecondEndpointExpression &&
+    firstIntakeReplayTimeAuthority
+      ? createFirstIntakeSatcomContextOverlayController({
+          hudFrame,
+          scenarioSurface: firstIntakeScenarioSurface,
+          nearbySecondEndpointInfoController:
+            firstIntakeNearbySecondEndpointInfo,
+          nearbySecondEndpointExpressionController:
+            firstIntakeNearbySecondEndpointExpression,
+          replayTimeAuthorityController: firstIntakeReplayTimeAuthority
+        })
+      : undefined;
   const satelliteOverlay = createSatelliteOverlayController({
     viewer,
     replayClock
@@ -474,7 +609,7 @@ export function startBootstrapComposition(app: HTMLDivElement): BootstrapComposi
   // locally for the repo-owned status-panel placeholder.
   window.__SCENARIO_GLOBE_VIEWER_CAPTURE__ = {
     viewer,
-    replayClock,
+    replayClock: firstIntakeReplayClock,
     satelliteOverlay,
     scenarioSession: activeScenarioSession,
     firstIntakeScenarioSurface,
@@ -496,11 +631,20 @@ export function startBootstrapComposition(app: HTMLDivElement): BootstrapComposi
     ...(firstIntakeNearbySecondEndpointInfo
       ? { firstIntakeNearbySecondEndpointInfo }
       : {}),
+    ...(firstIntakeCinematicCameraPreset
+      ? { firstIntakeCinematicCameraPreset }
+      : {}),
+    ...(firstIntakeSatcomContextOverlay
+      ? { firstIntakeSatcomContextOverlay }
+      : {}),
     ...(firstIntakeMobileEndpointTrajectory
       ? { firstIntakeMobileEndpointTrajectory }
       : {}),
     ...(firstIntakeMobileEndpointTrajectoryConsumer
       ? { firstIntakeMobileEndpointTrajectoryConsumer }
+      : {}),
+    ...(firstIntakeReplayTimeAuthority
+      ? { firstIntakeReplayTimeAuthority }
       : {}),
     firstIntakePhysicalInput: firstIntakePhysicalInputController,
     firstIntakeHandoverDecision: firstIntakeHandoverDecisionController,
@@ -524,6 +668,8 @@ export function startBootstrapComposition(app: HTMLDivElement): BootstrapComposi
       disposeLightingRefresh();
       unmountOsmBuildingsShowcase();
       unmountLightingToggle();
+      firstIntakeSatcomContextOverlay?.dispose();
+      firstIntakeCinematicCameraPreset?.dispose();
       firstIntakeNearbySecondEndpointInfo?.dispose();
       firstIntakeActiveCaseNarrative?.dispose();
       firstIntakeOperatorExplainer?.dispose();
@@ -531,9 +677,11 @@ export function startBootstrapComposition(app: HTMLDivElement): BootstrapComposi
       firstIntakeOverlayExpression?.dispose();
       firstIntakeNearbySecondEndpoint?.dispose();
       firstIntakeMobileEndpointTrajectoryConsumer?.dispose();
+      firstIntakeReplayTimeAuthority?.dispose();
       firstIntakeMobileEndpointTrajectory?.dispose();
       firstIntakeHandoverDecisionController.dispose();
       firstIntakePhysicalInputController.dispose();
+      restoreR1vVisualAcceptanceHudCleanup();
       controllerGraph.dispose();
       void satelliteOverlay.dispose();
       viewer.destroy();

@@ -49,6 +49,18 @@ body {
   display: none;
 }
 
+.hud-frame[data-r1v-visual-acceptance-hud-cleanup="addressed-route"]
+  .hud-panel--status,
+.hud-frame[data-r1v-visual-acceptance-hud-cleanup="addressed-route"]
+  .timeline-hud-placeholder,
+.hud-frame[data-r1v-visual-acceptance-hud-cleanup="addressed-route"]
+  .communication-time-panel,
+.hud-frame[data-r1v-visual-acceptance-hud-cleanup="addressed-route"]
+  .physical-input-panel {
+  display: none;
+  pointer-events: none;
+}
+
 .hud-frame[data-hud-visibility="status-only"]::before,
 .hud-frame[data-hud-visibility="status-only"]::after,
 .hud-frame[data-hud-visibility="status-only"] .hud-panel--left,
@@ -626,6 +638,92 @@ body {
   line-height: 1.35;
 }
 
+.r1v-satcom-context-overlay {
+  position: absolute;
+  top: calc(var(--hud-frame-gap) + 3.25rem);
+  left: var(--hud-frame-gap);
+  z-index: 2;
+  display: grid;
+  gap: 0.45rem;
+  width: min(23.5rem, calc(100vw - 2 * var(--hud-frame-gap) - 13rem));
+  min-width: 18rem;
+  padding: 0.55rem 0.6rem;
+  border: 1px solid rgba(158, 207, 238, 0.28);
+  border-radius: 0.5rem;
+  background: rgba(5, 13, 19, 0.72);
+  color: rgba(242, 248, 252, 0.96);
+  box-shadow: inset 0 1px 0 rgba(241, 248, 255, 0.08);
+  pointer-events: auto;
+}
+
+.r1v-satcom-context-overlay__badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.34rem;
+  min-width: 0;
+}
+
+.r1v-satcom-context-overlay__badge,
+.r1v-satcom-context-overlay__limit {
+  display: inline-flex;
+  align-items: center;
+  min-width: 0;
+  min-height: 1.45rem;
+  padding: 0.26rem 0.42rem;
+  border-radius: 0.42rem;
+  font-size: 0.68rem;
+  line-height: 1.25;
+  letter-spacing: 0;
+  overflow-wrap: anywhere;
+}
+
+.r1v-satcom-context-overlay__badge {
+  border: 1px solid rgba(129, 183, 222, 0.24);
+  background: rgba(20, 35, 47, 0.66);
+}
+
+.r1v-satcom-context-overlay__badge[data-r1v-overlay-fact="switching"],
+.r1v-satcom-context-overlay__badge[data-r1v-overlay-fact="fixed-endpoint"] {
+  border-color: rgba(255, 215, 155, 0.3);
+  background: rgba(52, 37, 18, 0.5);
+}
+
+.r1v-satcom-context-overlay__limits {
+  justify-self: start;
+  max-width: 100%;
+  color: rgba(219, 233, 243, 0.92);
+  font-size: 0.68rem;
+}
+
+.r1v-satcom-context-overlay__limits summary {
+  width: max-content;
+  max-width: 100%;
+  min-height: 1.35rem;
+  padding: 0.18rem 0.42rem;
+  border: 1px solid rgba(174, 203, 224, 0.22);
+  border-radius: 0.42rem;
+  background: rgba(7, 17, 25, 0.72);
+  color: rgba(219, 233, 243, 0.9);
+  cursor: pointer;
+  list-style-position: inside;
+}
+
+.r1v-satcom-context-overlay__limits-body {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.32rem;
+  max-width: 100%;
+  max-height: min(10rem, 34vh);
+  margin-top: 0.42rem;
+  overflow: auto;
+}
+
+.r1v-satcom-context-overlay__limit {
+  border: 1px solid rgba(255, 216, 157, 0.22);
+  background: rgba(41, 29, 16, 0.62);
+  color: rgba(255, 240, 214, 0.92);
+}
+
 .timeline-hud-placeholder {
   display: grid;
   grid-template-columns: minmax(8rem, 11rem) minmax(0, 1fr);
@@ -793,21 +891,72 @@ body {
   padding: 0;
 }
 
+.viewer-cinematic-preset-button {
+  height: 40px;
+  width: 40px;
+  margin-left: 6px;
+  padding: 0;
+  border: 2px solid rgba(255, 215, 155, 0.92);
+  background:
+    linear-gradient(180deg, rgba(38, 60, 77, 0.95), rgba(17, 32, 45, 0.95));
+  color: #fff3d6;
+  box-shadow:
+    0 0 0 1px rgba(4, 10, 16, 0.72),
+    0 0 0 4px rgba(255, 215, 155, 0.14),
+    0 8px 18px rgba(0, 0, 0, 0.28);
+  transition:
+    background-color 120ms ease,
+    border-color 120ms ease,
+    box-shadow 120ms ease,
+    color 120ms ease;
+}
+
+.viewer-cinematic-preset-button[data-r1v-camera-preset-state="active"] {
+  background:
+    linear-gradient(180deg, rgba(68, 91, 54, 0.98), rgba(35, 55, 32, 0.98));
+  border-color: #d8f7a2;
+  color: #fbffe8;
+  box-shadow:
+    0 0 0 1px rgba(6, 16, 6, 0.72),
+    0 0 0 4px rgba(216, 247, 162, 0.18),
+    0 8px 18px rgba(0, 0, 0, 0.28);
+}
+
 .viewer-lighting-toggle[data-lighting-enabled="true"] {
   background: #3c5f86;
   border-color: #aef;
 }
 
+.viewer-cinematic-preset-button:hover,
+.viewer-cinematic-preset-button:focus-visible {
+  border-color: #fff4c2;
+  color: #fff9e8;
+  box-shadow:
+    0 0 0 1px rgba(4, 10, 16, 0.72),
+    0 0 0 5px rgba(255, 215, 155, 0.22),
+    0 10px 22px rgba(0, 0, 0, 0.32);
+}
+
+.viewer-cinematic-preset-icon,
 .viewer-lighting-toggle-icon {
   display: block;
-  width: 30px;
-  height: 30px;
-  margin: 0 auto 2px;
   fill: none;
   stroke: currentColor;
   stroke-linecap: round;
   stroke-linejoin: round;
   stroke-width: 2;
+}
+
+.viewer-cinematic-preset-icon {
+  width: 30px;
+  height: 30px;
+  margin: 2px auto 0;
+}
+
+.viewer-lighting-toggle-icon {
+  width: 30px;
+  height: 30px;
+  margin: 0 auto 2px;
 }
 
 @media (max-width: 900px) {
@@ -857,6 +1006,11 @@ body {
 
   .first-intake-nearby-second-endpoint-info {
     width: min(31rem, calc(100vw - 2 * var(--hud-frame-gap) - 1.5rem));
+  }
+
+  .r1v-satcom-context-overlay {
+    width: min(20.5rem, calc(100vw - 2 * var(--hud-frame-gap) - 9rem));
+    min-width: 15rem;
   }
 
   .first-intake-overlay-expression__grid {
@@ -950,6 +1104,13 @@ body {
     padding: 0.9rem;
   }
 
+  .r1v-satcom-context-overlay {
+    top: calc(var(--hud-frame-gap) + 3.1rem);
+    width: min(18.5rem, calc(100vw - 2 * var(--hud-frame-gap) - 5rem));
+    min-width: 0;
+    padding: 0.48rem;
+  }
+
   .first-intake-nearby-second-endpoint-info__facts {
     grid-template-columns: 1fr;
   }
@@ -1022,6 +1183,16 @@ body {
 
   .first-intake-nearby-second-endpoint-info {
     bottom: calc(var(--hud-frame-gap) + 31rem);
+  }
+
+  .r1v-satcom-context-overlay {
+    right: calc(var(--hud-frame-gap) + 3.25rem);
+    width: auto;
+  }
+
+  .r1v-satcom-context-overlay__badge,
+  .r1v-satcom-context-overlay__limit {
+    font-size: 0.64rem;
   }
 
   .timeline-hud-placeholder,
