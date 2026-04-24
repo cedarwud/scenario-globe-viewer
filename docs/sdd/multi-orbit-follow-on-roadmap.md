@@ -66,12 +66,71 @@ Why it matters:
 
 Status:
 
-- active / current
+- complete
 
 Open only when:
 
 - `M8A.1` accepted package exists
 - `m8a-implementation-readiness-checklist.md` is satisfied
+
+### R1V — `M8A` Visual Replay Integration
+
+Class:
+
+- Track A — ITRI-Direct
+
+Goal:
+
+- make the completed `M8A` nearby-second-endpoint scene usable as a bounded
+  animated viewer demonstration by aligning:
+  - Cesium animation widget
+  - Cesium timeline
+  - repo-owned replay clock
+  - moving current mobile cue
+  - fixed nearby second-endpoint marker
+  - presentation-only relation cue
+  - one first close/cinematic camera preset
+  - non-blocking satcom context overlays
+  - explicit satellite/constellation evidence boundary
+
+Primary planning home:
+
+- [m8a-visual-replay-integration-plan.md](./m8a-visual-replay-integration-plan.md)
+
+Child planning homes:
+
+- [m8a-visual-replay-time-and-camera-plan.md](./m8a-visual-replay-time-and-camera-plan.md)
+- [m8a-visual-replay-animation-plan.md](./m8a-visual-replay-animation-plan.md)
+- [m8a-satcom-context-overlay-plan.md](./m8a-satcom-context-overlay-plan.md)
+- [m8a-satellite-evidence-promotion-plan.md](./m8a-satellite-evidence-promotion-plan.md)
+
+Why it matters:
+
+- `M8A.3` and `M8A.4` proved runtime and viewer seams, but the viewer still
+  needs one coherent replay-time and camera story before the two-endpoint
+  scene is legible as an animation
+- it lets the project repair presentation clutter without deleting accepted
+  `M8A` capture or telemetry seams
+
+Status:
+
+- planned
+
+Open only when:
+
+- `M8A` is complete
+- the work remains first-case-plus-nearby-second-endpoint only
+- floating-panel suppression, time integration, animation, and camera behavior
+  stay presentation-only
+- the first close/cinematic camera mode remains a bounded preset, not an
+  arbitrary endpoint navigation model
+- satcom information remains non-blocking and truth-bounded
+- satellite, constellation, gateway, and teleport references remain
+  display-context or future evidence scope unless a repo-owned projection
+  contract promotes them
+- no arbitrary endpoint selection, second operator pair, `MEO`, active gateway
+  assignment, pair-specific GEO teleport, or measurement-truth performance
+  semantics are introduced
 
 ### R2 — Read-Only Confirmed-Points Catalog
 

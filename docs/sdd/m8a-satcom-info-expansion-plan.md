@@ -70,7 +70,7 @@ Runtime proof:
 
 ## Allowed Facts
 
-The first `M8A` info widening may expose only:
+The first `M8A` info widening may carry only:
 
 - second endpoint label
 - second endpoint type
@@ -122,9 +122,12 @@ The future satcom-info slice is acceptable only when:
 
 1. the second endpoint is understandable from the viewer alone
 2. its accepted precision is visible
-3. its non-claims are explicit
+3. its non-claims are explicit in the info contract
 4. the first-case truth boundary remains intact
 5. the panel does not become a generic control center or multi-case selector
+
+`R1V.1` may hide or collapse this panel by default while keeping the controller,
+capture seam, and document telemetry alive for later non-blocking overlay work.
 
 ## Stop Boundary
 
