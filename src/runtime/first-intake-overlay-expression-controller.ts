@@ -25,6 +25,10 @@ import {
   clearDocumentTelemetry,
   syncDocumentTelemetry
 } from "../features/telemetry/document-telemetry";
+import {
+  isFirstIntakeFloatingPanelPresentationVisible,
+  suppressFirstIntakeFloatingPanelPresentation
+} from "./first-intake-presentation-suppression";
 
 const FIRST_INTAKE_OVERLAY_EXPRESSION_DATA_SOURCE_NAME =
   "first-intake-overlay-expression";
@@ -179,6 +183,7 @@ function renderPanel(
   root.dataset.infrastructureExpressionMode = state.infrastructureExpressionMode;
   root.dataset.gatewayPoolSemantics = state.gatewayPoolSemantics;
   root.dataset.activeGatewayClaim = state.activeGatewayClaim;
+  root.dataset.panelVisible = state.panelVisible ? "true" : "false";
   root.dataset.coordinateFreeEndpointCount = String(
     state.coordinateFreeEndpointCount
   );
@@ -363,7 +368,7 @@ export function createFirstIntakeOverlayExpressionController({
     infrastructureExpressionMode: "globe-pool-markers",
     gatewayPoolSemantics: "eligible-gateway-pool",
     activeGatewayClaim: "not-claimed",
-    panelVisible: panelRoot.isConnected,
+    panelVisible: isFirstIntakeFloatingPanelPresentationVisible(panelRoot),
     coordinateFreeEndpointCount: coordinateFreeEndpointIds.length,
     coordinateFreeEndpointIds: [...coordinateFreeEndpointIds],
     onGlobeInfrastructureNodeCount: infrastructureNodeIds.length,
@@ -389,6 +394,10 @@ export function createFirstIntakeOverlayExpressionController({
     return nextState;
   };
 
+  suppressFirstIntakeFloatingPanelPresentation(
+    panelRoot,
+    "first-intake-overlay-expression"
+  );
   hudFrame.appendChild(panelRoot);
   syncState();
 

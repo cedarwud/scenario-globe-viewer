@@ -50,6 +50,12 @@ const FIRST_INTAKE_NEARBY_SECOND_ENDPOINT_EXPRESSION_TELEMETRY_KEYS = [
   "firstIntakeNearbySecondEndpointExpressionCurrentMobileEndpointId",
   "firstIntakeNearbySecondEndpointExpressionCurrentMobileWaypointSequence",
   "firstIntakeNearbySecondEndpointExpressionCurrentMobileWaypointTimeUtc",
+  "firstIntakeNearbySecondEndpointExpressionAnimationState",
+  "firstIntakeNearbySecondEndpointExpressionAnimationReplayTimeUtc",
+  "firstIntakeNearbySecondEndpointExpressionAnimationIsPlaying",
+  "firstIntakeNearbySecondEndpointExpressionAnimationInterpolationRatio",
+  "firstIntakeNearbySecondEndpointExpressionAnimationSegmentStartWaypointSequence",
+  "firstIntakeNearbySecondEndpointExpressionAnimationSegmentEndWaypointSequence",
   "firstIntakeNearbySecondEndpointExpressionFixedEndpointId",
   "firstIntakeNearbySecondEndpointExpressionFixedEndpointPositionPrecision",
   "firstIntakeNearbySecondEndpointExpressionRelationCueKind",
@@ -88,11 +94,25 @@ interface ResolvedTrajectorySample {
   timestampMs: number;
 }
 
+interface InterpolatedTrajectoryPosition {
+  replayTimeMs: number;
+  replayTimeUtc: string;
+  segmentStart: ResolvedTrajectorySample;
+  segmentEnd: ResolvedTrajectorySample;
+  interpolationRatio: number;
+  coordinates: {
+    lat: number;
+    lon: number;
+  };
+}
+
 export interface FirstIntakeNearbySecondEndpointExpressionCurrentMobileCueState {
   endpointId: string;
   cueKind: "current-mobile-endpoint-position";
   sourceSeam: string;
-  samplingMode: "accepted-trajectory-waypoint-snapshot";
+  samplingMode:
+    | "accepted-trajectory-waypoint-snapshot"
+    | "accepted-trajectory-time-interpolation";
   waypointSequence: number;
   pointTimeUtc: string;
   offsetSeconds: number;
@@ -127,6 +147,38 @@ export interface FirstIntakeNearbySecondEndpointExpressionRelationCueState {
   rfBeamTruth: "not-claimed";
 }
 
+export interface FirstIntakeNearbySecondEndpointExpressionAnimationState {
+  animationState: "replay-clock-driven-interpolation";
+  replayTimeUtc: string;
+  replayClockPlaying: boolean;
+  mobileCueMode: "accepted-trajectory-time-interpolation";
+  relationCueMode: "moving-mobile-to-fixed-nearby-endpoint";
+  coordinateReference: "WGS84";
+  interpolationRatio: number;
+  segmentStartWaypointSequence: number;
+  segmentStartPointTimeUtc: string;
+  segmentEndWaypointSequence: number;
+  segmentEndPointTimeUtc: string;
+  currentMobileCoordinates: {
+    lat: number;
+    lon: number;
+  };
+  fixedEndpointCoordinates: {
+    lat: number;
+    lon: number;
+  };
+  relationCueEndpoints: {
+    currentMobile: {
+      lat: number;
+      lon: number;
+    };
+    fixedEndpoint: {
+      lat: number;
+      lon: number;
+    };
+  };
+}
+
 export interface FirstIntakeNearbySecondEndpointExpressionState {
   scenarioId: string;
   scenarioLabel: string;
@@ -147,6 +199,7 @@ export interface FirstIntakeNearbySecondEndpointExpressionState {
   currentMobileCue: FirstIntakeNearbySecondEndpointExpressionCurrentMobileCueState;
   fixedEndpoint: FirstIntakeNearbySecondEndpointExpressionFixedEndpointState;
   relationCue: FirstIntakeNearbySecondEndpointExpressionRelationCueState;
+  animation: FirstIntakeNearbySecondEndpointExpressionAnimationState;
   sourceLineage: {
     nearbySecondEndpointRead: "nearbySecondEndpointController.getState().endpoint";
     trajectoryRead: "trajectoryController.getState().trajectory.trajectory.points";
@@ -297,6 +350,155 @@ function resolveCurrentTrajectorySample(
   return samples[Math.max(0, high)];
 }
 
+function clampInterpolationRatio(value: number): number {
+  if (value <= 0) {
+    return 0;
+  }
+
+  if (value >= 1) {
+    return 1;
+  }
+
+  return value;
+}
+
+function interpolateCoordinate(start: number, end: number, ratio: number): number {
+  return start + (end - start) * ratio;
+}
+
+function toIsoTimestamp(timestampMs: number): string {
+  assertFiniteTimestamp(timestampMs, "replayTimeMs");
+  return new Date(timestampMs).toISOString();
+}
+
+function resolveInterpolatedTrajectoryPosition(
+  samples: ReadonlyArray<ResolvedTrajectorySample>,
+  replayTimeMs: number
+): InterpolatedTrajectoryPosition {
+  if (samples.length === 0) {
+    throw new Error(
+      "First-intake nearby second-endpoint expression requires trajectory points."
+    );
+  }
+
+  const firstSample = samples[0];
+  const lastSample = samples[samples.length - 1];
+
+  if (replayTimeMs <= firstSample.timestampMs) {
+    return {
+      replayTimeMs: firstSample.timestampMs,
+      replayTimeUtc: toIsoTimestamp(firstSample.timestampMs),
+      segmentStart: firstSample,
+      segmentEnd: firstSample,
+      interpolationRatio: 0,
+      coordinates: {
+        lat: firstSample.point.lat,
+        lon: firstSample.point.lon
+      }
+    };
+  }
+
+  if (replayTimeMs >= lastSample.timestampMs) {
+    return {
+      replayTimeMs: lastSample.timestampMs,
+      replayTimeUtc: toIsoTimestamp(lastSample.timestampMs),
+      segmentStart: lastSample,
+      segmentEnd: lastSample,
+      interpolationRatio: 0,
+      coordinates: {
+        lat: lastSample.point.lat,
+        lon: lastSample.point.lon
+      }
+    };
+  }
+
+  let low = 0;
+  let high = samples.length - 1;
+
+  while (low <= high) {
+    const middle = Math.floor((low + high) / 2);
+    const candidate = samples[middle];
+
+    if (candidate.timestampMs === replayTimeMs) {
+      return {
+        replayTimeMs: candidate.timestampMs,
+        replayTimeUtc: toIsoTimestamp(candidate.timestampMs),
+        segmentStart: candidate,
+        segmentEnd: candidate,
+        interpolationRatio: 0,
+        coordinates: {
+          lat: candidate.point.lat,
+          lon: candidate.point.lon
+        }
+      };
+    }
+
+    if (candidate.timestampMs < replayTimeMs) {
+      low = middle + 1;
+    } else {
+      high = middle - 1;
+    }
+  }
+
+  const segmentStart = samples[Math.max(0, high)];
+  const segmentEnd = samples[Math.min(samples.length - 1, low)];
+  const segmentDurationMs = segmentEnd.timestampMs - segmentStart.timestampMs;
+  const interpolationRatio =
+    segmentDurationMs <= 0
+      ? 0
+      : clampInterpolationRatio(
+          (replayTimeMs - segmentStart.timestampMs) / segmentDurationMs
+        );
+
+  if (interpolationRatio === 0) {
+    return {
+      replayTimeMs,
+      replayTimeUtc: toIsoTimestamp(replayTimeMs),
+      segmentStart,
+      segmentEnd,
+      interpolationRatio,
+      coordinates: {
+        lat: segmentStart.point.lat,
+        lon: segmentStart.point.lon
+      }
+    };
+  }
+
+  if (interpolationRatio === 1) {
+    return {
+      replayTimeMs,
+      replayTimeUtc: toIsoTimestamp(replayTimeMs),
+      segmentStart,
+      segmentEnd,
+      interpolationRatio,
+      coordinates: {
+        lat: segmentEnd.point.lat,
+        lon: segmentEnd.point.lon
+      }
+    };
+  }
+
+  return {
+    replayTimeMs,
+    replayTimeUtc: toIsoTimestamp(replayTimeMs),
+    segmentStart,
+    segmentEnd,
+    interpolationRatio,
+    coordinates: {
+      lat: interpolateCoordinate(
+        segmentStart.point.lat,
+        segmentEnd.point.lat,
+        interpolationRatio
+      ),
+      lon: interpolateCoordinate(
+        segmentStart.point.lon,
+        segmentEnd.point.lon,
+        interpolationRatio
+      )
+    }
+  };
+}
+
 function cloneState(
   state: FirstIntakeNearbySecondEndpointExpressionState
 ): FirstIntakeNearbySecondEndpointExpressionState {
@@ -317,6 +519,23 @@ function cloneState(
     },
     relationCue: {
       ...state.relationCue
+    },
+    animation: {
+      ...state.animation,
+      currentMobileCoordinates: {
+        ...state.animation.currentMobileCoordinates
+      },
+      fixedEndpointCoordinates: {
+        ...state.animation.fixedEndpointCoordinates
+      },
+      relationCueEndpoints: {
+        currentMobile: {
+          ...state.animation.relationCueEndpoints.currentMobile
+        },
+        fixedEndpoint: {
+          ...state.animation.relationCueEndpoints.fixedEndpoint
+        }
+      }
     },
     sourceLineage: {
       ...state.sourceLineage
@@ -347,6 +566,18 @@ function syncTelemetry(
       String(state.currentMobileCue.waypointSequence),
     firstIntakeNearbySecondEndpointExpressionCurrentMobileWaypointTimeUtc:
       state.currentMobileCue.pointTimeUtc,
+    firstIntakeNearbySecondEndpointExpressionAnimationState:
+      state.animation.animationState,
+    firstIntakeNearbySecondEndpointExpressionAnimationReplayTimeUtc:
+      state.animation.replayTimeUtc,
+    firstIntakeNearbySecondEndpointExpressionAnimationIsPlaying:
+      state.animation.replayClockPlaying ? "true" : "false",
+    firstIntakeNearbySecondEndpointExpressionAnimationInterpolationRatio:
+      state.animation.interpolationRatio.toFixed(6),
+    firstIntakeNearbySecondEndpointExpressionAnimationSegmentStartWaypointSequence:
+      String(state.animation.segmentStartWaypointSequence),
+    firstIntakeNearbySecondEndpointExpressionAnimationSegmentEndWaypointSequence:
+      String(state.animation.segmentEndWaypointSequence),
     firstIntakeNearbySecondEndpointExpressionFixedEndpointId:
       state.fixedEndpoint.endpointId,
     firstIntakeNearbySecondEndpointExpressionFixedEndpointPositionPrecision:
@@ -489,18 +720,26 @@ export function createFirstIntakeNearbySecondEndpointExpressionController({
     );
   };
 
+  const resolveInterpolatedPosition = (
+    replayTime: ReplayClockState["currentTime"] | number
+  ): InterpolatedTrajectoryPosition => {
+    return resolveInterpolatedTrajectoryPosition(
+      resolvedTrajectorySamples,
+      typeof replayTime === "number" ? replayTime : resolveTimestampMs(replayTime)
+    );
+  };
+
   const resolveCurrentMobileCartesian = (
     time?: JulianDate,
     result?: Cartesian3
   ): Cartesian3 => {
-    const replayTime = time
-      ? JulianDate.toIso8601(time, 3)
-      : replayClock.getState().currentTime;
-    const sample = resolveCurrentSample(replayTime);
+    const resolvedPosition = resolveInterpolatedPosition(
+      time ? JulianDate.toDate(time).getTime() : replayClock.getState().currentTime
+    );
 
     return Cartesian3.fromDegrees(
-      sample.point.lon,
-      sample.point.lat,
+      resolvedPosition.coordinates.lon,
+      resolvedPosition.coordinates.lat,
       0,
       undefined,
       result
@@ -552,7 +791,33 @@ export function createFirstIntakeNearbySecondEndpointExpressionController({
   });
 
   const createState = (): FirstIntakeNearbySecondEndpointExpressionState => {
-    const currentSample = resolveCurrentSample(replayClock.getState().currentTime);
+    const replayState = replayClock.getState();
+    const currentSample = resolveCurrentSample(replayState.currentTime);
+    const interpolatedPosition = resolveInterpolatedPosition(
+      replayState.currentTime
+    );
+    const currentMobileSamplingMode =
+      interpolatedPosition.segmentStart.point.sequence ===
+        interpolatedPosition.segmentEnd.point.sequence &&
+      interpolatedPosition.interpolationRatio === 0
+        ? "accepted-trajectory-waypoint-snapshot"
+        : "accepted-trajectory-time-interpolation";
+    const replayStartMs = resolvedTrajectorySamples[0]?.timestampMs;
+
+    if (!Number.isFinite(replayStartMs)) {
+      throw new Error(
+        "First-intake nearby second-endpoint expression requires a finite replay start."
+      );
+    }
+
+    const currentMobilePointTimeUtc =
+      currentMobileSamplingMode === "accepted-trajectory-waypoint-snapshot"
+        ? currentSample.point.pointTimeUtc
+        : interpolatedPosition.replayTimeUtc;
+    const currentMobileOffsetSeconds =
+      currentMobileSamplingMode === "accepted-trajectory-waypoint-snapshot"
+        ? currentSample.point.offsetSeconds
+        : (interpolatedPosition.replayTimeMs - replayStartMs) / 1000;
 
     return {
       scenarioId: addressedEntry.scenarioId,
@@ -575,14 +840,14 @@ export function createFirstIntakeNearbySecondEndpointExpressionController({
         endpointId: trajectoryState.trajectory.endpointId,
         cueKind: "current-mobile-endpoint-position",
         sourceSeam: trajectoryState.proofSeam,
-        samplingMode: "accepted-trajectory-waypoint-snapshot",
+        samplingMode: currentMobileSamplingMode,
         waypointSequence: currentSample.point.sequence,
-        pointTimeUtc: currentSample.point.pointTimeUtc,
-        offsetSeconds: currentSample.point.offsetSeconds,
+        pointTimeUtc: currentMobilePointTimeUtc,
+        offsetSeconds: currentMobileOffsetSeconds,
         coordinateReference: "WGS84",
         coordinates: {
-          lat: currentSample.point.lat,
-          lon: currentSample.point.lon
+          lat: interpolatedPosition.coordinates.lat,
+          lon: interpolatedPosition.coordinates.lon
         }
       },
       fixedEndpoint: {
@@ -608,6 +873,41 @@ export function createFirstIntakeNearbySecondEndpointExpressionController({
         geoTeleportTruth:
           nearbySecondEndpointState.endpoint.truthBoundary.pairSpecificGeoTeleport,
         rfBeamTruth: "not-claimed"
+      },
+      animation: {
+        animationState: "replay-clock-driven-interpolation",
+        replayTimeUtc: interpolatedPosition.replayTimeUtc,
+        replayClockPlaying: replayState.isPlaying,
+        mobileCueMode: "accepted-trajectory-time-interpolation",
+        relationCueMode: "moving-mobile-to-fixed-nearby-endpoint",
+        coordinateReference: "WGS84",
+        interpolationRatio: interpolatedPosition.interpolationRatio,
+        segmentStartWaypointSequence:
+          interpolatedPosition.segmentStart.point.sequence,
+        segmentStartPointTimeUtc:
+          interpolatedPosition.segmentStart.point.pointTimeUtc,
+        segmentEndWaypointSequence:
+          interpolatedPosition.segmentEnd.point.sequence,
+        segmentEndPointTimeUtc:
+          interpolatedPosition.segmentEnd.point.pointTimeUtc,
+        currentMobileCoordinates: {
+          lat: interpolatedPosition.coordinates.lat,
+          lon: interpolatedPosition.coordinates.lon
+        },
+        fixedEndpointCoordinates: {
+          lat: nearbySecondEndpointState.endpoint.coordinates.lat,
+          lon: nearbySecondEndpointState.endpoint.coordinates.lon
+        },
+        relationCueEndpoints: {
+          currentMobile: {
+            lat: interpolatedPosition.coordinates.lat,
+            lon: interpolatedPosition.coordinates.lon
+          },
+          fixedEndpoint: {
+            lat: nearbySecondEndpointState.endpoint.coordinates.lat,
+            lon: nearbySecondEndpointState.endpoint.coordinates.lon
+          }
+        }
       },
       sourceLineage: {
         nearbySecondEndpointRead:

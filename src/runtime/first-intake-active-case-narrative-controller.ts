@@ -22,6 +22,10 @@ import type {
 import type {
   FirstIntakePhysicalInputController
 } from "./first-intake-physical-input-controller";
+import {
+  isFirstIntakeFloatingPanelPresentationVisible,
+  suppressFirstIntakeFloatingPanelPresentation
+} from "./first-intake-presentation-suppression";
 
 const FIRST_INTAKE_ACTIVE_CASE_NARRATIVE_BOUNDARY_MODE = "bounded-proxy";
 const FIRST_INTAKE_ACTIVE_CASE_NARRATIVE_MEASUREMENT_TRUTH_CLAIM =
@@ -135,6 +139,7 @@ function renderPanel(
   root.dataset.activeScenarioId = state.activeScenarioId;
   root.dataset.narrativeState = state.narrativeState;
   root.dataset.narrativeSurface = state.narrativeSurface;
+  root.dataset.panelVisible = state.panelVisible ? "true" : "false";
   root.dataset.caseLabel = state.caseLabel;
   root.dataset.serviceSwitchingSemantics = state.serviceSwitchingSemantics;
   root.dataset.pathControlMode = state.pathControlMode;
@@ -548,7 +553,7 @@ export function createFirstIntakeActiveCaseNarrativeController({
       activeScenarioId: activeScenario.scenarioId,
       narrativeState: "active-addressed-case",
       narrativeSurface: FIRST_INTAKE_ACTIVE_CASE_NARRATIVE_SURFACE,
-      panelVisible: panelRoot.isConnected,
+      panelVisible: isFirstIntakeFloatingPanelPresentationVisible(panelRoot),
       caseLabel: resolveCaseLabel({
         candidates: physicalRuntimeState.physicalInput.candidates,
         vertical
@@ -591,6 +596,10 @@ export function createFirstIntakeActiveCaseNarrativeController({
     };
   };
 
+  suppressFirstIntakeFloatingPanelPresentation(
+    panelRoot,
+    "first-intake-active-case-narrative"
+  );
   hudFrame.appendChild(panelRoot);
   const initialState = createState();
   renderPanel(panelRoot, initialState);

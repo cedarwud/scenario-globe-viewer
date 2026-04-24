@@ -12,10 +12,15 @@ import type {
 import type {
   FirstIntakeNearbySecondEndpointController
 } from "./first-intake-nearby-second-endpoint-controller";
+import {
+  isFirstIntakeFloatingPanelPresentationVisible,
+  suppressFirstIntakeFloatingPanelPresentation
+} from "./first-intake-presentation-suppression";
 
 const FIRST_INTAKE_NEARBY_SECOND_ENDPOINT_INFO_TELEMETRY_KEYS = [
   "firstIntakeNearbySecondEndpointInfoState",
   "firstIntakeNearbySecondEndpointInfoScenarioId",
+  "firstIntakeNearbySecondEndpointInfoPanelVisible",
   "firstIntakeNearbySecondEndpointInfoEndpointLabel",
   "firstIntakeNearbySecondEndpointInfoEndpointType",
   "firstIntakeNearbySecondEndpointInfoPositionPrecision",
@@ -239,6 +244,9 @@ function syncTelemetry(
   syncDocumentTelemetry({
     firstIntakeNearbySecondEndpointInfoState: state.infoState,
     firstIntakeNearbySecondEndpointInfoScenarioId: state.scenarioId,
+    firstIntakeNearbySecondEndpointInfoPanelVisible: state.panelVisible
+      ? "true"
+      : "false",
     firstIntakeNearbySecondEndpointInfoEndpointLabel:
       state.endpoint.endpointLabel,
     firstIntakeNearbySecondEndpointInfoEndpointType:
@@ -277,6 +285,7 @@ function renderPanel(
   root.dataset.addressResolution = state.addressResolution;
   root.dataset.infoState = state.infoState;
   root.dataset.infoSurface = state.infoSurface;
+  root.dataset.panelVisible = state.panelVisible ? "true" : "false";
   root.dataset.endpointLabel = state.endpoint.endpointLabel;
   root.dataset.endpointType = state.endpoint.endpointType;
   root.dataset.positionPrecision = state.endpoint.positionPrecision;
@@ -402,7 +411,7 @@ export function createFirstIntakeNearbySecondEndpointInfoController({
       addressResolution: runtimeState.addressResolution,
       infoState: FIRST_INTAKE_NEARBY_SECOND_ENDPOINT_INFO_STATE,
       infoSurface: FIRST_INTAKE_NEARBY_SECOND_ENDPOINT_INFO_SURFACE,
-      panelVisible: panelRoot.isConnected,
+      panelVisible: isFirstIntakeFloatingPanelPresentationVisible(panelRoot),
       endpoint,
       nearbyRelation:
         FIRST_INTAKE_NEARBY_SECOND_ENDPOINT_INFO_NEARBY_RELATION,
@@ -425,6 +434,10 @@ export function createFirstIntakeNearbySecondEndpointInfoController({
     };
   };
 
+  suppressFirstIntakeFloatingPanelPresentation(
+    panelRoot,
+    "first-intake-nearby-second-endpoint-info"
+  );
   hudFrame.appendChild(panelRoot);
   const initialState = createState();
   renderPanel(panelRoot, initialState);
