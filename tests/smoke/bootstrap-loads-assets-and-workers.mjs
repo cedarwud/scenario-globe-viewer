@@ -317,6 +317,15 @@ async function readHudLayoutState(client) {
       const rightPanel = pickRect(".hud-panel--right");
       const statusPanel = pickRect(".hud-panel--status");
       const timePlaceholder = document.querySelector('[data-time-placeholder="true"]');
+      const homepageEntryCta = document.querySelector(
+        '[data-m8a-v31-homepage-cta="true"]'
+      );
+      const homepageEntryCtaEnter =
+        homepageEntryCta instanceof HTMLElement
+          ? homepageEntryCta.querySelector(
+              "a.homepage-entry-cta__enter[data-m8a-v31-homepage-cta-enter='true']"
+            )
+          : null;
       const activeElement = document.activeElement;
       const geocoderInput = document.querySelector(".cesium-geocoder-input");
       const geocoderRect = pickRect(".cesium-geocoder-input");
@@ -405,6 +414,21 @@ async function readHudLayoutState(client) {
                 baseLayerPickerToggle.left + baseLayerPickerToggle.width / 2,
                 baseLayerPickerToggle.top + baseLayerPickerToggle.height / 2
               )
+            : null,
+        homepageEntryCta: pickRect("[data-m8a-v31-homepage-cta='true']"),
+        homepageEntryCtaHref:
+          homepageEntryCtaEnter instanceof HTMLAnchorElement
+            ? homepageEntryCtaEnter.getAttribute("href")
+            : null,
+        homepageEntryCtaHeadlineText:
+          homepageEntryCta instanceof HTMLElement
+            ? homepageEntryCta.querySelector(".homepage-entry-cta__headline")
+                ?.textContent ?? null
+            : null,
+        homepageEntryCtaChipText:
+          homepageEntryCta instanceof HTMLElement
+            ? homepageEntryCta.querySelector(".homepage-entry-cta__chip")
+                ?.textContent ?? null
             : null
       };
     })()`
@@ -506,11 +530,41 @@ function assertStatusOnlyHudReadout(layoutState, scenarioLabel) {
   );
 }
 
+function assertHomepageEntryCtaState(layoutState, scenarioLabel) {
+  assert(
+    layoutState.homepageEntryCta &&
+      layoutState.homepageEntryCta.width > 0 &&
+      layoutState.homepageEntryCta.height > 0,
+    `Expected homepage entry CTA to remain visible during ${scenarioLabel}: ${JSON.stringify(layoutState.homepageEntryCta)}`
+  );
+  assert(
+    typeof layoutState.homepageEntryCtaHref === "string" &&
+      layoutState.homepageEntryCtaHref.startsWith(
+        "/?firstIntakeScenarioId=app-oneweb-intelsat-geo-aviation"
+      ) &&
+      layoutState.homepageEntryCtaHref.includes("firstIntakeAutoplay=1"),
+    `Expected homepage entry CTA to link to the addressed first-case route with autoplay during ${scenarioLabel}: ${JSON.stringify(layoutState.homepageEntryCtaHref)}`
+  );
+  assert(
+    typeof layoutState.homepageEntryCtaChipText === "string" &&
+      /cross-orbit/i.test(layoutState.homepageEntryCtaChipText) &&
+      /handover/i.test(layoutState.homepageEntryCtaChipText),
+    `Expected homepage entry CTA chip to signal cross-orbit handover during ${scenarioLabel}: ${JSON.stringify(layoutState.homepageEntryCtaChipText)}`
+  );
+  assert(
+    typeof layoutState.homepageEntryCtaHeadlineText === "string" &&
+      /oneweb/i.test(layoutState.homepageEntryCtaHeadlineText) &&
+      /intelsat/i.test(layoutState.homepageEntryCtaHeadlineText),
+    `Expected homepage entry CTA headline to name the first-case OneWeb+Intelsat pair during ${scenarioLabel}: ${JSON.stringify(layoutState.homepageEntryCtaHeadlineText)}`
+  );
+}
+
 function assertDesktopHudStatusOnlyState(layoutState, scenarioLabel) {
   assert(layoutState.viewport.width === 1440, `Expected desktop width during ${scenarioLabel}.`);
   assert(layoutState.viewport.height === 900, `Expected desktop height during ${scenarioLabel}.`);
   assertStatusOnlyHudShell(layoutState, scenarioLabel);
   assertStatusOnlyHudReadout(layoutState, scenarioLabel);
+  assertHomepageEntryCtaState(layoutState, scenarioLabel);
   assert(
     layoutState.toolbar && layoutState.toolbar.width > 0 && layoutState.toolbar.height > 0,
     `Expected native toolbar to remain visible during ${scenarioLabel}: ${JSON.stringify(layoutState.toolbar)}`
@@ -532,6 +586,7 @@ function assertShortHudStatusOnlyState(layoutState, scenarioLabel) {
   assert(layoutState.viewport.height === 760, `Expected short height during ${scenarioLabel}.`);
   assertStatusOnlyHudShell(layoutState, scenarioLabel);
   assertStatusOnlyHudReadout(layoutState, scenarioLabel);
+  assertHomepageEntryCtaState(layoutState, scenarioLabel);
   assert(
     layoutState.toolbar && layoutState.toolbar.width > 0 && layoutState.toolbar.height > 0,
     `Expected native toolbar to remain visible during ${scenarioLabel}: ${JSON.stringify(layoutState.toolbar)}`

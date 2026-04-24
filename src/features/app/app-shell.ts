@@ -1,4 +1,5 @@
 export interface AppShellMount {
+  viewerShell: HTMLDivElement;
   viewerRoot: HTMLDivElement;
   hudFrame: HTMLDivElement;
   statusPanel: HTMLElement;
@@ -23,11 +24,16 @@ export function mountAppShell(root: HTMLDivElement): AppShellMount {
     </main>
   `;
 
+  const viewerShell = root.querySelector<HTMLDivElement>(".viewer-shell");
   const viewerRoot = root.querySelector<HTMLDivElement>("[data-viewer-root]");
   const hudFrame = root.querySelector<HTMLDivElement>("[data-hud-frame='true']");
   const statusPanel = root.querySelector<HTMLElement>(
     "[data-hud-panel='status']"
   );
+
+  if (!viewerShell) {
+    throw new Error("Missing viewer shell");
+  }
 
   if (!viewerRoot) {
     throw new Error("Missing viewer root");
@@ -41,5 +47,5 @@ export function mountAppShell(root: HTMLDivElement): AppShellMount {
     throw new Error("Missing HUD status panel");
   }
 
-  return { viewerRoot, hudFrame, statusPanel };
+  return { viewerShell, viewerRoot, hudFrame, statusPanel };
 }

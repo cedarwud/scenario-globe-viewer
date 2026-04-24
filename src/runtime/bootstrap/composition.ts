@@ -1,5 +1,6 @@
 import { createViewer } from "../../core/cesium/viewer-factory";
 import { mountAppShell } from "../../features/app/app-shell";
+import { mountHomepageEntryCta } from "../../features/app/homepage-entry-cta";
 import { refreshLightingForSceneMode } from "../../features/globe/lighting";
 import { mountLightingToggle } from "../../features/globe/lighting-toggle";
 import {
@@ -134,7 +135,11 @@ interface BootstrapControllerGraph {
 
 const R1V_VISUAL_ACCEPTANCE_HUD_CLEANUP_REASON =
   "r1v-visual-acceptance-addressed-route-scene-clearance";
-const R1V_HOME_DEFAULT_SCENARIO_ID = "app-oneweb-intelsat-geo-aviation";
+// M8A-V3.1 first-case anchor; CTA navigates here. ADR 0010 removed the silent
+// bare-`/` mapping that previously routed to the same id.
+const M8A_V3_1_FIRST_CASE_SCENARIO_ID = "app-oneweb-intelsat-geo-aviation";
+const M8A_V3_1_AUTOPLAY_QUERY_PARAM = "firstIntakeAutoplay";
+const M8A_V3_1_CTA_SCENE_PRESET = "global";
 
 function resolveBootstrapScenePreset(): ScenePresetKey {
   const request = new URLSearchParams(window.location.search).get("scenePreset");
@@ -151,13 +156,20 @@ function resolveFirstIntakeRequestedScenarioId(): string | undefined {
     return request;
   }
 
-  // The bare homepage is the viewer demo entry, while query-bearing default
-  // routes remain available for legacy/default-route smoke coverage.
-  if (window.location.pathname === "/" && window.location.search === "") {
-    return R1V_HOME_DEFAULT_SCENARIO_ID;
-  }
-
   return undefined;
+}
+
+function resolveFirstIntakeAutoplayRequest(): boolean {
+  const search = new URLSearchParams(window.location.search);
+  return search.get(M8A_V3_1_AUTOPLAY_QUERY_PARAM) === "1";
+}
+
+function buildM8aV31AddressedHref(): string {
+  const params = new URLSearchParams();
+  params.set(FIRST_INTAKE_RUNTIME_ADDRESS_QUERY_PARAM, M8A_V3_1_FIRST_CASE_SCENARIO_ID);
+  params.set(M8A_V3_1_AUTOPLAY_QUERY_PARAM, "1");
+  params.set("scenePreset", M8A_V3_1_CTA_SCENE_PRESET);
+  return `/?${params.toString()}`;
 }
 
 function syncFirstIntakeRuntimeTelemetry(
@@ -413,7 +425,7 @@ function bindLightingRefresh(viewer: ViewerInstance): () => void {
 }
 
 export function startBootstrapComposition(app: HTMLDivElement): BootstrapComposition {
-  const { viewerRoot, hudFrame, statusPanel } = mountAppShell(app);
+  const { viewerShell, viewerRoot, hudFrame, statusPanel } = mountAppShell(app);
   const scenePreset = resolveBootstrapScenePreset();
   const firstIntakeSeed = onewebIntelsatGeoAviationSeed as
     FirstIntakeScenarioSeed &
@@ -662,9 +674,23 @@ export function startBootstrapComposition(app: HTMLDivElement): BootstrapComposi
   );
   const disposeLightingRefresh = bindLightingRefresh(viewer);
 
+  const unmountHomepageEntryCta = adoptFirstIntakeAsActiveOwner
+    ? () => {}
+    : mountHomepageEntryCta(viewerShell, {
+        addressedHref: buildM8aV31AddressedHref(),
+        onEnter: () => {
+          window.location.assign(buildM8aV31AddressedHref());
+        }
+      });
+
+  if (adoptFirstIntakeAsActiveOwner && resolveFirstIntakeAutoplayRequest()) {
+    firstIntakeReplayTimeAuthority?.replayClock.play();
+  }
+
   return {
     dispose() {
       delete window.__SCENARIO_GLOBE_VIEWER_CAPTURE__;
+      unmountHomepageEntryCta();
       disposeLightingRefresh();
       unmountOsmBuildingsShowcase();
       unmountLightingToggle();
