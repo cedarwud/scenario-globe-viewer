@@ -6,9 +6,17 @@ import {
   ConstantPositionProperty,
   CustomDataSource,
   DistanceDisplayCondition,
+  GeometryInstance,
   HorizontalOrigin,
+  LabelCollection,
   LabelGraphics,
   LabelStyle,
+  Material,
+  PointPrimitiveCollection,
+  PolylineGeometry,
+  PolylineMaterialAppearance,
+  Primitive,
+  PrimitiveCollection,
   PointGraphics,
   VerticalOrigin,
   type Viewer
@@ -45,6 +53,13 @@ const FIRST_INTAKE_OVERLAY_EXPRESSION_TELEMETRY_KEYS = [
   "firstIntakeOverlayCoordinateFreeEndpointIds",
   "firstIntakeOverlayOnGlobeInfrastructureNodeCount",
   "firstIntakeOverlayInfrastructureNodeIds",
+  "firstIntakeOverlayOrbitContextLayerOwner",
+  "firstIntakeOverlayOrbitContextLayerKind",
+  "firstIntakeOverlayOrbitContextBoundary",
+  "firstIntakeOverlayOrbitContextBandCount",
+  "firstIntakeOverlayOrbitContextLabels",
+  "firstIntakeOverlayOrbitContextAltitudesMeters",
+  "firstIntakeOverlayOrbitContextTruthClaims",
   "firstIntakeOverlayDataSourceAttached",
   "firstIntakeOverlayDataSourceName"
 ] as const;
@@ -121,6 +136,159 @@ function createInfrastructurePointStyle(): PointGraphics {
 // read first at the default global preset; labels reappear on zoom-in, and
 // the entity's description stays available via the Cesium click infobox.
 const INFRASTRUCTURE_LABEL_INSPECT_DISTANCE_METERS = 3_000_000;
+// M8A-V3.4 display-context: orbit-class altitude bands live with the
+// on-globe overlay expression layer, not endpoint relation semantics.
+const ORBIT_CONTEXT_LAYER_ID =
+  "first-intake-overlay-expression-display-context-orbit-altitude-layer";
+const ORBIT_CONTEXT_LAYER_OWNER =
+  "first-intake-overlay-expression-controller";
+const ORBIT_CONTEXT_LAYER_KIND = "display-context-altitude-band";
+const ORBIT_CONTEXT_BOUNDARY =
+  "representative-altitude-band-not-satellite-actor";
+const ORBIT_CONTEXT_CHIP_TEXT = "display-context";
+const ORBIT_CONTEXT_TRUTH_CLAIMS = {
+  specificSatelliteIdentity: "not-claimed",
+  activeServingSatellite: "not-claimed",
+  activeGatewayAssignment: "not-claimed",
+  nativeRfHandover: "not-claimed",
+  rfBeamGeometry: "not-claimed",
+  measurementTruth: "not-claimed",
+  pairSpecificGeoTeleport: "not-claimed",
+  walkerSyntheticActorPromotion: "not-claimed"
+} as const;
+
+interface OrbitContextCoordinateDegrees {
+  lat: number;
+  lon: number;
+}
+
+interface OrbitContextBandDefinition {
+  bandId: string;
+  orbitClass: "LEO" | "GEO";
+  labelText: "LEO context" | "GEO continuity";
+  altitudeMeters: number;
+  geometryKind:
+    | "representative-leo-altitude-band"
+    | "representative-geo-continuity-arc";
+  latitudeDegrees: number;
+  longitudeStartDegrees: number;
+  longitudeStopDegrees: number;
+  sampleCount: number;
+  lineStyle: "dashed" | "solid";
+  lineWidthPixels: number;
+  lineColorCss: string;
+  lineAlpha: number;
+  chipBackgroundCss: string;
+  labelCoordinate: OrbitContextCoordinateDegrees;
+  chipCoordinate: OrbitContextCoordinateDegrees;
+  markerCoordinate?: OrbitContextCoordinateDegrees;
+}
+
+interface OrbitContextBandMetadata {
+  bandId: string;
+  orbitClass: "LEO" | "GEO";
+  labelText: "LEO context" | "GEO continuity";
+  chipText: typeof ORBIT_CONTEXT_CHIP_TEXT;
+  altitudeMeters: number;
+  geometryKind: OrbitContextBandDefinition["geometryKind"];
+  lineStyle: OrbitContextBandDefinition["lineStyle"];
+  displayContextBoundary: typeof ORBIT_CONTEXT_BOUNDARY;
+}
+
+interface OrbitContextLayerMetadata {
+  layerId: typeof ORBIT_CONTEXT_LAYER_ID;
+  owner: typeof ORBIT_CONTEXT_LAYER_OWNER;
+  layerKind: typeof ORBIT_CONTEXT_LAYER_KIND;
+  displayContextBoundary: typeof ORBIT_CONTEXT_BOUNDARY;
+  bandCount: number;
+  labelTexts: ReadonlyArray<string>;
+  altitudeMeters: ReadonlyArray<number>;
+  truthClaims: typeof ORBIT_CONTEXT_TRUTH_CLAIMS;
+  bands: ReadonlyArray<OrbitContextBandMetadata>;
+}
+
+type TaggedOrbitContextPrimitiveCollection = PrimitiveCollection & {
+  __firstIntakeOverlayOrbitContext: OrbitContextLayerMetadata;
+};
+
+type TaggedOrbitContextLabelCollection = LabelCollection & {
+  __firstIntakeOverlayOrbitContextLabels: true;
+};
+
+interface OrbitContextPolylinePrimitiveSummary {
+  id: {
+    layerId: typeof ORBIT_CONTEXT_LAYER_ID;
+    bandId: string;
+    orbitClass: "LEO" | "GEO";
+    displayContextBoundary: typeof ORBIT_CONTEXT_BOUNDARY;
+  };
+  width: number;
+  positions: Cartesian3[];
+}
+
+type TaggedOrbitContextPolylinePrimitive = Primitive & {
+  __firstIntakeOverlayOrbitContextPolyline: true;
+  __firstIntakeOverlayOrbitContextPolylineSummary: OrbitContextPolylinePrimitiveSummary;
+};
+
+type TaggedOrbitContextPointCollection = PointPrimitiveCollection & {
+  __firstIntakeOverlayOrbitContextPoints: true;
+};
+
+const ORBIT_CONTEXT_BANDS: ReadonlyArray<OrbitContextBandDefinition> = [
+  {
+    bandId: "display-context-leo-altitude-band",
+    orbitClass: "LEO",
+    labelText: "LEO context",
+    altitudeMeters: 1_200_000,
+    geometryKind: "representative-leo-altitude-band",
+    latitudeDegrees: -26,
+    longitudeStartDegrees: -62,
+    longitudeStopDegrees: -36,
+    sampleCount: 34,
+    lineStyle: "dashed",
+    lineWidthPixels: 3,
+    lineColorCss: "#73e8ff",
+    lineAlpha: 0.78,
+    chipBackgroundCss: "#06323d",
+    labelCoordinate: {
+      lat: -26,
+      lon: -50
+    },
+    chipCoordinate: {
+      lat: -26,
+      lon: -44
+    }
+  },
+  {
+    bandId: "display-context-geo-continuity-arc",
+    orbitClass: "GEO",
+    labelText: "GEO continuity",
+    altitudeMeters: 35_786_000,
+    geometryKind: "representative-geo-continuity-arc",
+    latitudeDegrees: -46,
+    longitudeStartDegrees: -44,
+    longitudeStopDegrees: -22,
+    sampleCount: 30,
+    lineStyle: "solid",
+    lineWidthPixels: 3.4,
+    lineColorCss: "#f1c35f",
+    lineAlpha: 0.82,
+    chipBackgroundCss: "#4a3307",
+    labelCoordinate: {
+      lat: -44,
+      lon: -30
+    },
+    chipCoordinate: {
+      lat: -44,
+      lon: -20
+    },
+    markerCoordinate: {
+      lat: -44,
+      lon: -30
+    }
+  }
+];
 
 function createInfrastructureLabelStyle(text: string): LabelGraphics {
   return new LabelGraphics({
@@ -144,6 +312,270 @@ function createInfrastructureLabelStyle(text: string): LabelGraphics {
       )
     )
   });
+}
+
+function createOrbitContextMetadata(): OrbitContextLayerMetadata {
+  const bands = ORBIT_CONTEXT_BANDS.map(
+    (band): OrbitContextBandMetadata => ({
+      bandId: band.bandId,
+      orbitClass: band.orbitClass,
+      labelText: band.labelText,
+      chipText: ORBIT_CONTEXT_CHIP_TEXT,
+      altitudeMeters: band.altitudeMeters,
+      geometryKind: band.geometryKind,
+      lineStyle: band.lineStyle,
+      displayContextBoundary: ORBIT_CONTEXT_BOUNDARY
+    })
+  );
+
+  return {
+    layerId: ORBIT_CONTEXT_LAYER_ID,
+    owner: ORBIT_CONTEXT_LAYER_OWNER,
+    layerKind: ORBIT_CONTEXT_LAYER_KIND,
+    displayContextBoundary: ORBIT_CONTEXT_BOUNDARY,
+    bandCount: bands.length,
+    labelTexts: bands.flatMap((band) => [band.labelText, band.chipText]),
+    altitudeMeters: bands.map((band) => band.altitudeMeters),
+    truthClaims: ORBIT_CONTEXT_TRUTH_CLAIMS,
+    bands
+  };
+}
+
+function createOrbitContextPosition(
+  coordinate: OrbitContextCoordinateDegrees,
+  altitudeMeters: number
+): Cartesian3 {
+  return Cartesian3.fromDegrees(coordinate.lon, coordinate.lat, altitudeMeters);
+}
+
+function createOrbitContextArcPositions(
+  band: OrbitContextBandDefinition
+): Cartesian3[] {
+  const positions: Cartesian3[] = [];
+  const sampleCount = Math.max(2, band.sampleCount);
+
+  for (let index = 0; index < sampleCount; index += 1) {
+    const ratio = index / (sampleCount - 1);
+    const lon =
+      band.longitudeStartDegrees +
+      (band.longitudeStopDegrees - band.longitudeStartDegrees) * ratio;
+
+    positions.push(
+      Cartesian3.fromDegrees(lon, band.latitudeDegrees, band.altitudeMeters)
+    );
+  }
+
+  return positions;
+}
+
+function createOrbitContextLineMaterial(
+  band: OrbitContextBandDefinition
+): Material {
+  const color = Color.fromCssColorString(band.lineColorCss).withAlpha(
+    band.lineAlpha
+  );
+
+  if (band.lineStyle === "dashed") {
+    return Material.fromType(Material.PolylineDashType, {
+      color,
+      gapColor: Color.TRANSPARENT,
+      dashLength: 18,
+      dashPattern: 255
+    });
+  }
+
+  return Material.fromType(Material.ColorType, {
+    color
+  });
+}
+
+function createOrbitContextPolylinePrimitive(
+  band: OrbitContextBandDefinition
+): TaggedOrbitContextPolylinePrimitive {
+  const positions = createOrbitContextArcPositions(band);
+  const id: OrbitContextPolylinePrimitiveSummary["id"] = {
+    layerId: ORBIT_CONTEXT_LAYER_ID,
+    bandId: band.bandId,
+    orbitClass: band.orbitClass,
+    displayContextBoundary: ORBIT_CONTEXT_BOUNDARY
+  };
+  const primitive = new Primitive({
+    geometryInstances: new GeometryInstance({
+      id,
+      geometry: new PolylineGeometry({
+        positions,
+        width: band.lineWidthPixels,
+        vertexFormat: PolylineMaterialAppearance.VERTEX_FORMAT
+      })
+    }),
+    appearance: new PolylineMaterialAppearance({
+      material: createOrbitContextLineMaterial(band),
+      translucent: true,
+      renderState: {
+        depthTest: {
+          enabled: false
+        },
+        depthMask: false
+      }
+    }),
+    asynchronous: false,
+    allowPicking: false,
+    cull: false,
+    releaseGeometryInstances: false
+  }) as TaggedOrbitContextPolylinePrimitive;
+
+  primitive.__firstIntakeOverlayOrbitContextPolyline = true;
+  primitive.__firstIntakeOverlayOrbitContextPolylineSummary = {
+    id,
+    width: band.lineWidthPixels,
+    positions
+  };
+
+  return primitive;
+}
+
+function addOrbitContextLabel({
+  labels,
+  band,
+  text,
+  coordinate,
+  backgroundCss,
+  pixelOffset
+}: {
+  labels: LabelCollection;
+  band: OrbitContextBandDefinition;
+  text: string;
+  coordinate: OrbitContextCoordinateDegrees;
+  backgroundCss: string;
+  pixelOffset: Cartesian2;
+}): void {
+  labels.add({
+    id: {
+      layerId: ORBIT_CONTEXT_LAYER_ID,
+      bandId: band.bandId,
+      displayContextBoundary: ORBIT_CONTEXT_BOUNDARY
+    },
+    position: createOrbitContextPosition(coordinate, band.altitudeMeters),
+    text,
+    font:
+      text === ORBIT_CONTEXT_CHIP_TEXT ? "10px sans-serif" : "12px sans-serif",
+    fillColor: Color.WHITE.withAlpha(0.96),
+    outlineColor: Color.fromCssColorString("#031018").withAlpha(0.94),
+    outlineWidth: 2,
+    style: LabelStyle.FILL_AND_OUTLINE,
+    showBackground: true,
+    backgroundColor: Color.fromCssColorString(backgroundCss).withAlpha(
+      text === ORBIT_CONTEXT_CHIP_TEXT ? 0.7 : 0.58
+    ),
+    backgroundPadding:
+      text === ORBIT_CONTEXT_CHIP_TEXT
+        ? new Cartesian2(6, 3)
+        : new Cartesian2(7, 4),
+    pixelOffset,
+    horizontalOrigin: HorizontalOrigin.CENTER,
+    verticalOrigin: VerticalOrigin.CENTER,
+    disableDepthTestDistance: Number.POSITIVE_INFINITY,
+    distanceDisplayCondition: new DistanceDisplayCondition(0, 90_000_000)
+  });
+}
+
+function appendOrbitContextBand({
+  layer,
+  labels,
+  points,
+  band
+}: {
+  layer: PrimitiveCollection;
+  labels: LabelCollection;
+  points: PointPrimitiveCollection;
+  band: OrbitContextBandDefinition;
+}): void {
+  layer.add(createOrbitContextPolylinePrimitive(band));
+
+  addOrbitContextLabel({
+    labels,
+    band,
+    text: band.labelText,
+    coordinate: band.labelCoordinate,
+    backgroundCss: "#06131c",
+    pixelOffset: new Cartesian2(0, -18)
+  });
+  addOrbitContextLabel({
+    labels,
+    band,
+    text: ORBIT_CONTEXT_CHIP_TEXT,
+    coordinate: band.chipCoordinate,
+    backgroundCss: band.chipBackgroundCss,
+    pixelOffset: new Cartesian2(0, 18)
+  });
+
+  if (band.markerCoordinate) {
+    points.add({
+      id: {
+        layerId: ORBIT_CONTEXT_LAYER_ID,
+        bandId: band.bandId,
+        orbitClass: band.orbitClass,
+        displayContextBoundary: ORBIT_CONTEXT_BOUNDARY
+      },
+      position: createOrbitContextPosition(
+        band.markerCoordinate,
+        band.altitudeMeters
+      ),
+      pixelSize: 7,
+      color: Color.fromCssColorString(band.lineColorCss).withAlpha(0.78),
+      outlineColor: Color.fromCssColorString("#031018").withAlpha(0.96),
+      outlineWidth: 2,
+      disableDepthTestDistance: Number.POSITIVE_INFINITY,
+      distanceDisplayCondition: new DistanceDisplayCondition(0, 90_000_000)
+    });
+  }
+}
+
+function createOrbitContextLayer(
+  viewer: Viewer
+): TaggedOrbitContextPrimitiveCollection {
+  const layer = new PrimitiveCollection() as TaggedOrbitContextPrimitiveCollection;
+  const labels = layer.add(
+    new LabelCollection({
+      scene: viewer.scene
+    })
+  ) as TaggedOrbitContextLabelCollection;
+  const points = layer.add(
+    new PointPrimitiveCollection()
+  ) as TaggedOrbitContextPointCollection;
+
+  layer.__firstIntakeOverlayOrbitContext = createOrbitContextMetadata();
+  labels.__firstIntakeOverlayOrbitContextLabels = true;
+  points.__firstIntakeOverlayOrbitContextPoints = true;
+
+  for (const band of ORBIT_CONTEXT_BANDS) {
+    appendOrbitContextBand({
+      layer,
+      labels,
+      points,
+      band
+    });
+  }
+
+  return layer;
+}
+
+function createOrbitContextTelemetry(): Record<string, string> {
+  const metadata = createOrbitContextMetadata();
+
+  return {
+    firstIntakeOverlayOrbitContextLayerOwner: metadata.owner,
+    firstIntakeOverlayOrbitContextLayerKind: metadata.layerKind,
+    firstIntakeOverlayOrbitContextBoundary: metadata.displayContextBoundary,
+    firstIntakeOverlayOrbitContextBandCount: String(metadata.bandCount),
+    firstIntakeOverlayOrbitContextLabels: JSON.stringify(metadata.labelTexts),
+    firstIntakeOverlayOrbitContextAltitudesMeters: JSON.stringify(
+      metadata.altitudeMeters
+    ),
+    firstIntakeOverlayOrbitContextTruthClaims: JSON.stringify(
+      metadata.truthClaims
+    )
+  };
 }
 
 function humanizeToken(value: string): string {
@@ -288,6 +720,7 @@ function syncTelemetry(state: FirstIntakeOverlayExpressionState): void {
     firstIntakeOverlayInfrastructureNodeIds: JSON.stringify(
       state.infrastructureNodeIds
     ),
+    ...createOrbitContextTelemetry(),
     firstIntakeOverlayDataSourceAttached: state.dataSourceAttached
       ? "true"
       : "false",
@@ -353,8 +786,12 @@ export function createFirstIntakeOverlayExpressionController({
   const dataSource = new CustomDataSource(
     FIRST_INTAKE_OVERLAY_EXPRESSION_DATA_SOURCE_NAME
   );
+  const orbitContextLayer = createOrbitContextLayer(viewer);
   let disposed = false;
   let dataSourceAttached = false;
+
+  viewer.scene.primitives.add(orbitContextLayer);
+  viewer.scene.primitives.raiseToTop(orbitContextLayer);
 
   for (const node of resolvedOverlaySeeds.resolvedInfrastructureSeed.nodes) {
     const entity = dataSource.entities.add({
@@ -456,6 +893,12 @@ export function createFirstIntakeOverlayExpressionController({
       dataSource.entities.removeAll();
       if (!viewer.isDestroyed() && viewer.dataSources.contains(dataSource)) {
         viewer.dataSources.remove(dataSource);
+      }
+      if (
+        !viewer.isDestroyed() &&
+        viewer.scene.primitives.contains(orbitContextLayer)
+      ) {
+        viewer.scene.primitives.remove(orbitContextLayer);
       }
       if (!viewer.isDestroyed()) {
         viewer.scene.requestRender();
