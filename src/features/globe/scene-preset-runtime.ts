@@ -16,7 +16,8 @@ import { applyOptionalSite3DTilesHook } from "./site-3d-tiles-hook";
 import { applyStarBackground } from "./star-background";
 
 export type ScenePresetViewerOptions = ImagerySelectionOptions &
-  TerrainSelectionOptions;
+  TerrainSelectionOptions &
+  Pick<Viewer.ConstructorOptions, "navigationInstructionsInitiallyVisible">;
 
 export interface ScenePresetRuntimeOptions {
   buildingShowcaseKey?: BuildingShowcaseKey;
@@ -87,7 +88,8 @@ export function resolveScenePresetViewerOptions(
 ): ScenePresetViewerOptions {
   return {
     ...resolveScenePresetImagerySelection(preset),
-    ...resolveScenePresetTerrainSelection(preset)
+    ...resolveScenePresetTerrainSelection(preset),
+    navigationInstructionsInitiallyVisible: false
   };
 }
 
