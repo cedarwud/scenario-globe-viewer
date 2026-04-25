@@ -119,9 +119,9 @@ The practical recommendation is therefore:
   `scenario-globe-viewer`'s accepted M8A seams and repo-owned projection
   contracts
 
-## ITRI Requirement Alignment
+## Customer-Side Requirement Alignment
 
-ITRI's original direction mentions `LEO/MEO/GEO`, TLE or equivalent orbit
+The customer-side authority's original direction mentions `LEO/MEO/GEO`, TLE or equivalent orbit
 tracking, link-quality-based switching, communication-time/rate presentation,
 and a visually understandable 3D UI. `M8A-V2` should align with that direction
 without pretending that this first branch has already solved every orbit class.
@@ -132,7 +132,7 @@ For this branch:
   first case is `OneWeb LEO + Intelsat GEO aviation`
 - `MEO` remains evidence-gated and must not be rendered as an active handover
   participant in `M8A-V2`
-- if the UI needs to acknowledge the full ITRI `LEO/MEO/GEO` target, `MEO` may
+- if the UI needs to acknowledge the full customer-side `LEO/MEO/GEO` target, `MEO` may
   appear only as an inactive requirement-trace or future-evidence chip, never as
   a current candidate, route, satellite, or service path
 - the handover explanation should emphasize service-layer switching and bounded

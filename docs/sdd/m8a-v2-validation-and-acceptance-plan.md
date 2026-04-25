@@ -174,7 +174,7 @@ all of the following are true:
     and is not a random or demo-synthetic constellation actor
 14. bounded latency, jitter, speed, and continuity cues are visually legible as
     proxy classes, not measurement truth
-15. if `MEO` appears for ITRI requirement traceability, it is explicitly
+15. if `MEO` appears for customer-side requirement traceability, it is explicitly
     inactive/evidence-gated and never part of the active handover scene
 
 ## Regression Expectations

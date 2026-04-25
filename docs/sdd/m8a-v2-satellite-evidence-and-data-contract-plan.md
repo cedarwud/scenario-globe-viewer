@@ -170,7 +170,7 @@ they do not become active serving satellite truth.
 
 `M8A-V2` must not promote `MEO` into the active handover scene.
 
-If the UX needs to show the full ITRI `LEO/MEO/GEO` target, `MEO` can appear
+If the UX needs to show the full customer-side `LEO/MEO/GEO` target, `MEO` can appear
 only as:
 
 - an inactive orbit-family status chip
@@ -216,7 +216,7 @@ That projected seam should carry at least:
 - `displayRole`:
   - `leo-context-actor`
   - `geo-context-anchor`
-  - `inactive-meo-requirement-trace` only if the UX explicitly needs an ITRI
+  - `inactive-meo-requirement-trace` only if the UX explicitly needs a customer-side
     full-orbit-family status indicator
 - `evidenceClass`:
   - `accepted-runtime-truth`
@@ -266,7 +266,7 @@ display seam. It must not side-read:
 - nearby endpoint package files
 - corridor package files
 - raw satellite-source packages
-- raw ITRI download artifacts
+- raw customer-side download artifacts
 
 ## Initial Classification Inventory
 

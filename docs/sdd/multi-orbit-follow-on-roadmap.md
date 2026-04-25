@@ -24,17 +24,17 @@ Related research/planning index: see
 This file answers one question:
 
 After the current approved work lands, what follow-on tracks are already known,
-how important are they to the ITRI line, and what must be true before each one
+how important are they to the customer-side line, and what must be true before each one
 opens?
 
 ## Track Classes
 
-### Track A — ITRI-Direct
+### Track A — Customer-Direct
 
 These tracks directly strengthen the viewer's ability to satisfy the original
-ITRI multi-orbit simulation / explanation line.
+customer-side multi-orbit simulation / explanation line.
 
-### Track B — ITRI-Supporting
+### Track B — Customer-Supporting
 
 These tracks are not the core handover scene by themselves, but they materially
 improve explainability, traceability, and safe reuse of confirmed assets.
@@ -50,7 +50,7 @@ after the current line. They need explicit reopen authority.
 
 Class:
 
-- Track A — ITRI-Direct
+- Track A — Customer-Direct
 
 Goal:
 
@@ -77,7 +77,7 @@ Open only when:
 
 Class:
 
-- Track A — ITRI-Direct
+- Track A — Customer-Direct
 
 Goal:
 
@@ -136,7 +136,7 @@ Open only when:
 
 Class:
 
-- Track B — ITRI-Supporting
+- Track B — Customer-Supporting
 
 Goal:
 
@@ -166,7 +166,7 @@ Open only when:
 
 Class:
 
-- Track B — ITRI-Supporting
+- Track B — Customer-Supporting
 
 Goal:
 
@@ -197,7 +197,7 @@ Open only when:
 
 Class:
 
-- Track B — ITRI-Supporting
+- Track B — Customer-Supporting
 
 Goal:
 
@@ -224,7 +224,7 @@ Open only when:
 
 Class:
 
-- Track B — ITRI-Supporting
+- Track B — Customer-Supporting
 
 Goal:
 
@@ -250,7 +250,7 @@ Open only when:
 
 Class:
 
-- Track B — ITRI-Supporting
+- Track B — Customer-Supporting
 
 Goal:
 
@@ -310,7 +310,7 @@ Goal:
 
 Why it matters:
 
-- the original ITRI line mentions `LEO/MEO/GEO`, but the current public
+- the original customer-side line mentions `LEO/MEO/GEO`, but the current public
   evidence base is weaker for `OneWeb`-related MEO expansion than for GEO
 
 Status:
