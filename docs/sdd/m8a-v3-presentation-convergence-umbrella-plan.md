@@ -185,7 +185,8 @@ improved.
 2. [m8a-v3-primary-scene-composition-plan.md](./m8a-v3-primary-scene-composition-plan.md)
 3. [m8a-v3-motion-and-replay-affordance-plan.md](./m8a-v3-motion-and-replay-affordance-plan.md)
 4. [m8a-v3-camera-and-overlay-convergence-plan.md](./m8a-v3-camera-and-overlay-convergence-plan.md)
-5. [m8a-v3-validation-and-acceptance-plan.md](./m8a-v3-validation-and-acceptance-plan.md)
+5. [m8a-v3.5-source-lineaged-orbit-actor-recovery-plan.md](./m8a-v3.5-source-lineaged-orbit-actor-recovery-plan.md)
+6. [m8a-v3-validation-and-acceptance-plan.md](./m8a-v3-validation-and-acceptance-plan.md)
 
 ## Phase Breakdown
 
@@ -233,10 +234,16 @@ Goal:
 - keep satcom information compact and supportive
 - ensure camera and overlay help the scene instead of competing with it
 
-### M8A-V3.5 - Final Acceptance Reset
+### M8A-V3.5 - Source-Lineaged Actor Recovery And Final Acceptance Reset
 
 Goal:
 
+- promote the V2 minimum visible slice into a source-lineaged actor recovery
+  implementation target
+- render visible `LEO` and `GEO` orbit-context actors without promoting active
+  serving-satellite, RF, gateway, teleport, or measurement truth
+- pair actor rendering with presentation-state progression and compact bounded
+  metric cues, not actor-only orbit visualization
 - make user-facing demo success the real acceptance bar
 - keep the V2 truth-boundary guarantees intact while resetting presentation
   quality expectations

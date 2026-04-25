@@ -43,6 +43,7 @@ import { createFirstIntakeNearbySecondEndpointInfoController } from "../first-in
 import { createFirstIntakeCinematicCameraPresetController } from "../first-intake-cinematic-camera-preset-controller";
 import { createFirstIntakeMobileEndpointTrajectoryConsumerController } from "../first-intake-mobile-endpoint-trajectory-consumer-controller";
 import { createFirstIntakeMobileEndpointTrajectoryController } from "../first-intake-mobile-endpoint-trajectory-controller";
+import { createFirstIntakeOrbitContextActorController } from "../first-intake-orbit-context-actor-controller";
 import { createFirstIntakeSatcomContextOverlayController } from "../first-intake-satcom-context-overlay-controller";
 import {
   createFirstIntakeOperatorExplainerController,
@@ -94,6 +95,8 @@ export interface BootstrapCapture {
     ReturnType<typeof createFirstIntakeCinematicCameraPresetController>;
   firstIntakeSatcomContextOverlay?:
     ReturnType<typeof createFirstIntakeSatcomContextOverlayController>;
+  firstIntakeOrbitContextActors?:
+    ReturnType<typeof createFirstIntakeOrbitContextActorController>;
   firstIntakeMobileEndpointTrajectory?:
     ReturnType<typeof createFirstIntakeMobileEndpointTrajectoryController>;
   firstIntakeMobileEndpointTrajectoryConsumer?:
@@ -610,6 +613,16 @@ export function startBootstrapComposition(app: HTMLDivElement): BootstrapComposi
           replayTimeAuthorityController: firstIntakeReplayTimeAuthority
         })
       : undefined;
+  const firstIntakeOrbitContextActors =
+    adoptFirstIntakeAsActiveOwner && firstIntakeReplayTimeAuthority
+      ? createFirstIntakeOrbitContextActorController({
+          viewer,
+          hudFrame,
+          scenarioSurface: firstIntakeScenarioSurface,
+          replayClock: firstIntakeReplayTimeAuthority.replayClock,
+          physicalInputController: firstIntakePhysicalInputController
+        })
+      : undefined;
   const satelliteOverlay = createSatelliteOverlayController({
     viewer,
     replayClock
@@ -648,6 +661,9 @@ export function startBootstrapComposition(app: HTMLDivElement): BootstrapComposi
       : {}),
     ...(firstIntakeSatcomContextOverlay
       ? { firstIntakeSatcomContextOverlay }
+      : {}),
+    ...(firstIntakeOrbitContextActors
+      ? { firstIntakeOrbitContextActors }
       : {}),
     ...(firstIntakeMobileEndpointTrajectory
       ? { firstIntakeMobileEndpointTrajectory }
@@ -698,6 +714,7 @@ export function startBootstrapComposition(app: HTMLDivElement): BootstrapComposi
       disposeLightingRefresh();
       unmountOsmBuildingsShowcase();
       unmountLightingToggle();
+      firstIntakeOrbitContextActors?.dispose();
       firstIntakeSatcomContextOverlay?.dispose();
       firstIntakeCinematicCameraPreset?.dispose();
       firstIntakeNearbySecondEndpointInfo?.dispose();

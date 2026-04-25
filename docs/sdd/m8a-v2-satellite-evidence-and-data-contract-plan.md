@@ -9,6 +9,10 @@ Parent SDD: see
 [./m8a-v2-cross-orbit-handover-umbrella-plan.md](./m8a-v2-cross-orbit-handover-umbrella-plan.md).
 Related draft context: see
 [./m8a-satellite-evidence-promotion-plan.md](./m8a-satellite-evidence-promotion-plan.md).
+Related V3.5 recovery decision and child plan: see
+[../decisions/0011-source-lineaged-orbit-context-actor-gate.md](../decisions/0011-source-lineaged-orbit-context-actor-gate.md)
+and
+[./m8a-v3.5-source-lineaged-orbit-actor-recovery-plan.md](./m8a-v3.5-source-lineaged-orbit-actor-recovery-plan.md).
 
 ## Status
 
@@ -165,6 +169,27 @@ grounded context.
 This lets the frontend look and feel realistic while keeping the contract
 honest: the actors explain orbit-class context and the service-layer story;
 they do not become active serving satellite truth.
+
+## Model Asset Boundary
+
+The visual model used to draw an orbit-context actor is not accepted as
+operator, spacecraft-body, orbit, or serving-satellite truth.
+
+For the V3.5 recovery line:
+
+- a generic `satellite.glb` mesh may be used for `LEO` and `GEO` context actors
+  only if it is copied into the viewer repo with attribution and non-claim
+  metadata
+- the model must be described as generic visual geometry, not OneWeb or
+  Intelsat spacecraft body geometry
+- `starlink.glb` must not be used to represent OneWeb or Intelsat because its
+  asset source/title creates a Starlink/SpaceX brand implication
+- the demo repo's `sat.glb` must not be used as the delivery default because
+  its non-commercial license is not acceptable for this default path without a
+  separate approval
+
+The actor's orbit and operator context must come from the repo-owned projected
+orbit-context seam, not from the mesh filename or visual appearance.
 
 ## MEO Handling
 

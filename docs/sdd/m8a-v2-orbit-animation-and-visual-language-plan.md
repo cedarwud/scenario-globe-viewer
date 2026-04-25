@@ -9,6 +9,8 @@ Parent SDD: see
 Related data/state plans: see
 [./m8a-v2-satellite-evidence-and-data-contract-plan.md](./m8a-v2-satellite-evidence-and-data-contract-plan.md) and
 [./m8a-v2-handover-state-model-plan.md](./m8a-v2-handover-state-model-plan.md).
+V3.5 recovery execution is tracked in
+[./m8a-v3.5-source-lineaged-orbit-actor-recovery-plan.md](./m8a-v3.5-source-lineaged-orbit-actor-recovery-plan.md).
 
 ## Status
 
@@ -169,6 +171,11 @@ The first visibly improved user-facing slice should add:
 
 That is the minimum slice that moves the viewer beyond the current
 "moving endpoint plus nearby endpoint" state.
+
+For the V3.5 recovery line, abstract dashed lines or orbit arcs alone do not
+satisfy this minimum visible slice. The recovery implementation must include
+source-lineaged orbit-context actors plus stage-linked presentation emphasis,
+not an actor-only orbit visualization or a line-only visual aid.
 
 ## Acceptance Criteria
 

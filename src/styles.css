@@ -724,6 +724,90 @@ body {
   color: rgba(255, 240, 214, 0.92);
 }
 
+.m8a-v35-orbit-context-stage-strip {
+  position: absolute;
+  left: 50%;
+  bottom: calc(var(--hud-frame-gap) + 2.4rem);
+  z-index: 2;
+  display: grid;
+  gap: 0.34rem;
+  width: min(36rem, calc(100vw - 2 * var(--hud-frame-gap) - 4rem));
+  padding: 0.48rem 0.58rem;
+  transform: translateX(-50%);
+  border: 1px solid rgba(150, 205, 232, 0.24);
+  border-radius: 0.5rem;
+  background: rgba(5, 13, 19, 0.66);
+  color: rgba(242, 248, 252, 0.95);
+  box-shadow: inset 0 1px 0 rgba(241, 248, 255, 0.08);
+  pointer-events: none;
+}
+
+.m8a-v35-orbit-context-stage-strip__stages {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.34rem;
+}
+
+.m8a-v35-orbit-context-stage-strip__stage {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  min-height: 1.42rem;
+  padding: 0.18rem 0.34rem;
+  border: 1px solid rgba(140, 185, 215, 0.2);
+  border-radius: 0.42rem;
+  background: rgba(20, 35, 47, 0.58);
+  color: rgba(202, 225, 238, 0.78);
+  font-size: 0.68rem;
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: 0;
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+
+.m8a-v35-orbit-context-stage-strip__stage[data-active="true"] {
+  border-color: rgba(255, 218, 150, 0.56);
+  background: rgba(62, 44, 16, 0.68);
+  color: rgba(255, 244, 221, 0.98);
+}
+
+.m8a-v35-orbit-context-stage-strip__cue {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.34rem;
+  min-width: 0;
+  color: rgba(216, 232, 241, 0.86);
+  font-size: 0.68rem;
+  line-height: 1.25;
+  letter-spacing: 0;
+}
+
+.m8a-v35-orbit-context-stage-strip__cue strong {
+  color: rgba(244, 250, 255, 0.96);
+  font-weight: 700;
+}
+
+.m8a-v35-orbit-context-stage-strip__boundary {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.3rem;
+  min-width: 0;
+  color: rgba(178, 209, 224, 0.72);
+  font-size: 0.58rem;
+  line-height: 1.25;
+  letter-spacing: 0;
+  text-align: center;
+}
+
+.m8a-v35-orbit-context-stage-strip__boundary span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
 .timeline-hud-placeholder {
   display: grid;
   grid-template-columns: minmax(8rem, 11rem) minmax(0, 1fr);
@@ -1111,6 +1195,18 @@ body {
     padding: 0.48rem;
   }
 
+  .m8a-v35-orbit-context-stage-strip {
+    bottom: calc(var(--hud-frame-gap) + 2.35rem);
+    width: min(30rem, calc(100vw - 2 * var(--hud-frame-gap)));
+    padding: 0.46rem;
+  }
+
+  .m8a-v35-orbit-context-stage-strip__stage,
+  .m8a-v35-orbit-context-stage-strip__cue,
+  .m8a-v35-orbit-context-stage-strip__boundary {
+    font-size: 0.62rem;
+  }
+
   .first-intake-nearby-second-endpoint-info__facts {
     grid-template-columns: 1fr;
   }
@@ -1188,6 +1284,19 @@ body {
   .r1v-satcom-context-overlay {
     right: calc(var(--hud-frame-gap) + 3.25rem);
     width: auto;
+  }
+
+  .m8a-v35-orbit-context-stage-strip {
+    bottom: calc(var(--hud-frame-gap) + 2.3rem);
+    width: calc(100vw - 2 * var(--hud-frame-gap));
+  }
+
+  .m8a-v35-orbit-context-stage-strip__stages {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .m8a-v35-orbit-context-stage-strip__boundary {
+    grid-template-columns: 1fr;
   }
 
   .r1v-satcom-context-overlay__badge,

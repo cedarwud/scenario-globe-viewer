@@ -247,9 +247,9 @@ const ORBIT_CONTEXT_BANDS: ReadonlyArray<OrbitContextBandDefinition> = [
     longitudeStopDegrees: -36,
     sampleCount: 34,
     lineStyle: "dashed",
-    lineWidthPixels: 3,
+    lineWidthPixels: 2.1,
     lineColorCss: "#73e8ff",
-    lineAlpha: 0.78,
+    lineAlpha: 0.48,
     chipBackgroundCss: "#06323d",
     labelCoordinate: {
       lat: -26,
@@ -271,9 +271,9 @@ const ORBIT_CONTEXT_BANDS: ReadonlyArray<OrbitContextBandDefinition> = [
     longitudeStopDegrees: -22,
     sampleCount: 30,
     lineStyle: "solid",
-    lineWidthPixels: 3.4,
+    lineWidthPixels: 2.3,
     lineColorCss: "#f1c35f",
-    lineAlpha: 0.82,
+    lineAlpha: 0.52,
     chipBackgroundCss: "#4a3307",
     labelCoordinate: {
       lat: -44,
@@ -458,14 +458,16 @@ function addOrbitContextLabel({
     position: createOrbitContextPosition(coordinate, band.altitudeMeters),
     text,
     font:
-      text === ORBIT_CONTEXT_CHIP_TEXT ? "10px sans-serif" : "12px sans-serif",
-    fillColor: Color.WHITE.withAlpha(0.96),
+      text === ORBIT_CONTEXT_CHIP_TEXT ? "10px sans-serif" : "11px sans-serif",
+    fillColor: Color.WHITE.withAlpha(
+      text === ORBIT_CONTEXT_CHIP_TEXT ? 0.76 : 0.74
+    ),
     outlineColor: Color.fromCssColorString("#031018").withAlpha(0.94),
     outlineWidth: 2,
     style: LabelStyle.FILL_AND_OUTLINE,
     showBackground: true,
     backgroundColor: Color.fromCssColorString(backgroundCss).withAlpha(
-      text === ORBIT_CONTEXT_CHIP_TEXT ? 0.7 : 0.58
+      text === ORBIT_CONTEXT_CHIP_TEXT ? 0.5 : 0.44
     ),
     backgroundPadding:
       text === ORBIT_CONTEXT_CHIP_TEXT

@@ -11,6 +11,8 @@ Related child plans: see
 [./m8a-v3-primary-scene-composition-plan.md](./m8a-v3-primary-scene-composition-plan.md),
 [./m8a-v3-motion-and-replay-affordance-plan.md](./m8a-v3-motion-and-replay-affordance-plan.md), and
 [./m8a-v3-camera-and-overlay-convergence-plan.md](./m8a-v3-camera-and-overlay-convergence-plan.md).
+V3.5 source-lineaged actor recovery is defined in
+[./m8a-v3.5-source-lineaged-orbit-actor-recovery-plan.md](./m8a-v3.5-source-lineaged-orbit-actor-recovery-plan.md).
 
 ## Status
 
@@ -102,6 +104,13 @@ Validate:
 
 Validate:
 
+- visible `LEO` and `GEO` orbit-context actors are present
+- actors consume viewer-owned projected display data, not raw source packages
+- `satellite.glb`, if used, is recorded as a generic model asset with
+  attribution and non-claims
+- no Starlink or demo non-commercial mesh is promoted into the delivery path
+- presentation state changes actor, relation, and compact metric emphasis
+- default route remains excluded from promoted satellite actor state
 - final regression suite proves user-facing demo success rather than only
   technical continuity
 - all preserved truth-boundary guarantees remain intact
