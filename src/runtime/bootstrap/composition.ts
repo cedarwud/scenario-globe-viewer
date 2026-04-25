@@ -684,6 +684,10 @@ export function startBootstrapComposition(app: HTMLDivElement): BootstrapComposi
       });
 
   if (adoptFirstIntakeAsActiveOwner && resolveFirstIntakeAutoplayRequest()) {
+    // M8A-V3.4 keeps the two-mode viewing model and makes the explicit demo
+    // entry land in the existing handover close-view instead of the global
+    // preset, without widening the camera preset interface.
+    firstIntakeCinematicCameraPreset?.activatePreset();
     firstIntakeReplayTimeAuthority?.replayClock.play();
   }
 
