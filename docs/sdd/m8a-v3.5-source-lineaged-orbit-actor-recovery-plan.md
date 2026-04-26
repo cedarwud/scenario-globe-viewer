@@ -16,12 +16,25 @@ Related authority: see
 
 ## Status
 
-- planning-only child SDD
-- next implementation authority for the V3.5 recovery slice
+- closed technical-foundation child SDD after V3.5 implementation
+- no longer the product-narrative authority for the next homepage demo after
+  the 2026-04-25 ground-station scope reset
 - no runtime implementation by itself
 - first-case-only:
   `OneWeb LEO + Intelsat GEO`, commercial aviation,
   `service-layer switching`, `isNativeRfHandover = false`
+
+Post-closeout note:
+
+- V3.5 remains reusable for source-lineaged actor rendering, generic satellite
+  mesh governance, source-vs-render truth-boundary telemetry, and visual
+  acceptance harnessing.
+- V3.5 must not be read as approval to keep aircraft/YKA as the next product
+  story.
+- The corrected next planning lane is
+  [m8a-v4-ground-station-multi-orbit-handover-plan.md](./m8a-v4-ground-station-multi-orbit-handover-plan.md),
+  governed by
+  [../decisions/0013-ground-station-multi-orbit-scope-reset.md](../decisions/0013-ground-station-multi-orbit-scope-reset.md).
 
 ## Purpose
 

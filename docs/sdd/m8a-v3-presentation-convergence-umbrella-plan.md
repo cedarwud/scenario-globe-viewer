@@ -19,14 +19,22 @@ and
 
 ## Status
 
-- planning-only umbrella
-- convergence/recovery authority only
+- historical planning umbrella after V3/V3.5 closeout
+- convergence/recovery authority only for the aviation/YKA `M8A` line
 - no runtime implementation authority by itself
 - preserves first-case lock:
   `OneWeb LEO + Intelsat GEO`, commercial aviation,
   `service-layer switching`, `isNativeRfHandover = false`
 - does not reopen `M8B`, `M8C`, active `MEO`, arbitrary endpoint selection,
   global endpoint navigation, or a second operator pair
+
+2026-04-25 note:
+
+- this umbrella is not the current product-narrative authority for the next
+  homepage demo
+- the corrected next planning lane is
+  [m8a-v4-ground-station-multi-orbit-handover-plan.md](./m8a-v4-ground-station-multi-orbit-handover-plan.md)
+- V3/V3.5 outputs remain technical foundations only
 
 ## Purpose
 

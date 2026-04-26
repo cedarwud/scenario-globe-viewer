@@ -20,6 +20,15 @@ Related program skeleton: see
 - planning-only follow-on SDD
 - post-`M8A` continuation lane
 - no implementation authority by itself
+- remains read-only after the 2026-04-25 V4 ground-station scope reset
+
+2026-04-25 note:
+
+- V4 may use evidence packages that would also be visible in a future R2
+  catalog.
+- R2 still does not authorize scenario launch, endpoint pairing, or runtime
+  communication selection.
+- Any V4 endpoint must pass the V4 endpoint-pair authority gate first.
 
 ## Purpose
 

@@ -17,6 +17,10 @@ Related first accepted intake case: see
 [../../../itri/multi-orbit/prep/oneweb-intelsat-geo-aviation-intake.md](../../../itri/multi-orbit/prep/oneweb-intelsat-geo-aviation-intake.md).
 Related accepted corridor package: see
 [../../../itri/multi-orbit/download/aircraft-corridors/ac-cgojz-crj900-c06aa4-2026-04-21](</home/u24/papers/itri/multi-orbit/download/aircraft-corridors/ac-cgojz-crj900-c06aa4-2026-04-21>).
+Related V4 scope reset: see
+[../decisions/0013-ground-station-multi-orbit-scope-reset.md](../decisions/0013-ground-station-multi-orbit-scope-reset.md).
+Related V4 SDD: see
+[./m8a-v4-ground-station-multi-orbit-handover-plan.md](./m8a-v4-ground-station-multi-orbit-handover-plan.md).
 
 ## Status
 
@@ -35,8 +39,8 @@ after any given slice lands?
 
 ## North-Star Summary
 
-The program is successful only when `scenario-globe-viewer` can present a
-defensible first real-world case of:
+The historical first-case program was successful only when
+`scenario-globe-viewer` could present a defensible first real-world case of:
 
 - `OneWeb LEO + Intelsat GEO`
 - `commercial aviation`
@@ -44,11 +48,22 @@ defensible first real-world case of:
 - `isNativeRfHandover = false`
 - repo-owned bounded projection, not measurement truth
 
-This line is not complete when only contracts, adapters, or docs exist.
+That first-case line is now historical foundation. After the 2026-04-25 scope
+reset, the next product goal is a defensible ground-station multi-orbit scene:
+
+- two ground-station or ground-infrastructure endpoints
+- preferably cross-country near Taiwan
+- no aircraft endpoint
+- no ordinary handset `UE`
+- `LEO/MEO/GEO` evidence accepted before runtime promotion
+- continuous multi-satellite handover pressure
+
+This corrected line is not complete when only contracts, adapters, or docs
+exist. It also is not complete if it only replays the old aircraft/YKA story.
 
 ## Locked First-Case Assumptions
 
-Unless a later accepted authority explicitly changes them, keep these fixed:
+For the historical first-case and `M8A` line, keep these fixed:
 
 - first intake case = `oneweb-intelsat-geo-aviation`
 - endpoint A = aircraft-side connectivity stack
@@ -59,6 +74,10 @@ Unless a later accepted authority explicitly changes them, keep these fixed:
 - first delivery line stays `bounded-proxy`
 - `handover-decision` widening stays bounded to the approved first-intake
   unsupported/no-op metadata lane
+
+For the V4 line, these assumptions are superseded by ADR 0013 and the V4 SDD.
+Do not carry the aircraft endpoint, YKA endpoint, or provider-managed GEO anchor
+as V4 endpoint A/B.
 
 ## Current Repo Reality As Of 2026-04-23
 
@@ -88,6 +107,23 @@ First-case baseline reconciliation:
 - general `M8` expansion remains forbidden by default
 - the first accepted reopen path is now narrowed to `M8A`:
   corridor-adjacent second-endpoint expansion
+
+## Scope Correction As Of 2026-04-25
+
+Stakeholder clarification changed the next product target. The existing
+aviation/YKA line remains useful history and V3.5 remains useful rendering
+infrastructure, but the next planning lane is:
+
+- `M8A-V4 = ground-station multi-orbit handover`
+
+Current V4 authority:
+
+- [../decisions/0013-ground-station-multi-orbit-scope-reset.md](../decisions/0013-ground-station-multi-orbit-scope-reset.md)
+- [./m8a-v4-ground-station-multi-orbit-handover-plan.md](./m8a-v4-ground-station-multi-orbit-handover-plan.md)
+- [../../../itri/multi-orbit/download/ground-station-endpoint-candidates/2026-04-25/README.md](../../../itri/multi-orbit/download/ground-station-endpoint-candidates/2026-04-25/README.md)
+
+No V4 code should be written until the endpoint-pair authority gate accepts
+endpoint A/B and their `LEO/MEO/GEO` evidence matrix.
 
 ## Program Phases
 
@@ -334,11 +370,43 @@ Current state:
 - second operator-pair expansion remains out of scope
 - `MEO` exploratory remains out of scope
 
+### Phase M9 — V4 Ground-Station Scope Reset
+
+Goal:
+
+- correct the next viewer demo to use ground-station or ground-infrastructure
+  endpoints rather than the aviation/YKA endpoint story
+
+Includes:
+
+- evidence snapshot for near-Taiwan ground-station endpoint candidates
+- ADR 0013 scope reset
+- V4 SDD
+- endpoint-pair authority gate before implementation
+
+Must not include:
+
+- aircraft endpoint in the V4 scene
+- YKA endpoint in the V4 scene
+- ordinary handset `UE`
+- arbitrary endpoint selector
+- R2 runtime selection
+- full `LEO/MEO/GEO` claims for a second country without accepted evidence
+
+Current state:
+
+- planning open
+- evidence snapshot exists
+- endpoint-pair authority package not yet accepted
+- runtime implementation blocked until authority acceptance
+
 ## Reconciliation Note
 
 - `M3` through `M7` are closed for the defendable first-case baseline
-- `M8A` is now the only accepted first reopen direction for expansion planning
-- broader `M8` expansion remains forbidden unless explicit authority reopens it
+- `M8A` is closed/historical for the aviation/YKA expansion narrative
+- `M8A-V4` is the current corrected planning lane for the next product demo
+- broader arbitrary endpoint expansion remains forbidden unless explicit
+  authority reopens it
 - the north-star boundary and bounded-proxy truth line remain unchanged
 
 ## Hard Guardrails
@@ -360,9 +428,11 @@ read:
 
 1. [north-star.md](/home/u24/papers/itri/multi-orbit/north-star.md)
 2. [m8-expansion-authority.md](/home/u24/papers/itri/multi-orbit/m8-expansion-authority.md)
-3. [0009-multi-orbit-first-intake-contract-ordering.md](../decisions/0009-multi-orbit-first-intake-contract-ordering.md)
-4. this file
-5. the most specific live lane document that applies to the next slice
+3. [0013-ground-station-multi-orbit-scope-reset.md](../decisions/0013-ground-station-multi-orbit-scope-reset.md)
+4. [0009-multi-orbit-first-intake-contract-ordering.md](../decisions/0009-multi-orbit-first-intake-contract-ordering.md)
+5. this file
+6. the most specific live lane document that applies to the next slice
 
-If those four are not enough to answer "what remains after the current slice?",
-the agent should stop and repair the planning surface before implementing.
+If those documents are not enough to answer "what remains after the current
+slice?", the agent should stop and repair the planning surface before
+implementing.

@@ -12,6 +12,8 @@ Related `M8` authority: see
 [../../../itri/multi-orbit/m8-expansion-authority.md](../../../itri/multi-orbit/m8-expansion-authority.md).
 Related research/planning index: see
 [../../../itri/multi-orbit/research-and-planning-index.md](../../../itri/multi-orbit/research-and-planning-index.md).
+Related V4 scope reset: see
+[../decisions/0013-ground-station-multi-orbit-scope-reset.md](../decisions/0013-ground-station-multi-orbit-scope-reset.md).
 
 ## Status
 
@@ -45,6 +47,14 @@ These tracks are real possibilities, but they should not open automatically
 after the current line. They need explicit reopen authority.
 
 ## Planned Tracks
+
+2026-04-25 routing note:
+
+- `V4` is the current corrected product lane for the next homepage demo.
+- `R2` remains useful, but it is still read-only and must not be treated as the
+  V4 endpoint selector.
+- The older `R1`/`R1V` sections remain for historical continuity and reusable
+  technical foundation.
 
 ### R1 — Complete `M8A`
 
@@ -161,6 +171,58 @@ Open only when:
 
 - `M8A` is functionally closed
 - group/status/precision taxonomy remains explicit
+
+### V4 — Ground-Station Multi-Orbit Handover Scene
+
+Class:
+
+- Track A — Customer-Direct
+
+Goal:
+
+- correct the next homepage demo away from the aviation/YKA narrative and
+  toward a two-ground-station or ground-infrastructure endpoint pair
+- require an endpoint-pair authority gate before runtime implementation
+- support `LEO/MEO/GEO` only where evidence is accepted
+- preserve V3.5 source-lineaged actor rendering as a technical foundation
+
+Primary planning home:
+
+- [m8a-v4-ground-station-multi-orbit-handover-plan.md](./m8a-v4-ground-station-multi-orbit-handover-plan.md)
+
+Supporting evidence:
+
+- [../../../itri/multi-orbit/download/ground-station-endpoint-candidates/2026-04-25/README.md](../../../itri/multi-orbit/download/ground-station-endpoint-candidates/2026-04-25/README.md)
+- [../../../itri/multi-orbit/download/ground-station-endpoint-candidates/2026-04-25/candidate-matrix.json](../../../itri/multi-orbit/download/ground-station-endpoint-candidates/2026-04-25/candidate-matrix.json)
+
+Why it matters:
+
+- stakeholder clarification showed the desired scene is not aircraft + YKA
+- Taiwan/CHT currently has the strongest near-Taiwan `LEO/MEO/GEO` evidence
+- no second country/site is accepted yet as full three-orbit endpoint truth
+- this track prevents future agents from hardcoding a weak endpoint pair just
+  because previous rendering infrastructure exists
+
+Status:
+
+- planning-only
+- current corrected product lane
+
+Open only when:
+
+- ADR 0013 remains accepted
+- endpoint-pair evidence is handled through the V4 authority gate
+- no aircraft endpoint, YKA endpoint, ordinary handset `UE`, or arbitrary
+  endpoint selector is introduced
+- `R2` remains read-only
+
+Blocked before implementation until:
+
+- a V4 endpoint-pair authority package exists
+- endpoint A/B coordinate precision and role are accepted
+- the `LEO/MEO/GEO` evidence matrix is accepted
+- fallback mode, if weaker than strict three-orbit acceptance, has explicit
+  user approval
 
 ### R3 — Accepted Endpoint / Site Package Expansion
 
