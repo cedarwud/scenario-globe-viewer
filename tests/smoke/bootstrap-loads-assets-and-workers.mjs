@@ -323,7 +323,7 @@ async function readHudLayoutState(client) {
       const homepageEntryCtaEnter =
         homepageEntryCta instanceof HTMLElement
           ? homepageEntryCta.querySelector(
-              "a.homepage-entry-cta__enter[data-m8a-v31-homepage-cta-enter='true']"
+              "a.homepage-entry-cta__button[data-m8a-v31-homepage-cta-enter='true']"
             )
           : null;
       const activeElement = document.activeElement;
@@ -416,19 +416,24 @@ async function readHudLayoutState(client) {
               )
             : null,
         homepageEntryCta: pickRect("[data-m8a-v31-homepage-cta='true']"),
+        homepageEntryCtaButton: pickRect(
+          "[data-m8a-v36-homepage-handover-icon='true']"
+        ),
         homepageEntryCtaHref:
           homepageEntryCtaEnter instanceof HTMLAnchorElement
             ? homepageEntryCtaEnter.getAttribute("href")
             : null,
-        homepageEntryCtaHeadlineText:
-          homepageEntryCta instanceof HTMLElement
-            ? homepageEntryCta.querySelector(".homepage-entry-cta__headline")
-                ?.textContent ?? null
+        homepageEntryCtaAriaLabel:
+          homepageEntryCtaEnter instanceof HTMLAnchorElement
+            ? homepageEntryCtaEnter.getAttribute("aria-label")
             : null,
-        homepageEntryCtaChipText:
+        homepageEntryCtaTitle:
+          homepageEntryCtaEnter instanceof HTMLAnchorElement
+            ? homepageEntryCtaEnter.getAttribute("title")
+            : null,
+        homepageEntryCtaMount:
           homepageEntryCta instanceof HTMLElement
-            ? homepageEntryCta.querySelector(".homepage-entry-cta__chip")
-                ?.textContent ?? null
+            ? homepageEntryCta.dataset.homepageEntryMount ?? null
             : null
       };
     })()`
@@ -535,7 +540,17 @@ function assertHomepageEntryCtaState(layoutState, scenarioLabel) {
     layoutState.homepageEntryCta &&
       layoutState.homepageEntryCta.width > 0 &&
       layoutState.homepageEntryCta.height > 0,
-    `Expected homepage entry CTA to remain visible during ${scenarioLabel}: ${JSON.stringify(layoutState.homepageEntryCta)}`
+    `Expected homepage entry icon host to remain visible during ${scenarioLabel}: ${JSON.stringify(layoutState.homepageEntryCta)}`
+  );
+  assert(
+    layoutState.homepageEntryCtaButton &&
+      layoutState.homepageEntryCtaButton.width >= 32 &&
+      layoutState.homepageEntryCtaButton.width <= 48 &&
+      layoutState.homepageEntryCtaButton.height >= 32 &&
+      layoutState.homepageEntryCtaButton.height <= 48 &&
+      layoutState.homepageEntryCtaButton.top <= 12 &&
+      layoutState.homepageEntryCtaButton.right >= layoutState.viewport.width - 16,
+    `Expected homepage handover entry to be a compact top-right icon button during ${scenarioLabel}: ${JSON.stringify(layoutState.homepageEntryCtaButton)}`
   );
   assert(
     typeof layoutState.homepageEntryCtaHref === "string" &&
@@ -546,16 +561,16 @@ function assertHomepageEntryCtaState(layoutState, scenarioLabel) {
     `Expected homepage entry CTA to link to the addressed first-case route with autoplay during ${scenarioLabel}: ${JSON.stringify(layoutState.homepageEntryCtaHref)}`
   );
   assert(
-    typeof layoutState.homepageEntryCtaChipText === "string" &&
-      /cross-orbit/i.test(layoutState.homepageEntryCtaChipText) &&
-      /handover/i.test(layoutState.homepageEntryCtaChipText),
-    `Expected homepage entry CTA chip to signal cross-orbit handover during ${scenarioLabel}: ${JSON.stringify(layoutState.homepageEntryCtaChipText)}`
+    typeof layoutState.homepageEntryCtaAriaLabel === "string" &&
+      /oneweb/i.test(layoutState.homepageEntryCtaAriaLabel) &&
+      /intelsat/i.test(layoutState.homepageEntryCtaAriaLabel) &&
+      /handover/i.test(layoutState.homepageEntryCtaAriaLabel) &&
+      /autoplay/i.test(layoutState.homepageEntryCtaAriaLabel),
+    `Expected homepage entry icon accessible label to name the OneWeb+Intelsat handover autoplay path during ${scenarioLabel}: ${JSON.stringify(layoutState.homepageEntryCtaAriaLabel)}`
   );
   assert(
-    typeof layoutState.homepageEntryCtaHeadlineText === "string" &&
-      /oneweb/i.test(layoutState.homepageEntryCtaHeadlineText) &&
-      /intelsat/i.test(layoutState.homepageEntryCtaHeadlineText),
-    `Expected homepage entry CTA headline to name the first-case OneWeb+Intelsat pair during ${scenarioLabel}: ${JSON.stringify(layoutState.homepageEntryCtaHeadlineText)}`
+    layoutState.homepageEntryCtaMount === "cesium-toolbar",
+    `Expected homepage entry icon to mount in the top-right Cesium toolbar during ${scenarioLabel}: ${JSON.stringify(layoutState.homepageEntryCtaMount)}`
   );
 }
 
