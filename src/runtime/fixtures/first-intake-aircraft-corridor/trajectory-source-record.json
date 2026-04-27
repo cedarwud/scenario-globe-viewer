@@ -1,0 +1,29 @@
+{
+  "recordId": "ac-cgojz-crj900-c06aa4-2026-04-21",
+  "seedId": "app-oneweb-intelsat-geo-aviation",
+  "sourceStackPrimary": "ADS-B Exchange globe_history direct historical trace fetch (named fallback activated after OpenSky access gate remained closed)",
+  "sourceStackSecondary": "adsb.lol public CRJ900 candidate discovery plus stiles/flight-tracer URL pattern donor",
+  "upstreamDataFamily": "ADS-B style historical traces",
+  "retrievalDate": "2026-04-22T03:17:02Z",
+  "windowStartUtc": "2026-04-21T01:28:07.420000Z",
+  "windowEndUtc": "2026-04-21T02:09:36.690000Z",
+  "reproductionQueryOrExtractionCommand": "curl -L -H 'Referer: https://globe.adsbexchange.com/?icao=c06aa4' 'https://globe.adsbexchange.com/globe_history/2026/04/21/traces/a4/trace_full_c06aa4.json' -o download/aircraft-corridors/ac-cgojz-crj900-c06aa4-2026-04-21/artifacts/raw/adsbexchange-raw-trace-c06aa4-2026-04-21.json",
+  "samplingCadence": "Irregular native trace cadence; median 4.36s, mean 5.58s, max 23.73s within the chosen window.",
+  "coordinateReference": "WGS84",
+  "altitudeDatum": "Barometric altitude in feet preserved as altitude_baro_ft; geometric altitude in feet preserved as altitude_geom_ft when present.",
+  "waypointCount": 447,
+  "dataCompletenessNote": "Selected subwindow has no internal gap above 60s; observed max gap is 23.73s.",
+  "rawArtifactPath": "download/aircraft-corridors/ac-cgojz-crj900-c06aa4-2026-04-21/artifacts/raw/adsbexchange-raw-trace-c06aa4-2026-04-21.json",
+  "primaryArtifactType": "GeoJSON",
+  "primaryArtifactPath": "download/aircraft-corridors/ac-cgojz-crj900-c06aa4-2026-04-21/artifacts/normalized/trajectory-replay.geojson",
+  "primaryArtifactHashSha256": "c16f562448fff8a7813e01691ba3c034cf4d93a7f814f91213430e003cb05b84",
+  "auxiliaryArtifactPath": "download/aircraft-corridors/ac-cgojz-crj900-c06aa4-2026-04-21/artifacts/normalized/trajectory-replay.csv",
+  "auxiliaryArtifactHashSha256": "e8e3056749a17c6bd2dda03d286b115a85347b6f8785af9baa304df3868831bc",
+  "observedIdentifiers": {
+    "icao24": "c06aa4",
+    "registration": "C-GOJZ",
+    "aircraftType": "CRJ9",
+    "description": "BOMBARDIER Regional Jet CRJ-900"
+  },
+  "fallbackTrigger": "Default Stack A remained installed but historical OpenSky access was unavailable without credentials or browser auth, so the named fallback path was activated."
+}

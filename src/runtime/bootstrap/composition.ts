@@ -27,7 +27,6 @@ import type { PhysicalInputState } from "../../features/physical-input/physical-
 import { syncDocumentTelemetry } from "../../features/telemetry/document-telemetry";
 import { createCesiumReplayClock } from "../../features/time/cesium-replay-clock";
 import type { ReplayClock } from "../../features/time";
-import onewebIntelsatGeoAviationSeed from "../../../../itri/multi-orbit/prep/seeds/oneweb-intelsat-geo-aviation.seed.json";
 import { createBootstrapCommunicationTimeController } from "../bootstrap-communication-time-controller";
 import { createBootstrapHandoverDecisionController } from "../bootstrap-handover-decision-controller";
 import { createBootstrapOperatorController } from "../bootstrap-operator-controller";
@@ -58,6 +57,11 @@ import {
   type SatelliteOverlayController
 } from "../satellite-overlay-controller";
 import { createBootstrapScenarioSession } from "../scenario-bootstrap-session";
+import onewebIntelsatGeoAviationSeed from "../first-intake-oneweb-intelsat-geo-aviation-seed";
+import {
+  createM8aV4GroundStationSceneController,
+  isM8aV4GroundStationRuntimeRequested
+} from "../m8a-v4-ground-station-handover-scene-controller";
 
 type ViewerInstance = ReturnType<typeof createViewer>;
 
@@ -97,6 +101,8 @@ export interface BootstrapCapture {
     ReturnType<typeof createFirstIntakeSatcomContextOverlayController>;
   firstIntakeOrbitContextActors?:
     ReturnType<typeof createFirstIntakeOrbitContextActorController>;
+  m8aV4GroundStationScene?:
+    ReturnType<typeof createM8aV4GroundStationSceneController>;
   firstIntakeMobileEndpointTrajectory?:
     ReturnType<typeof createFirstIntakeMobileEndpointTrajectoryController>;
   firstIntakeMobileEndpointTrajectoryConsumer?:
@@ -332,7 +338,8 @@ function createBootstrapControllerGraph({
   scenePreset,
   buildingShowcaseKey,
   hudFrame,
-  statusPanel
+  statusPanel,
+  mountHud
 }: {
   viewer: ViewerInstance;
   replayClock: ReplayClock;
@@ -340,6 +347,7 @@ function createBootstrapControllerGraph({
   buildingShowcaseKey: ReturnType<typeof resolveBuildingShowcaseSelection>["key"];
   hudFrame: ReturnType<typeof mountAppShell>["hudFrame"];
   statusPanel: ReturnType<typeof mountAppShell>["statusPanel"];
+  mountHud: boolean;
 }): BootstrapControllerGraph {
   const bootstrapScenarioCatalog = createBootstrapScenarioCatalog({
     initialScenePresetKey: scenePreset,
@@ -379,16 +387,18 @@ function createBootstrapControllerGraph({
     servingContext: createValidationServingContext(bootstrapHandoverDecisionController),
     scenarioCatalog: bootstrapScenarioCatalog
   });
-  const unmountBootstrapOperatorHud = mountBootstrapOperatorHud({
-    hudFrame,
-    statusPanel,
-    controller: bootstrapOperatorController,
-    communicationTimeController: bootstrapCommunicationTimeController,
-    physicalInputController: bootstrapPhysicalInputController,
-    handoverDecisionController: bootstrapHandoverDecisionController,
-    sceneStarterController: bootstrapSceneStarterController,
-    validationStateController: bootstrapValidationStateController
-  });
+  const unmountBootstrapOperatorHud = mountHud
+    ? mountBootstrapOperatorHud({
+        hudFrame,
+        statusPanel,
+        controller: bootstrapOperatorController,
+        communicationTimeController: bootstrapCommunicationTimeController,
+        physicalInputController: bootstrapPhysicalInputController,
+        handoverDecisionController: bootstrapHandoverDecisionController,
+        sceneStarterController: bootstrapSceneStarterController,
+        validationStateController: bootstrapValidationStateController
+      })
+    : () => {};
 
   return {
     scenarioSession,
@@ -430,6 +440,9 @@ function bindLightingRefresh(viewer: ViewerInstance): () => void {
 export function startBootstrapComposition(app: HTMLDivElement): BootstrapComposition {
   const { viewerShell, viewerRoot, hudFrame, statusPanel } = mountAppShell(app);
   const scenePreset = resolveBootstrapScenePreset();
+  const isM8aV4RuntimeRequest = isM8aV4GroundStationRuntimeRequested(
+    new URLSearchParams(window.location.search)
+  );
   const firstIntakeSeed = onewebIntelsatGeoAviationSeed as
     FirstIntakeScenarioSeed &
     FirstIntakePathProjectionSeed &
@@ -487,7 +500,8 @@ export function startBootstrapComposition(app: HTMLDivElement): BootstrapComposi
     scenePreset,
     buildingShowcaseKey: buildingShowcase.key,
     hudFrame,
-    statusPanel
+    statusPanel,
+    mountHud: !isM8aV4RuntimeRequest
   });
   const restoreR1vVisualAcceptanceHudCleanup = adoptFirstIntakeAsActiveOwner
     ? applyR1vVisualAcceptanceHudCleanup({
@@ -623,6 +637,13 @@ export function startBootstrapComposition(app: HTMLDivElement): BootstrapComposi
           physicalInputController: firstIntakePhysicalInputController
         })
       : undefined;
+  const m8aV4GroundStationScene = isM8aV4RuntimeRequest
+    ? createM8aV4GroundStationSceneController({
+        viewer,
+        hudFrame,
+        replayClock: firstIntakeReplayClock
+      })
+    : undefined;
   const satelliteOverlay = createSatelliteOverlayController({
     viewer,
     replayClock
@@ -665,6 +686,7 @@ export function startBootstrapComposition(app: HTMLDivElement): BootstrapComposi
     ...(firstIntakeOrbitContextActors
       ? { firstIntakeOrbitContextActors }
       : {}),
+    ...(m8aV4GroundStationScene ? { m8aV4GroundStationScene } : {}),
     ...(firstIntakeMobileEndpointTrajectory
       ? { firstIntakeMobileEndpointTrajectory }
       : {}),
@@ -690,7 +712,8 @@ export function startBootstrapComposition(app: HTMLDivElement): BootstrapComposi
   );
   const disposeLightingRefresh = bindLightingRefresh(viewer);
 
-  const unmountHomepageEntryCta = adoptFirstIntakeAsActiveOwner
+  const unmountHomepageEntryCta =
+    adoptFirstIntakeAsActiveOwner || isM8aV4RuntimeRequest
     ? () => {}
     : mountHomepageEntryCta(viewerShell, {
         addressedHref: buildM8aV31AddressedHref(),
@@ -714,6 +737,7 @@ export function startBootstrapComposition(app: HTMLDivElement): BootstrapComposi
       disposeLightingRefresh();
       unmountOsmBuildingsShowcase();
       unmountLightingToggle();
+      m8aV4GroundStationScene?.dispose();
       firstIntakeOrbitContextActors?.dispose();
       firstIntakeSatcomContextOverlay?.dispose();
       firstIntakeCinematicCameraPreset?.dispose();

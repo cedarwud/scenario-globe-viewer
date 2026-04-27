@@ -1,5 +1,5 @@
-import trajectorySourceRecordJson from "../../../itri/multi-orbit/download/aircraft-corridors/ac-cgojz-crj900-c06aa4-2026-04-21/trajectory-source-record.json";
-import trajectoryReplayGeoJsonRaw from "../../../itri/multi-orbit/download/aircraft-corridors/ac-cgojz-crj900-c06aa4-2026-04-21/artifacts/normalized/trajectory-replay.geojson?raw";
+import trajectoryReplayGeoJsonRaw from "./fixtures/first-intake-aircraft-corridor/trajectory-replay.geojson?raw";
+import trajectorySourceRecordJson from "./fixtures/first-intake-aircraft-corridor/trajectory-source-record.json";
 
 import {
   createMobileEndpointTrajectoryCatalog,

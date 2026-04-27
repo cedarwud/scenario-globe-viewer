@@ -68,6 +68,12 @@ body {
   display: none;
 }
 
+.hud-frame[data-hud-visibility="m8a-v4"]::before,
+.hud-frame[data-hud-visibility="m8a-v4"]::after,
+.hud-frame[data-hud-visibility="m8a-v4"] .hud-panel {
+  display: none;
+}
+
 .hud-frame::before,
 .hud-frame::after {
   content: "";
@@ -808,6 +814,186 @@ body {
   overflow-wrap: anywhere;
 }
 
+.m8a-v4-ground-station-scene {
+  position: absolute;
+  left: var(--hud-frame-gap);
+  right: var(--hud-frame-gap);
+  bottom: calc(var(--hud-frame-gap) + 2.4rem);
+  z-index: 3;
+  display: grid;
+  grid-template-columns: minmax(14rem, 1fr) minmax(18rem, 1.5fr) minmax(14rem, 1fr);
+  gap: 0.55rem 0.7rem;
+  align-items: stretch;
+  padding: 0.68rem 0.74rem;
+  border: 1px solid rgba(188, 222, 238, 0.24);
+  border-radius: 0.5rem;
+  background: rgba(5, 13, 18, 0.72);
+  color: rgba(243, 249, 252, 0.96);
+  box-shadow: inset 0 1px 0 rgba(241, 248, 255, 0.08);
+  pointer-events: none;
+}
+
+.m8a-v4-ground-station-scene__header,
+.m8a-v4-ground-station-scene__orbit-strip,
+.m8a-v4-ground-station-scene__stages,
+.m8a-v4-ground-station-scene__signals,
+.m8a-v4-ground-station-scene__nonclaims,
+.m8a-v4-ground-station-scene__endpoint {
+  min-width: 0;
+}
+
+.m8a-v4-ground-station-scene__header {
+  display: grid;
+  gap: 0.24rem;
+  align-content: center;
+}
+
+.m8a-v4-ground-station-scene__header span {
+  color: rgba(155, 203, 226, 0.82);
+  font-size: 0.68rem;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: 0;
+}
+
+.m8a-v4-ground-station-scene__header strong {
+  color: rgba(255, 245, 220, 0.98);
+  font-size: 1.08rem;
+  line-height: 1.15;
+  letter-spacing: 0;
+}
+
+.m8a-v4-ground-station-scene__endpoints {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.44rem;
+}
+
+.m8a-v4-ground-station-scene__endpoint {
+  display: grid;
+  gap: 0.22rem;
+  padding: 0.52rem 0.58rem;
+  border: 1px solid rgba(147, 205, 220, 0.2);
+  border-radius: 0.5rem;
+  background: rgba(8, 19, 24, 0.56);
+}
+
+.m8a-v4-ground-station-scene__endpoint span,
+.m8a-v4-ground-station-scene__endpoint strong,
+.m8a-v4-ground-station-scene__endpoint small {
+  min-width: 0;
+  line-height: 1.25;
+  letter-spacing: 0;
+  overflow-wrap: anywhere;
+}
+
+.m8a-v4-ground-station-scene__endpoint span {
+  color: rgba(243, 249, 252, 0.94);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.m8a-v4-ground-station-scene__endpoint strong {
+  color: rgba(126, 226, 184, 0.94);
+  font-size: 0.66rem;
+  font-weight: 700;
+}
+
+.m8a-v4-ground-station-scene__endpoint small {
+  color: rgba(213, 230, 238, 0.78);
+  font-size: 0.64rem;
+}
+
+.m8a-v4-ground-station-scene__orbit-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.34rem;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.m8a-v4-ground-station-scene__orbit-strip span,
+.m8a-v4-ground-station-scene__orbit-strip strong,
+.m8a-v4-ground-station-scene__stage,
+.m8a-v4-ground-station-scene__signals span,
+.m8a-v4-ground-station-scene__nonclaims span {
+  min-width: 0;
+  border: 1px solid rgba(150, 205, 232, 0.18);
+  border-radius: 0.44rem;
+  background: rgba(11, 27, 34, 0.56);
+  line-height: 1.2;
+  letter-spacing: 0;
+  overflow-wrap: anywhere;
+}
+
+.m8a-v4-ground-station-scene__orbit-strip span,
+.m8a-v4-ground-station-scene__orbit-strip strong {
+  padding: 0.32rem 0.48rem;
+  color: rgba(225, 238, 244, 0.88);
+  font-size: 0.68rem;
+}
+
+.m8a-v4-ground-station-scene__orbit-strip strong {
+  border-color: rgba(255, 209, 102, 0.3);
+  color: rgba(255, 245, 220, 0.96);
+  font-weight: 700;
+}
+
+.m8a-v4-ground-station-scene__stages {
+  grid-column: 1 / span 3;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.38rem;
+}
+
+.m8a-v4-ground-station-scene__stage {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 1.35rem;
+  padding: 0.18rem 0.35rem;
+  color: rgba(198, 222, 234, 0.78);
+  font-size: 0.62rem;
+  font-weight: 700;
+  text-align: center;
+}
+
+.m8a-v4-ground-station-scene__stage[data-active="true"] {
+  border-color: rgba(255, 209, 102, 0.52);
+  background: rgba(58, 43, 19, 0.72);
+  color: rgba(255, 247, 224, 0.98);
+}
+
+.m8a-v4-ground-station-scene__signals {
+  grid-column: 1 / span 2;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.32rem;
+  align-content: center;
+}
+
+.m8a-v4-ground-station-scene__signals span {
+  padding: 0.26rem 0.42rem;
+  color: rgba(218, 233, 241, 0.84);
+  font-size: 0.64rem;
+}
+
+.m8a-v4-ground-station-scene__nonclaims {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+  align-content: center;
+  justify-content: flex-end;
+}
+
+.m8a-v4-ground-station-scene__nonclaims span {
+  padding: 0.24rem 0.38rem;
+  border-color: rgba(255, 209, 102, 0.2);
+  background: rgba(38, 30, 16, 0.58);
+  color: rgba(255, 235, 198, 0.86);
+  font-size: 0.6rem;
+}
+
 .timeline-hud-placeholder {
   display: grid;
   grid-template-columns: minmax(8rem, 11rem) minmax(0, 1fr);
@@ -1201,6 +1387,22 @@ body {
     padding: 0.46rem;
   }
 
+  .m8a-v4-ground-station-scene {
+    grid-template-columns: minmax(0, 1fr);
+    bottom: calc(var(--hud-frame-gap) + 2.35rem);
+    padding: 0.52rem;
+  }
+
+  .m8a-v4-ground-station-scene__stages,
+  .m8a-v4-ground-station-scene__signals {
+    grid-column: auto;
+  }
+
+  .m8a-v4-ground-station-scene__orbit-strip,
+  .m8a-v4-ground-station-scene__nonclaims {
+    justify-content: flex-start;
+  }
+
   .m8a-v35-orbit-context-stage-strip__stage,
   .m8a-v35-orbit-context-stage-strip__cue,
   .m8a-v35-orbit-context-stage-strip__boundary {
@@ -1289,6 +1491,17 @@ body {
   .m8a-v35-orbit-context-stage-strip {
     bottom: calc(var(--hud-frame-gap) + 2.3rem);
     width: calc(100vw - 2 * var(--hud-frame-gap));
+  }
+
+  .m8a-v4-ground-station-scene {
+    left: var(--hud-frame-gap);
+    right: var(--hud-frame-gap);
+    bottom: calc(var(--hud-frame-gap) + 2.3rem);
+  }
+
+  .m8a-v4-ground-station-scene__endpoints,
+  .m8a-v4-ground-station-scene__stages {
+    grid-template-columns: 1fr;
   }
 
   .m8a-v35-orbit-context-stage-strip__stages {
