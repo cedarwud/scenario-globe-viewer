@@ -402,7 +402,7 @@ function resolveOrbitColor(
 ): Color {
   switch (orbitClass) {
     case "leo":
-      return Color.fromCssColorString("#ff5f7a").withAlpha(alpha);
+      return Color.fromCssColorString("#b8f45a").withAlpha(alpha);
     case "meo":
       return Color.fromCssColorString("#d46bff").withAlpha(alpha);
     case "geo":
