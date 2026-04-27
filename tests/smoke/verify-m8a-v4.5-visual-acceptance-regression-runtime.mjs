@@ -445,11 +445,21 @@ async function main() {
                 const actor = state.actors.find(
                   (stateActor) => stateActor.actorId === actorId
                 );
+                const point = actorEntities[index]?.point;
 
                 return {
                   actorId,
                   orbitClass: actor?.orbitClass ?? null,
-                  hasPoint: Boolean(actorEntities[index]?.point)
+                  hasPoint: Boolean(point),
+                  hasPointColor: Boolean(point?.color),
+                  hasPointOutlineColor: Boolean(point?.outlineColor),
+                  pointPixelSize:
+                    point?.pixelSize?.getValue?.(capture.viewer.clock.currentTime) ??
+                    null,
+                  pointOutlineWidth:
+                    point?.outlineWidth?.getValue?.(
+                      capture.viewer.clock.currentTime
+                    ) ?? null
                 };
               }
             );
@@ -549,9 +559,13 @@ async function main() {
               actorPointRecords.every((actor) =>
                 actor.orbitClass === "leo"
                   ? actor.hasPoint === false
-                  : actor.hasPoint === true
+                  : actor.hasPoint === true &&
+                    actor.hasPointColor === true &&
+                    actor.hasPointOutlineColor === true &&
+                    actor.pointPixelSize === 8 &&
+                    actor.pointOutlineWidth === 2
               ),
-              "V4.5 LEO actor models must not be overlaid by orbit-class point markers, while MEO/GEO retain distant position markers: " +
+              "V4.5 LEO actor models must not be overlaid by orbit-class point markers, while MEO/GEO retain visible neutral position markers: " +
                 JSON.stringify({ actorPointRecords })
             );
             assert(

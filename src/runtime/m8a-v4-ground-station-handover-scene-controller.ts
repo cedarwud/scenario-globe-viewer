@@ -402,8 +402,8 @@ function resolveEndpointColor(endpointId: M8aV4EndpointId): Color {
     : Color.fromCssColorString("#7ee2b8");
 }
 
-function resolveActorPointColor(alpha = 0.72): Color {
-  return Color.fromCssColorString("#f4fbff").withAlpha(alpha);
+function resolveActorPointColor(): Color {
+  return Color.WHITE.withAlpha(0.95);
 }
 
 function resolveActorLabelBackgroundColor(): Color {
@@ -488,14 +488,14 @@ function createEndpointLabelStyle(endpoint: M8aV4EndpointProjection): LabelGraph
   });
 }
 
-function createActorPointStyle(emphasis: M8aV4ActorEmphasis): PointGraphics {
+function createActorPointStyle(): PointGraphics {
   return new PointGraphics({
-    pixelSize: new ConstantProperty(Math.min(emphasis.pointPixelSize, 7)),
+    pixelSize: new ConstantProperty(8),
     color: new ConstantProperty(resolveActorPointColor()),
     outlineColor: new ConstantProperty(
-      Color.fromCssColorString("#06121a").withAlpha(0.72)
+      Color.fromCssColorString("#06121a").withAlpha(0.9)
     ),
-    outlineWidth: 1,
+    outlineWidth: 2,
     disableDepthTestDistance: Number.POSITIVE_INFINITY,
     distanceDisplayCondition: new DistanceDisplayCondition(0, 90_000_000)
   });
@@ -606,10 +606,12 @@ function updateActorStyle(
   }
 
   if (handle.entity.point) {
-    handle.entity.point.pixelSize = new ConstantProperty(
-      Math.min(emphasis.pointPixelSize, 7)
-    );
+    handle.entity.point.pixelSize = new ConstantProperty(8);
     handle.entity.point.color = new ConstantProperty(resolveActorPointColor());
+    handle.entity.point.outlineColor = new ConstantProperty(
+      Color.fromCssColorString("#06121a").withAlpha(0.9)
+    );
+    handle.entity.point.outlineWidth = new ConstantProperty(2);
   }
 
   if (handle.entity.label) {
@@ -1070,7 +1072,7 @@ export function createM8aV4GroundStationSceneController({
           name: actor.label,
           position: createActorPositionProperty(actor),
           point: shouldRenderActorPoint(actor)
-            ? createActorPointStyle(emphasis)
+            ? createActorPointStyle()
             : undefined,
           model: createActorModelGraphics(modelUri, actor, emphasis),
           label: createActorLabelStyle(actor, emphasis),
