@@ -409,7 +409,13 @@ async function main() {
             const geoEntity = dataSource?.entities?.getById(
               "st-2-geo-continuity-anchor"
             );
+            const fakeGeoHeightReferenceEntity = dataSource?.entities?.getById(
+              "m8a-v4-fake-geo-height-reference"
+            );
             const geoCanvasPoint = entityCanvasPoint(geoEntity);
+            const fakeGeoHeightReferenceCanvasPoint = entityCanvasPoint(
+              fakeGeoHeightReferenceEntity
+            );
             const geoSourceRadius = geoActor
               ? radialDistance(geoActor.sourcePositionEcefMeters)
               : null;
@@ -588,6 +594,28 @@ async function main() {
                   meoActorScreen,
                   geoActorScreen,
                   actorScreenRecords,
+                  viewport: {
+                    width: window.innerWidth,
+                    height: window.innerHeight
+                  }
+                })
+            );
+            assert(
+              fakeGeoHeightReferenceEntity &&
+                insideViewportPoint(fakeGeoHeightReferenceCanvasPoint) &&
+                fakeGeoHeightReferenceCanvasPoint.x >
+                  window.innerWidth * 0.46 &&
+                fakeGeoHeightReferenceCanvasPoint.x <
+                  window.innerWidth * 0.54 &&
+                fakeGeoHeightReferenceCanvasPoint.y >
+                  window.innerHeight * 0.12 &&
+                fakeGeoHeightReferenceCanvasPoint.y <
+                  window.innerHeight * 0.22,
+              "V4.5 fake GEO height reference must sit above the scene center without joining the source-lineaged actor set: " +
+                JSON.stringify({
+                  fakeGeoHeightReferenceCanvasPoint,
+                  actorIds,
+                  actorCount: state.actorCount,
                   viewport: {
                     width: window.innerWidth,
                     height: window.innerHeight

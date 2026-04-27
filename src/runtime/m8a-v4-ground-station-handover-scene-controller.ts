@@ -87,9 +87,13 @@ const M8A_V4_DISPLAY_ORBIT_HEIGHT_METERS = {
 >;
 const M8A_V4_MEO_DISPLAY_LANE_LATITUDE_BIAS_DEGREES = 8;
 const M8A_V4_MEO_DISPLAY_LANE_LONGITUDE_BIAS_DEGREES = -5;
-const M8A_V4_GEO_DISPLAY_DRIFT_LATITUDE_DEGREES = 1.2;
-const M8A_V4_GEO_DISPLAY_DRIFT_LONGITUDE_DEGREES = 3.8;
-const M8A_V4_GEO_DISPLAY_DRIFT_CYCLE_RATE = 0.22;
+const M8A_V4_FAKE_GEO_HEIGHT_REFERENCE_ID =
+  "m8a-v4-fake-geo-height-reference";
+const M8A_V4_FAKE_GEO_HEIGHT_REFERENCE_POSITION = {
+  lat: -6,
+  lon: 114,
+  heightMeters: M8A_V4_DISPLAY_ORBIT_HEIGHT_METERS.geo.start
+} satisfies M8aV4GeoPosition;
 
 const M8A_V4_TELEMETRY_KEYS = [
   "m8aV4GroundStationRuntimeState",
@@ -566,6 +570,54 @@ function createActorModelGraphics(
   });
 }
 
+function createFakeGeoHeightReferenceModelGraphics(
+  modelUri: string
+): ModelGraphics {
+  return new ModelGraphics({
+    uri: new ConstantProperty(modelUri),
+    scale: new ConstantProperty(0.94),
+    minimumPixelSize: new ConstantProperty(54),
+    maximumScale: new ConstantProperty(180_000),
+    color: new ConstantProperty(resolveOrbitColor("geo", 0.88)),
+    colorBlendAmount: new ConstantProperty(0.22)
+  });
+}
+
+function createFakeGeoHeightReferenceLabelStyle(): LabelGraphics {
+  return new LabelGraphics({
+    text: new ConstantProperty("Fake GEO height reference"),
+    font: "12px sans-serif",
+    scale: 0.9,
+    style: LabelStyle.FILL_AND_OUTLINE,
+    fillColor: new ConstantProperty(Color.WHITE.withAlpha(0.92)),
+    outlineColor: new ConstantProperty(
+      Color.fromCssColorString("#06121a").withAlpha(0.96)
+    ),
+    outlineWidth: 2,
+    showBackground: true,
+    backgroundColor: new ConstantProperty(resolveOrbitColor("geo", 0.24)),
+    backgroundPadding: new Cartesian2(8, 4),
+    pixelOffset: new Cartesian2(0, -34),
+    horizontalOrigin: HorizontalOrigin.CENTER,
+    verticalOrigin: VerticalOrigin.BOTTOM,
+    disableDepthTestDistance: Number.POSITIVE_INFINITY,
+    distanceDisplayCondition: new DistanceDisplayCondition(0, 100_000_000)
+  });
+}
+
+function createFakeGeoHeightReferencePointStyle(): PointGraphics {
+  return new PointGraphics({
+    pixelSize: new ConstantProperty(10),
+    color: new ConstantProperty(resolveOrbitColor("geo", 0.96)),
+    outlineColor: new ConstantProperty(
+      Color.fromCssColorString("#06121a").withAlpha(0.96)
+    ),
+    outlineWidth: 2,
+    disableDepthTestDistance: Number.POSITIVE_INFINITY,
+    distanceDisplayCondition: new DistanceDisplayCondition(0, 90_000_000)
+  });
+}
+
 function resolveRelationColor(role: M8aV4RelationRole): Color {
   switch (role) {
     case "primary":
@@ -1012,18 +1064,11 @@ export function createM8aV4GroundStationSceneController({
 
     if (track.trackKind === "east-asia-near-fixed-geo-anchor") {
       // Source GEO altitude stays in sourcePosition; render height is compressed
-      // and the tiny replay drift is display-only, so one continuity anchor
-      // reads as a GEO layer without implying active serving-satellite truth.
-      const geoLoopRatio = normalizeUnit(
-        timeRatio * M8A_V4_GEO_DISPLAY_DRIFT_CYCLE_RATE + track.phaseOffset
-      );
-      const geoAngle = geoLoopRatio * Math.PI * 2;
+      // so one continuity anchor does not dominate the viewport framing.
       return {
         cartesian: Cartesian3.fromDegrees(
-          track.start.lon +
-            Math.sin(geoAngle) * M8A_V4_GEO_DISPLAY_DRIFT_LONGITUDE_DEGREES,
-          track.start.lat +
-            Math.cos(geoAngle) * M8A_V4_GEO_DISPLAY_DRIFT_LATITUDE_DEGREES,
+          track.start.lon,
+          track.start.lat,
           M8A_V4_DISPLAY_ORBIT_HEIGHT_METERS.geo.start,
           undefined,
           result ?? new Cartesian3()
@@ -1101,6 +1146,17 @@ export function createM8aV4GroundStationSceneController({
         };
       }
     );
+  dataSource.entities.add({
+    id: M8A_V4_FAKE_GEO_HEIGHT_REFERENCE_ID,
+    name: "Fake GEO height reference",
+    position: positionToCartesian(M8A_V4_FAKE_GEO_HEIGHT_REFERENCE_POSITION),
+    point: createFakeGeoHeightReferencePointStyle(),
+    model: createFakeGeoHeightReferenceModelGraphics(modelUri),
+    label: createFakeGeoHeightReferenceLabelStyle(),
+    description: new ConstantProperty(
+      "Display-only fake GEO height reference for viewport evaluation. Not a source actor, not an active serving satellite, and not part of the V4 orbit actor count."
+    )
+  });
 
   const resolveRelationOrbit = (
     role: M8aV4RelationRole,

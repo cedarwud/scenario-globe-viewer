@@ -336,13 +336,6 @@ async function main() {
             const geoAfter = state20.actors.find(
               (actor) => actor.orbitClass === "geo"
             );
-            const geoDisplayDriftMeters =
-              geoBefore && geoAfter
-                ? distance3(
-                    geoBefore.renderPositionEcefMeters,
-                    geoAfter.renderPositionEcefMeters
-                  )
-                : null;
 
             assert(
               state10.serviceState.window.windowId ===
@@ -363,10 +356,11 @@ async function main() {
             assert(
               geoBefore &&
                 geoAfter &&
-                geoDisplayDriftMeters > 10000 &&
-                geoDisplayDriftMeters < 1200000,
-              "V4.3 GEO anchor must keep only bounded display-context drift: " +
-                JSON.stringify({ geoDisplayDriftMeters })
+                distance3(
+                  geoBefore.renderPositionEcefMeters,
+                  geoAfter.renderPositionEcefMeters
+                ) < 1,
+              "V4.3 GEO anchor must remain fixed as continuity anchor."
             );
             const geoSourceRadius = radialDistance(
               geoBefore.sourcePositionEcefMeters
@@ -394,7 +388,6 @@ async function main() {
                 state85.serviceState.window.windowId
               ],
               movedActors,
-              geoDisplayDriftMeters,
               geoSourceRadius,
               geoRenderRadius,
               rawPackageSideReadOwnership:
