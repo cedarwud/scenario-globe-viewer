@@ -396,24 +396,18 @@ function applyV4Camera(viewer: Viewer): void {
   viewer.scene.requestRender();
 }
 
-function resolveOrbitColor(
-  orbitClass: M8aV4OrbitClass,
-  alpha = 1
-): Color {
-  switch (orbitClass) {
-    case "leo":
-      return Color.fromCssColorString("#b8f45a").withAlpha(alpha);
-    case "meo":
-      return Color.fromCssColorString("#d46bff").withAlpha(alpha);
-    case "geo":
-      return Color.fromCssColorString("#ffb23f").withAlpha(alpha);
-  }
-}
-
 function resolveEndpointColor(endpointId: M8aV4EndpointId): Color {
   return endpointId === "tw-cht-multi-orbit-ground-infrastructure"
     ? Color.fromCssColorString("#f4fbff")
     : Color.fromCssColorString("#7ee2b8");
+}
+
+function resolveActorPointColor(alpha = 0.72): Color {
+  return Color.fromCssColorString("#f4fbff").withAlpha(alpha);
+}
+
+function resolveActorLabelBackgroundColor(): Color {
+  return Color.fromCssColorString("#0b1820").withAlpha(0.58);
 }
 
 function resolveActorEmphasis(
@@ -494,20 +488,21 @@ function createEndpointLabelStyle(endpoint: M8aV4EndpointProjection): LabelGraph
   });
 }
 
-function createActorPointStyle(
-  actor: M8aV4OrbitActorProjection,
-  emphasis: M8aV4ActorEmphasis
-): PointGraphics {
+function createActorPointStyle(emphasis: M8aV4ActorEmphasis): PointGraphics {
   return new PointGraphics({
-    pixelSize: new ConstantProperty(emphasis.pointPixelSize),
-    color: new ConstantProperty(resolveOrbitColor(actor.orbitClass, 0.94)),
+    pixelSize: new ConstantProperty(Math.min(emphasis.pointPixelSize, 7)),
+    color: new ConstantProperty(resolveActorPointColor()),
     outlineColor: new ConstantProperty(
-      Color.fromCssColorString("#06121a").withAlpha(0.96)
+      Color.fromCssColorString("#06121a").withAlpha(0.72)
     ),
-    outlineWidth: 2,
+    outlineWidth: 1,
     disableDepthTestDistance: Number.POSITIVE_INFINITY,
     distanceDisplayCondition: new DistanceDisplayCondition(0, 90_000_000)
   });
+}
+
+function shouldRenderActorPoint(actor: M8aV4OrbitActorProjection): boolean {
+  return actor.orbitClass !== "leo";
 }
 
 function createActorLabelStyle(
@@ -534,9 +529,7 @@ function createActorLabelStyle(
     ),
     outlineWidth: 2,
     showBackground: true,
-    backgroundColor: new ConstantProperty(
-      resolveOrbitColor(actor.orbitClass, 0.2)
-    ),
+    backgroundColor: new ConstantProperty(resolveActorLabelBackgroundColor()),
     backgroundPadding: new Cartesian2(8, 4),
     pixelOffset: offset,
     horizontalOrigin: HorizontalOrigin.CENTER,
@@ -557,13 +550,7 @@ function createActorModelGraphics(
     minimumPixelSize: new ConstantProperty(
       actor.orbitClass === "geo" ? 50 : actor.orbitClass === "meo" ? 58 : 52
     ),
-    maximumScale: new ConstantProperty(180_000),
-    ...(actor.orbitClass === "leo"
-      ? {}
-      : {
-          color: new ConstantProperty(resolveOrbitColor(actor.orbitClass, 0.9)),
-          colorBlendAmount: new ConstantProperty(0.2)
-        })
+    maximumScale: new ConstantProperty(180_000)
   });
 }
 
@@ -612,22 +599,17 @@ function updateActorStyle(
   handle: ActorRenderHandle,
   emphasis: M8aV4ActorEmphasis
 ): void {
-  const color = resolveOrbitColor(handle.actor.orbitClass, 0.9);
-
   if (handle.entity.model) {
     handle.entity.model.scale = new ConstantProperty(emphasis.modelScale);
-    if (handle.actor.orbitClass === "leo") {
-      handle.entity.model.color = undefined;
-      handle.entity.model.colorBlendAmount = undefined;
-    } else {
-      handle.entity.model.color = new ConstantProperty(color);
-      handle.entity.model.colorBlendAmount = new ConstantProperty(0.2);
-    }
+    handle.entity.model.color = undefined;
+    handle.entity.model.colorBlendAmount = undefined;
   }
 
   if (handle.entity.point) {
-    handle.entity.point.pixelSize = new ConstantProperty(emphasis.pointPixelSize);
-    handle.entity.point.color = new ConstantProperty(color);
+    handle.entity.point.pixelSize = new ConstantProperty(
+      Math.min(emphasis.pointPixelSize, 7)
+    );
+    handle.entity.point.color = new ConstantProperty(resolveActorPointColor());
   }
 
   if (handle.entity.label) {
@@ -1087,7 +1069,9 @@ export function createM8aV4GroundStationSceneController({
           id: actor.actorId,
           name: actor.label,
           position: createActorPositionProperty(actor),
-          point: createActorPointStyle(actor, emphasis),
+          point: shouldRenderActorPoint(actor)
+            ? createActorPointStyle(emphasis)
+            : undefined,
           model: createActorModelGraphics(modelUri, actor, emphasis),
           label: createActorLabelStyle(actor, emphasis),
           description: new ConstantProperty(

@@ -440,6 +440,19 @@ async function main() {
                 };
               }
             );
+            const actorPointRecords = config.expectedActorIds.map(
+              (actorId, index) => {
+                const actor = state.actors.find(
+                  (stateActor) => stateActor.actorId === actorId
+                );
+
+                return {
+                  actorId,
+                  orbitClass: actor?.orbitClass ?? null,
+                  hasPoint: Boolean(actorEntities[index]?.point)
+                };
+              }
+            );
             const endpointYValues = endpointCanvasPoints
               .filter(Boolean)
               .map((point) => point.y);
@@ -524,15 +537,22 @@ async function main() {
                 })
             );
             assert(
-              actorModelTintRecords
-                .filter((actor) => actor.orbitClass === "leo")
-                .every(
-                  (actor) =>
-                    actor.hasModelColor === false &&
-                    actor.hasModelColorBlendAmount === false
-                ),
-              "V4.5 LEO actor models must use the original GLB material without orbit-class tint: " +
+              actorModelTintRecords.every(
+                (actor) =>
+                  actor.hasModelColor === false &&
+                  actor.hasModelColorBlendAmount === false
+              ),
+              "V4.5 orbit actor models must use the original GLB material without orbit-class tint: " +
                 JSON.stringify({ actorModelTintRecords })
+            );
+            assert(
+              actorPointRecords.every((actor) =>
+                actor.orbitClass === "leo"
+                  ? actor.hasPoint === false
+                  : actor.hasPoint === true
+              ),
+              "V4.5 LEO actor models must not be overlaid by orbit-class point markers, while MEO/GEO retain distant position markers: " +
+                JSON.stringify({ actorPointRecords })
             );
             assert(
               endpointMidY > window.innerHeight * 0.6 &&
