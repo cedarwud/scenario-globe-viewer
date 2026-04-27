@@ -425,6 +425,21 @@ async function main() {
                 point: actorCanvasPoints[index]
               })
             );
+            const actorModelTintRecords = config.expectedActorIds.map(
+              (actorId, index) => {
+                const actor = state.actors.find(
+                  (stateActor) => stateActor.actorId === actorId
+                );
+                const model = actorEntities[index]?.model;
+
+                return {
+                  actorId,
+                  orbitClass: actor?.orbitClass ?? null,
+                  hasModelColor: Boolean(model?.color),
+                  hasModelColorBlendAmount: Boolean(model?.colorBlendAmount)
+                };
+              }
+            );
             const endpointYValues = endpointCanvasPoints
               .filter(Boolean)
               .map((point) => point.y);
@@ -507,6 +522,17 @@ async function main() {
                   counts: state.orbitActorCounts,
                   actorCanvasPoints
                 })
+            );
+            assert(
+              actorModelTintRecords
+                .filter((actor) => actor.orbitClass === "leo")
+                .every(
+                  (actor) =>
+                    actor.hasModelColor === false &&
+                    actor.hasModelColorBlendAmount === false
+                ),
+              "V4.5 LEO actor models must use the original GLB material without orbit-class tint: " +
+                JSON.stringify({ actorModelTintRecords })
             );
             assert(
               endpointMidY > window.innerHeight * 0.6 &&

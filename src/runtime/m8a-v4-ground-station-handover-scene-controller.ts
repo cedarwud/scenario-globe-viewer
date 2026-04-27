@@ -616,7 +616,13 @@ function updateActorStyle(
 
   if (handle.entity.model) {
     handle.entity.model.scale = new ConstantProperty(emphasis.modelScale);
-    handle.entity.model.color = new ConstantProperty(color);
+    if (handle.actor.orbitClass === "leo") {
+      handle.entity.model.color = undefined;
+      handle.entity.model.colorBlendAmount = undefined;
+    } else {
+      handle.entity.model.color = new ConstantProperty(color);
+      handle.entity.model.colorBlendAmount = new ConstantProperty(0.2);
+    }
   }
 
   if (handle.entity.point) {
