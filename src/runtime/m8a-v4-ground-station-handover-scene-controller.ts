@@ -89,6 +89,11 @@ const M8A_V4_DISPLAY_ORBIT_HEIGHT_METERS = {
 const M8A_V4_MEO_DISPLAY_LANE_LATITUDE_BIAS_DEGREES = 8;
 const M8A_V4_MEO_DISPLAY_LANE_LONGITUDE_BIAS_DEGREES = -5;
 const M8A_V4_ACTOR_GLOW_SIZE_PX = 24;
+const M8A_V4_ACTOR_GLOW_MODEL_CENTER_OFFSETS = {
+  leo: new Cartesian2(0, 0),
+  meo: new Cartesian2(-2, -6),
+  geo: new Cartesian2(0, -5)
+} satisfies Record<M8aV4OrbitClass, Cartesian2>;
 
 const M8A_V4_TELEMETRY_KEYS = [
   "m8aV4GroundStationRuntimeState",
@@ -431,6 +436,14 @@ function createActorGlowImageUri(orbitClass: M8aV4OrbitClass): string {
   return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
 }
 
+function resolveActorGlowModelCenterOffset(
+  orbitClass: M8aV4OrbitClass
+): Cartesian2 {
+  const offset = M8A_V4_ACTOR_GLOW_MODEL_CENTER_OFFSETS[orbitClass];
+
+  return new Cartesian2(offset.x, offset.y);
+}
+
 function resolveActorLabelBackgroundColor(): Color {
   return Color.fromCssColorString("#0b1820").withAlpha(0.58);
 }
@@ -516,6 +529,9 @@ function createActorGlowStyle(actor: M8aV4OrbitActorProjection): BillboardGraphi
     image: new ConstantProperty(createActorGlowImageUri(actor.orbitClass)),
     width: new ConstantProperty(M8A_V4_ACTOR_GLOW_SIZE_PX),
     height: new ConstantProperty(M8A_V4_ACTOR_GLOW_SIZE_PX),
+    pixelOffset: new ConstantProperty(
+      resolveActorGlowModelCenterOffset(actor.orbitClass)
+    ),
     disableDepthTestDistance: Number.POSITIVE_INFINITY,
     distanceDisplayCondition: new DistanceDisplayCondition(0, 90_000_000)
   });
@@ -634,6 +650,9 @@ function updateActorStyle(
     );
     handle.entity.billboard.height = new ConstantProperty(
       M8A_V4_ACTOR_GLOW_SIZE_PX
+    );
+    handle.entity.billboard.pixelOffset = new ConstantProperty(
+      resolveActorGlowModelCenterOffset(handle.actor.orbitClass)
     );
   }
 

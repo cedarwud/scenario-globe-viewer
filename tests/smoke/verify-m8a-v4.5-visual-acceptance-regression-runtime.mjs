@@ -454,6 +454,10 @@ async function main() {
                   typeof imageUri === "string"
                     ? decodeURIComponent(imageUri)
                     : "";
+                const pixelOffset =
+                  billboard?.pixelOffset?.getValue?.(
+                    capture.viewer.clock.currentTime
+                  ) ?? null;
 
                 return {
                   actorId,
@@ -469,7 +473,13 @@ async function main() {
                   glowHeight:
                     billboard?.height?.getValue?.(
                       capture.viewer.clock.currentTime
-                    ) ?? null
+                    ) ?? null,
+                  glowPixelOffset: pixelOffset
+                    ? {
+                        x: pixelOffset.x,
+                        y: pixelOffset.y
+                      }
+                    : null
                 };
               }
             );
@@ -579,9 +589,11 @@ async function main() {
                   : actor.hasGlowBillboard === true &&
                     actor.hasLegacyPoint === false &&
                     actor.glowWidth === 24 &&
-                    actor.glowHeight === 24
+                    actor.glowHeight === 24 &&
+                    actor.glowPixelOffset &&
+                    actor.glowPixelOffset.y < 0
               ),
-              "V4.5 LEO actor models must not be overlaid by orbit-class markers, while MEO/GEO retain visible translucent glow billboards: " +
+              "V4.5 LEO actor models must not be overlaid by orbit-class markers, while MEO/GEO retain visible translucent glow billboards aligned toward the model center: " +
                 JSON.stringify({ actorGlowRecords })
             );
             assert(
