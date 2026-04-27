@@ -217,6 +217,20 @@ async function main() {
             const v4Entry = document.querySelector(
               "[data-m8a-v44-homepage-ground-station-entry='true']"
             );
+            const homeButton = document.querySelector(".cesium-home-button");
+            const lightingToggle = document.querySelector(
+              "[data-lighting-toggle='true']"
+            );
+            const lightingIcon = lightingToggle?.querySelector(
+              ".viewer-lighting-toggle-icon"
+            );
+            const hudFrame = document.querySelector("[data-hud-frame='true']");
+            const statusPanel = document.querySelector(
+              "[data-hud-panel='status']"
+            );
+            const timelinePlaceholder = document.querySelector(
+              "[data-time-placeholder='true']"
+            );
             const stageStrip = document.querySelector(
               "[data-m8a-v35-orbit-context-stage-strip='true']"
             );
@@ -226,6 +240,8 @@ async function main() {
                 : null;
             const v4Url = v4Href ? new URL(v4Href, window.location.origin) : null;
             const v4Rect = rectToPlain(v4Entry);
+            const homeRect = rectToPlain(homeButton);
+            const statusRect = rectToPlain(statusPanel);
             const v4Text = textFor(v4Entry);
 
             assert(capture, "Missing runtime capture seam on bare /.");
@@ -241,8 +257,23 @@ async function main() {
             assert(
               root instanceof HTMLElement &&
                 root.dataset.homepageEntryMount === "cesium-toolbar" &&
+                root.dataset.homepageEntryPlacement === "before-home-button" &&
                 root.dataset.m8aV44HomepageGroundStationEntrySurface === "true",
               "Homepage V4 entry must mount in the Cesium toolbar."
+            );
+            assert(
+              hudFrame instanceof HTMLElement &&
+                hudFrame.dataset.hudVisibility === "hidden" &&
+                timelinePlaceholder === null &&
+                statusRect &&
+                statusRect.width === 0 &&
+                statusRect.height === 0,
+              "Bare homepage must not show the bottom status HUD: " +
+                JSON.stringify({
+                  hudVisibility: hudFrame?.dataset?.hudVisibility,
+                  hasTimelinePlaceholder: timelinePlaceholder !== null,
+                  statusRect
+                })
             );
             assert(
               v3Icon === null,
@@ -250,13 +281,16 @@ async function main() {
             );
             assert(
               v4Entry instanceof HTMLAnchorElement &&
+                homeButton instanceof HTMLElement &&
                 v4Rect &&
+                homeRect &&
                 v4Rect.width >= 36 &&
                 v4Rect.width <= 44 &&
                 v4Rect.height >= 36 &&
                 v4Rect.height <= 44 &&
                 v4Rect.top <= 12 &&
-                v4Rect.right >= window.innerWidth - 16 &&
+                homeRect.top <= 12 &&
+                v4Rect.right <= homeRect.left &&
                 v4Href === "${V4_ENTRY_HREF}" &&
                 v4Url?.pathname === "/" &&
                 v4Url?.searchParams.get("scenePreset") === "regional" &&
@@ -268,7 +302,13 @@ async function main() {
                 /taiwan/i.test(v4Text) &&
                 /singapore/i.test(v4Text),
               "V4.4 homepage entry must clearly address the ground-station multi-orbit scene: " +
-                JSON.stringify({ v4Href, v4Rect, v4Text })
+                JSON.stringify({ v4Href, v4Rect, homeRect, v4Text })
+            );
+            assert(
+              lightingToggle instanceof HTMLButtonElement &&
+                lightingIcon instanceof SVGSVGElement &&
+                lightingIcon.querySelector("circle") instanceof SVGCircleElement,
+              "Lighting toggle must use a sun icon, not the old lightbulb icon."
             );
             assert(
               !/(aircraft|aviation|yka|handset|\\bue\\b)/i.test(v4Text),
@@ -281,6 +321,8 @@ async function main() {
               v3Present: v3Icon !== null,
               v4Href,
               v4Rect,
+              homeRect,
+              statusRect,
               v4Text,
               clickPoint: {
                 x: v4Rect.left + v4Rect.width / 2,
@@ -309,7 +351,8 @@ async function main() {
             const endpointLabels = endpoints
               .map((endpoint) => endpoint.label)
               .join(" ");
-            const visibleText = document.body.innerText;
+            const telemetryNonClaims =
+              document.documentElement.dataset.m8aV4GroundStationNonClaims ?? "";
 
             assert(capture, "Missing capture seam after V4 click.");
             assert(
@@ -354,10 +397,10 @@ async function main() {
               state.nonClaims.noAircraftEndpoint === true &&
                 state.nonClaims.noYkaEndpoint === true &&
                 state.nonClaims.noOrdinaryHandsetUe === true &&
-                visibleText.includes("no aircraft") &&
-                visibleText.includes("no YKA") &&
-                visibleText.includes("no handset UE"),
-              "V4 runtime must keep endpoint non-claims visible after homepage entry."
+                telemetryNonClaims.includes('"noAircraftEndpoint":true') &&
+                telemetryNonClaims.includes('"noYkaEndpoint":true') &&
+                telemetryNonClaims.includes('"noOrdinaryHandsetUe":true'),
+              "V4 runtime must keep endpoint non-claims machine-readable after homepage entry."
             );
 
             return {

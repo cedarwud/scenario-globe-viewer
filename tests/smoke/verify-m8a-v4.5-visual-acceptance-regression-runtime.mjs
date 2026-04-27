@@ -477,6 +477,20 @@ async function main() {
             const v4Entry = document.querySelector(
               "[data-m8a-v44-homepage-ground-station-entry='true']"
             );
+            const homeButton = document.querySelector(".cesium-home-button");
+            const lightingToggle = document.querySelector(
+              "[data-lighting-toggle='true']"
+            );
+            const lightingIcon = lightingToggle?.querySelector(
+              ".viewer-lighting-toggle-icon"
+            );
+            const hudFrame = document.querySelector("[data-hud-frame='true']");
+            const statusPanel = document.querySelector(
+              "[data-hud-panel='status']"
+            );
+            const timelinePlaceholder = document.querySelector(
+              "[data-time-placeholder='true']"
+            );
             const v4Href =
               v4Entry instanceof HTMLAnchorElement
                 ? v4Entry.getAttribute("href")
@@ -484,6 +498,8 @@ async function main() {
             const v4Url = v4Href ? new URL(v4Href, window.location.origin) : null;
             const v4Text = textFor(v4Entry);
             const v4Rect = rectToPlain(v4Entry);
+            const homeRect = rectToPlain(homeButton);
+            const statusRect = rectToPlain(statusPanel);
 
             assert(capture, "Missing runtime capture seam on bare /.");
             assert(
@@ -497,11 +513,14 @@ async function main() {
             );
             assert(
               v4Entry instanceof HTMLAnchorElement &&
+                homeButton instanceof HTMLElement &&
                 v4Rect &&
+                homeRect &&
                 v4Rect.width >= 36 &&
                 v4Rect.width <= 44 &&
                 v4Rect.height >= 36 &&
                 v4Rect.height <= 44 &&
+                v4Rect.right <= homeRect.left &&
                 v4Href === "${V4_ENTRY_HREF}" &&
                 v4Url?.searchParams.get("scenePreset") === "regional" &&
                 v4Url?.searchParams.get("m8aV4GroundStationScene") === "1" &&
@@ -509,7 +528,27 @@ async function main() {
                 /ground.station/i.test(v4Text) &&
                 /multi.orbit/i.test(v4Text),
               "Homepage must expose the V4 ground-station entry: " +
-                JSON.stringify({ v4Href, v4Rect, v4Text })
+                JSON.stringify({ v4Href, v4Rect, homeRect, v4Text })
+            );
+            assert(
+              hudFrame instanceof HTMLElement &&
+                hudFrame.dataset.hudVisibility === "hidden" &&
+                timelinePlaceholder === null &&
+                statusRect &&
+                statusRect.width === 0 &&
+                statusRect.height === 0,
+              "Homepage must hide the bottom status HUD: " +
+                JSON.stringify({
+                  hudVisibility: hudFrame?.dataset?.hudVisibility,
+                  hasTimelinePlaceholder: timelinePlaceholder !== null,
+                  statusRect
+                })
+            );
+            assert(
+              lightingToggle instanceof HTMLButtonElement &&
+                lightingIcon instanceof SVGSVGElement &&
+                lightingIcon.querySelector("circle") instanceof SVGCircleElement,
+              "Homepage lighting toggle must use a sun icon."
             );
             assert(
               v3Icon === null,
@@ -527,6 +566,8 @@ async function main() {
               v3Present: v3Icon !== null,
               v4Href,
               v4Rect,
+              homeRect,
+              statusRect,
               v4Text
             };
           })()`
@@ -582,7 +623,17 @@ async function main() {
             const v4Entry = document.querySelector(
               "[data-m8a-v44-homepage-ground-station-entry='true']"
             );
+            const homeButton = document.querySelector(".cesium-home-button");
+            const hudFrame = document.querySelector("[data-hud-frame='true']");
+            const statusPanel = document.querySelector(
+              "[data-hud-panel='status']"
+            );
+            const timelinePlaceholder = document.querySelector(
+              "[data-time-placeholder='true']"
+            );
             const v4Rect = rectToPlain(v4Entry);
+            const homeRect = rectToPlain(homeButton);
+            const statusRect = rectToPlain(statusPanel);
 
             assert(capture, "Missing runtime capture seam on narrow bare /.");
             assert(
@@ -593,9 +644,26 @@ async function main() {
             assert(
               v3Icon === null &&
                 v4Entry instanceof HTMLAnchorElement &&
-                insideViewport(v4Rect),
+                homeButton instanceof HTMLElement &&
+                insideViewport(v4Rect) &&
+                insideViewport(homeRect) &&
+                v4Rect.right <= homeRect.left,
               "Narrow homepage must expose only the compact V4 entry icon: " +
-                JSON.stringify({ v3Present: v3Icon !== null, v4Rect })
+                JSON.stringify({ v3Present: v3Icon !== null, v4Rect, homeRect })
+            );
+            assert(
+              hudFrame instanceof HTMLElement &&
+                hudFrame.dataset.hudVisibility === "hidden" &&
+                timelinePlaceholder === null &&
+                statusRect &&
+                statusRect.width === 0 &&
+                statusRect.height === 0,
+              "Narrow homepage must not show the bottom status HUD: " +
+                JSON.stringify({
+                  hudVisibility: hudFrame?.dataset?.hudVisibility,
+                  hasTimelinePlaceholder: timelinePlaceholder !== null,
+                  statusRect
+                })
             );
 
             return {
@@ -604,7 +672,9 @@ async function main() {
                 height: window.innerHeight
               },
               v3Present: v3Icon !== null,
-              v4Rect
+              v4Rect,
+              homeRect,
+              statusRect
             };
           })()`
         );

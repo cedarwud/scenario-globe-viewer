@@ -3,23 +3,30 @@ import { isLightingEnabled, setLightingEnabled } from "./lighting";
 
 const LIGHT_ON_ICON = `
 <svg class="viewer-lighting-toggle-icon" viewBox="0 0 32 32" aria-hidden="true">
-  <path d="M16 4.75v2.5" />
-  <path d="M10.5 10 8.75 8.25" />
-  <path d="M21.5 10 23.25 8.25" />
-  <path d="M7 16h2.5" />
-  <path d="M22.5 16H25" />
-  <path d="M11.5 15.5a4.5 4.5 0 1 1 9 0c0 1.48-.62 2.84-1.69 3.8-.8.72-1.33 1.62-1.5 2.7h-2.62c-.17-1.08-.7-1.98-1.5-2.7a5.1 5.1 0 0 1-1.69-3.8Z" />
-  <path d="M13.5 25h5" />
-  <path d="M14.25 27.75h3.5" />
+  <circle cx="16" cy="16" r="4.6" />
+  <path d="M16 3.8v4" />
+  <path d="M16 24.2v4" />
+  <path d="M3.8 16h4" />
+  <path d="M24.2 16h4" />
+  <path d="m7.4 7.4 2.8 2.8" />
+  <path d="m21.8 21.8 2.8 2.8" />
+  <path d="m24.6 7.4-2.8 2.8" />
+  <path d="m10.2 21.8-2.8 2.8" />
 </svg>
 `;
 
 const LIGHT_OFF_ICON = `
 <svg class="viewer-lighting-toggle-icon" viewBox="0 0 32 32" aria-hidden="true">
-  <path d="M11.5 15.5a4.5 4.5 0 1 1 9 0c0 1.48-.62 2.84-1.69 3.8-.8.72-1.33 1.62-1.5 2.7h-2.62c-.17-1.08-.7-1.98-1.5-2.7a5.1 5.1 0 0 1-1.69-3.8Z" />
-  <path d="M13.5 25h5" />
-  <path d="M14.25 27.75h3.5" />
-  <path d="M9 9 23 23" />
+  <circle cx="16" cy="16" r="4.6" />
+  <path d="M16 3.8v4" />
+  <path d="M16 24.2v4" />
+  <path d="M3.8 16h4" />
+  <path d="M24.2 16h4" />
+  <path d="m7.4 7.4 2.8 2.8" />
+  <path d="m21.8 21.8 2.8 2.8" />
+  <path d="m24.6 7.4-2.8 2.8" />
+  <path d="m10.2 21.8-2.8 2.8" />
+  <path d="M7.5 24.5 24.5 7.5" />
 </svg>
 `;
 

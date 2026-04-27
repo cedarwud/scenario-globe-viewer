@@ -314,6 +314,14 @@ async function main() {
             const v4Entry = document.querySelector(
               "[data-m8a-v44-homepage-ground-station-entry='true']"
             );
+            const hudFrame = document.querySelector("[data-hud-frame='true']");
+            const statusPanel = document.querySelector(
+              "[data-hud-panel='status']"
+            );
+            const timelinePlaceholder = document.querySelector(
+              "[data-time-placeholder='true']"
+            );
+            const statusRect = rectToPlain(statusPanel);
 
             assert(capture, "Missing runtime capture seam on bare /.");
             assert(
@@ -330,10 +338,27 @@ async function main() {
                 v4Entry instanceof HTMLAnchorElement,
               "Homepage must not expose the historical V3.6 aviation handover icon; the V4 entry remains the visible product entry."
             );
+            assert(
+              hudFrame instanceof HTMLElement &&
+                hudFrame.dataset.hudVisibility === "hidden" &&
+                timelinePlaceholder === null &&
+                statusRect &&
+                statusRect.width === 0 &&
+                statusRect.height === 0,
+              "Homepage must not show the default bottom HUD while V3.6 remains direct-route only: " +
+                JSON.stringify({
+                  hudVisibility: hudFrame?.dataset?.hudVisibility,
+                  hasTimelinePlaceholder: timelinePlaceholder !== null,
+                  statusRect
+                })
+            );
 
             return {
               historicalHomepageIconPresent: icon !== null,
               v4HomepageEntryPresent: v4Entry instanceof HTMLAnchorElement,
+              bottomHudVisible: Boolean(
+                statusRect && statusRect.width > 0 && statusRect.height > 0
+              ),
               addressResolution:
                 capture.firstIntakeScenarioSurface.getState().addressResolution,
               hasOrbitActors: Boolean(capture.firstIntakeOrbitContextActors),

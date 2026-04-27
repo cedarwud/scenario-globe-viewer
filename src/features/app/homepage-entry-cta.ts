@@ -69,13 +69,14 @@ function createGroundStationEntry(
     "Open V4 ground-station multi-orbit scene with Taiwan CHT and Singapore Speedcast";
 
   const icon = createIcon(`
-    <path d="M4.5 18.5h7" />
-    <path d="M8 18.5l4.6-5.2" />
-    <path d="M10.4 13.5c1.7 1.2 4.2.8 5.6-.9" />
-    <path d="M8.7 11.5c2.7 2.5 7.2 1.8 9.5-1.2" />
-    <circle cx="17.4" cy="6.2" r="1.9" />
-    <path d="m16.1 4.9-1.8-1.8" />
-    <path d="m18.7 7.5 1.8 1.8" />
+    <path d="M4 20h8" />
+    <path d="M8 20v-3.4" />
+    <path d="M8 16.6 13.8 11" />
+    <path d="M5.8 13.5c2.1 2.1 5.5 2.1 7.6 0" />
+    <path d="M4.3 11.1c3 3 7.9 3 10.9 0" />
+    <path d="M15.4 7.2c1.7.5 3.1 1.9 3.6 3.6" />
+    <path d="M17.4 4.8c2.4.8 4.3 2.7 5.1 5.1" />
+    <circle cx="17.7" cy="9.5" r="1.5" />
   `);
 
   const tooltip = document.createElement("span");
@@ -179,8 +180,15 @@ export function mountHomepageEntryCta(
   const toolbar = viewerShell.querySelector<HTMLElement>(".cesium-viewer-toolbar");
 
   if (toolbar) {
+    const homeButton = toolbar.querySelector<HTMLElement>(".cesium-home-button");
     root.dataset.homepageEntryMount = "cesium-toolbar";
-    toolbar.appendChild(root);
+    if (homeButton?.parentNode === toolbar) {
+      root.dataset.homepageEntryPlacement = "before-home-button";
+      toolbar.insertBefore(root, homeButton);
+    } else {
+      root.dataset.homepageEntryPlacement = "toolbar-end";
+      toolbar.appendChild(root);
+    }
   } else {
     root.dataset.homepageEntryMount = "viewer-shell";
     viewerShell.appendChild(root);

@@ -516,7 +516,7 @@ export function startBootstrapComposition(app: HTMLDivElement): BootstrapComposi
     buildingShowcaseKey: buildingShowcase.key,
     hudFrame,
     statusPanel,
-    mountHud: !isM8aV4RuntimeRequest
+    mountHud: adoptFirstIntakeAsActiveOwner
   });
   const restoreR1vVisualAcceptanceHudCleanup = adoptFirstIntakeAsActiveOwner
     ? applyR1vVisualAcceptanceHudCleanup({
