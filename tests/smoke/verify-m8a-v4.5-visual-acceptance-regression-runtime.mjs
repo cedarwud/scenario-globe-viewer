@@ -180,6 +180,37 @@ async function waitForV4RuntimeReady(client) {
   );
 }
 
+async function waitForV4GlobeVisualReady(client) {
+  let lastState = null;
+
+  for (let attempt = 0; attempt < 240; attempt += 1) {
+    lastState = await evaluateRuntimeValue(
+      client,
+      `(() => {
+        const viewer = window.__SCENARIO_GLOBE_VIEWER_CAPTURE__?.viewer;
+        return {
+          hasViewer: Boolean(viewer),
+          tilesLoaded: viewer?.scene?.globe?.tilesLoaded === true,
+          imageryLayerCount: viewer?.imageryLayers?.length ?? null
+        };
+      })()`
+    );
+
+    if (lastState.hasViewer && lastState.tilesLoaded) {
+      await sleep(250);
+      return;
+    }
+
+    await sleep(50);
+  }
+
+  throw new Error(
+    `M8A-V4.5 V4 route did not finish globe visual tile loading: ${JSON.stringify(
+      lastState
+    )}`
+  );
+}
+
 async function navigateHomepage(client, baseUrl) {
   await client.send("Page.navigate", {
     url: `${baseUrl}${DEFAULT_REQUEST_PATH}`
@@ -192,6 +223,7 @@ async function navigateV4Route(client, baseUrl) {
     url: `${baseUrl}${V4_REQUEST_PATH}`
   });
   await waitForV4RuntimeReady(client);
+  await waitForV4GlobeVisualReady(client);
 }
 
 async function captureScreenshot(client, filePath) {
@@ -388,6 +420,8 @@ async function main() {
               endpointCanvasPoints[0] && endpointCanvasPoints[1]
                 ? (endpointCanvasPoints[0].y + endpointCanvasPoints[1].y) / 2
                 : null;
+            const endpointVerticalSpread = lowestEndpointY - highestEndpointY;
+            const highestActorY = Math.min(...actorYValues);
             const lowestActorY = Math.max(...actorYValues);
             const hud = document.querySelector(
               "[data-m8a-v4-ground-station-scene='true']"
@@ -447,20 +481,24 @@ async function main() {
                 })
             );
             assert(
-              endpointMidY > window.innerHeight * 0.36 &&
-                endpointMidY < window.innerHeight * 0.58 &&
-                highestEndpointY > window.innerHeight * 0.22 &&
-                lowestEndpointY < window.innerHeight * 0.72 &&
-                endpointScreenDistance > 340 &&
-                endpointScreenDistance < 460 &&
-                lowestActorY < window.innerHeight * 0.76,
-              "V4.5 desktop camera must rotate the endpoint pair upward, keep more sky visible, and stay close enough for inspection: " +
+              endpointMidY > window.innerHeight * 0.54 &&
+                endpointMidY < window.innerHeight * 0.72 &&
+                highestEndpointY > window.innerHeight * 0.46 &&
+                lowestEndpointY < window.innerHeight * 0.82 &&
+                endpointVerticalSpread < 230 &&
+                endpointScreenDistance > 200 &&
+                endpointScreenDistance < 320 &&
+                highestActorY < window.innerHeight * 0.58 &&
+                lowestActorY < window.innerHeight * 0.86,
+              "V4.5 desktop camera must place the globe in the lower half, keep the endpoint pair near the globe's upper edge, and reserve upper sky for orbit actors: " +
                 JSON.stringify({
                   endpointCanvasPoints,
                   endpointScreenDistance,
                   endpointMidY,
+                  endpointVerticalSpread,
                   highestEndpointY,
                   lowestEndpointY,
+                  highestActorY,
                   lowestActorY,
                   viewport: {
                     width: window.innerWidth,
