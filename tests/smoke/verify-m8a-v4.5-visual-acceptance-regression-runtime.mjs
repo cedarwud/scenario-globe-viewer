@@ -446,6 +446,22 @@ async function main() {
                   (stateActor) => stateActor.actorId === actorId
                 );
                 const point = actorEntities[index]?.point;
+                const serializeColor = (property) => {
+                  const color = property?.getValue?.(
+                    capture.viewer.clock.currentTime
+                  );
+
+                  if (!color) {
+                    return null;
+                  }
+
+                  return {
+                    red: Number(color.red.toFixed(3)),
+                    green: Number(color.green.toFixed(3)),
+                    blue: Number(color.blue.toFixed(3)),
+                    alpha: Number(color.alpha.toFixed(3))
+                  };
+                };
 
                 return {
                   actorId,
@@ -453,6 +469,7 @@ async function main() {
                   hasPoint: Boolean(point),
                   hasPointColor: Boolean(point?.color),
                   hasPointOutlineColor: Boolean(point?.outlineColor),
+                  pointColor: serializeColor(point?.color),
                   pointPixelSize:
                     point?.pixelSize?.getValue?.(capture.viewer.clock.currentTime) ??
                     null,
@@ -487,6 +504,12 @@ async function main() {
             const geoActorScreen = actorScreenRecords.find(
               (actor) => actor.orbitClass === "geo"
             )?.point;
+            const meoPointRecord = actorPointRecords.find(
+              (actor) => actor.orbitClass === "meo"
+            );
+            const geoPointRecord = actorPointRecords.find(
+              (actor) => actor.orbitClass === "geo"
+            );
             const highestLeoActorY = Math.min(...leoActorYValues);
             const lowestLeoActorY = Math.max(...leoActorYValues);
             const hud = document.querySelector(
@@ -565,7 +588,25 @@ async function main() {
                     actor.pointPixelSize === 8 &&
                     actor.pointOutlineWidth === 2
               ),
-              "V4.5 LEO actor models must not be overlaid by orbit-class point markers, while MEO/GEO retain visible neutral position markers: " +
+              "V4.5 LEO actor models must not be overlaid by orbit-class point markers, while MEO/GEO retain visible compact position markers: " +
+                JSON.stringify({ actorPointRecords })
+            );
+            assert(
+              meoPointRecord?.pointColor &&
+                geoPointRecord?.pointColor &&
+                JSON.stringify(meoPointRecord.pointColor) !==
+                  JSON.stringify(geoPointRecord.pointColor) &&
+                meoPointRecord.pointColor.red > 0.75 &&
+                meoPointRecord.pointColor.red < 0.9 &&
+                meoPointRecord.pointColor.green > 0.35 &&
+                meoPointRecord.pointColor.green < 0.5 &&
+                meoPointRecord.pointColor.blue > 0.95 &&
+                geoPointRecord.pointColor.red > 0.95 &&
+                geoPointRecord.pointColor.green > 0.6 &&
+                geoPointRecord.pointColor.green < 0.8 &&
+                geoPointRecord.pointColor.blue > 0.15 &&
+                geoPointRecord.pointColor.blue < 0.35,
+              "V4.5 MEO and GEO point markers must use distinct small marker colors instead of matching endpoint colors: " +
                 JSON.stringify({ actorPointRecords })
             );
             assert(

@@ -402,8 +402,15 @@ function resolveEndpointColor(endpointId: M8aV4EndpointId): Color {
     : Color.fromCssColorString("#7ee2b8");
 }
 
-function resolveActorPointColor(): Color {
-  return Color.WHITE.withAlpha(0.95);
+function resolveActorPointColor(orbitClass: M8aV4OrbitClass): Color {
+  switch (orbitClass) {
+    case "leo":
+      return Color.WHITE.withAlpha(0);
+    case "meo":
+      return Color.fromCssColorString("#d46bff").withAlpha(0.95);
+    case "geo":
+      return Color.fromCssColorString("#ffb23f").withAlpha(0.95);
+  }
 }
 
 function resolveActorLabelBackgroundColor(): Color {
@@ -488,10 +495,10 @@ function createEndpointLabelStyle(endpoint: M8aV4EndpointProjection): LabelGraph
   });
 }
 
-function createActorPointStyle(): PointGraphics {
+function createActorPointStyle(actor: M8aV4OrbitActorProjection): PointGraphics {
   return new PointGraphics({
     pixelSize: new ConstantProperty(8),
-    color: new ConstantProperty(resolveActorPointColor()),
+    color: new ConstantProperty(resolveActorPointColor(actor.orbitClass)),
     outlineColor: new ConstantProperty(
       Color.fromCssColorString("#06121a").withAlpha(0.9)
     ),
@@ -607,7 +614,9 @@ function updateActorStyle(
 
   if (handle.entity.point) {
     handle.entity.point.pixelSize = new ConstantProperty(8);
-    handle.entity.point.color = new ConstantProperty(resolveActorPointColor());
+    handle.entity.point.color = new ConstantProperty(
+      resolveActorPointColor(handle.actor.orbitClass)
+    );
     handle.entity.point.outlineColor = new ConstantProperty(
       Color.fromCssColorString("#06121a").withAlpha(0.9)
     );
@@ -1072,7 +1081,7 @@ export function createM8aV4GroundStationSceneController({
           name: actor.label,
           position: createActorPositionProperty(actor),
           point: shouldRenderActorPoint(actor)
-            ? createActorPointStyle()
+            ? createActorPointStyle(actor)
             : undefined,
           model: createActorModelGraphics(modelUri, actor, emphasis),
           label: createActorLabelStyle(actor, emphasis),
