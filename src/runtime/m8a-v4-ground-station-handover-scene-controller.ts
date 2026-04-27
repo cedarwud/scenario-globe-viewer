@@ -1,5 +1,6 @@
 import {
   ArcType,
+  BillboardGraphics,
   CallbackPositionProperty,
   CallbackProperty,
   Cartesian2,
@@ -87,6 +88,7 @@ const M8A_V4_DISPLAY_ORBIT_HEIGHT_METERS = {
 >;
 const M8A_V4_MEO_DISPLAY_LANE_LATITUDE_BIAS_DEGREES = 8;
 const M8A_V4_MEO_DISPLAY_LANE_LONGITUDE_BIAS_DEGREES = -5;
+const M8A_V4_ACTOR_GLOW_SIZE_PX = 24;
 
 const M8A_V4_TELEMETRY_KEYS = [
   "m8aV4GroundStationRuntimeState",
@@ -121,7 +123,6 @@ interface M8aV4ActorEmphasis {
   actorId: string;
   orbitClass: M8aV4OrbitClass;
   emphasis: "primary" | "candidate" | "fallback" | "context";
-  pointPixelSize: number;
   modelScale: number;
   labelAlpha: number;
 }
@@ -402,15 +403,32 @@ function resolveEndpointColor(endpointId: M8aV4EndpointId): Color {
     : Color.fromCssColorString("#7ee2b8");
 }
 
-function resolveActorPointColor(orbitClass: M8aV4OrbitClass): Color {
+function resolveActorGlowHex(orbitClass: M8aV4OrbitClass): string {
   switch (orbitClass) {
     case "leo":
-      return Color.WHITE.withAlpha(0);
+      return "#ffffff";
     case "meo":
-      return Color.fromCssColorString("#d46bff").withAlpha(0.95);
+      return "#d46bff";
     case "geo":
-      return Color.fromCssColorString("#ffb23f").withAlpha(0.95);
+      return "#ffb23f";
   }
+}
+
+function createActorGlowImageUri(orbitClass: M8aV4OrbitClass): string {
+  const glowColor = resolveActorGlowHex(orbitClass);
+  const svg = [
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">',
+    '<defs><radialGradient id="g" cx="50%" cy="50%" r="50%">',
+    '<stop offset="0" stop-color="#ffffff" stop-opacity="0.82"/>',
+    `<stop offset="0.34" stop-color="${glowColor}" stop-opacity="0.62"/>`,
+    `<stop offset="0.72" stop-color="${glowColor}" stop-opacity="0.24"/>`,
+    `<stop offset="1" stop-color="${glowColor}" stop-opacity="0"/>`,
+    "</radialGradient></defs>",
+    '<circle cx="32" cy="32" r="32" fill="url(#g)"/>',
+    "</svg>"
+  ].join("");
+
+  return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
 }
 
 function resolveActorLabelBackgroundColor(): Color {
@@ -434,8 +452,6 @@ function resolveActorEmphasis(
     actorId: actor.actorId,
     orbitClass: actor.orbitClass,
     emphasis,
-    pointPixelSize:
-      emphasis === "primary" ? 12 : emphasis === "candidate" ? 10 : 8,
     modelScale:
       emphasis === "primary" ? 1.22 : emphasis === "candidate" ? 1.06 : 0.9,
     labelAlpha: emphasis === "context" ? 0.62 : 0.94
@@ -495,20 +511,17 @@ function createEndpointLabelStyle(endpoint: M8aV4EndpointProjection): LabelGraph
   });
 }
 
-function createActorPointStyle(actor: M8aV4OrbitActorProjection): PointGraphics {
-  return new PointGraphics({
-    pixelSize: new ConstantProperty(8),
-    color: new ConstantProperty(resolveActorPointColor(actor.orbitClass)),
-    outlineColor: new ConstantProperty(
-      Color.fromCssColorString("#06121a").withAlpha(0.9)
-    ),
-    outlineWidth: 2,
+function createActorGlowStyle(actor: M8aV4OrbitActorProjection): BillboardGraphics {
+  return new BillboardGraphics({
+    image: new ConstantProperty(createActorGlowImageUri(actor.orbitClass)),
+    width: new ConstantProperty(M8A_V4_ACTOR_GLOW_SIZE_PX),
+    height: new ConstantProperty(M8A_V4_ACTOR_GLOW_SIZE_PX),
     disableDepthTestDistance: Number.POSITIVE_INFINITY,
     distanceDisplayCondition: new DistanceDisplayCondition(0, 90_000_000)
   });
 }
 
-function shouldRenderActorPoint(actor: M8aV4OrbitActorProjection): boolean {
+function shouldRenderActorGlow(actor: M8aV4OrbitActorProjection): boolean {
   return actor.orbitClass !== "leo";
 }
 
@@ -612,15 +625,16 @@ function updateActorStyle(
     handle.entity.model.colorBlendAmount = undefined;
   }
 
-  if (handle.entity.point) {
-    handle.entity.point.pixelSize = new ConstantProperty(8);
-    handle.entity.point.color = new ConstantProperty(
-      resolveActorPointColor(handle.actor.orbitClass)
+  if (handle.entity.billboard) {
+    handle.entity.billboard.image = new ConstantProperty(
+      createActorGlowImageUri(handle.actor.orbitClass)
     );
-    handle.entity.point.outlineColor = new ConstantProperty(
-      Color.fromCssColorString("#06121a").withAlpha(0.9)
+    handle.entity.billboard.width = new ConstantProperty(
+      M8A_V4_ACTOR_GLOW_SIZE_PX
     );
-    handle.entity.point.outlineWidth = new ConstantProperty(2);
+    handle.entity.billboard.height = new ConstantProperty(
+      M8A_V4_ACTOR_GLOW_SIZE_PX
+    );
   }
 
   if (handle.entity.label) {
@@ -1080,8 +1094,8 @@ export function createM8aV4GroundStationSceneController({
           id: actor.actorId,
           name: actor.label,
           position: createActorPositionProperty(actor),
-          point: shouldRenderActorPoint(actor)
-            ? createActorPointStyle(actor)
+          billboard: shouldRenderActorGlow(actor)
+            ? createActorGlowStyle(actor)
             : undefined,
           model: createActorModelGraphics(modelUri, actor, emphasis),
           label: createActorLabelStyle(actor, emphasis),

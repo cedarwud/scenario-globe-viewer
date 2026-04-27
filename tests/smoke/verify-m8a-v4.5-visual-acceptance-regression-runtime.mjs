@@ -440,41 +440,34 @@ async function main() {
                 };
               }
             );
-            const actorPointRecords = config.expectedActorIds.map(
+            const actorGlowRecords = config.expectedActorIds.map(
               (actorId, index) => {
                 const actor = state.actors.find(
                   (stateActor) => stateActor.actorId === actorId
                 );
-                const point = actorEntities[index]?.point;
-                const serializeColor = (property) => {
-                  const color = property?.getValue?.(
+                const billboard = actorEntities[index]?.billboard;
+                const imageUri =
+                  billboard?.image?.getValue?.(
                     capture.viewer.clock.currentTime
-                  );
-
-                  if (!color) {
-                    return null;
-                  }
-
-                  return {
-                    red: Number(color.red.toFixed(3)),
-                    green: Number(color.green.toFixed(3)),
-                    blue: Number(color.blue.toFixed(3)),
-                    alpha: Number(color.alpha.toFixed(3))
-                  };
-                };
+                  ) ?? null;
+                const decodedImage =
+                  typeof imageUri === "string"
+                    ? decodeURIComponent(imageUri)
+                    : "";
 
                 return {
                   actorId,
                   orbitClass: actor?.orbitClass ?? null,
-                  hasPoint: Boolean(point),
-                  hasPointColor: Boolean(point?.color),
-                  hasPointOutlineColor: Boolean(point?.outlineColor),
-                  pointColor: serializeColor(point?.color),
-                  pointPixelSize:
-                    point?.pixelSize?.getValue?.(capture.viewer.clock.currentTime) ??
+                  hasGlowBillboard: Boolean(billboard),
+                  hasLegacyPoint: Boolean(actorEntities[index]?.point),
+                  glowImageUri: imageUri,
+                  glowImageHasMeoColor: decodedImage.includes("#d46bff"),
+                  glowImageHasGeoColor: decodedImage.includes("#ffb23f"),
+                  glowWidth:
+                    billboard?.width?.getValue?.(capture.viewer.clock.currentTime) ??
                     null,
-                  pointOutlineWidth:
-                    point?.outlineWidth?.getValue?.(
+                  glowHeight:
+                    billboard?.height?.getValue?.(
                       capture.viewer.clock.currentTime
                     ) ?? null
                 };
@@ -504,10 +497,10 @@ async function main() {
             const geoActorScreen = actorScreenRecords.find(
               (actor) => actor.orbitClass === "geo"
             )?.point;
-            const meoPointRecord = actorPointRecords.find(
+            const meoGlowRecord = actorGlowRecords.find(
               (actor) => actor.orbitClass === "meo"
             );
-            const geoPointRecord = actorPointRecords.find(
+            const geoGlowRecord = actorGlowRecords.find(
               (actor) => actor.orbitClass === "geo"
             );
             const highestLeoActorY = Math.min(...leoActorYValues);
@@ -579,35 +572,28 @@ async function main() {
                 JSON.stringify({ actorModelTintRecords })
             );
             assert(
-              actorPointRecords.every((actor) =>
+              actorGlowRecords.every((actor) =>
                 actor.orbitClass === "leo"
-                  ? actor.hasPoint === false
-                  : actor.hasPoint === true &&
-                    actor.hasPointColor === true &&
-                    actor.hasPointOutlineColor === true &&
-                    actor.pointPixelSize === 8 &&
-                    actor.pointOutlineWidth === 2
+                  ? actor.hasGlowBillboard === false &&
+                    actor.hasLegacyPoint === false
+                  : actor.hasGlowBillboard === true &&
+                    actor.hasLegacyPoint === false &&
+                    actor.glowWidth === 24 &&
+                    actor.glowHeight === 24
               ),
-              "V4.5 LEO actor models must not be overlaid by orbit-class point markers, while MEO/GEO retain visible compact position markers: " +
-                JSON.stringify({ actorPointRecords })
+              "V4.5 LEO actor models must not be overlaid by orbit-class markers, while MEO/GEO retain visible translucent glow billboards: " +
+                JSON.stringify({ actorGlowRecords })
             );
             assert(
-              meoPointRecord?.pointColor &&
-                geoPointRecord?.pointColor &&
-                JSON.stringify(meoPointRecord.pointColor) !==
-                  JSON.stringify(geoPointRecord.pointColor) &&
-                meoPointRecord.pointColor.red > 0.75 &&
-                meoPointRecord.pointColor.red < 0.9 &&
-                meoPointRecord.pointColor.green > 0.35 &&
-                meoPointRecord.pointColor.green < 0.5 &&
-                meoPointRecord.pointColor.blue > 0.95 &&
-                geoPointRecord.pointColor.red > 0.95 &&
-                geoPointRecord.pointColor.green > 0.6 &&
-                geoPointRecord.pointColor.green < 0.8 &&
-                geoPointRecord.pointColor.blue > 0.15 &&
-                geoPointRecord.pointColor.blue < 0.35,
-              "V4.5 MEO and GEO point markers must use distinct small marker colors instead of matching endpoint colors: " +
-                JSON.stringify({ actorPointRecords })
+              meoGlowRecord?.glowImageUri &&
+                geoGlowRecord?.glowImageUri &&
+                meoGlowRecord.glowImageUri !== geoGlowRecord.glowImageUri &&
+                meoGlowRecord.glowImageHasMeoColor === true &&
+                meoGlowRecord.glowImageHasGeoColor === false &&
+                geoGlowRecord.glowImageHasGeoColor === true &&
+                geoGlowRecord.glowImageHasMeoColor === false,
+              "V4.5 MEO and GEO glow markers must use distinct semi-transparent billboard colors instead of matching endpoint colors: " +
+                JSON.stringify({ actorGlowRecords })
             );
             assert(
               endpointMidY > window.innerHeight * 0.6 &&
