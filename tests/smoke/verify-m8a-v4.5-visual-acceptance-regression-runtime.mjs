@@ -257,6 +257,16 @@ async function main() {
               point.y >= 0 &&
               point.x <= window.innerWidth &&
               point.y <= window.innerHeight;
+            const entityCanvasPoint = (entity) => {
+              const position = entity?.position?.getValue?.(
+                capture.viewer.clock.currentTime
+              );
+              return pointToPlain(
+                position
+                  ? capture.viewer.scene.cartesianToCanvasCoordinates(position)
+                  : null
+              );
+            };
             const collectEntityText = (dataSource) =>
               (dataSource?.entities?.values ?? [])
                 .map((entity) => {
@@ -333,26 +343,26 @@ async function main() {
             const actorEntities = config.expectedActorIds.map((actorId) =>
               dataSource?.entities?.getById(actorId)
             );
+            const endpointCanvasPoints = endpointEntities.map(entityCanvasPoint);
+            const actorCanvasPoints = actorEntities.map(entityCanvasPoint);
             const geoActor = state.actors.find(
               (actor) => actor.orbitClass === "geo"
             );
             const geoEntity = dataSource?.entities?.getById(
               "st-2-geo-continuity-anchor"
             );
-            const geoPosition = geoEntity?.position?.getValue?.(
-              capture.viewer.clock.currentTime
-            );
-            const geoCanvasPoint = pointToPlain(
-              geoPosition
-                ? capture.viewer.scene.cartesianToCanvasCoordinates(geoPosition)
-                : null
-            );
+            const geoCanvasPoint = entityCanvasPoint(geoEntity);
             const geoSourceRadius = geoActor
               ? radialDistance(geoActor.sourcePositionEcefMeters)
               : null;
             const geoRenderRadius = geoActor
               ? radialDistance(geoActor.renderPositionEcefMeters)
               : null;
+            const endpointYValues = endpointCanvasPoints
+              .filter(Boolean)
+              .map((point) => point.y);
+            const lowestEndpointY = Math.max(...endpointYValues);
+            const highestEndpointY = Math.min(...endpointYValues);
             const hud = document.querySelector(
               "[data-m8a-v4-ground-station-scene='true']"
             );
@@ -389,9 +399,10 @@ async function main() {
                     endpoint.precisionBadge === "operator-family precision" &&
                     endpoint.displayPositionIsSourceTruth === false &&
                     endpoint.rawSourceCoordinatesRenderable === false
-                ),
+                ) &&
+                endpointCanvasPoints.every(insideViewportPoint),
               "V4.5 desktop route must render the two accepted ground endpoints: " +
-                JSON.stringify(endpointIds)
+                JSON.stringify({ endpointIds, endpointCanvasPoints })
             );
             assert(
               state.actorCount === 5 &&
@@ -400,9 +411,28 @@ async function main() {
                 state.orbitActorCounts.geo === 1 &&
                 JSON.stringify(actorIds) ===
                   JSON.stringify(config.expectedActorIds) &&
-                actorEntities.every(Boolean),
+                actorEntities.every(Boolean) &&
+                actorCanvasPoints.every(insideViewportPoint),
               "V4.5 desktop route must expose 3 LEO, 1 MEO, and 1 GEO actor presence: " +
-                JSON.stringify({ actorIds, counts: state.orbitActorCounts })
+                JSON.stringify({
+                  actorIds,
+                  counts: state.orbitActorCounts,
+                  actorCanvasPoints
+                })
+            );
+            assert(
+              highestEndpointY > window.innerHeight * 0.58 &&
+                lowestEndpointY < window.innerHeight * 0.78,
+              "V4.5 desktop camera must keep the earth/ground focus in the lower half while leaving upper orbital space: " +
+                JSON.stringify({
+                  endpointCanvasPoints,
+                  highestEndpointY,
+                  lowestEndpointY,
+                  viewport: {
+                    width: window.innerWidth,
+                    height: window.innerHeight
+                  }
+                })
             );
             assert(
               geoActor &&
@@ -468,6 +498,8 @@ async function main() {
               endpoints: endpointIds,
               orbitActorCounts: state.orbitActorCounts,
               timelineWindows: state.serviceState.timelineWindowIds,
+              endpointCanvasPoints,
+              actorCanvasPoints,
               geoSourceRadius,
               geoRenderRadius,
               geoCanvasPoint,

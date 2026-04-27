@@ -20,6 +20,7 @@ import {
   PolylineDashMaterialProperty,
   PolylineGraphics,
   VerticalOrigin,
+  type PerspectiveFrustum,
   type Viewer
 } from "cesium";
 import {
@@ -60,6 +61,10 @@ export const M8A_V4_GROUND_STATION_PROOF_SEAM =
   "window.__SCENARIO_GLOBE_VIEWER_CAPTURE__.m8aV4GroundStationScene";
 
 const M8A_V4_GEO_DISPLAY_HEIGHT_METERS = 9_000_000;
+const M8A_V4_CAMERA_LONGITUDE = 118;
+const M8A_V4_CAMERA_LATITUDE = 15;
+const M8A_V4_CAMERA_HEIGHT_METERS = 36_000_000;
+const M8A_V4_CAMERA_VERTICAL_FRAMING_OFFSET = 0.012;
 
 const M8A_V4_TELEMETRY_KEYS = [
   "m8aV4GroundStationRuntimeState",
@@ -342,13 +347,19 @@ function configureReplayClock(viewer: Viewer, replayClock: ReplayClock): void {
 function applyV4Camera(viewer: Viewer): void {
   viewer.camera.cancelFlight();
   viewer.camera.setView({
-    destination: Cartesian3.fromDegrees(118, 15, 26_000_000),
+    destination: Cartesian3.fromDegrees(
+      M8A_V4_CAMERA_LONGITUDE,
+      M8A_V4_CAMERA_LATITUDE,
+      M8A_V4_CAMERA_HEIGHT_METERS
+    ),
     orientation: {
       heading: 0,
       pitch: CesiumMath.toRadians(-90),
       roll: 0
     }
   });
+  const frustum = viewer.camera.frustum as PerspectiveFrustum;
+  frustum.yOffset = M8A_V4_CAMERA_VERTICAL_FRAMING_OFFSET;
   viewer.scene.requestRender();
 }
 
