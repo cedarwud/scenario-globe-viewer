@@ -481,15 +481,16 @@ async function main() {
                 })
             );
             assert(
-              endpointMidY > window.innerHeight * 0.54 &&
-                endpointMidY < window.innerHeight * 0.72 &&
-                highestEndpointY > window.innerHeight * 0.46 &&
-                lowestEndpointY < window.innerHeight * 0.82 &&
-                endpointVerticalSpread < 230 &&
-                endpointScreenDistance > 200 &&
-                endpointScreenDistance < 320 &&
-                highestActorY < window.innerHeight * 0.58 &&
-                lowestActorY < window.innerHeight * 0.86,
+              endpointMidY > window.innerHeight * 0.5 &&
+                endpointMidY < window.innerHeight * 0.68 &&
+                highestEndpointY > window.innerHeight * 0.44 &&
+                highestEndpointY < window.innerHeight * 0.58 &&
+                lowestEndpointY < window.innerHeight * 0.72 &&
+                endpointVerticalSpread < 190 &&
+                endpointScreenDistance > 180 &&
+                endpointScreenDistance < 280 &&
+                highestActorY < window.innerHeight * 0.52 &&
+                lowestActorY < window.innerHeight * 0.78,
               "V4.5 desktop camera must place the globe in the lower half, keep the endpoint pair near the globe's upper edge, and reserve upper sky for orbit actors: " +
                 JSON.stringify({
                   endpointCanvasPoints,
