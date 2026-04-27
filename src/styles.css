@@ -1549,6 +1549,8 @@ body {
 
 .homepage-entry-cta {
   display: inline-flex;
+  align-items: center;
+  gap: 6px;
   position: relative;
   z-index: 4;
   margin-left: 6px;
@@ -1585,6 +1587,23 @@ body {
     box-shadow 0.18s ease-out;
 }
 
+.homepage-entry-cta__button--ground-station {
+  grid-template-columns: 22px auto;
+  gap: 0.48rem;
+  width: auto;
+  min-width: 10.75rem;
+  padding: 0 0.68rem 0 0.62rem;
+  border-color: rgba(126, 226, 184, 0.82);
+  background:
+    linear-gradient(180deg, rgba(21, 53, 50, 0.98), rgba(9, 24, 30, 0.97)),
+    linear-gradient(135deg, rgba(126, 226, 184, 0.17), rgba(98, 216, 255, 0.12));
+  color: #eafff6;
+  box-shadow:
+    0 0 0 1px rgba(3, 10, 14, 0.72),
+    0 0 0 4px rgba(126, 226, 184, 0.12),
+    0 10px 20px rgba(0, 0, 0, 0.3);
+}
+
 .homepage-entry-cta__button:hover,
 .homepage-entry-cta__button:focus-visible {
   border-color: rgba(255, 231, 176, 0.96);
@@ -1594,6 +1613,15 @@ body {
     0 0 0 5px rgba(245, 184, 94, 0.2),
     0 12px 24px rgba(0, 0, 0, 0.34);
   outline: none;
+}
+
+.homepage-entry-cta__button--ground-station:hover,
+.homepage-entry-cta__button--ground-station:focus-visible {
+  border-color: rgba(187, 255, 222, 0.96);
+  box-shadow:
+    0 0 0 1px rgba(3, 10, 14, 0.72),
+    0 0 0 5px rgba(126, 226, 184, 0.2),
+    0 12px 24px rgba(0, 0, 0, 0.34);
 }
 
 .homepage-entry-cta__button:focus-visible {
@@ -1612,6 +1640,22 @@ body {
   stroke-linecap: round;
   stroke-linejoin: round;
   stroke-width: 1.8;
+}
+
+.homepage-entry-cta__button--ground-station .homepage-entry-cta__icon {
+  width: 22px;
+  height: 22px;
+}
+
+.homepage-entry-cta__text {
+  min-width: 0;
+  color: inherit;
+  font-size: 0.72rem;
+  font-weight: 700;
+  line-height: 1.05;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .homepage-entry-cta__tooltip {
@@ -1648,8 +1692,25 @@ body {
     height: 36px;
   }
 
+  .homepage-entry-cta__button--ground-station {
+    grid-template-columns: 1fr;
+    gap: 0;
+    width: 36px;
+    min-width: 36px;
+    padding: 0;
+  }
+
   .homepage-entry-cta__icon {
     width: 24px;
     height: 24px;
+  }
+
+  .homepage-entry-cta__text {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
   }
 }

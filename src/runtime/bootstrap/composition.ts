@@ -62,6 +62,10 @@ import {
   createM8aV4GroundStationSceneController,
   isM8aV4GroundStationRuntimeRequested
 } from "../m8a-v4-ground-station-handover-scene-controller";
+import {
+  M8A_V4_GROUND_STATION_QUERY_PARAM,
+  M8A_V4_GROUND_STATION_QUERY_VALUE
+} from "../m8a-v4-ground-station-projection";
 
 type ViewerInstance = ReturnType<typeof createViewer>;
 
@@ -149,6 +153,7 @@ const R1V_VISUAL_ACCEPTANCE_HUD_CLEANUP_REASON =
 const M8A_V3_1_FIRST_CASE_SCENARIO_ID = "app-oneweb-intelsat-geo-aviation";
 const M8A_V3_1_AUTOPLAY_QUERY_PARAM = "firstIntakeAutoplay";
 const M8A_V3_1_CTA_SCENE_PRESET = "global";
+const M8A_V4_GROUND_STATION_CTA_SCENE_PRESET = "regional";
 
 function resolveBootstrapScenePreset(): ScenePresetKey {
   const request = new URLSearchParams(window.location.search).get("scenePreset");
@@ -178,6 +183,16 @@ function buildM8aV31AddressedHref(): string {
   params.set(FIRST_INTAKE_RUNTIME_ADDRESS_QUERY_PARAM, M8A_V3_1_FIRST_CASE_SCENARIO_ID);
   params.set(M8A_V3_1_AUTOPLAY_QUERY_PARAM, "1");
   params.set("scenePreset", M8A_V3_1_CTA_SCENE_PRESET);
+  return `/?${params.toString()}`;
+}
+
+function buildM8aV4GroundStationAddressedHref(): string {
+  const params = new URLSearchParams();
+  params.set("scenePreset", M8A_V4_GROUND_STATION_CTA_SCENE_PRESET);
+  params.set(
+    M8A_V4_GROUND_STATION_QUERY_PARAM,
+    M8A_V4_GROUND_STATION_QUERY_VALUE
+  );
   return `/?${params.toString()}`;
 }
 
@@ -719,6 +734,12 @@ export function startBootstrapComposition(app: HTMLDivElement): BootstrapComposi
         addressedHref: buildM8aV31AddressedHref(),
         onEnter: () => {
           window.location.assign(buildM8aV31AddressedHref());
+        },
+        groundStationEntry: {
+          addressedHref: buildM8aV4GroundStationAddressedHref(),
+          onEnter: () => {
+            window.location.assign(buildM8aV4GroundStationAddressedHref());
+          }
         }
       });
 

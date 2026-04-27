@@ -184,7 +184,7 @@ async function waitForAddressedSceneReady(client) {
           queryScenarioId: params.get("firstIntakeScenarioId"),
           queryAutoplay: params.get("firstIntakeAutoplay"),
           queryScenePreset: params.get("scenePreset"),
-          bootstrapState: document.documentElement.dataset.bootstrapState ?? null,
+          bootstrapState: document.documentElement?.dataset.bootstrapState ?? null,
           surfaceResolution: surfaceState?.addressResolution ?? null,
           scenarioId,
           replayPlaying: replayState?.isPlaying ?? null,
