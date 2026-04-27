@@ -20,7 +20,6 @@ import {
   PolylineDashMaterialProperty,
   PolylineGraphics,
   VerticalOrigin,
-  type PerspectiveFrustum,
   type Viewer
 } from "cesium";
 import {
@@ -63,8 +62,8 @@ export const M8A_V4_GROUND_STATION_PROOF_SEAM =
 const M8A_V4_GEO_DISPLAY_HEIGHT_METERS = 9_000_000;
 const M8A_V4_CAMERA_LONGITUDE = 118;
 const M8A_V4_CAMERA_LATITUDE = 15;
-const M8A_V4_CAMERA_HEIGHT_METERS = 36_000_000;
-const M8A_V4_CAMERA_VERTICAL_FRAMING_OFFSET = 0.012;
+const M8A_V4_CAMERA_HEIGHT_METERS = 44_000_000;
+const M8A_V4_CAMERA_PITCH_DEGREES = -82;
 
 const M8A_V4_TELEMETRY_KEYS = [
   "m8aV4GroundStationRuntimeState",
@@ -354,12 +353,10 @@ function applyV4Camera(viewer: Viewer): void {
     ),
     orientation: {
       heading: 0,
-      pitch: CesiumMath.toRadians(-90),
+      pitch: CesiumMath.toRadians(M8A_V4_CAMERA_PITCH_DEGREES),
       roll: 0
     }
   });
-  const frustum = viewer.camera.frustum as PerspectiveFrustum;
-  frustum.yOffset = M8A_V4_CAMERA_VERTICAL_FRAMING_OFFSET;
   viewer.scene.requestRender();
 }
 
