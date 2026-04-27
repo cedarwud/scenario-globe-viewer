@@ -15,7 +15,6 @@ import {
 
 const DEFAULT_REQUEST_PATH = "/";
 const V4_ENTRY_HREF = "/?scenePreset=regional&m8aV4GroundStationScene=1";
-const V3_SCENARIO_ID = "app-oneweb-intelsat-geo-aviation";
 const V4_RUNTIME_STATE = "active-v4.3-continuous-multi-orbit-handover-scene";
 const EXPECTED_ENDPOINT_IDS = [
   "tw-cht-multi-orbit-ground-infrastructure",
@@ -210,7 +209,7 @@ async function main() {
 
             const capture = window.__SCENARIO_GLOBE_VIEWER_CAPTURE__;
             const root = document.querySelector(
-              "[data-m8a-v36-homepage-handover-entry='true']"
+              "[data-m8a-v44-homepage-ground-station-entry-surface='true']"
             );
             const v3Icon = document.querySelector(
               "[data-m8a-v36-homepage-handover-icon='true']"
@@ -221,19 +220,12 @@ async function main() {
             const stageStrip = document.querySelector(
               "[data-m8a-v35-orbit-context-stage-strip='true']"
             );
-            const v3Href =
-              v3Icon instanceof HTMLAnchorElement
-                ? v3Icon.getAttribute("href")
-                : null;
             const v4Href =
               v4Entry instanceof HTMLAnchorElement
                 ? v4Entry.getAttribute("href")
                 : null;
-            const v3Url = v3Href ? new URL(v3Href, window.location.origin) : null;
             const v4Url = v4Href ? new URL(v4Href, window.location.origin) : null;
-            const v3Rect = rectToPlain(v3Icon);
             const v4Rect = rectToPlain(v4Entry);
-            const v3Text = textFor(v3Icon);
             const v4Text = textFor(v4Entry);
 
             assert(capture, "Missing runtime capture seam on bare /.");
@@ -250,36 +242,21 @@ async function main() {
               root instanceof HTMLElement &&
                 root.dataset.homepageEntryMount === "cesium-toolbar" &&
                 root.dataset.m8aV44HomepageGroundStationEntrySurface === "true",
-              "Homepage entry cluster must mount both entries in the Cesium toolbar."
+              "Homepage V4 entry must mount in the Cesium toolbar."
             );
             assert(
-              v3Icon instanceof HTMLAnchorElement &&
-                v3Rect &&
-                v3Rect.width >= 36 &&
-                v3Rect.width <= 44 &&
-                v3Rect.height >= 36 &&
-                v3Rect.height <= 44 &&
-                v3Rect.top <= 12 &&
-                v3Rect.right >= window.innerWidth - 16 &&
-                v3Url?.searchParams.get("firstIntakeScenarioId") ===
-                  "${V3_SCENARIO_ID}" &&
-                v3Url?.searchParams.get("firstIntakeAutoplay") === "1" &&
-                v3Url?.searchParams.get("scenePreset") === "global" &&
-                /historical/i.test(v3Text) &&
-                /aviation/i.test(v3Text) &&
-                /oneweb/i.test(v3Text) &&
-                /intelsat/i.test(v3Text),
-              "Existing V3.6 aviation handover icon must remain intact: " +
-                JSON.stringify({ v3Href, v3Rect, v3Text })
+              v3Icon === null,
+              "Homepage must not expose the historical V3.6 aviation handover icon."
             );
             assert(
               v4Entry instanceof HTMLAnchorElement &&
                 v4Rect &&
-                v4Rect.width >= 120 &&
+                v4Rect.width >= 36 &&
+                v4Rect.width <= 44 &&
                 v4Rect.height >= 36 &&
                 v4Rect.height <= 44 &&
                 v4Rect.top <= 12 &&
-                v4Rect.right <= v3Rect.left &&
+                v4Rect.right >= window.innerWidth - 16 &&
                 v4Href === "${V4_ENTRY_HREF}" &&
                 v4Url?.pathname === "/" &&
                 v4Url?.searchParams.get("scenePreset") === "regional" &&
@@ -301,8 +278,7 @@ async function main() {
 
             return {
               rootAria: root.getAttribute("aria-label"),
-              v3Href,
-              v3Rect,
+              v3Present: v3Icon !== null,
               v4Href,
               v4Rect,
               v4Text,

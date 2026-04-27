@@ -287,21 +287,20 @@ async function main() {
                 initialState.nonClaims.noNativeRfHandover === true,
               "V4.3 non-claims must remain explicit."
             );
-            assert(hud, "V4.3 HUD surface must be mounted.");
             assert(
-              visibleText.includes("operator-family precision") &&
-                visibleText.includes("LEO x3") &&
-                visibleText.includes("MEO x1") &&
-                visibleText.includes("GEO x1") &&
-                visibleText.includes("no aircraft") &&
-                visibleText.includes("no YKA") &&
-                visibleText.includes("no handset UE") &&
-                visibleText.includes("not active satellite") &&
-                visibleText.includes("not active gateway") &&
-                visibleText.includes("no pair-specific teleport path") &&
-                visibleText.includes("no measured latency/jitter/throughput") &&
-                visibleText.includes("not native RF handover"),
-              "V4.3 visible HUD must expose precision, actors, timeline, and non-claims."
+              hud instanceof HTMLElement &&
+                hud.hidden === true &&
+                hud.dataset.m8aV4GroundStationSceneVisibility === "hidden",
+              "V4.3 HUD surface must stay mounted for telemetry but hidden from the visual scene."
+            );
+            assert(
+              document.documentElement.dataset.m8aV4GroundStationNonClaims?.includes(
+                "noAircraftEndpoint"
+              ) &&
+                document.documentElement.dataset.m8aV4GroundStationNonClaims?.includes(
+                  "noNativeRfHandover"
+                ),
+              "V4.3 hidden HUD must preserve machine-readable non-claim telemetry."
             );
             assert(
               forbiddenPromotedLabels.length === 0,

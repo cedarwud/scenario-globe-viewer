@@ -18,6 +18,8 @@ import {
 
 const TARGET_SCENARIO_ID = "app-oneweb-intelsat-geo-aviation";
 const DEFAULT_REQUEST_PATH = "/";
+const ADDRESSED_REQUEST_PATH =
+  "/?firstIntakeScenarioId=app-oneweb-intelsat-geo-aviation&firstIntakeAutoplay=1&scenePreset=global";
 const SCREENSHOT_PATH =
   "output/m8a-v3.6-homepage-handover-entry-addressed.png";
 const EXPECTED_ACTOR_LABELS = [
@@ -232,7 +234,7 @@ async function waitForAddressedSceneReady(client) {
   }
 
   throw new Error(
-    `Timed out waiting for addressed handover scene after homepage icon click: ${JSON.stringify(
+    `Timed out waiting for addressed handover scene after direct route navigation: ${JSON.stringify(
       lastState
     )}`
   );
@@ -309,14 +311,9 @@ async function main() {
             const stageStrip = document.querySelector(
               "[data-m8a-v35-orbit-context-stage-strip='true']"
             );
-            const href =
-              icon instanceof HTMLAnchorElement ? icon.getAttribute("href") : null;
-            const url = href ? new URL(href, window.location.origin) : null;
-            const iconRect = rectToPlain(icon);
-            const accessibleLabel =
-              icon instanceof HTMLAnchorElement
-                ? icon.getAttribute("aria-label") ?? ""
-                : "";
+            const v4Entry = document.querySelector(
+              "[data-m8a-v44-homepage-ground-station-entry='true']"
+            );
 
             assert(capture, "Missing runtime capture seam on bare /.");
             assert(
@@ -328,58 +325,24 @@ async function main() {
               "Bare / must remain outside silent first-intake demo state."
             );
             assert(
-              root instanceof HTMLElement &&
-                root.dataset.homepageEntryMount === "cesium-toolbar",
-              "Homepage handover entry must mount as a top-right toolbar icon host."
-            );
-            assert(
-              icon instanceof HTMLAnchorElement &&
-                iconRect &&
-                iconRect.width >= 36 &&
-                iconRect.width <= 44 &&
-                iconRect.height >= 36 &&
-                iconRect.height <= 44 &&
-                iconRect.top <= 12 &&
-                iconRect.right >= window.innerWidth - 16,
-              "Homepage handover entry must be a compact top-right icon button: " +
-                JSON.stringify(iconRect)
-            );
-            assert(
-              url &&
-                url.pathname === "/" &&
-                url.searchParams.get("firstIntakeScenarioId") ===
-                  "${TARGET_SCENARIO_ID}" &&
-                url.searchParams.get("firstIntakeAutoplay") === "1" &&
-                url.searchParams.get("scenePreset") === "global",
-              "Homepage handover icon href must directly address the autoplay first-case scene: " +
-                JSON.stringify(href)
-            );
-            assert(
-              /oneweb/i.test(accessibleLabel) &&
-                /intelsat/i.test(accessibleLabel) &&
-                /handover/i.test(accessibleLabel) &&
-                /autoplay/i.test(accessibleLabel),
-              "Homepage icon accessible label must name the addressed handover autoplay target: " +
-                JSON.stringify(accessibleLabel)
+              root === null &&
+                icon === null &&
+                v4Entry instanceof HTMLAnchorElement,
+              "Homepage must not expose the historical V3.6 aviation handover icon; the V4 entry remains the visible product entry."
             );
 
             return {
-              href,
-              iconRect,
-              accessibleLabel,
+              historicalHomepageIconPresent: icon !== null,
+              v4HomepageEntryPresent: v4Entry instanceof HTMLAnchorElement,
               addressResolution:
                 capture.firstIntakeScenarioSurface.getState().addressResolution,
               hasOrbitActors: Boolean(capture.firstIntakeOrbitContextActors),
-              hasReplayAuthority: Boolean(capture.firstIntakeReplayTimeAuthority),
-              clickPoint: {
-                x: iconRect.left + iconRect.width / 2,
-                y: iconRect.top + iconRect.height / 2
-              }
+              hasReplayAuthority: Boolean(capture.firstIntakeReplayTimeAuthority)
             };
           })()`
         );
 
-        await dispatchMouseClick(client, homepageResult.clickPoint);
+        await navigateAndWait(client, `${baseUrl}${ADDRESSED_REQUEST_PATH}`);
 
         const addressedReadyState = await waitForAddressedSceneReady(client);
         const addressedResult = await evaluateRuntimeValue(

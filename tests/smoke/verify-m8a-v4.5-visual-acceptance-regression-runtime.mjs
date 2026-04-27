@@ -19,7 +19,6 @@ import {
 const DEFAULT_REQUEST_PATH = "/";
 const V4_REQUEST_PATH = "/?scenePreset=regional&m8aV4GroundStationScene=1";
 const V4_ENTRY_HREF = V4_REQUEST_PATH;
-const V3_SCENARIO_ID = "app-oneweb-intelsat-geo-aviation";
 const V4_RUNTIME_STATE = "active-v4.3-continuous-multi-orbit-handover-scene";
 const EXPECTED_DATA_SOURCE_NAME =
   "m8a-v4-ground-station-multi-orbit-handover-scene";
@@ -40,15 +39,15 @@ const EXPECTED_WINDOW_IDS = [
   "v4-modeled-window-03-leo-candidate-aging",
   "v4-modeled-window-04-geo-fallback-continuity"
 ];
-const REQUIRED_VISIBLE_NON_CLAIMS = [
-  "no aircraft",
-  "no YKA",
-  "no handset UE",
-  "not active satellite",
-  "not active gateway",
-  "no pair-specific teleport path",
-  "no measured latency/jitter/throughput",
-  "not native RF handover"
+const REQUIRED_NON_CLAIM_KEYS = [
+  "noAircraftEndpoint",
+  "noYkaEndpoint",
+  "noOrdinaryHandsetUe",
+  "noActiveServingSatelliteIdentity",
+  "noActiveGatewayAssignment",
+  "noPairSpecificTeleportPathTruth",
+  "noMeasuredLatencyJitterThroughputTruth",
+  "noNativeRfHandover"
 ];
 const FORBIDDEN_CLAIM_PHRASES = [
   "aircraft endpoint",
@@ -327,13 +326,8 @@ async function main() {
             const hud = document.querySelector(
               "[data-m8a-v4-ground-station-scene='true']"
             );
-            const stageNodes = Array.from(
-              document.querySelectorAll(".m8a-v4-ground-station-scene__stage")
-            );
-            const nonClaimNodes = Array.from(
-              document.querySelectorAll(".m8a-v4-ground-station-scene__nonclaims span")
-            );
-            const hudText = hud?.textContent?.replace(/\\s+/g, " ").trim() ?? "";
+            const telemetryNonClaims =
+              document.documentElement.dataset.m8aV4GroundStationNonClaims ?? "";
             const visibleText = document.body.innerText;
             const entityText = collectEntityText(dataSource);
             const forbiddenClaimHits = collectForbiddenClaimHits([
@@ -387,29 +381,22 @@ async function main() {
                 state.serviceState.measuredJitter === false &&
                 state.serviceState.measuredThroughput === false &&
                 JSON.stringify(state.serviceState.timelineWindowIds) ===
-                  JSON.stringify(config.expectedWindowIds) &&
-                stageNodes.length === config.expectedWindowIds.length &&
-                stageNodes.some(
-                  (node) =>
-                    node instanceof HTMLElement &&
-                    node.dataset.active === "true" &&
-                    node.getBoundingClientRect().width > 0
-                ),
-              "V4.5 desktop route must keep the modeled service-state timeline visible."
+                  JSON.stringify(config.expectedWindowIds),
+              "V4.5 desktop route must keep the modeled service-state timeline in state."
             );
             assert(
               hud instanceof HTMLElement &&
-                rectToPlain(hud).height > 0 &&
-                hudText.includes("operator-family precision") &&
-                hudText.includes("LEO x3") &&
-                hudText.includes("MEO x1") &&
-                hudText.includes("GEO x1") &&
-                config.requiredVisibleNonClaims.every((claim) =>
-                  hudText.includes(claim)
-                ) &&
-                nonClaimNodes.length === config.requiredVisibleNonClaims.length,
-              "V4.5 desktop route must keep compact truth boundary and non-claims visible: " +
-                hudText
+                hud.hidden === true &&
+                hud.dataset.m8aV4GroundStationSceneVisibility === "hidden" &&
+                rectToPlain(hud).height === 0,
+              "V4.5 desktop route must keep the large truth-boundary HUD hidden."
+            );
+            assert(
+              config.requiredNonClaimKeys.every((key) =>
+                telemetryNonClaims.includes('"' + key + '":true')
+              ),
+              "V4.5 desktop route must keep non-claims machine-readable in telemetry: " +
+                telemetryNonClaims
             );
             assert(
               state.nonClaims.noAircraftEndpoint === true &&
@@ -433,14 +420,14 @@ async function main() {
               orbitActorCounts: state.orbitActorCounts,
               timelineWindows: state.serviceState.timelineWindowIds,
               hudRect: rectToPlain(hud),
-              nonClaimCount: nonClaimNodes.length
+              hudHidden: hud instanceof HTMLElement ? hud.hidden : null
             };
           })(${JSON.stringify({
             expectedDataSourceName: EXPECTED_DATA_SOURCE_NAME,
             expectedEndpointIds: EXPECTED_ENDPOINT_IDS,
             expectedActorIds: EXPECTED_ACTOR_IDS,
             expectedWindowIds: EXPECTED_WINDOW_IDS,
-            requiredVisibleNonClaims: REQUIRED_VISIBLE_NON_CLAIMS,
+            requiredNonClaimKeys: REQUIRED_NON_CLAIM_KEYS,
             forbiddenClaimPhrases: FORBIDDEN_CLAIM_PHRASES
           })})`
         );
@@ -490,19 +477,12 @@ async function main() {
             const v4Entry = document.querySelector(
               "[data-m8a-v44-homepage-ground-station-entry='true']"
             );
-            const v3Href =
-              v3Icon instanceof HTMLAnchorElement
-                ? v3Icon.getAttribute("href")
-                : null;
             const v4Href =
               v4Entry instanceof HTMLAnchorElement
                 ? v4Entry.getAttribute("href")
                 : null;
-            const v3Url = v3Href ? new URL(v3Href, window.location.origin) : null;
             const v4Url = v4Href ? new URL(v4Href, window.location.origin) : null;
-            const v3Text = textFor(v3Icon);
             const v4Text = textFor(v4Entry);
-            const v3Rect = rectToPlain(v3Icon);
             const v4Rect = rectToPlain(v4Entry);
 
             assert(capture, "Missing runtime capture seam on bare /.");
@@ -518,8 +498,10 @@ async function main() {
             assert(
               v4Entry instanceof HTMLAnchorElement &&
                 v4Rect &&
-                v4Rect.width >= 120 &&
+                v4Rect.width >= 36 &&
+                v4Rect.width <= 44 &&
                 v4Rect.height >= 36 &&
+                v4Rect.height <= 44 &&
                 v4Href === "${V4_ENTRY_HREF}" &&
                 v4Url?.searchParams.get("scenePreset") === "regional" &&
                 v4Url?.searchParams.get("m8aV4GroundStationScene") === "1" &&
@@ -530,17 +512,8 @@ async function main() {
                 JSON.stringify({ v4Href, v4Rect, v4Text })
             );
             assert(
-              v3Icon instanceof HTMLAnchorElement &&
-                v3Rect &&
-                v3Rect.width >= 36 &&
-                v3Rect.height >= 36 &&
-                v3Url?.searchParams.get("firstIntakeScenarioId") ===
-                  "${V3_SCENARIO_ID}" &&
-                v3Url?.searchParams.get("firstIntakeAutoplay") === "1" &&
-                /historical/i.test(v3Text) &&
-                /aviation/i.test(v3Text),
-              "Homepage must keep the V3.6 historical aviation entry visible: " +
-                JSON.stringify({ v3Href, v3Rect, v3Text })
+              v3Icon === null,
+              "Homepage must not expose the historical V3.6 aviation entry."
             );
             assert(
               !/(aircraft endpoint|yka endpoint|handset ue endpoint)/i.test(
@@ -551,8 +524,7 @@ async function main() {
             );
 
             return {
-              v3Href,
-              v3Rect,
+              v3Present: v3Icon !== null,
               v4Href,
               v4Rect,
               v4Text
@@ -610,7 +582,6 @@ async function main() {
             const v4Entry = document.querySelector(
               "[data-m8a-v44-homepage-ground-station-entry='true']"
             );
-            const v3Rect = rectToPlain(v3Icon);
             const v4Rect = rectToPlain(v4Entry);
 
             assert(capture, "Missing runtime capture seam on narrow bare /.");
@@ -620,13 +591,11 @@ async function main() {
               "Narrow bare / must not automatically start V4."
             );
             assert(
-              v3Icon instanceof HTMLAnchorElement &&
+              v3Icon === null &&
                 v4Entry instanceof HTMLAnchorElement &&
-                insideViewport(v3Rect) &&
-                insideViewport(v4Rect) &&
-                !rectsOverlap(v3Rect, v4Rect),
-              "Narrow homepage entry controls must be visible and non-overlapping: " +
-                JSON.stringify({ v3Rect, v4Rect })
+                insideViewport(v4Rect),
+              "Narrow homepage must expose only the compact V4 entry icon: " +
+                JSON.stringify({ v3Present: v3Icon !== null, v4Rect })
             );
 
             return {
@@ -634,7 +603,7 @@ async function main() {
                 width: window.innerWidth,
                 height: window.innerHeight
               },
-              v3Rect,
+              v3Present: v3Icon !== null,
               v4Rect
             };
           })()`
@@ -681,30 +650,6 @@ async function main() {
               rect.top >= 0 &&
               rect.right <= window.innerWidth &&
               rect.bottom <= window.innerHeight;
-            const selectedLabelRects = () =>
-              Array.from(
-                document.querySelectorAll(
-                  [
-                    ".m8a-v4-ground-station-scene__header",
-                    ".m8a-v4-ground-station-scene__endpoint",
-                    ".m8a-v4-ground-station-scene__orbit-strip > *",
-                    ".m8a-v4-ground-station-scene__stage",
-                    ".m8a-v4-ground-station-scene__nonclaims > span"
-                  ].join(", ")
-                )
-              )
-                .filter(
-                  (element) =>
-                    element instanceof HTMLElement &&
-                    getComputedStyle(element).display !== "none" &&
-                    element.getBoundingClientRect().width > 0 &&
-                    element.getBoundingClientRect().height > 0
-                )
-                .map((element, index) => ({
-                  index,
-                  text: element.textContent?.replace(/\\s+/g, " ").trim() ?? "",
-                  rect: rectToPlain(element)
-                }));
 
             const capture = window.__SCENARIO_GLOBE_VIEWER_CAPTURE__;
             const state =
@@ -713,33 +658,25 @@ async function main() {
               "[data-m8a-v4-ground-station-scene='true']"
             );
             const hudRect = rectToPlain(hud);
-            const labelRects = selectedLabelRects();
-            const overlaps = [];
-
-            for (let leftIndex = 0; leftIndex < labelRects.length; leftIndex += 1) {
-              for (
-                let rightIndex = leftIndex + 1;
-                rightIndex < labelRects.length;
-                rightIndex += 1
-              ) {
-                const left = labelRects[leftIndex];
-                const right = labelRects[rightIndex];
-
-                if (rectsOverlap(left.rect, right.rect)) {
-                  overlaps.push({ left, right });
-                }
-              }
-            }
-
-            const protectedCoreSceneRect = {
-              left: window.innerWidth * 0.16,
-              top: window.innerHeight * 0.18,
-              right: window.innerWidth * 0.84,
-              bottom: window.innerHeight * 0.62,
-              width: window.innerWidth * 0.68,
-              height: window.innerHeight * 0.44
-            };
-            const hudText = hud?.textContent?.replace(/\\s+/g, " ").trim() ?? "";
+            const visibleHudLabels = Array.from(
+              document.querySelectorAll(
+                [
+                  ".m8a-v4-ground-station-scene__header",
+                  ".m8a-v4-ground-station-scene__endpoint",
+                  ".m8a-v4-ground-station-scene__orbit-strip > *",
+                  ".m8a-v4-ground-station-scene__stage",
+                  ".m8a-v4-ground-station-scene__nonclaims > span"
+                ].join(", ")
+              )
+            ).filter(
+              (element) =>
+                element instanceof HTMLElement &&
+                getComputedStyle(element).display !== "none" &&
+                element.getBoundingClientRect().width > 0 &&
+                element.getBoundingClientRect().height > 0
+            );
+            const telemetryNonClaims =
+              document.documentElement.dataset.m8aV4GroundStationNonClaims ?? "";
 
             assert(capture, "Missing runtime capture seam on narrow V4 route.");
             assert(
@@ -756,31 +693,24 @@ async function main() {
               hud instanceof HTMLElement &&
                 hudRect &&
                 insideViewport(hudRect) &&
-                hudRect.height <= window.innerHeight * 0.36,
-              "Narrow V4 HUD must stay compact and inside the viewport: " +
+                hud.hidden === true &&
+                hud.dataset.m8aV4GroundStationSceneVisibility === "hidden" &&
+                hudRect.width === 0 &&
+                hudRect.height === 0,
+              "Narrow V4 HUD must stay hidden and inside the viewport: " +
                 JSON.stringify({ hudRect, viewport: window.innerHeight })
             );
             assert(
-              !rectsOverlap(hudRect, protectedCoreSceneRect),
-              "Narrow V4 HUD must not occlude the core scene area: " +
-                JSON.stringify({ hudRect, protectedCoreSceneRect })
+              visibleHudLabels.length === 0,
+              "Narrow V4 HUD must not leave visible labels in the scene: " +
+                JSON.stringify({ visibleHudLabelCount: visibleHudLabels.length })
             );
             assert(
-              labelRects.length >= 18 &&
-                labelRects.every((entry) => insideViewport(entry.rect)) &&
-                overlaps.length === 0,
-              "Narrow V4 key labels must not overlap or leave the viewport: " +
-                JSON.stringify({ overlaps, labelRects })
-            );
-            assert(
-              config.requiredVisibleNonClaims.every((claim) =>
-                hudText.includes(claim)
-              ) &&
-                hudText.includes("LEO x3") &&
-                hudText.includes("MEO x1") &&
-                hudText.includes("GEO x1"),
-              "Narrow V4 HUD must keep actor counts and non-claim labels visible: " +
-                hudText
+              config.requiredNonClaimKeys.every((key) =>
+                telemetryNonClaims.includes('"' + key + '":true')
+              ),
+              "Narrow V4 route must preserve non-claims in telemetry while the HUD is hidden: " +
+                telemetryNonClaims
             );
 
             return {
@@ -789,11 +719,11 @@ async function main() {
                 height: window.innerHeight
               },
               hudRect,
-              protectedCoreSceneRect,
-              labelCount: labelRects.length
+              hudHidden: hud instanceof HTMLElement ? hud.hidden : null,
+              visibleHudLabelCount: visibleHudLabels.length
             };
           })(${JSON.stringify({
-            requiredVisibleNonClaims: REQUIRED_VISIBLE_NON_CLAIMS
+            requiredNonClaimKeys: REQUIRED_NON_CLAIM_KEYS
           })})`
         );
 

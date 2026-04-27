@@ -78,16 +78,12 @@ function createGroundStationEntry(
     <path d="m18.7 7.5 1.8 1.8" />
   `);
 
-  const label = document.createElement("span");
-  label.className = "homepage-entry-cta__text";
-  label.textContent = "V4 Ground station";
-
   const tooltip = document.createElement("span");
   tooltip.className = "homepage-entry-cta__tooltip";
   tooltip.textContent =
     "V4 ground-station multi-orbit: Taiwan CHT to Singapore Speedcast";
 
-  anchor.append(icon, label, tooltip);
+  anchor.append(icon, tooltip);
   return anchor;
 }
 
@@ -148,16 +144,17 @@ export function mountHomepageEntryCta(
 ): () => void {
   const root = document.createElement("aside");
   root.className = "homepage-entry-cta";
-  root.dataset.m8aV31HomepageCta = "true";
-  root.dataset.m8aV36HomepageHandoverEntry = "true";
   if (options.groundStationEntry) {
     root.dataset.m8aV44HomepageGroundStationEntrySurface = "true";
+  } else {
+    root.dataset.m8aV31HomepageCta = "true";
+    root.dataset.m8aV36HomepageHandoverEntry = "true";
   }
   root.dataset.homepageEntrySurface = "top-right-icon";
   root.setAttribute(
     "aria-label",
     options.groundStationEntry
-      ? "Homepage scene entries: V4 ground-station multi-orbit scene and historical aviation handover"
+      ? "Homepage scene entry: V4 ground-station multi-orbit scene"
       : "Homepage handover scene entry"
   );
 
@@ -173,9 +170,11 @@ export function mountHomepageEntryCta(
     root.append(groundStationAnchor);
   }
 
-  const aviationAnchor = createAviationHandoverEntry(options);
-  unbinders.push(bindActivation(aviationAnchor, options.onEnter));
-  root.append(aviationAnchor);
+  if (!options.groundStationEntry) {
+    const aviationAnchor = createAviationHandoverEntry(options);
+    unbinders.push(bindActivation(aviationAnchor, options.onEnter));
+    root.append(aviationAnchor);
+  }
 
   const toolbar = viewerShell.querySelector<HTMLElement>(".cesium-viewer-toolbar");
 

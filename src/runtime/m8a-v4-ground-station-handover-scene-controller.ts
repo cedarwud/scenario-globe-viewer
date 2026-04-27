@@ -606,6 +606,9 @@ function createHudRoot(): HTMLElement {
   const root = document.createElement("aside");
   root.className = "m8a-v4-ground-station-scene";
   root.dataset.m8aV4GroundStationScene = "true";
+  root.dataset.m8aV4GroundStationSceneVisibility = "hidden";
+  root.hidden = true;
+  root.setAttribute("aria-hidden", "true");
   root.setAttribute("aria-label", "M8A V4.3 ground station handover scene");
   return root;
 }
