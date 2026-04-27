@@ -558,8 +558,12 @@ function createActorModelGraphics(
       actor.orbitClass === "geo" ? 50 : actor.orbitClass === "meo" ? 58 : 52
     ),
     maximumScale: new ConstantProperty(180_000),
-    color: new ConstantProperty(resolveOrbitColor(actor.orbitClass, 0.9)),
-    colorBlendAmount: new ConstantProperty(0.2)
+    ...(actor.orbitClass === "leo"
+      ? {}
+      : {
+          color: new ConstantProperty(resolveOrbitColor(actor.orbitClass, 0.9)),
+          colorBlendAmount: new ConstantProperty(0.2)
+        })
   });
 }
 
