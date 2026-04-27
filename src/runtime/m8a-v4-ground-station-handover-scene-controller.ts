@@ -59,11 +59,30 @@ export const M8A_V4_GROUND_STATION_RUNTIME_STATE =
 export const M8A_V4_GROUND_STATION_PROOF_SEAM =
   "window.__SCENARIO_GLOBE_VIEWER_CAPTURE__.m8aV4GroundStationScene";
 
-const M8A_V4_GEO_DISPLAY_HEIGHT_METERS = 9_000_000;
 const M8A_V4_CAMERA_LONGITUDE = 118;
 const M8A_V4_CAMERA_LATITUDE = 15;
-const M8A_V4_CAMERA_HEIGHT_METERS = 44_000_000;
-const M8A_V4_CAMERA_PITCH_DEGREES = -82;
+const M8A_V4_CAMERA_HEIGHT_METERS = 16_000_000;
+const M8A_V4_CAMERA_PITCH_DEGREES = -80;
+const M8A_V4_DISPLAY_ORBIT_HEIGHT_METERS = {
+  leo: {
+    start: 520_000,
+    stop: 680_000,
+    wobble: 25_000
+  },
+  meo: {
+    start: 950_000,
+    stop: 1_180_000,
+    wobble: 35_000
+  },
+  geo: {
+    start: 1_700_000,
+    stop: 1_700_000,
+    wobble: 0
+  }
+} satisfies Record<
+  M8aV4OrbitClass,
+  { start: number; stop: number; wobble: number }
+>;
 
 const M8A_V4_TELEMETRY_KEYS = [
   "m8aV4GroundStationRuntimeState",
@@ -314,6 +333,18 @@ function resolveServiceStateWindow(
     M8A_V4_GROUND_STATION_RUNTIME_PROJECTION.serviceStateModel.timeline[
       M8A_V4_GROUND_STATION_RUNTIME_PROJECTION.serviceStateModel.timeline.length - 1
     ]
+  );
+}
+
+function resolveActorDisplayHeightMeters(
+  orbitClass: M8aV4OrbitClass,
+  easedRatio: number,
+  loopRatio: number
+): number {
+  const heightBand = M8A_V4_DISPLAY_ORBIT_HEIGHT_METERS[orbitClass];
+  return (
+    lerp(heightBand.start, heightBand.stop, easedRatio) +
+    Math.sin(loopRatio * Math.PI * 2) * heightBand.wobble
   );
 }
 
@@ -978,7 +1009,7 @@ export function createM8aV4GroundStationSceneController({
         cartesian: Cartesian3.fromDegrees(
           track.start.lon,
           track.start.lat,
-          M8A_V4_GEO_DISPLAY_HEIGHT_METERS,
+          M8A_V4_DISPLAY_ORBIT_HEIGHT_METERS.geo.start,
           undefined,
           result ?? new Cartesian3()
         ),
@@ -990,10 +1021,11 @@ export function createM8aV4GroundStationSceneController({
       timeRatio * track.cycleRate + track.phaseOffset
     );
     const easedRatio = 0.5 - Math.cos(loopRatio * Math.PI * 2) * 0.5;
-    const heightMeters =
-      lerp(track.start.heightMeters, track.stop.heightMeters, easedRatio) +
-      Math.sin(loopRatio * Math.PI * 2) *
-        (actor.orbitClass === "meo" ? 90000 : 55000);
+    const heightMeters = resolveActorDisplayHeightMeters(
+      actor.orbitClass,
+      easedRatio,
+      loopRatio
+    );
 
     return {
       cartesian: Cartesian3.fromDegrees(

@@ -345,6 +345,24 @@ async function main() {
             );
             const endpointCanvasPoints = endpointEntities.map(entityCanvasPoint);
             const actorCanvasPoints = actorEntities.map(entityCanvasPoint);
+            const endpointScreenDistance =
+              endpointCanvasPoints[0] && endpointCanvasPoints[1]
+                ? Math.hypot(
+                    endpointCanvasPoints[0].x - endpointCanvasPoints[1].x,
+                    endpointCanvasPoints[0].y - endpointCanvasPoints[1].y
+                  )
+                : null;
+            const actorRenderRadii = state.actors.map((actor) => ({
+              actorId: actor.actorId,
+              orbitClass: actor.orbitClass,
+              renderRadius: radialDistance(actor.renderPositionEcefMeters)
+            }));
+            const maxActorRenderRadius = Math.max(
+              ...actorRenderRadii.map((actor) => actor.renderRadius)
+            );
+            const minActorRenderRadius = Math.min(
+              ...actorRenderRadii.map((actor) => actor.renderRadius)
+            );
             const geoActor = state.actors.find(
               (actor) => actor.orbitClass === "geo"
             );
@@ -422,10 +440,13 @@ async function main() {
             );
             assert(
               highestEndpointY > window.innerHeight * 0.58 &&
-                lowestEndpointY < window.innerHeight * 0.78,
-              "V4.5 desktop camera must keep the earth/ground focus in the lower half while leaving upper orbital space: " +
+                lowestEndpointY < window.innerHeight * 0.9 &&
+                endpointScreenDistance > 180 &&
+                endpointScreenDistance < 420,
+              "V4.5 desktop camera must zoom into the endpoint pair while keeping it inside the viewport: " +
                 JSON.stringify({
                   endpointCanvasPoints,
+                  endpointScreenDistance,
                   highestEndpointY,
                   lowestEndpointY,
                   viewport: {
@@ -437,16 +458,19 @@ async function main() {
             assert(
               geoActor &&
                 geoSourceRadius > 40000000 &&
-                geoRenderRadius > 15000000 &&
-                geoRenderRadius < 19000000 &&
-                geoSourceRadius - geoRenderRadius > 20000000 &&
+                geoRenderRadius > 7800000 &&
+                geoRenderRadius < 8500000 &&
+                geoSourceRadius - geoRenderRadius > 33000000 &&
+                minActorRenderRadius > 6800000 &&
+                maxActorRenderRadius < 8500000 &&
                 insideViewportPoint(geoCanvasPoint),
-              "V4.5 GEO continuity anchor must stay source-true but display-compressed inside the desktop viewport: " +
+              "V4.5 orbit actors must stay source-true but use compressed display heights near the endpoint-focused view: " +
                 JSON.stringify({
                   geoActorId: geoActor?.actorId,
                   geoSourceRadius,
                   geoRenderRadius,
                   geoCanvasPoint,
+                  actorRenderRadii,
                   viewport: {
                     width: window.innerWidth,
                     height: window.innerHeight
@@ -499,7 +523,9 @@ async function main() {
               orbitActorCounts: state.orbitActorCounts,
               timelineWindows: state.serviceState.timelineWindowIds,
               endpointCanvasPoints,
+              endpointScreenDistance,
               actorCanvasPoints,
+              actorRenderRadii,
               geoSourceRadius,
               geoRenderRadius,
               geoCanvasPoint,

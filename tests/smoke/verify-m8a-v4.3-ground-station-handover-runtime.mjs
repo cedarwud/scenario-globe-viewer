@@ -370,9 +370,9 @@ async function main() {
             );
             assert(
               geoSourceRadius > 40000000 &&
-                geoRenderRadius > 15000000 &&
-                geoRenderRadius < 19000000 &&
-                geoSourceRadius - geoRenderRadius > 20000000,
+                geoRenderRadius > 7800000 &&
+                geoRenderRadius < 8500000 &&
+                geoSourceRadius - geoRenderRadius > 33000000,
               "V4.3 GEO source altitude must stay high while render height is display-compressed: " +
                 JSON.stringify({ geoSourceRadius, geoRenderRadius })
             );
