@@ -7,6 +7,30 @@ export interface HomepageEntryCtaOptions extends HomepageEntryTargetOptions {
   groundStationEntry?: HomepageEntryTargetOptions;
 }
 
+interface GroundStationIconOption {
+  key: "orbit";
+  label: string;
+  tooltip: string;
+  paths: string;
+}
+
+const GROUND_STATION_ICON_OPTIONS: ReadonlyArray<GroundStationIconOption> = [
+  {
+    key: "orbit",
+    label: "Open V4 ground-station multi-orbit scene",
+    tooltip: "V4 ground-station multi-orbit",
+    paths: `
+      <circle cx="10.3" cy="13.7" r="5.2" />
+      <path d="M5.6 11.5h9.4" />
+      <path d="M5.6 15.9h9.4" />
+      <path d="M10.3 8.5c1.5 1.6 2.2 3.3 2.2 5.2s-.7 3.6-2.2 5.2" />
+      <path d="M10.3 8.5c-1.5 1.6-2.2 3.3-2.2 5.2s.7 3.6 2.2 5.2" />
+      <path d="M15.4 6.9c2.8 0 5.1 1.5 5.1 3.3s-2.3 3.3-5.1 3.3" />
+      <path d="m19.2 8.1 1.3 2.1-1.9 1.5" />
+    `
+  }
+];
+
 function createIcon(paths: string): SVGSVGElement {
   const icon = document.createElementNS("http://www.w3.org/2000/svg", "svg");
   icon.classList.add("homepage-entry-cta__icon");
@@ -53,36 +77,28 @@ function createAviationHandoverEntry(
 }
 
 function createGroundStationEntry(
-  options: HomepageEntryTargetOptions
+  options: HomepageEntryTargetOptions,
+  iconOption: GroundStationIconOption
 ): HTMLAnchorElement {
   const anchor = document.createElement("a");
   anchor.className =
     "homepage-entry-cta__button homepage-entry-cta__button--ground-station";
   anchor.href = options.addressedHref;
   anchor.dataset.m8aV44HomepageGroundStationEntry = "true";
+  anchor.dataset.m8aV44HomepageGroundStationIconOption = iconOption.key;
   anchor.dataset.homepageEntryKind = "v4-ground-station-multi-orbit";
   anchor.setAttribute(
     "aria-label",
-    "Open V4 ground-station multi-orbit scene with Taiwan CHT and Singapore Speedcast operator-family endpoints"
+    `${iconOption.label}: Open V4 ground-station multi-orbit scene with Taiwan CHT and Singapore Speedcast operator-family endpoints`
   );
   anchor.title =
-    "Open V4 ground-station multi-orbit scene with Taiwan CHT and Singapore Speedcast";
+    `${iconOption.tooltip}: Open V4 ground-station multi-orbit scene`;
 
-  const icon = createIcon(`
-    <path d="M4 20h8" />
-    <path d="M8 20v-3.4" />
-    <path d="M8 16.6 13.8 11" />
-    <path d="M5.8 13.5c2.1 2.1 5.5 2.1 7.6 0" />
-    <path d="M4.3 11.1c3 3 7.9 3 10.9 0" />
-    <path d="M15.4 7.2c1.7.5 3.1 1.9 3.6 3.6" />
-    <path d="M17.4 4.8c2.4.8 4.3 2.7 5.1 5.1" />
-    <circle cx="17.7" cy="9.5" r="1.5" />
-  `);
+  const icon = createIcon(iconOption.paths);
 
   const tooltip = document.createElement("span");
   tooltip.className = "homepage-entry-cta__tooltip";
-  tooltip.textContent =
-    "V4 ground-station multi-orbit: Taiwan CHT to Singapore Speedcast";
+  tooltip.textContent = `${iconOption.tooltip} - V4 ground-station multi-orbit`;
 
   anchor.append(icon, tooltip);
   return anchor;
@@ -162,13 +178,16 @@ export function mountHomepageEntryCta(
   const unbinders: Array<() => void> = [];
 
   if (options.groundStationEntry) {
-    const groundStationAnchor = createGroundStationEntry(
-      options.groundStationEntry
-    );
-    unbinders.push(
-      bindActivation(groundStationAnchor, options.groundStationEntry.onEnter)
-    );
-    root.append(groundStationAnchor);
+    for (const iconOption of GROUND_STATION_ICON_OPTIONS) {
+      const groundStationAnchor = createGroundStationEntry(
+        options.groundStationEntry,
+        iconOption
+      );
+      unbinders.push(
+        bindActivation(groundStationAnchor, options.groundStationEntry.onEnter)
+      );
+      root.append(groundStationAnchor);
+    }
   }
 
   if (!options.groundStationEntry) {

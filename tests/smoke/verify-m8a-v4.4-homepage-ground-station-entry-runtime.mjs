@@ -214,9 +214,12 @@ async function main() {
             const v3Icon = document.querySelector(
               "[data-m8a-v36-homepage-handover-icon='true']"
             );
-            const v4Entry = document.querySelector(
-              "[data-m8a-v44-homepage-ground-station-entry='true']"
+            const v4Entries = Array.from(
+              document.querySelectorAll(
+                "[data-m8a-v44-homepage-ground-station-entry='true']"
+              )
             );
+            const v4Entry = v4Entries[0] ?? null;
             const homeButton = document.querySelector(".cesium-home-button");
             const lightingToggle = document.querySelector(
               "[data-lighting-toggle='true']"
@@ -240,6 +243,10 @@ async function main() {
                 : null;
             const v4Url = v4Href ? new URL(v4Href, window.location.origin) : null;
             const v4Rect = rectToPlain(v4Entry);
+            const v4Option =
+              v4Entry instanceof HTMLElement
+                ? v4Entry.dataset.m8aV44HomepageGroundStationIconOption ?? ""
+                : "";
             const homeRect = rectToPlain(homeButton);
             const statusRect = rectToPlain(statusPanel);
             const v4Text = textFor(v4Entry);
@@ -281,16 +288,18 @@ async function main() {
             );
             assert(
               v4Entry instanceof HTMLAnchorElement &&
+                v4Entries.length === 1 &&
                 homeButton instanceof HTMLElement &&
                 v4Rect &&
                 homeRect &&
+                v4Option === "orbit" &&
                 v4Rect.width >= 36 &&
                 v4Rect.width <= 44 &&
                 v4Rect.height >= 36 &&
                 v4Rect.height <= 44 &&
                 v4Rect.top <= 12 &&
-                homeRect.top <= 12 &&
                 v4Rect.right <= homeRect.left &&
+                homeRect.top <= 12 &&
                 v4Href === "${V4_ENTRY_HREF}" &&
                 v4Url?.pathname === "/" &&
                 v4Url?.searchParams.get("scenePreset") === "regional" &&
@@ -302,7 +311,7 @@ async function main() {
                 /taiwan/i.test(v4Text) &&
                 /singapore/i.test(v4Text),
               "V4.4 homepage entry must clearly address the ground-station multi-orbit scene: " +
-                JSON.stringify({ v4Href, v4Rect, homeRect, v4Text })
+                JSON.stringify({ v4Href, v4Rect, v4Option, homeRect, v4Text })
             );
             assert(
               lightingToggle instanceof HTMLButtonElement &&
@@ -321,6 +330,7 @@ async function main() {
               v3Present: v3Icon !== null,
               v4Href,
               v4Rect,
+              v4Option,
               homeRect,
               statusRect,
               v4Text,

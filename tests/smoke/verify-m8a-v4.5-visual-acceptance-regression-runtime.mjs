@@ -474,9 +474,12 @@ async function main() {
             const v3Icon = document.querySelector(
               "[data-m8a-v36-homepage-handover-icon='true']"
             );
-            const v4Entry = document.querySelector(
-              "[data-m8a-v44-homepage-ground-station-entry='true']"
+            const v4Entries = Array.from(
+              document.querySelectorAll(
+                "[data-m8a-v44-homepage-ground-station-entry='true']"
+              )
             );
+            const v4Entry = v4Entries[0] ?? null;
             const homeButton = document.querySelector(".cesium-home-button");
             const lightingToggle = document.querySelector(
               "[data-lighting-toggle='true']"
@@ -498,6 +501,10 @@ async function main() {
             const v4Url = v4Href ? new URL(v4Href, window.location.origin) : null;
             const v4Text = textFor(v4Entry);
             const v4Rect = rectToPlain(v4Entry);
+            const v4Option =
+              v4Entry instanceof HTMLElement
+                ? v4Entry.dataset.m8aV44HomepageGroundStationIconOption ?? ""
+                : "";
             const homeRect = rectToPlain(homeButton);
             const statusRect = rectToPlain(statusPanel);
 
@@ -513,9 +520,11 @@ async function main() {
             );
             assert(
               v4Entry instanceof HTMLAnchorElement &&
+                v4Entries.length === 1 &&
                 homeButton instanceof HTMLElement &&
                 v4Rect &&
                 homeRect &&
+                v4Option === "orbit" &&
                 v4Rect.width >= 36 &&
                 v4Rect.width <= 44 &&
                 v4Rect.height >= 36 &&
@@ -528,7 +537,7 @@ async function main() {
                 /ground.station/i.test(v4Text) &&
                 /multi.orbit/i.test(v4Text),
               "Homepage must expose the V4 ground-station entry: " +
-                JSON.stringify({ v4Href, v4Rect, homeRect, v4Text })
+                JSON.stringify({ v4Href, v4Rect, v4Option, homeRect, v4Text })
             );
             assert(
               hudFrame instanceof HTMLElement &&
@@ -566,6 +575,7 @@ async function main() {
               v3Present: v3Icon !== null,
               v4Href,
               v4Rect,
+              v4Option,
               homeRect,
               statusRect,
               v4Text
@@ -620,9 +630,12 @@ async function main() {
             const v3Icon = document.querySelector(
               "[data-m8a-v36-homepage-handover-icon='true']"
             );
-            const v4Entry = document.querySelector(
-              "[data-m8a-v44-homepage-ground-station-entry='true']"
+            const v4Entries = Array.from(
+              document.querySelectorAll(
+                "[data-m8a-v44-homepage-ground-station-entry='true']"
+              )
             );
+            const v4Entry = v4Entries[0] ?? null;
             const homeButton = document.querySelector(".cesium-home-button");
             const hudFrame = document.querySelector("[data-hud-frame='true']");
             const statusPanel = document.querySelector(
@@ -632,6 +645,10 @@ async function main() {
               "[data-time-placeholder='true']"
             );
             const v4Rect = rectToPlain(v4Entry);
+            const v4Option =
+              v4Entry instanceof HTMLElement
+                ? v4Entry.dataset.m8aV44HomepageGroundStationIconOption ?? ""
+                : "";
             const homeRect = rectToPlain(homeButton);
             const statusRect = rectToPlain(statusPanel);
 
@@ -644,12 +661,19 @@ async function main() {
             assert(
               v3Icon === null &&
                 v4Entry instanceof HTMLAnchorElement &&
+                v4Entries.length === 1 &&
                 homeButton instanceof HTMLElement &&
+                v4Option === "orbit" &&
                 insideViewport(v4Rect) &&
                 insideViewport(homeRect) &&
                 v4Rect.right <= homeRect.left,
-              "Narrow homepage must expose only the compact V4 entry icon: " +
-                JSON.stringify({ v3Present: v3Icon !== null, v4Rect, homeRect })
+              "Narrow homepage must expose only the compact V4 orbit icon: " +
+                JSON.stringify({
+                  v3Present: v3Icon !== null,
+                  v4Rect,
+                  v4Option,
+                  homeRect
+                })
             );
             assert(
               hudFrame instanceof HTMLElement &&
@@ -673,6 +697,7 @@ async function main() {
               },
               v3Present: v3Icon !== null,
               v4Rect,
+              v4Option,
               homeRect,
               statusRect
             };
