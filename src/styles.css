@@ -1497,11 +1497,87 @@ body {
     left: var(--hud-frame-gap);
     right: var(--hud-frame-gap);
     bottom: calc(var(--hud-frame-gap) + 2.3rem);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.3rem;
+    padding: 0.38rem;
   }
 
+  .m8a-v4-ground-station-scene__header,
   .m8a-v4-ground-station-scene__endpoints,
+  .m8a-v4-ground-station-scene__orbit-strip,
   .m8a-v4-ground-station-scene__stages {
-    grid-template-columns: 1fr;
+    grid-column: 1 / span 2;
+  }
+
+  .m8a-v4-ground-station-scene__header {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 0.28rem;
+    align-items: center;
+  }
+
+  .m8a-v4-ground-station-scene__header span {
+    font-size: 0.56rem;
+  }
+
+  .m8a-v4-ground-station-scene__header strong {
+    font-size: 0.78rem;
+  }
+
+  .m8a-v4-ground-station-scene__endpoints {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.28rem;
+  }
+
+  .m8a-v4-ground-station-scene__endpoint {
+    gap: 0.12rem;
+    padding: 0.3rem 0.34rem;
+  }
+
+  .m8a-v4-ground-station-scene__endpoint span {
+    font-size: 0.6rem;
+  }
+
+  .m8a-v4-ground-station-scene__endpoint strong,
+  .m8a-v4-ground-station-scene__endpoint small {
+    font-size: 0.52rem;
+  }
+
+  .m8a-v4-ground-station-scene__orbit-strip {
+    gap: 0.22rem;
+  }
+
+  .m8a-v4-ground-station-scene__orbit-strip span,
+  .m8a-v4-ground-station-scene__orbit-strip strong {
+    padding: 0.16rem 0.28rem;
+    font-size: 0.54rem;
+  }
+
+  .m8a-v4-ground-station-scene__stages {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.22rem;
+  }
+
+  .m8a-v4-ground-station-scene__stage {
+    min-height: 1rem;
+    padding: 0.1rem 0.16rem;
+    font-size: 0.48rem;
+  }
+
+  .m8a-v4-ground-station-scene__signals {
+    display: none;
+  }
+
+  .m8a-v4-ground-station-scene__nonclaims {
+    grid-column: 1 / span 2;
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.18rem;
+  }
+
+  .m8a-v4-ground-station-scene__nonclaims span {
+    padding: 0.1rem 0.12rem;
+    font-size: 0.46rem;
+    text-align: center;
   }
 
   .m8a-v35-orbit-context-stage-strip__stages {
