@@ -67,18 +67,18 @@ const M8A_V4_CAMERA_PITCH_DEGREES = -80;
 const M8A_V4_CAMERA_SCREEN_UP_PAN_METERS = 4_000_000;
 const M8A_V4_DISPLAY_ORBIT_HEIGHT_METERS = {
   leo: {
-    start: 520_000,
-    stop: 680_000,
-    wobble: 25_000
+    start: 420_000,
+    stop: 620_000,
+    wobble: 30_000
   },
   meo: {
-    start: 950_000,
-    stop: 1_180_000,
-    wobble: 35_000
+    start: 1_450_000,
+    stop: 1_850_000,
+    wobble: 55_000
   },
   geo: {
-    start: 1_700_000,
-    stop: 1_700_000,
+    start: 2_800_000,
+    stop: 2_800_000,
     wobble: 0
   }
 } satisfies Record<

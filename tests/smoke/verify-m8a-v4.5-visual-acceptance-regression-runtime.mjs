@@ -395,6 +395,14 @@ async function main() {
             const minActorRenderRadius = Math.min(
               ...actorRenderRadii.map((actor) => actor.renderRadius)
             );
+            const maxLeoRenderRadius = Math.max(
+              ...actorRenderRadii
+                .filter((actor) => actor.orbitClass === "leo")
+                .map((actor) => actor.renderRadius)
+            );
+            const meoRenderRadius =
+              actorRenderRadii.find((actor) => actor.orbitClass === "meo")
+                ?.renderRadius ?? null;
             const geoActor = state.actors.find(
               (actor) => actor.orbitClass === "geo"
             );
@@ -511,17 +519,32 @@ async function main() {
             assert(
               geoActor &&
                 geoSourceRadius > 40000000 &&
-                geoRenderRadius > 7800000 &&
-                geoRenderRadius < 8500000 &&
-                geoSourceRadius - geoRenderRadius > 33000000 &&
-                minActorRenderRadius > 6800000 &&
-                maxActorRenderRadius < 8500000 &&
+                geoRenderRadius > 9000000 &&
+                geoRenderRadius < 9300000 &&
+                geoSourceRadius - geoRenderRadius > 32000000 &&
+                minActorRenderRadius > 6700000 &&
+                maxActorRenderRadius < 9300000 &&
+                Number.isFinite(maxLeoRenderRadius) &&
+                Number.isFinite(meoRenderRadius) &&
+                meoRenderRadius - maxLeoRenderRadius > 850000 &&
+                geoRenderRadius - meoRenderRadius > 1000000 &&
                 insideViewportPoint(geoCanvasPoint),
               "V4.5 orbit actors must stay source-true but use compressed display heights near the endpoint-focused view: " +
                 JSON.stringify({
                   geoActorId: geoActor?.actorId,
                   geoSourceRadius,
                   geoRenderRadius,
+                  maxLeoRenderRadius,
+                  meoRenderRadius,
+                  orbitDisplayRadiusGaps: {
+                    leoToMeo: meoRenderRadius
+                      ? meoRenderRadius - maxLeoRenderRadius
+                      : null,
+                    meoToGeo:
+                      meoRenderRadius && geoRenderRadius
+                        ? geoRenderRadius - meoRenderRadius
+                        : null
+                  },
                   geoCanvasPoint,
                   actorRenderRadii,
                   viewport: {
