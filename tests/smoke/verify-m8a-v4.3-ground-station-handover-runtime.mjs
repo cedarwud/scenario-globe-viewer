@@ -336,6 +336,13 @@ async function main() {
             const geoAfter = state20.actors.find(
               (actor) => actor.orbitClass === "geo"
             );
+            const geoDisplayDriftMeters =
+              geoBefore && geoAfter
+                ? distance3(
+                    geoBefore.renderPositionEcefMeters,
+                    geoAfter.renderPositionEcefMeters
+                  )
+                : null;
 
             assert(
               state10.serviceState.window.windowId ===
@@ -356,11 +363,10 @@ async function main() {
             assert(
               geoBefore &&
                 geoAfter &&
-                distance3(
-                  geoBefore.renderPositionEcefMeters,
-                  geoAfter.renderPositionEcefMeters
-                ) < 1,
-              "V4.3 GEO anchor must remain fixed as continuity anchor."
+                geoDisplayDriftMeters > 10000 &&
+                geoDisplayDriftMeters < 1200000,
+              "V4.3 GEO anchor must keep only bounded display-context drift: " +
+                JSON.stringify({ geoDisplayDriftMeters })
             );
             const geoSourceRadius = radialDistance(
               geoBefore.sourcePositionEcefMeters
@@ -370,9 +376,9 @@ async function main() {
             );
             assert(
               geoSourceRadius > 40000000 &&
-                geoRenderRadius > 9000000 &&
-                geoRenderRadius < 9300000 &&
-                geoSourceRadius - geoRenderRadius > 32000000,
+                geoRenderRadius > 12400000 &&
+                geoRenderRadius < 12800000 &&
+                geoSourceRadius - geoRenderRadius > 29000000,
               "V4.3 GEO source altitude must stay high while render height is display-compressed: " +
                 JSON.stringify({ geoSourceRadius, geoRenderRadius })
             );
@@ -388,6 +394,7 @@ async function main() {
                 state85.serviceState.window.windowId
               ],
               movedActors,
+              geoDisplayDriftMeters,
               geoSourceRadius,
               geoRenderRadius,
               rawPackageSideReadOwnership:

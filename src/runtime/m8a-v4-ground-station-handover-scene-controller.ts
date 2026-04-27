@@ -67,24 +67,29 @@ const M8A_V4_CAMERA_PITCH_DEGREES = -80;
 const M8A_V4_CAMERA_SCREEN_UP_PAN_METERS = 4_000_000;
 const M8A_V4_DISPLAY_ORBIT_HEIGHT_METERS = {
   leo: {
-    start: 420_000,
-    stop: 620_000,
+    start: 280_000,
+    stop: 500_000,
     wobble: 30_000
   },
   meo: {
-    start: 1_450_000,
-    stop: 1_850_000,
-    wobble: 55_000
+    start: 2_900_000,
+    stop: 3_800_000,
+    wobble: 80_000
   },
   geo: {
-    start: 2_800_000,
-    stop: 2_800_000,
+    start: 6_200_000,
+    stop: 6_200_000,
     wobble: 0
   }
 } satisfies Record<
   M8aV4OrbitClass,
   { start: number; stop: number; wobble: number }
 >;
+const M8A_V4_MEO_DISPLAY_LANE_LATITUDE_BIAS_DEGREES = 8;
+const M8A_V4_MEO_DISPLAY_LANE_LONGITUDE_BIAS_DEGREES = -5;
+const M8A_V4_GEO_DISPLAY_DRIFT_LATITUDE_DEGREES = 1.2;
+const M8A_V4_GEO_DISPLAY_DRIFT_LONGITUDE_DEGREES = 3.8;
+const M8A_V4_GEO_DISPLAY_DRIFT_CYCLE_RATE = 0.22;
 
 const M8A_V4_TELEMETRY_KEYS = [
   "m8aV4GroundStationRuntimeState",
@@ -400,11 +405,11 @@ function resolveOrbitColor(
 ): Color {
   switch (orbitClass) {
     case "leo":
-      return Color.fromCssColorString("#62d8ff").withAlpha(alpha);
+      return Color.fromCssColorString("#48c7ff").withAlpha(alpha);
     case "meo":
-      return Color.fromCssColorString("#b9f17d").withAlpha(alpha);
+      return Color.fromCssColorString("#d46bff").withAlpha(alpha);
     case "geo":
-      return Color.fromCssColorString("#ffd166").withAlpha(alpha);
+      return Color.fromCssColorString("#ffb23f").withAlpha(alpha);
   }
 }
 
@@ -1007,11 +1012,18 @@ export function createM8aV4GroundStationSceneController({
 
     if (track.trackKind === "east-asia-near-fixed-geo-anchor") {
       // Source GEO altitude stays in sourcePosition; render height is compressed
-      // so one continuity anchor does not dominate the viewport framing.
+      // and the tiny replay drift is display-only, so one continuity anchor
+      // reads as a GEO layer without implying active serving-satellite truth.
+      const geoLoopRatio = normalizeUnit(
+        timeRatio * M8A_V4_GEO_DISPLAY_DRIFT_CYCLE_RATE + track.phaseOffset
+      );
+      const geoAngle = geoLoopRatio * Math.PI * 2;
       return {
         cartesian: Cartesian3.fromDegrees(
-          track.start.lon,
-          track.start.lat,
+          track.start.lon +
+            Math.sin(geoAngle) * M8A_V4_GEO_DISPLAY_DRIFT_LONGITUDE_DEGREES,
+          track.start.lat +
+            Math.cos(geoAngle) * M8A_V4_GEO_DISPLAY_DRIFT_LATITUDE_DEGREES,
           M8A_V4_DISPLAY_ORBIT_HEIGHT_METERS.geo.start,
           undefined,
           result ?? new Cartesian3()
@@ -1032,8 +1044,14 @@ export function createM8aV4GroundStationSceneController({
 
     return {
       cartesian: Cartesian3.fromDegrees(
-        lerp(track.start.lon, track.stop.lon, easedRatio),
-        lerp(track.start.lat, track.stop.lat, easedRatio),
+        lerp(track.start.lon, track.stop.lon, easedRatio) +
+          (actor.orbitClass === "meo"
+            ? M8A_V4_MEO_DISPLAY_LANE_LONGITUDE_BIAS_DEGREES
+            : 0),
+        lerp(track.start.lat, track.stop.lat, easedRatio) +
+          (actor.orbitClass === "meo"
+            ? M8A_V4_MEO_DISPLAY_LANE_LATITUDE_BIAS_DEGREES
+            : 0),
         heightMeters,
         undefined,
         result ?? new Cartesian3()

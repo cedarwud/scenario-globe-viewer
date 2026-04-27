@@ -416,6 +416,15 @@ async function main() {
             const geoRenderRadius = geoActor
               ? radialDistance(geoActor.renderPositionEcefMeters)
               : null;
+            const actorScreenRecords = config.expectedActorIds.map(
+              (actorId, index) => ({
+                actorId,
+                orbitClass:
+                  state.actors.find((actor) => actor.actorId === actorId)
+                    ?.orbitClass ?? null,
+                point: actorCanvasPoints[index]
+              })
+            );
             const endpointYValues = endpointCanvasPoints
               .filter(Boolean)
               .map((point) => point.y);
@@ -431,6 +440,17 @@ async function main() {
             const endpointVerticalSpread = lowestEndpointY - highestEndpointY;
             const highestActorY = Math.min(...actorYValues);
             const lowestActorY = Math.max(...actorYValues);
+            const leoActorYValues = actorScreenRecords
+              .filter((actor) => actor.orbitClass === "leo" && actor.point)
+              .map((actor) => actor.point.y);
+            const meoActorScreen = actorScreenRecords.find(
+              (actor) => actor.orbitClass === "meo"
+            )?.point;
+            const geoActorScreen = actorScreenRecords.find(
+              (actor) => actor.orbitClass === "geo"
+            )?.point;
+            const highestLeoActorY = Math.min(...leoActorYValues);
+            const lowestLeoActorY = Math.max(...leoActorYValues);
             const hud = document.querySelector(
               "[data-m8a-v4-ground-station-scene='true']"
             );
@@ -497,8 +517,8 @@ async function main() {
                 endpointVerticalSpread < 140 &&
                 endpointScreenDistance > 160 &&
                 endpointScreenDistance < 240 &&
-                highestActorY > window.innerHeight * 0.48 &&
-                highestActorY < window.innerHeight * 0.58 &&
+                highestActorY > window.innerHeight * 0.12 &&
+                highestActorY < window.innerHeight * 0.5 &&
                 lowestActorY < window.innerHeight * 0.72,
               "V4.5 desktop camera must place the globe in the lower half, keep the endpoint pair near the globe's upper edge, and reserve upper sky for orbit actors: " +
                 JSON.stringify({
@@ -519,15 +539,15 @@ async function main() {
             assert(
               geoActor &&
                 geoSourceRadius > 40000000 &&
-                geoRenderRadius > 9000000 &&
-                geoRenderRadius < 9300000 &&
-                geoSourceRadius - geoRenderRadius > 32000000 &&
-                minActorRenderRadius > 6700000 &&
-                maxActorRenderRadius < 9300000 &&
+                geoRenderRadius > 12400000 &&
+                geoRenderRadius < 12800000 &&
+                geoSourceRadius - geoRenderRadius > 29000000 &&
+                minActorRenderRadius > 6600000 &&
+                maxActorRenderRadius < 12800000 &&
                 Number.isFinite(maxLeoRenderRadius) &&
                 Number.isFinite(meoRenderRadius) &&
-                meoRenderRadius - maxLeoRenderRadius > 850000 &&
-                geoRenderRadius - meoRenderRadius > 1000000 &&
+                meoRenderRadius - maxLeoRenderRadius > 2300000 &&
+                geoRenderRadius - meoRenderRadius > 2000000 &&
                 insideViewportPoint(geoCanvasPoint),
               "V4.5 orbit actors must stay source-true but use compressed display heights near the endpoint-focused view: " +
                 JSON.stringify({
@@ -547,6 +567,27 @@ async function main() {
                   },
                   geoCanvasPoint,
                   actorRenderRadii,
+                  viewport: {
+                    width: window.innerWidth,
+                    height: window.innerHeight
+                  }
+                })
+            );
+            assert(
+              Number.isFinite(highestLeoActorY) &&
+                Number.isFinite(lowestLeoActorY) &&
+                meoActorScreen &&
+                geoActorScreen &&
+                meoActorScreen.y < highestLeoActorY - 160 &&
+                geoActorScreen.y < highestLeoActorY - 120 &&
+                geoActorScreen.x < window.innerWidth * 0.28,
+              "V4.5 orbit actor lanes must separate LEO, MEO, and GEO in screen space: " +
+                JSON.stringify({
+                  highestLeoActorY,
+                  lowestLeoActorY,
+                  meoActorScreen,
+                  geoActorScreen,
+                  actorScreenRecords,
                   viewport: {
                     width: window.innerWidth,
                     height: window.innerHeight
