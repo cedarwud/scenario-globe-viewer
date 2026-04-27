@@ -87,13 +87,6 @@ const M8A_V4_DISPLAY_ORBIT_HEIGHT_METERS = {
 >;
 const M8A_V4_MEO_DISPLAY_LANE_LATITUDE_BIAS_DEGREES = 8;
 const M8A_V4_MEO_DISPLAY_LANE_LONGITUDE_BIAS_DEGREES = -5;
-const M8A_V4_FAKE_GEO_HEIGHT_REFERENCE_ID =
-  "m8a-v4-fake-geo-height-reference";
-const M8A_V4_FAKE_GEO_HEIGHT_REFERENCE_POSITION = {
-  lat: -6,
-  lon: 114,
-  heightMeters: M8A_V4_DISPLAY_ORBIT_HEIGHT_METERS.geo.start
-} satisfies M8aV4GeoPosition;
 
 const M8A_V4_TELEMETRY_KEYS = [
   "m8aV4GroundStationRuntimeState",
@@ -409,7 +402,7 @@ function resolveOrbitColor(
 ): Color {
   switch (orbitClass) {
     case "leo":
-      return Color.fromCssColorString("#48c7ff").withAlpha(alpha);
+      return Color.fromCssColorString("#ff5f7a").withAlpha(alpha);
     case "meo":
       return Color.fromCssColorString("#d46bff").withAlpha(alpha);
     case "geo":
@@ -567,54 +560,6 @@ function createActorModelGraphics(
     maximumScale: new ConstantProperty(180_000),
     color: new ConstantProperty(resolveOrbitColor(actor.orbitClass, 0.9)),
     colorBlendAmount: new ConstantProperty(0.2)
-  });
-}
-
-function createFakeGeoHeightReferenceModelGraphics(
-  modelUri: string
-): ModelGraphics {
-  return new ModelGraphics({
-    uri: new ConstantProperty(modelUri),
-    scale: new ConstantProperty(0.94),
-    minimumPixelSize: new ConstantProperty(54),
-    maximumScale: new ConstantProperty(180_000),
-    color: new ConstantProperty(resolveOrbitColor("geo", 0.88)),
-    colorBlendAmount: new ConstantProperty(0.22)
-  });
-}
-
-function createFakeGeoHeightReferenceLabelStyle(): LabelGraphics {
-  return new LabelGraphics({
-    text: new ConstantProperty("Fake GEO height reference"),
-    font: "12px sans-serif",
-    scale: 0.9,
-    style: LabelStyle.FILL_AND_OUTLINE,
-    fillColor: new ConstantProperty(Color.WHITE.withAlpha(0.92)),
-    outlineColor: new ConstantProperty(
-      Color.fromCssColorString("#06121a").withAlpha(0.96)
-    ),
-    outlineWidth: 2,
-    showBackground: true,
-    backgroundColor: new ConstantProperty(resolveOrbitColor("geo", 0.24)),
-    backgroundPadding: new Cartesian2(8, 4),
-    pixelOffset: new Cartesian2(0, -34),
-    horizontalOrigin: HorizontalOrigin.CENTER,
-    verticalOrigin: VerticalOrigin.BOTTOM,
-    disableDepthTestDistance: Number.POSITIVE_INFINITY,
-    distanceDisplayCondition: new DistanceDisplayCondition(0, 100_000_000)
-  });
-}
-
-function createFakeGeoHeightReferencePointStyle(): PointGraphics {
-  return new PointGraphics({
-    pixelSize: new ConstantProperty(10),
-    color: new ConstantProperty(resolveOrbitColor("geo", 0.96)),
-    outlineColor: new ConstantProperty(
-      Color.fromCssColorString("#06121a").withAlpha(0.96)
-    ),
-    outlineWidth: 2,
-    disableDepthTestDistance: Number.POSITIVE_INFINITY,
-    distanceDisplayCondition: new DistanceDisplayCondition(0, 90_000_000)
   });
 }
 
@@ -1146,17 +1091,6 @@ export function createM8aV4GroundStationSceneController({
         };
       }
     );
-  dataSource.entities.add({
-    id: M8A_V4_FAKE_GEO_HEIGHT_REFERENCE_ID,
-    name: "Fake GEO height reference",
-    position: positionToCartesian(M8A_V4_FAKE_GEO_HEIGHT_REFERENCE_POSITION),
-    point: createFakeGeoHeightReferencePointStyle(),
-    model: createFakeGeoHeightReferenceModelGraphics(modelUri),
-    label: createFakeGeoHeightReferenceLabelStyle(),
-    description: new ConstantProperty(
-      "Display-only fake GEO height reference for viewport evaluation. Not a source actor, not an active serving satellite, and not part of the V4 orbit actor count."
-    )
-  });
 
   const resolveRelationOrbit = (
     role: M8aV4RelationRole,
