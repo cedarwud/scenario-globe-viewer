@@ -379,8 +379,16 @@ async function main() {
             const endpointYValues = endpointCanvasPoints
               .filter(Boolean)
               .map((point) => point.y);
+            const actorYValues = actorCanvasPoints
+              .filter(Boolean)
+              .map((point) => point.y);
             const lowestEndpointY = Math.max(...endpointYValues);
             const highestEndpointY = Math.min(...endpointYValues);
+            const endpointMidY =
+              endpointCanvasPoints[0] && endpointCanvasPoints[1]
+                ? (endpointCanvasPoints[0].y + endpointCanvasPoints[1].y) / 2
+                : null;
+            const lowestActorY = Math.max(...actorYValues);
             const hud = document.querySelector(
               "[data-m8a-v4-ground-station-scene='true']"
             );
@@ -439,16 +447,21 @@ async function main() {
                 })
             );
             assert(
-              highestEndpointY > window.innerHeight * 0.58 &&
-                lowestEndpointY < window.innerHeight * 0.9 &&
-                endpointScreenDistance > 180 &&
-                endpointScreenDistance < 420,
-              "V4.5 desktop camera must zoom into the endpoint pair while keeping it inside the viewport: " +
+              endpointMidY > window.innerHeight * 0.36 &&
+                endpointMidY < window.innerHeight * 0.58 &&
+                highestEndpointY > window.innerHeight * 0.22 &&
+                lowestEndpointY < window.innerHeight * 0.72 &&
+                endpointScreenDistance > 340 &&
+                endpointScreenDistance < 460 &&
+                lowestActorY < window.innerHeight * 0.76,
+              "V4.5 desktop camera must rotate the endpoint pair upward, keep more sky visible, and stay close enough for inspection: " +
                 JSON.stringify({
                   endpointCanvasPoints,
                   endpointScreenDistance,
+                  endpointMidY,
                   highestEndpointY,
                   lowestEndpointY,
+                  lowestActorY,
                   viewport: {
                     width: window.innerWidth,
                     height: window.innerHeight

@@ -59,10 +59,11 @@ export const M8A_V4_GROUND_STATION_RUNTIME_STATE =
 export const M8A_V4_GROUND_STATION_PROOF_SEAM =
   "window.__SCENARIO_GLOBE_VIEWER_CAPTURE__.m8aV4GroundStationScene";
 
-const M8A_V4_CAMERA_LONGITUDE = 118;
-const M8A_V4_CAMERA_LATITUDE = 15;
-const M8A_V4_CAMERA_HEIGHT_METERS = 16_000_000;
-const M8A_V4_CAMERA_PITCH_DEGREES = -80;
+const M8A_V4_CAMERA_LONGITUDE = 114;
+const M8A_V4_CAMERA_LATITUDE = 2;
+const M8A_V4_CAMERA_HEIGHT_METERS = 9_000_000;
+const M8A_V4_CAMERA_HEADING_DEGREES = 0;
+const M8A_V4_CAMERA_PITCH_DEGREES = -84;
 const M8A_V4_DISPLAY_ORBIT_HEIGHT_METERS = {
   leo: {
     start: 520_000,
@@ -383,7 +384,7 @@ function applyV4Camera(viewer: Viewer): void {
       M8A_V4_CAMERA_HEIGHT_METERS
     ),
     orientation: {
-      heading: 0,
+      heading: CesiumMath.toRadians(M8A_V4_CAMERA_HEADING_DEGREES),
       pitch: CesiumMath.toRadians(M8A_V4_CAMERA_PITCH_DEGREES),
       roll: 0
     }
