@@ -19,7 +19,6 @@ import {
   PointGraphics,
   PolylineDashMaterialProperty,
   PolylineGraphics,
-  Rectangle,
   VerticalOrigin,
   type Viewer
 } from "cesium";
@@ -59,6 +58,8 @@ export const M8A_V4_GROUND_STATION_RUNTIME_STATE =
   "active-v4.3-continuous-multi-orbit-handover-scene";
 export const M8A_V4_GROUND_STATION_PROOF_SEAM =
   "window.__SCENARIO_GLOBE_VIEWER_CAPTURE__.m8aV4GroundStationScene";
+
+const M8A_V4_GEO_DISPLAY_HEIGHT_METERS = 9_000_000;
 
 const M8A_V4_TELEMETRY_KEYS = [
   "m8aV4GroundStationRuntimeState",
@@ -340,18 +341,15 @@ function configureReplayClock(viewer: Viewer, replayClock: ReplayClock): void {
 
 function applyV4Camera(viewer: Viewer): void {
   viewer.camera.cancelFlight();
-  viewer.camera.flyTo({
-    destination: Rectangle.fromDegrees(78, -15, 154, 43),
+  viewer.camera.setView({
+    destination: Cartesian3.fromDegrees(118, 15, 26_000_000),
     orientation: {
-      heading: CesiumMath.toRadians(8),
-      pitch: CesiumMath.toRadians(-68),
+      heading: 0,
+      pitch: CesiumMath.toRadians(-90),
       roll: 0
-    },
-    duration: 0.15,
-    complete: () => {
-      viewer.scene.requestRender();
     }
   });
+  viewer.scene.requestRender();
 }
 
 function resolveOrbitColor(
@@ -966,11 +964,13 @@ export function createM8aV4GroundStationSceneController({
     const track = actor.runtimeDisplayTrack;
 
     if (track.trackKind === "east-asia-near-fixed-geo-anchor") {
+      // Source GEO altitude stays in sourcePosition; render height is compressed
+      // so one continuity anchor does not dominate the viewport framing.
       return {
         cartesian: Cartesian3.fromDegrees(
           track.start.lon,
           track.start.lat,
-          track.start.heightMeters,
+          M8A_V4_GEO_DISPLAY_HEIGHT_METERS,
           undefined,
           result ?? new Cartesian3()
         ),

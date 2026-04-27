@@ -145,6 +145,8 @@ async function main() {
                 left.z - right.z
               );
             };
+            const radialDistance = (position) =>
+              Math.hypot(position.x, position.y, position.z);
             const seekToRatio = async (ratio) => {
               const capture = window.__SCENARIO_GLOBE_VIEWER_CAPTURE__;
               const replayState = capture.replayClock.getState();
@@ -360,6 +362,20 @@ async function main() {
                 ) < 1,
               "V4.3 GEO anchor must remain fixed as continuity anchor."
             );
+            const geoSourceRadius = radialDistance(
+              geoBefore.sourcePositionEcefMeters
+            );
+            const geoRenderRadius = radialDistance(
+              geoBefore.renderPositionEcefMeters
+            );
+            assert(
+              geoSourceRadius > 40000000 &&
+                geoRenderRadius > 15000000 &&
+                geoRenderRadius < 19000000 &&
+                geoSourceRadius - geoRenderRadius > 20000000,
+              "V4.3 GEO source altitude must stay high while render height is display-compressed: " +
+                JSON.stringify({ geoSourceRadius, geoRenderRadius })
+            );
 
             return {
               projectionId: initialState.projectionId,
@@ -372,6 +388,8 @@ async function main() {
                 state85.serviceState.window.windowId
               ],
               movedActors,
+              geoSourceRadius,
+              geoRenderRadius,
               rawPackageSideReadOwnership:
                 initialState.sourceLineage.rawPackageSideReadOwnership
             };

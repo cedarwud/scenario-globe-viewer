@@ -247,6 +247,16 @@ async function main() {
                 height: rect.height
               };
             };
+            const radialDistance = (position) =>
+              Math.hypot(position.x, position.y, position.z);
+            const pointToPlain = (point) =>
+              point ? { x: point.x, y: point.y } : null;
+            const insideViewportPoint = (point) =>
+              point &&
+              point.x >= 0 &&
+              point.y >= 0 &&
+              point.x <= window.innerWidth &&
+              point.y <= window.innerHeight;
             const collectEntityText = (dataSource) =>
               (dataSource?.entities?.values ?? [])
                 .map((entity) => {
@@ -323,6 +333,26 @@ async function main() {
             const actorEntities = config.expectedActorIds.map((actorId) =>
               dataSource?.entities?.getById(actorId)
             );
+            const geoActor = state.actors.find(
+              (actor) => actor.orbitClass === "geo"
+            );
+            const geoEntity = dataSource?.entities?.getById(
+              "st-2-geo-continuity-anchor"
+            );
+            const geoPosition = geoEntity?.position?.getValue?.(
+              capture.viewer.clock.currentTime
+            );
+            const geoCanvasPoint = pointToPlain(
+              geoPosition
+                ? capture.viewer.scene.cartesianToCanvasCoordinates(geoPosition)
+                : null
+            );
+            const geoSourceRadius = geoActor
+              ? radialDistance(geoActor.sourcePositionEcefMeters)
+              : null;
+            const geoRenderRadius = geoActor
+              ? radialDistance(geoActor.renderPositionEcefMeters)
+              : null;
             const hud = document.querySelector(
               "[data-m8a-v4-ground-station-scene='true']"
             );
@@ -375,6 +405,25 @@ async function main() {
                 JSON.stringify({ actorIds, counts: state.orbitActorCounts })
             );
             assert(
+              geoActor &&
+                geoSourceRadius > 40000000 &&
+                geoRenderRadius > 15000000 &&
+                geoRenderRadius < 19000000 &&
+                geoSourceRadius - geoRenderRadius > 20000000 &&
+                insideViewportPoint(geoCanvasPoint),
+              "V4.5 GEO continuity anchor must stay source-true but display-compressed inside the desktop viewport: " +
+                JSON.stringify({
+                  geoActorId: geoActor?.actorId,
+                  geoSourceRadius,
+                  geoRenderRadius,
+                  geoCanvasPoint,
+                  viewport: {
+                    width: window.innerWidth,
+                    height: window.innerHeight
+                  }
+                })
+            );
+            assert(
               state.serviceState.truthState === "modeled" &&
                 state.serviceState.isNativeRfHandover === false &&
                 state.serviceState.measuredLatency === false &&
@@ -419,6 +468,9 @@ async function main() {
               endpoints: endpointIds,
               orbitActorCounts: state.orbitActorCounts,
               timelineWindows: state.serviceState.timelineWindowIds,
+              geoSourceRadius,
+              geoRenderRadius,
+              geoCanvasPoint,
               hudRect: rectToPlain(hud),
               hudHidden: hud instanceof HTMLElement ? hud.hidden : null
             };
