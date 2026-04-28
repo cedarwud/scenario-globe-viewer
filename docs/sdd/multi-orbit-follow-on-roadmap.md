@@ -243,6 +243,7 @@ Goal:
 Primary planning home:
 
 - [m8a-vnext-multi-orbit-simulation-roadmap.md](./m8a-vnext-multi-orbit-simulation-roadmap.md)
+- [m8a-vnext-planning-control-handoff.md](./m8a-vnext-planning-control-handoff.md)
 
 Why it matters:
 

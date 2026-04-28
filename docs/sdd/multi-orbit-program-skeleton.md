@@ -21,6 +21,10 @@ Related V4 scope reset: see
 [../decisions/0013-ground-station-multi-orbit-scope-reset.md](../decisions/0013-ground-station-multi-orbit-scope-reset.md).
 Related V4 SDD: see
 [./m8a-v4-ground-station-multi-orbit-handover-plan.md](./m8a-v4-ground-station-multi-orbit-handover-plan.md).
+Related VNext roadmap: see
+[./m8a-vnext-multi-orbit-simulation-roadmap.md](./m8a-vnext-multi-orbit-simulation-roadmap.md).
+Related VNext planning-control handoff: see
+[./m8a-vnext-planning-control-handoff.md](./m8a-vnext-planning-control-handoff.md).
 
 ## Status
 
@@ -122,8 +126,38 @@ Current V4 authority:
 - [./m8a-v4-ground-station-multi-orbit-handover-plan.md](./m8a-v4-ground-station-multi-orbit-handover-plan.md)
 - [../../../itri/multi-orbit/download/ground-station-endpoint-candidates/2026-04-25/README.md](../../../itri/multi-orbit/download/ground-station-endpoint-candidates/2026-04-25/README.md)
 
-No V4 code should be written until the endpoint-pair authority gate accepts
-endpoint A/B and their `LEO/MEO/GEO` evidence matrix.
+At the time of the scope correction, no V4 code could be written until the
+endpoint-pair authority gate accepted endpoint A/B and their `LEO/MEO/GEO`
+evidence matrix.
+
+## V4.5 And VNext Status As Of 2026-04-28
+
+The original V4 pre-runtime gate has been satisfied for the first accepted
+operator-family endpoint pair:
+
+- endpoint A: Taiwan / Chunghwa Telecom multi-orbit ground infrastructure
+- endpoint B: Singapore / Speedcast Singapore Teleport
+- accepted precision: `operator-family` only
+- accepted projection artifact:
+  `public/fixtures/ground-station-projections/m8a-v4-taiwan-cht-speedcast-singapore-operator-family-2026-04-26.json`
+
+The viewer line has progressed through:
+
+- `M8A-V4.3` runtime implementation
+- `M8A-V4.4` homepage entry
+- `M8A-V4.5` visual acceptance/regression
+- post-V4.5 visual cleanup for original satellite materials and MEO/GEO glow
+  markers
+
+Current continuation authority:
+
+- [./m8a-vnext-multi-orbit-simulation-roadmap.md](./m8a-vnext-multi-orbit-simulation-roadmap.md)
+- [./m8a-vnext-planning-control-handoff.md](./m8a-vnext-planning-control-handoff.md)
+
+The next recommended execution phase is `V4.6A Full LEO Orbit Replay`.
+Endpoint expansion, actor enrichment, and handover model work remain
+phase-gated by the VNext roadmap. `R2` remains read-only and must not become a
+runtime selector.
 
 ## Program Phases
 

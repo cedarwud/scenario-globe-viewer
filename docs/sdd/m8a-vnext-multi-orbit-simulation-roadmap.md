@@ -13,6 +13,8 @@ Related follow-on roadmap:
 [./multi-orbit-follow-on-roadmap.md](./multi-orbit-follow-on-roadmap.md).
 Related scope reset:
 [../decisions/0013-ground-station-multi-orbit-scope-reset.md](../decisions/0013-ground-station-multi-orbit-scope-reset.md).
+Related planning-control handoff:
+[./m8a-vnext-planning-control-handoff.md](./m8a-vnext-planning-control-handoff.md).
 
 ## Status
 

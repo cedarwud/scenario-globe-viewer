@@ -18,6 +18,10 @@ Related accepted V4.2 projection contract:
 [../data-contracts/m8a-v4-ground-station-projection.md](../data-contracts/m8a-v4-ground-station-projection.md).
 Related accepted V4.2 projected artifact:
 [../../public/fixtures/ground-station-projections/m8a-v4-taiwan-cht-speedcast-singapore-operator-family-2026-04-26.json](../../public/fixtures/ground-station-projections/m8a-v4-taiwan-cht-speedcast-singapore-operator-family-2026-04-26.json).
+Related VNext continuation roadmap:
+[./m8a-vnext-multi-orbit-simulation-roadmap.md](./m8a-vnext-multi-orbit-simulation-roadmap.md).
+Related VNext planning-control handoff:
+[./m8a-vnext-planning-control-handoff.md](./m8a-vnext-planning-control-handoff.md).
 Related technical foundation:
 [./m8a-v3.5-source-lineaged-orbit-actor-recovery-plan.md](./m8a-v3.5-source-lineaged-orbit-actor-recovery-plan.md).
 
