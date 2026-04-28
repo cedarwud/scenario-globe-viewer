@@ -15,6 +15,8 @@ Related scope reset:
 [../decisions/0013-ground-station-multi-orbit-scope-reset.md](../decisions/0013-ground-station-multi-orbit-scope-reset.md).
 Related planning-control handoff:
 [./m8a-vnext-planning-control-handoff.md](./m8a-vnext-planning-control-handoff.md).
+Related V4.6B source/projection record:
+[./m8a-v4.6b-source-lineaged-orbit-actor-projection.md](./m8a-v4.6b-source-lineaged-orbit-actor-projection.md).
 
 ## Status
 
@@ -245,7 +247,11 @@ Acceptance criteria:
 
 Implementation status:
 
-- blocked until a source/projection step produces accepted actor records
+- source/projection gate accepted for a richer actor set in
+  [m8a-v4.6b-source-lineaged-orbit-actor-projection.md](./m8a-v4.6b-source-lineaged-orbit-actor-projection.md)
+- runtime rendering remains not implemented for the enriched actor set until a
+  later execution phase updates the repo-owned generated module and runtime
+  tests
 
 ## Phase V4.6C - Endpoint Expansion And Selectable Scenarios
 
@@ -420,7 +426,8 @@ V4.6A likely changes:
 V4.6B likely changes:
 
 - `public/fixtures/ground-station-projections/*.json`
-- `src/runtime/m8a-v4-ground-station-projection.ts`
+- `src/runtime/m8a-v4-ground-station-projection.ts` only in a later runtime
+  consumption phase, not in the source/projection-only pass
 - actor projection or validation scripts if introduced
 - visual smoke tests
 

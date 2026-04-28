@@ -1,12 +1,14 @@
+import v46bGroundStationProjectionArtifact from "../../public/fixtures/ground-station-projections/m8a-v4.6b-taiwan-cht-speedcast-singapore-source-lineaged-orbit-actors-2026-04-28.json";
+
 export const M8A_V4_GROUND_STATION_SCENARIO_ID =
   "m8a-v4-ground-station-multi-orbit-handover";
 export const M8A_V4_GROUND_STATION_ARTIFACT_ID =
-  "m8a-v4-taiwan-cht-speedcast-singapore-operator-family-2026-04-26";
+  "m8a-v4.6b-taiwan-cht-speedcast-singapore-source-lineaged-orbit-actors-2026-04-28";
 export const M8A_V4_GROUND_STATION_QUERY_PARAM =
   "m8aV4GroundStationScene";
 export const M8A_V4_GROUND_STATION_QUERY_VALUE = "1";
 export const M8A_V4_GROUND_STATION_RUNTIME_PROJECTION_ID =
-  "m8a-v4.3-ground-station-runtime-projection.v1";
+  "m8a-v4.6b-ground-station-runtime-projection.v1";
 export const M8A_V4_GROUND_STATION_MODEL_ASSET_ID =
   "generic-satellite-glb-simple-satellite-low-poly-free";
 export const M8A_V4_GROUND_STATION_MODEL_PUBLIC_PATH =
@@ -240,6 +242,19 @@ export interface M8aV4RuntimeNarrativeNonClaims {
   noNativeRfHandover: true;
 }
 
+type M8aV4AcceptedOrbitActorProjection = Omit<
+  M8aV4OrbitActorProjection,
+  "label" | "artifactRenderPosition" | "runtimeDisplayTrack"
+> & {
+  renderPosition: M8aV4OrbitActorProjection["artifactRenderPosition"];
+};
+
+interface M8aV4AcceptedGroundStationProjectionArtifact {
+  artifactId: typeof M8A_V4_GROUND_STATION_ARTIFACT_ID;
+  projectionEpochUtc: string;
+  orbitActors: ReadonlyArray<M8aV4AcceptedOrbitActorProjection>;
+}
+
 export interface M8aV4GroundStationRuntimeProjection {
   projectionId: typeof M8A_V4_GROUND_STATION_RUNTIME_PROJECTION_ID;
   generatedFromArtifactId: typeof M8A_V4_GROUND_STATION_ARTIFACT_ID;
@@ -323,12 +338,161 @@ export const M8A_V4_GROUND_STATION_NON_CLAIMS: M8aV4NonClaimSet = {
   noOrdinaryHandsetUe: true
 };
 
-const SOURCE_POSITION_PRECISION =
-  "CelesTrak NORAD GP TLE propagated to the TLE source epoch; display-context only";
-const RENDER_POSITION_BASIS =
-  "CelesTrak NORAD GP TLE propagated to projectionEpochUtc for viewer-owned display context; not active serving-satellite truth";
-const RUNTIME_TRACK_BASIS =
-  "V4.3 repo-owned display track generated from the accepted viewer-owned projection for first-frame East/Southeast Asia readability; not source truth, not an active service path, and not native RF handover.";
+const M8A_V4_ACCEPTED_V46B_ARTIFACT =
+  v46bGroundStationProjectionArtifact as M8aV4AcceptedGroundStationProjectionArtifact;
+
+const M8A_V4_RUNTIME_TRACK_BASIS =
+  "V4.6B repo-owned display track generated from the accepted viewer-owned projection for East/Southeast Asia readability; not source truth, not an active service path, and not native RF handover.";
+
+const M8A_V4_RUNTIME_TRACK_PRESETS = {
+  leo: [
+    {
+      start: { lat: 7.4, lon: 96.5, heightMeters: 1240000 },
+      stop: { lat: 34.8, lon: 128.8, heightMeters: 1300000 },
+      phaseOffset: 0,
+      cycleRate: 1
+    },
+    {
+      start: { lat: -2.2, lon: 111.5, heightMeters: 1205000 },
+      stop: { lat: 29.5, lon: 146.2, heightMeters: 1275000 },
+      phaseOffset: 0.17,
+      cycleRate: 1.08
+    },
+    {
+      start: { lat: 38.5, lon: 104.5, heightMeters: 1230000 },
+      stop: { lat: 5.5, lon: 137.2, heightMeters: 1290000 },
+      phaseOffset: 0.34,
+      cycleRate: 0.96
+    },
+    {
+      start: { lat: 18.5, lon: 88.0, heightMeters: 1210000 },
+      stop: { lat: 42.0, lon: 119.0, heightMeters: 1280000 },
+      phaseOffset: 0.51,
+      cycleRate: 1.04
+    },
+    {
+      start: { lat: -8.0, lon: 96.0, heightMeters: 1195000 },
+      stop: { lat: 22.0, lon: 132.0, heightMeters: 1265000 },
+      phaseOffset: 0.68,
+      cycleRate: 1.12
+    },
+    {
+      start: { lat: 31.0, lon: 137.0, heightMeters: 1220000 },
+      stop: { lat: 2.0, lon: 105.0, heightMeters: 1295000 },
+      phaseOffset: 0.85,
+      cycleRate: 0.92
+    }
+  ],
+  meo: [
+    {
+      start: { lat: -6.5, lon: 87.8, heightMeters: 8057000 },
+      stop: { lat: 27.5, lon: 137.8, heightMeters: 8082000 },
+      phaseOffset: 0.08,
+      cycleRate: 0.42
+    },
+    {
+      start: { lat: 4.5, lon: 93.5, heightMeters: 8055000 },
+      stop: { lat: 18.5, lon: 148.0, heightMeters: 8080000 },
+      phaseOffset: 0.28,
+      cycleRate: 0.38
+    },
+    {
+      start: { lat: 16.0, lon: 83.0, heightMeters: 8056000 },
+      stop: { lat: 31.0, lon: 126.0, heightMeters: 8081000 },
+      phaseOffset: 0.48,
+      cycleRate: 0.44
+    },
+    {
+      start: { lat: -10.0, lon: 115.0, heightMeters: 8054000 },
+      stop: { lat: 15.0, lon: 145.0, heightMeters: 8083000 },
+      phaseOffset: 0.68,
+      cycleRate: 0.36
+    },
+    {
+      start: { lat: 26.0, lon: 102.0, heightMeters: 8058000 },
+      stop: { lat: -2.0, lon: 133.0, heightMeters: 8084000 },
+      phaseOffset: 0.88,
+      cycleRate: 0.4
+    }
+  ],
+  geo: []
+} satisfies Record<
+  M8aV4OrbitClass,
+  ReadonlyArray<{
+    start: M8aV4GeoPosition;
+    stop: M8aV4GeoPosition;
+    phaseOffset: number;
+    cycleRate: number;
+  }>
+>;
+
+function resolveRuntimeActorLabel(
+  actor: M8aV4AcceptedOrbitActorProjection
+): string {
+  const sourceRecordName = actor.sourceLineage[0]?.sourceRecordName ?? actor.actorId;
+
+  if (actor.actorId === "st-2-geo-continuity-anchor") {
+    return "ST-2 GEO continuity anchor";
+  }
+
+  return `${sourceRecordName} ${actor.orbitClass.toUpperCase()} display-context`;
+}
+
+function resolveRuntimeDisplayTrack(
+  actor: M8aV4AcceptedOrbitActorProjection,
+  orbitClassIndex: number
+): M8aV4OrbitActorProjection["runtimeDisplayTrack"] {
+  if (actor.orbitClass === "geo") {
+    return {
+      trackKind: "east-asia-near-fixed-geo-anchor",
+      start: actor.renderPosition,
+      stop: actor.renderPosition,
+      phaseOffset: 0,
+      cycleRate: 0,
+      renderTrackBasis:
+        "Accepted projected GEO display-context anchor position; display context only, not active serving-satellite truth.",
+      renderTrackIsSourceTruth: false
+    };
+  }
+
+  const presets = M8A_V4_RUNTIME_TRACK_PRESETS[actor.orbitClass];
+  const preset = presets[orbitClassIndex % presets.length];
+
+  if (!preset) {
+    throw new Error(`Missing V4.6B display track preset for ${actor.actorId}.`);
+  }
+
+  return {
+    trackKind: "east-asia-display-context-track",
+    start: preset.start,
+    stop: preset.stop,
+    phaseOffset: preset.phaseOffset,
+    cycleRate: preset.cycleRate,
+    renderTrackBasis: M8A_V4_RUNTIME_TRACK_BASIS,
+    renderTrackIsSourceTruth: false
+  };
+}
+
+function buildV46bRuntimeOrbitActors(): ReadonlyArray<M8aV4OrbitActorProjection> {
+  const orbitClassIndexes: Record<M8aV4OrbitClass, number> = {
+    leo: 0,
+    meo: 0,
+    geo: 0
+  };
+
+  return M8A_V4_ACCEPTED_V46B_ARTIFACT.orbitActors.map((actor) => {
+    const orbitClassIndex = orbitClassIndexes[actor.orbitClass];
+    orbitClassIndexes[actor.orbitClass] += 1;
+    const { renderPosition, ...actorWithoutRenderPosition } = actor;
+
+    return {
+      ...actorWithoutRenderPosition,
+      label: resolveRuntimeActorLabel(actor),
+      artifactRenderPosition: renderPosition,
+      runtimeDisplayTrack: resolveRuntimeDisplayTrack(actor, orbitClassIndex)
+    };
+  });
+}
 
 export const M8A_V4_GROUND_STATION_RUNTIME_PROJECTION: M8aV4GroundStationRuntimeProjection =
   {
@@ -336,7 +500,7 @@ export const M8A_V4_GROUND_STATION_RUNTIME_PROJECTION: M8aV4GroundStationRuntime
     generatedFromArtifactId: M8A_V4_GROUND_STATION_ARTIFACT_ID,
     scenarioId: M8A_V4_GROUND_STATION_SCENARIO_ID,
     artifactStatus: "accepted",
-    projectionEpochUtc: "2026-04-26T10:21:10Z",
+    projectionEpochUtc: M8A_V4_ACCEPTED_V46B_ARTIFACT.projectionEpochUtc,
     sourceAuthority: "repo-owned-generated-module-from-viewer-owned-artifact",
     runtimeConsumptionRule:
       "runtime-controller-render-consume-this-module-only-no-raw-itri-side-read",
@@ -722,465 +886,7 @@ export const M8A_V4_GROUND_STATION_RUNTIME_PROJECTION: M8aV4GroundStationRuntime
       strictEligibilityBoundary:
         "Strict three-orbit eligibility is accepted only at operator-family precision. It is not site-family, site-level, same-site, active-gateway, active-satellite, measured-performance, pair-specific teleport-path, or native RF handover truth."
     },
-    orbitActors: [
-      {
-        actorId: "oneweb-0386-leo-display-context",
-        label: "ONEWEB-0386 LEO display-context",
-        orbitClass: "leo",
-        displayRole: "leo-moving-context-actor",
-        operatorContext: "Eutelsat OneWeb",
-        sourceLineage: [
-          {
-            sourceRefId: "celestrak-gp-oneweb-0386-49312",
-            label: "CelesTrak NORAD GP TLE: ONEWEB-0386",
-            url: "https://celestrak.org/NORAD/elements/gp.php?CATNR=49312&FORMAT=tle",
-            accessedDate: "2026-04-26",
-            supports: [
-              "source-lineaged OneWeb LEO display-context actor",
-              "TLE-derived source-position and render-position projection"
-            ],
-            sourceAuthority: "projection-note",
-            sourceProvider: "CelesTrak",
-            sourceProduct: "NORAD GP TLE",
-            fetchedAtUtc: "2026-04-26T10:21:10Z",
-            sourceRecordName: "ONEWEB-0386",
-            tleLine1:
-              "1 49312U 21090AK  26115.88297094  .00000138  00000+0  30722-3 0  9991",
-            tleLine2:
-              "2 49312  87.9152 284.8654 0001982  99.8596 260.2762 13.20769718222911"
-          }
-        ],
-        sourceEpochUtc: "2026-04-25T21:11:28.689Z",
-        projectionEpochUtc: "2026-04-26T10:21:10Z",
-        freshnessClass: "fresh-display-context",
-        sourcePosition: {
-          positionKind: "source-orbit-position",
-          lat: 0.000079,
-          lon: 113.100908,
-          heightMeters: 1184938,
-          coordinateFrame: "wgs84",
-          precision: SOURCE_POSITION_PRECISION
-        },
-        artifactRenderPosition: {
-          positionKind: "sampled-replay-position",
-          lat: 85.61995,
-          lon: -56.751736,
-          heightMeters: 1194128,
-          coordinateFrame: "wgs84",
-          renderPositionBasis: RENDER_POSITION_BASIS,
-          renderPositionIsSourceTruth: false
-        },
-        runtimeDisplayTrack: {
-          trackKind: "east-asia-display-context-track",
-          start: {
-            lat: 7.4,
-            lon: 96.5,
-            heightMeters: 1240000
-          },
-          stop: {
-            lat: 34.8,
-            lon: 128.8,
-            heightMeters: 1300000
-          },
-          phaseOffset: 0,
-          cycleRate: 1,
-          renderTrackBasis: RUNTIME_TRACK_BASIS,
-          renderTrackIsSourceTruth: false
-        },
-        motionMode: "replay-driven",
-        evidenceClass: "display-context",
-        modelAssetId: M8A_V4_GROUND_STATION_MODEL_ASSET_ID,
-        modelTruth: "generic-satellite-mesh",
-        truthBoundary: {
-          doesClaim: [
-            "ONEWEB-0386 has a source-lineaged CelesTrak NORAD GP TLE record",
-            "the sourcePosition and renderPosition are TLE-derived display-context orbit samples",
-            "the actor may be rendered as a moving LEO display-context satellite"
-          ],
-          doesNotClaim: [
-            "active serving satellite identity",
-            "active gateway assignment",
-            "pair-specific teleport path truth",
-            "measured latency/jitter/throughput truth",
-            "native RF handover",
-            "live operational truth",
-            "OneWeb spacecraft body geometry"
-          ],
-          requiredDisplayBadges: [
-            "modeled service state",
-            "not active satellite",
-            "not native RF handover"
-          ]
-        },
-        nonClaims: M8A_V4_GROUND_STATION_NON_CLAIMS
-      },
-      {
-        actorId: "oneweb-0537-leo-display-context",
-        label: "ONEWEB-0537 LEO display-context",
-        orbitClass: "leo",
-        displayRole: "leo-moving-context-actor",
-        operatorContext: "Eutelsat OneWeb",
-        sourceLineage: [
-          {
-            sourceRefId: "celestrak-gp-oneweb-0537-56046",
-            label: "CelesTrak NORAD GP TLE: ONEWEB-0537",
-            url: "https://celestrak.org/NORAD/elements/gp.php?CATNR=56046&FORMAT=tle",
-            accessedDate: "2026-04-26",
-            supports: [
-              "source-lineaged OneWeb LEO display-context actor",
-              "TLE-derived source-position and render-position projection"
-            ],
-            sourceAuthority: "projection-note",
-            sourceProvider: "CelesTrak",
-            sourceProduct: "NORAD GP TLE",
-            fetchedAtUtc: "2026-04-26T10:21:10Z",
-            sourceRecordName: "ONEWEB-0537",
-            tleLine1:
-              "1 56046U 23043A   26115.83269817 -.00000063  00000+0 -19895-3 0  9997",
-            tleLine2:
-              "2 56046  87.9080 239.1693 0001725 106.5327 253.5994 13.16594577152077"
-          }
-        ],
-        sourceEpochUtc: "2026-04-25T19:59:05.121Z",
-        projectionEpochUtc: "2026-04-26T10:21:10Z",
-        freshnessClass: "fresh-display-context",
-        sourcePosition: {
-          positionKind: "source-orbit-position",
-          lat: 0.000005,
-          lon: 85.552557,
-          heightMeters: 1201022,
-          coordinateFrame: "wgs84",
-          precision: SOURCE_POSITION_PRECISION
-        },
-        artifactRenderPosition: {
-          positionKind: "sampled-replay-position",
-          lat: -44.181974,
-          lon: -132.70105,
-          heightMeters: 1215919,
-          coordinateFrame: "wgs84",
-          renderPositionBasis: RENDER_POSITION_BASIS,
-          renderPositionIsSourceTruth: false
-        },
-        runtimeDisplayTrack: {
-          trackKind: "east-asia-display-context-track",
-          start: {
-            lat: -2.2,
-            lon: 111.5,
-            heightMeters: 1205000
-          },
-          stop: {
-            lat: 29.5,
-            lon: 146.2,
-            heightMeters: 1275000
-          },
-          phaseOffset: 0.34,
-          cycleRate: 1.08,
-          renderTrackBasis: RUNTIME_TRACK_BASIS,
-          renderTrackIsSourceTruth: false
-        },
-        motionMode: "replay-driven",
-        evidenceClass: "display-context",
-        modelAssetId: M8A_V4_GROUND_STATION_MODEL_ASSET_ID,
-        modelTruth: "generic-satellite-mesh",
-        truthBoundary: {
-          doesClaim: [
-            "ONEWEB-0537 has a source-lineaged CelesTrak NORAD GP TLE record",
-            "the sourcePosition and renderPosition are TLE-derived display-context orbit samples",
-            "the actor may be rendered as a moving LEO display-context satellite"
-          ],
-          doesNotClaim: [
-            "active serving satellite identity",
-            "active gateway assignment",
-            "pair-specific teleport path truth",
-            "measured latency/jitter/throughput truth",
-            "native RF handover",
-            "live operational truth",
-            "OneWeb spacecraft body geometry"
-          ],
-          requiredDisplayBadges: [
-            "modeled service state",
-            "not active satellite",
-            "not native RF handover"
-          ]
-        },
-        nonClaims: M8A_V4_GROUND_STATION_NON_CLAIMS
-      },
-      {
-        actorId: "oneweb-0701-leo-display-context",
-        label: "ONEWEB-0701 LEO display-context",
-        orbitClass: "leo",
-        displayRole: "leo-moving-context-actor",
-        operatorContext: "Eutelsat OneWeb",
-        sourceLineage: [
-          {
-            sourceRefId: "celestrak-gp-oneweb-0701-61607",
-            label: "CelesTrak NORAD GP TLE: ONEWEB-0701",
-            url: "https://celestrak.org/NORAD/elements/gp.php?CATNR=61607&FORMAT=tle",
-            accessedDate: "2026-04-26",
-            supports: [
-              "source-lineaged OneWeb LEO display-context actor",
-              "TLE-derived source-position and render-position projection"
-            ],
-            sourceAuthority: "projection-note",
-            sourceProvider: "CelesTrak",
-            sourceProduct: "NORAD GP TLE",
-            fetchedAtUtc: "2026-04-26T10:21:10Z",
-            sourceRecordName: "ONEWEB-0701",
-            tleLine1:
-              "1 61607U 24188P   26115.85253211  .00000024  00000+0  32713-4 0  9990",
-            tleLine2:
-              "2 61607  87.8848  46.6778 0001936  53.2979 306.8326 13.10375831 76459"
-          }
-        ],
-        sourceEpochUtc: "2026-04-25T20:27:38.774Z",
-        projectionEpochUtc: "2026-04-26T10:21:10Z",
-        freshnessClass: "fresh-display-context",
-        sourcePosition: {
-          positionKind: "source-orbit-position",
-          lat: -0.000012,
-          lon: -114.098714,
-          heightMeters: 1223711,
-          coordinateFrame: "wgs84",
-          precision: SOURCE_POSITION_PRECISION
-        },
-        artifactRenderPosition: {
-          positionKind: "sampled-replay-position",
-          lat: -29.370109,
-          lon: -141.979431,
-          heightMeters: 1234031,
-          coordinateFrame: "wgs84",
-          renderPositionBasis: RENDER_POSITION_BASIS,
-          renderPositionIsSourceTruth: false
-        },
-        runtimeDisplayTrack: {
-          trackKind: "east-asia-display-context-track",
-          start: {
-            lat: 38.5,
-            lon: 104.5,
-            heightMeters: 1230000
-          },
-          stop: {
-            lat: 5.5,
-            lon: 137.2,
-            heightMeters: 1290000
-          },
-          phaseOffset: 0.68,
-          cycleRate: 0.96,
-          renderTrackBasis: RUNTIME_TRACK_BASIS,
-          renderTrackIsSourceTruth: false
-        },
-        motionMode: "replay-driven",
-        evidenceClass: "display-context",
-        modelAssetId: M8A_V4_GROUND_STATION_MODEL_ASSET_ID,
-        modelTruth: "generic-satellite-mesh",
-        truthBoundary: {
-          doesClaim: [
-            "ONEWEB-0701 has a source-lineaged CelesTrak NORAD GP TLE record",
-            "the sourcePosition and renderPosition are TLE-derived display-context orbit samples",
-            "the actor may be rendered as a moving LEO display-context satellite"
-          ],
-          doesNotClaim: [
-            "active serving satellite identity",
-            "active gateway assignment",
-            "pair-specific teleport path truth",
-            "measured latency/jitter/throughput truth",
-            "native RF handover",
-            "live operational truth",
-            "OneWeb spacecraft body geometry"
-          ],
-          requiredDisplayBadges: [
-            "modeled service state",
-            "not active satellite",
-            "not native RF handover"
-          ]
-        },
-        nonClaims: M8A_V4_GROUND_STATION_NON_CLAIMS
-      },
-      {
-        actorId: "o3b-mpower-f6-meo-display-context",
-        label: "O3b mPOWER F6 MEO display-context",
-        orbitClass: "meo",
-        displayRole: "meo-moving-context-actor",
-        operatorContext: "SES O3b mPOWER",
-        sourceLineage: [
-          {
-            sourceRefId: "celestrak-gp-o3b-mpower-f6-58347",
-            label: "CelesTrak NORAD GP TLE: O3B MPOWER F6",
-            url: "https://celestrak.org/NORAD/elements/gp.php?CATNR=58347&FORMAT=tle",
-            accessedDate: "2026-04-26",
-            supports: [
-              "source-lineaged O3b mPOWER MEO display-context actor",
-              "TLE-derived source-position and render-position projection"
-            ],
-            sourceAuthority: "projection-note",
-            sourceProvider: "CelesTrak",
-            sourceProduct: "NORAD GP TLE",
-            fetchedAtUtc: "2026-04-26T10:21:10Z",
-            sourceRecordName: "O3B MPOWER F6",
-            tleLine1:
-              "1 58347U 23175B   26115.83785449 -.00000027  00000+0  00000+0 0  9996",
-            tleLine2:
-              "2 58347   0.0513   6.1734 0004729  18.9973 334.8506  5.00116222 45735"
-          }
-        ],
-        sourceEpochUtc: "2026-04-25T20:06:30.627Z",
-        projectionEpochUtc: "2026-04-26T10:21:10Z",
-        freshnessClass: "fresh-display-context",
-        sourcePosition: {
-          positionKind: "source-orbit-position",
-          lat: -0.002108,
-          lon: -155.478133,
-          heightMeters: 8058171,
-          coordinateFrame: "wgs84",
-          precision: SOURCE_POSITION_PRECISION
-        },
-        artifactRenderPosition: {
-          positionKind: "sampled-replay-position",
-          lat: -0.011005,
-          lon: -20.830011,
-          heightMeters: 8058871,
-          coordinateFrame: "wgs84",
-          renderPositionBasis: RENDER_POSITION_BASIS,
-          renderPositionIsSourceTruth: false
-        },
-        runtimeDisplayTrack: {
-          trackKind: "east-asia-display-context-track",
-          start: {
-            lat: -6.5,
-            lon: 87.8,
-            heightMeters: 8057000
-          },
-          stop: {
-            lat: 27.5,
-            lon: 137.8,
-            heightMeters: 8082000
-          },
-          phaseOffset: 0.16,
-          cycleRate: 0.42,
-          renderTrackBasis: RUNTIME_TRACK_BASIS,
-          renderTrackIsSourceTruth: false
-        },
-        motionMode: "replay-driven",
-        evidenceClass: "display-context",
-        modelAssetId: M8A_V4_GROUND_STATION_MODEL_ASSET_ID,
-        modelTruth: "generic-satellite-mesh",
-        truthBoundary: {
-          doesClaim: [
-            "O3B MPOWER F6 has a source-lineaged CelesTrak NORAD GP TLE record",
-            "the sourcePosition and renderPosition are TLE-derived display-context orbit samples",
-            "the actor may be rendered as a moving MEO display-context satellite"
-          ],
-          doesNotClaim: [
-            "active serving satellite identity",
-            "active gateway assignment",
-            "pair-specific teleport path truth",
-            "measured latency/jitter/throughput truth",
-            "native RF handover",
-            "live operational truth",
-            "SES O3b mPOWER spacecraft body geometry"
-          ],
-          requiredDisplayBadges: [
-            "modeled service state",
-            "not active satellite",
-            "not native RF handover"
-          ]
-        },
-        nonClaims: M8A_V4_GROUND_STATION_NON_CLAIMS
-      },
-      {
-        actorId: "st-2-geo-continuity-anchor",
-        label: "ST-2 GEO continuity anchor",
-        orbitClass: "geo",
-        displayRole: "geo-continuity-anchor",
-        operatorContext: "ST-2 CHT/Singtel GEO service context",
-        sourceLineage: [
-          {
-            sourceRefId: "celestrak-gp-st-2-37606",
-            label: "CelesTrak NORAD GP TLE: ST-2",
-            url: "https://celestrak.org/NORAD/elements/gp.php?CATNR=37606&FORMAT=tle",
-            accessedDate: "2026-04-26",
-            supports: [
-              "source-lineaged ST-2 GEO continuity anchor",
-              "TLE-derived source-position and render-position projection"
-            ],
-            sourceAuthority: "projection-note",
-            sourceProvider: "CelesTrak",
-            sourceProduct: "NORAD GP TLE",
-            fetchedAtUtc: "2026-04-26T10:21:10Z",
-            sourceRecordName: "ST-2",
-            tleLine1:
-              "1 37606U 11022B   26115.92748256 -.00000225  00000+0  00000+0 0  9994",
-            tleLine2:
-              "2 37606   0.0184 133.8186 0001849 266.6858 235.3367  1.00271160 54758"
-          }
-        ],
-        sourceEpochUtc: "2026-04-25T22:15:34.493Z",
-        projectionEpochUtc: "2026-04-26T10:21:10Z",
-        freshnessClass: "fresh-display-context",
-        sourcePosition: {
-          positionKind: "source-orbit-position",
-          lat: 0.014255,
-          lon: 87.999875,
-          heightMeters: 35790700,
-          coordinateFrame: "wgs84",
-          precision: SOURCE_POSITION_PRECISION
-        },
-        artifactRenderPosition: {
-          positionKind: "near-fixed-geo-anchor",
-          lat: -0.015029,
-          lon: 88.033612,
-          heightMeters: 35782072,
-          coordinateFrame: "wgs84",
-          renderPositionBasis:
-            "CelesTrak NORAD GP TLE propagated to projectionEpochUtc for viewer-owned GEO continuity display context; not active serving-satellite truth",
-          renderPositionIsSourceTruth: false
-        },
-        runtimeDisplayTrack: {
-          trackKind: "east-asia-near-fixed-geo-anchor",
-          start: {
-            lat: -0.015029,
-            lon: 88.033612,
-            heightMeters: 35782072
-          },
-          stop: {
-            lat: -0.015029,
-            lon: 88.033612,
-            heightMeters: 35782072
-          },
-          phaseOffset: 0,
-          cycleRate: 0,
-          renderTrackBasis:
-            "Accepted projected GEO continuity anchor position; display context only, not active serving-satellite truth.",
-          renderTrackIsSourceTruth: false
-        },
-        motionMode: "near-fixed-geo-anchor",
-        evidenceClass: "display-context",
-        modelAssetId: M8A_V4_GROUND_STATION_MODEL_ASSET_ID,
-        modelTruth: "generic-satellite-mesh",
-        truthBoundary: {
-          doesClaim: [
-            "ST-2 has a source-lineaged CelesTrak NORAD GP TLE record",
-            "the sourcePosition and renderPosition are TLE-derived display-context orbit samples",
-            "the actor may be rendered as a GEO continuity anchor"
-          ],
-          doesNotClaim: [
-            "active serving satellite identity",
-            "active gateway assignment",
-            "pair-specific teleport path truth",
-            "measured latency/jitter/throughput truth",
-            "native RF handover",
-            "live operational truth",
-            "ST-2 spacecraft body geometry"
-          ],
-          requiredDisplayBadges: [
-            "modeled service state",
-            "not active satellite",
-            "not native RF handover"
-          ]
-        },
-        nonClaims: M8A_V4_GROUND_STATION_NON_CLAIMS
-      }
-    ],
+    orbitActors: buildV46bRuntimeOrbitActors(),
     serviceStateModel: {
       modelId: "m8a-v4-modeled-service-state.v1",
       decisionModel: "modeled-service-continuity",

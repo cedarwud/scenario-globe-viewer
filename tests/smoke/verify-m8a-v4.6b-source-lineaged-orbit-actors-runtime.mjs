@@ -28,11 +28,15 @@ const REQUEST_PATH = "/?scenePreset=regional&m8aV4GroundStationScene=1";
 const V4_RUNTIME_STATE = "active-v4.3-continuous-multi-orbit-handover-scene";
 const EXPECTED_PLAYBACK_MULTIPLIER = 240;
 const MAX_SMALL_MARGIN_MS = 10 * 60 * 1000;
-const VIEWPORT = {
+const DESKTOP_VIEWPORT = {
   width: 1440,
   height: 900
 };
-const EXPECTED_CURRENT_ACTOR_COUNTS = {
+const NARROW_VIEWPORT = {
+  width: 390,
+  height: 740
+};
+const EXPECTED_ACTOR_COUNTS = {
   leo: 6,
   meo: 5,
   geo: 2
@@ -90,6 +94,16 @@ function loadProjectionArtifact() {
   return JSON.parse(readFileSync(ARTIFACT_PATH, "utf8"));
 }
 
+function countOrbitActors(actors) {
+  return actors.reduce(
+    (counts, actor) => ({
+      ...counts,
+      [actor.orbitClass]: counts[actor.orbitClass] + 1
+    }),
+    { leo: 0, meo: 0, geo: 0 }
+  );
+}
+
 function resolveExpectedReplayFacts() {
   const artifact = loadProjectionArtifact();
   const oneWebLeoActors = artifact.orbitActors.filter((actor) => {
@@ -103,8 +117,8 @@ function resolveExpectedReplayFacts() {
   });
 
   assert(
-    oneWebLeoActors.length === EXPECTED_CURRENT_ACTOR_COUNTS.leo,
-    `Expected the current V4.6B runtime artifact to expose ${EXPECTED_CURRENT_ACTOR_COUNTS.leo} OneWeb LEO actors, received ${oneWebLeoActors.length}.`
+    oneWebLeoActors.length === EXPECTED_ACTOR_COUNTS.leo,
+    `Expected the accepted V4.6B artifact to expose ${EXPECTED_ACTOR_COUNTS.leo} current OneWeb LEO actors, received ${oneWebLeoActors.length}.`
   );
 
   const oneWebLeoPeriods = oneWebLeoActors.map((actor) => {
@@ -124,21 +138,26 @@ function resolveExpectedReplayFacts() {
   const longestOneWebLeo = oneWebLeoPeriods.reduce((longest, candidate) =>
     candidate.periodMs > longest.periodMs ? candidate : longest
   );
-  const orbitActorCounts = artifact.orbitActors.reduce(
-    (counts, actor) => ({
-      ...counts,
-      [actor.orbitClass]: counts[actor.orbitClass] + 1
-    }),
-    { leo: 0, meo: 0, geo: 0 }
-  );
+  const orbitActorCounts = countOrbitActors(artifact.orbitActors);
 
   return {
+    artifactId: artifact.artifactId,
+    projectionEpochUtc: artifact.projectionEpochUtc,
     endpointIds: artifact.endpoints.map((endpoint) => endpoint.endpointId),
     actorIds: artifact.orbitActors.map((actor) => actor.actorId),
     oneWebLeoActorIds: oneWebLeoActors.map((actor) => actor.actorId),
     orbitActorCounts,
     longestOneWebLeo
   };
+}
+
+async function setViewport(client, viewport) {
+  await client.send("Emulation.setDeviceMetricsOverride", {
+    width: viewport.width,
+    height: viewport.height,
+    deviceScaleFactor: 1,
+    mobile: viewport.width <= 480
+  });
 }
 
 async function waitForBootstrapReady(client) {
@@ -172,7 +191,7 @@ async function waitForBootstrapReady(client) {
 
     if (lastState.bootstrapState === "error") {
       throw new Error(
-        `M8A-V4.6A validation hit bootstrap error: ${JSON.stringify(lastState)}`
+          `M8A-V4.6B validation hit bootstrap error: ${JSON.stringify(lastState)}`
       );
     }
 
@@ -180,7 +199,7 @@ async function waitForBootstrapReady(client) {
   }
 
   throw new Error(
-    `M8A-V4.6A validation did not reach a ready V4 scene: ${JSON.stringify(
+    `M8A-V4.6B validation did not reach a ready V4 scene: ${JSON.stringify(
       lastState
     )}`
   );
@@ -198,8 +217,8 @@ async function main() {
     expectedFacts.endpointIds.length === 2 &&
       expectedFacts.actorIds.length === 13 &&
       JSON.stringify(expectedFacts.orbitActorCounts) ===
-        JSON.stringify(EXPECTED_CURRENT_ACTOR_COUNTS),
-    `V4.6A replay verification now runs against the accepted V4.6B actor set: ${JSON.stringify(
+        JSON.stringify(EXPECTED_ACTOR_COUNTS),
+    `V4.6B must consume the accepted endpoint pair and enriched actor set: ${JSON.stringify(
       expectedFacts
     )}`
   );
@@ -221,12 +240,7 @@ async function main() {
       try {
         await client.send("Page.enable");
         await client.send("Runtime.enable");
-        await client.send("Emulation.setDeviceMetricsOverride", {
-          width: VIEWPORT.width,
-          height: VIEWPORT.height,
-          deviceScaleFactor: 1,
-          mobile: false
-        });
+        await setViewport(client, DESKTOP_VIEWPORT);
 
         await navigateAndWait(client, `${baseUrl}${REQUEST_PATH}`);
         await sleep(200);
@@ -262,6 +276,79 @@ async function main() {
                   return [entity.id, entity.name, String(description)].join(" ");
                 })
                 .join(" ");
+            const assertV46bRuntimeState = (state, dataSource, viewportName) => {
+              const endpointIds = state.endpoints.map((endpoint) => endpoint.endpointId);
+              const actorIds = state.actors.map((actor) => actor.actorId);
+              const runtimeOneWebLeoActorIds = state.actors
+                .filter(
+                  (actor) =>
+                    actor.orbitClass === "leo" &&
+                    actor.operatorContext.toLowerCase().includes("oneweb")
+                )
+                .map((actor) => actor.actorId);
+              const actorLabelRecords = state.actors.map((actor) => {
+                const entity = dataSource?.entities?.getById(actor.actorId);
+                return {
+                  actorId: actor.actorId,
+                  orbitClass: actor.orbitClass,
+                  labelVisibility: actor.labelVisibility,
+                  hasEntityLabel: Boolean(entity?.label)
+                };
+              });
+
+              assert(
+                state.endpointCount === 2 &&
+                  JSON.stringify(endpointIds) === JSON.stringify(config.endpointIds),
+                viewportName +
+                  " must keep the accepted Taiwan/CHT + Speedcast Singapore endpoint pair unchanged: " +
+                  JSON.stringify({ endpointIds })
+              );
+              assert(
+                state.actorCount === config.actorIds.length &&
+                  JSON.stringify(state.orbitActorCounts) ===
+                    JSON.stringify(config.orbitActorCounts) &&
+                  JSON.stringify(actorIds) === JSON.stringify(config.actorIds) &&
+                  JSON.stringify(runtimeOneWebLeoActorIds) ===
+                    JSON.stringify(config.oneWebLeoActorIds),
+                viewportName +
+                  " must render the V4.6B 6 LEO / 5 MEO / 2 GEO actor set: " +
+                  JSON.stringify({
+                    actorIds,
+                    runtimeOneWebLeoActorIds,
+                    counts: state.orbitActorCounts
+                  })
+              );
+              assert(
+                state.actorLabelDensity.policy ===
+                  "representative-orbit-class-labels-only" &&
+                  state.actorLabelDensity.alwaysVisibleActorLabelCount > 0 &&
+                  state.actorLabelDensity.alwaysVisibleActorLabelCount <
+                    state.actorCount &&
+                  state.actorLabelDensity.alwaysVisibleActorLabelCount <=
+                    state.actorLabelDensity.desktopMaxAlwaysVisibleActorLabels &&
+                  state.actorLabelDensity.alwaysVisibleActorLabelCount <=
+                    state.actorLabelDensity.narrowMaxAlwaysVisibleActorLabels &&
+                  state.actorLabelDensity.hiddenContextActorLabelCount > 0 &&
+                  actorLabelRecords.every((record) =>
+                    record.labelVisibility === "always-visible"
+                      ? record.hasEntityLabel === true
+                      : record.hasEntityLabel === false
+                  ),
+                viewportName +
+                  " must keep actor label density controlled before rendering all actors: " +
+                  JSON.stringify({
+                    density: state.actorLabelDensity,
+                    actorLabelRecords
+                  })
+              );
+
+              return {
+                endpointIds,
+                actorIds,
+                runtimeOneWebLeoActorIds,
+                actorLabelRecords
+              };
+            };
             const collectForbiddenClaimHits = (sources) => {
               const hits = [];
 
@@ -297,11 +384,11 @@ async function main() {
             assert(capture, "Missing runtime capture seam.");
             assert(
               capture.m8aV4GroundStationScene,
-              "V4.6A route must expose the V4 runtime seam."
+              "V4.6B route must expose the V4 runtime seam."
             );
             assert(
               !capture.firstIntakeOrbitContextActors,
-              "V4.6A route must not mount the historical V3.5 controller."
+              "V4.6B route must not mount the historical V3.5 controller."
             );
 
             const controller = capture.m8aV4GroundStationScene;
@@ -315,17 +402,17 @@ async function main() {
             const durationMs = stopMs - startMs;
             const expectedMinimumDurationMs =
               config.longestOneWebLeo.periodMs + state.replayWindow.replayMarginMs;
-            const endpointIds = state.endpoints.map((endpoint) => endpoint.endpointId);
-            const actorIds = state.actors.map((actor) => actor.actorId);
-            const runtimeOneWebLeoActorIds = state.actors
-              .filter(
-                (actor) =>
-                  actor.orbitClass === "leo" &&
-                  actor.operatorContext.toLowerCase().includes("oneweb")
-              )
-              .map((actor) => actor.actorId);
             const telemetryNonClaims =
               document.documentElement.dataset.m8aV4GroundStationNonClaims ?? "";
+            const forbiddenResourceRequests = performance
+              .getEntriesByType("resource")
+              .map((entry) => entry.name)
+              .filter((name) => /celestrak|itri\\/multi-orbit/i.test(name));
+            const runtimeFacts = assertV46bRuntimeState(
+              state,
+              dataSource,
+              "Desktop V4.6B route"
+            );
             const forbiddenClaimHits = collectForbiddenClaimHits([
               { label: "visible-text", text: document.body.innerText },
               { label: "v4-entity-text", text: collectEntityText(dataSource) },
@@ -344,7 +431,7 @@ async function main() {
                 replayState.multiplier === config.expectedPlaybackMultiplier &&
                 state.replayWindow.playbackMultiplier ===
                   config.expectedPlaybackMultiplier,
-              "V4.6A replay must use the practical full-orbit review multiplier: " +
+              "V4.6B replay must preserve the practical full-orbit review multiplier: " +
                 JSON.stringify({
                   replayState,
                   replayWindow: state.replayWindow
@@ -354,7 +441,7 @@ async function main() {
               durationMs === state.replayWindow.durationMs &&
                 state.replayWindow.startTimeUtc === new Date(startMs).toISOString() &&
                 state.replayWindow.stopTimeUtc === new Date(stopMs).toISOString(),
-              "V4.6A replay window state must match the live replay clock: " +
+              "V4.6B replay window state must match the live replay clock: " +
                 JSON.stringify({ replayState, replayWindow: state.replayWindow })
             );
             assert(
@@ -372,7 +459,7 @@ async function main() {
                   state.replayWindow.longestCurrentOneWebLeoPeriodMs -
                     config.longestOneWebLeo.periodMs
                 ) < 1,
-              "V4.6A must derive the longest current OneWeb LEO period from repo-owned TLE mean motion: " +
+              "V4.6B must derive the longest current OneWeb LEO period from the enriched repo-owned OneWeb TLE set: " +
                 JSON.stringify({
                   expected: config.longestOneWebLeo,
                   replayWindow: state.replayWindow
@@ -383,31 +470,11 @@ async function main() {
                 state.replayWindow.replayMarginMs <= config.maxSmallMarginMs &&
                 durationMs >= expectedMinimumDurationMs &&
                 durationMs === Math.ceil(expectedMinimumDurationMs),
-              "V4.6A replay stop must cover the longest current OneWeb LEO period plus a small margin: " +
+              "V4.6B replay stop must cover the longest current OneWeb LEO period plus a small margin: " +
                 JSON.stringify({
                   durationMs,
                   expectedMinimumDurationMs,
                   replayWindow: state.replayWindow
-                })
-            );
-            assert(
-              state.endpointCount === 2 &&
-                JSON.stringify(endpointIds) === JSON.stringify(config.endpointIds),
-              "V4.6A must keep the accepted Taiwan/CHT + Speedcast Singapore endpoint pair unchanged: " +
-                JSON.stringify({ endpointIds })
-            );
-            assert(
-              state.actorCount === config.actorIds.length &&
-                JSON.stringify(state.orbitActorCounts) ===
-                  JSON.stringify(config.orbitActorCounts) &&
-                JSON.stringify(actorIds) === JSON.stringify(config.actorIds) &&
-                JSON.stringify(runtimeOneWebLeoActorIds) ===
-                  JSON.stringify(config.oneWebLeoActorIds),
-              "V4.6A replay behavior must operate on the current V4.6B orbit actor set: " +
-                JSON.stringify({
-                  actorIds,
-                  runtimeOneWebLeoActorIds,
-                  counts: state.orbitActorCounts
                 })
             );
             assert(
@@ -417,8 +484,13 @@ async function main() {
                   "M8A_V4_GROUND_STATION_RUNTIME_PROJECTION.serviceStateModel.timeline" &&
                 state.sourceLineage.rawPackageSideReadOwnership === "forbidden" &&
                 state.sourceLineage.rawSourcePathsIncluded === false,
-              "V4.6A runtime must consume only the repo-owned projection module: " +
+              "V4.6B runtime must consume only the repo-owned projection module: " +
                 JSON.stringify(state.sourceLineage)
+            );
+            assert(
+              forbiddenResourceRequests.length === 0,
+              "V4.6B runtime must not fetch raw itri packages or live CelesTrak resources: " +
+                JSON.stringify(forbiddenResourceRequests)
             );
             assert(
               config.requiredNonClaimKeys.every((key) =>
@@ -429,24 +501,28 @@ async function main() {
                 state.nonClaims.noPairSpecificTeleportPathTruth === true &&
                 state.nonClaims.noMeasuredLatencyJitterThroughputTruth === true &&
                 state.nonClaims.noNativeRfHandover === true,
-              "V4.6A must preserve machine-readable forbidden-claim non-claims: " +
+              "V4.6B must preserve machine-readable forbidden-claim non-claims: " +
                 JSON.stringify({ telemetryNonClaims, nonClaims: state.nonClaims })
             );
             assert(
               forbiddenClaimHits.length === 0,
-              "V4.6A forbidden-claim scan found promoted claim text: " +
+              "V4.6B forbidden-claim scan found promoted claim text: " +
                 JSON.stringify(forbiddenClaimHits)
             );
 
             return {
+              artifactId: config.artifactId,
+              projectionEpochUtc: config.projectionEpochUtc,
               durationMs,
               playbackMultiplier: replayState.multiplier,
               longestOneWebLeo: state.replayWindow.longestCurrentOneWebLeoActorId,
               longestOneWebLeoPeriodMinutes:
                 state.replayWindow.longestCurrentOneWebLeoPeriodMs / 60000,
               replayMarginMinutes: state.replayWindow.replayMarginMs / 60000,
-              endpointIds,
-              actorIds,
+              endpointIds: runtimeFacts.endpointIds,
+              actorIds: runtimeFacts.actorIds,
+              actorLabelDensity: state.actorLabelDensity,
+              forbiddenResourceRequests,
               rawPackageSideReadOwnership:
                 state.sourceLineage.rawPackageSideReadOwnership
             };
@@ -459,9 +535,94 @@ async function main() {
           })})`
         );
 
+        await setViewport(client, NARROW_VIEWPORT);
+        await navigateAndWait(client, `${baseUrl}${REQUEST_PATH}`);
+        await sleep(200);
+
+        const narrowResult = await evaluateRuntimeValue(
+          client,
+          `((config) => {
+            const assert = (condition, message) => {
+              if (!condition) {
+                throw new Error(message);
+              }
+            };
+            const capture = window.__SCENARIO_GLOBE_VIEWER_CAPTURE__;
+            assert(capture?.m8aV4GroundStationScene, "Missing narrow V4.6B runtime seam.");
+
+            const state = capture.m8aV4GroundStationScene.getState();
+            const dataSource = capture.viewer.dataSources.getByName(
+              state.dataSourceName
+            )[0];
+            const actorLabelRecords = state.actors.map((actor) => {
+              const entity = dataSource?.entities?.getById(actor.actorId);
+              return {
+                actorId: actor.actorId,
+                labelVisibility: actor.labelVisibility,
+                hasEntityLabel: Boolean(entity?.label)
+              };
+            });
+            const forbiddenResourceRequests = performance
+              .getEntriesByType("resource")
+              .map((entry) => entry.name)
+              .filter((name) => /celestrak|itri\\/multi-orbit/i.test(name));
+
+            assert(
+              state.endpointCount === 2 &&
+                state.actorCount === config.actorIds.length &&
+                JSON.stringify(state.orbitActorCounts) ===
+                  JSON.stringify(config.orbitActorCounts),
+              "Narrow V4.6B route must keep endpoint and actor counts: " +
+                JSON.stringify({
+                  endpointCount: state.endpointCount,
+                  actorCount: state.actorCount,
+                  counts: state.orbitActorCounts
+                })
+            );
+            assert(
+              state.actorLabelDensity.alwaysVisibleActorLabelCount <
+                state.actorCount &&
+                state.actorLabelDensity.alwaysVisibleActorLabelCount <=
+                  state.actorLabelDensity.narrowMaxAlwaysVisibleActorLabels &&
+                state.actorLabelDensity.hiddenContextActorLabelCount > 0 &&
+                actorLabelRecords.every((record) =>
+                  record.labelVisibility === "always-visible"
+                    ? record.hasEntityLabel === true
+                    : record.hasEntityLabel === false
+                ),
+              "Narrow V4.6B route must keep representative actor labels only: " +
+                JSON.stringify({
+                  density: state.actorLabelDensity,
+                  actorLabelRecords
+                })
+            );
+            assert(
+              forbiddenResourceRequests.length === 0,
+              "Narrow V4.6B route must not fetch raw itri or live CelesTrak resources: " +
+                JSON.stringify(forbiddenResourceRequests)
+            );
+
+            return {
+              viewport: {
+                width: window.innerWidth,
+                height: window.innerHeight
+              },
+              actorCount: state.actorCount,
+              orbitActorCounts: state.orbitActorCounts,
+              actorLabelDensity: state.actorLabelDensity,
+              forbiddenResourceRequests
+            };
+          })(${JSON.stringify({
+            ...expectedFacts,
+          })})`
+        );
+
         console.log(
-          `M8A-V4.6A full LEO orbit replay smoke passed: ${JSON.stringify(
-            result
+          `M8A-V4.6B source-lineaged orbit actor runtime smoke passed: ${JSON.stringify(
+            {
+              desktopResult: result,
+              narrowResult
+            }
           )}`
         );
       } finally {

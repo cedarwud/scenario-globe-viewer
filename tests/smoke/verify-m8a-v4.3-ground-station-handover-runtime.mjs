@@ -1,3 +1,7 @@
+import { readFileSync } from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+
 import {
   connectCdp,
   evaluateRuntimeValue,
@@ -16,16 +20,28 @@ import {
 const REQUEST_PATH =
   "/?scenePreset=regional&m8aV4GroundStationScene=1";
 const EXPECTED_PROJECTION_ID =
-  "m8a-v4.3-ground-station-runtime-projection.v1";
+  "m8a-v4.6b-ground-station-runtime-projection.v1";
 const EXPECTED_DATA_SOURCE_NAME =
   "m8a-v4-ground-station-multi-orbit-handover-scene";
-const EXPECTED_ACTOR_IDS = [
-  "oneweb-0386-leo-display-context",
-  "oneweb-0537-leo-display-context",
-  "oneweb-0701-leo-display-context",
-  "o3b-mpower-f6-meo-display-context",
-  "st-2-geo-continuity-anchor"
-];
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const repoRoot = path.resolve(__dirname, "../..");
+const ARTIFACT_PATH = path.join(
+  repoRoot,
+  "public/fixtures/ground-station-projections/m8a-v4.6b-taiwan-cht-speedcast-singapore-source-lineaged-orbit-actors-2026-04-28.json"
+);
+const ACCEPTED_V46B_ARTIFACT = JSON.parse(readFileSync(ARTIFACT_PATH, "utf8"));
+const EXPECTED_ARTIFACT_ID = ACCEPTED_V46B_ARTIFACT.artifactId;
+const EXPECTED_ACTOR_IDS = ACCEPTED_V46B_ARTIFACT.orbitActors.map(
+  (actor) => actor.actorId
+);
+const EXPECTED_ACTOR_COUNTS = ACCEPTED_V46B_ARTIFACT.orbitActors.reduce(
+  (counts, actor) => ({
+    ...counts,
+    [actor.orbitClass]: counts[actor.orbitClass] + 1
+  }),
+  { leo: 0, meo: 0, geo: 0 }
+);
 const EXPECTED_ENDPOINT_IDS = [
   "tw-cht-multi-orbit-ground-infrastructure",
   "sg-speedcast-singapore-teleport"
@@ -224,7 +240,7 @@ async function main() {
                 initialState.projectionSourceAuthority ===
                   "repo-owned-generated-module-from-viewer-owned-artifact" &&
                 initialState.generatedFromArtifactId ===
-                  "m8a-v4-taiwan-cht-speedcast-singapore-operator-family-2026-04-26" &&
+                  "${EXPECTED_ARTIFACT_ID}" &&
                 initialState.sourceLineage.projectionRead ===
                   "M8A_V4_GROUND_STATION_RUNTIME_PROJECTION" &&
                 initialState.sourceLineage.serviceStateRead ===
@@ -259,14 +275,13 @@ async function main() {
               "V4.3 must render two operator-family-only ground endpoints."
             );
             assert(
-              initialState.actorCount === 5 &&
-                initialState.orbitActorCounts.leo === 3 &&
-                initialState.orbitActorCounts.meo === 1 &&
-                initialState.orbitActorCounts.geo === 1 &&
+              initialState.actorCount === ${EXPECTED_ACTOR_IDS.length} &&
+                JSON.stringify(initialState.orbitActorCounts) ===
+                  JSON.stringify(${JSON.stringify(EXPECTED_ACTOR_COUNTS)}) &&
                 JSON.stringify(actorIds) ===
                   JSON.stringify(${JSON.stringify(EXPECTED_ACTOR_IDS)}) &&
                 actorEntities.every(Boolean),
-              "V4.3 must render 3 LEO actors, 1 MEO actor, and 1 GEO anchor."
+              "V4.3/V4.6B route must render the accepted 6 LEO, 5 MEO, and 2 GEO actor set."
             );
             assert(
               initialState.serviceState.truthState === "modeled" &&

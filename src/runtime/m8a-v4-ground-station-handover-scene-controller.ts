@@ -97,6 +97,13 @@ const M8A_V4_ACTOR_GLOW_MODEL_CENTER_OFFSETS = {
   meo: new Cartesian2(-2, -6),
   geo: new Cartesian2(0, -5)
 } satisfies Record<M8aV4OrbitClass, Cartesian2>;
+const M8A_V4_ALWAYS_LABELED_ACTOR_IDS = new Set([
+  "oneweb-0386-leo-display-context",
+  "o3b-mpower-f6-meo-display-context",
+  "st-2-geo-continuity-anchor"
+]);
+const M8A_V4_DESKTOP_MAX_ALWAYS_VISIBLE_ACTOR_LABELS = 4;
+const M8A_V4_NARROW_MAX_ALWAYS_VISIBLE_ACTOR_LABELS = 3;
 
 const M8A_V4_TELEMETRY_KEYS = [
   "m8aV4GroundStationRuntimeState",
@@ -113,6 +120,9 @@ const M8A_V4_TELEMETRY_KEYS = [
   "m8aV4GroundStationMeoActorCount",
   "m8aV4GroundStationGeoActorCount",
   "m8aV4GroundStationActorIds",
+  "m8aV4GroundStationAlwaysVisibleActorLabelCount",
+  "m8aV4GroundStationAlwaysVisibleActorLabelIds",
+  "m8aV4GroundStationHiddenContextActorLabelCount",
   "m8aV4GroundStationReplayDurationMs",
   "m8aV4GroundStationReplayMultiplier",
   "m8aV4GroundStationLongestOneWebLeoActorId",
@@ -167,6 +177,7 @@ interface M8aV4ActorRuntimeRecord {
   renderTrackIsSourceTruth: false;
   propagationTimeUtc: string;
   emphasis: M8aV4ActorEmphasis["emphasis"];
+  labelVisibility: "always-visible" | "hidden-context";
 }
 
 export interface M8aV4GroundStationSceneState {
@@ -197,6 +208,14 @@ export interface M8aV4GroundStationSceneState {
   actorCount: number;
   orbitActorCounts: Record<M8aV4OrbitClass, number>;
   actors: ReadonlyArray<M8aV4ActorRuntimeRecord>;
+  actorLabelDensity: {
+    policy: "representative-orbit-class-labels-only";
+    alwaysVisibleActorLabelCount: number;
+    alwaysVisibleActorLabelIds: ReadonlyArray<string>;
+    hiddenContextActorLabelCount: number;
+    desktopMaxAlwaysVisibleActorLabels: number;
+    narrowMaxAlwaysVisibleActorLabels: number;
+  };
   serviceState: {
     modelId:
       typeof M8A_V4_GROUND_STATION_RUNTIME_PROJECTION.serviceStateModel.modelId;
@@ -668,6 +687,10 @@ function shouldRenderActorGlow(actor: M8aV4OrbitActorProjection): boolean {
   return actor.orbitClass !== "leo";
 }
 
+function shouldRenderActorLabel(actor: M8aV4OrbitActorProjection): boolean {
+  return M8A_V4_ALWAYS_LABELED_ACTOR_IDS.has(actor.actorId);
+}
+
 function createActorLabelStyle(
   actor: M8aV4OrbitActorProjection,
   emphasis: M8aV4ActorEmphasis
@@ -919,6 +942,12 @@ function cloneState(
       ...state.orbitActorCounts
     },
     actors: state.actors.map(cloneActorState),
+    actorLabelDensity: {
+      ...state.actorLabelDensity,
+      alwaysVisibleActorLabelIds: [
+        ...state.actorLabelDensity.alwaysVisibleActorLabelIds
+      ]
+    },
     serviceState: {
       ...state.serviceState,
       window: {
@@ -980,6 +1009,15 @@ function syncTelemetry(state: M8aV4GroundStationSceneState): void {
     m8aV4GroundStationGeoActorCount: String(state.orbitActorCounts.geo),
     m8aV4GroundStationActorIds: serializeList(
       state.actors.map((actor) => actor.actorId)
+    ),
+    m8aV4GroundStationAlwaysVisibleActorLabelCount: String(
+      state.actorLabelDensity.alwaysVisibleActorLabelCount
+    ),
+    m8aV4GroundStationAlwaysVisibleActorLabelIds: serializeList(
+      state.actorLabelDensity.alwaysVisibleActorLabelIds
+    ),
+    m8aV4GroundStationHiddenContextActorLabelCount: String(
+      state.actorLabelDensity.hiddenContextActorLabelCount
     ),
     m8aV4GroundStationReplayDurationMs: String(state.replayWindow.durationMs),
     m8aV4GroundStationReplayMultiplier: String(
@@ -1283,7 +1321,9 @@ export function createM8aV4GroundStationSceneController({
             ? createActorGlowStyle(actor)
             : undefined,
           model: createActorModelGraphics(modelUri, actor, emphasis),
-          label: createActorLabelStyle(actor, emphasis),
+          label: shouldRenderActorLabel(actor)
+            ? createActorLabelStyle(actor, emphasis)
+            : undefined,
           description: new ConstantProperty(
             `${actor.label}: ${actor.evidenceClass}; not active satellite; not native RF handover.`
           )
@@ -1399,7 +1439,10 @@ export function createM8aV4GroundStationSceneController({
           renderTrackIsSourceTruth:
             actor.runtimeDisplayTrack.renderTrackIsSourceTruth,
           propagationTimeUtc: sourcePropagated.propagationTimeUtc,
-          emphasis: emphasis.emphasis
+          emphasis: emphasis.emphasis,
+          labelVisibility: shouldRenderActorLabel(actor)
+            ? "always-visible"
+            : "hidden-context"
         };
       }
     );
@@ -1428,6 +1471,22 @@ export function createM8aV4GroundStationSceneController({
       actorCount: actors.length,
       orbitActorCounts,
       actors,
+      actorLabelDensity: {
+        policy: "representative-orbit-class-labels-only",
+        alwaysVisibleActorLabelCount: actors.filter(
+          (actor) => actor.labelVisibility === "always-visible"
+        ).length,
+        alwaysVisibleActorLabelIds: actors
+          .filter((actor) => actor.labelVisibility === "always-visible")
+          .map((actor) => actor.actorId),
+        hiddenContextActorLabelCount: actors.filter(
+          (actor) => actor.labelVisibility === "hidden-context"
+        ).length,
+        desktopMaxAlwaysVisibleActorLabels:
+          M8A_V4_DESKTOP_MAX_ALWAYS_VISIBLE_ACTOR_LABELS,
+        narrowMaxAlwaysVisibleActorLabels:
+          M8A_V4_NARROW_MAX_ALWAYS_VISIBLE_ACTOR_LABELS
+      },
       serviceState: {
         modelId:
           M8A_V4_GROUND_STATION_RUNTIME_PROJECTION.serviceStateModel.modelId,

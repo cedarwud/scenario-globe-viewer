@@ -11,6 +11,10 @@ Related endpoint-pair authority package:
 [../../../itri/multi-orbit/download/ground-station-endpoint-pairs/taiwan-cht-speedcast-singapore-operator-family-2026-04-26/authority-package.md](../../../itri/multi-orbit/download/ground-station-endpoint-pairs/taiwan-cht-speedcast-singapore-operator-family-2026-04-26/authority-package.md).
 Accepted projected artifact:
 [../../public/fixtures/ground-station-projections/m8a-v4-taiwan-cht-speedcast-singapore-operator-family-2026-04-26.json](../../public/fixtures/ground-station-projections/m8a-v4-taiwan-cht-speedcast-singapore-operator-family-2026-04-26.json).
+Related V4.6B source/projection artifact:
+[../../public/fixtures/ground-station-projections/m8a-v4.6b-taiwan-cht-speedcast-singapore-source-lineaged-orbit-actors-2026-04-28.json](../../public/fixtures/ground-station-projections/m8a-v4.6b-taiwan-cht-speedcast-singapore-source-lineaged-orbit-actors-2026-04-28.json).
+Related V4.6B projection record:
+[../sdd/m8a-v4.6b-source-lineaged-orbit-actor-projection.md](../sdd/m8a-v4.6b-source-lineaged-orbit-actor-projection.md).
 
 ## Status
 
@@ -19,6 +23,9 @@ Accepted projected artifact:
 - no runtime implementation authority
 - accepted viewer-owned projected artifact:
   `public/fixtures/ground-station-projections/m8a-v4-taiwan-cht-speedcast-singapore-operator-family-2026-04-26.json`
+- accepted V4.6B source/projection actor-enrichment artifact:
+  `public/fixtures/ground-station-projections/m8a-v4.6b-taiwan-cht-speedcast-singapore-source-lineaged-orbit-actors-2026-04-28.json`
+- V4.6B artifact is not yet consumed by the runtime generated module
 - endpoint A/B remain accepted only at operator-family precision
 
 ## Purpose
@@ -57,6 +64,14 @@ The accepted pattern is:
 The accepted V4.2 plain-data artifact is:
 
 `public/fixtures/ground-station-projections/m8a-v4-taiwan-cht-speedcast-singapore-operator-family-2026-04-26.json`
+
+The accepted V4.6B source/projection actor-enrichment artifact is:
+
+`public/fixtures/ground-station-projections/m8a-v4.6b-taiwan-cht-speedcast-singapore-source-lineaged-orbit-actors-2026-04-28.json`
+
+This V4.6B artifact keeps the same endpoint pair and precision policy while
+expanding only the source-lineaged `LEO/MEO/GEO` display-context actor set.
+It is accepted as a projection gate, not as runtime rendering implementation.
 
 This path follows the existing viewer-owned fixture pattern under
 `public/fixtures/` while staying separate from runtime modules. Source paths

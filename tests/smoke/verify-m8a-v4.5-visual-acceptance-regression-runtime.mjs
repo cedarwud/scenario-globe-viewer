@@ -1,5 +1,6 @@
-import { mkdirSync, writeFileSync } from "node:fs";
+import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 
 import {
   connectCdp,
@@ -22,17 +23,28 @@ const V4_ENTRY_HREF = V4_REQUEST_PATH;
 const V4_RUNTIME_STATE = "active-v4.3-continuous-multi-orbit-handover-scene";
 const EXPECTED_DATA_SOURCE_NAME =
   "m8a-v4-ground-station-multi-orbit-handover-scene";
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const repoRoot = path.resolve(__dirname, "../..");
+const ARTIFACT_PATH = path.join(
+  repoRoot,
+  "public/fixtures/ground-station-projections/m8a-v4.6b-taiwan-cht-speedcast-singapore-source-lineaged-orbit-actors-2026-04-28.json"
+);
 const EXPECTED_ENDPOINT_IDS = [
   "tw-cht-multi-orbit-ground-infrastructure",
   "sg-speedcast-singapore-teleport"
 ];
-const EXPECTED_ACTOR_IDS = [
-  "oneweb-0386-leo-display-context",
-  "oneweb-0537-leo-display-context",
-  "oneweb-0701-leo-display-context",
-  "o3b-mpower-f6-meo-display-context",
-  "st-2-geo-continuity-anchor"
-];
+const ACCEPTED_V46B_ARTIFACT = JSON.parse(readFileSync(ARTIFACT_PATH, "utf8"));
+const EXPECTED_ACTOR_IDS = ACCEPTED_V46B_ARTIFACT.orbitActors.map(
+  (actor) => actor.actorId
+);
+const EXPECTED_ACTOR_COUNTS = ACCEPTED_V46B_ARTIFACT.orbitActors.reduce(
+  (counts, actor) => ({
+    ...counts,
+    [actor.orbitClass]: counts[actor.orbitClass] + 1
+  }),
+  { leo: 0, meo: 0, geo: 0 }
+);
 const EXPECTED_WINDOW_IDS = [
   "v4-modeled-window-01-leo-to-meo-context",
   "v4-modeled-window-02-meo-continuity-context",
@@ -400,9 +412,15 @@ async function main() {
                 .filter((actor) => actor.orbitClass === "leo")
                 .map((actor) => actor.renderRadius)
             );
-            const meoRenderRadius =
-              actorRenderRadii.find((actor) => actor.orbitClass === "meo")
-                ?.renderRadius ?? null;
+            const meoRenderRadii = actorRenderRadii
+              .filter((actor) => actor.orbitClass === "meo")
+              .map((actor) => actor.renderRadius);
+            const geoRenderRadii = actorRenderRadii
+              .filter((actor) => actor.orbitClass === "geo")
+              .map((actor) => actor.renderRadius);
+            const minMeoRenderRadius = Math.min(...meoRenderRadii);
+            const maxMeoRenderRadius = Math.max(...meoRenderRadii);
+            const minGeoRenderRadius = Math.min(...geoRenderRadii);
             const geoActor = state.actors.find(
               (actor) => actor.orbitClass === "geo"
             );
@@ -513,6 +531,19 @@ async function main() {
             const geoGlowRecord = actorGlowRecords.find(
               (actor) => actor.orbitClass === "geo"
             );
+            const actorLabelRecords = config.expectedActorIds.map((actorId) => {
+              const actor = state.actors.find(
+                (stateActor) => stateActor.actorId === actorId
+              );
+              const entity = dataSource?.entities?.getById(actorId);
+
+              return {
+                actorId,
+                orbitClass: actor?.orbitClass ?? null,
+                labelVisibility: actor?.labelVisibility ?? null,
+                hasEntityLabel: Boolean(entity?.label)
+              };
+            });
             const highestLeoActorY = Math.min(...leoActorYValues);
             const lowestLeoActorY = Math.max(...leoActorYValues);
             const hud = document.querySelector(
@@ -557,15 +588,14 @@ async function main() {
                 JSON.stringify({ endpointIds, endpointCanvasPoints })
             );
             assert(
-              state.actorCount === 5 &&
-                state.orbitActorCounts.leo === 3 &&
-                state.orbitActorCounts.meo === 1 &&
-                state.orbitActorCounts.geo === 1 &&
+              state.actorCount === config.expectedActorIds.length &&
+                JSON.stringify(state.orbitActorCounts) ===
+                  JSON.stringify(config.expectedActorCounts) &&
                 JSON.stringify(actorIds) ===
                   JSON.stringify(config.expectedActorIds) &&
                 actorEntities.every(Boolean) &&
                 actorCanvasPoints.every(insideViewportPoint),
-              "V4.5 desktop route must expose 3 LEO, 1 MEO, and 1 GEO actor presence: " +
+              "V4.5/V4.6B desktop route must expose 6 LEO, 5 MEO, and 2 GEO actor presence: " +
                 JSON.stringify({
                   actorIds,
                   counts: state.orbitActorCounts,
@@ -616,10 +646,10 @@ async function main() {
                 endpointVerticalSpread < 140 &&
                 endpointScreenDistance > 160 &&
                 endpointScreenDistance < 240 &&
-                highestActorY > window.innerHeight * 0.12 &&
+                highestActorY > window.innerHeight * 0.08 &&
                 highestActorY < window.innerHeight * 0.5 &&
-                lowestActorY < window.innerHeight * 0.72,
-              "V4.5 desktop camera must place the globe in the lower half, keep the endpoint pair near the globe's upper edge, and reserve upper sky for orbit actors: " +
+                lowestActorY < window.innerHeight * 0.79,
+              "V4.5/V4.6B desktop camera must place the globe in the lower half, keep the endpoint pair near the globe's upper edge, and keep the denser actor set in the sky band: " +
                 JSON.stringify({
                   endpointCanvasPoints,
                   endpointScreenDistance,
@@ -644,9 +674,11 @@ async function main() {
                 minActorRenderRadius > 6600000 &&
                 maxActorRenderRadius < 12800000 &&
                 Number.isFinite(maxLeoRenderRadius) &&
-                Number.isFinite(meoRenderRadius) &&
-                meoRenderRadius - maxLeoRenderRadius > 2300000 &&
-                geoRenderRadius - meoRenderRadius > 2000000 &&
+                Number.isFinite(minMeoRenderRadius) &&
+                Number.isFinite(maxMeoRenderRadius) &&
+                Number.isFinite(minGeoRenderRadius) &&
+                minMeoRenderRadius - maxLeoRenderRadius > 2300000 &&
+                minGeoRenderRadius - maxMeoRenderRadius > 2000000 &&
                 insideViewportPoint(geoCanvasPoint),
               "V4.5 orbit actors must stay source-true but use compressed display heights near the endpoint-focused view: " +
                 JSON.stringify({
@@ -654,15 +686,12 @@ async function main() {
                   geoSourceRadius,
                   geoRenderRadius,
                   maxLeoRenderRadius,
-                  meoRenderRadius,
+                  minMeoRenderRadius,
+                  maxMeoRenderRadius,
+                  minGeoRenderRadius,
                   orbitDisplayRadiusGaps: {
-                    leoToMeo: meoRenderRadius
-                      ? meoRenderRadius - maxLeoRenderRadius
-                      : null,
-                    meoToGeo:
-                      meoRenderRadius && geoRenderRadius
-                        ? geoRenderRadius - meoRenderRadius
-                        : null
+                    leoToMeo: minMeoRenderRadius - maxLeoRenderRadius,
+                    meoToGeo: minGeoRenderRadius - maxMeoRenderRadius
                   },
                   geoCanvasPoint,
                   actorRenderRadii,
@@ -711,6 +740,25 @@ async function main() {
               "V4.5 desktop route must keep the large truth-boundary HUD hidden."
             );
             assert(
+              state.actorLabelDensity.policy ===
+                "representative-orbit-class-labels-only" &&
+                state.actorLabelDensity.alwaysVisibleActorLabelCount <
+                  state.actorCount &&
+                state.actorLabelDensity.alwaysVisibleActorLabelCount <=
+                  state.actorLabelDensity.desktopMaxAlwaysVisibleActorLabels &&
+                state.actorLabelDensity.hiddenContextActorLabelCount > 0 &&
+                actorLabelRecords.every((record) =>
+                  record.labelVisibility === "always-visible"
+                    ? record.hasEntityLabel === true
+                    : record.hasEntityLabel === false
+                ),
+              "V4.5/V4.6B desktop route must keep representative actor labels only: " +
+                JSON.stringify({
+                  density: state.actorLabelDensity,
+                  actorLabelRecords
+                })
+            );
+            assert(
               config.requiredNonClaimKeys.every((key) =>
                 telemetryNonClaims.includes('"' + key + '":true')
               ),
@@ -742,6 +790,7 @@ async function main() {
               endpointScreenDistance,
               actorCanvasPoints,
               actorRenderRadii,
+              actorLabelDensity: state.actorLabelDensity,
               geoSourceRadius,
               geoRenderRadius,
               geoCanvasPoint,
@@ -752,6 +801,7 @@ async function main() {
             expectedDataSourceName: EXPECTED_DATA_SOURCE_NAME,
             expectedEndpointIds: EXPECTED_ENDPOINT_IDS,
             expectedActorIds: EXPECTED_ACTOR_IDS,
+            expectedActorCounts: EXPECTED_ACTOR_COUNTS,
             expectedWindowIds: EXPECTED_WINDOW_IDS,
             requiredNonClaimKeys: REQUIRED_NON_CLAIM_KEYS,
             forbiddenClaimPhrases: FORBIDDEN_CLAIM_PHRASES
@@ -1098,17 +1148,44 @@ async function main() {
             );
             const telemetryNonClaims =
               document.documentElement.dataset.m8aV4GroundStationNonClaims ?? "";
+            const actorLabelRecords = (state?.actors ?? []).map((actor) => {
+              const entity = capture?.viewer?.dataSources
+                ?.getByName?.(state.dataSourceName)?.[0]
+                ?.entities?.getById?.(actor.actorId);
+
+              return {
+                actorId: actor.actorId,
+                labelVisibility: actor.labelVisibility,
+                hasEntityLabel: Boolean(entity?.label)
+              };
+            });
 
             assert(capture, "Missing runtime capture seam on narrow V4 route.");
             assert(
               state &&
                 state.runtimeState === "${V4_RUNTIME_STATE}" &&
                 state.endpointCount === 2 &&
-                state.actorCount === 5 &&
-                state.orbitActorCounts.leo === 3 &&
-                state.orbitActorCounts.meo === 1 &&
-                state.orbitActorCounts.geo === 1,
+                state.actorCount === config.expectedActorIds.length &&
+                JSON.stringify(state.orbitActorCounts) ===
+                  JSON.stringify(config.expectedActorCounts),
               "Narrow V4 route must keep accepted endpoint and orbit-actor counts."
+            );
+            assert(
+              state.actorLabelDensity.alwaysVisibleActorLabelCount <
+                state.actorCount &&
+                state.actorLabelDensity.alwaysVisibleActorLabelCount <=
+                  state.actorLabelDensity.narrowMaxAlwaysVisibleActorLabels &&
+                state.actorLabelDensity.hiddenContextActorLabelCount > 0 &&
+                actorLabelRecords.every((record) =>
+                  record.labelVisibility === "always-visible"
+                    ? record.hasEntityLabel === true
+                    : record.hasEntityLabel === false
+                ),
+              "Narrow V4 route must keep actor label density controlled: " +
+                JSON.stringify({
+                  density: state.actorLabelDensity,
+                  actorLabelRecords
+                })
             );
             assert(
               hud instanceof HTMLElement &&
@@ -1141,9 +1218,12 @@ async function main() {
               },
               hudRect,
               hudHidden: hud instanceof HTMLElement ? hud.hidden : null,
-              visibleHudLabelCount: visibleHudLabels.length
+              visibleHudLabelCount: visibleHudLabels.length,
+              actorLabelDensity: state.actorLabelDensity
             };
           })(${JSON.stringify({
+            expectedActorIds: EXPECTED_ACTOR_IDS,
+            expectedActorCounts: EXPECTED_ACTOR_COUNTS,
             requiredNonClaimKeys: REQUIRED_NON_CLAIM_KEYS
           })})`
         );
