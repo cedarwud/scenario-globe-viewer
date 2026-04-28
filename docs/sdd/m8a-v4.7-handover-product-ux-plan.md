@@ -26,7 +26,7 @@ Related scope reset:
 - accepted as product UX authority on 2026-04-28 after review
 - no runtime implementation authority by itself
 - runtime implementation completed after explicit implementation opening on
-  2026-04-28; commit hash pending at documentation time
+  2026-04-28; accepted runtime commit `26781b8`
 - intended phase: `M8A-V4.7` product UX / playback / information architecture
 - current as of 2026-04-28
 
@@ -409,7 +409,7 @@ Runtime status:
 
 - completed after explicit V4.7 runtime implementation opening
 - no runtime endpoint, actor, source, or model-truth expansion
-- commit hash pending at documentation time
+- accepted runtime commit: `26781b8`
 
 Changed runtime and validation files:
 
@@ -450,6 +450,7 @@ Validation result:
 - runtime source-boundary scan passed
 - forbidden-claim scan passed
 - UI bounding-box non-obstruction checks passed
+- narrow disclosure sheet truth-badge probe passed at `390x844`
 
 Validated screenshots:
 

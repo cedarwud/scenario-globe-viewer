@@ -867,7 +867,7 @@ async function verifyFinalHold(client) {
   };
 }
 
-async function verifyDisclosure(client) {
+async function verifyDisclosure(client, viewport) {
   const result = await evaluateRuntimeValue(
     client,
     `((config) => {
@@ -926,11 +926,20 @@ async function verifyDisclosure(client) {
         .click();
 
       return {
+        viewport: config.viewport,
         disclosure: state.productUx.disclosure,
         badgeTexts,
         sheetText
       };
-    })(${JSON.stringify({ requiredBadges: REQUIRED_BADGES })})`
+    })(${JSON.stringify({
+      requiredBadges: REQUIRED_BADGES,
+      viewport: {
+        name: viewport.name,
+        width: viewport.width,
+        height: viewport.height,
+        expectedViewportClass: viewport.expectedViewportClass
+      }
+    })})`
   );
   await sleep(120);
   return result;
@@ -962,9 +971,10 @@ async function main() {
     const playbackPolicy = await verifyPlaybackPolicy(client);
     const labelMapping = await verifyProductLabelMapping(client);
     const finalHold = await verifyFinalHold(client);
-    const disclosure = await verifyDisclosure(client);
+    const disclosure = await verifyDisclosure(client, VIEWPORTS[0]);
 
     const viewportResults = [];
+    let narrowDisclosure = null;
 
     for (const viewport of VIEWPORTS) {
       await setViewport(client, viewport);
@@ -980,7 +990,16 @@ async function main() {
         ...inspection,
         screenshotPath: path.relative(repoRoot, screenshotPath)
       });
+
+      if (viewport.expectedViewportClass === "narrow") {
+        narrowDisclosure = await verifyDisclosure(client, viewport);
+      }
     }
+
+    assert(
+      narrowDisclosure,
+      "V4.7 smoke must verify narrow disclosure badges at 390x844."
+    );
 
     console.log(
       `M8A-V4.7 handover product UX runtime smoke passed: ${JSON.stringify(
@@ -989,8 +1008,14 @@ async function main() {
           labelMapping,
           finalHold,
           disclosure: {
+            viewport: disclosure.viewport,
             badgeTexts: disclosure.badgeTexts,
             lineCount: disclosure.disclosure.lines.length
+          },
+          narrowDisclosure: {
+            viewport: narrowDisclosure.viewport,
+            badgeTexts: narrowDisclosure.badgeTexts,
+            lineCount: narrowDisclosure.disclosure.lines.length
           },
           viewportResults,
           runtimeProcessFacts: {
