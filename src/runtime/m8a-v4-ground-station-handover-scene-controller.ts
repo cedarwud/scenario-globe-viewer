@@ -66,6 +66,9 @@ const M8A_V4_CAMERA_HEIGHT_METERS = 11_500_000;
 const M8A_V4_CAMERA_HEADING_DEGREES = 0;
 const M8A_V4_CAMERA_PITCH_DEGREES = -80;
 const M8A_V4_CAMERA_SCREEN_UP_PAN_METERS = 4_000_000;
+const M8A_V4_MILLISECONDS_PER_DAY = 24 * 60 * 60 * 1000;
+const M8A_V4_FULL_LEO_ORBIT_REPLAY_MARGIN_MS = 5 * 60 * 1000;
+const M8A_V4_FULL_LEO_ORBIT_REPLAY_MULTIPLIER = 240;
 const M8A_V4_DISPLAY_ORBIT_HEIGHT_METERS = {
   leo: {
     start: 280_000,
@@ -110,6 +113,11 @@ const M8A_V4_TELEMETRY_KEYS = [
   "m8aV4GroundStationMeoActorCount",
   "m8aV4GroundStationGeoActorCount",
   "m8aV4GroundStationActorIds",
+  "m8aV4GroundStationReplayDurationMs",
+  "m8aV4GroundStationReplayMultiplier",
+  "m8aV4GroundStationLongestOneWebLeoActorId",
+  "m8aV4GroundStationLongestOneWebLeoPeriodMs",
+  "m8aV4GroundStationReplayMarginMs",
   "m8aV4GroundStationServiceStateWindowId",
   "m8aV4GroundStationServiceStateSource",
   "m8aV4GroundStationCurrentPrimaryOrbit",
@@ -201,6 +209,18 @@ export interface M8aV4GroundStationSceneState {
     measuredJitter: false;
     measuredThroughput: false;
   };
+  replayWindow: {
+    startTimeUtc: string;
+    stopTimeUtc: string;
+    durationMs: number;
+    playbackMultiplier: number;
+    longestCurrentOneWebLeoActorId: string;
+    longestCurrentOneWebLeoSourceRecordName: string;
+    longestCurrentOneWebLeoMeanMotionRevPerDay: number;
+    longestCurrentOneWebLeoPeriodMs: number;
+    replayMarginMs: number;
+    periodSource: "repo-owned-oneweb-tle-mean-motion";
+  };
   relationCues: {
     cueKind: "modeled-service-state-continuity-ribbons";
     primaryOrbitClass: M8aV4OrbitClass;
@@ -251,6 +271,24 @@ interface PropagatedActorPosition {
   propagationTimeUtc: string;
 }
 
+interface M8aV4OneWebLeoPeriod {
+  actorId: string;
+  sourceRecordName: string;
+  meanMotionRevPerDay: number;
+  periodMs: number;
+}
+
+interface M8aV4ReplayProfile {
+  longestOneWebLeoActorId: string;
+  longestOneWebLeoSourceRecordName: string;
+  longestOneWebLeoMeanMotionRevPerDay: number;
+  longestOneWebLeoPeriodMs: number;
+  replayMarginMs: number;
+  replayDurationMs: number;
+  playbackMultiplier: number;
+  periodSource: "repo-owned-oneweb-tle-mean-motion";
+}
+
 export function isM8aV4GroundStationRuntimeRequested(search: URLSearchParams): boolean {
   return (
     search.get(M8A_V4_GROUND_STATION_QUERY_PARAM) ===
@@ -292,9 +330,95 @@ function normalizeUnit(value: number): number {
   return normalized < 0 ? normalized + 1 : normalized;
 }
 
+function parseTleMeanMotionRevPerDay(
+  tleLine2: string,
+  actorId: string
+): number {
+  const meanMotion = Number(tleLine2.slice(52, 63).trim());
+
+  if (!Number.isFinite(meanMotion) || meanMotion <= 0) {
+    throw new Error(
+      `Missing positive TLE mean motion for V4 actor ${actorId}.`
+    );
+  }
+
+  return meanMotion;
+}
+
+function isCurrentOneWebLeoActor(actor: M8aV4OrbitActorProjection): boolean {
+  const sourceRecordName = actor.sourceLineage[0]?.sourceRecordName ?? "";
+
+  return (
+    actor.orbitClass === "leo" &&
+    actor.operatorContext.toLowerCase().includes("oneweb") &&
+    sourceRecordName.toLowerCase().startsWith("oneweb-")
+  );
+}
+
+function resolveCurrentOneWebLeoActorPeriods(
+  actors: ReadonlyArray<M8aV4OrbitActorProjection>
+): ReadonlyArray<M8aV4OneWebLeoPeriod> {
+  return actors.filter(isCurrentOneWebLeoActor).map((actor) => {
+    const lineage = actor.sourceLineage[0];
+
+    if (!lineage) {
+      throw new Error(`Missing V4 OneWeb LEO lineage for ${actor.actorId}.`);
+    }
+
+    const meanMotionRevPerDay = parseTleMeanMotionRevPerDay(
+      lineage.tleLine2,
+      actor.actorId
+    );
+
+    return {
+      actorId: actor.actorId,
+      sourceRecordName: lineage.sourceRecordName,
+      meanMotionRevPerDay,
+      periodMs: M8A_V4_MILLISECONDS_PER_DAY / meanMotionRevPerDay
+    };
+  });
+}
+
+function resolveLongestCurrentOneWebLeoActorPeriod(
+  actors: ReadonlyArray<M8aV4OrbitActorProjection>
+): M8aV4OneWebLeoPeriod {
+  const periods = resolveCurrentOneWebLeoActorPeriods(actors);
+
+  if (periods.length === 0) {
+    throw new Error("V4.6A replay requires at least one current OneWeb LEO actor.");
+  }
+
+  return periods.reduce((longest, candidate) =>
+    candidate.periodMs > longest.periodMs ? candidate : longest
+  );
+}
+
+function buildFullLeoOrbitReplayProfile(): M8aV4ReplayProfile {
+  const longestLeoPeriod = resolveLongestCurrentOneWebLeoActorPeriod(
+    M8A_V4_GROUND_STATION_RUNTIME_PROJECTION.orbitActors
+  );
+
+  return {
+    longestOneWebLeoActorId: longestLeoPeriod.actorId,
+    longestOneWebLeoSourceRecordName: longestLeoPeriod.sourceRecordName,
+    longestOneWebLeoMeanMotionRevPerDay:
+      longestLeoPeriod.meanMotionRevPerDay,
+    longestOneWebLeoPeriodMs: longestLeoPeriod.periodMs,
+    replayMarginMs: M8A_V4_FULL_LEO_ORBIT_REPLAY_MARGIN_MS,
+    replayDurationMs: Math.ceil(
+      longestLeoPeriod.periodMs + M8A_V4_FULL_LEO_ORBIT_REPLAY_MARGIN_MS
+    ),
+    playbackMultiplier: M8A_V4_FULL_LEO_ORBIT_REPLAY_MULTIPLIER,
+    periodSource: "repo-owned-oneweb-tle-mean-motion"
+  };
+}
+
 function lerp(left: number, right: number, ratio: number): number {
   return left + (right - left) * ratio;
 }
+
+const M8A_V4_FULL_LEO_ORBIT_REPLAY_PROFILE =
+  buildFullLeoOrbitReplayProfile();
 
 function positionToCartesian(position: M8aV4GeoPosition): Cartesian3 {
   return Cartesian3.fromDegrees(
@@ -371,7 +495,8 @@ function configureReplayClock(viewer: Viewer, replayClock: ReplayClock): void {
     M8A_V4_GROUND_STATION_RUNTIME_PROJECTION.projectionEpochUtc
   );
   assertFiniteTimestamp(startMs, "m8aV4GroundStation.projectionEpochUtc");
-  const stopMs = startMs + 10 * 60 * 1000;
+  const stopMs =
+    startMs + M8A_V4_FULL_LEO_ORBIT_REPLAY_PROFILE.replayDurationMs;
   const range = {
     start: new Date(startMs).toISOString(),
     stop: new Date(stopMs).toISOString()
@@ -379,7 +504,9 @@ function configureReplayClock(viewer: Viewer, replayClock: ReplayClock): void {
 
   replayClock.setMode("prerecorded", range);
   replayClock.seek(range.start);
-  replayClock.setMultiplier(30);
+  replayClock.setMultiplier(
+    M8A_V4_FULL_LEO_ORBIT_REPLAY_PROFILE.playbackMultiplier
+  );
   replayClock.play();
   viewer.timeline?.zoomTo(viewer.clock.startTime, viewer.clock.stopTime);
 }
@@ -804,6 +931,9 @@ function cloneState(
       },
       timelineWindowIds: [...state.serviceState.timelineWindowIds]
     },
+    replayWindow: {
+      ...state.replayWindow
+    },
     relationCues: {
       ...state.relationCues
     },
@@ -851,6 +981,18 @@ function syncTelemetry(state: M8aV4GroundStationSceneState): void {
     m8aV4GroundStationActorIds: serializeList(
       state.actors.map((actor) => actor.actorId)
     ),
+    m8aV4GroundStationReplayDurationMs: String(state.replayWindow.durationMs),
+    m8aV4GroundStationReplayMultiplier: String(
+      state.replayWindow.playbackMultiplier
+    ),
+    m8aV4GroundStationLongestOneWebLeoActorId:
+      state.replayWindow.longestCurrentOneWebLeoActorId,
+    m8aV4GroundStationLongestOneWebLeoPeriodMs: String(
+      state.replayWindow.longestCurrentOneWebLeoPeriodMs
+    ),
+    m8aV4GroundStationReplayMarginMs: String(
+      state.replayWindow.replayMarginMs
+    ),
     m8aV4GroundStationServiceStateWindowId:
       state.serviceState.window.windowId,
     m8aV4GroundStationServiceStateSource:
@@ -884,6 +1026,30 @@ function buildEndpointState(): M8aV4GroundStationSceneState["endpoints"] {
     rawSourceCoordinatesRenderable: endpoint.sourceCoordinatesRenderable,
     orbitEvidenceChips: endpoint.orbitEvidenceChips.map((chip) => chip.chipLabel)
   }));
+}
+
+function buildReplayWindowState(
+  replayState: ReplayClockState
+): M8aV4GroundStationSceneState["replayWindow"] {
+  const startMs = toEpochMilliseconds(replayState.startTime);
+  const stopMs = toEpochMilliseconds(replayState.stopTime);
+
+  return {
+    startTimeUtc: toIsoTimestamp(startMs),
+    stopTimeUtc: toIsoTimestamp(stopMs),
+    durationMs: stopMs - startMs,
+    playbackMultiplier: replayState.multiplier,
+    longestCurrentOneWebLeoActorId:
+      M8A_V4_FULL_LEO_ORBIT_REPLAY_PROFILE.longestOneWebLeoActorId,
+    longestCurrentOneWebLeoSourceRecordName:
+      M8A_V4_FULL_LEO_ORBIT_REPLAY_PROFILE.longestOneWebLeoSourceRecordName,
+    longestCurrentOneWebLeoMeanMotionRevPerDay:
+      M8A_V4_FULL_LEO_ORBIT_REPLAY_PROFILE.longestOneWebLeoMeanMotionRevPerDay,
+    longestCurrentOneWebLeoPeriodMs:
+      M8A_V4_FULL_LEO_ORBIT_REPLAY_PROFILE.longestOneWebLeoPeriodMs,
+    replayMarginMs: M8A_V4_FULL_LEO_ORBIT_REPLAY_PROFILE.replayMarginMs,
+    periodSource: M8A_V4_FULL_LEO_ORBIT_REPLAY_PROFILE.periodSource
+  };
 }
 
 function resolveActorForOrbit(
@@ -1288,6 +1454,7 @@ export function createM8aV4GroundStationSceneController({
           M8A_V4_GROUND_STATION_RUNTIME_PROJECTION.serviceStateModel.metricPolicy
             .measuredThroughput
       },
+      replayWindow: buildReplayWindowState(replayState),
       relationCues: {
         cueKind: "modeled-service-state-continuity-ribbons",
         primaryOrbitClass: serviceWindow.currentPrimaryOrbitClass,
