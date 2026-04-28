@@ -19,6 +19,8 @@ Related V4.6B source/projection record:
 [./m8a-v4.6b-source-lineaged-orbit-actor-projection.md](./m8a-v4.6b-source-lineaged-orbit-actor-projection.md).
 Related accepted V4.6D simulation handover model contract:
 [./m8a-v4.6d-simulation-handover-model-contract.md](./m8a-v4.6d-simulation-handover-model-contract.md).
+Related V4.6C/R2 endpoint evidence catalog review:
+[../../../itri/multi-orbit/download/ground-station-endpoint-candidates/2026-04-25/r2-endpoint-evidence-catalog-2026-04-28.md](../../../itri/multi-orbit/download/ground-station-endpoint-candidates/2026-04-25/r2-endpoint-evidence-catalog-2026-04-28.md).
 
 ## Status
 
@@ -308,6 +310,12 @@ Implementation status:
 
 - planning/source-hunt can proceed in parallel with V4.6A
 - runtime selectable scenarios remain blocked until accepted projections exist
+- 2026-04-28 R2 catalog review updated the candidate matrix fields for source
+  authority type, precision class, promotion readiness, missing evidence by
+  orbit class, Taiwan/CHT precision compatibility, and explicit non-claims
+- Speedcast Singapore remains the already accepted endpoint B for the current
+  pair at `operator-family-only` precision; no alternate endpoint B is
+  currently runtime-ready
 
 ## Phase V4.6D - Simulation Handover Model
 

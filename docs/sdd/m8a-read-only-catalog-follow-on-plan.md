@@ -14,6 +14,10 @@ Related M8A spine: see
 [./m8a-nearby-second-endpoint-expansion-plan.md](./m8a-nearby-second-endpoint-expansion-plan.md).
 Related program skeleton: see
 [./multi-orbit-program-skeleton.md](./multi-orbit-program-skeleton.md).
+Related V4.6C/R2 endpoint evidence catalog review: see
+[../../../itri/multi-orbit/download/ground-station-endpoint-candidates/2026-04-25/r2-endpoint-evidence-catalog-2026-04-28.md](../../../itri/multi-orbit/download/ground-station-endpoint-candidates/2026-04-25/r2-endpoint-evidence-catalog-2026-04-28.md).
+Related machine-readable candidate matrix: see
+[../../../itri/multi-orbit/download/ground-station-endpoint-candidates/2026-04-25/candidate-matrix.json](../../../itri/multi-orbit/download/ground-station-endpoint-candidates/2026-04-25/candidate-matrix.json).
 
 ## Status
 
@@ -29,6 +33,21 @@ Related program skeleton: see
 - R2 still does not authorize scenario launch, endpoint pairing, or runtime
   communication selection.
 - Any V4 endpoint must pass the V4 endpoint-pair authority gate first.
+
+2026-04-28 V4.6C/R2 endpoint evidence note:
+
+- R2 now has a catalog-only endpoint evidence review for the current
+  ground-station candidate matrix.
+- The current runtime pair remains Taiwan/CHT + Speedcast Singapore at
+  `operator-family-only` precision.
+- Speedcast Singapore is already accepted endpoint B for the current pair, not
+  merely a candidate.
+- The R2 fields now separate source authority type, precision class, promotion
+  readiness, missing evidence by orbit class, precision compatibility with the
+  Taiwan/CHT baseline, and explicit non-claims.
+- No alternate endpoint B is runtime-ready.
+- No R2-to-runtime shortcut, runtime selector, new endpoint-pair package, or
+  site-level/same-site claim is authorized by the catalog update.
 
 ## Purpose
 
