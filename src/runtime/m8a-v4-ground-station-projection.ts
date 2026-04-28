@@ -643,12 +643,13 @@ function resolveRuntimeActorLabel(
   actor: M8aV4AcceptedOrbitActorProjection
 ): string {
   const sourceRecordName = actor.sourceLineage[0]?.sourceRecordName ?? actor.actorId;
+  const displayName = sourceRecordName.replace(/^O3B MPOWER /u, "O3b mPOWER ");
 
-  if (actor.actorId === "st-2-geo-continuity-anchor") {
-    return "ST-2 GEO continuity anchor";
+  if (actor.orbitClass === "geo") {
+    return `${displayName} GEO guard`;
   }
 
-  return `${sourceRecordName} ${actor.orbitClass.toUpperCase()} display-context`;
+  return `${displayName} ${actor.orbitClass.toUpperCase()} context`;
 }
 
 function resolveRuntimeDisplayTrack(

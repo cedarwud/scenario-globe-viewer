@@ -53,7 +53,8 @@ import {
   type M8aV4RuntimeNarrativeNonClaims,
   type M8aV4ServiceStateWindow,
   type M8aV46dActorId,
-  type M8aV46dSimulationHandoverWindow
+  type M8aV46dSimulationHandoverWindow,
+  type M8aV46dSimulationHandoverWindowId
 } from "./m8a-v4-ground-station-projection";
 
 export const M8A_V4_GROUND_STATION_DATA_SOURCE_NAME =
@@ -100,13 +101,22 @@ const M8A_V4_ACTOR_GLOW_MODEL_CENTER_OFFSETS = {
   meo: new Cartesian2(-2, -6),
   geo: new Cartesian2(0, -5)
 } satisfies Record<M8aV4OrbitClass, Cartesian2>;
-const M8A_V4_ALWAYS_LABELED_ACTOR_IDS = new Set([
-  "oneweb-0386-leo-display-context",
-  "o3b-mpower-f6-meo-display-context",
-  "st-2-geo-continuity-anchor"
-]);
-const M8A_V4_DESKTOP_MAX_ALWAYS_VISIBLE_ACTOR_LABELS = 4;
-const M8A_V4_NARROW_MAX_ALWAYS_VISIBLE_ACTOR_LABELS = 3;
+const M8A_V46E_NARROW_VIEWPORT_MAX_WIDTH_PX = 560;
+const M8A_V46E_PREFERRED_VISIBLE_ACTOR_LABELS = 1;
+const M8A_V4_DESKTOP_MAX_ALWAYS_VISIBLE_ACTOR_LABELS = 3;
+const M8A_V4_NARROW_MAX_ALWAYS_VISIBLE_ACTOR_LABELS = 1;
+const M8A_V46E_TIMELINE_LABELS = {
+  "leo-acquisition-context": "LEO acquire",
+  "leo-aging-pressure": "LEO pressure",
+  "meo-continuity-hold": "MEO hold",
+  "leo-reentry-candidate": "LEO re-entry",
+  "geo-continuity-guard": "GEO guard"
+} satisfies Record<M8aV46dSimulationHandoverWindowId, string>;
+const M8A_V46E_RELATION_ROLE_LABELS = {
+  displayRepresentative: "representative context ribbon",
+  candidateContext: "candidate context ribbon",
+  fallbackContext: "GEO guard cue"
+} satisfies Record<M8aV4RelationRole, string>;
 
 const M8A_V4_TELEMETRY_KEYS = [
   "m8aV4GroundStationRuntimeState",
@@ -123,6 +133,12 @@ const M8A_V4_TELEMETRY_KEYS = [
   "m8aV4GroundStationMeoActorCount",
   "m8aV4GroundStationGeoActorCount",
   "m8aV4GroundStationActorIds",
+  "m8aV46eVisualLanguage",
+  "m8aV46eActiveStateLabel",
+  "m8aV46eVisibleContextRibbonCount",
+  "m8aV46eFallbackGuardCueMode",
+  "m8aV46eVisibleActorLabelCount",
+  "m8aV46eVisibleActorLabelIds",
   "m8aV4GroundStationAlwaysVisibleActorLabelCount",
   "m8aV4GroundStationAlwaysVisibleActorLabelIds",
   "m8aV4GroundStationHiddenContextActorLabelCount",
@@ -225,6 +241,14 @@ export interface M8aV4GroundStationSceneState {
   actors: ReadonlyArray<M8aV4ActorRuntimeRecord>;
   actorLabelDensity: {
     policy: "representative-orbit-class-labels-only";
+    v46ePolicy: "active-representative-label-with-endpoint-priority";
+    viewportClass: "desktop" | "narrow";
+    endpointLabelsPriority: true;
+    candidateLabelsVisibleByDefault: false;
+    fallbackLabelPolicy: "geo-representative-or-guard-state-only";
+    preferredVisibleActorLabelCount: 1;
+    visibleActorLabelCount: number;
+    visibleActorLabelIds: ReadonlyArray<string>;
     alwaysVisibleActorLabelCount: number;
     alwaysVisibleActorLabelIds: ReadonlyArray<string>;
     hiddenContextActorLabelCount: number;
@@ -276,10 +300,16 @@ export interface M8aV4GroundStationSceneState {
     periodSource: "repo-owned-oneweb-tle-mean-motion";
   };
   relationCues: {
-    cueKind: "v4.6d-simulation-handover-display-context-ribbons";
+    cueKind: "v4.6e-handover-visual-language-context-ribbons";
     displayRepresentativeActorId: M8aV46dActorId;
     candidateContextActorId: M8aV46dActorId;
     fallbackContextActorId: M8aV46dActorId;
+    visibleContextRibbonCount: 2;
+    visibleContextRibbonRoles: readonly ["displayRepresentative", "candidateContext"];
+    fallbackGuardCueMode:
+      | "low-opacity-geo-guard-cue"
+      | "representative-context-ribbon-in-geo-continuity-guard";
+    fallbackFullRibbonVisible: false;
     activeSatelliteTruth: "not-claimed";
     activeGatewayTruth: "not-claimed";
     pairSpecificTeleportPathTruth: "not-claimed";
@@ -650,6 +680,26 @@ function resolveActorLabelBackgroundColor(): Color {
   return Color.fromCssColorString("#0b1820").withAlpha(0.58);
 }
 
+function resolveViewportClass(): "desktop" | "narrow" {
+  return window.innerWidth <= M8A_V46E_NARROW_VIEWPORT_MAX_WIDTH_PX
+    ? "narrow"
+    : "desktop";
+}
+
+function resolveTimelineLabel(
+  windowId: M8aV46dSimulationHandoverWindowId
+): string {
+  return M8A_V46E_TIMELINE_LABELS[windowId];
+}
+
+function resolveFallbackGuardCueMode(
+  simulationWindow: M8aV46dSimulationHandoverWindow
+): M8aV4GroundStationSceneState["relationCues"]["fallbackGuardCueMode"] {
+  return simulationWindow.windowId === "geo-continuity-guard"
+    ? "representative-context-ribbon-in-geo-continuity-guard"
+    : "low-opacity-geo-guard-cue";
+}
+
 function resolveActorEmphasis(
   actor: M8aV4OrbitActorProjection,
   simulationWindow: M8aV46dSimulationHandoverWindow
@@ -747,12 +797,33 @@ function createActorGlowStyle(actor: M8aV4OrbitActorProjection): BillboardGraphi
   });
 }
 
+function createGeoGuardCueStyle(): BillboardGraphics {
+  return new BillboardGraphics({
+    image: new ConstantProperty(createActorGlowImageUri("geo")),
+    width: new ConstantProperty(54),
+    height: new ConstantProperty(54),
+    color: new ConstantProperty(Color.WHITE.withAlpha(0.38)),
+    pixelOffset: new ConstantProperty(resolveActorGlowModelCenterOffset("geo")),
+    disableDepthTestDistance: Number.POSITIVE_INFINITY,
+    distanceDisplayCondition: new DistanceDisplayCondition(0, 100_000_000)
+  });
+}
+
 function shouldRenderActorGlow(actor: M8aV4OrbitActorProjection): boolean {
   return actor.orbitClass !== "leo";
 }
 
-function shouldRenderActorLabel(actor: M8aV4OrbitActorProjection): boolean {
-  return M8A_V4_ALWAYS_LABELED_ACTOR_IDS.has(actor.actorId);
+function shouldRenderActorLabel(
+  actor: M8aV4OrbitActorProjection,
+  simulationWindow: M8aV46dSimulationHandoverWindow
+): boolean {
+  return actor.actorId === simulationWindow.displayRepresentativeActorId;
+}
+
+function shouldShowGeoGuardCue(
+  simulationWindow: M8aV46dSimulationHandoverWindow
+): boolean {
+  return simulationWindow.windowId !== "geo-continuity-guard";
 }
 
 function createActorLabelStyle(
@@ -807,22 +878,22 @@ function createActorModelGraphics(
 function resolveRelationColor(role: M8aV4RelationRole): Color {
   switch (role) {
     case "displayRepresentative":
-      return Color.fromCssColorString("#fff2a6").withAlpha(0.72);
+      return Color.fromCssColorString("#f7d46a").withAlpha(0.76);
     case "candidateContext":
-      return Color.fromCssColorString("#7ee2b8").withAlpha(0.5);
+      return Color.fromCssColorString("#7ee2b8").withAlpha(0.46);
     case "fallbackContext":
-      return Color.fromCssColorString("#ffd166").withAlpha(0.36);
+      return Color.fromCssColorString("#ffd166").withAlpha(0.2);
   }
 }
 
 function resolveRelationWidth(role: M8aV4RelationRole): number {
   switch (role) {
     case "displayRepresentative":
-      return 2.5;
+      return 2.35;
     case "candidateContext":
-      return 1.7;
+      return 1.45;
     case "fallbackContext":
-      return 1.2;
+      return 1.1;
   }
 }
 
@@ -847,7 +918,8 @@ function createRelationStyle(
 
 function updateActorStyle(
   handle: ActorRenderHandle,
-  emphasis: M8aV4ActorEmphasis
+  emphasis: M8aV4ActorEmphasis,
+  simulationWindow: M8aV46dSimulationHandoverWindow
 ): void {
   if (handle.entity.model) {
     handle.entity.model.scale = new ConstantProperty(emphasis.modelScale);
@@ -870,10 +942,16 @@ function updateActorStyle(
     );
   }
 
-  if (handle.entity.label) {
+  if (shouldRenderActorLabel(handle.actor, simulationWindow)) {
+    if (!handle.entity.label) {
+      handle.entity.label = createActorLabelStyle(handle.actor, emphasis);
+    }
+
     handle.entity.label.fillColor = new ConstantProperty(
       Color.WHITE.withAlpha(emphasis.labelAlpha)
     );
+  } else {
+    handle.entity.label = undefined;
   }
 }
 
@@ -898,14 +976,34 @@ function createHudRoot(): HTMLElement {
   const root = document.createElement("aside");
   root.className = "m8a-v4-ground-station-scene";
   root.dataset.m8aV4GroundStationScene = "true";
-  root.dataset.m8aV4GroundStationSceneVisibility = "hidden";
-  root.hidden = true;
-  root.setAttribute("aria-hidden", "true");
-  root.setAttribute("aria-label", "M8A V4.3 ground station handover scene");
+  root.dataset.m8aV4GroundStationSceneVisibility = "compact";
+  root.dataset.m8aV46eVisualLanguage = "true";
+  root.hidden = false;
+  root.setAttribute("aria-hidden", "false");
+  root.setAttribute("aria-label", "M8A V4.6E display-state surface");
   return root;
 }
 
 function renderHud(root: HTMLElement, state: M8aV4GroundStationSceneState): void {
+  const activeStateLabel = resolveTimelineLabel(
+    state.simulationHandoverModel.window.windowId
+  );
+  const representativeActor = state.actors.find(
+    (actor) =>
+      actor.actorId ===
+      state.simulationHandoverModel.window.displayRepresentativeActorId
+  );
+  const candidateActor = state.actors.find(
+    (actor) => actor.actorId === state.relationCues.candidateContextActorId
+  );
+  const guardActor = state.actors.find(
+    (actor) => actor.actorId === state.relationCues.fallbackContextActorId
+  );
+
+  root.hidden = false;
+  root.dataset.m8aV4GroundStationSceneVisibility = "compact";
+  root.dataset.m8aV46eVisualLanguage = "true";
+  root.dataset.activeStateLabel = activeStateLabel;
   root.dataset.serviceWindowId = state.serviceState.window.windowId;
   root.dataset.simulationHandoverModelId =
     state.simulationHandoverModel.modelId;
@@ -924,6 +1022,16 @@ function renderHud(root: HTMLElement, state: M8aV4GroundStationSceneState): void
   root.dataset.nextCandidateOrbit =
     state.serviceState.window.nextCandidateOrbitClass;
   root.dataset.precisionBadge = M8A_V4_GROUND_STATION_REQUIRED_PRECISION_BADGE;
+  root.dataset.visibleContextRibbonCount = String(
+    state.relationCues.visibleContextRibbonCount
+  );
+  root.dataset.fallbackGuardCueMode = state.relationCues.fallbackGuardCueMode;
+  root.dataset.visibleActorLabelCount = String(
+    state.actorLabelDensity.visibleActorLabelCount
+  );
+  root.dataset.visibleActorLabelIds = serializeList(
+    state.actorLabelDensity.visibleActorLabelIds
+  );
   root.dataset.rawItriSideReadOwnership =
     state.sourceLineage.rawPackageSideReadOwnership;
   root.dataset.nonClaims = serializeJson(state.nonClaims);
@@ -945,46 +1053,51 @@ function renderHud(root: HTMLElement, state: M8aV4GroundStationSceneState): void
         <span
           class="m8a-v4-ground-station-scene__stage"
           data-active="${windowId === state.simulationHandoverModel.window.windowId ? "true" : "false"}"
-        >${windowId}</span>
+          data-window-id="${windowId}"
+        >${resolveTimelineLabel(windowId as M8aV46dSimulationHandoverWindowId)}</span>
       `
     )
     .join("");
 
   root.innerHTML = `
     <div class="m8a-v4-ground-station-scene__header">
-      <span>V4.6D Simulation Handover Model</span>
-      <strong>${state.simulationHandoverModel.window.displayRepresentativeActorId}</strong>
+      <span>current state</span>
+      <strong data-m8a-v46e-active-state="true">${activeStateLabel}</strong>
+      <small>${representativeActor?.label ?? state.simulationHandoverModel.window.displayRepresentativeActorId}</small>
     </div>
-    <div class="m8a-v4-ground-station-scene__endpoints">
-      ${endpointMarkup}
-    </div>
-    <div class="m8a-v4-ground-station-scene__orbit-strip">
-      <span>LEO x${state.orbitActorCounts.leo}</span>
-      <span>MEO x${state.orbitActorCounts.meo}</span>
-      <span>GEO x${state.orbitActorCounts.geo}</span>
-      <strong>${state.simulationHandoverModel.window.handoverPressureReason}</strong>
+    <div class="m8a-v4-ground-station-scene__badges" aria-label="persistent badges">
+      <span data-badge="simulation-output">simulation output</span>
+      <span data-badge="operator-family-precision">operator-family precision</span>
+      <span data-badge="display-context-actors">display-context actors</span>
     </div>
     <div class="m8a-v4-ground-station-scene__stages">
       ${stageMarkup}
     </div>
-    <div class="m8a-v4-ground-station-scene__signals">
-      ${state.simulationHandoverModel.window.reasonSignalClasses
-        .map((signal) => `<span>${signal}</span>`)
-        .join("")}
+    <div class="m8a-v4-ground-station-scene__endpoints">
+      ${endpointMarkup}
     </div>
-    <div class="m8a-v4-ground-station-scene__nonclaims">
-      <span>no aircraft</span>
-      <span>no YKA</span>
-      <span>no handset UE</span>
-      <span>no real operator handover event</span>
-      <span>not active satellite</span>
-      <span>not active gateway</span>
-      <span>no pair-specific teleport path</span>
-      <span>no measured latency/jitter/throughput</span>
-      <span>not native RF handover</span>
-      <span>no R2 runtime selector</span>
-      <span>no raw itri or live external runtime source</span>
+    <div class="m8a-v4-ground-station-scene__role-legend" aria-label="role legend">
+      <span data-role="representative">${M8A_V46E_RELATION_ROLE_LABELS.displayRepresentative}</span>
+      <span data-role="candidate">${M8A_V46E_RELATION_ROLE_LABELS.candidateContext}</span>
+      <span data-role="guard">${M8A_V46E_RELATION_ROLE_LABELS.fallbackContext}</span>
     </div>
+    <div class="m8a-v4-ground-station-scene__ribbon-summary">
+      <span>${representativeActor?.label ?? "representative context"}</span>
+      <span>${candidateActor?.label ?? "candidate context"}</span>
+      <span>${guardActor?.label ?? "GEO guard"}</span>
+    </div>
+    <details class="m8a-v4-ground-station-scene__nonclaims" data-disclosure-control="non-claims">
+      <summary>non-claims</summary>
+      <div>
+        <span>model-only state</span>
+        <span>no operator-log claim</span>
+        <span>no assigned identity claim</span>
+        <span>no measured QoS</span>
+        <span>no native RF claim</span>
+        <span>same pair and precision</span>
+        <span>repo-owned projection only</span>
+      </div>
+    </details>
   `;
 }
 
@@ -1023,6 +1136,7 @@ function cloneState(
     actors: state.actors.map(cloneActorState),
     actorLabelDensity: {
       ...state.actorLabelDensity,
+      visibleActorLabelIds: [...state.actorLabelDensity.visibleActorLabelIds],
       alwaysVisibleActorLabelIds: [
         ...state.actorLabelDensity.alwaysVisibleActorLabelIds
       ]
@@ -1164,6 +1278,20 @@ function syncTelemetry(state: M8aV4GroundStationSceneState): void {
     m8aV4GroundStationGeoActorCount: String(state.orbitActorCounts.geo),
     m8aV4GroundStationActorIds: serializeList(
       state.actors.map((actor) => actor.actorId)
+    ),
+    m8aV46eVisualLanguage: "true",
+    m8aV46eActiveStateLabel: resolveTimelineLabel(
+      state.simulationHandoverModel.window.windowId
+    ),
+    m8aV46eVisibleContextRibbonCount: String(
+      state.relationCues.visibleContextRibbonCount
+    ),
+    m8aV46eFallbackGuardCueMode: state.relationCues.fallbackGuardCueMode,
+    m8aV46eVisibleActorLabelCount: String(
+      state.actorLabelDensity.visibleActorLabelCount
+    ),
+    m8aV46eVisibleActorLabelIds: serializeList(
+      state.actorLabelDensity.visibleActorLabelIds
     ),
     m8aV4GroundStationAlwaysVisibleActorLabelCount: String(
       state.actorLabelDensity.alwaysVisibleActorLabelCount
@@ -1391,7 +1519,7 @@ export function createM8aV4GroundStationSceneController({
       clampToGround: false
     }),
     description: new ConstantProperty(
-      "Endpoint pair context only. No pair-specific teleport path, active gateway, measured performance, or native RF handover truth."
+      "Endpoint pair context ribbon; operator-family precision; display context only."
     )
   });
 
@@ -1521,7 +1649,7 @@ export function createM8aV4GroundStationSceneController({
             ? createActorGlowStyle(actor)
             : undefined,
           model: createActorModelGraphics(modelUri, actor, emphasis),
-          label: shouldRenderActorLabel(actor)
+          label: shouldRenderActorLabel(actor, latestSimulationWindow)
             ? createActorLabelStyle(actor, emphasis)
             : undefined,
           description: new ConstantProperty(
@@ -1570,21 +1698,30 @@ export function createM8aV4GroundStationSceneController({
       ];
     }, false);
   };
+  const createGeoGuardCuePosition = (): CallbackPositionProperty => {
+    return new CallbackPositionProperty((time, result) => {
+      const actor = resolveActorById(
+        M8A_V4_GROUND_STATION_RUNTIME_PROJECTION.orbitActors,
+        resolveRelationActorId("fallbackContext", replayClock.getState())
+      );
+
+      return resolveActorRenderPosition(actor, time, result).cartesian;
+    }, false);
+  };
   const relationHandles: ReadonlyArray<RelationRenderHandle> = [
     "displayRepresentative",
-    "candidateContext",
-    "fallbackContext"
+    "candidateContext"
   ].map((role) => {
     const relationRole = role as M8aV4RelationRole;
     const entity = dataSource.entities.add({
-      id: `m8a-v46d-simulation-${relationRole}-context-ribbon`,
-      name: `V4.6D ${relationRole} display-context ribbon`,
+      id: `m8a-v46e-simulation-${relationRole}-context-ribbon`,
+      name: `V4.6E ${M8A_V46E_RELATION_ROLE_LABELS[relationRole]}`,
       polyline: createRelationStyle(
         createRelationPositions(relationRole),
         relationRole
       ),
       description: new ConstantProperty(
-        "V4.6D simulation display-context ribbon from the repo-owned projection module. No RF beam, active serving satellite, active gateway, pair-specific teleport path, measured performance, or native RF handover truth."
+        "V4.6E simulation display context from the repo-owned projection module."
       )
     });
 
@@ -1593,12 +1730,22 @@ export function createM8aV4GroundStationSceneController({
       entity
     };
   });
+  const geoGuardCueEntity = dataSource.entities.add({
+    id: "m8a-v46e-simulation-geo-guard-cue",
+    name: "V4.6E GEO guard cue",
+    position: createGeoGuardCuePosition(),
+    billboard: createGeoGuardCueStyle(),
+    description: new ConstantProperty(
+      "Low-opacity GEO guard cue; simulation display context only."
+    )
+  });
 
   const createState = (): M8aV4GroundStationSceneState => {
     const replayState = replayClock.getState();
     const serviceWindow = resolveServiceStateWindow(replayState);
     const simulationHandoverModel = buildSimulationHandoverState(replayState);
     const simulationWindow = simulationHandoverModel.window;
+    const viewportClass = resolveViewportClass();
     const actorEmphasis =
       M8A_V4_GROUND_STATION_RUNTIME_PROJECTION.orbitActors.map((actor) =>
         resolveActorEmphasis(actor, simulationWindow)
@@ -1640,7 +1787,7 @@ export function createM8aV4GroundStationSceneController({
             actor.runtimeDisplayTrack.renderTrackIsSourceTruth,
           propagationTimeUtc: sourcePropagated.propagationTimeUtc,
           emphasis: emphasis.emphasis,
-          labelVisibility: shouldRenderActorLabel(actor)
+          labelVisibility: shouldRenderActorLabel(actor, simulationWindow)
             ? "always-visible"
             : "hidden-context"
         };
@@ -1651,6 +1798,12 @@ export function createM8aV4GroundStationSceneController({
       meo: actors.filter((actor) => actor.orbitClass === "meo").length,
       geo: actors.filter((actor) => actor.orbitClass === "geo").length
     };
+    const visibleActorLabelIds = actors
+      .filter((actor) => actor.labelVisibility === "always-visible")
+      .map((actor) => actor.actorId);
+    const hiddenContextActorLabelCount = actors.filter(
+      (actor) => actor.labelVisibility === "hidden-context"
+    ).length;
 
     return {
       scenarioId: M8A_V4_GROUND_STATION_SCENARIO_ID,
@@ -1673,15 +1826,18 @@ export function createM8aV4GroundStationSceneController({
       actors,
       actorLabelDensity: {
         policy: "representative-orbit-class-labels-only",
-        alwaysVisibleActorLabelCount: actors.filter(
-          (actor) => actor.labelVisibility === "always-visible"
-        ).length,
-        alwaysVisibleActorLabelIds: actors
-          .filter((actor) => actor.labelVisibility === "always-visible")
-          .map((actor) => actor.actorId),
-        hiddenContextActorLabelCount: actors.filter(
-          (actor) => actor.labelVisibility === "hidden-context"
-        ).length,
+        v46ePolicy: "active-representative-label-with-endpoint-priority",
+        viewportClass,
+        endpointLabelsPriority: true,
+        candidateLabelsVisibleByDefault: false,
+        fallbackLabelPolicy: "geo-representative-or-guard-state-only",
+        preferredVisibleActorLabelCount:
+          M8A_V46E_PREFERRED_VISIBLE_ACTOR_LABELS,
+        visibleActorLabelCount: visibleActorLabelIds.length,
+        visibleActorLabelIds,
+        alwaysVisibleActorLabelCount: visibleActorLabelIds.length,
+        alwaysVisibleActorLabelIds: visibleActorLabelIds,
+        hiddenContextActorLabelCount,
         desktopMaxAlwaysVisibleActorLabels:
           M8A_V4_DESKTOP_MAX_ALWAYS_VISIBLE_ACTOR_LABELS,
         narrowMaxAlwaysVisibleActorLabels:
@@ -1716,11 +1872,18 @@ export function createM8aV4GroundStationSceneController({
       simulationHandoverModel,
       replayWindow: buildReplayWindowState(replayState),
       relationCues: {
-        cueKind: "v4.6d-simulation-handover-display-context-ribbons",
+        cueKind: "v4.6e-handover-visual-language-context-ribbons",
         displayRepresentativeActorId:
           simulationWindow.displayRepresentativeActorId,
         candidateContextActorId: simulationWindow.candidateContextActorIds[0],
         fallbackContextActorId: simulationWindow.fallbackContextActorIds[0],
+        visibleContextRibbonCount: 2,
+        visibleContextRibbonRoles: [
+          "displayRepresentative",
+          "candidateContext"
+        ] as const,
+        fallbackGuardCueMode: resolveFallbackGuardCueMode(simulationWindow),
+        fallbackFullRibbonVisible: false,
         activeSatelliteTruth: "not-claimed",
         activeGatewayTruth: "not-claimed",
         pairSpecificTeleportPathTruth: "not-claimed",
@@ -1765,13 +1928,15 @@ export function createM8aV4GroundStationSceneController({
       const emphasis = emphasisById.get(handle.actor.actorId);
 
       if (emphasis) {
-        updateActorStyle(handle, emphasis);
+        updateActorStyle(handle, emphasis, latestSimulationWindow);
       }
     }
 
     for (const handle of relationHandles) {
       updateRelationStyle(handle);
     }
+
+    geoGuardCueEntity.show = shouldShowGeoGuardCue(latestSimulationWindow);
 
     renderHud(hudRoot, nextState);
     syncTelemetry(nextState);
