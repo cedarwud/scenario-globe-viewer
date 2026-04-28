@@ -21,18 +21,6 @@ const __dirname = path.dirname(__filename);
 const repoRoot = path.resolve(__dirname, "../..");
 
 const REQUEST_PATH = "/?scenePreset=regional&m8aV4GroundStationScene=1";
-const EXPECTED_TIMELINE_LABELS = [
-  "LEO acquire",
-  "LEO pressure",
-  "MEO hold",
-  "LEO re-entry",
-  "GEO guard"
-];
-const EXPECTED_BADGES = [
-  "simulation output",
-  "operator-family precision",
-  "display-context actors"
-];
 const FORBIDDEN_VISIBLE_PATTERNS = [
   /\bbeam\b/i,
   /\blink\b/i,
@@ -184,78 +172,51 @@ async function inspectVisualLanguage(client, options) {
         };
       });
       const hudRect = root ? rectToPlain(root.getBoundingClientRect()) : null;
-      const activeStages = root
-        ? Array.from(root.querySelectorAll(".m8a-v4-ground-station-scene__stage[data-active='true']"))
-        : [];
-      const timelineLabels = root
-        ? Array.from(root.querySelectorAll(".m8a-v4-ground-station-scene__stage")).map(
-            (element) => element.textContent.trim()
+      const visibleHudLabels = root
+        ? Array.from(
+            root.querySelectorAll(
+              [
+                ".m8a-v4-ground-station-scene__header",
+                ".m8a-v4-ground-station-scene__endpoint",
+                ".m8a-v4-ground-station-scene__stage",
+                ".m8a-v4-ground-station-scene__role-legend > *",
+                ".m8a-v4-ground-station-scene__ribbon-summary > *",
+                ".m8a-v4-ground-station-scene__nonclaims"
+              ].join(", ")
+            )
+          ).filter(
+            (element) =>
+              element instanceof HTMLElement &&
+              getComputedStyle(element).display !== "none" &&
+              element.getBoundingClientRect().width > 0 &&
+              element.getBoundingClientRect().height > 0
           )
         : [];
-      const badges = root
-        ? Array.from(root.querySelectorAll("[data-badge]")).map((element) =>
-            element.textContent.trim()
-          )
-        : [];
-      const roleLegend = root
-        ? Array.from(root.querySelectorAll(".m8a-v4-ground-station-scene__role-legend [data-role]")).map(
-            (element) => element.textContent.trim()
-          )
-        : [];
-      const disclosure = root?.querySelector("[data-disclosure-control='non-claims']");
 
       assert(state, "Missing V4.6E runtime state.");
-      assert(root instanceof HTMLElement, "Missing V4.6E compact HUD root.");
-      assert(root.hidden === false, "V4.6E compact HUD must be visible.");
+      assert(root instanceof HTMLElement, "Missing V4.6E HUD telemetry root.");
       assert(
-        root.dataset.m8aV4GroundStationSceneVisibility === "compact" &&
+        root.hidden === true &&
+          root.getAttribute("aria-hidden") === "true" &&
+          root.dataset.m8aV4GroundStationSceneVisibility === "hidden" &&
           root.dataset.m8aV46eVisualLanguage === "true",
-        "V4.6E HUD must expose the compact visual-language markers."
+        "V4.6E floating HUD must stay hidden while preserving the runtime seam."
       );
       assert(
         hudRect &&
-          hudRect.width > 0 &&
-          hudRect.height > 0 &&
+          hudRect.width === 0 &&
+          hudRect.height === 0 &&
           hudRect.left >= 0 &&
           hudRect.right <= window.innerWidth &&
           hudRect.top >= 0 &&
           hudRect.bottom <= window.innerHeight,
-        "V4.6E HUD must remain visible inside the viewport: " +
+        "V4.6E hidden HUD root must not occupy scene pixels: " +
           JSON.stringify({ hudRect, viewport: { width: window.innerWidth, height: window.innerHeight } })
       );
       assert(
-        hudRect.height <= window.innerHeight * config.maxHudHeightRatio,
-        "V4.6E HUD must stay compact: " +
-          JSON.stringify({ hudRect, viewportHeight: window.innerHeight })
-      );
-      assert(
-        JSON.stringify(timelineLabels) === JSON.stringify(config.expectedTimelineLabels),
-        "V4.6E timeline labels changed: " + JSON.stringify(timelineLabels)
-      );
-      assert(
-        activeStages.length === 1 &&
-          activeStages[0].textContent.trim() ===
-            root.dataset.activeStateLabel,
-        "V4.6E must show one active simulation state."
-      );
-      assert(
-        config.expectedBadges.every((badge) => badges.includes(badge)),
-        "V4.6E persistent badges are missing: " + JSON.stringify(badges)
-      );
-      assert(
-        roleLegend.includes("representative context ribbon") &&
-          roleLegend.includes("candidate context ribbon") &&
-          roleLegend.includes("GEO guard cue"),
-        "V4.6E role legend is incomplete: " + JSON.stringify(roleLegend)
-      );
-      assert(
-        disclosure instanceof HTMLDetailsElement,
-        "V4.6E non-claim disclosure control is missing."
-      );
-      disclosure.open = true;
-      assert(
-        disclosure.getBoundingClientRect().bottom <= window.innerHeight,
-        "V4.6E non-claim disclosure must stay inside the viewport."
+        visibleHudLabels.length === 0,
+        "V4.6E hidden HUD must not leave visible labels in the scene: " +
+          JSON.stringify({ visibleHudLabelCount: visibleHudLabels.length })
       );
       assert(
         state.actorLabelDensity.v46ePolicy ===
@@ -344,19 +305,17 @@ async function inspectVisualLanguage(client, options) {
         visibleActorLabelIds: state.actorLabelDensity.visibleActorLabelIds,
         visibleContextRibbonCount: state.relationCues.visibleContextRibbonCount,
         fallbackGuardCueMode: state.relationCues.fallbackGuardCueMode,
+        hudHidden: root.hidden,
         hudRect,
         ribbonIds: ribbonEntities.map((entity) => entity.id)
       };
     })(${JSON.stringify({
-      expectedTimelineLabels: EXPECTED_TIMELINE_LABELS,
-      expectedBadges: EXPECTED_BADGES,
       forbiddenVisiblePatterns: FORBIDDEN_VISIBLE_PATTERNS.map((pattern) => ({
         source: pattern.source,
         flags: pattern.flags
       })),
       expectedViewportClass: options.expectedViewportClass,
       maxActorLabels: options.maxActorLabels,
-      maxHudHeightRatio: options.maxHudHeightRatio,
       expectedGuardCueMode: options.expectedGuardCueMode ?? null
     })})`
   );
@@ -387,7 +346,6 @@ async function main() {
     const desktopResult = await inspectVisualLanguage(client, {
       expectedViewportClass: "desktop",
       maxActorLabels: 3,
-      maxHudHeightRatio: 0.32,
       expectedGuardCueMode: "low-opacity-geo-guard-cue"
     });
 
@@ -395,7 +353,6 @@ async function main() {
     const geoGuardResult = await inspectVisualLanguage(client, {
       expectedViewportClass: "desktop",
       maxActorLabels: 3,
-      maxHudHeightRatio: 0.32,
       expectedGuardCueMode: "representative-context-ribbon-in-geo-continuity-guard"
     });
 
@@ -404,7 +361,6 @@ async function main() {
     const narrowResult = await inspectVisualLanguage(client, {
       expectedViewportClass: "narrow",
       maxActorLabels: 1,
-      maxHudHeightRatio: 0.48,
       expectedGuardCueMode: "low-opacity-geo-guard-cue"
     });
 

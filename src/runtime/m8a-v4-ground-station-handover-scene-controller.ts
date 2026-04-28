@@ -976,11 +976,11 @@ function createHudRoot(): HTMLElement {
   const root = document.createElement("aside");
   root.className = "m8a-v4-ground-station-scene";
   root.dataset.m8aV4GroundStationScene = "true";
-  root.dataset.m8aV4GroundStationSceneVisibility = "compact";
+  root.dataset.m8aV4GroundStationSceneVisibility = "hidden";
   root.dataset.m8aV46eVisualLanguage = "true";
-  root.hidden = false;
-  root.setAttribute("aria-hidden", "false");
-  root.setAttribute("aria-label", "M8A V4.6E display-state surface");
+  root.hidden = true;
+  root.setAttribute("aria-hidden", "true");
+  root.setAttribute("aria-label", "M8A V4.6E hidden runtime state seam");
   return root;
 }
 
@@ -988,20 +988,10 @@ function renderHud(root: HTMLElement, state: M8aV4GroundStationSceneState): void
   const activeStateLabel = resolveTimelineLabel(
     state.simulationHandoverModel.window.windowId
   );
-  const representativeActor = state.actors.find(
-    (actor) =>
-      actor.actorId ===
-      state.simulationHandoverModel.window.displayRepresentativeActorId
-  );
-  const candidateActor = state.actors.find(
-    (actor) => actor.actorId === state.relationCues.candidateContextActorId
-  );
-  const guardActor = state.actors.find(
-    (actor) => actor.actorId === state.relationCues.fallbackContextActorId
-  );
 
-  root.hidden = false;
-  root.dataset.m8aV4GroundStationSceneVisibility = "compact";
+  root.hidden = true;
+  root.setAttribute("aria-hidden", "true");
+  root.dataset.m8aV4GroundStationSceneVisibility = "hidden";
   root.dataset.m8aV46eVisualLanguage = "true";
   root.dataset.activeStateLabel = activeStateLabel;
   root.dataset.serviceWindowId = state.serviceState.window.windowId;
@@ -1035,70 +1025,7 @@ function renderHud(root: HTMLElement, state: M8aV4GroundStationSceneState): void
   root.dataset.rawItriSideReadOwnership =
     state.sourceLineage.rawPackageSideReadOwnership;
   root.dataset.nonClaims = serializeJson(state.nonClaims);
-
-  const endpointMarkup = state.endpoints
-    .map(
-      (endpoint) => `
-        <div class="m8a-v4-ground-station-scene__endpoint">
-          <span>${endpoint.label}</span>
-          <strong>${endpoint.precisionBadge}</strong>
-          <small>${endpoint.orbitEvidenceChips.join(" / ")}</small>
-        </div>
-      `
-    )
-    .join("");
-  const stageMarkup = state.simulationHandoverModel.timelineWindowIds
-    .map(
-      (windowId) => `
-        <span
-          class="m8a-v4-ground-station-scene__stage"
-          data-active="${windowId === state.simulationHandoverModel.window.windowId ? "true" : "false"}"
-          data-window-id="${windowId}"
-        >${resolveTimelineLabel(windowId as M8aV46dSimulationHandoverWindowId)}</span>
-      `
-    )
-    .join("");
-
-  root.innerHTML = `
-    <div class="m8a-v4-ground-station-scene__header">
-      <span>current state</span>
-      <strong data-m8a-v46e-active-state="true">${activeStateLabel}</strong>
-      <small>${representativeActor?.label ?? state.simulationHandoverModel.window.displayRepresentativeActorId}</small>
-    </div>
-    <div class="m8a-v4-ground-station-scene__badges" aria-label="persistent badges">
-      <span data-badge="simulation-output">simulation output</span>
-      <span data-badge="operator-family-precision">operator-family precision</span>
-      <span data-badge="display-context-actors">display-context actors</span>
-    </div>
-    <div class="m8a-v4-ground-station-scene__stages">
-      ${stageMarkup}
-    </div>
-    <div class="m8a-v4-ground-station-scene__endpoints">
-      ${endpointMarkup}
-    </div>
-    <div class="m8a-v4-ground-station-scene__role-legend" aria-label="role legend">
-      <span data-role="representative">${M8A_V46E_RELATION_ROLE_LABELS.displayRepresentative}</span>
-      <span data-role="candidate">${M8A_V46E_RELATION_ROLE_LABELS.candidateContext}</span>
-      <span data-role="guard">${M8A_V46E_RELATION_ROLE_LABELS.fallbackContext}</span>
-    </div>
-    <div class="m8a-v4-ground-station-scene__ribbon-summary">
-      <span>${representativeActor?.label ?? "representative context"}</span>
-      <span>${candidateActor?.label ?? "candidate context"}</span>
-      <span>${guardActor?.label ?? "GEO guard"}</span>
-    </div>
-    <details class="m8a-v4-ground-station-scene__nonclaims" data-disclosure-control="non-claims">
-      <summary>non-claims</summary>
-      <div>
-        <span>model-only state</span>
-        <span>no operator-log claim</span>
-        <span>no assigned identity claim</span>
-        <span>no measured QoS</span>
-        <span>no native RF claim</span>
-        <span>same pair and precision</span>
-        <span>repo-owned projection only</span>
-      </div>
-    </details>
-  `;
+  root.innerHTML = "";
 }
 
 function cloneActorState(
