@@ -224,6 +224,49 @@ Blocked before implementation until:
 - fallback mode, if weaker than strict three-orbit acceptance, has explicit
   user approval
 
+### VNext - Source-Grounded Multi-Orbit Simulation Roadmap
+
+Class:
+
+- Track A - Customer-Direct
+
+Goal:
+
+- continue from the completed `M8A-V4.5` ground-station scene into a richer
+  source-grounded multi-orbit handover simulation
+- preserve source truth while allowing viewer-owned display projection,
+  compressed orbit heights, and simulated service-state behavior
+- make the next development order explicit: full `LEO` orbit replay, then
+  source-lineaged actor enrichment, then endpoint expansion/selectable
+  scenarios, then handover model and visual language work
+
+Primary planning home:
+
+- [m8a-vnext-multi-orbit-simulation-roadmap.md](./m8a-vnext-multi-orbit-simulation-roadmap.md)
+
+Why it matters:
+
+- `M8A-V4.5` is now a working accepted scenario, but the next customer-visible
+  work is broader than a visual tweak
+- the line needs a concrete SDD before adding demo time, more orbit actors,
+  more endpoint candidates, or richer handover information
+- the roadmap keeps `R2` as read-only evidence support and prevents endpoint or
+  satellite data from becoming pure presentation fiction
+
+Status:
+
+- planning-control SDD
+- first recommended execution phase: `V4.6A Full LEO Orbit Replay`
+
+Open only when:
+
+- the work remains source-grounded simulation, not a claim of real operator
+  handover events
+- `R2` remains read-only and does not become a runtime selector
+- new endpoint candidates and orbit actors are promoted through accepted
+  source/projection gates before runtime use
+- no aircraft, YKA, or handset endpoint is reintroduced
+
 ### R3 — Accepted Endpoint / Site Package Expansion
 
 Class:
