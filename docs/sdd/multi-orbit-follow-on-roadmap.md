@@ -56,6 +56,17 @@ after the current line. They need explicit reopen authority.
 - The older `R1`/`R1V` sections remain for historical continuity and reusable
   technical foundation.
 
+2026-04-28 closeout note:
+
+- `V4.6A`, `V4.6B`, `V4.6D`, and `V4.6E` are complete in the current
+  scenario-globe-viewer runtime baseline.
+- `V4.6C/R2` remains catalog/source-only; no alternate endpoint B is
+  runtime-ready.
+- The next available tracks are primary-source hunt for new candidates, a `V5`
+  decision gate only if new accepted endpoint-pair scenarios emerge, or legacy
+  aviation/YKA cleanup only if explicitly opened.
+- No runtime prompt is currently unblocked.
+
 ### R1 — Complete `M8A`
 
 Class:
@@ -124,7 +135,9 @@ Why it matters:
 
 Status:
 
-- planned
+- read-only catalog/source surface exists
+- no runtime selector
+- no runtime promotion
 
 Open only when:
 
@@ -232,13 +245,13 @@ Class:
 
 Goal:
 
-- continue from the completed `M8A-V4.5` ground-station scene into a richer
-  source-grounded multi-orbit handover simulation
+- continue from the completed `M8A-V4.5` ground-station scene into the richer
+  source-grounded multi-orbit handover simulation now closed through
+  `V4.6A/B/D/E`
 - preserve source truth while allowing viewer-owned display projection,
   compressed orbit heights, and simulated service-state behavior
-- make the next development order explicit: full `LEO` orbit replay, then
-  source-lineaged actor enrichment, then endpoint expansion/selectable
-  scenarios, then handover model and visual language work
+- keep the remaining decision gates explicit after replay, actor enrichment,
+  handover model runtime, and visual-language runtime work have landed
 
 Primary planning home:
 
@@ -247,17 +260,18 @@ Primary planning home:
 
 Why it matters:
 
-- `M8A-V4.5` is now a working accepted scenario, but the next customer-visible
-  work is broader than a visual tweak
-- the line needs a concrete SDD before adding demo time, more orbit actors,
-  more endpoint candidates, or richer handover information
+- `M8A-V4.6E` is now the accepted customer-visible simulation baseline
+- the line still needs strict gates before adding endpoint candidates or
+  selectable scenario semantics
 - the roadmap keeps `R2` as read-only evidence support and prevents endpoint or
   satellite data from becoming pure presentation fiction
 
 Status:
 
-- planning-control SDD
-- first recommended execution phase: `V4.6A Full LEO Orbit Replay`
+- planning-control SDD and closeout handoff
+- `V4.6A/B/D/E` complete in runtime baseline
+- `V4.6C/R2` catalog/source-only; no alternate endpoint B runtime-ready
+- no runtime execution phase currently unblocked
 
 Open only when:
 
@@ -269,6 +283,13 @@ Open only when:
 - no aircraft, YKA, or handset endpoint is reintroduced
 - old aviation/YKA surfaces remain historical/regression-only until a separate
   cleanup branch proves they can be removed or archived safely
+
+Next available tracks:
+
+- further primary-source hunt for new endpoint candidates only
+- `V5` decision gate only if new accepted endpoint-pair scenarios emerge
+- legacy aviation/YKA cleanup only if the cleanup/archive gate is explicitly
+  opened
 
 ### R3 — Accepted Endpoint / Site Package Expansion
 
@@ -431,12 +452,16 @@ Requires explicit reopen:
 
 ## Recommended Order
 
-The default order after current work is:
+The default order after the 2026-04-28 V4.6 closeout is:
 
-1. finish `R1 = M8A`
-2. open `R2 = read-only confirmed-points catalog`
-3. optionally run `R3 / R4 / R5 / R6` in a controlled sequence
-4. only then consider whether `R7` or `R8` should reopen
+1. continue primary-source hunt only for candidates that could become accepted
+   endpoint-pair scenarios
+2. open a `V5` decision gate only after new accepted endpoint-pair scenarios
+   exist
+3. keep legacy aviation/YKA cleanup closed unless the user explicitly opens the
+   cleanup/archive gate
+4. keep `R3 / R4 / R5 / R6` as supporting governance/catalog work only, without
+   granting runtime selection authority
 
 ## Non-Goals Of This Roadmap
 

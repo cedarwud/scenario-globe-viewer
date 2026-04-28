@@ -1,7 +1,7 @@
 # M8A-V4.6D Simulation Handover Model Contract
 
 Source note: this is the accepted `V4.6D` model-contract and SDD delta for the
-`M8A-VNext` ground-station scene. It is docs-only and does not authorize
+`M8A-VNext` ground-station scene. It is docs-only and does not authorize new
 runtime implementation by itself.
 
 Related VNext roadmap:
@@ -14,8 +14,8 @@ Related V4.6B actor projection record:
 ## Status
 
 - accepted model-contract SDD delta
-- docs/design/contract only
-- no runtime implementation in this phase
+- docs/design/contract authority for the implemented runtime model
+- runtime implementation completed later at commit `c4142b4`
 - current as of 2026-04-28
 
 ## Decision
@@ -25,7 +25,7 @@ Related V4.6B actor projection record:
 1. this SDD records the accepted model behavior, state windows, validation
    rules, and implementation gate
 2. the V4 projection contract receives an additive `V4.6D` extension because
-   the future runtime-facing artifact/module contract belongs at the existing
+   the runtime-facing artifact/module contract belongs at the existing
    viewer-owned projection seam
 
 The accepted model id is:
@@ -35,6 +35,13 @@ The accepted model id is:
 This id is intentionally model-specific rather than a generic V5 subsystem id.
 The model is still scoped to the accepted Taiwan/CHT + Speedcast Singapore V4
 scene and must not become a reusable arbitrary endpoint selector.
+
+Post-contract implementation status:
+
+- contract accepted at commit `b8dbad0`
+- runtime implementation completed at commit `c4142b4`
+- this document remains the accepted contract baseline, not a new runtime prompt
+- future changes require an explicit new implementation or correction task
 
 ## Fixed Baseline
 
@@ -83,8 +90,8 @@ The model must not claim:
 
 ## Model Schema Summary
 
-The future runtime-facing artifact/module may add this model as an additive
-field. Existing V4.2 and V4.6B artifacts are not retroactively invalidated.
+The runtime-facing artifact/module adds this model as an additive field.
+Existing V4.2 and V4.6B artifacts are not retroactively invalidated.
 
 ```ts
 interface V46dSimulationHandoverModel {
@@ -419,8 +426,10 @@ claim.
 
 ## Runtime Implementation Gate
 
-Runtime implementation is ready to open only after the user explicitly starts a
-V4.6D implementation thread. That thread must:
+The original V4.6D runtime implementation gate was consumed by commit
+`c4142b4`. Future implementation work is not opened by this document alone.
+
+Any future V4.6D correction or reopen thread must:
 
 - read this SDD and the V4 projection contract first
 - implement the model through the repo-owned projection/module seam only
@@ -430,11 +439,13 @@ V4.6D implementation thread. That thread must:
   matching, role-name bans, bounded metric classes, required non-claims, and
   forbidden claims
 
-No runtime code is changed by this SDD delta.
+No new runtime code is authorized by this SDD delta.
 
-## Runtime Implementation Prompt
+## Historical Runtime Implementation Prompt
 
-Use this only after the user explicitly opens V4.6D runtime implementation:
+The prompt below was the closed V4.6D implementation handoff. Do not reuse it as
+a current prompt unless the user explicitly opens a V4.6D correction/reopen
+task.
 
 ```text
 Read the canonical SDD and projection contract first. Implement only

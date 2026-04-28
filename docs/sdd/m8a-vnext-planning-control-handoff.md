@@ -1,9 +1,9 @@
 # M8A-VNext Planning Control Handoff
 
 Source note: this is a handoff report for a new planning/control thread. It is
-not an execution plan by itself and does not authorize runtime implementation.
-Use it to quickly recover the current state, then use the canonical SDDs below
-to make phase decisions.
+not an execution plan by itself and does not authorize new runtime
+implementation. Use it to quickly recover the current state, then use the
+canonical SDDs below to make phase decisions.
 
 ## Status
 
@@ -28,6 +28,7 @@ Supporting accepted data:
 
 - [../../public/fixtures/ground-station-projections/m8a-v4-taiwan-cht-speedcast-singapore-operator-family-2026-04-26.json](../../public/fixtures/ground-station-projections/m8a-v4-taiwan-cht-speedcast-singapore-operator-family-2026-04-26.json)
 - [../../../itri/multi-orbit/download/ground-station-endpoint-pairs/taiwan-cht-speedcast-singapore-operator-family-2026-04-26/authority-package.md](../../../itri/multi-orbit/download/ground-station-endpoint-pairs/taiwan-cht-speedcast-singapore-operator-family-2026-04-26/authority-package.md)
+- [../../../itri/multi-orbit/download/ground-station-endpoint-candidates/2026-04-25/r2-endpoint-evidence-catalog-2026-04-28.md](../../../itri/multi-orbit/download/ground-station-endpoint-candidates/2026-04-25/r2-endpoint-evidence-catalog-2026-04-28.md)
 
 ## Current Implementation Baseline
 
@@ -41,10 +42,16 @@ Completed:
 - `M8A-V4.5` visual acceptance/regression completed
 - `M8A-V4.6A` full LEO orbit replay completed at commit `6d7fd74`
 - `M8A-V4.6B` orbit actor runtime consumption completed at commit `ddbd21c`
-- subsequent visual refinements for orbit actor material, MEO/GEO color
-  distinction, glow billboards, and model-centered glow alignment completed
+- `M8A-V4.6D` simulation handover model contract accepted at commit `b8dbad0`
+- `M8A-V4.6D` simulation handover model runtime completed at commit `c4142b4`
+- `M8A-V4.6E` handover visual language completed at commit `db85439`
+- `M8A-V4.6C/R2` source/catalog boundary documented at commit `e5d99c7`
+- `R2` root endpoint evidence catalog added at commit `d061c676`
+- `R2` alternate endpoint B MEO no-change hunt documented at commit `c8e30b2e`
+- previous visual refinements for orbit actor material, MEO/GEO color
+  distinction, glow billboards, and model-centered glow alignment remain part of
+  the baseline
 - VNext roadmap SDD added
-- `M8A-V4.6D` simulation handover model contract accepted as docs/design only
 
 Current direct route:
 
@@ -57,6 +64,14 @@ Current data path:
 
 Recent important commits:
 
+- `e5d99c7 Document M8A V4.6C R2 catalog boundary`
+- `db85439 Implement M8A V4.6E handover visual language`
+- `c4142b4 Implement M8A V4.6D simulation handover model`
+- `b8dbad0 Document M8A V4.6D handover model contract`
+- `ddbd21c Implement M8A V4.6B orbit actor runtime consumption`
+- `6d7fd74 Implement M8A V4.6A full LEO replay`
+- `c8e30b2e Document R2 alternate endpoint MEO no-change hunt`
+- `d061c676 Add V4.6C R2 endpoint evidence catalog`
 - `12dc878 Add M8A VNext multi-orbit simulation roadmap`
 - `3059f73 Center M8A V4 orbit glow markers on models`
 - `f01bdb2 Use glow billboards for M8A V4 orbit markers`
@@ -87,7 +102,11 @@ Approximate orbital periods from current TLE mean motion:
 Current replay:
 
 - covers at least one full current OneWeb `LEO` orbit period
-- V4.6D uses the normalized replay ratio as its deterministic window selector
+- V4.6D runtime uses the normalized replay ratio as its deterministic window
+  selector
+- V4.6D runtime exposes five deterministic display-context windows:
+  `leo-acquisition-context`, `leo-aging-pressure`, `meo-continuity-hold`,
+  `leo-reentry-candidate`, and `geo-continuity-guard`
 
 ## Legacy Aviation/YKA Retention
 
@@ -158,35 +177,48 @@ Keep these unless a later visual-language phase explicitly changes them:
 - `GEO` uses a distinct gold translucent glow billboard
 - MEO/GEO glow billboards are offset toward the visible model center
 - endpoint ground markers keep their own white/green endpoint colors
-- large V4 HUD/floating panel is hidden by default
+- V4.6E compact display-state surface is visible and bounded to the viewport
+- V4.6E persistent badges are `simulation output`, `operator-family
+  precision`, and `display-context actors`
+- V4.6E timeline labels are `LEO acquire`, `LEO pressure`, `MEO hold`, `LEO
+  re-entry`, and `GEO guard`
+- V4.6E relation cues render at most representative plus candidate context
+  ribbons; fallback context remains a low-opacity GEO guard cue except in the
+  GEO guard state
+- V4.6E actor labels follow the active-representative label policy with endpoint
+  priority; candidate labels are hidden by default
+- large legacy V4 HUD/floating panel remains hidden by default
 
 ## Current Planning Decision
 
-The next planning direction is not merely a handoff. The canonical roadmap is
-now:
+The V4.6 runtime-bearing line is closed through `V4.6E`. The canonical roadmap
+state is now:
 
-1. `V4.6A` - extend replay to a full `LEO` orbit cycle
-2. `V4.6B` - enrich source-lineaged `LEO/MEO/GEO` actors
-3. `V4.6C` - expand endpoint candidates and accepted selectable scenarios
-4. `V4.6D` - design the simulation handover model
-5. `V4.6E` - redesign handover visual language as needed
+1. `V4.6A` - full `LEO` orbit cycle replay complete
+2. `V4.6B` - source-lineaged `LEO/MEO/GEO` actor enrichment complete
+3. `V4.6C/R2` - endpoint expansion remains catalog/source-only
+4. `V4.6D` - simulation handover model contract and runtime complete
+5. `V4.6E` - handover visual language complete
 
 Current phase status:
 
-- `V4.6A` and `V4.6B` are complete in runtime baseline
-- `V4.6D` model contract is accepted as docs/design only
-- the next runtime phase may open `V4.6D` implementation only after explicit
-  user approval
+- `V4.6A`, `V4.6B`, `V4.6D`, and `V4.6E` are complete in the runtime baseline
+- `V4.6C/R2` has source/catalog updates only; it does not create a runtime
+  selector or accepted selectable scenario set
+- no alternate endpoint B outside Speedcast Singapore is runtime-ready
+- no runtime implementation prompt is currently unblocked
 
-## Parallel Planning Work
+## Remaining Available Tracks
 
-These may proceed in parallel as planning/source work, but should not block
-`V4.6A`:
+The only available next tracks are:
 
-- `R2` endpoint evidence/catalog expansion
-- Endpoint B and alternate endpoint-pair source hunts
-- additional source-lineaged `LEO/MEO/GEO` actor source/projection planning
-- handover visual-language concepts
+1. further primary-source hunt for new endpoint candidates only
+2. `V5` decision gate only if new accepted endpoint-pair scenarios emerge
+3. legacy aviation/YKA cleanup only if the cleanup/archive gate is explicitly
+   opened
+
+Do not create a runtime prompt unless a new accepted authority package and
+viewer-owned projection unblock a runtime phase.
 
 ## R2 Clarification
 
@@ -211,6 +243,14 @@ surface.
 Runtime selectable scenarios, if later built, must consume accepted
 viewer-owned projections only.
 
+2026-04-28 closeout result:
+
+- current accepted endpoint B remains Speedcast Singapore at
+  `operator-family-only` precision
+- the R2 catalog and no-change MEO source-hunt do not promote any alternate
+  endpoint B
+- blocked alternate endpoint B families remain catalog/source-hunt targets only
+
 ## Existing Documents Checked
 
 Checked during this handoff pass:
@@ -220,18 +260,17 @@ Checked during this handoff pass:
 - `docs/sdd/m8a-v4.6d-simulation-handover-model-contract.md`
 - `docs/sdd/multi-orbit-follow-on-roadmap.md`
 - `docs/sdd/multi-orbit-program-skeleton.md`
+- `../../../itri/multi-orbit/download/ground-station-endpoint-candidates/2026-04-25/r2-endpoint-evidence-catalog-2026-04-28.md`
 
-Required sync found:
+Closeout sync result:
 
-- `multi-orbit-program-skeleton.md` needed a current V4.5/VNext status update
-  because it still emphasized the old pre-runtime V4 gate.
-- `m8a-vnext-multi-orbit-simulation-roadmap.md` needed a link to this handoff.
-- `m8a-vnext-multi-orbit-simulation-roadmap.md` and this handoff now also
-  record the V4.6A/V4.6B runtime baseline and the V4.6D accepted contract.
-- `multi-orbit-follow-on-roadmap.md` already has the VNext entry and does not
-  need a structural rewrite in this pass.
+- this handoff and the VNext roadmap now record that `V4.6A/B/D/E` are complete
+- `V4.6C/R2` is recorded as catalog/source-only with no runtime-ready alternate
+  endpoint B
+- the follow-on roadmap now routes the next work to source hunt, V5 gate, or
+  explicit legacy cleanup only
 - `m8a-v4-ground-station-multi-orbit-handover-plan.md` remains valid as the V4
-  baseline and should not be rewritten just to become a VNext roadmap.
+  baseline and should not be rewritten just to become a VNext roadmap
 
 ## Prompt For New Planning-Control Thread
 
@@ -251,20 +290,23 @@ First read:
 - docs/decisions/0013-ground-station-multi-orbit-scope-reset.md
 
 Current direction:
-- Build a source-grounded multi-orbit handover simulation.
+- Maintain the closed V4.6 source-grounded multi-orbit handover simulation
+  baseline.
 - Do not invent endpoints, satellites, measured metrics, gateway assignments,
   pair-specific paths, or real operator handover logs for presentation.
 - Keep R2 read-only; it supports endpoint evidence expansion but is not a
   runtime selector.
-- V4.6A and V4.6B are complete in the current runtime baseline.
-- V4.6D model contract is accepted as docs/design only; runtime implementation
-  requires explicit user approval.
+- V4.6A, V4.6B, V4.6D, and V4.6E are complete in the current runtime baseline.
+- V4.6C/R2 remains catalog/source-only; no alternate endpoint B is
+  runtime-ready.
+- Do not create a runtime prompt unless new accepted endpoint-pair scenarios
+  emerge and a viewer-owned projection unblocks runtime use.
 
 Return:
 - Current understanding
 - Accepted planning baseline
-- Whether V4.6D runtime implementation is ready to open
-- Parallel planning/source tracks
+- Remaining blocked gates
+- Recommended next source/planning track
 - Blockers
-- Execution prompt only if implementation is truly unblocked
+- Runtime prompt only if implementation is truly unblocked
 ```

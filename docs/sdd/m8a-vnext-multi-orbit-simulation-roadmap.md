@@ -1,9 +1,10 @@
 # M8A-VNext Multi-Orbit Simulation Roadmap
 
-Source note: this is a planning-control SDD for the next multi-orbit line after
-the completed `M8A-V4.5` ground-station scene. It does not authorize runtime
-implementation by itself. Execution remains phase-gated and must preserve the
-truth boundaries below.
+Source note: this planning-control SDD began as the next multi-orbit line after
+the completed `M8A-V4.5` ground-station scene. It now also records the
+`V4.6A/B/D/E` closeout state. It does not authorize new runtime implementation
+by itself. Execution remains phase-gated and must preserve the truth boundaries
+below.
 
 Related V4 SDD:
 [./m8a-v4-ground-station-multi-orbit-handover-plan.md](./m8a-v4-ground-station-multi-orbit-handover-plan.md).
@@ -26,12 +27,13 @@ Related V4.6C/R2 endpoint evidence catalog review:
 
 - planning-control SDD
 - doc-only continuation plan
+- V4.6 closeout synchronized 2026-04-28
 - no runtime implementation authority by itself
 - intended handoff surface for the next planning/control thread
 
 ## Product Direction
 
-The next line should evolve the current `M8A-V4` scene into a
+The line evolves the current `M8A-V4` scene into a
 source-grounded multi-orbit handover simulation. The viewer should make a
 defensible scenario feel richer and more complete without fabricating the
 underlying endpoints, orbit actors, or operational handover facts.
@@ -61,6 +63,12 @@ Completed baseline:
 - `M8A-V4.5` visual acceptance/regression exists
 - `M8A-V4.6A` full LEO replay exists at commit `6d7fd74`
 - `M8A-V4.6B` orbit actor runtime consumption exists at commit `ddbd21c`
+- `M8A-V4.6D` simulation handover model contract exists at commit `b8dbad0`
+- `M8A-V4.6D` simulation handover model runtime exists at commit `c4142b4`
+- `M8A-V4.6E` handover visual language exists at commit `db85439`
+- `M8A-V4.6C/R2` source/catalog boundary exists at commit `e5d99c7`
+- the `R2` root endpoint evidence catalog exists at commit `d061c676`
+- the `R2` alternate endpoint B MEO no-change hunt exists at commit `c8e30b2e`
 - the direct V4 route is `/?scenePreset=regional&m8aV4GroundStationScene=1`
 - the homepage entry opens that route and the old aviation/YKA demo remains
   historical/regression-only
@@ -90,7 +98,15 @@ Current visual baseline:
 - `MEO` and `GEO` actors use distinct translucent glow billboards aligned toward
   the visible model center
 - endpoint markers retain their own ground/infrastructure colors
-- the V4 HUD is hidden by default after the visual cleanup
+- the large legacy V4 HUD is hidden by default after the visual cleanup
+- V4.6E adds a compact display-state surface with persistent truth-boundary
+  badges, five simulation-state timeline labels, role legend, and a non-claim
+  disclosure
+- V4.6E limits relation cues to representative plus candidate context ribbons;
+  fallback context uses a low-opacity GEO guard cue except in the GEO guard
+  window
+- V4.6E keeps actor labels sparse through the active-representative label
+  policy with endpoint priority
 
 Current replay baseline:
 
@@ -98,6 +114,16 @@ Current replay baseline:
 - current OneWeb `LEO` actors have orbital periods near `109-110` minutes
 - current O3b mPOWER `MEO` actor has an orbital period near `288` minutes
 - current ST-2 `GEO` actor has an orbital period near `24` hours
+- V4.6D runtime uses the normalized replay ratio to select one of five
+  deterministic simulation windows
+
+Current endpoint expansion baseline:
+
+- `V4.6C/R2` is catalog/source-hunt support only
+- Speedcast Singapore remains the only accepted endpoint B for the current
+  runtime pair
+- no alternate endpoint B is runtime-ready
+- no selectable scenario set is accepted
 
 ## Legacy Aviation/YKA Retention And Cleanup Gate
 
@@ -162,7 +188,7 @@ The following remain hard constraints for all VNext phases:
 
 ## Development Spine
 
-The recommended development order is:
+The original recommended development order was:
 
 1. extend the replay to a full `LEO` orbit cycle
 2. enrich the source-lineaged `LEO/MEO/GEO` actor set
@@ -170,8 +196,12 @@ The recommended development order is:
 4. design the simulation handover model and visual language on top of the
    richer data
 
-This order keeps the early work low-risk. It improves the demo without first
-requiring new endpoint authority or new operational handover evidence.
+Closeout status:
+
+- runtime-bearing steps `1`, `2`, and `4` are complete through `V4.6E`
+- endpoint expansion step `3` remains catalog/source-only because no alternate
+  endpoint B is runtime-ready
+- no additional runtime phase is unblocked by this roadmap alone
 
 ## Phase V4.6A - Full LEO Orbit Replay
 
@@ -308,7 +338,7 @@ Acceptance criteria:
 
 Implementation status:
 
-- planning/source-hunt can proceed in parallel with V4.6A
+- planning/source-hunt can proceed as follow-on source work
 - runtime selectable scenarios remain blocked until accepted projections exist
 - 2026-04-28 R2 catalog review updated the candidate matrix fields for source
   authority type, precision class, promotion readiness, missing evidence by
@@ -316,6 +346,8 @@ Implementation status:
 - Speedcast Singapore remains the already accepted endpoint B for the current
   pair at `operator-family-only` precision; no alternate endpoint B is
   currently runtime-ready
+- 2026-04-28 alternate endpoint B MEO no-change hunt did not change candidate
+  status, precision class, runtime readiness, or promotion recommendation
 
 ## Phase V4.6D - Simulation Handover Model
 
@@ -330,7 +362,7 @@ Accepted contract:
 - model id: `m8a-v4.6d-simulation-handover-model.v1`
 - contract surface: additive extension to
   [../data-contracts/m8a-v4-ground-station-projection.md](../data-contracts/m8a-v4-ground-station-projection.md)
-- runtime implementation remains unopened until explicitly started
+- runtime implementation completed at commit `c4142b4`
 
 Simulation scope:
 
@@ -392,8 +424,9 @@ Acceptance criteria:
 
 Implementation status:
 
-- contract accepted as docs/design only
-- runtime implementation is ready to open only after explicit user approval
+- contract accepted at commit `b8dbad0`
+- runtime implementation completed at commit `c4142b4`
+- no further `V4.6D` runtime prompt is open in this closeout state
 
 ## Phase V4.6E - Handover Visual Language
 
@@ -421,175 +454,71 @@ Acceptance criteria:
 
 Implementation status:
 
-- should follow at least V4.6A
-- should be revisited after V4.6B if actor density increases substantially
+- completed at commit `db85439`
+- compact display-state surface, sparse actor labels, role legend,
+  representative/candidate context ribbons, low-opacity GEO guard cue, and
+  non-claim disclosure are in the accepted runtime baseline
 
 ## Phase V5 Decision Gate
 
 The line should remain `V4.6` while it is improving the accepted
 Taiwan/CHT-Speedcast scenario and its immediate simulation presentation.
 
-Promote to `V5` only if at least one of the following becomes true:
+For this closeout, do not promote to `V5` for more presentation polish, model
+label changes, or source catalog edits alone.
 
-- multiple accepted endpoint-pair scenarios become runtime selectable
-- the handover simulation model becomes a reusable subsystem rather than a
-  single-scene state sequence
-- actor enrichment requires a broader data contract than the current V4
-  projection can safely cover
-- the visual language changes enough that the scene becomes a new product mode
-  instead of a V4 continuation
+Promote to `V5` only if new accepted endpoint-pair scenarios emerge and the
+viewer needs a scenario-selection/product-mode decision gate. Those scenarios
+must have accepted authority packages and viewer-owned projections before any
+runtime prompt is created.
 
 ## Recommended Next Step
 
-The recommended next execution phase is:
+No runtime execution phase is currently unblocked.
 
-`V4.6A Full LEO Orbit Replay`
+The recommended next track is:
+
+`Further primary-source hunt for new candidates only`
 
 Reason:
 
-- it is already unblocked by existing source-lineaged actor data
-- it makes the demo more complete
-- it does not require new endpoint or actor authority
-- it is a small, testable runtime change
-
-Endpoint expansion and actor enrichment should start as planning/source work in
-parallel, but should not block V4.6A.
+- `V4.6A/B/D/E` are already complete in the runtime baseline
+- `V4.6C/R2` did not promote any alternate endpoint B
+- V5 is blocked until new accepted endpoint-pair scenarios exist
+- legacy aviation/YKA cleanup is blocked until the user explicitly opens that
+  cleanup/archive gate
 
 ## Files Likely To Change Later
 
-V4.6A likely changes:
+Further primary-source hunt likely changes:
 
-- `src/runtime/m8a-v4-ground-station-handover-scene-controller.ts`
-- `tests/smoke/verify-m8a-v4.5-visual-acceptance-regression-runtime.mjs` or a
-  new `V4.6A` smoke test
-- `package.json` if a new test script is added
+- `../../../itri/multi-orbit/download/ground-station-endpoint-candidates/2026-04-25/README.md`
+- `../../../itri/multi-orbit/download/ground-station-endpoint-candidates/2026-04-25/candidate-matrix.json`
+- `../../../itri/multi-orbit/download/ground-station-endpoint-candidates/2026-04-25/r2-endpoint-evidence-catalog-2026-04-28.md`
 
-V4.6B likely changes:
+V5 gate work may later change, only after accepted endpoint-pair scenarios
+exist:
 
-- `public/fixtures/ground-station-projections/*.json`
-- `src/runtime/m8a-v4-ground-station-projection.ts` only in a later runtime
-  consumption phase, not in the source/projection-only pass
-- actor projection or validation scripts if introduced
-- visual smoke tests
-
-V4.6C likely changes:
-
-- `itri/multi-orbit/download/ground-station-endpoint-candidates/*`
-- `itri/multi-orbit/download/ground-station-endpoint-pairs/*`
-- `docs/data-contracts/m8a-v4-ground-station-projection.md` if selectable
-  projections need a contract extension
-- viewer-owned projection artifacts after authority acceptance
-
-V4.6D/E likely changes:
-
+- `../../../itri/multi-orbit/download/ground-station-endpoint-pairs/*`
 - `docs/data-contracts/m8a-v4-ground-station-projection.md`
-- `docs/sdd/m8a-v4.6d-simulation-handover-model-contract.md`
-- `src/runtime/m8a-v4-ground-station-projection.ts`
-- `src/runtime/m8a-v4-ground-station-handover-scene-controller.ts`
-- `src/styles.css`
-- smoke and visual acceptance tests
+- viewer-owned projection artifacts under `public/fixtures/ground-station-projections/`
+- runtime and smoke tests only after a new runtime prompt is genuinely unblocked
 
-## Execution Prompt - V4.6A
+Legacy aviation/YKA cleanup may later change old route, fixture, and regression
+surfaces only if the cleanup/archive gate is explicitly opened.
 
-Use this prompt only after the planning-control thread accepts this SDD and
-explicitly opens V4.6A:
+## Runtime Prompt Policy
 
-```text
-Read the canonical SDD first and implement only V4.6A Full LEO Orbit Replay.
+No runtime prompt is open from this closeout state.
 
-Canonical SDD:
-- docs/sdd/m8a-vnext-multi-orbit-simulation-roadmap.md
+Do not create a runtime implementation prompt unless all of the following are
+true:
 
-Supporting docs:
-- docs/sdd/m8a-v4-ground-station-multi-orbit-handover-plan.md
-- docs/data-contracts/m8a-v4-ground-station-projection.md
+- a new endpoint-pair scenario has an accepted authority package
+- the accepted scenario has a viewer-owned projection artifact or generated
+  module contract
+- the user explicitly opens the corresponding runtime phase
+- R2 remains read-only and no raw `itri` package is read at runtime
 
-Scope:
-- Extend the M8A-V4 replay window to cover at least one complete current
-  OneWeb LEO orbital period.
-- Choose a playback multiplier that keeps browser review practical.
-- Keep the accepted endpoint pair unchanged.
-- Do not add actors.
-- Do not add endpoints.
-- Do not change source truth or precision class.
-- Preserve no-active-satellite/gateway/path/metrics/native-RF-handover
-  non-claims.
-
-Validation:
-- run build
-- run or add a focused V4.6A smoke test verifying replay range, multiplier,
-  actor counts, endpoint counts, and forbidden-claim scan
-- run V4.5 visual regression if the camera or visual timing changes
-
-Return:
-- changed files
-- what was implemented
-- validation results
-- deviations from SDD
-- remaining work
-```
-
-## Execution Prompt - V4.6B Source/Projection
-
-Use this prompt only after a planning-control thread decides which source
-families to add:
-
-```text
-Do not change runtime rendering yet.
-
-Read:
-- docs/sdd/m8a-vnext-multi-orbit-simulation-roadmap.md
-- docs/data-contracts/m8a-v4-ground-station-projection.md
-
-Goal:
-- Produce accepted source-lineaged projection records for additional LEO/MEO/GEO
-  display-context actors.
-
-Rules:
-- no synthetic actor records
-- no live runtime source reads
-- every actor needs source lineage, source epoch, projection epoch, source
-  position, render position, truth boundary, and non-claims
-- actors remain display-context and not active serving satellites
-
-Return:
-- source families reviewed
-- actor records added or rejected
-- files changed
-- validation results
-- runtime implementation prompt only if projection is accepted
-```
-
-## Execution Prompt - Endpoint Expansion / R2
-
-Use this prompt for source-hunt planning, not runtime:
-
-```text
-Do not write runtime code.
-
-Read:
-- docs/sdd/m8a-vnext-multi-orbit-simulation-roadmap.md
-- docs/sdd/multi-orbit-follow-on-roadmap.md
-- docs/sdd/m8a-read-only-catalog-follow-on-plan.md
-
-Goal:
-- Expand the read-only endpoint evidence catalog and identify which candidates
-  could be promoted toward accepted endpoint-pair authority packages.
-
-Rules:
-- R2 remains read-only
-- no runtime selector
-- promotion evidence must be official/operator/regulator/teleport
-  certification/satellite-operator source
-- label operator-family, site-family, site-level, and same-site precision
-  separately
-- compare every candidate against Taiwan/CHT at compatible precision
-
-Return:
-- candidates reviewed
-- missing evidence by orbit class
-- precision compatibility
-- promotion recommendation
-- files to update
-- exact user decision needed before authority-package creation
-```
+The only currently recommended non-runtime work is further primary-source hunt
+for new endpoint candidates.
