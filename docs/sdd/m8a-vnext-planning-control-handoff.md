@@ -20,9 +20,10 @@ Read these first:
 2. [m8a-v4-ground-station-multi-orbit-handover-plan.md](./m8a-v4-ground-station-multi-orbit-handover-plan.md)
 3. [../data-contracts/m8a-v4-ground-station-projection.md](../data-contracts/m8a-v4-ground-station-projection.md)
 4. [m8a-v4.6d-simulation-handover-model-contract.md](./m8a-v4.6d-simulation-handover-model-contract.md)
-5. [multi-orbit-follow-on-roadmap.md](./multi-orbit-follow-on-roadmap.md)
-6. [multi-orbit-program-skeleton.md](./multi-orbit-program-skeleton.md)
-7. [../decisions/0013-ground-station-multi-orbit-scope-reset.md](../decisions/0013-ground-station-multi-orbit-scope-reset.md)
+5. [m8a-v4.7-handover-product-ux-plan.md](./m8a-v4.7-handover-product-ux-plan.md)
+6. [multi-orbit-follow-on-roadmap.md](./multi-orbit-follow-on-roadmap.md)
+7. [multi-orbit-program-skeleton.md](./multi-orbit-program-skeleton.md)
+8. [../decisions/0013-ground-station-multi-orbit-scope-reset.md](../decisions/0013-ground-station-multi-orbit-scope-reset.md)
 
 Supporting accepted data:
 
@@ -45,6 +46,9 @@ Completed:
 - `M8A-V4.6D` simulation handover model contract accepted at commit `b8dbad0`
 - `M8A-V4.6D` simulation handover model runtime completed at commit `c4142b4`
 - `M8A-V4.6E` handover visual language completed at commit `db85439`
+- `M8A-V4.6E` floating HUD hidden at commit `1f33697`
+- `M8A-V4.7` product UX / playback / information architecture runtime
+  implementation completed; commit hash pending at documentation time
 - `M8A-V4.6C/R2` source/catalog boundary documented at commit `e5d99c7`
 - `R2` root endpoint evidence catalog added at commit `d061c676`
 - `R2` alternate endpoint B MEO no-change hunt documented at commit `c8e30b2e`
@@ -65,6 +69,7 @@ Current data path:
 Recent important commits:
 
 - `e5d99c7 Document M8A V4.6C R2 catalog boundary`
+- `1f33697 Hide M8A V4.6E floating HUD`
 - `db85439 Implement M8A V4.6E handover visual language`
 - `c4142b4 Implement M8A V4.6D simulation handover model`
 - `b8dbad0 Document M8A V4.6D handover model contract`
@@ -178,6 +183,8 @@ Keep these unless a later visual-language phase explicitly changes them:
 - MEO/GEO glow billboards are offset toward the visible model center
 - endpoint ground markers keep their own white/green endpoint colors
 - V4.6E compact display-state surface is visible and bounded to the viewport
+- as of commit `1f33697`, the V4.6E floating HUD is hidden and the HUD root is
+  retained only as a runtime/test seam, not accepted visible UX
 - V4.6E persistent badges are `simulation output`, `operator-family
   precision`, and `display-context actors`
 - V4.6E timeline labels are `LEO acquire`, `LEO pressure`, `MEO hold`, `LEO
@@ -203,22 +210,41 @@ state is now:
 Current phase status:
 
 - `V4.6A`, `V4.6B`, `V4.6D`, and `V4.6E` are complete in the runtime baseline
+- `V4.7` product UX / playback / information architecture is accepted as a
+  doc-only SDD authority
+- `V4.7` runtime implementation is complete in the current change set after
+  explicit opening
 - `V4.6C/R2` has source/catalog updates only; it does not create a runtime
   selector or accepted selectable scenario set
 - no alternate endpoint B outside Speedcast Singapore is runtime-ready
-- no runtime implementation prompt is currently unblocked
+- no additional runtime implementation prompt is currently unblocked
 
 ## Remaining Available Tracks
 
-The only available next tracks are:
+The current V4.7 track is implemented:
+
+1. `V4.7` product UX / playback / information architecture SDD
+
+The next available decisions are:
+
+1. perform final delivery review / commit / PR handling for the current V4.7
+   change set
+2. keep runtime closed and continue source/candidate work
+
+Other available tracks remain:
 
 1. further primary-source hunt for new endpoint candidates only
 2. `V5` decision gate only if new accepted endpoint-pair scenarios emerge
 3. legacy aviation/YKA cleanup only if the cleanup/archive gate is explicitly
    opened
 
-Do not create a runtime prompt unless a new accepted authority package and
-viewer-owned projection unblock a runtime phase.
+Do not create a selector or endpoint runtime prompt unless a new accepted
+authority package and viewer-owned projection unblock a runtime phase.
+
+Do not create another `V4.7` runtime prompt unless the user explicitly opens a
+correction or follow-on implementation. V4.7 runtime scope, if later reopened,
+must remain limited to playback policy, information architecture, layout,
+disclosure, and validation for the existing accepted scene.
 
 ## R2 Clarification
 

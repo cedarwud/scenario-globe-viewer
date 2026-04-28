@@ -60,6 +60,10 @@ after the current line. They need explicit reopen authority.
 
 - `V4.6A`, `V4.6B`, `V4.6D`, and `V4.6E` are complete in the current
   scenario-globe-viewer runtime baseline.
+- `V4.7` product UX / playback / information architecture SDD is accepted as
+  doc-only authority for the existing accepted V4 scene; runtime implementation
+  completed after explicit opening, with commit hash pending at documentation
+  time.
 - `V4.6C/R2` remains catalog/source-only; no alternate endpoint B is
   runtime-ready.
 - The next available tracks are primary-source hunt for new candidates, a `V5`
@@ -270,8 +274,9 @@ Status:
 
 - planning-control SDD and closeout handoff
 - `V4.6A/B/D/E` complete in runtime baseline
+- `V4.7` product UX runtime complete in current change set
 - `V4.6C/R2` catalog/source-only; no alternate endpoint B runtime-ready
-- no runtime execution phase currently unblocked
+- no additional runtime execution phase currently unblocked
 
 Open only when:
 

@@ -20,6 +20,8 @@ Related V4.6B source/projection record:
 [./m8a-v4.6b-source-lineaged-orbit-actor-projection.md](./m8a-v4.6b-source-lineaged-orbit-actor-projection.md).
 Related accepted V4.6D simulation handover model contract:
 [./m8a-v4.6d-simulation-handover-model-contract.md](./m8a-v4.6d-simulation-handover-model-contract.md).
+Related V4.7 product UX SDD:
+[./m8a-v4.7-handover-product-ux-plan.md](./m8a-v4.7-handover-product-ux-plan.md).
 Related V4.6C/R2 endpoint evidence catalog review:
 [../../../itri/multi-orbit/download/ground-station-endpoint-candidates/2026-04-25/r2-endpoint-evidence-catalog-2026-04-28.md](../../../itri/multi-orbit/download/ground-station-endpoint-candidates/2026-04-25/r2-endpoint-evidence-catalog-2026-04-28.md).
 
@@ -28,6 +30,7 @@ Related V4.6C/R2 endpoint evidence catalog review:
 - planning-control SDD
 - doc-only continuation plan
 - V4.6 closeout synchronized 2026-04-28
+- V4.7 product UX SDD accepted 2026-04-28
 - no runtime implementation authority by itself
 - intended handoff surface for the next planning/control thread
 
@@ -66,6 +69,9 @@ Completed baseline:
 - `M8A-V4.6D` simulation handover model contract exists at commit `b8dbad0`
 - `M8A-V4.6D` simulation handover model runtime exists at commit `c4142b4`
 - `M8A-V4.6E` handover visual language exists at commit `db85439`
+- `M8A-V4.6E` floating HUD is hidden at commit `1f33697`
+- `M8A-V4.7` product UX / playback / information architecture runtime
+  implementation completed; commit hash pending at documentation time
 - `M8A-V4.6C/R2` source/catalog boundary exists at commit `e5d99c7`
 - the `R2` root endpoint evidence catalog exists at commit `d061c676`
 - the `R2` alternate endpoint B MEO no-change hunt exists at commit `c8e30b2e`
@@ -102,6 +108,8 @@ Current visual baseline:
 - V4.6E adds a compact display-state surface with persistent truth-boundary
   badges, five simulation-state timeline labels, role legend, and a non-claim
   disclosure
+- commit `1f33697` hides the V4.6E floating HUD; the HUD root is retained only
+  as a runtime/test seam and is not accepted visible product UX
 - V4.6E limits relation cues to representative plus candidate context ribbons;
   fallback context uses a low-opacity GEO guard cue except in the GEO guard
   window
@@ -201,7 +209,8 @@ Closeout status:
 - runtime-bearing steps `1`, `2`, and `4` are complete through `V4.6E`
 - endpoint expansion step `3` remains catalog/source-only because no alternate
   endpoint B is runtime-ready
-- no additional runtime phase is unblocked by this roadmap alone
+- `V4.7` product UX runtime implementation is complete for the accepted single
+  scenario; no additional runtime phase is unblocked by this roadmap alone
 
 ## Phase V4.6A - Full LEO Orbit Replay
 
@@ -458,6 +467,76 @@ Implementation status:
 - compact display-state surface, sparse actor labels, role legend,
   representative/candidate context ribbons, low-opacity GEO guard cue, and
   non-claim disclosure are in the accepted runtime baseline
+- follow-up cleanup `1f33697` hides the V4.6E floating HUD; the HUD root remains
+  only as a runtime/test seam and is not accepted visible UX
+
+## Phase V4.7 - Handover Product UX, Playback, And Information Architecture
+
+Goal:
+
+- define product-grade playback, information hierarchy, layout,
+  non-obstruction, viewport, disclosure, and visual validation policy for the
+  accepted Taiwan/CHT-Speedcast V4 scene
+
+Planning home:
+
+- [m8a-v4.7-handover-product-ux-plan.md](./m8a-v4.7-handover-product-ux-plan.md)
+
+Scope:
+
+- product UX
+- playback speed policy
+- loop, hold, pause, and restart semantics
+- simulated time display semantics
+- information architecture
+- layout and non-obstruction policy
+- desktop and narrow viewport behavior
+- truth-boundary disclosure strategy
+- visual validation criteria
+
+Non-goals:
+
+- `V5`
+- `R2` runtime promotion
+- endpoint expansion
+- selector work
+- model truth expansion
+- new data source work
+
+Key product UX decisions:
+
+- `240x` is dev/debug only and must not be product default
+- `60x` is the recommended product default
+- `30x` is available for guided review
+- `120x` is available for quick scan
+- bottom HUD and top-left HUD are not accepted primary layouts
+- a new floating HUD is not the default product solution
+- a right-side review rail or reserved control column may be evaluated only if
+  camera composition and non-obstruction validation pass
+- narrow viewport defaults to a minimal status/control strip, with detail in a
+  user-triggered drawer or sheet
+
+Acceptance criteria:
+
+- playback policy and end-hold behavior are deterministic
+- time display is labeled as simulated replay time, not live/operator time
+- desktop and narrow screenshots prove the primary scene is not obstructed
+- persistent truth-boundary badges remain visible or inspectable
+- forbidden-claim scan remains clean
+- no raw `itri` side-read is introduced
+- route, endpoint pair, precision, actor set, and V4.6D model truth remain
+  unchanged
+
+Implementation status:
+
+- SDD accepted as doc-only product UX authority
+- runtime implementation completed in the current change set after explicit
+  opening
+- validation passed: `npm run test:m8a-v4.7`,
+  `npm run test:m8a-v4.6e`, `npm run test:m8a-v4.6a`, and
+  `npm run test:m8a-v4.6b`
+- no deviations from route, endpoint pair, precision, actor set, source
+  boundary, or V4.6D model truth were reported
 
 ## Phase V5 Decision Gate
 
@@ -474,9 +553,19 @@ runtime prompt is created.
 
 ## Recommended Next Step
 
-No runtime execution phase is currently unblocked.
+No additional runtime execution phase is currently unblocked.
 
-The recommended next track is:
+The current V4.7 product UX track is implemented:
+
+`M8A-V4.7 product UX / playback / information architecture SDD`
+
+The next available decisions are:
+
+- perform final delivery review / commit / PR handling for the current change
+  set
+- keep further runtime work closed and continue source/candidate work
+
+Other available tracks remain:
 
 `Further primary-source hunt for new candidates only`
 
@@ -484,6 +573,8 @@ Reason:
 
 - `V4.6A/B/D/E` are already complete in the runtime baseline
 - `V4.6C/R2` did not promote any alternate endpoint B
+- `V4.7` is a product UX SDD delta for the accepted single scenario, not a
+  runtime selector or source expansion
 - V5 is blocked until new accepted endpoint-pair scenarios exist
 - legacy aviation/YKA cleanup is blocked until the user explicitly opens that
   cleanup/archive gate
@@ -504,15 +595,24 @@ exist:
 - viewer-owned projection artifacts under `public/fixtures/ground-station-projections/`
 - runtime and smoke tests only after a new runtime prompt is genuinely unblocked
 
+V4.7 runtime work has changed in the current implementation:
+
+- playback policy and controls
+- product information architecture
+- desktop/narrow layout and disclosure surfaces
+- visual and playback smoke tests
+
+Future V4.7 corrections may change those surfaces only if explicitly opened.
+
 Legacy aviation/YKA cleanup may later change old route, fixture, and regression
 surfaces only if the cleanup/archive gate is explicitly opened.
 
 ## Runtime Prompt Policy
 
-No runtime prompt is open from this closeout state.
+No additional runtime prompt is open from this closeout state.
 
-Do not create a runtime implementation prompt unless all of the following are
-true:
+Do not create an endpoint or selector runtime implementation prompt unless all
+of the following are true:
 
 - a new endpoint-pair scenario has an accepted authority package
 - the accepted scenario has a viewer-owned projection artifact or generated
@@ -520,5 +620,13 @@ true:
 - the user explicitly opens the corresponding runtime phase
 - R2 remains read-only and no raw `itri` package is read at runtime
 
-The only currently recommended non-runtime work is further primary-source hunt
-for new endpoint candidates.
+Do not create a future V4.7 correction runtime prompt unless all of the
+following are true:
+
+- [m8a-v4.7-handover-product-ux-plan.md](./m8a-v4.7-handover-product-ux-plan.md)
+  is accepted
+- the user explicitly opens V4.7 runtime implementation
+- implementation scope is limited to playback policy, information architecture,
+  layout, disclosure, and validation
+- route, endpoint pair, precision, actor set, source boundary, and V4.6D model
+  truth remain unchanged

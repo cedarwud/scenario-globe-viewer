@@ -26,7 +26,7 @@ const ARTIFACT_PATH = path.join(
 );
 const REQUEST_PATH = "/?scenePreset=regional&m8aV4GroundStationScene=1";
 const V4_RUNTIME_STATE = "active-v4.3-continuous-multi-orbit-handover-scene";
-const EXPECTED_PLAYBACK_MULTIPLIER = 240;
+const EXPECTED_PLAYBACK_MULTIPLIER = 60;
 const MAX_SMALL_MARGIN_MS = 10 * 60 * 1000;
 const DESKTOP_VIEWPORT = {
   width: 1440,
@@ -431,7 +431,7 @@ async function main() {
                 replayState.multiplier === config.expectedPlaybackMultiplier &&
                 state.replayWindow.playbackMultiplier ===
                   config.expectedPlaybackMultiplier,
-              "V4.6B replay must preserve the practical full-orbit review multiplier: " +
+              "V4.6B replay must preserve the current product full-orbit review multiplier: " +
                 JSON.stringify({
                   replayState,
                   replayWindow: state.replayWindow

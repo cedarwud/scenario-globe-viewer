@@ -72,7 +72,34 @@ const M8A_V4_CAMERA_PITCH_DEGREES = -80;
 const M8A_V4_CAMERA_SCREEN_UP_PAN_METERS = 4_000_000;
 const M8A_V4_MILLISECONDS_PER_DAY = 24 * 60 * 60 * 1000;
 const M8A_V4_FULL_LEO_ORBIT_REPLAY_MARGIN_MS = 5 * 60 * 1000;
-const M8A_V4_FULL_LEO_ORBIT_REPLAY_MULTIPLIER = 240;
+const M8A_V47_PRODUCT_UX_VERSION =
+  "m8a-v4.7-handover-product-ux-runtime.v1";
+const M8A_V47_GUIDED_REVIEW_MULTIPLIER = 30;
+const M8A_V47_PRODUCT_DEFAULT_MULTIPLIER = 60;
+const M8A_V47_QUICK_SCAN_MULTIPLIER = 120;
+const M8A_V47_DEBUG_TEST_MULTIPLIER = 240;
+const M8A_V47_PRODUCT_PLAYBACK_MULTIPLIERS = [
+  M8A_V47_GUIDED_REVIEW_MULTIPLIER,
+  M8A_V47_PRODUCT_DEFAULT_MULTIPLIER,
+  M8A_V47_QUICK_SCAN_MULTIPLIER
+] as const;
+const M8A_V47_FINAL_HOLD_DURATION_MS = 4_000;
+const M8A_V47_FINAL_HOLD_MIN_MS = 3_000;
+const M8A_V47_FINAL_HOLD_MAX_MS = 5_000;
+const M8A_V47_TRUTH_BADGES = [
+  "simulation output",
+  "operator-family precision",
+  "display-context actors"
+] as const;
+const M8A_V47_DISCLOSURE_LINES = [
+  "Simulated display-context state, not an operator handover log.",
+  "Source-lineaged display-context actors, not active serving satellites.",
+  "Endpoint precision stays operator-family only.",
+  "No active gateway assignment is claimed.",
+  "No pair-specific teleport path is claimed.",
+  "No measured latency, jitter, throughput, or continuity values are shown.",
+  "No native RF handover is claimed."
+] as const;
 const M8A_V4_DISPLAY_ORBIT_HEIGHT_METERS = {
   leo: {
     start: 280_000,
@@ -162,11 +189,37 @@ const M8A_V4_TELEMETRY_KEYS = [
   "m8aV46dFallbackContextActorIds",
   "m8aV46dBoundedMetricClasses",
   "m8aV46dWindowNonClaims",
+  "m8aV47ProductUx",
+  "m8aV47PlaybackDefaultMultiplier",
+  "m8aV47PlaybackProductMultipliers",
+  "m8aV47PlaybackDebugMultiplier",
+  "m8aV47PlaybackMultiplier",
+  "m8aV47PlaybackStatus",
+  "m8aV47FinalHoldActive",
+  "m8aV47ReplayProgressRatio",
+  "m8aV47SimulatedReplayTime",
+  "m8aV47ActiveProductLabel",
+  "m8aV47ActiveWindowId",
+  "m8aV47TruthBadges",
+  "m8aV47LayoutPolicy",
   "m8aV4GroundStationRawItriSideReadOwnership",
   "m8aV4GroundStationRuntimeConsumptionRule",
   "m8aV4GroundStationProofSeam",
   "m8aV4GroundStationNonClaims"
 ] as const;
+
+type M8aV47ProductPlaybackMultiplier =
+  (typeof M8A_V47_PRODUCT_PLAYBACK_MULTIPLIERS)[number];
+type M8aV47PlaybackMultiplier =
+  | M8aV47ProductPlaybackMultiplier
+  | typeof M8A_V47_DEBUG_TEST_MULTIPLIER;
+type M8aV47PlaybackMode =
+  | "guided-review"
+  | "product-default"
+  | "quick-scan"
+  | "debug-test";
+type M8aV47PlaybackStatus = "playing" | "paused" | "final-hold";
+type M8aV47DisclosureState = "closed" | "open";
 
 type M8aV4RelationRole =
   | "displayRepresentative"
@@ -299,6 +352,60 @@ export interface M8aV4GroundStationSceneState {
     replayMarginMs: number;
     periodSource: "repo-owned-oneweb-tle-mean-motion";
   };
+  productUx: {
+    version: typeof M8A_V47_PRODUCT_UX_VERSION;
+    playbackPolicy: {
+      defaultMultiplier: typeof M8A_V47_PRODUCT_DEFAULT_MULTIPLIER;
+      guidedReviewMultiplier: typeof M8A_V47_GUIDED_REVIEW_MULTIPLIER;
+      quickScanMultiplier: typeof M8A_V47_QUICK_SCAN_MULTIPLIER;
+      debugTestMultiplier: typeof M8A_V47_DEBUG_TEST_MULTIPLIER;
+      productMultipliers: ReadonlyArray<M8aV47ProductPlaybackMultiplier>;
+      normalControlsExposeDebugMultiplier: false;
+      finalHoldDurationMs: typeof M8A_V47_FINAL_HOLD_DURATION_MS;
+      finalHoldRangeMs: {
+        min: typeof M8A_V47_FINAL_HOLD_MIN_MS;
+        max: typeof M8A_V47_FINAL_HOLD_MAX_MS;
+      };
+      loopPolicy: "hold-final-state-then-restart";
+    };
+    playback: {
+      multiplier: M8aV47PlaybackMultiplier;
+      mode: M8aV47PlaybackMode;
+      status: M8aV47PlaybackStatus;
+      replayRatio: number;
+      finalHoldActive: boolean;
+      finalHoldStartedAtEpochMs: number | null;
+      finalHoldCompletedAtEpochMs: number | null;
+      finalHoldLoopCount: number;
+      reviewElapsedDisplay: string;
+      reviewDurationDisplay: string;
+      simulatedReplayTimeDisplay: string;
+      replayUtcDisplay: string;
+    };
+    informationHierarchy: readonly [
+      "scene",
+      "current-simulation-state",
+      "playback-and-time",
+      "truth-boundary-badges",
+      "optional-detail"
+    ];
+    stateLabels: Record<M8aV46dSimulationHandoverWindowId, string>;
+    activeWindowId: M8aV46dSimulationHandoverWindowId;
+    activeProductLabel: string;
+    truthBadges: typeof M8A_V47_TRUTH_BADGES;
+    disclosure: {
+      state: M8aV47DisclosureState;
+      lines: typeof M8A_V47_DISCLOSURE_LINES;
+    };
+    layout: {
+      viewportClass: "desktop" | "narrow";
+      desktopPolicy: "right-review-rail";
+      narrowPolicy: "minimal-strip-with-inspection-sheet";
+      detailSheetState: M8aV47DisclosureState;
+      protectedZonePolicy:
+        "endpoint-corridor-geo-guard-and-required-labels-non-obstruction";
+    };
+  };
   relationCues: {
     cueKind: "v4.6e-handover-visual-language-context-ribbons";
     displayRepresentativeActorId: M8aV46dActorId;
@@ -332,6 +439,13 @@ export interface M8aV4GroundStationSceneState {
 export interface M8aV4GroundStationSceneController {
   getState(): M8aV4GroundStationSceneState;
   subscribe(listener: (state: M8aV4GroundStationSceneState) => void): () => void;
+  play(): void;
+  pause(): void;
+  restart(): void;
+  setPlaybackMultiplier(multiplier: M8aV47ProductPlaybackMultiplier): void;
+  setDebugPlaybackMultiplier(
+    multiplier: typeof M8A_V47_DEBUG_TEST_MULTIPLIER
+  ): void;
   dispose(): void;
 }
 
@@ -493,7 +607,7 @@ function buildFullLeoOrbitReplayProfile(): M8aV4ReplayProfile {
     replayDurationMs: Math.ceil(
       longestLeoPeriod.periodMs + M8A_V4_FULL_LEO_ORBIT_REPLAY_MARGIN_MS
     ),
-    playbackMultiplier: M8A_V4_FULL_LEO_ORBIT_REPLAY_MULTIPLIER,
+    playbackMultiplier: M8A_V47_PRODUCT_DEFAULT_MULTIPLIER,
     periodSource: "repo-owned-oneweb-tle-mean-motion"
   };
 }
@@ -690,6 +804,81 @@ function resolveTimelineLabel(
   windowId: M8aV46dSimulationHandoverWindowId
 ): string {
   return M8A_V46E_TIMELINE_LABELS[windowId];
+}
+
+function resolvePlaybackMode(
+  multiplier: number
+): M8aV47PlaybackMode {
+  switch (multiplier) {
+    case M8A_V47_GUIDED_REVIEW_MULTIPLIER:
+      return "guided-review";
+    case M8A_V47_PRODUCT_DEFAULT_MULTIPLIER:
+      return "product-default";
+    case M8A_V47_QUICK_SCAN_MULTIPLIER:
+      return "quick-scan";
+    case M8A_V47_DEBUG_TEST_MULTIPLIER:
+      return "debug-test";
+    default:
+      return "product-default";
+  }
+}
+
+function coercePlaybackMultiplier(
+  multiplier: number
+): M8aV47PlaybackMultiplier {
+  return multiplier === M8A_V47_GUIDED_REVIEW_MULTIPLIER ||
+    multiplier === M8A_V47_PRODUCT_DEFAULT_MULTIPLIER ||
+    multiplier === M8A_V47_QUICK_SCAN_MULTIPLIER ||
+    multiplier === M8A_V47_DEBUG_TEST_MULTIPLIER
+    ? multiplier
+    : M8A_V47_PRODUCT_DEFAULT_MULTIPLIER;
+}
+
+function formatReviewClock(totalSeconds: number): string {
+  const safeSeconds = Math.max(0, Math.floor(totalSeconds));
+  const minutes = Math.floor(safeSeconds / 60);
+  const seconds = safeSeconds % 60;
+
+  return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(
+    2,
+    "0"
+  )}`;
+}
+
+function buildSimulatedReplayTimeDisplay(
+  replayRatio: number,
+  replayDurationMs: number,
+  multiplier: number
+): {
+  reviewElapsedDisplay: string;
+  reviewDurationDisplay: string;
+  simulatedReplayTimeDisplay: string;
+} {
+  const safeMultiplier =
+    Number.isFinite(multiplier) && multiplier > 0
+      ? multiplier
+      : M8A_V47_PRODUCT_DEFAULT_MULTIPLIER;
+  const reviewDurationSeconds = replayDurationMs / 1000 / safeMultiplier;
+  const reviewElapsedSeconds = reviewDurationSeconds * replayRatio;
+  const reviewElapsedDisplay = formatReviewClock(reviewElapsedSeconds);
+  const reviewDurationDisplay = formatReviewClock(reviewDurationSeconds);
+
+  return {
+    reviewElapsedDisplay,
+    reviewDurationDisplay,
+    simulatedReplayTimeDisplay: `Sim replay ${reviewElapsedDisplay} / ${reviewDurationDisplay}`
+  };
+}
+
+function resolvePlaybackStatus(
+  replayState: ReplayClockState,
+  finalHoldActive: boolean
+): M8aV47PlaybackStatus {
+  if (finalHoldActive) {
+    return "final-hold";
+  }
+
+  return replayState.isPlaying ? "playing" : "paused";
 }
 
 function resolveFallbackGuardCueMode(
@@ -1028,6 +1217,134 @@ function renderHud(root: HTMLElement, state: M8aV4GroundStationSceneState): void
   root.innerHTML = "";
 }
 
+function createProductUxRoot(): HTMLElement {
+  const root = document.createElement("section");
+  root.className = "m8a-v47-product-ux";
+  root.dataset.m8aV47ProductUx = "true";
+  root.setAttribute("aria-label", "M8A V4.7 product review controls");
+  return root;
+}
+
+function renderTruthBadges(): string {
+  return M8A_V47_TRUTH_BADGES.map(
+    (badge) => `<span data-m8a-v47-truth-badge="${badge}">${badge}</span>`
+  ).join("");
+}
+
+function renderSpeedButtons(activeMultiplier: number): string {
+  return M8A_V47_PRODUCT_PLAYBACK_MULTIPLIERS.map((multiplier) => {
+    const isActive = activeMultiplier === multiplier;
+
+    return [
+      `<button type="button" class="m8a-v47-product-ux__speed"`,
+      ` data-m8a-v47-action="speed"`,
+      ` data-m8a-v47-playback-multiplier="${multiplier}"`,
+      ` aria-pressed="${isActive ? "true" : "false"}">`,
+      `${multiplier}x`,
+      "</button>"
+    ].join("");
+  }).join("");
+}
+
+function renderStagePills(
+  state: M8aV4GroundStationSceneState
+): string {
+  return state.simulationHandoverModel.timeline
+    .map((windowDefinition) => {
+      const label = state.productUx.stateLabels[windowDefinition.windowId];
+      const isActive = windowDefinition.windowId === state.productUx.activeWindowId;
+
+      return [
+        `<span class="m8a-v47-product-ux__stage"`,
+        ` data-m8a-v47-window-id="${windowDefinition.windowId}"`,
+        ` data-active="${isActive ? "true" : "false"}">`,
+        label,
+        "</span>"
+      ].join("");
+    })
+    .join("");
+}
+
+function renderDisclosureLines(): string {
+  return M8A_V47_DISCLOSURE_LINES.map(
+    (line) => `<li>${line}</li>`
+  ).join("");
+}
+
+function renderProductUx(
+  root: HTMLElement,
+  state: M8aV4GroundStationSceneState
+): void {
+  const productUx = state.productUx;
+  const activeMultiplier = productUx.playback.multiplier;
+  const playbackAction =
+    productUx.playback.status === "playing" ? "pause" : "play";
+  const playbackLabel =
+    productUx.playback.status === "playing" ? "Pause" : "Play";
+  const sheetOpen = productUx.disclosure.state === "open";
+  const progressValue = productUx.playback.replayRatio.toFixed(6);
+
+  root.hidden = false;
+  root.setAttribute("aria-hidden", "false");
+  root.dataset.viewportClass = productUx.layout.viewportClass;
+  root.dataset.playbackStatus = productUx.playback.status;
+  root.dataset.playbackMultiplier = String(activeMultiplier);
+  root.dataset.activeWindowId = productUx.activeWindowId;
+  root.dataset.activeProductLabel = productUx.activeProductLabel;
+  root.dataset.finalHoldActive = String(productUx.playback.finalHoldActive);
+  root.dataset.replayProgressRatio = progressValue;
+  root.dataset.truthDisclosure = productUx.disclosure.state;
+  root.dataset.normalControlsExposeDebugMultiplier = "false";
+
+  root.innerHTML = `
+    <div class="m8a-v47-product-ux__rail" data-m8a-v47-ui-surface="desktop-rail">
+      <div class="m8a-v47-product-ux__header">
+        <span>Current simulation state</span>
+        <strong data-m8a-v47-active-label="true">${productUx.activeProductLabel}</strong>
+        <small>${productUx.playback.simulatedReplayTimeDisplay}</small>
+      </div>
+      <div class="m8a-v47-product-ux__controls" data-m8a-v47-control-group="playback">
+        <button type="button" data-m8a-v47-action="${playbackAction}">${playbackLabel}</button>
+        <button type="button" data-m8a-v47-action="restart">Restart</button>
+      </div>
+      <div class="m8a-v47-product-ux__speed-group" data-m8a-v47-control-group="speed">
+        ${renderSpeedButtons(activeMultiplier)}
+      </div>
+      <div class="m8a-v47-product-ux__time">
+        <span data-m8a-v47-time-label="simulated">${productUx.playback.simulatedReplayTimeDisplay}</span>
+        <span data-m8a-v47-time-label="replay-utc">${productUx.playback.replayUtcDisplay}</span>
+      </div>
+      <progress class="m8a-v47-product-ux__progress" max="1" value="${progressValue}" data-m8a-v47-progress="true"></progress>
+      <div class="m8a-v47-product-ux__stages" data-m8a-v47-label-map="v4.6d-window-id-to-product-label">
+        ${renderStagePills(state)}
+      </div>
+      <div class="m8a-v47-product-ux__badges" data-m8a-v47-truth-badges="true">
+        ${renderTruthBadges()}
+      </div>
+      <button type="button" class="m8a-v47-product-ux__disclosure-button" data-m8a-v47-action="toggle-disclosure" aria-expanded="${sheetOpen ? "true" : "false"}">Truth boundary</button>
+    </div>
+    <div class="m8a-v47-product-ux__strip" data-m8a-v47-ui-surface="narrow-strip">
+      <strong data-m8a-v47-active-label="true">${productUx.activeProductLabel}</strong>
+      <button type="button" data-m8a-v47-action="${playbackAction}">${playbackLabel}</button>
+      <div class="m8a-v47-product-ux__strip-speeds">${renderSpeedButtons(activeMultiplier)}</div>
+      <progress max="1" value="${progressValue}" data-m8a-v47-progress="true"></progress>
+      <button type="button" data-m8a-v47-action="toggle-disclosure" aria-expanded="${sheetOpen ? "true" : "false"}">Details</button>
+    </div>
+    <aside class="m8a-v47-product-ux__sheet" data-m8a-v47-ui-surface="inspection-sheet" ${sheetOpen ? "" : "hidden"}>
+      <div class="m8a-v47-product-ux__sheet-header">
+        <strong>Truth boundary</strong>
+        <button type="button" data-m8a-v47-action="close-disclosure">Close</button>
+      </div>
+      <div class="m8a-v47-product-ux__badges">
+        ${renderTruthBadges()}
+      </div>
+      <ul>
+        ${renderDisclosureLines()}
+      </ul>
+    </aside>
+  `;
+}
+
 function cloneActorState(
   actor: M8aV4ActorRuntimeRecord
 ): M8aV4ActorRuntimeRecord {
@@ -1159,6 +1476,35 @@ function cloneState(
     replayWindow: {
       ...state.replayWindow
     },
+    productUx: {
+      ...state.productUx,
+      playbackPolicy: {
+        ...state.productUx.playbackPolicy,
+        productMultipliers: [...state.productUx.playbackPolicy.productMultipliers],
+        finalHoldRangeMs: {
+          ...state.productUx.playbackPolicy.finalHoldRangeMs
+        }
+      },
+      playback: {
+        ...state.productUx.playback
+      },
+      informationHierarchy: [
+        ...state.productUx.informationHierarchy
+      ] as M8aV4GroundStationSceneState["productUx"]["informationHierarchy"],
+      stateLabels: {
+        ...state.productUx.stateLabels
+      },
+      truthBadges: [...state.productUx.truthBadges] as typeof M8A_V47_TRUTH_BADGES,
+      disclosure: {
+        ...state.productUx.disclosure,
+        lines: [
+          ...state.productUx.disclosure.lines
+        ] as typeof M8A_V47_DISCLOSURE_LINES
+      },
+      layout: {
+        ...state.productUx.layout
+      }
+    },
     relationCues: {
       ...state.relationCues
     },
@@ -1277,6 +1623,30 @@ function syncTelemetry(state: M8aV4GroundStationSceneState): void {
     m8aV46dWindowNonClaims: serializeJson(
       state.simulationHandoverModel.window.nonClaims
     ),
+    m8aV47ProductUx: state.productUx.version,
+    m8aV47PlaybackDefaultMultiplier: String(
+      state.productUx.playbackPolicy.defaultMultiplier
+    ),
+    m8aV47PlaybackProductMultipliers: serializeList(
+      state.productUx.playbackPolicy.productMultipliers.map(String)
+    ),
+    m8aV47PlaybackDebugMultiplier: String(
+      state.productUx.playbackPolicy.debugTestMultiplier
+    ),
+    m8aV47PlaybackMultiplier: String(state.productUx.playback.multiplier),
+    m8aV47PlaybackStatus: state.productUx.playback.status,
+    m8aV47FinalHoldActive: String(
+      state.productUx.playback.finalHoldActive
+    ),
+    m8aV47ReplayProgressRatio: String(
+      state.productUx.playback.replayRatio
+    ),
+    m8aV47SimulatedReplayTime:
+      state.productUx.playback.simulatedReplayTimeDisplay,
+    m8aV47ActiveProductLabel: state.productUx.activeProductLabel,
+    m8aV47ActiveWindowId: state.productUx.activeWindowId,
+    m8aV47TruthBadges: serializeList([...state.productUx.truthBadges]),
+    m8aV47LayoutPolicy: `${state.productUx.layout.desktopPolicy}|${state.productUx.layout.narrowPolicy}`,
     m8aV4GroundStationRawItriSideReadOwnership:
       state.sourceLineage.rawPackageSideReadOwnership,
     m8aV4GroundStationRuntimeConsumptionRule:
@@ -1349,6 +1719,97 @@ function buildSimulationHandoverState(
   };
 }
 
+function buildProductUxState({
+  replayState,
+  simulationHandoverModel,
+  viewportClass,
+  finalHoldActive,
+  finalHoldStartedAtEpochMs,
+  finalHoldCompletedAtEpochMs,
+  finalHoldLoopCount,
+  truthDisclosureOpen
+}: {
+  replayState: ReplayClockState;
+  simulationHandoverModel: M8aV4GroundStationSceneState["simulationHandoverModel"];
+  viewportClass: "desktop" | "narrow";
+  finalHoldActive: boolean;
+  finalHoldStartedAtEpochMs: number | null;
+  finalHoldCompletedAtEpochMs: number | null;
+  finalHoldLoopCount: number;
+  truthDisclosureOpen: boolean;
+}): M8aV4GroundStationSceneState["productUx"] {
+  const replayRatio = resolveReplayWindowRatio(replayState);
+  const multiplier = coercePlaybackMultiplier(replayState.multiplier);
+  const reviewTime = buildSimulatedReplayTimeDisplay(
+    replayRatio,
+    toEpochMilliseconds(replayState.stopTime) -
+      toEpochMilliseconds(replayState.startTime),
+    multiplier
+  );
+  const activeWindowId = simulationHandoverModel.window.windowId;
+  const activeProductLabel = resolveTimelineLabel(activeWindowId);
+  const disclosureState: M8aV47DisclosureState = truthDisclosureOpen
+    ? "open"
+    : "closed";
+
+  return {
+    version: M8A_V47_PRODUCT_UX_VERSION,
+    playbackPolicy: {
+      defaultMultiplier: M8A_V47_PRODUCT_DEFAULT_MULTIPLIER,
+      guidedReviewMultiplier: M8A_V47_GUIDED_REVIEW_MULTIPLIER,
+      quickScanMultiplier: M8A_V47_QUICK_SCAN_MULTIPLIER,
+      debugTestMultiplier: M8A_V47_DEBUG_TEST_MULTIPLIER,
+      productMultipliers: [...M8A_V47_PRODUCT_PLAYBACK_MULTIPLIERS],
+      normalControlsExposeDebugMultiplier: false,
+      finalHoldDurationMs: M8A_V47_FINAL_HOLD_DURATION_MS,
+      finalHoldRangeMs: {
+        min: M8A_V47_FINAL_HOLD_MIN_MS,
+        max: M8A_V47_FINAL_HOLD_MAX_MS
+      },
+      loopPolicy: "hold-final-state-then-restart"
+    },
+    playback: {
+      multiplier,
+      mode: resolvePlaybackMode(multiplier),
+      status: resolvePlaybackStatus(replayState, finalHoldActive),
+      replayRatio,
+      finalHoldActive,
+      finalHoldStartedAtEpochMs,
+      finalHoldCompletedAtEpochMs,
+      finalHoldLoopCount,
+      reviewElapsedDisplay: reviewTime.reviewElapsedDisplay,
+      reviewDurationDisplay: reviewTime.reviewDurationDisplay,
+      simulatedReplayTimeDisplay: reviewTime.simulatedReplayTimeDisplay,
+      replayUtcDisplay: `Replay UTC ${toIsoTimestamp(replayState.currentTime)}`
+    },
+    informationHierarchy: [
+      "scene",
+      "current-simulation-state",
+      "playback-and-time",
+      "truth-boundary-badges",
+      "optional-detail"
+    ],
+    stateLabels: {
+      ...M8A_V46E_TIMELINE_LABELS
+    },
+    activeWindowId,
+    activeProductLabel,
+    truthBadges: M8A_V47_TRUTH_BADGES,
+    disclosure: {
+      state: disclosureState,
+      lines: M8A_V47_DISCLOSURE_LINES
+    },
+    layout: {
+      viewportClass,
+      desktopPolicy: "right-review-rail",
+      narrowPolicy: "minimal-strip-with-inspection-sheet",
+      detailSheetState: disclosureState,
+      protectedZonePolicy:
+        "endpoint-corridor-geo-guard-and-required-labels-non-obstruction"
+    }
+  };
+}
+
 function resolveActorById(
   actors: ReadonlyArray<M8aV4OrbitActorProjection>,
   actorId: M8aV46dActorId
@@ -1370,6 +1831,7 @@ export function createM8aV4GroundStationSceneController({
   const modelUri = resolveModelUri();
   const dataSource = new CustomDataSource(M8A_V4_GROUND_STATION_DATA_SOURCE_NAME);
   const hudRoot = createHudRoot();
+  const productUxRoot = createProductUxRoot();
   const listeners = new Set<(state: M8aV4GroundStationSceneState) => void>();
   const actorSatrecs = new Map(
     M8A_V4_GROUND_STATION_RUNTIME_PROJECTION.orbitActors.map((actor) => {
@@ -1387,6 +1849,14 @@ export function createM8aV4GroundStationSceneController({
   );
   let disposed = false;
   let dataSourceAttached = false;
+  let truthDisclosureOpen = false;
+  let finalHoldActive = false;
+  let finalHoldStartedAtEpochMs: number | null = null;
+  let finalHoldCompletedAtEpochMs: number | null = null;
+  let finalHoldLoopCount = 0;
+  let finalHoldTimeoutId: number | undefined;
+  let resumeAfterFinalHold = true;
+  let productLoopArmed = true;
   let latestSimulationWindow = resolveSimulationHandoverWindow(
     replayClock.getState()
   );
@@ -1396,6 +1866,7 @@ export function createM8aV4GroundStationSceneController({
   hudFrame.dataset.hudVisibility = "m8a-v4";
   hudFrame.setAttribute("aria-hidden", "false");
   hudFrame.appendChild(hudRoot);
+  hudFrame.appendChild(productUxRoot);
 
   const endpointsById = new Map(
     M8A_V4_GROUND_STATION_RUNTIME_PROJECTION.endpoints.map((endpoint) => [
@@ -1667,12 +2138,159 @@ export function createM8aV4GroundStationSceneController({
     )
   });
 
+  const clearFinalHoldTimer = (): void => {
+    if (typeof finalHoldTimeoutId === "number") {
+      window.clearTimeout(finalHoldTimeoutId);
+      finalHoldTimeoutId = undefined;
+    }
+  };
+
+  const finishFinalHold = (): void => {
+    if (disposed || !finalHoldActive) {
+      return;
+    }
+
+    const shouldResume = resumeAfterFinalHold;
+    finalHoldActive = false;
+    finalHoldCompletedAtEpochMs = Date.now();
+    finalHoldStartedAtEpochMs = null;
+    finalHoldLoopCount += 1;
+    finalHoldTimeoutId = undefined;
+    replayClock.seek(replayClock.getState().startTime);
+
+    if (shouldResume) {
+      productLoopArmed = true;
+      replayClock.play();
+    } else {
+      productLoopArmed = false;
+      replayClock.pause();
+    }
+
+    syncState();
+  };
+
+  const startFinalHold = (): void => {
+    if (disposed || finalHoldActive) {
+      return;
+    }
+
+    finalHoldActive = true;
+    finalHoldStartedAtEpochMs = Date.now();
+    finalHoldCompletedAtEpochMs = null;
+    resumeAfterFinalHold = true;
+    productLoopArmed = true;
+    replayClock.seek(replayClock.getState().stopTime);
+    replayClock.pause();
+    syncState();
+    clearFinalHoldTimer();
+    finalHoldTimeoutId = window.setTimeout(
+      finishFinalHold,
+      M8A_V47_FINAL_HOLD_DURATION_MS
+    );
+  };
+
+  const cancelFinalHold = (): void => {
+    if (!finalHoldActive) {
+      clearFinalHoldTimer();
+      return;
+    }
+
+    finalHoldActive = false;
+    finalHoldStartedAtEpochMs = null;
+    resumeAfterFinalHold = false;
+    productLoopArmed = false;
+    clearFinalHoldTimer();
+  };
+
+  const setProductPlaybackMultiplier = (
+    multiplier: M8aV47ProductPlaybackMultiplier
+  ): void => {
+    if (!M8A_V47_PRODUCT_PLAYBACK_MULTIPLIERS.includes(multiplier)) {
+      throw new Error(`Unsupported V4.7 product playback multiplier: ${multiplier}`);
+    }
+
+    replayClock.setMultiplier(multiplier);
+    syncState();
+  };
+
+  const setDebugTestPlaybackMultiplier = (
+    multiplier: typeof M8A_V47_DEBUG_TEST_MULTIPLIER
+  ): void => {
+    if (multiplier !== M8A_V47_DEBUG_TEST_MULTIPLIER) {
+      throw new Error(`Unsupported V4.7 debug playback multiplier: ${multiplier}`);
+    }
+
+    replayClock.setMultiplier(multiplier);
+    syncState();
+  };
+
+  const playProductReplay = (): void => {
+    if (finalHoldActive) {
+      resumeAfterFinalHold = true;
+      productLoopArmed = true;
+      syncState();
+      return;
+    }
+
+    if (resolveReplayWindowRatio(replayClock.getState()) >= 1) {
+      replayClock.seek(replayClock.getState().startTime);
+    }
+
+    productLoopArmed = true;
+    replayClock.play();
+    syncState();
+  };
+
+  const pauseProductReplay = (): void => {
+    cancelFinalHold();
+    productLoopArmed = false;
+    replayClock.pause();
+    syncState();
+  };
+
+  const restartProductReplay = (): void => {
+    const replayState = replayClock.getState();
+    const shouldPlayAfterRestart = finalHoldActive || replayState.isPlaying;
+    cancelFinalHold();
+    replayClock.seek(replayState.startTime);
+
+    if (shouldPlayAfterRestart) {
+      productLoopArmed = true;
+      replayClock.play();
+    } else {
+      productLoopArmed = false;
+      replayClock.pause();
+    }
+
+    syncState();
+  };
+
+  const toggleTruthDisclosure = (): void => {
+    truthDisclosureOpen = !truthDisclosureOpen;
+    syncState();
+  };
+
+  const closeTruthDisclosure = (): void => {
+    truthDisclosureOpen = false;
+    syncState();
+  };
+
   const createState = (): M8aV4GroundStationSceneState => {
     const replayState = replayClock.getState();
     const serviceWindow = resolveServiceStateWindow(replayState);
     const simulationHandoverModel = buildSimulationHandoverState(replayState);
     const simulationWindow = simulationHandoverModel.window;
     const viewportClass = resolveViewportClass();
+    const productUx = buildProductUxState({
+      replayState,
+      simulationHandoverModel,
+      viewportClass,
+      finalHoldActive,
+      finalHoldStartedAtEpochMs,
+      finalHoldCompletedAtEpochMs,
+      finalHoldLoopCount,
+      truthDisclosureOpen
+    });
     const actorEmphasis =
       M8A_V4_GROUND_STATION_RUNTIME_PROJECTION.orbitActors.map((actor) =>
         resolveActorEmphasis(actor, simulationWindow)
@@ -1798,6 +2416,7 @@ export function createM8aV4GroundStationSceneController({
       },
       simulationHandoverModel,
       replayWindow: buildReplayWindowState(replayState),
+      productUx,
       relationCues: {
         cueKind: "v4.6e-handover-visual-language-context-ribbons",
         displayRepresentativeActorId:
@@ -1866,6 +2485,7 @@ export function createM8aV4GroundStationSceneController({
     geoGuardCueEntity.show = shouldShowGeoGuardCue(latestSimulationWindow);
 
     renderHud(hudRoot, nextState);
+    renderProductUx(productUxRoot, nextState);
     syncTelemetry(nextState);
     notifyListeners(listeners, nextState);
 
@@ -1875,6 +2495,53 @@ export function createM8aV4GroundStationSceneController({
 
     return nextState;
   };
+
+  const handleProductUxClick = (event: MouseEvent): void => {
+    if (!(event.target instanceof Element)) {
+      return;
+    }
+
+    const control = event.target.closest<HTMLElement>("[data-m8a-v47-action]");
+
+    if (!control || !productUxRoot.contains(control)) {
+      return;
+    }
+
+    const action = control.dataset.m8aV47Action;
+
+    switch (action) {
+      case "play":
+        playProductReplay();
+        break;
+      case "pause":
+        pauseProductReplay();
+        break;
+      case "restart":
+        restartProductReplay();
+        break;
+      case "speed": {
+        const multiplier = Number(control.dataset.m8aV47PlaybackMultiplier);
+
+        if (
+          multiplier === M8A_V47_GUIDED_REVIEW_MULTIPLIER ||
+          multiplier === M8A_V47_PRODUCT_DEFAULT_MULTIPLIER ||
+          multiplier === M8A_V47_QUICK_SCAN_MULTIPLIER
+        ) {
+          setProductPlaybackMultiplier(multiplier);
+        }
+
+        break;
+      }
+      case "toggle-disclosure":
+        toggleTruthDisclosure();
+        break;
+      case "close-disclosure":
+        closeTruthDisclosure();
+        break;
+    }
+  };
+
+  productUxRoot.addEventListener("click", handleProductUxClick);
 
   syncState();
 
@@ -1897,7 +2564,16 @@ export function createM8aV4GroundStationSceneController({
     }
   });
 
-  const unsubscribeReplayClock = replayClock.onTick(() => {
+  const unsubscribeReplayClock = replayClock.onTick((replayState) => {
+    if (
+      productLoopArmed &&
+      !finalHoldActive &&
+      resolveReplayWindowRatio(replayState) >= 1
+    ) {
+      startFinalHold();
+      return;
+    }
+
     syncState();
   });
 
@@ -1911,11 +2587,31 @@ export function createM8aV4GroundStationSceneController({
         listeners.delete(listener);
       };
     },
+    play(): void {
+      playProductReplay();
+    },
+    pause(): void {
+      pauseProductReplay();
+    },
+    restart(): void {
+      restartProductReplay();
+    },
+    setPlaybackMultiplier(multiplier: M8aV47ProductPlaybackMultiplier): void {
+      setProductPlaybackMultiplier(multiplier);
+    },
+    setDebugPlaybackMultiplier(
+      multiplier: typeof M8A_V47_DEBUG_TEST_MULTIPLIER
+    ): void {
+      setDebugTestPlaybackMultiplier(multiplier);
+    },
     dispose(): void {
       disposed = true;
+      clearFinalHoldTimer();
       unsubscribeReplayClock();
       listeners.clear();
+      productUxRoot.removeEventListener("click", handleProductUxClick);
       hudRoot.remove();
+      productUxRoot.remove();
       clearDocumentTelemetry(M8A_V4_TELEMETRY_KEYS);
       dataSourceAttached = false;
       dataSource.show = false;

@@ -519,12 +519,18 @@ async function main() {
             const leoActorYValues = actorScreenRecords
               .filter((actor) => actor.orbitClass === "leo" && actor.point)
               .map((actor) => actor.point.y);
-            const meoActorScreen = actorScreenRecords.find(
-              (actor) => actor.orbitClass === "meo"
-            )?.point;
-            const geoActorScreen = actorScreenRecords.find(
-              (actor) => actor.orbitClass === "geo"
-            )?.point;
+            const highestMeoActorScreen = actorScreenRecords
+              .filter((actor) => actor.orbitClass === "meo" && actor.point)
+              .map((actor) => actor.point)
+              .sort((left, right) => left.y - right.y)[0];
+            const highestGeoActorScreen = actorScreenRecords
+              .filter((actor) => actor.orbitClass === "geo" && actor.point)
+              .map((actor) => actor.point)
+              .sort((left, right) => left.y - right.y)[0];
+            const leftmostGeoActorScreen = actorScreenRecords
+              .filter((actor) => actor.orbitClass === "geo" && actor.point)
+              .map((actor) => actor.point)
+              .sort((left, right) => left.x - right.x)[0];
             const meoGlowRecord = actorGlowRecords.find(
               (actor) => actor.orbitClass === "meo"
             );
@@ -704,17 +710,19 @@ async function main() {
             assert(
               Number.isFinite(highestLeoActorY) &&
                 Number.isFinite(lowestLeoActorY) &&
-                meoActorScreen &&
-                geoActorScreen &&
-                meoActorScreen.y < highestLeoActorY - 160 &&
-                geoActorScreen.y < highestLeoActorY - 120 &&
-                geoActorScreen.x < window.innerWidth * 0.28,
+                highestMeoActorScreen &&
+                highestGeoActorScreen &&
+                leftmostGeoActorScreen &&
+                highestMeoActorScreen.y < highestLeoActorY - 160 &&
+                highestGeoActorScreen.y < highestLeoActorY - 120 &&
+                leftmostGeoActorScreen.x < window.innerWidth * 0.28,
               "V4.5 orbit actor lanes must separate LEO, MEO, and GEO in screen space: " +
                 JSON.stringify({
                   highestLeoActorY,
                   lowestLeoActorY,
-                  meoActorScreen,
-                  geoActorScreen,
+                  highestMeoActorScreen,
+                  highestGeoActorScreen,
+                  leftmostGeoActorScreen,
                   actorScreenRecords,
                   viewport: {
                     width: window.innerWidth,
