@@ -43,6 +43,7 @@ import {
   M8A_V4_GROUND_STATION_RUNTIME_PROJECTION,
   M8A_V4_GROUND_STATION_RUNTIME_PROJECTION_ID,
   M8A_V4_GROUND_STATION_SCENARIO_ID,
+  M8A_V46D_SIMULATION_HANDOVER_MODEL_ID,
   type M8aV4ActorDisplayRole,
   type M8aV4EndpointId,
   type M8aV4EndpointProjection,
@@ -50,7 +51,9 @@ import {
   type M8aV4OrbitActorProjection,
   type M8aV4OrbitClass,
   type M8aV4RuntimeNarrativeNonClaims,
-  type M8aV4ServiceStateWindow
+  type M8aV4ServiceStateWindow,
+  type M8aV46dActorId,
+  type M8aV46dSimulationHandoverWindow
 } from "./m8a-v4-ground-station-projection";
 
 export const M8A_V4_GROUND_STATION_DATA_SOURCE_NAME =
@@ -134,18 +137,30 @@ const M8A_V4_TELEMETRY_KEYS = [
   "m8aV4GroundStationNextCandidateOrbit",
   "m8aV4GroundStationContinuityFallbackOrbit",
   "m8aV4GroundStationBoundedMetricsUsed",
+  "m8aV46dSimulationHandoverModelId",
+  "m8aV46dSimulationHandoverSource",
+  "m8aV46dSimulationHandoverWindowId",
+  "m8aV46dSimulationHandoverReplayRatio",
+  "m8aV46dDisplayRepresentativeActorId",
+  "m8aV46dCandidateContextActorIds",
+  "m8aV46dFallbackContextActorIds",
+  "m8aV46dBoundedMetricClasses",
+  "m8aV46dWindowNonClaims",
   "m8aV4GroundStationRawItriSideReadOwnership",
   "m8aV4GroundStationRuntimeConsumptionRule",
   "m8aV4GroundStationProofSeam",
   "m8aV4GroundStationNonClaims"
 ] as const;
 
-type M8aV4RelationRole = "primary" | "candidate" | "fallback";
+type M8aV4RelationRole =
+  | "displayRepresentative"
+  | "candidateContext"
+  | "fallbackContext";
 
 interface M8aV4ActorEmphasis {
   actorId: string;
   orbitClass: M8aV4OrbitClass;
-  emphasis: "primary" | "candidate" | "fallback" | "context";
+  emphasis: "representative" | "candidate" | "fallback" | "context";
   modelScale: number;
   labelAlpha: number;
 }
@@ -228,6 +243,26 @@ export interface M8aV4GroundStationSceneState {
     measuredJitter: false;
     measuredThroughput: false;
   };
+  simulationHandoverModel: {
+    modelId: typeof M8A_V46D_SIMULATION_HANDOVER_MODEL_ID;
+    modelStatus: "accepted-contract";
+    modelScope: "deterministic-display-context-state-machine";
+    modelTruth: "simulation-output-not-operator-log";
+    endpointPairId:
+      typeof M8A_V4_GROUND_STATION_RUNTIME_PROJECTION.simulationHandoverModel.endpointPairId;
+    acceptedPairPrecision: "operator-family-only";
+    route:
+      typeof M8A_V4_GROUND_STATION_RUNTIME_PROJECTION.simulationHandoverModel.route;
+    sourceRead: "M8A_V4_GROUND_STATION_RUNTIME_PROJECTION.simulationHandoverModel.timeline";
+    replayRatio: number;
+    window: M8aV46dSimulationHandoverWindow;
+    timeline: ReadonlyArray<M8aV46dSimulationHandoverWindow>;
+    timelineWindowIds: ReadonlyArray<string>;
+    validationExpectations:
+      typeof M8A_V4_GROUND_STATION_RUNTIME_PROJECTION.simulationHandoverModel.validationExpectations;
+    forbiddenClaimScan:
+      typeof M8A_V4_GROUND_STATION_RUNTIME_PROJECTION.simulationHandoverModel.forbiddenClaimScan;
+  };
   replayWindow: {
     startTimeUtc: string;
     stopTimeUtc: string;
@@ -241,10 +276,10 @@ export interface M8aV4GroundStationSceneState {
     periodSource: "repo-owned-oneweb-tle-mean-motion";
   };
   relationCues: {
-    cueKind: "modeled-service-state-continuity-ribbons";
-    primaryOrbitClass: M8aV4OrbitClass;
-    nextCandidateOrbitClass: M8aV4OrbitClass;
-    continuityFallbackOrbitClass: "geo";
+    cueKind: "v4.6d-simulation-handover-display-context-ribbons";
+    displayRepresentativeActorId: M8aV46dActorId;
+    candidateContextActorId: M8aV46dActorId;
+    fallbackContextActorId: M8aV46dActorId;
     activeSatelliteTruth: "not-claimed";
     activeGatewayTruth: "not-claimed";
     pairSpecificTeleportPathTruth: "not-claimed";
@@ -255,6 +290,7 @@ export interface M8aV4GroundStationSceneState {
   sourceLineage: {
     projectionRead: "M8A_V4_GROUND_STATION_RUNTIME_PROJECTION";
     serviceStateRead: "M8A_V4_GROUND_STATION_RUNTIME_PROJECTION.serviceStateModel.timeline";
+    simulationHandoverRead: "M8A_V4_GROUND_STATION_RUNTIME_PROJECTION.simulationHandoverModel.timeline";
     rawPackageSideReadOwnership: "forbidden";
     rawSourcePathsIncluded: false;
   };
@@ -489,6 +525,26 @@ function resolveServiceStateWindow(
   );
 }
 
+function resolveSimulationHandoverWindow(
+  replayState: ReplayClockState
+): M8aV46dSimulationHandoverWindow {
+  const ratio = resolveReplayWindowRatio(replayState);
+  const timeline =
+    M8A_V4_GROUND_STATION_RUNTIME_PROJECTION.simulationHandoverModel.timeline;
+
+  return (
+    timeline.find((windowDefinition) => {
+      const isFinalWindow = windowDefinition.stopRatioExclusive === 1;
+
+      return (
+        ratio >= windowDefinition.startRatioInclusive &&
+        (ratio < windowDefinition.stopRatioExclusive ||
+          (isFinalWindow && ratio <= 1))
+      );
+    }) ?? timeline[timeline.length - 1]
+  );
+}
+
 function resolveActorDisplayHeightMeters(
   orbitClass: M8aV4OrbitClass,
   easedRatio: number,
@@ -596,14 +652,18 @@ function resolveActorLabelBackgroundColor(): Color {
 
 function resolveActorEmphasis(
   actor: M8aV4OrbitActorProjection,
-  serviceWindow: M8aV4ServiceStateWindow
+  simulationWindow: M8aV46dSimulationHandoverWindow
 ): M8aV4ActorEmphasis {
+  const candidateActorIds =
+    simulationWindow.candidateContextActorIds as readonly string[];
+  const fallbackActorIds =
+    simulationWindow.fallbackContextActorIds as readonly string[];
   const emphasis =
-    actor.orbitClass === serviceWindow.currentPrimaryOrbitClass
-      ? "primary"
-      : actor.orbitClass === serviceWindow.nextCandidateOrbitClass
+    actor.actorId === simulationWindow.displayRepresentativeActorId
+      ? "representative"
+      : candidateActorIds.includes(actor.actorId)
         ? "candidate"
-        : actor.orbitClass === serviceWindow.continuityFallbackOrbitClass
+        : fallbackActorIds.includes(actor.actorId)
           ? "fallback"
           : "context";
 
@@ -612,7 +672,11 @@ function resolveActorEmphasis(
     orbitClass: actor.orbitClass,
     emphasis,
     modelScale:
-      emphasis === "primary" ? 1.22 : emphasis === "candidate" ? 1.06 : 0.9,
+      emphasis === "representative"
+        ? 1.22
+        : emphasis === "candidate"
+          ? 1.06
+          : 0.9,
     labelAlpha: emphasis === "context" ? 0.62 : 0.94
   };
 }
@@ -742,22 +806,22 @@ function createActorModelGraphics(
 
 function resolveRelationColor(role: M8aV4RelationRole): Color {
   switch (role) {
-    case "primary":
+    case "displayRepresentative":
       return Color.fromCssColorString("#fff2a6").withAlpha(0.72);
-    case "candidate":
+    case "candidateContext":
       return Color.fromCssColorString("#7ee2b8").withAlpha(0.5);
-    case "fallback":
+    case "fallbackContext":
       return Color.fromCssColorString("#ffd166").withAlpha(0.36);
   }
 }
 
 function resolveRelationWidth(role: M8aV4RelationRole): number {
   switch (role) {
-    case "primary":
+    case "displayRepresentative":
       return 2.5;
-    case "candidate":
+    case "candidateContext":
       return 1.7;
-    case "fallback":
+    case "fallbackContext":
       return 1.2;
   }
 }
@@ -774,7 +838,7 @@ function createRelationStyle(
       gapColor: new ConstantProperty(
         Color.fromCssColorString("#06121a").withAlpha(0.04)
       ),
-      dashLength: role === "primary" ? 18 : 24
+      dashLength: role === "displayRepresentative" ? 18 : 24
     }),
     arcType: ArcType.NONE,
     clampToGround: false
@@ -826,7 +890,7 @@ function updateRelationStyle(handle: RelationRenderHandle): void {
     gapColor: new ConstantProperty(
       Color.fromCssColorString("#06121a").withAlpha(0.04)
     ),
-    dashLength: handle.role === "primary" ? 18 : 24
+    dashLength: handle.role === "displayRepresentative" ? 18 : 24
   });
 }
 
@@ -843,6 +907,18 @@ function createHudRoot(): HTMLElement {
 
 function renderHud(root: HTMLElement, state: M8aV4GroundStationSceneState): void {
   root.dataset.serviceWindowId = state.serviceState.window.windowId;
+  root.dataset.simulationHandoverModelId =
+    state.simulationHandoverModel.modelId;
+  root.dataset.simulationHandoverWindowId =
+    state.simulationHandoverModel.window.windowId;
+  root.dataset.displayRepresentativeActorId =
+    state.simulationHandoverModel.window.displayRepresentativeActorId;
+  root.dataset.candidateContextActorIds = serializeList(
+    state.simulationHandoverModel.window.candidateContextActorIds
+  );
+  root.dataset.fallbackContextActorIds = serializeList(
+    state.simulationHandoverModel.window.fallbackContextActorIds
+  );
   root.dataset.currentPrimaryOrbit =
     state.serviceState.window.currentPrimaryOrbitClass;
   root.dataset.nextCandidateOrbit =
@@ -863,21 +939,21 @@ function renderHud(root: HTMLElement, state: M8aV4GroundStationSceneState): void
       `
     )
     .join("");
-  const stageMarkup = state.serviceState.timelineWindowIds
+  const stageMarkup = state.simulationHandoverModel.timelineWindowIds
     .map(
       (windowId) => `
         <span
           class="m8a-v4-ground-station-scene__stage"
-          data-active="${windowId === state.serviceState.window.windowId ? "true" : "false"}"
-        >${windowId.replace("v4-modeled-window-", "")}</span>
+          data-active="${windowId === state.simulationHandoverModel.window.windowId ? "true" : "false"}"
+        >${windowId}</span>
       `
     )
     .join("");
 
   root.innerHTML = `
     <div class="m8a-v4-ground-station-scene__header">
-      <span>V4.3 Continuous Multi-Orbit Handover</span>
-      <strong>${state.serviceState.window.currentPrimaryOrbitClass.toUpperCase()} -> ${state.serviceState.window.nextCandidateOrbitClass.toUpperCase()}</strong>
+      <span>V4.6D Simulation Handover Model</span>
+      <strong>${state.simulationHandoverModel.window.displayRepresentativeActorId}</strong>
     </div>
     <div class="m8a-v4-ground-station-scene__endpoints">
       ${endpointMarkup}
@@ -886,13 +962,13 @@ function renderHud(root: HTMLElement, state: M8aV4GroundStationSceneState): void
       <span>LEO x${state.orbitActorCounts.leo}</span>
       <span>MEO x${state.orbitActorCounts.meo}</span>
       <span>GEO x${state.orbitActorCounts.geo}</span>
-      <strong>${state.serviceState.window.handoverPressureReason}</strong>
+      <strong>${state.simulationHandoverModel.window.handoverPressureReason}</strong>
     </div>
     <div class="m8a-v4-ground-station-scene__stages">
       ${stageMarkup}
     </div>
     <div class="m8a-v4-ground-station-scene__signals">
-      ${state.serviceState.window.reasonSignals
+      ${state.simulationHandoverModel.window.reasonSignalClasses
         .map((signal) => `<span>${signal}</span>`)
         .join("")}
     </div>
@@ -900,11 +976,14 @@ function renderHud(root: HTMLElement, state: M8aV4GroundStationSceneState): void
       <span>no aircraft</span>
       <span>no YKA</span>
       <span>no handset UE</span>
+      <span>no real operator handover event</span>
       <span>not active satellite</span>
       <span>not active gateway</span>
       <span>no pair-specific teleport path</span>
       <span>no measured latency/jitter/throughput</span>
       <span>not native RF handover</span>
+      <span>no R2 runtime selector</span>
+      <span>no raw itri or live external runtime source</span>
     </div>
   `;
 }
@@ -959,6 +1038,82 @@ function cloneState(
         boundedMetricsUsed: [...state.serviceState.window.boundedMetricsUsed]
       },
       timelineWindowIds: [...state.serviceState.timelineWindowIds]
+    },
+    simulationHandoverModel: {
+      ...state.simulationHandoverModel,
+      window: {
+        ...state.simulationHandoverModel.window,
+        candidateContextOrbitClasses: [
+          ...state.simulationHandoverModel.window.candidateContextOrbitClasses
+        ],
+        candidateContextActorIds: [
+          ...state.simulationHandoverModel.window.candidateContextActorIds
+        ],
+        fallbackContextOrbitClasses: [
+          ...state.simulationHandoverModel.window.fallbackContextOrbitClasses
+        ],
+        fallbackContextActorIds: [
+          ...state.simulationHandoverModel.window.fallbackContextActorIds
+        ],
+        reasonSignalClasses: [
+          ...state.simulationHandoverModel.window.reasonSignalClasses
+        ],
+        boundedMetricClasses: {
+          ...state.simulationHandoverModel.window.boundedMetricClasses
+        },
+        nonClaims: {
+          ...state.simulationHandoverModel.window.nonClaims
+        }
+      },
+      timeline: state.simulationHandoverModel.timeline.map(
+        (windowDefinition) => ({
+          ...windowDefinition,
+          candidateContextOrbitClasses: [
+            ...windowDefinition.candidateContextOrbitClasses
+          ],
+          candidateContextActorIds: [
+            ...windowDefinition.candidateContextActorIds
+          ],
+          fallbackContextOrbitClasses: [
+            ...windowDefinition.fallbackContextOrbitClasses
+          ],
+          fallbackContextActorIds: [
+            ...windowDefinition.fallbackContextActorIds
+          ],
+          reasonSignalClasses: [...windowDefinition.reasonSignalClasses],
+          boundedMetricClasses: {
+            ...windowDefinition.boundedMetricClasses
+          },
+          nonClaims: {
+            ...windowDefinition.nonClaims
+          }
+        })
+      ),
+      timelineWindowIds: [...state.simulationHandoverModel.timelineWindowIds],
+      validationExpectations: {
+        ...state.simulationHandoverModel.validationExpectations,
+        expectedActorCounts: {
+          ...state.simulationHandoverModel.validationExpectations
+            .expectedActorCounts
+        },
+        expectedWindowIds: [
+          ...state.simulationHandoverModel.validationExpectations
+            .expectedWindowIds
+        ],
+        requiredWindowNonClaimKeys: [
+          ...state.simulationHandoverModel.validationExpectations
+            .requiredWindowNonClaimKeys
+        ]
+      },
+      forbiddenClaimScan: {
+        ...state.simulationHandoverModel.forbiddenClaimScan,
+        negatedFieldNames: [
+          ...state.simulationHandoverModel.forbiddenClaimScan.negatedFieldNames
+        ],
+        forbiddenModelKeys: [
+          ...state.simulationHandoverModel.forbiddenClaimScan.forbiddenModelKeys
+        ]
+      }
     },
     replayWindow: {
       ...state.replayWindow
@@ -1044,6 +1199,29 @@ function syncTelemetry(state: M8aV4GroundStationSceneState): void {
     m8aV4GroundStationBoundedMetricsUsed: serializeList(
       state.serviceState.window.boundedMetricsUsed
     ),
+    m8aV46dSimulationHandoverModelId:
+      state.simulationHandoverModel.modelId,
+    m8aV46dSimulationHandoverSource:
+      state.simulationHandoverModel.sourceRead,
+    m8aV46dSimulationHandoverWindowId:
+      state.simulationHandoverModel.window.windowId,
+    m8aV46dSimulationHandoverReplayRatio: String(
+      state.simulationHandoverModel.replayRatio
+    ),
+    m8aV46dDisplayRepresentativeActorId:
+      state.simulationHandoverModel.window.displayRepresentativeActorId,
+    m8aV46dCandidateContextActorIds: serializeList(
+      state.simulationHandoverModel.window.candidateContextActorIds
+    ),
+    m8aV46dFallbackContextActorIds: serializeList(
+      state.simulationHandoverModel.window.fallbackContextActorIds
+    ),
+    m8aV46dBoundedMetricClasses: serializeJson(
+      state.simulationHandoverModel.window.boundedMetricClasses
+    ),
+    m8aV46dWindowNonClaims: serializeJson(
+      state.simulationHandoverModel.window.nonClaims
+    ),
     m8aV4GroundStationRawItriSideReadOwnership:
       state.sourceLineage.rawPackageSideReadOwnership,
     m8aV4GroundStationRuntimeConsumptionRule:
@@ -1090,23 +1268,43 @@ function buildReplayWindowState(
   };
 }
 
-function resolveActorForOrbit(
-  actors: ReadonlyArray<M8aV4OrbitActorProjection>,
-  orbitClass: M8aV4OrbitClass,
+function buildSimulationHandoverState(
   replayState: ReplayClockState
+): M8aV4GroundStationSceneState["simulationHandoverModel"] {
+  const model = M8A_V4_GROUND_STATION_RUNTIME_PROJECTION.simulationHandoverModel;
+
+  return {
+    modelId: model.modelId,
+    modelStatus: model.modelStatus,
+    modelScope: model.modelScope,
+    modelTruth: model.modelTruth,
+    endpointPairId: model.endpointPairId,
+    acceptedPairPrecision: model.acceptedPairPrecision,
+    route: model.route,
+    sourceRead:
+      "M8A_V4_GROUND_STATION_RUNTIME_PROJECTION.simulationHandoverModel.timeline",
+    replayRatio: resolveReplayWindowRatio(replayState),
+    window: resolveSimulationHandoverWindow(replayState),
+    timeline: model.timeline,
+    timelineWindowIds: model.timeline.map((windowDefinition) => {
+      return windowDefinition.windowId;
+    }),
+    validationExpectations: model.validationExpectations,
+    forbiddenClaimScan: model.forbiddenClaimScan
+  };
+}
+
+function resolveActorById(
+  actors: ReadonlyArray<M8aV4OrbitActorProjection>,
+  actorId: M8aV46dActorId
 ): M8aV4OrbitActorProjection {
-  const candidates = actors.filter((actor) => actor.orbitClass === orbitClass);
+  const actor = actors.find((candidate) => candidate.actorId === actorId);
 
-  if (!candidates[0]) {
-    throw new Error(`Missing V4 actor for ${orbitClass}.`);
+  if (!actor) {
+    throw new Error(`Missing V4.6D display-context actor ${actorId}.`);
   }
 
-  if (candidates.length === 1) {
-    return candidates[0];
-  }
-
-  const ratio = resolveReplayWindowRatio(replayState);
-  return candidates[Math.floor(ratio * candidates.length) % candidates.length];
+  return actor;
 }
 
 export function createM8aV4GroundStationSceneController({
@@ -1134,7 +1332,9 @@ export function createM8aV4GroundStationSceneController({
   );
   let disposed = false;
   let dataSourceAttached = false;
-  let latestServiceWindow = resolveServiceStateWindow(replayClock.getState());
+  let latestSimulationWindow = resolveSimulationHandoverWindow(
+    replayClock.getState()
+  );
 
   configureReplayClock(viewer, replayClock);
   applyV4Camera(viewer);
@@ -1300,7 +1500,7 @@ export function createM8aV4GroundStationSceneController({
 
   const initialEmphasisByActorId = new Map(
     M8A_V4_GROUND_STATION_RUNTIME_PROJECTION.orbitActors.map((actor) => {
-      const emphasis = resolveActorEmphasis(actor, latestServiceWindow);
+      const emphasis = resolveActorEmphasis(actor, latestSimulationWindow);
       return [actor.actorId, emphasis];
     })
   );
@@ -1336,21 +1536,21 @@ export function createM8aV4GroundStationSceneController({
       }
     );
 
-  const resolveRelationOrbit = (
+  const resolveRelationActorId = (
     role: M8aV4RelationRole,
     replayState: ReplayClockState
-  ): M8aV4OrbitClass => {
-    const serviceWindow = resolveServiceStateWindow(replayState);
+  ): M8aV46dActorId => {
+    const simulationWindow = resolveSimulationHandoverWindow(replayState);
 
-    if (role === "primary") {
-      return serviceWindow.currentPrimaryOrbitClass;
+    if (role === "displayRepresentative") {
+      return simulationWindow.displayRepresentativeActorId;
     }
 
-    if (role === "candidate") {
-      return serviceWindow.nextCandidateOrbitClass;
+    if (role === "candidateContext") {
+      return simulationWindow.candidateContextActorIds[0];
     }
 
-    return serviceWindow.continuityFallbackOrbitClass;
+    return simulationWindow.fallbackContextActorIds[0];
   };
 
   const createRelationPositions = (
@@ -1358,11 +1558,9 @@ export function createM8aV4GroundStationSceneController({
   ): CallbackProperty => {
     return new CallbackProperty((time) => {
       const replayState = replayClock.getState();
-      const orbitClass = resolveRelationOrbit(role, replayState);
-      const actor = resolveActorForOrbit(
+      const actor = resolveActorById(
         M8A_V4_GROUND_STATION_RUNTIME_PROJECTION.orbitActors,
-        orbitClass,
-        replayState
+        resolveRelationActorId(role, replayState)
       );
 
       return [
@@ -1373,20 +1571,20 @@ export function createM8aV4GroundStationSceneController({
     }, false);
   };
   const relationHandles: ReadonlyArray<RelationRenderHandle> = [
-    "primary",
-    "candidate",
-    "fallback"
+    "displayRepresentative",
+    "candidateContext",
+    "fallbackContext"
   ].map((role) => {
     const relationRole = role as M8aV4RelationRole;
     const entity = dataSource.entities.add({
-      id: `m8a-v4-modeled-service-${relationRole}-continuity-ribbon`,
-      name: `V4 modeled ${relationRole} continuity ribbon`,
+      id: `m8a-v46d-simulation-${relationRole}-context-ribbon`,
+      name: `V4.6D ${relationRole} display-context ribbon`,
       polyline: createRelationStyle(
         createRelationPositions(relationRole),
         relationRole
       ),
       description: new ConstantProperty(
-        "Modeled service-state continuity ribbon from artifact timeline. No RF beam, active serving satellite, active gateway, pair-specific teleport path, measured performance, or native RF handover truth."
+        "V4.6D simulation display-context ribbon from the repo-owned projection module. No RF beam, active serving satellite, active gateway, pair-specific teleport path, measured performance, or native RF handover truth."
       )
     });
 
@@ -1399,9 +1597,11 @@ export function createM8aV4GroundStationSceneController({
   const createState = (): M8aV4GroundStationSceneState => {
     const replayState = replayClock.getState();
     const serviceWindow = resolveServiceStateWindow(replayState);
+    const simulationHandoverModel = buildSimulationHandoverState(replayState);
+    const simulationWindow = simulationHandoverModel.window;
     const actorEmphasis =
       M8A_V4_GROUND_STATION_RUNTIME_PROJECTION.orbitActors.map((actor) =>
-        resolveActorEmphasis(actor, serviceWindow)
+        resolveActorEmphasis(actor, simulationWindow)
       );
     const actorEmphasisById = new Map(
       actorEmphasis.map((emphasis) => [emphasis.actorId, emphasis])
@@ -1513,12 +1713,14 @@ export function createM8aV4GroundStationSceneController({
           M8A_V4_GROUND_STATION_RUNTIME_PROJECTION.serviceStateModel.metricPolicy
             .measuredThroughput
       },
+      simulationHandoverModel,
       replayWindow: buildReplayWindowState(replayState),
       relationCues: {
-        cueKind: "modeled-service-state-continuity-ribbons",
-        primaryOrbitClass: serviceWindow.currentPrimaryOrbitClass,
-        nextCandidateOrbitClass: serviceWindow.nextCandidateOrbitClass,
-        continuityFallbackOrbitClass: serviceWindow.continuityFallbackOrbitClass,
+        cueKind: "v4.6d-simulation-handover-display-context-ribbons",
+        displayRepresentativeActorId:
+          simulationWindow.displayRepresentativeActorId,
+        candidateContextActorId: simulationWindow.candidateContextActorIds[0],
+        fallbackContextActorId: simulationWindow.fallbackContextActorIds[0],
         activeSatelliteTruth: "not-claimed",
         activeGatewayTruth: "not-claimed",
         pairSpecificTeleportPathTruth: "not-claimed",
@@ -1531,6 +1733,8 @@ export function createM8aV4GroundStationSceneController({
         projectionRead: "M8A_V4_GROUND_STATION_RUNTIME_PROJECTION",
         serviceStateRead:
           "M8A_V4_GROUND_STATION_RUNTIME_PROJECTION.serviceStateModel.timeline",
+        simulationHandoverRead:
+          "M8A_V4_GROUND_STATION_RUNTIME_PROJECTION.simulationHandoverModel.timeline",
         rawPackageSideReadOwnership: "forbidden",
         rawSourcePathsIncluded:
           M8A_V4_GROUND_STATION_RUNTIME_PROJECTION.rawSourcePathsIncluded
@@ -1544,7 +1748,7 @@ export function createM8aV4GroundStationSceneController({
 
   const syncState = (): M8aV4GroundStationSceneState => {
     const nextState = createState();
-    latestServiceWindow = nextState.serviceState.window;
+    latestSimulationWindow = nextState.simulationHandoverModel.window;
     const emphasisById = new Map(
       nextState.actors.map((actor) => [
         actor.actorId,
@@ -1552,7 +1756,7 @@ export function createM8aV4GroundStationSceneController({
           M8A_V4_GROUND_STATION_RUNTIME_PROJECTION.orbitActors.find(
             (projectionActor) => projectionActor.actorId === actor.actorId
           ) ?? M8A_V4_GROUND_STATION_RUNTIME_PROJECTION.orbitActors[0],
-          latestServiceWindow
+          latestSimulationWindow
         )
       ])
     );

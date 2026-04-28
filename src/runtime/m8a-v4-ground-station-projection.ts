@@ -7,14 +7,20 @@ export const M8A_V4_GROUND_STATION_ARTIFACT_ID =
 export const M8A_V4_GROUND_STATION_QUERY_PARAM =
   "m8aV4GroundStationScene";
 export const M8A_V4_GROUND_STATION_QUERY_VALUE = "1";
+export const M8A_V4_GROUND_STATION_ROUTE =
+  "/?scenePreset=regional&m8aV4GroundStationScene=1";
 export const M8A_V4_GROUND_STATION_RUNTIME_PROJECTION_ID =
   "m8a-v4.6b-ground-station-runtime-projection.v1";
+export const M8A_V4_GROUND_STATION_ENDPOINT_PAIR_ID =
+  "taiwan-cht-speedcast-singapore-operator-family-2026-04-26";
 export const M8A_V4_GROUND_STATION_MODEL_ASSET_ID =
   "generic-satellite-glb-simple-satellite-low-poly-free";
 export const M8A_V4_GROUND_STATION_MODEL_PUBLIC_PATH =
   "assets/models/generic-satellite.glb";
 export const M8A_V4_GROUND_STATION_REQUIRED_PRECISION_BADGE =
   "operator-family precision";
+export const M8A_V46D_SIMULATION_HANDOVER_MODEL_ID =
+  "m8a-v4.6d-simulation-handover-model.v1";
 
 export type M8aV4OrbitClass = "leo" | "meo" | "geo";
 export type M8aV4EndpointId =
@@ -218,6 +224,212 @@ export interface M8aV4ServiceStateModel {
   };
 }
 
+export type M8aV46dActorId =
+  | "oneweb-0386-leo-display-context"
+  | "oneweb-0537-leo-display-context"
+  | "oneweb-0701-leo-display-context"
+  | "oneweb-0012-leo-display-context"
+  | "oneweb-0249-leo-display-context"
+  | "oneweb-0702-leo-display-context"
+  | "o3b-mpower-f6-meo-display-context"
+  | "o3b-mpower-f1-meo-display-context"
+  | "o3b-mpower-f2-meo-display-context"
+  | "o3b-mpower-f4-meo-display-context"
+  | "o3b-mpower-f3-meo-display-context"
+  | "st-2-geo-continuity-anchor"
+  | "ses-9-geo-display-context";
+
+export type M8aV46dSimulationHandoverWindowId =
+  | "leo-acquisition-context"
+  | "leo-aging-pressure"
+  | "meo-continuity-hold"
+  | "leo-reentry-candidate"
+  | "geo-continuity-guard";
+
+export type M8aV46dHandoverPressureReason =
+  | "leo-display-geometry-acquisition"
+  | "leo-display-geometry-aging"
+  | "meo-continuity-hold"
+  | "leo-display-geometry-reentry"
+  | "geo-continuity-guard";
+
+export type M8aV46dReasonSignalClass =
+  | "leo-candidate-entering-display-region"
+  | "leo-candidate-aging-from-display-region"
+  | "meo-wide-area-continuity-context"
+  | "leo-candidate-reentry-context"
+  | "geo-continuity-guard-context"
+  | "operator-family-precision-disclosure"
+  | "simulation-state-non-claim-disclosure";
+
+export interface M8aV46dWindowMetricClasses {
+  metricTruth: "modeled-bounded-class-not-measured";
+  latencyClass:
+    | "leo-low-latency-context-class"
+    | "meo-mid-latency-context-class"
+    | "geo-higher-latency-continuity-class";
+  jitterClass:
+    | "changing-geometry-class"
+    | "continuity-hold-class"
+    | "continuity-guard-class";
+  networkSpeedClass:
+    | "candidate-capacity-context-class"
+    | "continuity-context-class"
+    | "guard-context-class";
+  continuityClass:
+    | "acquisition-context-class"
+    | "pressure-context-class"
+    | "hold-context-class"
+    | "reentry-context-class"
+    | "guard-context-class";
+}
+
+export interface M8aV46dWindowNonClaims {
+  noRealOperatorHandoverEvent: true;
+  noActiveServingSatelliteIdentity: true;
+  noActiveGatewayAssignment: true;
+  noPairSpecificTeleportPathTruth: true;
+  noMeasuredLatencyJitterThroughputTruth: true;
+  noNativeRfHandover: true;
+  noEndpointPairOrPrecisionChange: true;
+  noR2RuntimeSelector: true;
+  noRawItriOrLiveExternalRuntimeSource: true;
+}
+
+export interface M8aV46dSimulationHandoverWindow {
+  windowId: M8aV46dSimulationHandoverWindowId;
+  startRatioInclusive: number;
+  stopRatioExclusive: number;
+  stopPolicy: "exclusive-except-final-window";
+  displayRepresentativeOrbitClass: M8aV4OrbitClass;
+  displayRepresentativeActorId: M8aV46dActorId;
+  candidateContextOrbitClasses: ReadonlyArray<M8aV4OrbitClass>;
+  candidateContextActorIds: ReadonlyArray<M8aV46dActorId>;
+  fallbackContextOrbitClasses: readonly ["geo"];
+  fallbackContextActorIds: ReadonlyArray<M8aV46dActorId>;
+  handoverPressureReason: M8aV46dHandoverPressureReason;
+  reasonSignalClasses: ReadonlyArray<M8aV46dReasonSignalClass>;
+  boundedMetricClasses: M8aV46dWindowMetricClasses;
+  nonClaims: M8aV46dWindowNonClaims;
+}
+
+export interface M8aV46dActorSetReference {
+  expectedLeoActors: 6;
+  expectedMeoActors: 5;
+  expectedGeoActors: 2;
+  acceptedActorIds: ReadonlyArray<M8aV46dActorId>;
+}
+
+export interface M8aV46dActorGeometryInput {
+  actorId: M8aV46dActorId;
+  orbitClass: M8aV4OrbitClass;
+  geometryClass:
+    | "display-acquisition-context"
+    | "display-aging-context"
+    | "display-continuity-hold-context"
+    | "display-reentry-context"
+    | "display-continuity-guard-context";
+  geometryTruth: "display-context-not-service-truth";
+}
+
+export interface M8aV46dBoundedMetricPolicy {
+  metricTruth: "modeled-bounded-class-not-measured";
+  numericLatencyAllowed: false;
+  numericJitterAllowed: false;
+  numericThroughputAllowed: false;
+  allowedMetricClasses: readonly [
+    "latency-class",
+    "jitter-class",
+    "network-speed-class",
+    "continuity-class"
+  ];
+}
+
+export interface M8aV46dSimulationHandoverInputs {
+  replayRatio: number;
+  replayRatioPolicy: "normalized-zero-to-one-over-v4.6a-full-leo-replay";
+  windowSelection: "deterministic-ratio-window";
+  endpointPairId: typeof M8A_V4_GROUND_STATION_ENDPOINT_PAIR_ID;
+  acceptedPairPrecision: "operator-family-only";
+  actorSetSource: "v4.6b-repo-owned-projection-runtime-module";
+  actorIds: ReadonlyArray<M8aV46dActorId>;
+  actorGeometryInputs: ReadonlyArray<M8aV46dActorGeometryInput>;
+  metricPolicy: M8aV46dBoundedMetricPolicy;
+  runtimeSourceBoundary: "repo-owned-projection-or-generated-module-only";
+}
+
+export interface M8aV46dSimulationHandoverValidationExpectations {
+  expectedModelId: typeof M8A_V46D_SIMULATION_HANDOVER_MODEL_ID;
+  expectedEndpointPairId: typeof M8A_V4_GROUND_STATION_ENDPOINT_PAIR_ID;
+  expectedPrecision: "operator-family-only";
+  expectedActorCounts: {
+    leo: 6;
+    meo: 5;
+    geo: 2;
+  };
+  expectedWindowIds: readonly [
+    "leo-acquisition-context",
+    "leo-aging-pressure",
+    "meo-continuity-hold",
+    "leo-reentry-candidate",
+    "geo-continuity-guard"
+  ];
+  windowsMustCoverZeroToOneWithoutGaps: true;
+  actorIdsMustExistInV46bActorSet: true;
+  actorOrbitClassesMustMatchModelRoles: true;
+  endpointPairAndPrecisionMustRemainUnchanged: true;
+  runtimeRawItriSideReadAllowed: false;
+  measuredMetricTruthAllowed: false;
+  requiredWindowNonClaimKeys: ReadonlyArray<keyof M8aV46dWindowNonClaims>;
+}
+
+export interface M8aV46dForbiddenClaimScanPolicy {
+  scanPositiveClaimFields: true;
+  scanRuntimeLabelsDerivedFromModel: true;
+  allowForbiddenConceptsOnlyInNegatedFields: true;
+  negatedFieldNames: readonly [
+    "nonClaims",
+    "doesNotClaim",
+    "requiredDisclosures",
+    "validationExpectations",
+    "forbiddenClaimScan"
+  ];
+  forbiddenModelKeys: ReadonlyArray<
+    | "servingSatelliteId"
+    | "activeServingSatelliteId"
+    | "activeGatewayId"
+    | "gatewayAssignmentId"
+    | "teleportPathId"
+    | "latencyMs"
+    | "jitterMs"
+    | "throughputMbps"
+    | "throughputGbps"
+    | "rfHandoverId"
+    | "operatorHandoverEventId"
+  >;
+}
+
+export interface M8aV46dSimulationHandoverModel {
+  modelId: typeof M8A_V46D_SIMULATION_HANDOVER_MODEL_ID;
+  modelStatus: "accepted-contract";
+  modelScope: "deterministic-display-context-state-machine";
+  modelTruth: "simulation-output-not-operator-log";
+  endpointPairId: typeof M8A_V4_GROUND_STATION_ENDPOINT_PAIR_ID;
+  acceptedPairPrecision: "operator-family-only";
+  route: typeof M8A_V4_GROUND_STATION_ROUTE;
+  baselineActorSet: M8aV46dActorSetReference;
+  inputs: M8aV46dSimulationHandoverInputs;
+  timeline: readonly [
+    M8aV46dSimulationHandoverWindow,
+    M8aV46dSimulationHandoverWindow,
+    M8aV46dSimulationHandoverWindow,
+    M8aV46dSimulationHandoverWindow,
+    M8aV46dSimulationHandoverWindow
+  ];
+  validationExpectations: M8aV46dSimulationHandoverValidationExpectations;
+  forbiddenClaimScan: M8aV46dForbiddenClaimScanPolicy;
+}
+
 export interface M8aV4NonClaimSet {
   noExactSiteSelection: true;
   noSameSiteLeoMeoGeoProof: true;
@@ -311,6 +523,7 @@ export interface M8aV4GroundStationRuntimeProjection {
   };
   orbitActors: ReadonlyArray<M8aV4OrbitActorProjection>;
   serviceStateModel: M8aV4ServiceStateModel;
+  simulationHandoverModel: M8aV46dSimulationHandoverModel;
   nonClaims: M8aV4NonClaimSet;
   runtimeNarrativeNonClaims: M8aV4RuntimeNarrativeNonClaims;
   validationExpectations: {
@@ -493,6 +706,359 @@ function buildV46bRuntimeOrbitActors(): ReadonlyArray<M8aV4OrbitActorProjection>
     };
   });
 }
+
+const M8A_V46D_ACCEPTED_ACTOR_IDS = [
+  "oneweb-0386-leo-display-context",
+  "oneweb-0537-leo-display-context",
+  "oneweb-0701-leo-display-context",
+  "oneweb-0012-leo-display-context",
+  "oneweb-0249-leo-display-context",
+  "oneweb-0702-leo-display-context",
+  "o3b-mpower-f6-meo-display-context",
+  "o3b-mpower-f1-meo-display-context",
+  "o3b-mpower-f2-meo-display-context",
+  "o3b-mpower-f4-meo-display-context",
+  "o3b-mpower-f3-meo-display-context",
+  "st-2-geo-continuity-anchor",
+  "ses-9-geo-display-context"
+] as const satisfies readonly M8aV46dActorId[];
+
+const M8A_V46D_WINDOW_IDS = [
+  "leo-acquisition-context",
+  "leo-aging-pressure",
+  "meo-continuity-hold",
+  "leo-reentry-candidate",
+  "geo-continuity-guard"
+] as const satisfies M8aV46dSimulationHandoverValidationExpectations["expectedWindowIds"];
+
+const M8A_V46D_REQUIRED_WINDOW_NON_CLAIM_KEYS = [
+  "noRealOperatorHandoverEvent",
+  "noActiveServingSatelliteIdentity",
+  "noActiveGatewayAssignment",
+  "noPairSpecificTeleportPathTruth",
+  "noMeasuredLatencyJitterThroughputTruth",
+  "noNativeRfHandover",
+  "noEndpointPairOrPrecisionChange",
+  "noR2RuntimeSelector",
+  "noRawItriOrLiveExternalRuntimeSource"
+] as const satisfies ReadonlyArray<keyof M8aV46dWindowNonClaims>;
+
+const M8A_V46D_WINDOW_NON_CLAIMS = {
+  noRealOperatorHandoverEvent: true,
+  noActiveServingSatelliteIdentity: true,
+  noActiveGatewayAssignment: true,
+  noPairSpecificTeleportPathTruth: true,
+  noMeasuredLatencyJitterThroughputTruth: true,
+  noNativeRfHandover: true,
+  noEndpointPairOrPrecisionChange: true,
+  noR2RuntimeSelector: true,
+  noRawItriOrLiveExternalRuntimeSource: true
+} satisfies M8aV46dWindowNonClaims;
+
+const M8A_V46D_BOUNDED_METRIC_POLICY = {
+  metricTruth: "modeled-bounded-class-not-measured",
+  numericLatencyAllowed: false,
+  numericJitterAllowed: false,
+  numericThroughputAllowed: false,
+  allowedMetricClasses: [
+    "latency-class",
+    "jitter-class",
+    "network-speed-class",
+    "continuity-class"
+  ]
+} satisfies M8aV46dBoundedMetricPolicy;
+
+const M8A_V46D_ACTOR_GEOMETRY_CLASSES = {
+  "oneweb-0386-leo-display-context": "display-acquisition-context",
+  "oneweb-0537-leo-display-context": "display-aging-context",
+  "oneweb-0701-leo-display-context": "display-acquisition-context",
+  "oneweb-0012-leo-display-context": "display-aging-context",
+  "oneweb-0249-leo-display-context": "display-aging-context",
+  "oneweb-0702-leo-display-context": "display-reentry-context",
+  "o3b-mpower-f6-meo-display-context": "display-continuity-hold-context",
+  "o3b-mpower-f1-meo-display-context": "display-continuity-hold-context",
+  "o3b-mpower-f2-meo-display-context": "display-continuity-hold-context",
+  "o3b-mpower-f4-meo-display-context": "display-continuity-hold-context",
+  "o3b-mpower-f3-meo-display-context": "display-continuity-hold-context",
+  "st-2-geo-continuity-anchor": "display-continuity-guard-context",
+  "ses-9-geo-display-context": "display-continuity-guard-context"
+} satisfies Record<
+  M8aV46dActorId,
+  M8aV46dActorGeometryInput["geometryClass"]
+>;
+
+function isM8aV46dActorId(actorId: string): actorId is M8aV46dActorId {
+  return (M8A_V46D_ACCEPTED_ACTOR_IDS as readonly string[]).includes(actorId);
+}
+
+function buildV46dActorGeometryInputs(
+  actors: ReadonlyArray<M8aV4OrbitActorProjection>
+): ReadonlyArray<M8aV46dActorGeometryInput> {
+  const actorsById = new Map(actors.map((actor) => [actor.actorId, actor]));
+
+  return M8A_V46D_ACCEPTED_ACTOR_IDS.map((actorId) => {
+    const actor = actorsById.get(actorId);
+
+    if (!actor || !isM8aV46dActorId(actor.actorId)) {
+      throw new Error(`Missing V4.6D accepted display-context actor ${actorId}.`);
+    }
+
+    return {
+      actorId,
+      orbitClass: actor.orbitClass,
+      geometryClass: M8A_V46D_ACTOR_GEOMETRY_CLASSES[actorId],
+      geometryTruth: "display-context-not-service-truth"
+    };
+  });
+}
+
+function buildV46dSimulationHandoverModel(
+  actors: ReadonlyArray<M8aV4OrbitActorProjection>
+): M8aV46dSimulationHandoverModel {
+  return {
+    modelId: M8A_V46D_SIMULATION_HANDOVER_MODEL_ID,
+    modelStatus: "accepted-contract",
+    modelScope: "deterministic-display-context-state-machine",
+    modelTruth: "simulation-output-not-operator-log",
+    endpointPairId: M8A_V4_GROUND_STATION_ENDPOINT_PAIR_ID,
+    acceptedPairPrecision: "operator-family-only",
+    route: M8A_V4_GROUND_STATION_ROUTE,
+    baselineActorSet: {
+      expectedLeoActors: 6,
+      expectedMeoActors: 5,
+      expectedGeoActors: 2,
+      acceptedActorIds: M8A_V46D_ACCEPTED_ACTOR_IDS
+    },
+    inputs: {
+      replayRatio: 0,
+      replayRatioPolicy: "normalized-zero-to-one-over-v4.6a-full-leo-replay",
+      windowSelection: "deterministic-ratio-window",
+      endpointPairId: M8A_V4_GROUND_STATION_ENDPOINT_PAIR_ID,
+      acceptedPairPrecision: "operator-family-only",
+      actorSetSource: "v4.6b-repo-owned-projection-runtime-module",
+      actorIds: M8A_V46D_ACCEPTED_ACTOR_IDS,
+      actorGeometryInputs: buildV46dActorGeometryInputs(actors),
+      metricPolicy: M8A_V46D_BOUNDED_METRIC_POLICY,
+      runtimeSourceBoundary: "repo-owned-projection-or-generated-module-only"
+    },
+    timeline: [
+      {
+        windowId: "leo-acquisition-context",
+        startRatioInclusive: 0,
+        stopRatioExclusive: 0.2,
+        stopPolicy: "exclusive-except-final-window",
+        displayRepresentativeOrbitClass: "leo",
+        displayRepresentativeActorId: "oneweb-0386-leo-display-context",
+        candidateContextOrbitClasses: ["leo", "leo", "meo"],
+        candidateContextActorIds: [
+          "oneweb-0537-leo-display-context",
+          "oneweb-0701-leo-display-context",
+          "o3b-mpower-f6-meo-display-context"
+        ],
+        fallbackContextOrbitClasses: ["geo"],
+        fallbackContextActorIds: [
+          "st-2-geo-continuity-anchor",
+          "ses-9-geo-display-context"
+        ],
+        handoverPressureReason: "leo-display-geometry-acquisition",
+        reasonSignalClasses: [
+          "leo-candidate-entering-display-region",
+          "operator-family-precision-disclosure",
+          "simulation-state-non-claim-disclosure"
+        ],
+        boundedMetricClasses: {
+          metricTruth: "modeled-bounded-class-not-measured",
+          latencyClass: "leo-low-latency-context-class",
+          jitterClass: "changing-geometry-class",
+          networkSpeedClass: "candidate-capacity-context-class",
+          continuityClass: "acquisition-context-class"
+        },
+        nonClaims: M8A_V46D_WINDOW_NON_CLAIMS
+      },
+      {
+        windowId: "leo-aging-pressure",
+        startRatioInclusive: 0.2,
+        stopRatioExclusive: 0.4,
+        stopPolicy: "exclusive-except-final-window",
+        displayRepresentativeOrbitClass: "leo",
+        displayRepresentativeActorId: "oneweb-0537-leo-display-context",
+        candidateContextOrbitClasses: ["leo", "leo", "meo", "meo"],
+        candidateContextActorIds: [
+          "oneweb-0012-leo-display-context",
+          "oneweb-0249-leo-display-context",
+          "o3b-mpower-f1-meo-display-context",
+          "o3b-mpower-f2-meo-display-context"
+        ],
+        fallbackContextOrbitClasses: ["geo"],
+        fallbackContextActorIds: [
+          "st-2-geo-continuity-anchor",
+          "ses-9-geo-display-context"
+        ],
+        handoverPressureReason: "leo-display-geometry-aging",
+        reasonSignalClasses: [
+          "leo-candidate-aging-from-display-region",
+          "operator-family-precision-disclosure",
+          "simulation-state-non-claim-disclosure"
+        ],
+        boundedMetricClasses: {
+          metricTruth: "modeled-bounded-class-not-measured",
+          latencyClass: "leo-low-latency-context-class",
+          jitterClass: "changing-geometry-class",
+          networkSpeedClass: "candidate-capacity-context-class",
+          continuityClass: "pressure-context-class"
+        },
+        nonClaims: M8A_V46D_WINDOW_NON_CLAIMS
+      },
+      {
+        windowId: "meo-continuity-hold",
+        startRatioInclusive: 0.4,
+        stopRatioExclusive: 0.6,
+        stopPolicy: "exclusive-except-final-window",
+        displayRepresentativeOrbitClass: "meo",
+        displayRepresentativeActorId: "o3b-mpower-f6-meo-display-context",
+        candidateContextOrbitClasses: ["meo", "meo", "meo", "meo", "leo"],
+        candidateContextActorIds: [
+          "o3b-mpower-f1-meo-display-context",
+          "o3b-mpower-f2-meo-display-context",
+          "o3b-mpower-f4-meo-display-context",
+          "o3b-mpower-f3-meo-display-context",
+          "oneweb-0702-leo-display-context"
+        ],
+        fallbackContextOrbitClasses: ["geo"],
+        fallbackContextActorIds: [
+          "st-2-geo-continuity-anchor",
+          "ses-9-geo-display-context"
+        ],
+        handoverPressureReason: "meo-continuity-hold",
+        reasonSignalClasses: [
+          "meo-wide-area-continuity-context",
+          "operator-family-precision-disclosure",
+          "simulation-state-non-claim-disclosure"
+        ],
+        boundedMetricClasses: {
+          metricTruth: "modeled-bounded-class-not-measured",
+          latencyClass: "meo-mid-latency-context-class",
+          jitterClass: "continuity-hold-class",
+          networkSpeedClass: "continuity-context-class",
+          continuityClass: "hold-context-class"
+        },
+        nonClaims: M8A_V46D_WINDOW_NON_CLAIMS
+      },
+      {
+        windowId: "leo-reentry-candidate",
+        startRatioInclusive: 0.6,
+        stopRatioExclusive: 0.82,
+        stopPolicy: "exclusive-except-final-window",
+        displayRepresentativeOrbitClass: "leo",
+        displayRepresentativeActorId: "oneweb-0702-leo-display-context",
+        candidateContextOrbitClasses: ["leo", "leo", "leo", "meo"],
+        candidateContextActorIds: [
+          "oneweb-0012-leo-display-context",
+          "oneweb-0249-leo-display-context",
+          "oneweb-0386-leo-display-context",
+          "o3b-mpower-f4-meo-display-context"
+        ],
+        fallbackContextOrbitClasses: ["geo"],
+        fallbackContextActorIds: [
+          "st-2-geo-continuity-anchor",
+          "ses-9-geo-display-context"
+        ],
+        handoverPressureReason: "leo-display-geometry-reentry",
+        reasonSignalClasses: [
+          "leo-candidate-reentry-context",
+          "operator-family-precision-disclosure",
+          "simulation-state-non-claim-disclosure"
+        ],
+        boundedMetricClasses: {
+          metricTruth: "modeled-bounded-class-not-measured",
+          latencyClass: "leo-low-latency-context-class",
+          jitterClass: "changing-geometry-class",
+          networkSpeedClass: "candidate-capacity-context-class",
+          continuityClass: "reentry-context-class"
+        },
+        nonClaims: M8A_V46D_WINDOW_NON_CLAIMS
+      },
+      {
+        windowId: "geo-continuity-guard",
+        startRatioInclusive: 0.82,
+        stopRatioExclusive: 1,
+        stopPolicy: "exclusive-except-final-window",
+        displayRepresentativeOrbitClass: "geo",
+        displayRepresentativeActorId: "st-2-geo-continuity-anchor",
+        candidateContextOrbitClasses: ["geo", "meo", "leo"],
+        candidateContextActorIds: [
+          "ses-9-geo-display-context",
+          "o3b-mpower-f3-meo-display-context",
+          "oneweb-0701-leo-display-context"
+        ],
+        fallbackContextOrbitClasses: ["geo"],
+        fallbackContextActorIds: [
+          "st-2-geo-continuity-anchor",
+          "ses-9-geo-display-context"
+        ],
+        handoverPressureReason: "geo-continuity-guard",
+        reasonSignalClasses: [
+          "geo-continuity-guard-context",
+          "operator-family-precision-disclosure",
+          "simulation-state-non-claim-disclosure"
+        ],
+        boundedMetricClasses: {
+          metricTruth: "modeled-bounded-class-not-measured",
+          latencyClass: "geo-higher-latency-continuity-class",
+          jitterClass: "continuity-guard-class",
+          networkSpeedClass: "guard-context-class",
+          continuityClass: "guard-context-class"
+        },
+        nonClaims: M8A_V46D_WINDOW_NON_CLAIMS
+      }
+    ],
+    validationExpectations: {
+      expectedModelId: M8A_V46D_SIMULATION_HANDOVER_MODEL_ID,
+      expectedEndpointPairId: M8A_V4_GROUND_STATION_ENDPOINT_PAIR_ID,
+      expectedPrecision: "operator-family-only",
+      expectedActorCounts: {
+        leo: 6,
+        meo: 5,
+        geo: 2
+      },
+      expectedWindowIds: M8A_V46D_WINDOW_IDS,
+      windowsMustCoverZeroToOneWithoutGaps: true,
+      actorIdsMustExistInV46bActorSet: true,
+      actorOrbitClassesMustMatchModelRoles: true,
+      endpointPairAndPrecisionMustRemainUnchanged: true,
+      runtimeRawItriSideReadAllowed: false,
+      measuredMetricTruthAllowed: false,
+      requiredWindowNonClaimKeys: M8A_V46D_REQUIRED_WINDOW_NON_CLAIM_KEYS
+    },
+    forbiddenClaimScan: {
+      scanPositiveClaimFields: true,
+      scanRuntimeLabelsDerivedFromModel: true,
+      allowForbiddenConceptsOnlyInNegatedFields: true,
+      negatedFieldNames: [
+        "nonClaims",
+        "doesNotClaim",
+        "requiredDisclosures",
+        "validationExpectations",
+        "forbiddenClaimScan"
+      ],
+      forbiddenModelKeys: [
+        "servingSatelliteId",
+        "activeServingSatelliteId",
+        "activeGatewayId",
+        "gatewayAssignmentId",
+        "teleportPathId",
+        "latencyMs",
+        "jitterMs",
+        "throughputMbps",
+        "throughputGbps",
+        "rfHandoverId",
+        "operatorHandoverEventId"
+      ]
+    }
+  };
+}
+
+const M8A_V4_RUNTIME_ORBIT_ACTORS = buildV46bRuntimeOrbitActors();
 
 export const M8A_V4_GROUND_STATION_RUNTIME_PROJECTION: M8aV4GroundStationRuntimeProjection =
   {
@@ -886,7 +1452,7 @@ export const M8A_V4_GROUND_STATION_RUNTIME_PROJECTION: M8aV4GroundStationRuntime
       strictEligibilityBoundary:
         "Strict three-orbit eligibility is accepted only at operator-family precision. It is not site-family, site-level, same-site, active-gateway, active-satellite, measured-performance, pair-specific teleport-path, or native RF handover truth."
     },
-    orbitActors: buildV46bRuntimeOrbitActors(),
+    orbitActors: M8A_V4_RUNTIME_ORBIT_ACTORS,
     serviceStateModel: {
       modelId: "m8a-v4-modeled-service-state.v1",
       decisionModel: "modeled-service-continuity",
@@ -1017,6 +1583,9 @@ export const M8A_V4_GROUND_STATION_RUNTIME_PROJECTION: M8aV4GroundStationRuntime
         ]
       }
     },
+    simulationHandoverModel: buildV46dSimulationHandoverModel(
+      M8A_V4_RUNTIME_ORBIT_ACTORS
+    ),
     nonClaims: M8A_V4_GROUND_STATION_NON_CLAIMS,
     runtimeNarrativeNonClaims: {
       noYkaEndpoint: true,
