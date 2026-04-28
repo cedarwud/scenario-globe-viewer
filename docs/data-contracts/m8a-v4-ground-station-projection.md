@@ -15,6 +15,8 @@ Related V4.6B source/projection artifact:
 [../../public/fixtures/ground-station-projections/m8a-v4.6b-taiwan-cht-speedcast-singapore-source-lineaged-orbit-actors-2026-04-28.json](../../public/fixtures/ground-station-projections/m8a-v4.6b-taiwan-cht-speedcast-singapore-source-lineaged-orbit-actors-2026-04-28.json).
 Related V4.6B projection record:
 [../sdd/m8a-v4.6b-source-lineaged-orbit-actor-projection.md](../sdd/m8a-v4.6b-source-lineaged-orbit-actor-projection.md).
+Related V4.6D simulation handover model contract:
+[../sdd/m8a-v4.6d-simulation-handover-model-contract.md](../sdd/m8a-v4.6d-simulation-handover-model-contract.md).
 
 ## Status
 
@@ -25,7 +27,9 @@ Related V4.6B projection record:
   `public/fixtures/ground-station-projections/m8a-v4-taiwan-cht-speedcast-singapore-operator-family-2026-04-26.json`
 - accepted V4.6B source/projection actor-enrichment artifact:
   `public/fixtures/ground-station-projections/m8a-v4.6b-taiwan-cht-speedcast-singapore-source-lineaged-orbit-actors-2026-04-28.json`
-- V4.6B artifact is not yet consumed by the runtime generated module
+- V4.6B runtime consumption exists at commit `ddbd21c`
+- accepted V4.6D model contract id:
+  `m8a-v4.6d-simulation-handover-model.v1`
 - endpoint A/B remain accepted only at operator-family precision
 
 ## Purpose
@@ -95,6 +99,7 @@ interface V4GroundStationProjectionArtifact {
   orbitEvidenceMatrix: V4OrbitEvidenceMatrix;
   orbitActors: ReadonlyArray<V4ProjectedOrbitActor>;
   serviceStateModel: V4ModeledServiceStateModel;
+  simulationHandoverModel?: V46dSimulationHandoverModel;
   nonClaims: V4NonClaimSet;
   validationExpectations: V4ProjectionValidationExpectations;
 }
@@ -434,6 +439,235 @@ interface V4ModeledMetricPolicy {
   ];
 }
 ```
+
+## V4.6D Simulation Handover Model Extension
+
+`V4.6D` adds an accepted simulation handover model contract on top of the
+existing projection seam. This is an additive contract extension. It does not
+retroactively invalidate the accepted V4.2 or V4.6B artifacts, and it does not
+authorize runtime implementation by itself.
+
+The accepted model id is:
+
+`m8a-v4.6d-simulation-handover-model.v1`
+
+The model must preserve the current V4.6B runtime baseline:
+
+- route: `/?scenePreset=regional&m8aV4GroundStationScene=1`
+- endpoint pair:
+  `taiwan-cht-speedcast-singapore-operator-family-2026-04-26`
+- precision: `operator-family-only`
+- runtime actor set: `6` LEO, `5` MEO, `2` GEO display-context actors
+- source boundary: repo-owned projection artifact/module only
+
+```ts
+type V46dActorId =
+  | "oneweb-0386-leo-display-context"
+  | "oneweb-0537-leo-display-context"
+  | "oneweb-0701-leo-display-context"
+  | "oneweb-0012-leo-display-context"
+  | "oneweb-0249-leo-display-context"
+  | "oneweb-0702-leo-display-context"
+  | "o3b-mpower-f6-meo-display-context"
+  | "o3b-mpower-f1-meo-display-context"
+  | "o3b-mpower-f2-meo-display-context"
+  | "o3b-mpower-f4-meo-display-context"
+  | "o3b-mpower-f3-meo-display-context"
+  | "st-2-geo-continuity-anchor"
+  | "ses-9-geo-display-context";
+
+interface V46dSimulationHandoverModel {
+  modelId: "m8a-v4.6d-simulation-handover-model.v1";
+  modelStatus: "accepted-contract";
+  modelScope: "deterministic-display-context-state-machine";
+  modelTruth: "simulation-output-not-operator-log";
+  endpointPairId: "taiwan-cht-speedcast-singapore-operator-family-2026-04-26";
+  acceptedPairPrecision: "operator-family-only";
+  route: "/?scenePreset=regional&m8aV4GroundStationScene=1";
+  inputs: V46dSimulationHandoverInputs;
+  timeline: readonly [
+    V46dSimulationHandoverWindow,
+    V46dSimulationHandoverWindow,
+    V46dSimulationHandoverWindow,
+    V46dSimulationHandoverWindow,
+    V46dSimulationHandoverWindow
+  ];
+  validationExpectations: V46dSimulationHandoverValidationExpectations;
+  forbiddenClaimScan: V46dForbiddenClaimScanPolicy;
+}
+
+interface V46dSimulationHandoverInputs {
+  replayRatio: number;
+  replayRatioPolicy: "normalized-zero-to-one-over-v4.6a-full-leo-replay";
+  windowSelection: "deterministic-ratio-window";
+  endpointPairId: "taiwan-cht-speedcast-singapore-operator-family-2026-04-26";
+  acceptedPairPrecision: "operator-family-only";
+  actorSetSource: "v4.6b-repo-owned-projection-runtime-module";
+  actorIds: ReadonlyArray<V46dActorId>;
+  metricPolicy: V46dBoundedMetricPolicy;
+  runtimeSourceBoundary: "repo-owned-projection-or-generated-module-only";
+}
+
+interface V46dBoundedMetricPolicy {
+  metricTruth: "modeled-bounded-class-not-measured";
+  numericLatencyAllowed: false;
+  numericJitterAllowed: false;
+  numericThroughputAllowed: false;
+  allowedMetricClasses: readonly [
+    "latency-class",
+    "jitter-class",
+    "network-speed-class",
+    "continuity-class"
+  ];
+}
+
+interface V46dSimulationHandoverWindow {
+  windowId:
+    | "leo-acquisition-context"
+    | "leo-aging-pressure"
+    | "meo-continuity-hold"
+    | "leo-reentry-candidate"
+    | "geo-continuity-guard";
+  startRatioInclusive: number;
+  stopRatioExclusive: number;
+  stopPolicy: "exclusive-except-final-window";
+  displayRepresentativeOrbitClass: "leo" | "meo" | "geo";
+  displayRepresentativeActorId: V46dActorId;
+  candidateContextOrbitClasses: ReadonlyArray<"leo" | "meo" | "geo">;
+  candidateContextActorIds: ReadonlyArray<V46dActorId>;
+  fallbackContextOrbitClasses: readonly ["geo"];
+  fallbackContextActorIds: ReadonlyArray<V46dActorId>;
+  handoverPressureReason:
+    | "leo-display-geometry-acquisition"
+    | "leo-display-geometry-aging"
+    | "meo-continuity-hold"
+    | "leo-display-geometry-reentry"
+    | "geo-continuity-guard";
+  reasonSignalClasses: ReadonlyArray<string>;
+  boundedMetricClasses: {
+    metricTruth: "modeled-bounded-class-not-measured";
+    latencyClass:
+      | "leo-low-latency-context-class"
+      | "meo-mid-latency-context-class"
+      | "geo-higher-latency-continuity-class";
+    jitterClass:
+      | "changing-geometry-class"
+      | "continuity-hold-class"
+      | "continuity-guard-class";
+    networkSpeedClass:
+      | "candidate-capacity-context-class"
+      | "continuity-context-class"
+      | "guard-context-class";
+    continuityClass:
+      | "acquisition-context-class"
+      | "pressure-context-class"
+      | "hold-context-class"
+      | "reentry-context-class"
+      | "guard-context-class";
+  };
+  nonClaims: V46dWindowNonClaims;
+}
+
+interface V46dWindowNonClaims {
+  noRealOperatorHandoverEvent: true;
+  noActiveServingSatelliteIdentity: true;
+  noActiveGatewayAssignment: true;
+  noPairSpecificTeleportPathTruth: true;
+  noMeasuredLatencyJitterThroughputTruth: true;
+  noNativeRfHandover: true;
+  noEndpointPairOrPrecisionChange: true;
+  noR2RuntimeSelector: true;
+  noRawItriOrLiveExternalRuntimeSource: true;
+}
+
+interface V46dSimulationHandoverValidationExpectations {
+  expectedModelId: "m8a-v4.6d-simulation-handover-model.v1";
+  expectedEndpointPairId: "taiwan-cht-speedcast-singapore-operator-family-2026-04-26";
+  expectedPrecision: "operator-family-only";
+  expectedActorCounts: {
+    leo: 6;
+    meo: 5;
+    geo: 2;
+  };
+  expectedWindowIds: readonly [
+    "leo-acquisition-context",
+    "leo-aging-pressure",
+    "meo-continuity-hold",
+    "leo-reentry-candidate",
+    "geo-continuity-guard"
+  ];
+  windowsMustCoverZeroToOneWithoutGaps: true;
+  actorIdsMustExistInV46bActorSet: true;
+  actorOrbitClassesMustMatchModelRoles: true;
+  endpointPairAndPrecisionMustRemainUnchanged: true;
+  runtimeRawItriSideReadAllowed: false;
+  measuredMetricTruthAllowed: false;
+  requiredWindowNonClaimKeys: ReadonlyArray<keyof V46dWindowNonClaims>;
+}
+
+interface V46dForbiddenClaimScanPolicy {
+  scanPositiveClaimFields: true;
+  scanRuntimeLabelsDerivedFromModel: true;
+  allowForbiddenConceptsOnlyInNegatedFields: true;
+  negatedFieldNames: readonly [
+    "nonClaims",
+    "doesNotClaim",
+    "requiredDisclosures",
+    "validationExpectations",
+    "forbiddenClaimScan"
+  ];
+  forbiddenModelKeys: ReadonlyArray<
+    | "servingSatelliteId"
+    | "activeServingSatelliteId"
+    | "activeGatewayId"
+    | "gatewayAssignmentId"
+    | "teleportPathId"
+    | "latencyMs"
+    | "jitterMs"
+    | "throughputMbps"
+    | "throughputGbps"
+    | "rfHandoverId"
+    | "operatorHandoverEventId"
+  >;
+}
+```
+
+Accepted state windows:
+
+| Window | Ratio range | Display representative | Candidate context ids | Fallback context ids |
+| --- | --- | --- | --- | --- |
+| `leo-acquisition-context` | `[0.00, 0.20)` | `oneweb-0386-leo-display-context` | `oneweb-0537-leo-display-context`, `oneweb-0701-leo-display-context`, `o3b-mpower-f6-meo-display-context` | `st-2-geo-continuity-anchor`, `ses-9-geo-display-context` |
+| `leo-aging-pressure` | `[0.20, 0.40)` | `oneweb-0537-leo-display-context` | `oneweb-0012-leo-display-context`, `oneweb-0249-leo-display-context`, `o3b-mpower-f1-meo-display-context`, `o3b-mpower-f2-meo-display-context` | `st-2-geo-continuity-anchor`, `ses-9-geo-display-context` |
+| `meo-continuity-hold` | `[0.40, 0.60)` | `o3b-mpower-f6-meo-display-context` | `o3b-mpower-f1-meo-display-context`, `o3b-mpower-f2-meo-display-context`, `o3b-mpower-f4-meo-display-context`, `o3b-mpower-f3-meo-display-context`, `oneweb-0702-leo-display-context` | `st-2-geo-continuity-anchor`, `ses-9-geo-display-context` |
+| `leo-reentry-candidate` | `[0.60, 0.82)` | `oneweb-0702-leo-display-context` | `oneweb-0012-leo-display-context`, `oneweb-0249-leo-display-context`, `oneweb-0386-leo-display-context`, `o3b-mpower-f4-meo-display-context` | `st-2-geo-continuity-anchor`, `ses-9-geo-display-context` |
+| `geo-continuity-guard` | `[0.82, 1.00]` | `st-2-geo-continuity-anchor` | `ses-9-geo-display-context`, `o3b-mpower-f3-meo-display-context`, `oneweb-0701-leo-display-context` | `st-2-geo-continuity-anchor`, `ses-9-geo-display-context` |
+
+Accepted role names are:
+
+- `displayRepresentativeActorId`
+- `candidateContextActorIds`
+- `fallbackContextActorIds`
+
+Forbidden role names include:
+
+- `servingSatelliteId`
+- `activeServingSatelliteId`
+- `activeGatewayId`
+- `gatewayAssignmentId`
+- `teleportPathId`
+
+`V4.6D` validation must prove:
+
+- windows cover `0..1` with no gaps and no overlaps
+- every referenced actor id exists in the V4.6B actor set
+- representative, candidate, and fallback actor orbit classes match their
+  declared model roles
+- endpoint pair and precision remain unchanged
+- every window carries the required non-claims
+- metric fields remain bounded classes and contain no numeric measured
+  latency, jitter, throughput, or continuity values
+- runtime source-boundary checks remain required for later implementation
+- forbidden-claim scanning is explicit and machine-checkable
 
 ## Truth Boundary And Non-Claims
 

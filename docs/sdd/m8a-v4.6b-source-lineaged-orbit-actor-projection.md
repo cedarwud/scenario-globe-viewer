@@ -9,17 +9,25 @@ the new actors.
 
 - source/projection execution record
 - accepted repo-owned projection artifact
-- no runtime rendering implementation
+- this source/projection phase itself did not implement runtime rendering
+- later runtime consumption baseline exists at commit `ddbd21c`
 - current as of 2026-04-28
 
 Accepted projection artifact:
 
 - `public/fixtures/ground-station-projections/m8a-v4.6b-taiwan-cht-speedcast-singapore-source-lineaged-orbit-actors-2026-04-28.json`
 
-Baseline runtime artifact/module remain unchanged in this phase:
+Baseline runtime artifact/module remained unchanged in this source/projection
+phase:
 
 - `public/fixtures/ground-station-projections/m8a-v4-taiwan-cht-speedcast-singapore-operator-family-2026-04-26.json`
 - `src/runtime/m8a-v4-ground-station-projection.ts`
+
+Later baseline:
+
+- commit `ddbd21c` implements runtime consumption of the V4.6B `6 LEO` /
+  `5 MEO` / `2 GEO` display-context actor set through repo-owned projection
+  data/module surfaces
 
 ## Source Families Reviewed
 
@@ -142,12 +150,14 @@ Projection validation:
 - verifies forbidden phrases are absent from `doesClaim`
 - verifies runtime raw `itri` side-read remains disallowed in the artifact
 
-Runtime rendering validation was intentionally not run for V4.6B because this
-phase does not update the runtime generated module or renderer.
+Runtime rendering validation was intentionally not run in this source/projection
+phase because the phase did not update the runtime generated module or
+renderer. Later runtime validation belongs to the `ddbd21c` implementation
+baseline.
 
 ## Runtime Follow-On Gate
 
-A later runtime implementation may consume the accepted V4.6B projection only
-after it explicitly updates the repo-owned generated module and runtime tests.
-That later phase must still preserve the V4.6B truth boundary and should
-decide label density before rendering all projected actors.
+The original V4.6B runtime-consumption gate is closed by commit `ddbd21c`.
+Future phases, including V4.6D, may reference the accepted V4.6B actor set only
+through repo-owned projection/module surfaces and must still preserve the V4.6B
+truth boundary.

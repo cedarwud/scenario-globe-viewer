@@ -19,9 +19,10 @@ Read these first:
 1. [m8a-vnext-multi-orbit-simulation-roadmap.md](./m8a-vnext-multi-orbit-simulation-roadmap.md)
 2. [m8a-v4-ground-station-multi-orbit-handover-plan.md](./m8a-v4-ground-station-multi-orbit-handover-plan.md)
 3. [../data-contracts/m8a-v4-ground-station-projection.md](../data-contracts/m8a-v4-ground-station-projection.md)
-4. [multi-orbit-follow-on-roadmap.md](./multi-orbit-follow-on-roadmap.md)
-5. [multi-orbit-program-skeleton.md](./multi-orbit-program-skeleton.md)
-6. [../decisions/0013-ground-station-multi-orbit-scope-reset.md](../decisions/0013-ground-station-multi-orbit-scope-reset.md)
+4. [m8a-v4.6d-simulation-handover-model-contract.md](./m8a-v4.6d-simulation-handover-model-contract.md)
+5. [multi-orbit-follow-on-roadmap.md](./multi-orbit-follow-on-roadmap.md)
+6. [multi-orbit-program-skeleton.md](./multi-orbit-program-skeleton.md)
+7. [../decisions/0013-ground-station-multi-orbit-scope-reset.md](../decisions/0013-ground-station-multi-orbit-scope-reset.md)
 
 Supporting accepted data:
 
@@ -38,9 +39,12 @@ Completed:
 - `M8A-V4.3` runtime implementation completed
 - `M8A-V4.4` homepage entry completed
 - `M8A-V4.5` visual acceptance/regression completed
+- `M8A-V4.6A` full LEO orbit replay completed at commit `6d7fd74`
+- `M8A-V4.6B` orbit actor runtime consumption completed at commit `ddbd21c`
 - subsequent visual refinements for orbit actor material, MEO/GEO color
   distinction, glow billboards, and model-centered glow alignment completed
 - VNext roadmap SDD added
+- `M8A-V4.6D` simulation handover model contract accepted as docs/design only
 
 Current direct route:
 
@@ -69,9 +73,9 @@ Accepted endpoint pair:
 
 Current orbit actor set:
 
-- `3` OneWeb `LEO` display-context actors
-- `1` O3b mPOWER `MEO` display-context actor
-- `1` ST-2 `GEO` continuity anchor
+- `6` OneWeb `LEO` display-context actors
+- `5` O3b mPOWER `MEO` display-context actors
+- `2` `GEO` display-context actors
 - all are source-lineaged from CelesTrak NORAD GP TLE records
 
 Approximate orbital periods from current TLE mean motion:
@@ -82,9 +86,8 @@ Approximate orbital periods from current TLE mean motion:
 
 Current replay:
 
-- about `10` simulated minutes
-- this is intentionally shorter than one full `LEO` orbit
-- VNext recommends extending the replay first
+- covers at least one full current OneWeb `LEO` orbit period
+- V4.6D uses the normalized replay ratio as its deterministic window selector
 
 ## Legacy Aviation/YKA Retention
 
@@ -168,16 +171,12 @@ now:
 4. `V4.6D` - design the simulation handover model
 5. `V4.6E` - redesign handover visual language as needed
 
-The recommended next execution phase is:
+Current phase status:
 
-- `V4.6A Full LEO Orbit Replay`
-
-Reason:
-
-- it is already unblocked by existing source-lineaged actor data
-- it does not require new endpoint authority
-- it does not require new actors
-- it improves the simulator behavior before adding more scene density
+- `V4.6A` and `V4.6B` are complete in runtime baseline
+- `V4.6D` model contract is accepted as docs/design only
+- the next runtime phase may open `V4.6D` implementation only after explicit
+  user approval
 
 ## Parallel Planning Work
 
@@ -187,7 +186,6 @@ These may proceed in parallel as planning/source work, but should not block
 - `R2` endpoint evidence/catalog expansion
 - Endpoint B and alternate endpoint-pair source hunts
 - additional source-lineaged `LEO/MEO/GEO` actor source/projection planning
-- simulation handover model requirements
 - handover visual-language concepts
 
 ## R2 Clarification
@@ -219,6 +217,7 @@ Checked during this handoff pass:
 
 - `docs/sdd/m8a-vnext-multi-orbit-simulation-roadmap.md`
 - `docs/sdd/m8a-v4-ground-station-multi-orbit-handover-plan.md`
+- `docs/sdd/m8a-v4.6d-simulation-handover-model-contract.md`
 - `docs/sdd/multi-orbit-follow-on-roadmap.md`
 - `docs/sdd/multi-orbit-program-skeleton.md`
 
@@ -227,6 +226,8 @@ Required sync found:
 - `multi-orbit-program-skeleton.md` needed a current V4.5/VNext status update
   because it still emphasized the old pre-runtime V4 gate.
 - `m8a-vnext-multi-orbit-simulation-roadmap.md` needed a link to this handoff.
+- `m8a-vnext-multi-orbit-simulation-roadmap.md` and this handoff now also
+  record the V4.6A/V4.6B runtime baseline and the V4.6D accepted contract.
 - `multi-orbit-follow-on-roadmap.md` already has the VNext entry and does not
   need a structural rewrite in this pass.
 - `m8a-v4-ground-station-multi-orbit-handover-plan.md` remains valid as the V4
@@ -242,6 +243,7 @@ explicitly instructed.
 First read:
 - docs/sdd/m8a-vnext-planning-control-handoff.md
 - docs/sdd/m8a-vnext-multi-orbit-simulation-roadmap.md
+- docs/sdd/m8a-v4.6d-simulation-handover-model-contract.md
 - docs/sdd/m8a-v4-ground-station-multi-orbit-handover-plan.md
 - docs/data-contracts/m8a-v4-ground-station-projection.md
 - docs/sdd/multi-orbit-follow-on-roadmap.md
@@ -254,12 +256,14 @@ Current direction:
   pair-specific paths, or real operator handover logs for presentation.
 - Keep R2 read-only; it supports endpoint evidence expansion but is not a
   runtime selector.
-- Current recommended execution phase is V4.6A Full LEO Orbit Replay.
+- V4.6A and V4.6B are complete in the current runtime baseline.
+- V4.6D model contract is accepted as docs/design only; runtime implementation
+  requires explicit user approval.
 
 Return:
 - Current understanding
 - Accepted planning baseline
-- Whether V4.6A is ready to open
+- Whether V4.6D runtime implementation is ready to open
 - Parallel planning/source tracks
 - Blockers
 - Execution prompt only if implementation is truly unblocked

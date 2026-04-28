@@ -17,6 +17,8 @@ Related planning-control handoff:
 [./m8a-vnext-planning-control-handoff.md](./m8a-vnext-planning-control-handoff.md).
 Related V4.6B source/projection record:
 [./m8a-v4.6b-source-lineaged-orbit-actor-projection.md](./m8a-v4.6b-source-lineaged-orbit-actor-projection.md).
+Related accepted V4.6D simulation handover model contract:
+[./m8a-v4.6d-simulation-handover-model-contract.md](./m8a-v4.6d-simulation-handover-model-contract.md).
 
 ## Status
 
@@ -55,6 +57,8 @@ Completed baseline:
 - `M8A-V4.3` runtime consumes a repo-owned projection/module
 - `M8A-V4.4` homepage entry exists
 - `M8A-V4.5` visual acceptance/regression exists
+- `M8A-V4.6A` full LEO replay exists at commit `6d7fd74`
+- `M8A-V4.6B` orbit actor runtime consumption exists at commit `ddbd21c`
 - the direct V4 route is `/?scenePreset=regional&m8aV4GroundStationScene=1`
 - the homepage entry opens that route and the old aviation/YKA demo remains
   historical/regression-only
@@ -69,9 +73,9 @@ Accepted endpoint pair:
 
 Current orbit actors:
 
-- `3` source-lineaged OneWeb `LEO` display-context actors
-- `1` source-lineaged O3b mPOWER `MEO` display-context actor
-- `1` source-lineaged ST-2 `GEO` continuity anchor
+- `6` source-lineaged OneWeb `LEO` display-context actors
+- `5` source-lineaged O3b mPOWER `MEO` display-context actors
+- `2` source-lineaged `GEO` display-context actors
 - actors are based on CelesTrak NORAD GP TLE lineage
 - actors are display context only; they are not active serving satellites
 
@@ -88,7 +92,7 @@ Current visual baseline:
 
 Current replay baseline:
 
-- runtime replay window is approximately `10` simulated minutes
+- runtime replay window covers at least one full current OneWeb `LEO` period
 - current OneWeb `LEO` actors have orbital periods near `109-110` minutes
 - current O3b mPOWER `MEO` actor has an orbital period near `288` minutes
 - current ST-2 `GEO` actor has an orbital period near `24` hours
@@ -203,7 +207,7 @@ Acceptance criteria:
 
 Implementation status:
 
-- unblocked for execution after this SDD is accepted
+- completed at commit `6d7fd74`
 
 ## Phase V4.6B - Source-Lineaged Orbit Actor Enrichment
 
@@ -249,9 +253,7 @@ Implementation status:
 
 - source/projection gate accepted for a richer actor set in
   [m8a-v4.6b-source-lineaged-orbit-actor-projection.md](./m8a-v4.6b-source-lineaged-orbit-actor-projection.md)
-- runtime rendering remains not implemented for the enriched actor set until a
-  later execution phase updates the repo-owned generated module and runtime
-  tests
+- runtime consumption of the enriched actor set exists at commit `ddbd21c`
 
 ## Phase V4.6C - Endpoint Expansion And Selectable Scenarios
 
@@ -314,6 +316,14 @@ Goal:
 - turn the current simple ratio-based service-state sequence into a clearer
   source-grounded simulation model for possible multi-orbit handover behavior
 
+Accepted contract:
+
+- [m8a-v4.6d-simulation-handover-model-contract.md](./m8a-v4.6d-simulation-handover-model-contract.md)
+- model id: `m8a-v4.6d-simulation-handover-model.v1`
+- contract surface: additive extension to
+  [../data-contracts/m8a-v4-ground-station-projection.md](../data-contracts/m8a-v4-ground-station-projection.md)
+- runtime implementation remains unopened until explicitly started
+
 Simulation scope:
 
 - this phase models plausible service-state decisions using accepted endpoint
@@ -333,26 +343,49 @@ Model inputs may include:
 
 Model outputs should include:
 
-- current primary orbit class
-- current highlighted actor or actor group, if any
-- next candidate orbit class
-- fallback orbit class
+- display representative orbit class
+- `displayRepresentativeActorId`
+- `candidateContextActorIds`
+- `fallbackContextActorIds`
 - handover pressure reason
 - visible reason signals
 - non-claims attached to the state
 
+Forbidden role names:
+
+- `servingSatelliteId`
+- `activeServingSatelliteId`
+- `activeGatewayId`
+- `gatewayAssignmentId`
+- `teleportPathId`
+
+Accepted deterministic state windows:
+
+1. `leo-acquisition-context`
+2. `leo-aging-pressure`
+3. `meo-continuity-hold`
+4. `leo-reentry-candidate`
+5. `geo-continuity-guard`
+
 Acceptance criteria:
 
 - model output is machine-readable
+- windows cover the replay range with no gaps or overlaps
+- actor ids referenced by the model exist in the V4.6B actor set
+- actor orbit classes match model roles
+- endpoint pair and precision remain unchanged
+- metric outputs are bounded classes only and contain no numeric measured
+  latency, jitter, throughput, or continuity values
+- every state/window carries required non-claims
+- forbidden-claim scan is explicit and machine-checkable
 - visual labels clearly separate simulation state from source truth
 - no active serving satellite or gateway claim is introduced
 - smoke tests verify the state sequence and non-claim text
 
 Implementation status:
 
-- should start after V4.6A
-- can start before V4.6B only if it remains compatible with later actor
-  enrichment
+- contract accepted as docs/design only
+- runtime implementation is ready to open only after explicit user approval
 
 ## Phase V4.6E - Handover Visual Language
 
@@ -442,6 +475,7 @@ V4.6C likely changes:
 V4.6D/E likely changes:
 
 - `docs/data-contracts/m8a-v4-ground-station-projection.md`
+- `docs/sdd/m8a-v4.6d-simulation-handover-model-contract.md`
 - `src/runtime/m8a-v4-ground-station-projection.ts`
 - `src/runtime/m8a-v4-ground-station-handover-scene-controller.ts`
 - `src/styles.css`
