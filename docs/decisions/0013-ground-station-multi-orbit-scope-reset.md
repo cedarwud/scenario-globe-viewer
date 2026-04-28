@@ -119,6 +119,31 @@ runtime communication selector. V4 may consume evidence packages that would
 also be suitable for R2, but V4 requires a stronger endpoint-pair authority
 gate before runtime use.
 
+### 6. Retain The Aviation/YKA Line Only As Historical Regression Surface
+
+The completed aviation/YKA implementation is not deleted as part of this scope
+reset because it still protects reusable viewer behavior such as route
+bootstrap, replay-clock wiring, Cesium scene lifecycle, telemetry seams, and
+smoke-test harnesses.
+
+That retention is not product-scope authority. The aviation/YKA route,
+fixtures, controllers, and tests must be treated as historical/regression-only
+unless explicitly reopened by a separate decision.
+
+A later cleanup branch may remove, archive, or further hide those surfaces when:
+
+- the VNext ground-station line covers route bootstrap, replay, telemetry, and
+  visual smoke regressions at equal or better confidence
+- the old aviation/YKA surfaces have no homepage or product entry
+- no active VNext runtime or smoke test depends on the old endpoint pair to
+  protect shared viewer behavior
+- the cleanup preserves enough documentation to explain why aircraft/YKA was
+  superseded
+
+Until that gate is met, the old implementation may remain in code and tests,
+but it must not re-enter V4/VNext endpoint scope or appear as a recommended
+product path.
+
 ## Alternatives Considered
 
 ### Continue With Aircraft + YKA
@@ -161,6 +186,8 @@ Deferred as fallback.
   rewiring before any new implementation.
 - Endpoint A/B labels and overlay copy must remove aircraft/YKA assumptions in
   the V4 scene.
+- Aviation/YKA surfaces are retained only for historical/regression value until
+  a later cleanup gate proves they can be safely removed or archived.
 - A future implementation prompt must explicitly say "do not rewrite the plan"
   and "do not promote endpoint B before the authority gate is satisfied."
 - Roadmap and handoff documents must warn future agents that V4 is a product
@@ -173,4 +200,3 @@ Deferred as fallback.
 - `docs/sdd/multi-orbit-follow-on-roadmap.md`
 - `../../../itri/multi-orbit/download/ground-station-endpoint-candidates/2026-04-25/README.md`
 - `../../../itri/multi-orbit/download/ground-station-endpoint-candidates/2026-04-25/candidate-matrix.json`
-

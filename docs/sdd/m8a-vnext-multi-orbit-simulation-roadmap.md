@@ -91,6 +91,45 @@ Current replay baseline:
 - current O3b mPOWER `MEO` actor has an orbital period near `288` minutes
 - current ST-2 `GEO` actor has an orbital period near `24` hours
 
+## Legacy Aviation/YKA Retention And Cleanup Gate
+
+The old aviation/YKA line is not a VNext product path. It is retained only as a
+historical/regression surface while it still protects shared viewer behavior.
+
+Short-term retention purpose:
+
+- preserve regression coverage for route bootstrap and addressed-scene loading
+- preserve replay-clock and Cesium lifecycle regression coverage
+- preserve telemetry/capture seam regression coverage
+- preserve historical context for why V4/VNext superseded the aviation/YKA
+  product narrative
+- preserve reusable technical patterns until VNext has equal or better coverage
+
+It must not:
+
+- appear as a recommended homepage/product entry for VNext
+- be used as a VNext endpoint candidate
+- reintroduce aircraft, YKA, or handset endpoints into the ground-station scope
+- be used to justify handover claims in the source-grounded simulation line
+
+Cleanup branch may open when all conditions are true:
+
+- VNext has route bootstrap, replay, telemetry, and visual smoke coverage that
+  no longer depends on the aviation/YKA endpoint pair
+- the old route has no homepage or product entry
+- shared helper code has either been reused by VNext or isolated from old
+  endpoint semantics
+- historical documentation remains sufficient to explain why the old line was
+  superseded
+- the user explicitly opens a legacy cleanup/archive task
+
+Possible cleanup outcomes:
+
+- delete unused old route/controller/fixture/test surfaces
+- archive historical docs and fixtures outside active product paths
+- keep narrow regression tests only if they protect shared viewer behavior
+- leave untouched any historical docs needed for provenance
+
 ## Non-Negotiable Guardrails
 
 The following remain hard constraints for all VNext phases:

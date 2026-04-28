@@ -267,6 +267,8 @@ Open only when:
 - new endpoint candidates and orbit actors are promoted through accepted
   source/projection gates before runtime use
 - no aircraft, YKA, or handset endpoint is reintroduced
+- old aviation/YKA surfaces remain historical/regression-only until a separate
+  cleanup branch proves they can be removed or archived safely
 
 ### R3 — Accepted Endpoint / Site Package Expansion
 

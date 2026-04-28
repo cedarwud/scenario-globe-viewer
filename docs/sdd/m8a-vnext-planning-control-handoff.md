@@ -86,6 +86,36 @@ Current replay:
 - this is intentionally shorter than one full `LEO` orbit
 - VNext recommends extending the replay first
 
+## Legacy Aviation/YKA Retention
+
+The old aviation/YKA endpoint line is not a VNext product path. It remains only
+as historical/regression surface until a later cleanup branch proves it can be
+removed or archived safely.
+
+Current retention purpose:
+
+- route bootstrap regression
+- replay-clock and Cesium lifecycle regression
+- telemetry/capture seam regression
+- historical explanation for the V4 scope reset
+- reusable technical patterns that VNext has not fully replaced yet
+
+Do not use it for:
+
+- VNext endpoint candidates
+- homepage/product promotion
+- source-grounded handover simulation scope
+- evidence that aircraft/YKA should return to V4/VNext
+
+Cleanup may be planned later only after:
+
+- VNext has equal or better route/replay/telemetry/visual regression coverage
+- old aviation/YKA routes have no homepage or product entry
+- no VNext runtime or smoke test needs the old endpoint pair for shared viewer
+  behavior
+- historical documentation remains sufficient
+- the user explicitly opens a legacy cleanup/archive task
+
 ## Truth Boundary
 
 Highest-level rule:
