@@ -7,6 +7,8 @@ runtime phases by itself.
 
 Related V4.8 SDD:
 [./m8a-v4.8-handover-demonstration-ui-ia-plan.md](./m8a-v4.8-handover-demonstration-ui-ia-plan.md).
+Related V4.8 Phase 2 final handoff:
+[./m8a-v4.8-handover-demonstration-ui-ia-phase2-final-handoff.md](./m8a-v4.8-handover-demonstration-ui-ia-phase2-final-handoff.md).
 Related V4.7.1 final handoff:
 [./m8a-v4.7.1-handover-product-ux-final-handoff.md](./m8a-v4.7.1-handover-product-ux-final-handoff.md).
 Related V4.6D model contract:
@@ -27,6 +29,8 @@ Related planning-control handoff:
   `8c846a4 Implement M8A V4.8 Phase 1 UI IA runtime seam`
 - runtime/product acceptance: Phase 1 closed
 - no Phase 2 or remaining `V4.8` runtime work is open from this record
+- later Phase 2 scene evidence mapping correction closed at commit
+  `7349f13 Implement M8A V4.8 Phase 2 scene evidence mapping`
 
 ## What Closed
 

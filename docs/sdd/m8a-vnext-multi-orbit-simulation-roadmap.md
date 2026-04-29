@@ -30,6 +30,8 @@ Related V4.8 handover demonstration UI IA SDD:
 [./m8a-v4.8-handover-demonstration-ui-ia-plan.md](./m8a-v4.8-handover-demonstration-ui-ia-plan.md).
 Related V4.8 Phase 1 final handoff:
 [./m8a-v4.8-handover-demonstration-ui-ia-phase1-final-handoff.md](./m8a-v4.8-handover-demonstration-ui-ia-phase1-final-handoff.md).
+Related V4.8 Phase 2 final handoff:
+[./m8a-v4.8-handover-demonstration-ui-ia-phase2-final-handoff.md](./m8a-v4.8-handover-demonstration-ui-ia-phase2-final-handoff.md).
 Related V4.6C/R2 endpoint evidence catalog review:
 [../../../itri/multi-orbit/download/ground-station-endpoint-candidates/2026-04-25/r2-endpoint-evidence-catalog-2026-04-28.md](../../../itri/multi-orbit/download/ground-station-endpoint-candidates/2026-04-25/r2-endpoint-evidence-catalog-2026-04-28.md).
 
@@ -40,8 +42,8 @@ Related V4.6C/R2 endpoint evidence catalog review:
 - V4.6 closeout synchronized 2026-04-28
 - V4.7 product UX SDD accepted 2026-04-28
 - V4.7.1 product usability correction accepted and closed 2026-04-29
-- V4.8 handover demonstration UI IA SDD accepted and Phase 1 runtime closed
-  2026-04-29
+- V4.8 handover demonstration UI IA SDD accepted; Phase 1 and Phase 2
+  runtime slices closed 2026-04-29
 - no runtime implementation authority by itself
 - intended handoff surface for the next planning/control thread
 
@@ -88,6 +90,8 @@ Completed baseline:
 - `M8A-V4.8` handover demonstration UI IA SDD is accepted as doc-only
   planning authority; Phase 1 UI IA runtime seam completed at commit
   `8c846a4`
+- `M8A-V4.8` Phase 2 scene evidence mapping correction completed at commit
+  `7349f13`
 - remaining `M8A-V4.8` runtime phases are not open
 - `M8A-V4.6C/R2` source/catalog boundary exists at commit `e5d99c7`
 - the `R2` root endpoint evidence catalog exists at commit `d061c676`
@@ -579,9 +583,12 @@ The current V4.7/V4.7.1 product UX track is implemented and closed:
 
 `M8A-V4.7.1 product usability correction SDD and final handoff`
 
-The current V4.8 Phase 1 UI IA runtime slice is implemented and closed:
+The current V4.8 Phase 1 and Phase 2 runtime slices are implemented and
+closed:
 
 `M8A-V4.8 handover demonstration UI IA Phase 1 final handoff`
+
+`M8A-V4.8 handover demonstration UI IA Phase 2 final handoff`
 
 The next available decisions are:
 
@@ -600,8 +607,8 @@ Reason:
 - `V4.7/V4.7.1` is a product UX correction line for the accepted single
   scenario, not a runtime selector or source expansion
 - `V4.8` is a demonstration UI IA line for the same accepted single scenario,
-  not a runtime selector or source expansion; Phase 1 is closed, while scene
-  evidence mapping, motion correction, layout/camera pass, and full visual
+  not a runtime selector or source expansion; Phase 1 and Phase 2 are closed,
+  while orbit motion correction, layout/camera pass, and full visual
   acceptance remain separate unopened phases
 - V5 is blocked until new accepted endpoint-pair scenarios exist
 - legacy aviation/YKA cleanup is blocked until the user explicitly opens that
@@ -635,9 +642,6 @@ work needs a new explicit planning/control decision.
 
 Remaining V4.8 runtime work, if later opened, may change only:
 
-- frontend information architecture
-- dynamic handover inspector content
-- scene evidence mapping / annotation semantics
 - orbit motion display policy
 - layout simplification and validation for the accepted single scenario
 
@@ -677,9 +681,10 @@ following are true:
   is accepted
 - [m8a-v4.8-handover-demonstration-ui-ia-phase1-final-handoff.md](./m8a-v4.8-handover-demonstration-ui-ia-phase1-final-handoff.md)
   is read as the latest Phase 1 closeout state
+- [m8a-v4.8-handover-demonstration-ui-ia-phase2-final-handoff.md](./m8a-v4.8-handover-demonstration-ui-ia-phase2-final-handoff.md)
+  is read as the latest Phase 2 closeout state
 - the user explicitly opens the next V4.8 runtime phase
-- implementation scope is limited to demonstration UI IA, dynamic inspector
-  content, scene evidence mapping, orbit motion display correction, layout
-  simplification, and validation upgrades
+- implementation scope is limited to remaining V4.8 work such as orbit motion
+  display correction, layout simplification, and validation upgrades
 - route, endpoint pair, precision, actor set, source boundary, and V4.6D model
   truth remain unchanged

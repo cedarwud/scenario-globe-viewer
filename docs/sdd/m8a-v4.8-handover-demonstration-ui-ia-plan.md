@@ -13,6 +13,8 @@ Related V4.6D model contract:
 [./m8a-v4.6d-simulation-handover-model-contract.md](./m8a-v4.6d-simulation-handover-model-contract.md).
 Related V4.8 Phase 1 final handoff:
 [./m8a-v4.8-handover-demonstration-ui-ia-phase1-final-handoff.md](./m8a-v4.8-handover-demonstration-ui-ia-phase1-final-handoff.md).
+Related V4.8 Phase 2 final handoff:
+[./m8a-v4.8-handover-demonstration-ui-ia-phase2-final-handoff.md](./m8a-v4.8-handover-demonstration-ui-ia-phase2-final-handoff.md).
 Related VNext roadmap:
 [./m8a-vnext-multi-orbit-simulation-roadmap.md](./m8a-vnext-multi-orbit-simulation-roadmap.md).
 Related planning-control handoff:
@@ -26,6 +28,8 @@ Related planning-control handoff:
 - intended phase: `M8A-V4.8` handover demonstration UI IA redesign
 - Phase 1 runtime implementation completed at commit
   `8c846a4 Implement M8A V4.8 Phase 1 UI IA runtime seam`
+- Phase 2 scene evidence mapping correction completed at commit
+  `7349f13 Implement M8A V4.8 Phase 2 scene evidence mapping`
 - remaining runtime phases: not open
 - latest accepted runtime baseline: `M8A-V4.7.1` closed at head
   `a48b0a6 Clean V4.7.1 accepted runtime status`
@@ -492,15 +496,20 @@ Blocked unless a future accepted SDD explicitly changes scope:
 Phase 1 runtime implementation is closed at commit
 `8c846a4 Implement M8A V4.8 Phase 1 UI IA runtime seam`.
 
+Phase 2 scene evidence mapping correction is closed at commit
+`7349f13 Implement M8A V4.8 Phase 2 scene evidence mapping`.
+
 Remaining `V4.8` runtime implementation is not open from this document alone.
 
 Remaining runtime phases may be opened only after:
 
 - this SDD is explicitly accepted
+- [m8a-v4.8-handover-demonstration-ui-ia-phase2-final-handoff.md](./m8a-v4.8-handover-demonstration-ui-ia-phase2-final-handoff.md)
+  is read as the latest closeout state
 - the user explicitly opens the next `V4.8` runtime phase
-- the implementation prompt limits scope to demonstration UI IA, dynamic
-  inspector content, scene evidence mapping, orbit motion display correction,
-  layout simplification, and validation upgrades
+- the implementation prompt limits scope to remaining `V4.8` work such as
+  orbit motion display correction, layout/camera refinement, and validation
+  upgrades
 - route, endpoint pair, precision, actor set, source boundary, and `V4.6D`
   model truth remain unchanged
 
