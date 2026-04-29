@@ -24,9 +24,10 @@ Read these first:
 6. [m8a-v4.7.1-handover-product-ux-correction-plan.md](./m8a-v4.7.1-handover-product-ux-correction-plan.md)
 7. [m8a-v4.7.1-handover-product-ux-final-handoff.md](./m8a-v4.7.1-handover-product-ux-final-handoff.md)
 8. [m8a-v4.8-handover-demonstration-ui-ia-plan.md](./m8a-v4.8-handover-demonstration-ui-ia-plan.md)
-9. [multi-orbit-follow-on-roadmap.md](./multi-orbit-follow-on-roadmap.md)
-10. [multi-orbit-program-skeleton.md](./multi-orbit-program-skeleton.md)
-11. [../decisions/0013-ground-station-multi-orbit-scope-reset.md](../decisions/0013-ground-station-multi-orbit-scope-reset.md)
+9. [m8a-v4.8-handover-demonstration-ui-ia-phase1-final-handoff.md](./m8a-v4.8-handover-demonstration-ui-ia-phase1-final-handoff.md)
+10. [multi-orbit-follow-on-roadmap.md](./multi-orbit-follow-on-roadmap.md)
+11. [multi-orbit-program-skeleton.md](./multi-orbit-program-skeleton.md)
+12. [../decisions/0013-ground-station-multi-orbit-scope-reset.md](../decisions/0013-ground-station-multi-orbit-scope-reset.md)
 
 Supporting accepted data:
 
@@ -54,8 +55,9 @@ Completed:
   implementation completed at commit `26781b8`
 - `M8A-V4.7.1` product usability correction accepted and closed at head
   `a48b0a6`; final runtime obstruction fix completed at commit `9604bde`
-- `M8A-V4.8` handover demonstration UI IA plan drafted as doc-only authority;
-  runtime implementation is not open
+- `M8A-V4.8` handover demonstration UI IA SDD accepted as doc-only authority;
+  Phase 1 UI IA runtime seam completed at commit `8c846a4`
+- remaining `M8A-V4.8` runtime phases are not open
 - `M8A-V4.6C/R2` source/catalog boundary documented at commit `e5d99c7`
 - `R2` root endpoint evidence catalog added at commit `d061c676`
 - `R2` alternate endpoint B MEO no-change hunt documented at commit `c8e30b2e`
@@ -75,6 +77,7 @@ Current data path:
 
 Recent important commits:
 
+- `8c846a4 Implement M8A V4.8 Phase 1 UI IA runtime seam`
 - `e5d99c7 Document M8A V4.6C R2 catalog boundary`
 - `1f33697 Hide M8A V4.6E floating HUD`
 - `db85439 Implement M8A V4.6E handover visual language`
@@ -222,8 +225,10 @@ Current phase status:
 - `V4.7` runtime implementation is complete at commit `26781b8`
 - `V4.7.1` runtime/product usability correction is accepted and closed at head
   `a48b0a6`
-- `V4.8` handover demonstration UI IA plan is drafted as doc-only planning
-  surface; runtime implementation is not open
+- `V4.8` handover demonstration UI IA SDD is accepted as doc-only planning
+  surface; Phase 1 UI IA runtime seam is closed at commit `8c846a4`
+- remaining `V4.8` scene evidence mapping, orbit motion correction,
+  layout/camera pass, and full visual acceptance phases are not open
 - `V4.6C/R2` has source/catalog updates only; it does not create a runtime
   selector or accepted selectable scenario set
 - no alternate endpoint B outside Speedcast Singapore is runtime-ready
@@ -238,8 +243,7 @@ The current V4.7/V4.7.1 track is implemented and closed:
 
 The next available decisions are:
 
-1. review and accept, revise, or reject the `V4.8` handover demonstration UI
-   IA plan
+1. open the next `V4.8` runtime slice only after an explicit user decision
 2. keep runtime closed and continue source/candidate work
 3. open a new decision gate only when new accepted scope exists
 
@@ -303,6 +307,8 @@ Checked during this handoff pass:
 Closeout sync result:
 
 - this handoff and the VNext roadmap now record that `V4.6A/B/D/E` are complete
+- this handoff and the VNext roadmap now record that `V4.8` Phase 1 is closed
+  and remaining `V4.8` runtime phases are not open
 - `V4.6C/R2` is recorded as catalog/source-only with no runtime-ready alternate
   endpoint B
 - the follow-on roadmap now routes the next work to source hunt, V5 gate, or
@@ -321,6 +327,8 @@ First read:
 - docs/sdd/m8a-vnext-planning-control-handoff.md
 - docs/sdd/m8a-vnext-multi-orbit-simulation-roadmap.md
 - docs/sdd/m8a-v4.6d-simulation-handover-model-contract.md
+- docs/sdd/m8a-v4.8-handover-demonstration-ui-ia-plan.md
+- docs/sdd/m8a-v4.8-handover-demonstration-ui-ia-phase1-final-handoff.md
 - docs/sdd/m8a-v4-ground-station-multi-orbit-handover-plan.md
 - docs/data-contracts/m8a-v4-ground-station-projection.md
 - docs/sdd/multi-orbit-follow-on-roadmap.md
@@ -335,6 +343,8 @@ Current direction:
 - Keep R2 read-only; it supports endpoint evidence expansion but is not a
   runtime selector.
 - V4.6A, V4.6B, V4.6D, and V4.6E are complete in the current runtime baseline.
+- V4.8 Phase 1 UI IA runtime seam is closed; remaining V4.8 runtime phases
+  require an explicit user-opened phase.
 - V4.6C/R2 remains catalog/source-only; no alternate endpoint B is
   runtime-ready.
 - Do not create a runtime prompt unless new accepted endpoint-pair scenarios

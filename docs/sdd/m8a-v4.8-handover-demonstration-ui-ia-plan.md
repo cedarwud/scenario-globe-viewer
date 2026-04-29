@@ -11,6 +11,8 @@ Related V4.7.1 correction SDD:
 [./m8a-v4.7.1-handover-product-ux-correction-plan.md](./m8a-v4.7.1-handover-product-ux-correction-plan.md).
 Related V4.6D model contract:
 [./m8a-v4.6d-simulation-handover-model-contract.md](./m8a-v4.6d-simulation-handover-model-contract.md).
+Related V4.8 Phase 1 final handoff:
+[./m8a-v4.8-handover-demonstration-ui-ia-phase1-final-handoff.md](./m8a-v4.8-handover-demonstration-ui-ia-phase1-final-handoff.md).
 Related VNext roadmap:
 [./m8a-vnext-multi-orbit-simulation-roadmap.md](./m8a-vnext-multi-orbit-simulation-roadmap.md).
 Related planning-control handoff:
@@ -22,7 +24,9 @@ Related planning-control handoff:
 - doc-only
 - current as of 2026-04-29
 - intended phase: `M8A-V4.8` handover demonstration UI IA redesign
-- runtime implementation: not open
+- Phase 1 runtime implementation completed at commit
+  `8c846a4 Implement M8A V4.8 Phase 1 UI IA runtime seam`
+- remaining runtime phases: not open
 - latest accepted runtime baseline: `M8A-V4.7.1` closed at head
   `a48b0a6 Clean V4.7.1 accepted runtime status`
 - latest doc closeout commit before this plan:
@@ -485,17 +489,20 @@ Blocked unless a future accepted SDD explicitly changes scope:
 
 ## Runtime Opening State
 
-Runtime implementation is not ready to open from this document alone.
+Phase 1 runtime implementation is closed at commit
+`8c846a4 Implement M8A V4.8 Phase 1 UI IA runtime seam`.
 
-Runtime may be opened only after:
+Remaining `V4.8` runtime implementation is not open from this document alone.
+
+Remaining runtime phases may be opened only after:
 
 - this SDD is explicitly accepted
-- the user explicitly opens `V4.8` runtime implementation
+- the user explicitly opens the next `V4.8` runtime phase
 - the implementation prompt limits scope to demonstration UI IA, dynamic
   inspector content, scene evidence mapping, orbit motion display correction,
   layout simplification, and validation upgrades
 - route, endpoint pair, precision, actor set, source boundary, and `V4.6D`
   model truth remain unchanged
 
-No execution prompt is included here because this document is the planning
-surface, not an implementation authorization.
+No further execution prompt is included here because this document remains the
+planning surface, not authorization for remaining runtime phases.
