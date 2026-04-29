@@ -45,7 +45,7 @@ Current failure conclusions:
   narrow viewport controls
 - touch targets are below product interaction expectations
 - information architecture remains panel-first; the handover state is separated
-  from the connection path, representative actor, and endpoint corridor
+  from the endpoint corridor, representative actor, and display relation cue
 - the accepted screenshots do not prove per-state usability
 - smoke coverage lacks real pointer clicks, DOM stability checks, minimum
   font-size checks, minimum hit-target checks, and per-state visual checks
@@ -61,7 +61,7 @@ truth boundary.
 Accepted correction scope:
 
 - add scene-near current-state annotation tied visually to the current
-  connection path, representative actor, or endpoint corridor
+  endpoint corridor, representative actor, or display relation cue
 - make playback, speed, restart, and detail controls stable and reliably
   clickable during active replay
 - raise typography and control sizes to readable product-review thresholds
@@ -85,6 +85,7 @@ the scene first, then expose controls and details without hiding the evidence.
 - an actor-set change
 - a model-truth change
 - a data-source change
+- endpoint expansion beyond the accepted endpoint pair
 - an endpoint selector
 - `R2` runtime promotion
 - `V5`
@@ -103,7 +104,8 @@ Accepted IA decision:
 
 1. The current state label is rendered near the scene evidence it explains.
 2. The annotation visually relates to the current display representative,
-   active relation cue, endpoint corridor, or a stable corridor-adjacent anchor.
+   display relation cue, endpoint corridor, or a stable corridor-adjacent
+   anchor.
 3. The annotation uses the accepted V4.6D product labels:
    `LEO acquire`, `LEO pressure`, `MEO hold`, `LEO re-entry`, and `GEO guard`.
 4. The annotation preserves the accepted V4.6D window id in DOM/test state.
@@ -138,6 +140,10 @@ Accepted layout strategy:
 - keep the scene-near state annotation visible when the details sheet is closed
 - on narrow viewports, preserve the same IA: compact strip first, sheet second,
   scene-near state visible unless viewport geometry makes it impossible
+- if `390x844` geometry cannot safely place the scene-near annotation, the
+  fallback must be a prominent state label in the compact strip plus the
+  secondary details sheet; it must not return to right rail primary IA, tiny HUD
+  treatment, or a floating scene-obscuring window
 
 The corrected layout is accepted only if screenshots prove that the current
 state is understandable without opening the details sheet.
@@ -221,9 +227,9 @@ Required visual upgrades:
 - narrow screenshot at `390x844`
 - per-state screenshots or visual probes for all five V4.6D states
 - visual proof that the compact strip does not cover the endpoint corridor,
-  representative relation cue, required actor labels, or Cesium credits
-- visual proof that the scene-near annotation does not obscure the actor or path
-  evidence it explains
+  display relation cue, required actor labels, or Cesium credits
+- visual proof that the scene-near annotation does not obscure the actor,
+  endpoint corridor, or display relation cue evidence it explains
 - visual proof that the details sheet is secondary and closed by default
 - visual proof that opening the details sheet does not create forbidden claims
   or hide the primary state annotation in an incoherent way
@@ -245,8 +251,8 @@ split into small phases:
    - preserve `60x`, `30x`, `120x`, final hold, pause, restart, and debug-only
      `240x` policy
 3. Scene-near current-state annotation
-   - anchor the current V4.6D product label near the current connection path,
-     representative actor, or endpoint corridor
+   - anchor the current V4.6D product label near the current endpoint corridor,
+     representative actor, or display relation cue
    - validate all five states with per-state probes/screenshots
    - preserve display-context role language
 4. Readability and hit-target pass
@@ -274,6 +280,7 @@ Blocked or not allowed in `V4.7.1`:
 - changing model id from `m8a-v4.6d-simulation-handover-model.v1`
 - changing model truth from `simulation-output-not-operator-log`
 - side-reading raw `itri` or live external source data at runtime
+- adding endpoint expansion beyond the accepted endpoint pair
 - adding endpoint selector UI
 - promoting `R2` into runtime
 - adding `R2` runtime, `V5`, active satellite, active gateway, active path, or
