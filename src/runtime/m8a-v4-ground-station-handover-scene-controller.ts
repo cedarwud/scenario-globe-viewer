@@ -74,6 +74,8 @@ const M8A_V4_MILLISECONDS_PER_DAY = 24 * 60 * 60 * 1000;
 const M8A_V4_FULL_LEO_ORBIT_REPLAY_MARGIN_MS = 5 * 60 * 1000;
 const M8A_V47_PRODUCT_UX_VERSION =
   "m8a-v4.7.1-handover-product-ux-correction-runtime.v1";
+const M8A_V48_UI_IA_VERSION =
+  "m8a-v4.8-handover-demonstration-ui-ia-phase1-runtime.v1";
 const M8A_V47_GUIDED_REVIEW_MULTIPLIER = 30;
 const M8A_V47_PRODUCT_DEFAULT_MULTIPLIER = 60;
 const M8A_V47_QUICK_SCAN_MULTIPLIER = 120;
@@ -100,6 +102,76 @@ const M8A_V47_DISCLOSURE_LINES = [
   "No measured latency, jitter, throughput, or continuity values are shown.",
   "No native RF handover is claimed."
 ] as const;
+const M8A_V48_REVIEW_COPY = {
+  "leo-acquisition-context": {
+    reviewPurpose:
+      "Establish the initial LEO display context for the accepted endpoint corridor.",
+    whatChangedFromPreviousState:
+      "Replay begins with LEO representative context emphasized.",
+    whatToWatch:
+      "Representative LEO display cue and endpoint corridor relationship.",
+    nextStateHint:
+      "Next: the deterministic review moves into LEO pressure context.",
+    sceneAnchorType: "representative-actor-if-visible"
+  },
+  "leo-aging-pressure": {
+    reviewPurpose:
+      "Show deterministic pressure on the LEO context, not a measured degradation event.",
+    whatChangedFromPreviousState:
+      "The state moves from initial acquire context to pressure context.",
+    whatToWatch:
+      "Candidate context and relation cue emphasis, without measured metric claims.",
+    nextStateHint:
+      "Next: the review shifts from LEO pressure to MEO continuity hold.",
+    sceneAnchorType: "representative-actor-if-visible"
+  },
+  "meo-continuity-hold": {
+    reviewPurpose:
+      "Show MEO display context as continuity hold within the simulation model.",
+    whatChangedFromPreviousState:
+      "The representative context changes from LEO pressure to MEO hold.",
+    whatToWatch:
+      "MEO representative cue and how candidate/fallback context remains secondary.",
+    nextStateHint:
+      "Next: LEO returns as a candidate display context.",
+    sceneAnchorType: "representative-meo-actor-if-visible"
+  },
+  "leo-reentry-candidate": {
+    reviewPurpose:
+      "Show LEO returning as a candidate display context after the MEO hold.",
+    whatChangedFromPreviousState:
+      "LEO context reappears as the review focus.",
+    whatToWatch:
+      "LEO candidate/representative cue and transition relationship.",
+    nextStateHint:
+      "Next: the review enters the final GEO continuity guard window.",
+    sceneAnchorType: "representative-leo-actor-if-visible"
+  },
+  "geo-continuity-guard": {
+    reviewPurpose:
+      "Show GEO as continuity guard context, not active failover proof.",
+    whatChangedFromPreviousState:
+      "The display context enters the final guard window.",
+    whatToWatch:
+      "GEO guard cue and final hold semantics.",
+    nextStateHint:
+      "Final state: restart returns the review to LEO acquire.",
+    sceneAnchorType: "geo-guard-cue-or-representative-geo-anchor"
+  }
+} satisfies Record<
+  M8aV46dSimulationHandoverWindowId,
+  {
+    reviewPurpose: string;
+    whatChangedFromPreviousState: string;
+    whatToWatch: string;
+    nextStateHint: string;
+    sceneAnchorType:
+      | "representative-actor-if-visible"
+      | "representative-meo-actor-if-visible"
+      | "representative-leo-actor-if-visible"
+      | "geo-guard-cue-or-representative-geo-anchor";
+  }
+>;
 const M8A_V4_DISPLAY_ORBIT_HEIGHT_METERS = {
   leo: {
     start: 280_000,
@@ -202,6 +274,15 @@ const M8A_V4_TELEMETRY_KEYS = [
   "m8aV47ActiveWindowId",
   "m8aV47TruthBadges",
   "m8aV47LayoutPolicy",
+  "m8aV48UiIaVersion",
+  "m8aV48InfoClassSeam",
+  "m8aV48ReviewWindowId",
+  "m8aV48ReviewStateOrdinal",
+  "m8aV48ReviewRepresentativeActorId",
+  "m8aV48ReviewCandidateContextActorIds",
+  "m8aV48ReviewFallbackContextActorIds",
+  "m8aV48ReviewRelationCueRole",
+  "m8aV48SceneAnchorState",
   "m8aV4GroundStationRawItriSideReadOwnership",
   "m8aV4GroundStationRuntimeConsumptionRule",
   "m8aV4GroundStationProofSeam",
@@ -262,6 +343,51 @@ interface M8aV4ActorRuntimeRecord {
   propagationTimeUtc: string;
   emphasis: M8aV4ActorEmphasis["emphasis"];
   labelVisibility: "always-visible" | "hidden-context";
+}
+
+type M8aV48InfoClass = "fixed" | "dynamic" | "disclosure" | "control";
+
+interface M8aV48ReviewActorReference {
+  actorId: M8aV46dActorId;
+  label: string;
+  orbitClass: M8aV4OrbitClass;
+}
+
+interface M8aV48SceneAnchorStatePlaceholder {
+  state: "phase1-placeholder";
+  selectedAnchorType:
+    (typeof M8A_V48_REVIEW_COPY)[M8aV46dSimulationHandoverWindowId]["sceneAnchorType"];
+  selectedActorId: M8aV46dActorId;
+  selectedRelationCueId:
+    | "m8a-v46e-simulation-displayRepresentative-context-ribbon"
+    | "m8a-v46e-simulation-geo-guard-cue";
+  anchorClaim: "placeholder-only-no-final-geometry-claim";
+}
+
+interface M8aV48RelationCueRole {
+  primary: "displayRepresentative";
+  secondary: "candidateContext";
+  displayLabel: "displayRepresentative primary; candidateContext secondary";
+}
+
+interface M8aV48HandoverReviewViewModel {
+  version: typeof M8A_V48_UI_IA_VERSION;
+  windowId: M8aV46dSimulationHandoverWindowId;
+  productLabel: string;
+  stateIndex: number;
+  stateCount: number;
+  stateOrdinalLabel: string;
+  representativeActor: M8aV48ReviewActorReference;
+  candidateContextActors: ReadonlyArray<M8aV48ReviewActorReference>;
+  fallbackContextActors: ReadonlyArray<M8aV48ReviewActorReference>;
+  reviewPurpose: string;
+  whatChangedFromPreviousState: string;
+  whatToWatch: string;
+  nextStateHint: string;
+  relationCueRole: M8aV48RelationCueRole;
+  sceneAnchorState: M8aV48SceneAnchorStatePlaceholder;
+  truthBoundarySummary:
+    "Display-context simulation review; not active satellite, gateway, path, measured metric, native RF handover, or operator log truth.";
 }
 
 export interface M8aV4GroundStationSceneState {
@@ -354,6 +480,9 @@ export interface M8aV4GroundStationSceneState {
   };
   productUx: {
     version: typeof M8A_V47_PRODUCT_UX_VERSION;
+    uiIaVersion: typeof M8A_V48_UI_IA_VERSION;
+    infoClassSeam: "data-m8a-v48-info-class";
+    infoClassValues: ReadonlyArray<M8aV48InfoClass>;
     playbackPolicy: {
       defaultMultiplier: typeof M8A_V47_PRODUCT_DEFAULT_MULTIPLIER;
       guidedReviewMultiplier: typeof M8A_V47_GUIDED_REVIEW_MULTIPLIER;
@@ -392,6 +521,7 @@ export interface M8aV4GroundStationSceneState {
     stateLabels: Record<M8aV46dSimulationHandoverWindowId, string>;
     activeWindowId: M8aV46dSimulationHandoverWindowId;
     activeProductLabel: string;
+    reviewViewModel: M8aV48HandoverReviewViewModel;
     truthBadges: typeof M8A_V47_TRUTH_BADGES;
     disclosure: {
       state: M8aV47DisclosureState;
@@ -804,6 +934,96 @@ function resolveTimelineLabel(
   windowId: M8aV46dSimulationHandoverWindowId
 ): string {
   return M8A_V46E_TIMELINE_LABELS[windowId];
+}
+
+function resolveReviewActorReference(
+  actorId: M8aV46dActorId
+): M8aV48ReviewActorReference {
+  const actor = M8A_V4_GROUND_STATION_RUNTIME_PROJECTION.orbitActors.find(
+    (candidate) => candidate.actorId === actorId
+  );
+
+  if (!actor) {
+    throw new Error(`Missing V4.8 review actor ${actorId}.`);
+  }
+
+  return {
+    actorId,
+    label: actor.label,
+    orbitClass: actor.orbitClass
+  };
+}
+
+function resolveV48StateOrdinalLabel(
+  timeline: ReadonlyArray<M8aV46dSimulationHandoverWindow>,
+  windowId: M8aV46dSimulationHandoverWindowId
+): {
+  stateIndex: number;
+  stateCount: number;
+  stateOrdinalLabel: string;
+} {
+  const stateCount = timeline.length;
+  const zeroBasedIndex = timeline.findIndex((windowDefinition) => {
+    return windowDefinition.windowId === windowId;
+  });
+  const stateIndex = zeroBasedIndex >= 0 ? zeroBasedIndex + 1 : 1;
+
+  return {
+    stateIndex,
+    stateCount,
+    stateOrdinalLabel: `State ${stateIndex} of ${stateCount}`
+  };
+}
+
+function buildV48HandoverReviewViewModel(
+  simulationHandoverModel: M8aV4GroundStationSceneState["simulationHandoverModel"]
+): M8aV48HandoverReviewViewModel {
+  const windowDefinition = simulationHandoverModel.window;
+  const productLabel = resolveTimelineLabel(windowDefinition.windowId);
+  const ordinal = resolveV48StateOrdinalLabel(
+    simulationHandoverModel.timeline,
+    windowDefinition.windowId
+  );
+  const reviewCopy = M8A_V48_REVIEW_COPY[windowDefinition.windowId];
+  const selectedRelationCueId =
+    windowDefinition.windowId === "geo-continuity-guard"
+      ? "m8a-v46e-simulation-geo-guard-cue"
+      : "m8a-v46e-simulation-displayRepresentative-context-ribbon";
+
+  return {
+    version: M8A_V48_UI_IA_VERSION,
+    windowId: windowDefinition.windowId,
+    productLabel,
+    ...ordinal,
+    representativeActor: resolveReviewActorReference(
+      windowDefinition.displayRepresentativeActorId
+    ),
+    candidateContextActors: windowDefinition.candidateContextActorIds.map(
+      resolveReviewActorReference
+    ),
+    fallbackContextActors: windowDefinition.fallbackContextActorIds.map(
+      resolveReviewActorReference
+    ),
+    reviewPurpose: reviewCopy.reviewPurpose,
+    whatChangedFromPreviousState: reviewCopy.whatChangedFromPreviousState,
+    whatToWatch: reviewCopy.whatToWatch,
+    nextStateHint: reviewCopy.nextStateHint,
+    relationCueRole: {
+      primary: "displayRepresentative",
+      secondary: "candidateContext",
+      displayLabel:
+        "displayRepresentative primary; candidateContext secondary"
+    },
+    sceneAnchorState: {
+      state: "phase1-placeholder",
+      selectedAnchorType: reviewCopy.sceneAnchorType,
+      selectedActorId: windowDefinition.displayRepresentativeActorId,
+      selectedRelationCueId,
+      anchorClaim: "placeholder-only-no-final-geometry-claim"
+    },
+    truthBoundarySummary:
+      "Display-context simulation review; not active satellite, gateway, path, measured metric, native RF handover, or operator log truth."
+  };
 }
 
 function resolvePlaybackMode(
@@ -1221,13 +1441,15 @@ function createProductUxRoot(): HTMLElement {
   const root = document.createElement("section");
   root.className = "m8a-v47-product-ux";
   root.dataset.m8aV47ProductUx = "true";
-  root.setAttribute("aria-label", "M8A V4.7.1 product review controls");
+  root.dataset.m8aV48UiIaVersion = M8A_V48_UI_IA_VERSION;
+  root.setAttribute("aria-label", "M8A V4.8 handover review controls");
   return root;
 }
 
 function renderTruthBadges(): string {
   return M8A_V47_TRUTH_BADGES.map(
-    (badge) => `<span data-m8a-v47-truth-badge="${badge}">${badge}</span>`
+    (badge) =>
+      `<span data-m8a-v47-truth-badge="${badge}" data-m8a-v48-info-class="fixed">${badge}</span>`
   ).join("");
 }
 
@@ -1239,6 +1461,7 @@ function renderSpeedButtons(activeMultiplier: number): string {
       `<button type="button" class="m8a-v47-product-ux__speed"`,
       ` data-m8a-v47-action="speed"`,
       ` data-m8a-v47-playback-multiplier="${multiplier}"`,
+      ` data-m8a-v48-info-class="control"`,
       ` aria-pressed="${isActive ? "true" : "false"}">`,
       `${multiplier}x`,
       "</button>"
@@ -1246,31 +1469,20 @@ function renderSpeedButtons(activeMultiplier: number): string {
   }).join("");
 }
 
-function renderStagePills(
-  timeline: ReadonlyArray<M8aV46dSimulationHandoverWindow>,
-  stateLabels: Record<M8aV46dSimulationHandoverWindowId, string>,
-  activeWindowId: M8aV46dSimulationHandoverWindowId
-): string {
-  return timeline
-    .map((windowDefinition) => {
-      const label = stateLabels[windowDefinition.windowId];
-      const isActive = windowDefinition.windowId === activeWindowId;
-
-      return [
-        `<span class="m8a-v47-product-ux__stage"`,
-        ` data-m8a-v47-window-id="${windowDefinition.windowId}"`,
-        ` data-active="${isActive ? "true" : "false"}">`,
-        label,
-        "</span>"
-      ].join("");
-    })
-    .join("");
-}
-
 function renderDisclosureLines(): string {
   return M8A_V47_DISCLOSURE_LINES.map(
-    (line) => `<li>${line}</li>`
+    (line) => `<li data-m8a-v48-info-class="disclosure">${line}</li>`
   ).join("");
+}
+
+function formatReviewActor(actor: M8aV48ReviewActorReference): string {
+  return `${actor.label} (${actor.actorId})`;
+}
+
+function formatReviewActorList(
+  actors: ReadonlyArray<M8aV48ReviewActorReference>
+): string {
+  return actors.map(formatReviewActor).join(", ");
 }
 
 function ensureProductUxStructure(root: HTMLElement): void {
@@ -1280,51 +1492,82 @@ function ensureProductUxStructure(root: HTMLElement): void {
 
   root.innerHTML = `
     <div class="m8a-v47-product-ux__scene-annotation" data-m8a-v47-ui-surface="scene-near-annotation" data-m8a-v47-scene-annotation="true" aria-live="polite">
-      <span>Display-context state</span>
-      <strong data-m8a-v47-active-label="scene-annotation"></strong>
-      <small data-m8a-v47-annotation-context="true">Representative display cue</small>
+      <span data-m8a-v48-info-class="fixed">Display-context state</span>
+      <strong data-m8a-v47-active-label="scene-annotation" data-m8a-v48-info-class="dynamic"></strong>
+      <small data-m8a-v47-annotation-context="true" data-m8a-v48-info-class="dynamic">Representative display cue</small>
     </div>
     <div class="m8a-v47-product-ux__strip" data-m8a-v47-ui-surface="compact-control-strip" data-m8a-v47-control-strip="true">
       <div class="m8a-v47-product-ux__strip-state">
-        <span>Display state</span>
-        <strong data-m8a-v47-active-label="strip"></strong>
-        <small data-m8a-v47-time-label="simulated"></small>
+        <span data-m8a-v48-info-class="fixed">Display state</span>
+        <strong data-m8a-v47-active-label="strip" data-m8a-v48-info-class="dynamic"></strong>
+        <small data-m8a-v48-state-ordinal="strip" data-m8a-v48-info-class="dynamic">State 1 of 5</small>
       </div>
-      <button type="button" class="m8a-v47-product-ux__play-toggle" data-m8a-v47-action="pause" data-m8a-v47-control-id="play-pause">Pause</button>
-      <button type="button" data-m8a-v47-action="restart" data-m8a-v47-control-id="restart">Restart</button>
+      <button type="button" class="m8a-v47-product-ux__play-toggle" data-m8a-v47-action="pause" data-m8a-v47-control-id="play-pause" data-m8a-v48-info-class="control">Pause</button>
+      <button type="button" data-m8a-v47-action="restart" data-m8a-v47-control-id="restart" data-m8a-v48-info-class="control">Restart</button>
       <div class="m8a-v47-product-ux__strip-speeds" data-m8a-v47-control-group="speed">
         ${renderSpeedButtons(M8A_V47_PRODUCT_DEFAULT_MULTIPLIER)}
       </div>
-      <progress class="m8a-v47-product-ux__progress" max="1" value="0" data-m8a-v47-progress="true"></progress>
-      <button type="button" data-m8a-v47-action="toggle-disclosure" data-m8a-v47-control-id="details-toggle" aria-expanded="false">Details</button>
+      <progress class="m8a-v47-product-ux__progress" max="1" value="0" data-m8a-v47-progress="true" data-m8a-v48-info-class="dynamic" hidden aria-hidden="true"></progress>
+      <button type="button" data-m8a-v47-action="toggle-disclosure" data-m8a-v47-control-id="details-toggle" data-m8a-v48-info-class="control" aria-expanded="false">Details</button>
       <div class="m8a-v47-product-ux__badges m8a-v47-product-ux__badges--strip" data-m8a-v47-truth-badges="true">
         ${renderTruthBadges()}
       </div>
     </div>
-    <aside class="m8a-v47-product-ux__sheet" data-m8a-v47-ui-surface="inspection-sheet" hidden>
+    <aside class="m8a-v47-product-ux__sheet" data-m8a-v47-ui-surface="inspection-sheet" data-m8a-v48-inspector="true" hidden>
       <div class="m8a-v47-product-ux__sheet-header">
-        <strong>Display-context details</strong>
-        <button type="button" data-m8a-v47-action="close-disclosure" data-m8a-v47-control-id="details-close">Close</button>
+        <strong data-m8a-v48-info-class="fixed">Handover review</strong>
+        <button type="button" data-m8a-v47-action="close-disclosure" data-m8a-v47-control-id="details-close" data-m8a-v48-info-class="control">Close</button>
       </div>
       <div class="m8a-v47-product-ux__sheet-state">
-        <span>Current state</span>
-        <strong data-m8a-v47-active-label="sheet"></strong>
-        <small data-m8a-v47-time-label="replay-utc"></small>
+        <span data-m8a-v48-info-class="fixed">Current state</span>
+        <strong data-m8a-v47-active-label="sheet" data-m8a-v48-info-class="dynamic"></strong>
+        <small data-m8a-v48-state-ordinal="sheet" data-m8a-v48-info-class="dynamic">State 1 of 5</small>
+        <small data-m8a-v47-time-label="replay-utc" data-m8a-v48-info-class="dynamic"></small>
+        <small data-m8a-v47-time-label="simulated" data-m8a-v48-info-class="dynamic"></small>
       </div>
-      <div class="m8a-v47-product-ux__stages" data-m8a-v47-label-map="v4.6d-window-id-to-product-label">
-        ${renderStagePills(
-          M8A_V4_GROUND_STATION_RUNTIME_PROJECTION.simulationHandoverModel
-            .timeline,
-          M8A_V46E_TIMELINE_LABELS,
-          "leo-acquisition-context"
-        )}
+      <div class="m8a-v47-product-ux__inspector" data-m8a-v48-inspector-body="true">
+        <section class="m8a-v47-product-ux__review-section" data-m8a-v48-review-section="purpose">
+          <span data-m8a-v48-info-class="fixed">Review purpose</span>
+          <p data-m8a-v48-review-purpose="true" data-m8a-v48-info-class="dynamic"></p>
+        </section>
+        <section class="m8a-v47-product-ux__review-section" data-m8a-v48-review-section="actors">
+          <span data-m8a-v48-info-class="fixed">Actors</span>
+          <dl class="m8a-v47-product-ux__actor-list">
+            <div>
+              <dt data-m8a-v48-info-class="fixed">Representative</dt>
+              <dd data-m8a-v48-review-representative="true" data-m8a-v48-info-class="dynamic"></dd>
+            </div>
+            <div>
+              <dt data-m8a-v48-info-class="fixed">Candidate context</dt>
+              <dd data-m8a-v48-review-candidates="true" data-m8a-v48-info-class="dynamic"></dd>
+            </div>
+            <div>
+              <dt data-m8a-v48-info-class="fixed">Fallback context</dt>
+              <dd data-m8a-v48-review-fallbacks="true" data-m8a-v48-info-class="dynamic"></dd>
+            </div>
+          </dl>
+        </section>
+        <section class="m8a-v47-product-ux__review-section" data-m8a-v48-review-section="change-watch">
+          <span data-m8a-v48-info-class="fixed">Review notes</span>
+          <p data-m8a-v48-review-changed="true" data-m8a-v48-info-class="dynamic"></p>
+          <p data-m8a-v48-review-watch="true" data-m8a-v48-info-class="dynamic"></p>
+          <p data-m8a-v48-review-next="true" data-m8a-v48-info-class="dynamic"></p>
+        </section>
+        <section class="m8a-v47-product-ux__review-section" data-m8a-v48-review-section="scene-cue">
+          <span data-m8a-v48-info-class="fixed">Scene cue</span>
+          <p data-m8a-v48-review-cue="true" data-m8a-v48-info-class="dynamic"></p>
+        </section>
       </div>
       <div class="m8a-v47-product-ux__badges">
         ${renderTruthBadges()}
       </div>
+      <div class="m8a-v47-product-ux__disclosure" data-m8a-v48-review-section="disclosure">
+        <span data-m8a-v48-info-class="disclosure">Truth boundary</span>
+        <p data-m8a-v48-review-truth-boundary="true" data-m8a-v48-info-class="disclosure"></p>
       <ul>
         ${renderDisclosureLines()}
       </ul>
+      </div>
     </aside>
   `;
   root.dataset.m8aV471StableControls = "true";
@@ -1431,6 +1674,13 @@ function renderProductUx(
     productUx.playback.status === "playing" ? "pause" : "play";
   const playbackLabel =
     productUx.playback.status === "playing" ? "Pause" : "Play";
+  const review = productUx.reviewViewModel;
+  const candidateActorIds = review.candidateContextActors.map(
+    (actor) => actor.actorId
+  );
+  const fallbackActorIds = review.fallbackContextActors.map(
+    (actor) => actor.actorId
+  );
   const sheetOpen = productUx.disclosure.state === "open";
   const progressValue = productUx.playback.replayRatio.toFixed(6);
   const placement = resolveSceneAnnotationPlacement(state, viewer);
@@ -1447,6 +1697,16 @@ function renderProductUx(
   root.dataset.replayProgressRatio = progressValue;
   root.dataset.truthDisclosure = productUx.disclosure.state;
   root.dataset.normalControlsExposeDebugMultiplier = "false";
+  root.dataset.m8aV48UiIaVersion = productUx.uiIaVersion;
+  root.dataset.m8aV48InfoClassSeam = productUx.infoClassSeam;
+  root.dataset.m8aV48InfoClassValues = serializeList(productUx.infoClassValues);
+  root.dataset.m8aV48ReviewWindowId = review.windowId;
+  root.dataset.m8aV48ReviewRepresentativeActorId =
+    review.representativeActor.actorId;
+  root.dataset.m8aV48ReviewCandidateContextActorIds =
+    serializeList(candidateActorIds);
+  root.dataset.m8aV48ReviewFallbackContextActorIds =
+    serializeList(fallbackActorIds);
 
   updateProductUxText(
     root,
@@ -1455,13 +1715,70 @@ function renderProductUx(
   );
   updateProductUxText(
     root,
-    "[data-m8a-v47-time-label='simulated']",
-    productUx.playback.simulatedReplayTimeDisplay
+    "[data-m8a-v48-state-ordinal]",
+    review.stateOrdinalLabel
   );
   updateProductUxText(
     root,
     "[data-m8a-v47-time-label='replay-utc']",
     productUx.playback.replayUtcDisplay
+  );
+  updateProductUxText(
+    root,
+    "[data-m8a-v47-time-label='simulated']",
+    productUx.playback.simulatedReplayTimeDisplay
+  );
+  updateProductUxText(
+    root,
+    "[data-m8a-v47-annotation-context]",
+    review.windowId === "geo-continuity-guard"
+      ? "GEO guard cue"
+      : "Representative display cue"
+  );
+  updateProductUxText(
+    root,
+    "[data-m8a-v48-review-purpose]",
+    review.reviewPurpose
+  );
+  updateProductUxText(
+    root,
+    "[data-m8a-v48-review-representative]",
+    formatReviewActor(review.representativeActor)
+  );
+  updateProductUxText(
+    root,
+    "[data-m8a-v48-review-candidates]",
+    formatReviewActorList(review.candidateContextActors)
+  );
+  updateProductUxText(
+    root,
+    "[data-m8a-v48-review-fallbacks]",
+    formatReviewActorList(review.fallbackContextActors)
+  );
+  updateProductUxText(
+    root,
+    "[data-m8a-v48-review-changed]",
+    `Changed: ${review.whatChangedFromPreviousState}`
+  );
+  updateProductUxText(
+    root,
+    "[data-m8a-v48-review-watch]",
+    `Watch: ${review.whatToWatch}`
+  );
+  updateProductUxText(
+    root,
+    "[data-m8a-v48-review-next]",
+    review.nextStateHint
+  );
+  updateProductUxText(
+    root,
+    "[data-m8a-v48-review-cue]",
+    `${review.relationCueRole.displayLabel}; scene anchor ${review.sceneAnchorState.selectedAnchorType}; anchor placeholder ${review.sceneAnchorState.state}.`
+  );
+  updateProductUxText(
+    root,
+    "[data-m8a-v48-review-truth-boundary]",
+    review.truthBoundarySummary
   );
 
   const annotation = getProductUxElement(
@@ -1475,6 +1792,9 @@ function renderProductUx(
   annotation.dataset.m8aV47SceneAnchorProjected = String(placement.projected);
   annotation.dataset.m8aV47SceneAnchorX = placement.anchorX.toFixed(1);
   annotation.dataset.m8aV47SceneAnchorY = placement.anchorY.toFixed(1);
+  annotation.dataset.m8aV48SceneAnchorState =
+    review.sceneAnchorState.state;
+  annotation.dataset.sceneAnchorState = review.sceneAnchorState.state;
   annotation.style.left = `${placement.left.toFixed(1)}px`;
   annotation.style.top = `${placement.top.toFixed(1)}px`;
 
@@ -1512,7 +1832,31 @@ function renderProductUx(
     root,
     "[data-m8a-v47-ui-surface='inspection-sheet']"
   );
+  sheet.dataset.m8aV48WindowId = review.windowId;
+  sheet.dataset.m8aV48RepresentativeActorId =
+    review.representativeActor.actorId;
+  sheet.dataset.m8aV48CandidateContextActorIds =
+    serializeList(candidateActorIds);
+  sheet.dataset.m8aV48FallbackContextActorIds =
+    serializeList(fallbackActorIds);
+  sheet.dataset.m8aV48RelationCueRole = review.relationCueRole.displayLabel;
+  sheet.dataset.m8aV48SceneAnchorState = review.sceneAnchorState.state;
+  sheet.dataset.sceneAnchorState = review.sceneAnchorState.state;
   setProductUxHidden(sheet, !sheetOpen);
+
+  const inspectorBody = getProductUxElement(
+    root,
+    "[data-m8a-v48-inspector-body='true']"
+  );
+  inspectorBody.dataset.m8aV48WindowId = review.windowId;
+  inspectorBody.dataset.m8aV48RepresentativeActorId =
+    review.representativeActor.actorId;
+  inspectorBody.dataset.m8aV48CandidateContextActorIds =
+    serializeList(candidateActorIds);
+  inspectorBody.dataset.m8aV48FallbackContextActorIds =
+    serializeList(fallbackActorIds);
+  inspectorBody.dataset.m8aV48SceneAnchorState =
+    review.sceneAnchorState.state;
 
   for (const stage of root.querySelectorAll<HTMLElement>(
     "[data-m8a-v47-window-id]"
@@ -1672,6 +2016,26 @@ function cloneState(
       stateLabels: {
         ...state.productUx.stateLabels
       },
+      reviewViewModel: {
+        ...state.productUx.reviewViewModel,
+        representativeActor: {
+          ...state.productUx.reviewViewModel.representativeActor
+        },
+        candidateContextActors:
+          state.productUx.reviewViewModel.candidateContextActors.map(
+            (actor) => ({ ...actor })
+          ),
+        fallbackContextActors:
+          state.productUx.reviewViewModel.fallbackContextActors.map((actor) => ({
+            ...actor
+          })),
+        relationCueRole: {
+          ...state.productUx.reviewViewModel.relationCueRole
+        },
+        sceneAnchorState: {
+          ...state.productUx.reviewViewModel.sceneAnchorState
+        }
+      },
       truthBadges: [...state.productUx.truthBadges] as typeof M8A_V47_TRUTH_BADGES,
       disclosure: {
         ...state.productUx.disclosure,
@@ -1825,6 +2189,28 @@ function syncTelemetry(state: M8aV4GroundStationSceneState): void {
     m8aV47ActiveWindowId: state.productUx.activeWindowId,
     m8aV47TruthBadges: serializeList([...state.productUx.truthBadges]),
     m8aV47LayoutPolicy: `${state.productUx.layout.desktopPolicy}|${state.productUx.layout.narrowPolicy}`,
+    m8aV48UiIaVersion: state.productUx.uiIaVersion,
+    m8aV48InfoClassSeam: state.productUx.infoClassSeam,
+    m8aV48ReviewWindowId: state.productUx.reviewViewModel.windowId,
+    m8aV48ReviewStateOrdinal:
+      state.productUx.reviewViewModel.stateOrdinalLabel,
+    m8aV48ReviewRepresentativeActorId:
+      state.productUx.reviewViewModel.representativeActor.actorId,
+    m8aV48ReviewCandidateContextActorIds: serializeList(
+      state.productUx.reviewViewModel.candidateContextActors.map(
+        (actor) => actor.actorId
+      )
+    ),
+    m8aV48ReviewFallbackContextActorIds: serializeList(
+      state.productUx.reviewViewModel.fallbackContextActors.map(
+        (actor) => actor.actorId
+      )
+    ),
+    m8aV48ReviewRelationCueRole:
+      state.productUx.reviewViewModel.relationCueRole.displayLabel,
+    m8aV48SceneAnchorState: serializeJson(
+      state.productUx.reviewViewModel.sceneAnchorState
+    ),
     m8aV4GroundStationRawItriSideReadOwnership:
       state.sourceLineage.rawPackageSideReadOwnership,
     m8aV4GroundStationRuntimeConsumptionRule:
@@ -1926,12 +2312,17 @@ function buildProductUxState({
   );
   const activeWindowId = simulationHandoverModel.window.windowId;
   const activeProductLabel = resolveTimelineLabel(activeWindowId);
+  const reviewViewModel =
+    buildV48HandoverReviewViewModel(simulationHandoverModel);
   const disclosureState: M8aV47DisclosureState = truthDisclosureOpen
     ? "open"
     : "closed";
 
   return {
     version: M8A_V47_PRODUCT_UX_VERSION,
+    uiIaVersion: M8A_V48_UI_IA_VERSION,
+    infoClassSeam: "data-m8a-v48-info-class",
+    infoClassValues: ["fixed", "dynamic", "disclosure", "control"],
     playbackPolicy: {
       defaultMultiplier: M8A_V47_PRODUCT_DEFAULT_MULTIPLIER,
       guidedReviewMultiplier: M8A_V47_GUIDED_REVIEW_MULTIPLIER,
@@ -1972,6 +2363,7 @@ function buildProductUxState({
     },
     activeWindowId,
     activeProductLabel,
+    reviewViewModel,
     truthBadges: M8A_V47_TRUTH_BADGES,
     disclosure: {
       state: disclosureState,

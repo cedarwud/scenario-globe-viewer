@@ -50,6 +50,7 @@
     "test:m8a-v4.6e": "npm run build && node tests/smoke/verify-m8a-v4.6e-handover-visual-language-runtime.mjs",
     "test:m8a-v4.7": "npm run build && node scripts/verify-m8a-v4.3-raw-itri-side-read.mjs && node scripts/verify-m8a-v4.6b-runtime-source-boundary.mjs && node tests/smoke/verify-m8a-v4.7-handover-product-ux-runtime.mjs",
     "test:m8a-v4.7.1": "npm run test:m8a-v4.7",
+    "test:m8a-v4.8": "npm run build && node scripts/verify-m8a-v4.3-raw-itri-side-read.mjs && node scripts/verify-m8a-v4.6b-runtime-source-boundary.mjs && node tests/smoke/verify-m8a-v4.8-handover-demonstration-ui-ia-runtime.mjs",
     "capture:phase2.12": "node scripts/site-hook-guard.mjs --context=phase2.12-capture && npm run build && node tests/visual/capture-three-preset-baselines.mjs",
     "capture:phase5.3-orbits": "node scripts/site-hook-guard.mjs --context=phase5.3-orbit-capture && npm run build && node tests/visual/capture-phase5.3-orbit-review.mjs",
     "capture:site-dataset": "node scripts/site-dataset-visual-orchestration.mjs",
