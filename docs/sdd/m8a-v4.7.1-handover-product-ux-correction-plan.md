@@ -20,6 +20,8 @@ Related planning-control handoff:
 - doc-only
 - current as of 2026-04-29
 - no runtime implementation authority by itself
+- runtime correction implementation completed after explicit implementation
+  opening on 2026-04-29; accepted runtime commit `4c7ba8a`
 - intended phase: `M8A-V4.7.1` product usability correction
 - baseline runtime commit: `26781b8 Implement M8A V4.7 handover product UX`
 - baseline hardening commit: `df829af Harden M8A V4.7 acceptance records`
@@ -267,6 +269,68 @@ split into small phases:
 
 Each phase must preserve the accepted route, endpoint pair, precision, actor
 set, source boundary, and model truth.
+
+## Runtime Implementation Result
+
+Runtime status:
+
+- completed after explicit `V4.7.1` runtime implementation opening
+- accepted runtime commit: `4c7ba8a Implement M8A V4.7.1 UX correction`
+- no route, endpoint pair, endpoint expansion, precision, actor set, source, or
+  model-truth expansion
+
+Changed runtime and validation files:
+
+- `package.json`
+- `src/runtime/m8a-v4-ground-station-handover-scene-controller.ts`
+- `src/styles.css`
+- `tests/smoke/verify-m8a-v4.7-handover-product-ux-runtime.mjs`
+
+Implemented:
+
+- stable product UX control DOM identity across active replay ticks
+- compact control strip as the primary control surface
+- secondary details sheet, closed by default
+- noninteractive scene-near current-state annotation tied to the display
+  representative context cue
+- readable typography and hit-target thresholds for desktop and narrow
+  viewports
+- real pointer-click validation for play/pause, restart, speed, details open,
+  and details close
+- DOM stability, computed font-size, hit-target, scene-near annotation, and
+  per-state label validation
+- `test:m8a-v4.7.1` alias to the upgraded `test:m8a-v4.7` acceptance smoke
+
+Validation result:
+
+- `git diff --check` passed
+- `npm run test:m8a-v4.7.1` passed
+- `npm run test:m8a-v4.6d` passed
+- `npm run test:m8a-v4.6e` passed
+- `npm run test:m8a-v4.6a` passed
+- `npm run test:m8a-v4.6b` passed
+- raw `itri` side-read scan passed
+- runtime source-boundary scan passed
+- forbidden-claim scan passed
+- real pointer-click matrix passed
+- DOM stability across replay ticks passed
+- computed font-size and hit-target checks passed
+- final hold observed at `4311ms` in local acceptance validation
+- no deviations from this SDD were recorded
+
+Validated screenshots:
+
+- `output/m8a-v4.7.1-desktop-1440x900-product-ux.png`
+- `output/m8a-v4.7.1-desktop-1280x720-product-ux.png`
+- `output/m8a-v4.7.1-narrow-390x844-product-ux.png`
+
+Runtime cleanup:
+
+- no dev server kept
+- smoke-managed temporary static servers exited
+- smoke-managed headless browsers exited
+- no task-owned Playwright, Chrome, or static-server process intentionally
+  retained
 
 ## Blockers / Not Allowed
 
