@@ -2175,7 +2175,7 @@ body {
 .m8a-v47-product-ux__scene-annotation {
   position: absolute;
   z-index: 2;
-  width: 258px;
+  width: 278px;
   min-width: 0;
   display: grid;
   gap: 0.18rem;
@@ -2594,7 +2594,7 @@ body {
   }
 
   .m8a-v47-product-ux__scene-annotation {
-    width: 208px;
+    width: 226px;
     padding: 0.56rem 0.62rem;
   }
 

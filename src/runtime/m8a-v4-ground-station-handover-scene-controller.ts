@@ -77,7 +77,7 @@ const M8A_V47_PRODUCT_UX_VERSION =
 const M8A_V48_UI_IA_VERSION =
   "m8a-v4.8-handover-demonstration-ui-ia-phase3-runtime.v1";
 const M8A_V49_PRODUCT_COMPREHENSION_VERSION =
-  "m8a-v4.9-product-comprehension-slice1-runtime.v1";
+  "m8a-v4.9-product-comprehension-slice2-runtime.v1";
 const M8A_V47_GUIDED_REVIEW_MULTIPLIER = 30;
 const M8A_V47_PRODUCT_DEFAULT_MULTIPLIER = 60;
 const M8A_V47_QUICK_SCAN_MULTIPLIER = 120;
@@ -123,6 +123,17 @@ const M8A_V49_PERSISTENT_DENIED_DEFAULT_CONTENT = [
   "fallback-context-actor-id-arrays",
   "long-truth-badge-row",
   "duplicate-product-progress"
+] as const;
+const M8A_V49_SCENE_NEAR_RELIABLE_VISIBLE_CONTENT = [
+  "orbit-class-token",
+  "product-label",
+  "state-meaning",
+  "watch-cue-label"
+] as const;
+const M8A_V49_SCENE_NEAR_FALLBACK_VISIBLE_CONTENT = [
+  "product-label",
+  "state-ordinal",
+  "no-scene-attachment"
 ] as const;
 const M8A_V49_PRODUCT_COPY = {
   "leo-acquisition-context": {
@@ -360,6 +371,13 @@ const M8A_V4_TELEMETRY_KEYS = [
   "m8aV49WatchCueLabel",
   "m8aV49OrbitClassToken",
   "m8aV49WindowIds",
+  "m8aV49SceneNearMeaningLayer",
+  "m8aV49SceneNearReliableVisibleContent",
+  "m8aV49SceneNearFallbackVisibleContent",
+  "m8aV49SceneNearReliableAnchorRequired",
+  "m8aV49SceneNearFallbackPolicy",
+  "m8aV49SceneNearConnectorPolicy",
+  "m8aV49SceneNearActiveMeaning",
   "m8aV4GroundStationRawItriSideReadOwnership",
   "m8aV4GroundStationRuntimeConsumptionRule",
   "m8aV4GroundStationProofSeam",
@@ -475,6 +493,14 @@ type M8aV48SceneAnchorRuntimeStatus =
   | "geometry-reliable"
   | "fallback";
 
+type M8aV49SceneNearDisplayMode =
+  | "scene-near-meaning"
+  | "persistent-layer-fallback";
+
+type M8aV49SceneNearAttachmentClaim =
+  | "display-context-cue-attachment-only-when-geometry-reliable"
+  | "no-scene-attachment-claimed";
+
 type M8aV48SceneAnchorFallbackReason =
   | "anchor-not-projected"
   | "anchor-outside-viewport"
@@ -562,9 +588,9 @@ interface M8aV49WindowProductCopy {
   transitionRole: string;
 }
 
-interface M8aV49ProductComprehensionSlice1 {
+interface M8aV49ProductComprehensionRuntime {
   version: typeof M8A_V49_PRODUCT_COMPREHENSION_VERSION;
-  scope: "slice1-product-copy-view-model-and-persistent-layer";
+  scope: "slice2-scene-near-meaning-layer-correction";
   windowIds: ReadonlyArray<M8aV46dSimulationHandoverWindowId>;
   activeWindowCopy: M8aV49WindowProductCopy;
   copyInventory: ReadonlyArray<M8aV49WindowProductCopy>;
@@ -576,6 +602,30 @@ interface M8aV49ProductComprehensionSlice1 {
     metadataDefaultVisible: false;
     compactOnNarrowViewport: true;
   };
+  sceneNearMeaningLayer: {
+    scope: "slice2-scene-near-meaning-layer-correction";
+    reliableAnchorRequired: true;
+    reliableVisibleContent: typeof M8A_V49_SCENE_NEAR_RELIABLE_VISIBLE_CONTENT;
+    fallbackVisibleContent: typeof M8A_V49_SCENE_NEAR_FALLBACK_VISIBLE_CONTENT;
+    fallbackPolicy: "persistent-layer-wording-without-scene-attachment";
+    connectorPolicy: "visible-only-when-anchor-geometry-reliable";
+    activeMeaning: string;
+    activeWatchCueLabel: string;
+    activeOrbitClassToken: M8aV49WindowProductCopy["orbitClassToken"];
+  };
+}
+
+interface M8aV49SceneNearRenderState {
+  mode: M8aV49SceneNearDisplayMode;
+  heading: string;
+  productLabel: string;
+  stateMeaning: string;
+  watchCueLabel: string;
+  fallbackText: string;
+  meaningVisible: boolean;
+  cueVisible: boolean;
+  fallbackVisible: boolean;
+  attachmentClaim: M8aV49SceneNearAttachmentClaim;
 }
 
 export interface M8aV4GroundStationSceneState {
@@ -710,7 +760,7 @@ export interface M8aV4GroundStationSceneState {
     activeWindowId: M8aV46dSimulationHandoverWindowId;
     activeProductLabel: string;
     reviewViewModel: M8aV48HandoverReviewViewModel;
-    productComprehension: M8aV49ProductComprehensionSlice1;
+    productComprehension: M8aV49ProductComprehensionRuntime;
     truthBadges: typeof M8A_V47_TRUTH_BADGES;
     disclosure: {
       state: M8aV47DisclosureState;
@@ -1325,21 +1375,22 @@ function resolveV49WindowProductCopy(
   };
 }
 
-function buildV49ProductComprehensionSlice1(
+function buildV49ProductComprehensionRuntime(
   simulationHandoverModel: M8aV4GroundStationSceneState["simulationHandoverModel"]
-): M8aV49ProductComprehensionSlice1 {
+): M8aV49ProductComprehensionRuntime {
   const windowIds = simulationHandoverModel.timeline.map(
     (windowDefinition) => windowDefinition.windowId
   );
   const copyInventory = windowIds.map(resolveV49WindowProductCopy);
+  const activeWindowCopy = resolveV49WindowProductCopy(
+    simulationHandoverModel.window.windowId
+  );
 
   return {
     version: M8A_V49_PRODUCT_COMPREHENSION_VERSION,
-    scope: "slice1-product-copy-view-model-and-persistent-layer",
+    scope: "slice2-scene-near-meaning-layer-correction",
     windowIds,
-    activeWindowCopy: resolveV49WindowProductCopy(
-      simulationHandoverModel.window.windowId
-    ),
+    activeWindowCopy,
     copyInventory,
     persistentLayer: {
       defaultVisibleContent: M8A_V49_PERSISTENT_ALLOWED_CONTENT,
@@ -1348,6 +1399,17 @@ function buildV49ProductComprehensionSlice1(
       longTruthBadgesDefaultVisible: false,
       metadataDefaultVisible: false,
       compactOnNarrowViewport: true
+    },
+    sceneNearMeaningLayer: {
+      scope: "slice2-scene-near-meaning-layer-correction",
+      reliableAnchorRequired: true,
+      reliableVisibleContent: M8A_V49_SCENE_NEAR_RELIABLE_VISIBLE_CONTENT,
+      fallbackVisibleContent: M8A_V49_SCENE_NEAR_FALLBACK_VISIBLE_CONTENT,
+      fallbackPolicy: "persistent-layer-wording-without-scene-attachment",
+      connectorPolicy: "visible-only-when-anchor-geometry-reliable",
+      activeMeaning: activeWindowCopy.firstReadMessage,
+      activeWatchCueLabel: activeWindowCopy.watchCueLabel,
+      activeOrbitClassToken: activeWindowCopy.orbitClassToken
     }
   };
 }
@@ -1828,16 +1890,26 @@ function formatReviewActorList(
 }
 
 function ensureProductUxStructure(root: HTMLElement): void {
-  if (root.dataset.m8aV471StableControls === "true") {
+  const hasSlice2SceneNearStructure = Boolean(
+    root.querySelector("[data-m8a-v49-scene-near-meaning]")
+  );
+
+  if (
+    root.dataset.m8aV471StableControls === "true" &&
+    root.dataset.m8aV49StructureVersion === M8A_V49_PRODUCT_COMPREHENSION_VERSION &&
+    hasSlice2SceneNearStructure
+  ) {
     return;
   }
 
   root.innerHTML = `
     <div class="m8a-v47-product-ux__scene-connector" data-m8a-v48-scene-connector="true" aria-hidden="true" hidden></div>
     <div class="m8a-v47-product-ux__scene-annotation" data-m8a-v47-ui-surface="scene-near-annotation" data-m8a-v47-scene-annotation="true" aria-live="polite">
-      <span data-m8a-v48-info-class="fixed">Display-context state</span>
+      <span data-m8a-v49-scene-near-orbit-token="true" data-m8a-v48-info-class="fixed">Display-context state</span>
       <strong data-m8a-v47-active-label="scene-annotation" data-m8a-v48-info-class="dynamic"></strong>
-      <small data-m8a-v47-annotation-context="true" data-m8a-v48-info-class="dynamic">Representative display cue</small>
+      <small data-m8a-v49-scene-near-meaning="true" data-m8a-v48-info-class="dynamic"></small>
+      <small data-m8a-v47-annotation-context="true" data-m8a-v49-scene-near-cue="true" data-m8a-v48-info-class="dynamic">Representative display cue</small>
+      <small data-m8a-v49-scene-near-fallback="true" data-m8a-v48-info-class="dynamic" hidden></small>
     </div>
     <div class="m8a-v47-product-ux__strip" data-m8a-v47-ui-surface="compact-control-strip" data-m8a-v47-control-strip="true">
       <div class="m8a-v47-product-ux__strip-state">
@@ -1912,6 +1984,7 @@ function ensureProductUxStructure(root: HTMLElement): void {
     </aside>
   `;
   root.dataset.m8aV471StableControls = "true";
+  root.dataset.m8aV49StructureVersion = M8A_V49_PRODUCT_COMPREHENSION_VERSION;
 }
 
 function getProductUxElement(
@@ -2115,8 +2188,8 @@ function resolveSceneAnnotationPlacement(
   }
 
   const isNarrow = state.productUx.layout.viewportClass === "narrow";
-  const annotationWidth = isNarrow ? 208 : 258;
-  const annotationHeight = isNarrow ? 92 : 88;
+  const annotationWidth = isNarrow ? 226 : 278;
+  const annotationHeight = isNarrow ? 116 : 118;
   const minTop = isNarrow ? 258 : 112;
   const maxTop = Math.max(
     minTop,
@@ -2352,6 +2425,44 @@ function placeInspectorSheetAwayFromSelectedCue(
   sheet.dataset.m8aV48InspectorPlacement = selected.placement;
 }
 
+function resolveV49SceneNearRenderState(
+  comprehension: M8aV49ProductComprehensionRuntime,
+  review: M8aV48HandoverReviewViewModel,
+  placement: M8aV48SceneAnchorPlacement
+): M8aV49SceneNearRenderState {
+  const activeCopy = comprehension.activeWindowCopy;
+  const hasReliableGeometry = placement.anchorStatus === "geometry-reliable";
+
+  if (hasReliableGeometry) {
+    return {
+      mode: "scene-near-meaning",
+      heading: `${activeCopy.orbitClassToken} display context`,
+      productLabel: activeCopy.productLabel,
+      stateMeaning: activeCopy.firstReadMessage,
+      watchCueLabel: activeCopy.watchCueLabel,
+      fallbackText: "",
+      meaningVisible: true,
+      cueVisible: true,
+      fallbackVisible: false,
+      attachmentClaim:
+        "display-context-cue-attachment-only-when-geometry-reliable"
+    };
+  }
+
+  return {
+    mode: "persistent-layer-fallback",
+    heading: "Current state",
+    productLabel: activeCopy.productLabel,
+    stateMeaning: "",
+    watchCueLabel: "",
+    fallbackText: `${review.stateOrdinalLabel}; no scene attachment`,
+    meaningVisible: false,
+    cueVisible: false,
+    fallbackVisible: true,
+    attachmentClaim: "no-scene-attachment-claimed"
+  };
+}
+
 function renderProductUx(
   root: HTMLElement,
   state: M8aV4GroundStationSceneState,
@@ -2374,6 +2485,11 @@ function renderProductUx(
   const sheetOpen = productUx.disclosure.state === "open";
   const progressValue = productUx.playback.replayRatio.toFixed(6);
   const placement = resolveSceneAnnotationPlacement(state, viewer);
+  const sceneNear = resolveV49SceneNearRenderState(
+    comprehension,
+    review,
+    placement
+  );
 
   ensureProductUxStructure(root);
   root.hidden = false;
@@ -2407,6 +2523,33 @@ function renderProductUx(
   ]);
   root.dataset.m8aV49PersistentTruthAffordance =
     comprehension.persistentLayer.truthAffordanceLabel;
+  root.dataset.m8aV49SceneNearMeaningLayer =
+    comprehension.sceneNearMeaningLayer.scope;
+  root.dataset.m8aV49SceneNearReliableVisibleContent = serializeList([
+    ...comprehension.sceneNearMeaningLayer.reliableVisibleContent
+  ]);
+  root.dataset.m8aV49SceneNearFallbackVisibleContent = serializeList([
+    ...comprehension.sceneNearMeaningLayer.fallbackVisibleContent
+  ]);
+  root.dataset.m8aV49SceneNearReliableAnchorRequired = String(
+    comprehension.sceneNearMeaningLayer.reliableAnchorRequired
+  );
+  root.dataset.m8aV49SceneNearFallbackPolicy =
+    comprehension.sceneNearMeaningLayer.fallbackPolicy;
+  root.dataset.m8aV49SceneNearConnectorPolicy =
+    comprehension.sceneNearMeaningLayer.connectorPolicy;
+  root.dataset.m8aV49SceneNearActiveMeaning =
+    comprehension.sceneNearMeaningLayer.activeMeaning;
+  root.dataset.m8aV49SceneNearMode = sceneNear.mode;
+  root.dataset.m8aV49SceneNearMeaningVisible = String(
+    sceneNear.meaningVisible
+  );
+  root.dataset.m8aV49SceneNearCueVisible = String(sceneNear.cueVisible);
+  root.dataset.m8aV49SceneNearFallbackVisible = String(
+    sceneNear.fallbackVisible
+  );
+  root.dataset.m8aV49SceneNearAttachmentClaim =
+    sceneNear.attachmentClaim;
   root.dataset.m8aV48ReviewWindowId = review.windowId;
   root.dataset.m8aV48ReviewRepresentativeActorId =
     review.representativeActor.actorId;
@@ -2444,10 +2587,23 @@ function renderProductUx(
   );
   updateProductUxText(
     root,
+    "[data-m8a-v49-scene-near-orbit-token]",
+    sceneNear.heading
+  );
+  updateProductUxText(
+    root,
+    "[data-m8a-v49-scene-near-meaning]",
+    sceneNear.stateMeaning
+  );
+  updateProductUxText(
+    root,
     "[data-m8a-v47-annotation-context]",
-    placement.anchorStatus === "geometry-reliable"
-      ? comprehension.activeWindowCopy.watchCueLabel
-      : "State label only; no scene anchor"
+    sceneNear.watchCueLabel
+  );
+  updateProductUxText(
+    root,
+    "[data-m8a-v49-scene-near-fallback]",
+    sceneNear.fallbackText
   );
   updateProductUxText(
     root,
@@ -2502,6 +2658,19 @@ function renderProductUx(
     "[data-m8a-v47-scene-annotation='true']"
   );
   annotation.dataset.m8aV47WindowId = productUx.activeWindowId;
+  annotation.dataset.m8aV49SceneNearMode = sceneNear.mode;
+  annotation.dataset.m8aV49SceneNearMeaningVisible = String(
+    sceneNear.meaningVisible
+  );
+  annotation.dataset.m8aV49SceneNearCueVisible = String(sceneNear.cueVisible);
+  annotation.dataset.m8aV49SceneNearFallbackVisible = String(
+    sceneNear.fallbackVisible
+  );
+  annotation.dataset.m8aV49SceneNearMeaningText = sceneNear.stateMeaning;
+  annotation.dataset.m8aV49SceneNearCueText = sceneNear.watchCueLabel;
+  annotation.dataset.m8aV49SceneNearFallbackText = sceneNear.fallbackText;
+  annotation.dataset.m8aV49SceneNearAttachmentClaim =
+    sceneNear.attachmentClaim;
   annotation.dataset.m8aV47SceneAnchorKind =
     "display-representative-context-cue";
   annotation.dataset.m8aV47SceneAnchorActorId = placement.anchorActorId;
@@ -2537,10 +2706,29 @@ function renderProductUx(
   annotation.style.left = `${placement.left.toFixed(1)}px`;
   annotation.style.top = `${placement.top.toFixed(1)}px`;
 
+  const sceneNearMeaning = getProductUxElement(
+    root,
+    "[data-m8a-v49-scene-near-meaning='true']"
+  );
+  setProductUxHidden(sceneNearMeaning, !sceneNear.meaningVisible);
+  const sceneNearCue = getProductUxElement(
+    root,
+    "[data-m8a-v47-annotation-context]"
+  );
+  sceneNearCue.dataset.m8aV49SceneNearCue = "true";
+  setProductUxHidden(sceneNearCue, !sceneNear.cueVisible);
+  const sceneNearFallback = getProductUxElement(
+    root,
+    "[data-m8a-v49-scene-near-fallback='true']"
+  );
+  setProductUxHidden(sceneNearFallback, !sceneNear.fallbackVisible);
+
   const connector = getProductUxElement(
     root,
     "[data-m8a-v48-scene-connector='true']"
   );
+  connector.dataset.m8aV49SceneNearAttachmentClaim =
+    sceneNear.attachmentClaim;
   connector.dataset.m8aV48AnchorStatus = placement.anchorStatus;
   connector.dataset.m8aV48SelectedAnchorType = placement.selectedAnchorType;
   connector.dataset.m8aV48SelectedActorId = placement.selectedActorId;
@@ -2859,6 +3047,17 @@ function cloneState(
             ...state.productUx.productComprehension.persistentLayer
               .deniedDefaultVisibleContent
           ] as typeof M8A_V49_PERSISTENT_DENIED_DEFAULT_CONTENT
+        },
+        sceneNearMeaningLayer: {
+          ...state.productUx.productComprehension.sceneNearMeaningLayer,
+          reliableVisibleContent: [
+            ...state.productUx.productComprehension.sceneNearMeaningLayer
+              .reliableVisibleContent
+          ] as typeof M8A_V49_SCENE_NEAR_RELIABLE_VISIBLE_CONTENT,
+          fallbackVisibleContent: [
+            ...state.productUx.productComprehension.sceneNearMeaningLayer
+              .fallbackVisibleContent
+          ] as typeof M8A_V49_SCENE_NEAR_FALLBACK_VISIBLE_CONTENT
         }
       },
       truthBadges: [...state.productUx.truthBadges] as typeof M8A_V47_TRUTH_BADGES,
@@ -3059,6 +3258,26 @@ function syncTelemetry(state: M8aV4GroundStationSceneState): void {
     m8aV49WindowIds: serializeList(
       state.productUx.productComprehension.windowIds
     ),
+    m8aV49SceneNearMeaningLayer:
+      state.productUx.productComprehension.sceneNearMeaningLayer.scope,
+    m8aV49SceneNearReliableVisibleContent: serializeList([
+      ...state.productUx.productComprehension.sceneNearMeaningLayer
+        .reliableVisibleContent
+    ]),
+    m8aV49SceneNearFallbackVisibleContent: serializeList([
+      ...state.productUx.productComprehension.sceneNearMeaningLayer
+        .fallbackVisibleContent
+    ]),
+    m8aV49SceneNearReliableAnchorRequired: String(
+      state.productUx.productComprehension.sceneNearMeaningLayer
+        .reliableAnchorRequired
+    ),
+    m8aV49SceneNearFallbackPolicy:
+      state.productUx.productComprehension.sceneNearMeaningLayer.fallbackPolicy,
+    m8aV49SceneNearConnectorPolicy:
+      state.productUx.productComprehension.sceneNearMeaningLayer.connectorPolicy,
+    m8aV49SceneNearActiveMeaning:
+      state.productUx.productComprehension.sceneNearMeaningLayer.activeMeaning,
     m8aV4GroundStationRawItriSideReadOwnership:
       state.sourceLineage.rawPackageSideReadOwnership,
     m8aV4GroundStationRuntimeConsumptionRule:
@@ -3163,7 +3382,7 @@ function buildProductUxState({
   const reviewViewModel =
     buildV48HandoverReviewViewModel(simulationHandoverModel);
   const productComprehension =
-    buildV49ProductComprehensionSlice1(simulationHandoverModel);
+    buildV49ProductComprehensionRuntime(simulationHandoverModel);
   const disclosureState: M8aV47DisclosureState = truthDisclosureOpen
     ? "open"
     : "closed";

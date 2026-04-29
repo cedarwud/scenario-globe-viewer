@@ -15,6 +15,8 @@ Related V4.8 Phase 3 final handoff:
 [./m8a-v4.8-handover-demonstration-ui-ia-phase3-final-handoff.md](./m8a-v4.8-handover-demonstration-ui-ia-phase3-final-handoff.md).
 Related V4.9 Slice 1 final handoff:
 [./m8a-v4.9-product-comprehension-slice1-final-handoff.md](./m8a-v4.9-product-comprehension-slice1-final-handoff.md).
+Related V4.9 Slice 2 final handoff:
+[./m8a-v4.9-product-comprehension-slice2-final-handoff.md](./m8a-v4.9-product-comprehension-slice2-final-handoff.md).
 Related V4.6D model contract:
 [./m8a-v4.6d-simulation-handover-model-contract.md](./m8a-v4.6d-simulation-handover-model-contract.md).
 
@@ -22,13 +24,15 @@ Related V4.6D model contract:
 
 - planning-control SDD delta
 - doc-only
-- current as of 2026-04-29
+- current as of 2026-04-30
 - intended phase: `M8A-V4.9` product comprehension and progressive disclosure
 - no runtime implementation authority by itself
 - starts from the accepted `M8A-V4.8` Phase 3 runtime baseline
 - accepted by planning/control for runtime Slice 1 on 2026-04-29
 - Runtime Slice 1 is closed for product copy/view-model inventory and
   persistent layer correction
+- accepted by planning/control for runtime Slice 2 on 2026-04-30
+- Runtime Slice 2 is closed for scene-near meaning layer correction
 - no remaining `V4.9` runtime slice is open from this SDD by itself
 
 ## Current Understanding
@@ -392,8 +396,8 @@ Visual checks must fail if:
 ## Implementation Phase Breakdown
 
 This SDD is the product-comprehension planning authority. Runtime
-implementation remains phase-gated. Slice 1 has been opened and closed; the
-remaining phases require a new explicit planning/control decision.
+implementation remains phase-gated. Slice 1 and Slice 2 have been opened and
+closed; the remaining phases require a new explicit planning/control decision.
 
 1. Product copy and view-model inventory - closed by Runtime Slice 1
    - define first-read and inspector copy per state
@@ -405,7 +409,7 @@ remaining phases require a new explicit planning/control decision.
      details trigger
    - collapse narrow truth badges into an inspectable affordance
    - preserve stable control rendering and clickability
-3. Scene-near meaning layer correction
+3. Scene-near meaning layer correction - closed by Runtime Slice 2
    - shorten state annotation copy
    - show orbit-class/state meaning only when anchor geometry is reliable
    - preserve fallback behavior for unreliable anchors
@@ -434,13 +438,16 @@ Runtime implementation may open only after:
 - route, endpoint pair, precision, actor set, source boundary, `R2` read-only
   boundary, and `V4.6D` model truth remain unchanged
 
-These conditions were met for Runtime Slice 1. They must be re-applied for any
-future `V4.9` runtime slice.
+These conditions were met for Runtime Slice 1 and Runtime Slice 2. They must be
+re-applied for any future `V4.9` runtime slice.
 
 ## Current Runtime Closeout
 
 Runtime Slice 1 is closed by
 [m8a-v4.9-product-comprehension-slice1-final-handoff.md](./m8a-v4.9-product-comprehension-slice1-final-handoff.md).
+
+Runtime Slice 2 is closed by
+[m8a-v4.9-product-comprehension-slice2-final-handoff.md](./m8a-v4.9-product-comprehension-slice2-final-handoff.md).
 
 Accepted result:
 
@@ -451,6 +458,10 @@ Accepted result:
   details trigger
 - long truth badges, actor ids, cue ids, selected anchor ids, and long
   candidate/fallback arrays are not default-visible in the persistent layer
+- scene-near meaning maps to the active `V4.6D` window when existing V4.8
+  anchor geometry is reliable
+- unreliable anchors fall back to persistent wording with explicit no-scene
+  attachment and no connector
 - `npm run test:m8a-v4.8` and `npm run test:m8a-v4.9` were reported passing
 - route, endpoint pair, precision, actor set, source boundary, `R2` read-only
   boundary, and `V4.6D` model truth remain unchanged

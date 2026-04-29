@@ -21,7 +21,8 @@ const EXPECTED_MODEL_ID = "m8a-v4.6d-simulation-handover-model.v1";
 const EXPECTED_V48_VERSION =
   "m8a-v4.8-handover-demonstration-ui-ia-phase3-runtime.v1";
 const EXPECTED_V49_VERSION =
-  "m8a-v4.9-product-comprehension-slice1-runtime.v1";
+  "m8a-v4.9-product-comprehension-slice2-runtime.v1";
+const EXPECTED_V49_SCOPE = "slice2-scene-near-meaning-layer-correction";
 const EXPECTED_ACTOR_COUNTS = { leo: 6, meo: 5, geo: 2 };
 const EXPECTED_WINDOW_IDS = [
   "leo-acquisition-context",
@@ -49,6 +50,17 @@ const EXPECTED_DENIED_PERSISTENT_CONTENT = [
   "fallback-context-actor-id-arrays",
   "long-truth-badge-row",
   "duplicate-product-progress"
+];
+const EXPECTED_SCENE_NEAR_RELIABLE_CONTENT = [
+  "orbit-class-token",
+  "product-label",
+  "state-meaning",
+  "watch-cue-label"
+];
+const EXPECTED_SCENE_NEAR_FALLBACK_CONTENT = [
+  "product-label",
+  "state-ordinal",
+  "no-scene-attachment"
 ];
 const EXPECTED_PRODUCT_COPY = {
   "leo-acquisition-context": {
@@ -306,6 +318,13 @@ async function capturePersistentLayer(client) {
       const productRoot = document.querySelector("[data-m8a-v47-product-ux='true']");
       const strip = productRoot?.querySelector("[data-m8a-v47-control-strip='true']");
       const sheet = productRoot?.querySelector("[data-m8a-v47-ui-surface='inspection-sheet']");
+      const annotation = productRoot?.querySelector("[data-m8a-v47-scene-annotation='true']");
+      const connector = productRoot?.querySelector("[data-m8a-v48-scene-connector='true']");
+      const sceneNearMeaning = annotation?.querySelector("[data-m8a-v49-scene-near-meaning='true']");
+      const sceneNearCue = annotation?.querySelector(
+        "[data-m8a-v49-scene-near-cue='true'], [data-m8a-v47-annotation-context='true']"
+      );
+      const sceneNearFallback = annotation?.querySelector("[data-m8a-v49-scene-near-fallback='true']");
       const truthAffordance = strip?.querySelector("[data-m8a-v49-truth-affordance='compact']");
       const detailsTrigger = strip?.querySelector("[data-m8a-v47-control-id='details-toggle']");
       const visibleStripTruthBadges = Array.from(
@@ -341,6 +360,30 @@ async function capturePersistentLayer(client) {
           firstReadMessage: productRoot?.dataset.m8aV49FirstReadMessage ?? null,
           watchCueLabel: productRoot?.dataset.m8aV49WatchCueLabel ?? null,
           orbitClassToken: productRoot?.dataset.m8aV49OrbitClassToken ?? null,
+          sceneNearMeaningLayer:
+            productRoot?.dataset.m8aV49SceneNearMeaningLayer ?? null,
+          sceneNearReliableVisibleContent:
+            productRoot?.dataset.m8aV49SceneNearReliableVisibleContent ?? null,
+          sceneNearFallbackVisibleContent:
+            productRoot?.dataset.m8aV49SceneNearFallbackVisibleContent ?? null,
+          sceneNearReliableAnchorRequired:
+            productRoot?.dataset.m8aV49SceneNearReliableAnchorRequired ?? null,
+          sceneNearFallbackPolicy:
+            productRoot?.dataset.m8aV49SceneNearFallbackPolicy ?? null,
+          sceneNearConnectorPolicy:
+            productRoot?.dataset.m8aV49SceneNearConnectorPolicy ?? null,
+          sceneNearActiveMeaning:
+            productRoot?.dataset.m8aV49SceneNearActiveMeaning ?? null,
+          sceneNearMode:
+            productRoot?.dataset.m8aV49SceneNearMode ?? null,
+          sceneNearMeaningVisible:
+            productRoot?.dataset.m8aV49SceneNearMeaningVisible ?? null,
+          sceneNearCueVisible:
+            productRoot?.dataset.m8aV49SceneNearCueVisible ?? null,
+          sceneNearFallbackVisible:
+            productRoot?.dataset.m8aV49SceneNearFallbackVisible ?? null,
+          sceneNearAttachmentClaim:
+            productRoot?.dataset.m8aV49SceneNearAttachmentClaim ?? null,
           allowedPersistent:
             productRoot?.dataset.m8aV49PersistentAllowedContent ?? null,
           deniedPersistent:
@@ -360,6 +403,57 @@ async function capturePersistentLayer(client) {
         visibleProductText,
         stripRect: strip ? rectToPlain(strip.getBoundingClientRect()) : null,
         sheetVisible: sheet ? isVisible(sheet) : null,
+        annotationText:
+          annotation?.innerText.replace(/\\s+/g, " ").trim() ?? null,
+        annotationDataset: {
+          windowId: annotation?.dataset.m8aV47WindowId ?? null,
+          anchorStatus: annotation?.dataset.m8aV48AnchorStatus ?? null,
+          selectedAnchorType:
+            annotation?.dataset.m8aV48SelectedAnchorType ?? null,
+          selectedActorId: annotation?.dataset.m8aV48SelectedActorId ?? null,
+          selectedRelationCueId:
+            annotation?.dataset.m8aV48SelectedRelationCueId ?? null,
+          selectedCorridorId:
+            annotation?.dataset.m8aV48SelectedCorridorId ?? null,
+          fallbackReason: annotation?.dataset.m8aV48FallbackReason ?? null,
+          sceneNearMode: annotation?.dataset.m8aV49SceneNearMode ?? null,
+          sceneNearMeaning:
+            annotation?.dataset.m8aV49SceneNearMeaningText ?? null,
+          sceneNearCueLabel:
+            annotation?.dataset.m8aV49SceneNearCueText ?? null,
+          sceneNearFallbackText:
+            annotation?.dataset.m8aV49SceneNearFallbackText ?? null,
+          sceneNearMeaningVisible:
+            annotation?.dataset.m8aV49SceneNearMeaningVisible ?? null,
+          sceneNearCueVisible:
+            annotation?.dataset.m8aV49SceneNearCueVisible ?? null,
+          sceneNearFallbackVisible:
+            annotation?.dataset.m8aV49SceneNearFallbackVisible ?? null,
+          sceneNearAttachmentClaim:
+            annotation?.dataset.m8aV49SceneNearAttachmentClaim ?? null
+        },
+        sceneNearVisibleText: {
+          meaning: isVisible(sceneNearMeaning)
+            ? sceneNearMeaning.textContent.replace(/\\s+/g, " ").trim()
+            : "",
+          cue: isVisible(sceneNearCue)
+            ? sceneNearCue.textContent.replace(/\\s+/g, " ").trim()
+            : "",
+          fallback: isVisible(sceneNearFallback)
+            ? sceneNearFallback.textContent.replace(/\\s+/g, " ").trim()
+            : ""
+        },
+        connectorVisible: isVisible(connector),
+        connectorDataset: {
+          anchorStatus: connector?.dataset.m8aV48AnchorStatus ?? null,
+          selectedAnchorType:
+            connector?.dataset.m8aV48SelectedAnchorType ?? null,
+          selectedActorId: connector?.dataset.m8aV48SelectedActorId ?? null,
+          selectedRelationCueId:
+            connector?.dataset.m8aV48SelectedRelationCueId ?? null,
+          attachmentClaim:
+            connector?.dataset.m8aV49SceneNearAttachmentClaim ?? null
+        },
         truthAffordanceVisible: isVisible(truthAffordance),
         compactTruthText,
         detailsTriggerVisible: isVisible(detailsTrigger),
@@ -419,13 +513,13 @@ function assertProductCopy(result, expected) {
     comprehension.version === EXPECTED_V49_VERSION &&
       result.productRootDataset.v49ProductComprehension ===
         EXPECTED_V49_VERSION,
-    "V4.9 Slice 1 version seam mismatch: " +
+    "V4.9 Slice 2 version seam mismatch: " +
       JSON.stringify(result.productRootDataset)
   );
   assert(
-    comprehension.scope === "slice1-product-copy-view-model-and-persistent-layer" &&
+    comprehension.scope === EXPECTED_V49_SCOPE &&
       result.productRootDataset.v49SliceScope === comprehension.scope,
-    "V4.9 Slice 1 scope seam mismatch: " +
+    "V4.9 Slice 2 scope seam mismatch: " +
       JSON.stringify(result.productRootDataset)
   );
   assert(
@@ -456,6 +550,33 @@ function assertProductCopy(result, expected) {
     activeCopy.firstReadMessage.length <= 90,
     "V4.9 first-read message must remain concise: " +
       JSON.stringify(activeCopy)
+  );
+  assert(
+    comprehension.sceneNearMeaningLayer.scope === EXPECTED_V49_SCOPE &&
+      comprehension.sceneNearMeaningLayer.reliableAnchorRequired === true &&
+      comprehension.sceneNearMeaningLayer.fallbackPolicy ===
+        "persistent-layer-wording-without-scene-attachment" &&
+      comprehension.sceneNearMeaningLayer.connectorPolicy ===
+        "visible-only-when-anchor-geometry-reliable" &&
+      JSON.stringify(comprehension.sceneNearMeaningLayer.reliableVisibleContent) ===
+        JSON.stringify(EXPECTED_SCENE_NEAR_RELIABLE_CONTENT) &&
+      JSON.stringify(comprehension.sceneNearMeaningLayer.fallbackVisibleContent) ===
+        JSON.stringify(EXPECTED_SCENE_NEAR_FALLBACK_CONTENT) &&
+      comprehension.sceneNearMeaningLayer.activeMeaning ===
+        expected.firstReadMessage &&
+      comprehension.sceneNearMeaningLayer.activeWatchCueLabel ===
+        expected.watchCueLabel &&
+      result.productRootDataset.sceneNearMeaningLayer === EXPECTED_V49_SCOPE &&
+      result.productRootDataset.sceneNearReliableAnchorRequired === "true" &&
+      result.productRootDataset.sceneNearReliableVisibleContent ===
+        EXPECTED_SCENE_NEAR_RELIABLE_CONTENT.join("|") &&
+      result.productRootDataset.sceneNearFallbackVisibleContent ===
+        EXPECTED_SCENE_NEAR_FALLBACK_CONTENT.join("|"),
+    "V4.9 Slice 2 scene-near meaning seam mismatch: " +
+      JSON.stringify({
+        sceneNearMeaningLayer: comprehension.sceneNearMeaningLayer,
+        productRootDataset: result.productRootDataset
+      })
   );
 }
 
@@ -579,6 +700,194 @@ function assertPersistentLayer(result, expected, viewport) {
   );
 }
 
+function assertCleanSceneNearText(text, context) {
+  const forbiddenPatterns = [
+    /oneweb-\d{4}-leo-display-context/i,
+    /o3b-mpower-f\d-meo-display-context/i,
+    /st-2-geo-continuity-anchor/i,
+    /ses-9-geo-display-context/i,
+    /m8a-v46e-simulation-/i,
+    /m8a-v4-operator-family-endpoint-context-ribbon/i,
+    /candidateContextActorIds/i,
+    /fallbackContextActorIds/i,
+    /selected actor/i,
+    /selected cue/i,
+    /active serving/i,
+    /active gateway/i,
+    /active path/i,
+    /active service/i,
+    /pair-specific/i,
+    /teleport path/i,
+    /native RF handover/i,
+    /operator handover log/i,
+    /operator log truth/i,
+    /latency|jitter|throughput/i
+  ];
+
+  assert(
+    forbiddenPatterns.every((pattern) => !pattern.test(text)),
+    "V4.9 scene-near visible text exposed ids, metadata, or forbidden claims: " +
+      JSON.stringify({ text, context })
+  );
+}
+
+function assertSceneNearMeaning(result, expected, viewport) {
+  const annotationText = result.annotationText ?? "";
+  const annotation = result.annotationDataset;
+  const rootDataset = result.productRootDataset;
+
+  assertCleanSceneNearText(annotationText, {
+    windowId: result.activeWindowId,
+    viewportClass: result.viewportClass
+  });
+  assert(
+    annotation.windowId === result.activeWindowId,
+    "V4.9 scene-near annotation must map to the active V4.6D window: " +
+      JSON.stringify({ annotation, activeWindowId: result.activeWindowId })
+  );
+
+  if (viewport.expectedViewportClass !== "desktop") {
+    if (annotation.anchorStatus === "geometry-reliable") {
+      assert(
+        annotation.sceneNearMode === "scene-near-meaning" &&
+          rootDataset.sceneNearMode === "scene-near-meaning",
+        "V4.9 reliable narrow scene-near state must use the meaning layer: " +
+          JSON.stringify({ annotation, rootDataset })
+      );
+    } else {
+      assert(
+        annotation.sceneNearMode === "persistent-layer-fallback" &&
+          result.connectorVisible === false,
+        "V4.9 narrow fallback must not render a connector or scene attachment: " +
+          JSON.stringify(result)
+      );
+      return;
+    }
+  }
+
+  assert(
+    annotation.anchorStatus === "geometry-reliable" &&
+      annotation.selectedAnchorType !== "non-scene-fallback" &&
+      annotation.sceneNearMode === "scene-near-meaning" &&
+      annotation.sceneNearMeaningVisible === "true" &&
+      annotation.sceneNearCueVisible === "true" &&
+      annotation.sceneNearFallbackVisible === "false" &&
+      annotation.sceneNearAttachmentClaim ===
+        "display-context-cue-attachment-only-when-geometry-reliable" &&
+      rootDataset.sceneNearMode === "scene-near-meaning" &&
+      rootDataset.sceneNearMeaningVisible === "true" &&
+      rootDataset.sceneNearCueVisible === "true" &&
+      rootDataset.sceneNearFallbackVisible === "false" &&
+      rootDataset.sceneNearAttachmentClaim ===
+        "display-context-cue-attachment-only-when-geometry-reliable" &&
+      result.connectorVisible === true &&
+      result.connectorDataset.attachmentClaim ===
+        "display-context-cue-attachment-only-when-geometry-reliable",
+    "V4.9 scene-near meaning must attach only through reliable geometry: " +
+      JSON.stringify({ annotation, rootDataset, connector: result.connectorDataset })
+  );
+  assert(
+    annotationText.includes(`${expected.orbitClassToken} display context`) &&
+      annotationText.includes(expected.productLabel) &&
+      annotationText.includes(expected.firstReadMessage) &&
+      annotationText.includes(expected.watchCueLabel) &&
+      result.sceneNearVisibleText.meaning === expected.firstReadMessage &&
+      result.sceneNearVisibleText.cue === expected.watchCueLabel &&
+      result.sceneNearVisibleText.fallback === "" &&
+      annotation.sceneNearMeaning === expected.firstReadMessage &&
+      annotation.sceneNearCueLabel === expected.watchCueLabel,
+    "V4.9 scene-near label must contain concise state-specific product meaning: " +
+      JSON.stringify({
+        annotationText,
+        sceneNearVisibleText: result.sceneNearVisibleText,
+        annotation,
+        expected
+      })
+  );
+  assert(
+    expected.firstReadMessage.length <= 90 &&
+      annotationText.length <= 150,
+    "V4.9 scene-near label text must remain short: " +
+      JSON.stringify({ annotationText, expected })
+  );
+}
+
+async function verifyForcedUnreliableAnchorFallback(client) {
+  await setViewport(client, VIEWPORTS.desktop);
+  await closeInspector(client);
+  const expected = EXPECTED_PRODUCT_COPY["leo-acquisition-context"];
+  await seekReplayRatio(client, expected.ratio);
+  await evaluateRuntimeValue(
+    client,
+    `(() => {
+      document.documentElement.dataset.m8aV48ForceSceneAnchorFallback = "true";
+      window.__SCENARIO_GLOBE_VIEWER_CAPTURE__?.m8aV4GroundStationScene?.pause?.();
+    })()`
+  );
+  await sleep(220);
+
+  try {
+    const result = await capturePersistentLayer(client);
+    const annotation = result.annotationDataset;
+
+    assert(
+      result.activeWindowId === "leo-acquisition-context" &&
+        annotation.anchorStatus === "fallback" &&
+        annotation.selectedAnchorType === "non-scene-fallback" &&
+        annotation.sceneNearMode === "persistent-layer-fallback" &&
+        annotation.sceneNearMeaningVisible === "false" &&
+        annotation.sceneNearCueVisible === "false" &&
+        annotation.sceneNearFallbackVisible === "true" &&
+        annotation.sceneNearAttachmentClaim === "no-scene-attachment-claimed" &&
+        result.productRootDataset.sceneNearMode === "persistent-layer-fallback" &&
+        result.productRootDataset.sceneNearAttachmentClaim ===
+          "no-scene-attachment-claimed" &&
+        result.connectorVisible === false &&
+        result.connectorDataset.attachmentClaim === "no-scene-attachment-claimed",
+      "V4.9 forced unreliable anchor must fall back without connector attachment: " +
+        JSON.stringify(result)
+    );
+    assert(
+      !result.annotationText.includes(expected.firstReadMessage) &&
+        !result.annotationText.includes(expected.watchCueLabel) &&
+        result.annotationText.includes(expected.productLabel) &&
+        result.annotationText.includes(expected.stateOrdinalLabel) &&
+        result.annotationText.includes("no scene attachment") &&
+        result.sceneNearVisibleText.meaning === "" &&
+        result.sceneNearVisibleText.cue === "" &&
+        result.sceneNearVisibleText.fallback.includes("no scene attachment"),
+      "V4.9 unreliable fallback must use persistent wording and not scene-near meaning: " +
+        JSON.stringify(result)
+    );
+    assertCleanSceneNearText(result.annotationText, {
+      windowId: result.activeWindowId,
+      forcedFallback: true
+    });
+    assert(
+      !/\b(attached to|serving satellite|active path|active service|teleport path|scene cue)\b/i.test(
+        result.annotationText
+      ),
+      "V4.9 unreliable fallback must not pretend attachment to a satellite, path, or cue: " +
+        JSON.stringify(result)
+    );
+
+    return {
+      anchorStatus: annotation.anchorStatus,
+      fallbackReason: annotation.fallbackReason,
+      connectorVisible: result.connectorVisible,
+      annotationText: result.annotationText
+    };
+  } finally {
+    await evaluateRuntimeValue(
+      client,
+      `(() => {
+        delete document.documentElement.dataset.m8aV48ForceSceneAnchorFallback;
+      })()`
+    );
+    await sleep(160);
+  }
+}
+
 async function verifyTruthAffordanceOpensInspector(client) {
   const result = await evaluateRuntimeValue(
     client,
@@ -660,12 +969,15 @@ async function verifyViewport(client, viewport) {
     assertPreservedScenarioFacts(result);
     assertProductCopy(result, expected);
     assertPersistentLayer(result, expected, viewport);
+    assertSceneNearMeaning(result, expected, viewport);
 
     results.push({
       windowId,
       productLabel: expected.productLabel,
       stripText: result.stripText,
-      stripRect: result.stripRect
+      stripRect: result.stripRect,
+      sceneNearMode: result.annotationDataset.sceneNearMode,
+      anchorStatus: result.annotationDataset.anchorStatus
     });
   }
 
@@ -698,21 +1010,28 @@ async function main() {
     const desktopResults = await verifyViewport(client, VIEWPORTS.desktop);
     const truthAffordance = await verifyTruthAffordanceOpensInspector(client);
     const narrowResults = await verifyViewport(client, VIEWPORTS.narrow);
+    const unreliableAnchorFallback =
+      await verifyForcedUnreliableAnchorFallback(client);
 
     console.log(
-      `M8A-V4.9 product comprehension Slice 1 smoke passed: ${JSON.stringify(
+      `M8A-V4.9 product comprehension Slice 2 smoke passed: ${JSON.stringify(
         {
           desktopWindows: desktopResults.map((result) => ({
             windowId: result.windowId,
             productLabel: result.productLabel,
-            stripHeight: result.stripRect.height
+            stripHeight: result.stripRect.height,
+            sceneNearMode: result.sceneNearMode,
+            anchorStatus: result.anchorStatus
           })),
           narrowWindows: narrowResults.map((result) => ({
             windowId: result.windowId,
             productLabel: result.productLabel,
-            stripHeight: result.stripRect.height
+            stripHeight: result.stripRect.height,
+            sceneNearMode: result.sceneNearMode,
+            anchorStatus: result.anchorStatus
           })),
           truthAffordance,
+          unreliableAnchorFallback,
           runtimeProcessFacts: {
             serverPid: serverHandle.server.pid,
             browserPid: browserHandle.browserProcess.pid

@@ -9,7 +9,7 @@ canonical SDDs below to make phase decisions.
 
 - handoff report
 - doc-only
-- current as of 2026-04-29
+- current as of 2026-04-30
 - intended reader: the next M8A-VNext planning/control thread
 
 ## Read Order For New Control Thread
@@ -29,9 +29,10 @@ Read these first:
 11. [m8a-v4.8-handover-demonstration-ui-ia-phase3-final-handoff.md](./m8a-v4.8-handover-demonstration-ui-ia-phase3-final-handoff.md)
 12. [m8a-v4.9-product-comprehension-progressive-disclosure-plan.md](./m8a-v4.9-product-comprehension-progressive-disclosure-plan.md)
 13. [m8a-v4.9-product-comprehension-slice1-final-handoff.md](./m8a-v4.9-product-comprehension-slice1-final-handoff.md)
-14. [multi-orbit-follow-on-roadmap.md](./multi-orbit-follow-on-roadmap.md)
-15. [multi-orbit-program-skeleton.md](./multi-orbit-program-skeleton.md)
-16. [../decisions/0013-ground-station-multi-orbit-scope-reset.md](../decisions/0013-ground-station-multi-orbit-scope-reset.md)
+14. [m8a-v4.9-product-comprehension-slice2-final-handoff.md](./m8a-v4.9-product-comprehension-slice2-final-handoff.md)
+15. [multi-orbit-follow-on-roadmap.md](./multi-orbit-follow-on-roadmap.md)
+16. [multi-orbit-program-skeleton.md](./multi-orbit-program-skeleton.md)
+17. [../decisions/0013-ground-station-multi-orbit-scope-reset.md](../decisions/0013-ground-station-multi-orbit-scope-reset.md)
 
 Supporting accepted data:
 
@@ -68,7 +69,9 @@ Completed:
 - `M8A-V4.9` product comprehension and progressive disclosure SDD added as a
   doc-only planning delta
 - `M8A-V4.9` Runtime Slice 1 product copy/view-model inventory and persistent
-  layer correction closed in the current delivery state; commit hash pending
+  layer correction closed at commit `2afbfa5`
+- `M8A-V4.9` Runtime Slice 2 scene-near meaning layer correction closed in the
+  current delivery state; commit hash pending
 - remaining `M8A-V4.8` runtime phases are not open
 - `M8A-V4.6C/R2` source/catalog boundary documented at commit `e5d99c7`
 - `R2` root endpoint evidence catalog added at commit `d061c676`
@@ -251,6 +254,8 @@ Current phase status:
 - `V4.9` Runtime Slice 1 product copy/view-model inventory and persistent
   layer correction is closed by
   `m8a-v4.9-product-comprehension-slice1-final-handoff.md`
+- `V4.9` Runtime Slice 2 scene-near meaning layer correction is closed by
+  `m8a-v4.9-product-comprehension-slice2-final-handoff.md`
 - remaining `V4.9` runtime slices are not open
 - remaining `V4.8` layout/camera pass and full visual acceptance phases are
   not open
@@ -268,8 +273,8 @@ The current V4.7/V4.7.1 track is implemented and closed:
 
 The next available decisions are:
 
-1. explicitly open the next `V4.9` runtime slice only if scene-near meaning,
-   transition event, inspector, or validation work should proceed
+1. explicitly open the next `V4.9` runtime slice only if transition event,
+   inspector, or validation work should proceed
 2. open the remaining `V4.8` layout/camera and visual acceptance slice only
    after an explicit user decision
 3. keep runtime closed and continue source/candidate work
@@ -298,6 +303,9 @@ validation for the existing accepted scene.
 
 Runtime Slice 1 is already closed. Do not reopen it unless the user explicitly
 asks for a correction to the Slice 1 result.
+
+Runtime Slice 2 is already closed. Do not reopen it unless the user explicitly
+asks for a correction to the Slice 2 result.
 
 ## R2 Clarification
 
@@ -339,6 +347,7 @@ Checked during this handoff pass:
 - `docs/sdd/m8a-v4.6d-simulation-handover-model-contract.md`
 - `docs/sdd/m8a-v4.9-product-comprehension-progressive-disclosure-plan.md`
 - `docs/sdd/m8a-v4.9-product-comprehension-slice1-final-handoff.md`
+- `docs/sdd/m8a-v4.9-product-comprehension-slice2-final-handoff.md`
 - `docs/sdd/multi-orbit-follow-on-roadmap.md`
 - `docs/sdd/multi-orbit-program-skeleton.md`
 - `../../../itri/multi-orbit/download/ground-station-endpoint-candidates/2026-04-25/r2-endpoint-evidence-catalog-2026-04-28.md`
@@ -349,8 +358,8 @@ Closeout sync result:
 - this handoff and the VNext roadmap now record that `V4.8` Phase 1, Phase 2,
   and Phase 3 are closed
 - this handoff and the VNext roadmap now record that `V4.9` is a product
-  comprehension planning delta with Runtime Slice 1 closed and no remaining
-  runtime slice open
+  comprehension planning delta with Runtime Slice 1 and Runtime Slice 2 closed
+  and no remaining runtime slice open
 - remaining `V4.8` runtime phases are not open
 - `V4.6C/R2` is recorded as catalog/source-only with no runtime-ready alternate
   endpoint B
@@ -376,6 +385,7 @@ First read:
 - docs/sdd/m8a-v4.8-handover-demonstration-ui-ia-phase3-final-handoff.md
 - docs/sdd/m8a-v4.9-product-comprehension-progressive-disclosure-plan.md
 - docs/sdd/m8a-v4.9-product-comprehension-slice1-final-handoff.md
+- docs/sdd/m8a-v4.9-product-comprehension-slice2-final-handoff.md
 - docs/sdd/m8a-v4-ground-station-multi-orbit-handover-plan.md
 - docs/data-contracts/m8a-v4-ground-station-projection.md
 - docs/sdd/multi-orbit-follow-on-roadmap.md
@@ -396,6 +406,7 @@ Current direction:
 - V4.9 product comprehension and progressive disclosure is the current
   planning surface for improving first-read product meaning. Runtime Slice 1
   is closed for product copy/view-model inventory and persistent layer
+  correction, and Runtime Slice 2 is closed for scene-near meaning layer
   correction; no remaining V4.9 runtime slice is open.
 - V4.6C/R2 remains catalog/source-only; no alternate endpoint B is
   runtime-ready.
