@@ -72,6 +72,21 @@ after the current line. They need explicit reopen authority.
   aviation/YKA cleanup only if explicitly opened.
 - No runtime prompt is currently unblocked.
 
+2026-04-29 planning note:
+
+- `V4.8` handover demonstration UI IA planning opened as doc-only work after
+  product review found that V4.7.1 closed usability mechanics but not full
+  demonstration comprehension.
+- The V4.8 plan is limited to frontend information architecture, dynamic
+  handover inspector content, scene evidence mapping, orbit motion display
+  policy, layout simplification, and validation for the existing accepted V4
+  scene.
+- V4.8 does not open endpoint expansion, selector work, new data sources, R2
+  runtime behavior, V5, active satellite/gateway/path claims, measured metrics,
+  or native RF handover claims.
+- Runtime implementation remains blocked until the V4.8 SDD is accepted and
+  the user explicitly opens implementation.
+
 ### R1 — Complete `M8A`
 
 Class:
@@ -276,6 +291,7 @@ Status:
 - planning-control SDD and closeout handoff
 - `V4.6A/B/D/E` complete in runtime baseline
 - `V4.7/V4.7.1` product UX runtime correction complete and closed
+- `V4.8` handover demonstration UI IA plan drafted; runtime not open
 - `V4.6C/R2` catalog/source-only; no alternate endpoint B runtime-ready
 - no additional runtime execution phase currently unblocked
 

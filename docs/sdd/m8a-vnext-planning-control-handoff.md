@@ -23,9 +23,10 @@ Read these first:
 5. [m8a-v4.7-handover-product-ux-plan.md](./m8a-v4.7-handover-product-ux-plan.md)
 6. [m8a-v4.7.1-handover-product-ux-correction-plan.md](./m8a-v4.7.1-handover-product-ux-correction-plan.md)
 7. [m8a-v4.7.1-handover-product-ux-final-handoff.md](./m8a-v4.7.1-handover-product-ux-final-handoff.md)
-8. [multi-orbit-follow-on-roadmap.md](./multi-orbit-follow-on-roadmap.md)
-9. [multi-orbit-program-skeleton.md](./multi-orbit-program-skeleton.md)
-10. [../decisions/0013-ground-station-multi-orbit-scope-reset.md](../decisions/0013-ground-station-multi-orbit-scope-reset.md)
+8. [m8a-v4.8-handover-demonstration-ui-ia-plan.md](./m8a-v4.8-handover-demonstration-ui-ia-plan.md)
+9. [multi-orbit-follow-on-roadmap.md](./multi-orbit-follow-on-roadmap.md)
+10. [multi-orbit-program-skeleton.md](./multi-orbit-program-skeleton.md)
+11. [../decisions/0013-ground-station-multi-orbit-scope-reset.md](../decisions/0013-ground-station-multi-orbit-scope-reset.md)
 
 Supporting accepted data:
 
@@ -53,6 +54,8 @@ Completed:
   implementation completed at commit `26781b8`
 - `M8A-V4.7.1` product usability correction accepted and closed at head
   `a48b0a6`; final runtime obstruction fix completed at commit `9604bde`
+- `M8A-V4.8` handover demonstration UI IA plan drafted as doc-only authority;
+  runtime implementation is not open
 - `M8A-V4.6C/R2` source/catalog boundary documented at commit `e5d99c7`
 - `R2` root endpoint evidence catalog added at commit `d061c676`
 - `R2` alternate endpoint B MEO no-change hunt documented at commit `c8e30b2e`
@@ -219,6 +222,8 @@ Current phase status:
 - `V4.7` runtime implementation is complete at commit `26781b8`
 - `V4.7.1` runtime/product usability correction is accepted and closed at head
   `a48b0a6`
+- `V4.8` handover demonstration UI IA plan is drafted as doc-only planning
+  surface; runtime implementation is not open
 - `V4.6C/R2` has source/catalog updates only; it does not create a runtime
   selector or accepted selectable scenario set
 - no alternate endpoint B outside Speedcast Singapore is runtime-ready
@@ -233,8 +238,10 @@ The current V4.7/V4.7.1 track is implemented and closed:
 
 The next available decisions are:
 
-1. keep runtime closed and continue source/candidate work
-2. open a new decision gate only when new accepted scope exists
+1. review and accept, revise, or reject the `V4.8` handover demonstration UI
+   IA plan
+2. keep runtime closed and continue source/candidate work
+3. open a new decision gate only when new accepted scope exists
 
 Other available tracks remain:
 

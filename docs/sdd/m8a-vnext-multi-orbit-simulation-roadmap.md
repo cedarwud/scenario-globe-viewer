@@ -26,6 +26,8 @@ Related V4.7.1 product UX correction SDD:
 [./m8a-v4.7.1-handover-product-ux-correction-plan.md](./m8a-v4.7.1-handover-product-ux-correction-plan.md).
 Related V4.7.1 final handoff:
 [./m8a-v4.7.1-handover-product-ux-final-handoff.md](./m8a-v4.7.1-handover-product-ux-final-handoff.md).
+Related V4.8 handover demonstration UI IA SDD:
+[./m8a-v4.8-handover-demonstration-ui-ia-plan.md](./m8a-v4.8-handover-demonstration-ui-ia-plan.md).
 Related V4.6C/R2 endpoint evidence catalog review:
 [../../../itri/multi-orbit/download/ground-station-endpoint-candidates/2026-04-25/r2-endpoint-evidence-catalog-2026-04-28.md](../../../itri/multi-orbit/download/ground-station-endpoint-candidates/2026-04-25/r2-endpoint-evidence-catalog-2026-04-28.md).
 
@@ -36,6 +38,7 @@ Related V4.6C/R2 endpoint evidence catalog review:
 - V4.6 closeout synchronized 2026-04-28
 - V4.7 product UX SDD accepted 2026-04-28
 - V4.7.1 product usability correction accepted and closed 2026-04-29
+- V4.8 handover demonstration UI IA plan drafted 2026-04-29
 - no runtime implementation authority by itself
 - intended handoff surface for the next planning/control thread
 
@@ -79,6 +82,8 @@ Completed baseline:
   implementation completed at commit `26781b8`
 - `M8A-V4.7.1` product usability correction is accepted and closed at head
   `a48b0a6`; final runtime obstruction fix completed at commit `9604bde`
+- `M8A-V4.8` handover demonstration UI IA plan is drafted as doc-only
+  planning authority; runtime implementation is not open
 - `M8A-V4.6C/R2` source/catalog boundary exists at commit `e5d99c7`
 - the `R2` root endpoint evidence catalog exists at commit `d061c676`
 - the `R2` alternate endpoint B MEO no-change hunt exists at commit `c8e30b2e`
@@ -569,8 +574,13 @@ The current V4.7/V4.7.1 product UX track is implemented and closed:
 
 `M8A-V4.7.1 product usability correction SDD and final handoff`
 
+The next planning/control surface is:
+
+`M8A-V4.8 handover demonstration UI information architecture SDD`
+
 The next available decisions are:
 
+- review and accept, revise, or reject the V4.8 demonstration UI IA plan
 - keep further runtime work closed and continue source/candidate work
 - open a new decision gate only when new accepted scope exists
 
@@ -584,6 +594,8 @@ Reason:
 - `V4.6C/R2` did not promote any alternate endpoint B
 - `V4.7/V4.7.1` is a product UX correction line for the accepted single
   scenario, not a runtime selector or source expansion
+- `V4.8` is a demonstration UI IA plan for the same accepted single scenario,
+  not a runtime selector or source expansion
 - V5 is blocked until new accepted endpoint-pair scenarios exist
 - legacy aviation/YKA cleanup is blocked until the user explicitly opens that
   cleanup/archive gate
@@ -614,6 +626,14 @@ V4.7/V4.7.1 runtime correction is closed with these accepted surfaces:
 Future V4.7/V4.7.1 corrections are closed from this record. Any new runtime
 work needs a new explicit planning/control decision.
 
+V4.8 runtime work, if later opened, may change only:
+
+- frontend information architecture
+- dynamic handover inspector content
+- scene evidence mapping / annotation semantics
+- orbit motion display policy
+- layout simplification and validation for the accepted single scenario
+
 Legacy aviation/YKA cleanup may later change old route, fixture, and regression
 surfaces only if the cleanup/archive gate is explicitly opened.
 
@@ -640,5 +660,17 @@ following are true:
 - the user explicitly opens a new runtime implementation decision
 - implementation scope is limited to playback policy, information architecture,
   layout, disclosure, and validation
+- route, endpoint pair, precision, actor set, source boundary, and V4.6D model
+  truth remain unchanged
+
+Do not create a V4.8 runtime implementation prompt unless all of the following
+are true:
+
+- [m8a-v4.8-handover-demonstration-ui-ia-plan.md](./m8a-v4.8-handover-demonstration-ui-ia-plan.md)
+  is accepted
+- the user explicitly opens V4.8 runtime implementation
+- implementation scope is limited to demonstration UI IA, dynamic inspector
+  content, scene evidence mapping, orbit motion display correction, layout
+  simplification, and validation upgrades
 - route, endpoint pair, precision, actor set, source boundary, and V4.6D model
   truth remain unchanged
