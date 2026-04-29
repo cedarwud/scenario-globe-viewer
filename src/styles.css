@@ -2357,8 +2357,8 @@ body {
 
 .m8a-v47-product-ux__sheet {
   position: absolute;
-  left: var(--hud-frame-gap);
-  right: auto;
+  left: auto;
+  right: var(--hud-frame-gap);
   bottom: calc(var(--hud-frame-gap) + 4.8rem);
   z-index: 3;
   width: min(27rem, calc(100vw - 2 * var(--hud-frame-gap)));

@@ -1355,11 +1355,25 @@ async function verifyDisclosure(client, viewport) {
           rect.height > 0
         );
       };
+      const rectToPlain = (rect) => ({
+        left: rect.left,
+        top: rect.top,
+        right: rect.right,
+        bottom: rect.bottom,
+        width: rect.width,
+        height: rect.height
+      });
+      const intersects = (a, b) =>
+        a.left < b.right &&
+        a.right > b.left &&
+        a.top < b.bottom &&
+        a.bottom > b.top;
       const controller =
         window.__SCENARIO_GLOBE_VIEWER_CAPTURE__.m8aV4GroundStationScene;
       const root = document.querySelector("[data-m8a-v47-product-ux='true']");
       const state = controller.getState();
       const sheet = root.querySelector("[data-m8a-v47-ui-surface='inspection-sheet']");
+      const annotation = root.querySelector("[data-m8a-v47-scene-annotation='true']");
       const sheetText = sheet?.innerText ?? "";
       const badgeTexts = Array.from(
         sheet.querySelectorAll("[data-m8a-v47-truth-badge]")
@@ -1374,8 +1388,23 @@ async function verifyDisclosure(client, viewport) {
         .map((element) => Number.parseFloat(getComputedStyle(element).fontSize));
       const closeButton = sheet.querySelector("[data-m8a-v47-control-id='details-close']");
       const closeRect = closeButton.getBoundingClientRect();
+      const sheetRect = rectToPlain(sheet.getBoundingClientRect());
+      const annotationRect = rectToPlain(annotation.getBoundingClientRect());
 
       assert(isVisible(sheet), "V4.7.1 disclosure sheet must be inspectable.");
+      assert(
+        isVisible(annotation),
+        "V4.7.1 scene-near annotation must remain visible while details are open."
+      );
+      assert(
+        !intersects(sheetRect, annotationRect),
+        "V4.7.1 details sheet must not cover the primary scene-near annotation: " +
+          JSON.stringify({
+            viewport: config.viewport,
+            sheetRect,
+            annotationRect
+          })
+      );
       assert(
         config.requiredBadges.every((badge) => badgeTexts.includes(badge)),
         "V4.7.1 disclosure sheet must include truth-boundary badges: " +
@@ -1412,6 +1441,8 @@ async function verifyDisclosure(client, viewport) {
         disclosure: state.productUx.disclosure,
         badgeTexts,
         sheetText,
+        sheetRect,
+        annotationRect,
         bodyFontSizes,
         controlFontSizes
       };
@@ -1483,6 +1514,7 @@ async function main() {
     const disclosure = await verifyDisclosure(client, VIEWPORTS[0]);
 
     const viewportResults = [];
+    let desktop1280Disclosure = null;
     let narrowDisclosure = null;
 
     for (const viewport of VIEWPORTS) {
@@ -1500,11 +1532,19 @@ async function main() {
         screenshotPath: path.relative(repoRoot, screenshotPath)
       });
 
+      if (viewport.name === "desktop-1280x720") {
+        desktop1280Disclosure = await verifyDisclosure(client, viewport);
+      }
+
       if (viewport.expectedViewportClass === "narrow") {
         narrowDisclosure = await verifyDisclosure(client, viewport);
       }
     }
 
+    assert(
+      desktop1280Disclosure,
+      "V4.7.1 smoke must verify open-details geometry at 1280x720."
+    );
     assert(
       narrowDisclosure,
       "V4.7.1 smoke must verify narrow disclosure badges at 390x844."
@@ -1520,11 +1560,22 @@ async function main() {
           finalHold,
           disclosure: {
             viewport: disclosure.viewport,
+            sheetRect: disclosure.sheetRect,
+            annotationRect: disclosure.annotationRect,
             badgeTexts: disclosure.badgeTexts,
             lineCount: disclosure.disclosure.lines.length
           },
+          desktop1280Disclosure: {
+            viewport: desktop1280Disclosure.viewport,
+            sheetRect: desktop1280Disclosure.sheetRect,
+            annotationRect: desktop1280Disclosure.annotationRect,
+            badgeTexts: desktop1280Disclosure.badgeTexts,
+            lineCount: desktop1280Disclosure.disclosure.lines.length
+          },
           narrowDisclosure: {
             viewport: narrowDisclosure.viewport,
+            sheetRect: narrowDisclosure.sheetRect,
+            annotationRect: narrowDisclosure.annotationRect,
             badgeTexts: narrowDisclosure.badgeTexts,
             lineCount: narrowDisclosure.disclosure.lines.length
           },
