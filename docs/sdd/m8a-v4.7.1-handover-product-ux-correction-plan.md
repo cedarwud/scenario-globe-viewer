@@ -21,7 +21,7 @@ Related planning-control handoff:
 - current as of 2026-04-29
 - no runtime implementation authority by itself
 - runtime correction implementation completed after explicit implementation
-  opening on 2026-04-29; accepted runtime commit `4c7ba8a`
+  opening on 2026-04-29; final accepted runtime fix commit `9604bde`
 - intended phase: `M8A-V4.7.1` product usability correction
 - baseline runtime commit: `26781b8 Implement M8A V4.7 handover product UX`
 - baseline hardening commit: `df829af Harden M8A V4.7 acceptance records`
