@@ -9,6 +9,8 @@ Related V4.8 SDD:
 [./m8a-v4.8-handover-demonstration-ui-ia-plan.md](./m8a-v4.8-handover-demonstration-ui-ia-plan.md).
 Related V4.8 Phase 1 final handoff:
 [./m8a-v4.8-handover-demonstration-ui-ia-phase1-final-handoff.md](./m8a-v4.8-handover-demonstration-ui-ia-phase1-final-handoff.md).
+Later V4.8 Phase 3 final handoff:
+[./m8a-v4.8-handover-demonstration-ui-ia-phase3-final-handoff.md](./m8a-v4.8-handover-demonstration-ui-ia-phase3-final-handoff.md).
 Related V4.7.1 final handoff:
 [./m8a-v4.7.1-handover-product-ux-final-handoff.md](./m8a-v4.7.1-handover-product-ux-final-handoff.md).
 Related V4.6D model contract:
@@ -31,8 +33,11 @@ Related planning-control handoff:
   `11ccd0b Record M8A V4.8 Phase 1 final handoff`
 - accepted Phase 2 runtime commit:
   `7349f13 Implement M8A V4.8 Phase 2 scene evidence mapping`
+- later Phase 3 runtime commit:
+  `d4553fd Implement M8A V4.8 Phase 3 orbit motion correction`
 - runtime/product acceptance: Phase 2 closed
-- no Phase 3 or remaining `V4.8` runtime work is open from this record
+- this record did not authorize Phase 3; later Phase 3 closeout is recorded in
+  the Phase 3 final handoff
 
 ## What Closed
 
@@ -77,9 +82,10 @@ Phase 2 does not close:
 - layout/camera refinement beyond selected-cue obstruction handling
 - full V4.8 visual acceptance matrix
 
-Orbit motion correction remains a separate later phase. Source-propagated
-motion, if later selected, must mean repo-owned projection/module lineage only;
-it must not become a live source fetch or raw `itri` runtime read.
+At the time of Phase 2 closeout, orbit motion correction remained a separate
+later phase. It was later closed by the Phase 3 handoff using a repo-owned
+monotonic / wrapped display pass, not live source fetching or raw `itri`
+runtime reads.
 
 ## Accepted Validation
 
@@ -131,15 +137,9 @@ Playwright session, or MCP browser session.
 `M8A-V4.8` Phase 2 is closed.
 
 Future `V4.8` runtime work must use a new explicit planning/control decision
-and user-opened runtime phase. The recommended next runtime slice, if opened,
-is orbit motion display correction only:
-
-- remove accepted product motion that reads as short left/right shuttle motion
-- choose source-propagated visual positions from repo-owned projection/module
-  lineage or a monotonic / wrapped display pass
-- keep `V4.6D` state timing and truth boundary unchanged
-- add motion sampling validation proving LEO/MEO actors do not reverse over
-  the same short visible segment within an active window
+and user-opened runtime phase. After the later Phase 3 handoff, remaining
+runtime work is limited to layout/camera refinement and full visual acceptance
+unless a new accepted SDD changes scope.
 
 Any future runtime work must preserve the accepted route, endpoint pair,
 precision, actor set, source boundary, `R2` read-only boundary, and `V4.6D`

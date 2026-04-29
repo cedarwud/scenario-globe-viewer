@@ -26,9 +26,10 @@ Read these first:
 8. [m8a-v4.8-handover-demonstration-ui-ia-plan.md](./m8a-v4.8-handover-demonstration-ui-ia-plan.md)
 9. [m8a-v4.8-handover-demonstration-ui-ia-phase1-final-handoff.md](./m8a-v4.8-handover-demonstration-ui-ia-phase1-final-handoff.md)
 10. [m8a-v4.8-handover-demonstration-ui-ia-phase2-final-handoff.md](./m8a-v4.8-handover-demonstration-ui-ia-phase2-final-handoff.md)
-11. [multi-orbit-follow-on-roadmap.md](./multi-orbit-follow-on-roadmap.md)
-12. [multi-orbit-program-skeleton.md](./multi-orbit-program-skeleton.md)
-13. [../decisions/0013-ground-station-multi-orbit-scope-reset.md](../decisions/0013-ground-station-multi-orbit-scope-reset.md)
+11. [m8a-v4.8-handover-demonstration-ui-ia-phase3-final-handoff.md](./m8a-v4.8-handover-demonstration-ui-ia-phase3-final-handoff.md)
+12. [multi-orbit-follow-on-roadmap.md](./multi-orbit-follow-on-roadmap.md)
+13. [multi-orbit-program-skeleton.md](./multi-orbit-program-skeleton.md)
+14. [../decisions/0013-ground-station-multi-orbit-scope-reset.md](../decisions/0013-ground-station-multi-orbit-scope-reset.md)
 
 Supporting accepted data:
 
@@ -60,6 +61,8 @@ Completed:
   Phase 1 UI IA runtime seam completed at commit `8c846a4`
 - `M8A-V4.8` Phase 2 scene evidence mapping correction completed at commit
   `7349f13`
+- `M8A-V4.8` Phase 3 orbit motion display correction completed at commit
+  `d4553fd`
 - remaining `M8A-V4.8` runtime phases are not open
 - `M8A-V4.6C/R2` source/catalog boundary documented at commit `e5d99c7`
 - `R2` root endpoint evidence catalog added at commit `d061c676`
@@ -80,6 +83,7 @@ Current data path:
 
 Recent important commits:
 
+- `d4553fd Implement M8A V4.8 Phase 3 orbit motion correction`
 - `7349f13 Implement M8A V4.8 Phase 2 scene evidence mapping`
 - `8c846a4 Implement M8A V4.8 Phase 1 UI IA runtime seam`
 - `e5d99c7 Document M8A V4.6C R2 catalog boundary`
@@ -233,8 +237,10 @@ Current phase status:
   surface; Phase 1 UI IA runtime seam is closed at commit `8c846a4`
 - `V4.8` Phase 2 scene evidence mapping correction is closed at commit
   `7349f13`
-- remaining `V4.8` orbit motion correction, layout/camera pass, and full
-  visual acceptance phases are not open
+- `V4.8` Phase 3 orbit motion display correction is closed at commit
+  `d4553fd`
+- remaining `V4.8` layout/camera pass and full visual acceptance phases are
+  not open
 - `V4.6C/R2` has source/catalog updates only; it does not create a runtime
   selector or accepted selectable scenario set
 - no alternate endpoint B outside Speedcast Singapore is runtime-ready
@@ -249,7 +255,7 @@ The current V4.7/V4.7.1 track is implemented and closed:
 
 The next available decisions are:
 
-1. open the next `V4.8` runtime slice, likely orbit motion correction, only
+1. open the remaining `V4.8` layout/camera and visual acceptance slice only
    after an explicit user decision
 2. keep runtime closed and continue source/candidate work
 3. open a new decision gate only when new accepted scope exists
@@ -314,8 +320,8 @@ Checked during this handoff pass:
 Closeout sync result:
 
 - this handoff and the VNext roadmap now record that `V4.6A/B/D/E` are complete
-- this handoff and the VNext roadmap now record that `V4.8` Phase 1 and Phase
-  2 are closed
+- this handoff and the VNext roadmap now record that `V4.8` Phase 1, Phase 2,
+  and Phase 3 are closed
 - remaining `V4.8` runtime phases are not open
 - `V4.6C/R2` is recorded as catalog/source-only with no runtime-ready alternate
   endpoint B
@@ -338,6 +344,7 @@ First read:
 - docs/sdd/m8a-v4.8-handover-demonstration-ui-ia-plan.md
 - docs/sdd/m8a-v4.8-handover-demonstration-ui-ia-phase1-final-handoff.md
 - docs/sdd/m8a-v4.8-handover-demonstration-ui-ia-phase2-final-handoff.md
+- docs/sdd/m8a-v4.8-handover-demonstration-ui-ia-phase3-final-handoff.md
 - docs/sdd/m8a-v4-ground-station-multi-orbit-handover-plan.md
 - docs/data-contracts/m8a-v4-ground-station-projection.md
 - docs/sdd/multi-orbit-follow-on-roadmap.md
@@ -352,12 +359,14 @@ Current direction:
 - Keep R2 read-only; it supports endpoint evidence expansion but is not a
   runtime selector.
 - V4.6A, V4.6B, V4.6D, and V4.6E are complete in the current runtime baseline.
-- V4.8 Phase 1 UI IA runtime seam and Phase 2 scene evidence mapping are
-  closed; remaining V4.8 runtime phases require an explicit user-opened phase.
+- V4.8 Phase 1 UI IA runtime seam, Phase 2 scene evidence mapping, and Phase
+  3 orbit motion display correction are closed; remaining V4.8 layout/camera
+  and visual acceptance work requires an explicit user-opened phase.
 - V4.6C/R2 remains catalog/source-only; no alternate endpoint B is
   runtime-ready.
-- Do not create a runtime prompt unless new accepted endpoint-pair scenarios
-  emerge and a viewer-owned projection unblocks runtime use.
+- Do not create an endpoint or selector runtime prompt unless new accepted
+  endpoint-pair scenarios emerge and a viewer-owned projection unblocks runtime
+  use.
 
 Return:
 - Current understanding
