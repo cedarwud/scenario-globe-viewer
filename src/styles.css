@@ -2166,3 +2166,372 @@ body {
     white-space: nowrap;
   }
 }
+
+/* M8A V4.7.1 keeps the handover UX scene-first: stable controls, compact strip, secondary sheet. */
+.m8a-v47-product-ux__rail {
+  display: none !important;
+}
+
+.m8a-v47-product-ux__scene-annotation {
+  position: absolute;
+  z-index: 2;
+  width: 258px;
+  min-width: 0;
+  display: grid;
+  gap: 0.18rem;
+  padding: 0.62rem 0.72rem 0.66rem;
+  border: 1px solid rgba(255, 209, 102, 0.34);
+  border-left: 3px solid rgba(255, 209, 102, 0.9);
+  border-radius: 7px;
+  background:
+    linear-gradient(90deg, rgba(9, 20, 24, 0.88), rgba(9, 20, 24, 0.72)),
+    rgba(7, 16, 21, 0.84);
+  box-shadow:
+    0 0 0 1px rgba(4, 9, 12, 0.56),
+    0 12px 28px rgba(0, 0, 0, 0.28);
+  pointer-events: none;
+}
+
+.m8a-v47-product-ux__scene-annotation::before {
+  content: "";
+  position: absolute;
+  left: -17px;
+  top: 50%;
+  width: 14px;
+  border-top: 2px solid rgba(255, 209, 102, 0.76);
+}
+
+.m8a-v47-product-ux__scene-annotation span,
+.m8a-v47-product-ux__strip-state span,
+.m8a-v47-product-ux__sheet-state span {
+  color: rgba(184, 221, 233, 0.88);
+  font-size: 0.75rem;
+  font-weight: 750;
+  line-height: 1.2;
+  letter-spacing: 0;
+}
+
+.m8a-v47-product-ux__scene-annotation strong {
+  min-width: 0;
+  color: rgba(255, 247, 224, 0.98);
+  font-size: 1.06rem;
+  font-weight: 800;
+  line-height: 1.15;
+  letter-spacing: 0;
+  overflow-wrap: anywhere;
+}
+
+.m8a-v47-product-ux__scene-annotation small,
+.m8a-v47-product-ux__strip-state small,
+.m8a-v47-product-ux__sheet-state small {
+  color: rgba(211, 231, 238, 0.86);
+  font-size: 0.8rem;
+  line-height: 1.25;
+  letter-spacing: 0;
+}
+
+.m8a-v47-product-ux__strip {
+  position: absolute;
+  top: calc(var(--hud-frame-gap) + 3.2rem);
+  left: auto;
+  right: var(--hud-frame-gap);
+  z-index: 3;
+  width: min(42.5rem, calc(100vw - 2 * var(--hud-frame-gap) - 3.8rem));
+  display: grid;
+  grid-template-columns:
+    minmax(10rem, 1.2fr)
+    minmax(4.4rem, auto)
+    minmax(5rem, auto)
+    minmax(8.4rem, 0.8fr)
+    minmax(4rem, 0.4fr)
+    minmax(4.8rem, auto);
+  gap: 0.48rem;
+  align-items: center;
+  min-height: 4.5rem;
+  padding: 0.56rem;
+  border: 1px solid rgba(196, 224, 236, 0.24);
+  border-radius: 7px;
+  background:
+    linear-gradient(180deg, rgba(8, 19, 25, 0.82), rgba(6, 15, 20, 0.76)),
+    rgba(5, 12, 16, 0.76);
+  box-shadow:
+    inset 0 1px 0 rgba(241, 248, 255, 0.08),
+    0 10px 30px rgba(0, 0, 0, 0.24);
+  pointer-events: auto;
+}
+
+.m8a-v47-product-ux__strip-state,
+.m8a-v47-product-ux__sheet-state {
+  display: grid;
+  gap: 0.16rem;
+  min-width: 0;
+}
+
+.m8a-v47-product-ux__strip-state strong,
+.m8a-v47-product-ux__sheet-state strong {
+  min-width: 0;
+  color: rgba(255, 246, 223, 0.98);
+  font-size: 1rem;
+  font-weight: 800;
+  line-height: 1.12;
+  overflow-wrap: anywhere;
+}
+
+.m8a-v47-product-ux button {
+  min-width: 0;
+  min-height: 40px;
+  padding: 0.54rem 0.68rem;
+  border: 1px solid rgba(152, 201, 222, 0.36);
+  border-radius: 6px;
+  background: rgba(11, 27, 34, 0.8);
+  color: rgba(240, 248, 252, 0.97);
+  font: inherit;
+  font-size: 0.875rem;
+  font-weight: 780;
+  line-height: 1.12;
+  letter-spacing: 0;
+  cursor: pointer;
+}
+
+.m8a-v47-product-ux button:hover,
+.m8a-v47-product-ux button:focus-visible {
+  border-color: rgba(255, 220, 150, 0.64);
+  color: rgba(255, 248, 232, 0.99);
+  outline: none;
+}
+
+.m8a-v47-product-ux__strip-speeds {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.3rem;
+}
+
+.m8a-v47-product-ux__speed[aria-pressed="true"] {
+  border-color: rgba(126, 226, 184, 0.62);
+  background: rgba(25, 72, 56, 0.76);
+  color: rgba(220, 255, 237, 0.98);
+}
+
+.m8a-v47-product-ux__progress {
+  width: 100%;
+  height: 0.5rem;
+  overflow: hidden;
+  border: 0;
+  border-radius: 0.35rem;
+  background: rgba(128, 162, 174, 0.24);
+}
+
+.m8a-v47-product-ux__badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.32rem;
+  min-width: 0;
+}
+
+.m8a-v47-product-ux__badges--strip {
+  grid-column: 1 / -1;
+}
+
+.m8a-v47-product-ux__badges span {
+  min-width: 0;
+  padding: 0.3rem 0.42rem;
+  border: 1px solid rgba(150, 205, 232, 0.2);
+  border-radius: 6px;
+  background: rgba(11, 27, 34, 0.58);
+  color: rgba(221, 236, 242, 0.92);
+  font-size: 0.75rem;
+  font-weight: 740;
+  line-height: 1.18;
+  letter-spacing: 0;
+}
+
+.m8a-v47-product-ux__badges span[data-m8a-v47-truth-badge="simulation output"] {
+  border-color: rgba(255, 209, 102, 0.36);
+  color: rgba(255, 245, 220, 0.98);
+}
+
+.m8a-v47-product-ux__badges span[data-m8a-v47-truth-badge="operator-family precision"] {
+  border-color: rgba(126, 226, 184, 0.32);
+  color: rgba(178, 247, 218, 0.98);
+}
+
+.m8a-v47-product-ux__sheet {
+  position: absolute;
+  left: var(--hud-frame-gap);
+  right: auto;
+  bottom: calc(var(--hud-frame-gap) + 4.8rem);
+  z-index: 3;
+  width: min(27rem, calc(100vw - 2 * var(--hud-frame-gap)));
+  max-height: min(30rem, calc(100vh - 9.5rem));
+  overflow: auto;
+  display: grid;
+  gap: 0.7rem;
+  padding: 0.82rem;
+  border: 1px solid rgba(255, 209, 102, 0.28);
+  border-radius: 7px;
+  background: rgba(7, 15, 18, 0.94);
+  box-shadow:
+    inset 0 1px 0 rgba(241, 248, 255, 0.08),
+    0 18px 40px rgba(0, 0, 0, 0.34);
+  pointer-events: auto;
+}
+
+.m8a-v47-product-ux__sheet[hidden] {
+  display: none !important;
+}
+
+.m8a-v47-product-ux__sheet-header {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.7rem;
+  min-width: 0;
+}
+
+.m8a-v47-product-ux__sheet-header strong {
+  color: rgba(255, 246, 223, 0.98);
+  font-size: 1.05rem;
+  line-height: 1.15;
+}
+
+.m8a-v47-product-ux__stages {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 0.3rem;
+}
+
+.m8a-v47-product-ux__stage {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 36px;
+  min-width: 0;
+  padding: 0.28rem 0.3rem;
+  border: 1px solid rgba(150, 205, 232, 0.2);
+  border-radius: 6px;
+  background: rgba(11, 27, 34, 0.58);
+  color: rgba(196, 218, 229, 0.86);
+  font-size: 0.75rem;
+  font-weight: 760;
+  line-height: 1.18;
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+
+.m8a-v47-product-ux__stage[data-active="true"] {
+  border-color: rgba(255, 209, 102, 0.56);
+  background: rgba(58, 43, 19, 0.72);
+  color: rgba(255, 247, 224, 0.98);
+}
+
+.m8a-v47-product-ux__sheet ul {
+  display: grid;
+  gap: 0.42rem;
+  margin: 0;
+  padding-left: 1.1rem;
+}
+
+.m8a-v47-product-ux__sheet li {
+  color: rgba(207, 226, 235, 0.86);
+  font-size: 0.875rem;
+  line-height: 1.42;
+}
+
+@media (max-width: 720px) {
+  .m8a-v47-product-ux__strip {
+    top: 46px;
+    left: auto;
+    right: var(--hud-frame-gap);
+    width: min(14rem, calc(100vw - 2 * var(--hud-frame-gap)));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-areas:
+      "state state state"
+      "play restart details"
+      "speeds speeds speeds"
+      "progress progress progress"
+      "badges badges badges";
+    gap: 0.25rem;
+    min-height: 0;
+    padding: 0.38rem;
+  }
+
+  .m8a-v47-product-ux__strip-state {
+    grid-area: state;
+  }
+
+  .m8a-v47-product-ux__strip-state small {
+    display: none;
+  }
+
+  .m8a-v47-product-ux__play-toggle {
+    grid-area: play;
+  }
+
+  .m8a-v47-product-ux__strip button[data-m8a-v47-control-id="restart"] {
+    grid-area: restart;
+  }
+
+  .m8a-v47-product-ux__strip button[data-m8a-v47-control-id="details-toggle"] {
+    grid-area: details;
+  }
+
+  .m8a-v47-product-ux__strip-speeds {
+    grid-area: speeds;
+  }
+
+  .m8a-v47-product-ux__progress {
+    grid-area: progress;
+  }
+
+  .m8a-v47-product-ux__badges--strip {
+    grid-area: badges;
+    flex-wrap: nowrap;
+    gap: 0.25rem;
+  }
+
+  .m8a-v47-product-ux__badges--strip span {
+    flex: 1 1 0;
+    padding: 0.16rem 0.28rem;
+    line-height: 1.1;
+    text-align: center;
+  }
+
+  .m8a-v47-product-ux button {
+    min-height: 44px;
+    padding: 0.54rem 0.28rem;
+    font-size: 0.875rem;
+  }
+
+  .m8a-v47-product-ux__strip .m8a-v47-product-ux__speed {
+    min-height: 44px;
+    padding: 0.56rem 0.62rem;
+    font-size: 0.875rem;
+  }
+
+  .m8a-v47-product-ux__strip-state strong,
+  .m8a-v47-product-ux__sheet-state strong {
+    font-size: 1rem;
+  }
+
+  .m8a-v47-product-ux__scene-annotation {
+    width: 208px;
+    padding: 0.56rem 0.62rem;
+  }
+
+  .m8a-v47-product-ux__scene-annotation strong {
+    font-size: 1rem;
+  }
+
+  .m8a-v47-product-ux__sheet {
+    left: var(--hud-frame-gap);
+    right: var(--hud-frame-gap);
+    bottom: calc(var(--hud-frame-gap) + 3.4rem);
+    width: auto;
+    max-height: 44vh;
+    padding: 0.76rem;
+  }
+
+  .m8a-v47-product-ux__stages {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

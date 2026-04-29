@@ -73,7 +73,7 @@ const M8A_V4_CAMERA_SCREEN_UP_PAN_METERS = 4_000_000;
 const M8A_V4_MILLISECONDS_PER_DAY = 24 * 60 * 60 * 1000;
 const M8A_V4_FULL_LEO_ORBIT_REPLAY_MARGIN_MS = 5 * 60 * 1000;
 const M8A_V47_PRODUCT_UX_VERSION =
-  "m8a-v4.7-handover-product-ux-runtime.v1";
+  "m8a-v4.7.1-handover-product-ux-correction-runtime.v1";
 const M8A_V47_GUIDED_REVIEW_MULTIPLIER = 30;
 const M8A_V47_PRODUCT_DEFAULT_MULTIPLIER = 60;
 const M8A_V47_QUICK_SCAN_MULTIPLIER = 120;
@@ -399,8 +399,8 @@ export interface M8aV4GroundStationSceneState {
     };
     layout: {
       viewportClass: "desktop" | "narrow";
-      desktopPolicy: "right-review-rail";
-      narrowPolicy: "minimal-strip-with-inspection-sheet";
+      desktopPolicy: "compact-control-strip";
+      narrowPolicy: "compact-control-strip-with-secondary-sheet";
       detailSheetState: M8aV47DisclosureState;
       protectedZonePolicy:
         "endpoint-corridor-geo-guard-and-required-labels-non-obstruction";
@@ -1221,7 +1221,7 @@ function createProductUxRoot(): HTMLElement {
   const root = document.createElement("section");
   root.className = "m8a-v47-product-ux";
   root.dataset.m8aV47ProductUx = "true";
-  root.setAttribute("aria-label", "M8A V4.7 product review controls");
+  root.setAttribute("aria-label", "M8A V4.7.1 product review controls");
   return root;
 }
 
@@ -1247,12 +1247,14 @@ function renderSpeedButtons(activeMultiplier: number): string {
 }
 
 function renderStagePills(
-  state: M8aV4GroundStationSceneState
+  timeline: ReadonlyArray<M8aV46dSimulationHandoverWindow>,
+  stateLabels: Record<M8aV46dSimulationHandoverWindowId, string>,
+  activeWindowId: M8aV46dSimulationHandoverWindowId
 ): string {
-  return state.simulationHandoverModel.timeline
+  return timeline
     .map((windowDefinition) => {
-      const label = state.productUx.stateLabels[windowDefinition.windowId];
-      const isActive = windowDefinition.windowId === state.productUx.activeWindowId;
+      const label = stateLabels[windowDefinition.windowId];
+      const isActive = windowDefinition.windowId === activeWindowId;
 
       return [
         `<span class="m8a-v47-product-ux__stage"`,
@@ -1271,9 +1273,157 @@ function renderDisclosureLines(): string {
   ).join("");
 }
 
+function ensureProductUxStructure(root: HTMLElement): void {
+  if (root.dataset.m8aV471StableControls === "true") {
+    return;
+  }
+
+  root.innerHTML = `
+    <div class="m8a-v47-product-ux__scene-annotation" data-m8a-v47-ui-surface="scene-near-annotation" data-m8a-v47-scene-annotation="true" aria-live="polite">
+      <span>Display-context state</span>
+      <strong data-m8a-v47-active-label="scene-annotation"></strong>
+      <small data-m8a-v47-annotation-context="true">Representative display cue</small>
+    </div>
+    <div class="m8a-v47-product-ux__strip" data-m8a-v47-ui-surface="compact-control-strip" data-m8a-v47-control-strip="true">
+      <div class="m8a-v47-product-ux__strip-state">
+        <span>Display state</span>
+        <strong data-m8a-v47-active-label="strip"></strong>
+        <small data-m8a-v47-time-label="simulated"></small>
+      </div>
+      <button type="button" class="m8a-v47-product-ux__play-toggle" data-m8a-v47-action="pause" data-m8a-v47-control-id="play-pause">Pause</button>
+      <button type="button" data-m8a-v47-action="restart" data-m8a-v47-control-id="restart">Restart</button>
+      <div class="m8a-v47-product-ux__strip-speeds" data-m8a-v47-control-group="speed">
+        ${renderSpeedButtons(M8A_V47_PRODUCT_DEFAULT_MULTIPLIER)}
+      </div>
+      <progress class="m8a-v47-product-ux__progress" max="1" value="0" data-m8a-v47-progress="true"></progress>
+      <button type="button" data-m8a-v47-action="toggle-disclosure" data-m8a-v47-control-id="details-toggle" aria-expanded="false">Details</button>
+      <div class="m8a-v47-product-ux__badges m8a-v47-product-ux__badges--strip" data-m8a-v47-truth-badges="true">
+        ${renderTruthBadges()}
+      </div>
+    </div>
+    <aside class="m8a-v47-product-ux__sheet" data-m8a-v47-ui-surface="inspection-sheet" hidden>
+      <div class="m8a-v47-product-ux__sheet-header">
+        <strong>Display-context details</strong>
+        <button type="button" data-m8a-v47-action="close-disclosure" data-m8a-v47-control-id="details-close">Close</button>
+      </div>
+      <div class="m8a-v47-product-ux__sheet-state">
+        <span>Current state</span>
+        <strong data-m8a-v47-active-label="sheet"></strong>
+        <small data-m8a-v47-time-label="replay-utc"></small>
+      </div>
+      <div class="m8a-v47-product-ux__stages" data-m8a-v47-label-map="v4.6d-window-id-to-product-label">
+        ${renderStagePills(
+          M8A_V4_GROUND_STATION_RUNTIME_PROJECTION.simulationHandoverModel
+            .timeline,
+          M8A_V46E_TIMELINE_LABELS,
+          "leo-acquisition-context"
+        )}
+      </div>
+      <div class="m8a-v47-product-ux__badges">
+        ${renderTruthBadges()}
+      </div>
+      <ul>
+        ${renderDisclosureLines()}
+      </ul>
+    </aside>
+  `;
+  root.dataset.m8aV471StableControls = "true";
+}
+
+function getProductUxElement(
+  root: HTMLElement,
+  selector: string
+): HTMLElement {
+  const element = root.querySelector<HTMLElement>(selector);
+
+  if (!element) {
+    throw new Error(`Missing V4.7.1 product UX element: ${selector}`);
+  }
+
+  return element;
+}
+
+function updateProductUxText(
+  root: HTMLElement,
+  selector: string,
+  value: string
+): void {
+  for (const element of root.querySelectorAll<HTMLElement>(selector)) {
+    element.textContent = value;
+  }
+}
+
+function setProductUxHidden(element: HTMLElement, hidden: boolean): void {
+  element.hidden = hidden;
+  element.setAttribute("aria-hidden", hidden ? "true" : "false");
+}
+
+function resolveSceneAnnotationPlacement(
+  state: M8aV4GroundStationSceneState,
+  viewer: Viewer
+): {
+  anchorActorId: string;
+  anchorX: number;
+  anchorY: number;
+  left: number;
+  top: number;
+  projected: boolean;
+} {
+  const canvas = viewer.scene.canvas;
+  const width = Math.max(canvas.clientWidth, 1);
+  const height = Math.max(canvas.clientHeight, 1);
+  const anchorActorId =
+    state.simulationHandoverModel.window.displayRepresentativeActorId;
+  const actor = state.actors.find((candidate) => {
+    return candidate.actorId === anchorActorId;
+  });
+  let anchorX = width * 0.56;
+  let anchorY = height * 0.42;
+  let projected = false;
+
+  if (actor) {
+    const point = viewer.scene.cartesianToCanvasCoordinates(
+      Cartesian3.fromElements(
+        actor.renderPositionEcefMeters.x,
+        actor.renderPositionEcefMeters.y,
+        actor.renderPositionEcefMeters.z
+      )
+    );
+
+    if (
+      point &&
+      Number.isFinite(point.x) &&
+      Number.isFinite(point.y)
+    ) {
+      anchorX = point.x;
+      anchorY = point.y;
+      projected = true;
+    }
+  }
+
+  const isNarrow = state.productUx.layout.viewportClass === "narrow";
+  const annotationWidth = isNarrow ? 208 : 258;
+  const minTop = isNarrow ? 258 : 112;
+  const maxTop = Math.max(minTop, height - (isNarrow ? 260 : 150));
+  const placeLeft =
+    anchorX > width * 0.35 || anchorX > width - annotationWidth - 42;
+  const offsetX = placeLeft ? -annotationWidth - 90 : 30;
+  const offsetY = isNarrow ? -205 : -190;
+
+  return {
+    anchorActorId,
+    anchorX,
+    anchorY,
+    left: clamp(anchorX + offsetX, 14, width - annotationWidth - 14),
+    top: clamp(anchorY + offsetY, minTop, maxTop),
+    projected
+  };
+}
+
 function renderProductUx(
   root: HTMLElement,
-  state: M8aV4GroundStationSceneState
+  state: M8aV4GroundStationSceneState,
+  viewer: Viewer
 ): void {
   const productUx = state.productUx;
   const activeMultiplier = productUx.playback.multiplier;
@@ -1283,7 +1433,9 @@ function renderProductUx(
     productUx.playback.status === "playing" ? "Pause" : "Play";
   const sheetOpen = productUx.disclosure.state === "open";
   const progressValue = productUx.playback.replayRatio.toFixed(6);
+  const placement = resolveSceneAnnotationPlacement(state, viewer);
 
+  ensureProductUxStructure(root);
   root.hidden = false;
   root.setAttribute("aria-hidden", "false");
   root.dataset.viewportClass = productUx.layout.viewportClass;
@@ -1296,53 +1448,79 @@ function renderProductUx(
   root.dataset.truthDisclosure = productUx.disclosure.state;
   root.dataset.normalControlsExposeDebugMultiplier = "false";
 
-  root.innerHTML = `
-    <div class="m8a-v47-product-ux__rail" data-m8a-v47-ui-surface="desktop-rail">
-      <div class="m8a-v47-product-ux__header">
-        <span>Current simulation state</span>
-        <strong data-m8a-v47-active-label="true">${productUx.activeProductLabel}</strong>
-        <small>${productUx.playback.simulatedReplayTimeDisplay}</small>
-      </div>
-      <div class="m8a-v47-product-ux__controls" data-m8a-v47-control-group="playback">
-        <button type="button" data-m8a-v47-action="${playbackAction}">${playbackLabel}</button>
-        <button type="button" data-m8a-v47-action="restart">Restart</button>
-      </div>
-      <div class="m8a-v47-product-ux__speed-group" data-m8a-v47-control-group="speed">
-        ${renderSpeedButtons(activeMultiplier)}
-      </div>
-      <div class="m8a-v47-product-ux__time">
-        <span data-m8a-v47-time-label="simulated">${productUx.playback.simulatedReplayTimeDisplay}</span>
-        <span data-m8a-v47-time-label="replay-utc">${productUx.playback.replayUtcDisplay}</span>
-      </div>
-      <progress class="m8a-v47-product-ux__progress" max="1" value="${progressValue}" data-m8a-v47-progress="true"></progress>
-      <div class="m8a-v47-product-ux__stages" data-m8a-v47-label-map="v4.6d-window-id-to-product-label">
-        ${renderStagePills(state)}
-      </div>
-      <div class="m8a-v47-product-ux__badges" data-m8a-v47-truth-badges="true">
-        ${renderTruthBadges()}
-      </div>
-      <button type="button" class="m8a-v47-product-ux__disclosure-button" data-m8a-v47-action="toggle-disclosure" aria-expanded="${sheetOpen ? "true" : "false"}">Truth boundary</button>
-    </div>
-    <div class="m8a-v47-product-ux__strip" data-m8a-v47-ui-surface="narrow-strip">
-      <strong data-m8a-v47-active-label="true">${productUx.activeProductLabel}</strong>
-      <button type="button" data-m8a-v47-action="${playbackAction}">${playbackLabel}</button>
-      <div class="m8a-v47-product-ux__strip-speeds">${renderSpeedButtons(activeMultiplier)}</div>
-      <progress max="1" value="${progressValue}" data-m8a-v47-progress="true"></progress>
-      <button type="button" data-m8a-v47-action="toggle-disclosure" aria-expanded="${sheetOpen ? "true" : "false"}">Details</button>
-    </div>
-    <aside class="m8a-v47-product-ux__sheet" data-m8a-v47-ui-surface="inspection-sheet" ${sheetOpen ? "" : "hidden"}>
-      <div class="m8a-v47-product-ux__sheet-header">
-        <strong>Truth boundary</strong>
-        <button type="button" data-m8a-v47-action="close-disclosure">Close</button>
-      </div>
-      <div class="m8a-v47-product-ux__badges">
-        ${renderTruthBadges()}
-      </div>
-      <ul>
-        ${renderDisclosureLines()}
-      </ul>
-    </aside>
-  `;
+  updateProductUxText(
+    root,
+    "[data-m8a-v47-active-label]",
+    productUx.activeProductLabel
+  );
+  updateProductUxText(
+    root,
+    "[data-m8a-v47-time-label='simulated']",
+    productUx.playback.simulatedReplayTimeDisplay
+  );
+  updateProductUxText(
+    root,
+    "[data-m8a-v47-time-label='replay-utc']",
+    productUx.playback.replayUtcDisplay
+  );
+
+  const annotation = getProductUxElement(
+    root,
+    "[data-m8a-v47-scene-annotation='true']"
+  );
+  annotation.dataset.m8aV47WindowId = productUx.activeWindowId;
+  annotation.dataset.m8aV47SceneAnchorKind =
+    "display-representative-context-cue";
+  annotation.dataset.m8aV47SceneAnchorActorId = placement.anchorActorId;
+  annotation.dataset.m8aV47SceneAnchorProjected = String(placement.projected);
+  annotation.dataset.m8aV47SceneAnchorX = placement.anchorX.toFixed(1);
+  annotation.dataset.m8aV47SceneAnchorY = placement.anchorY.toFixed(1);
+  annotation.style.left = `${placement.left.toFixed(1)}px`;
+  annotation.style.top = `${placement.top.toFixed(1)}px`;
+
+  const playButton = getProductUxElement(
+    root,
+    "[data-m8a-v47-control-id='play-pause']"
+  ) as HTMLButtonElement;
+  playButton.dataset.m8aV47Action = playbackAction;
+  playButton.textContent = playbackLabel;
+  playButton.setAttribute("aria-label", `${playbackLabel} replay`);
+
+  for (const speedButton of root.querySelectorAll<HTMLButtonElement>(
+    "[data-m8a-v47-playback-multiplier]"
+  )) {
+    speedButton.setAttribute(
+      "aria-pressed",
+      String(Number(speedButton.dataset.m8aV47PlaybackMultiplier) === activeMultiplier)
+    );
+  }
+
+  for (const progress of root.querySelectorAll<HTMLProgressElement>(
+    "[data-m8a-v47-progress='true']"
+  )) {
+    progress.value = productUx.playback.replayRatio;
+    progress.setAttribute("value", progressValue);
+  }
+
+  for (const toggle of root.querySelectorAll<HTMLButtonElement>(
+    "[data-m8a-v47-action='toggle-disclosure']"
+  )) {
+    toggle.setAttribute("aria-expanded", String(sheetOpen));
+  }
+
+  const sheet = getProductUxElement(
+    root,
+    "[data-m8a-v47-ui-surface='inspection-sheet']"
+  );
+  setProductUxHidden(sheet, !sheetOpen);
+
+  for (const stage of root.querySelectorAll<HTMLElement>(
+    "[data-m8a-v47-window-id]"
+  )) {
+    stage.dataset.active = String(
+      stage.dataset.m8aV47WindowId === productUx.activeWindowId
+    );
+  }
 }
 
 function cloneActorState(
@@ -1801,8 +1979,8 @@ function buildProductUxState({
     },
     layout: {
       viewportClass,
-      desktopPolicy: "right-review-rail",
-      narrowPolicy: "minimal-strip-with-inspection-sheet",
+      desktopPolicy: "compact-control-strip",
+      narrowPolicy: "compact-control-strip-with-secondary-sheet",
       detailSheetState: disclosureState,
       protectedZonePolicy:
         "endpoint-corridor-geo-guard-and-required-labels-non-obstruction"
@@ -2169,6 +2347,19 @@ export function createM8aV4GroundStationSceneController({
     syncState();
   };
 
+  const completeFinalHoldIfElapsed = (): boolean => {
+    if (
+      !finalHoldActive ||
+      typeof finalHoldStartedAtEpochMs !== "number" ||
+      Date.now() - finalHoldStartedAtEpochMs < M8A_V47_FINAL_HOLD_DURATION_MS
+    ) {
+      return false;
+    }
+
+    finishFinalHold();
+    return true;
+  };
+
   const startFinalHold = (): void => {
     if (disposed || finalHoldActive) {
       return;
@@ -2184,7 +2375,7 @@ export function createM8aV4GroundStationSceneController({
     syncState();
     clearFinalHoldTimer();
     finalHoldTimeoutId = window.setTimeout(
-      finishFinalHold,
+      completeFinalHoldIfElapsed,
       M8A_V47_FINAL_HOLD_DURATION_MS
     );
   };
@@ -2485,7 +2676,7 @@ export function createM8aV4GroundStationSceneController({
     geoGuardCueEntity.show = shouldShowGeoGuardCue(latestSimulationWindow);
 
     renderHud(hudRoot, nextState);
-    renderProductUx(productUxRoot, nextState);
+    renderProductUx(productUxRoot, nextState, viewer);
     syncTelemetry(nextState);
     notifyListeners(listeners, nextState);
 
@@ -2542,6 +2733,11 @@ export function createM8aV4GroundStationSceneController({
   };
 
   productUxRoot.addEventListener("click", handleProductUxClick);
+  const removeFinalHoldClockListener = viewer.clock.onTick.addEventListener(
+    () => {
+      completeFinalHoldIfElapsed();
+    }
+  );
 
   syncState();
 
@@ -2579,6 +2775,7 @@ export function createM8aV4GroundStationSceneController({
 
   return {
     getState(): M8aV4GroundStationSceneState {
+      completeFinalHoldIfElapsed();
       return cloneState(createState());
     },
     subscribe(listener: (state: M8aV4GroundStationSceneState) => void): () => void {
@@ -2607,6 +2804,7 @@ export function createM8aV4GroundStationSceneController({
     dispose(): void {
       disposed = true;
       clearFinalHoldTimer();
+      removeFinalHoldClockListener();
       unsubscribeReplayClock();
       listeners.clear();
       productUxRoot.removeEventListener("click", handleProductUxClick);
