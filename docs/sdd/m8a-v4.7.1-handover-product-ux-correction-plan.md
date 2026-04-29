@@ -275,7 +275,10 @@ set, source boundary, and model truth.
 Runtime status:
 
 - completed after explicit `V4.7.1` runtime implementation opening
-- accepted runtime commit: `4c7ba8a Implement M8A V4.7.1 UX correction`
+- initial runtime implementation commit:
+  `4c7ba8a Implement M8A V4.7.1 UX correction`
+- post-review obstruction fix commit:
+  `9604bde Fix V4.7.1 details sheet annotation obstruction`
 - no route, endpoint pair, endpoint expansion, precision, actor set, source, or
   model-truth expansion
 
@@ -315,8 +318,11 @@ Validation result:
 - real pointer-click matrix passed
 - DOM stability across replay ticks passed
 - computed font-size and hit-target checks passed
-- final hold observed at `4311ms` in local acceptance validation
-- no deviations from this SDD were recorded
+- open-details sheet versus scene-near annotation geometry passed at
+  `1440x900`, `1280x720`, and `390x844`
+- final hold observed at `4249ms` in post-fix local acceptance validation
+- post-review blocking details-sheet obstruction was corrected
+- no remaining deviations from this SDD were recorded
 
 Validated screenshots:
 
