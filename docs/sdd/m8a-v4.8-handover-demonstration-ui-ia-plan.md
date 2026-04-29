@@ -27,6 +27,8 @@ Related planning-control handoff:
   `a48b0a6 Clean V4.7.1 accepted runtime status`
 - latest doc closeout commit before this plan:
   `ba35008 Record M8A V4.7.1 final handoff`
+- initial V4.8 planning commit:
+  `0cf2b86 Add M8A V4.8 handover demonstration UI IA plan`
 
 ## Current Understanding
 
@@ -176,6 +178,29 @@ service truth.
 Implementation may refine copy, but it must preserve this state-specific
 structure and truth boundary.
 
+## V4.8 Review View-Model Acceptance Table
+
+The implementation must expose or derive the following review view-model from
+the existing `V4.6D` model. These ids are accepted display-context ids only;
+they are not active satellite, gateway, or path truth.
+
+| Window id | Representative actor | Candidate context actors | Fallback actors | Default scene anchor | Primary relation cue |
+| --- | --- | --- | --- | --- | --- |
+| `leo-acquisition-context` | `oneweb-0386-leo-display-context` | `oneweb-0537-leo-display-context`, `oneweb-0701-leo-display-context`, `o3b-mpower-f6-meo-display-context` | `st-2-geo-continuity-anchor`, `ses-9-geo-display-context` | representative actor if visible; otherwise display relation cue | `displayRepresentative`; `candidateContext` secondary |
+| `leo-aging-pressure` | `oneweb-0537-leo-display-context` | `oneweb-0012-leo-display-context`, `oneweb-0249-leo-display-context`, `o3b-mpower-f1-meo-display-context`, `o3b-mpower-f2-meo-display-context` | `st-2-geo-continuity-anchor`, `ses-9-geo-display-context` | representative actor if visible; otherwise display relation cue | `displayRepresentative`; `candidateContext` secondary |
+| `meo-continuity-hold` | `o3b-mpower-f6-meo-display-context` | `o3b-mpower-f1-meo-display-context`, `o3b-mpower-f2-meo-display-context`, `o3b-mpower-f4-meo-display-context`, `o3b-mpower-f3-meo-display-context`, `oneweb-0702-leo-display-context` | `st-2-geo-continuity-anchor`, `ses-9-geo-display-context` | representative MEO actor if visible; otherwise display relation cue | `displayRepresentative`; `candidateContext` secondary |
+| `leo-reentry-candidate` | `oneweb-0702-leo-display-context` | `oneweb-0012-leo-display-context`, `oneweb-0249-leo-display-context`, `oneweb-0386-leo-display-context`, `o3b-mpower-f4-meo-display-context` | `st-2-geo-continuity-anchor`, `ses-9-geo-display-context` | representative LEO actor if visible; otherwise display relation cue | `displayRepresentative`; `candidateContext` secondary |
+| `geo-continuity-guard` | `st-2-geo-continuity-anchor` | `ses-9-geo-display-context`, `o3b-mpower-f3-meo-display-context`, `oneweb-0701-leo-display-context` | `st-2-geo-continuity-anchor`, `ses-9-geo-display-context` | GEO guard cue or representative GEO anchor | `displayRepresentative`; GEO guard cue secondary |
+
+Acceptance requirements:
+
+- inspector fields must match the accepted ids above for each state
+- scene-anchor metadata must record the selected anchor type and selected actor
+  or relation cue id
+- fallback state labels must record that no scene anchor is claimed
+- tests must fail if the UI shows a representative/candidate/fallback id that
+  differs from the current `V4.6D` window
+
 ## Timeline And Time Display Policy
 
 The UI must avoid duplicate timeline semantics.
@@ -194,6 +219,27 @@ Accepted policy:
   is not usable, and the fallback must be labeled as a fallback
 - if a product time readout remains visible, it must explain a distinct
   product purpose, such as `State 3 of 5`, not just duplicate progress
+
+Allowed visible product temporal elements:
+
+- `Play` / `Pause`
+- `Restart`
+- speed selector for accepted product speeds
+- current state label
+- `State N of 5`
+- inspector-only replay UTC or simulated review time
+- narrow fallback time only when the bottom Cesium timeline is not usable
+
+Denied visible primary product temporal elements while the Cesium timeline is
+visible:
+
+- a second progress bar, range slider, scrubber, or timeline row
+- a visible `role="progressbar"` product surface
+- a product row whose main purpose is elapsed/total replay progress
+- duplicate percent-complete or progress-ratio text
+
+Hidden or test-only progress seams are allowed only if they are not visible
+product UI, not keyboard focus targets, and not presented as a second timeline.
 
 `V4.8` acceptance must fail if the top UI and bottom timeline both present the
 same progress semantics as primary surfaces.
@@ -242,6 +288,28 @@ If no reliable scene anchor is available at a viewport, the UI must fall back
 to a clearly non-scene state label in the control/inspector surface. It must
 not pretend to be anchored to a satellite.
 
+Connector geometry acceptance:
+
+- if a callout claims a scene anchor, its connector endpoint must land within
+  `24px` of the projected actor/cue/corridor anchor on desktop
+- narrow viewport may use `32px` because touch-safe spacing can force larger
+  offsets
+- the connector must point toward the recorded anchor; tests must fail if the
+  connector points away from the anchor quadrant
+- the callout must not intersect the selected cue protection rectangle:
+  `96x72px` around actor/cue anchors on desktop and `112x88px` on narrow
+- the inspector or sheet must not intersect the selected cue protection
+  rectangle when open
+
+Fallback rule:
+
+- if the selected anchor is offscreen, behind the globe, hidden by another
+  accepted UI surface, or outside the connector threshold, the UI must set an
+  explicit fallback/test seam such as `data-scene-anchor-state="fallback"`
+- fallback labels must not render connector lines
+- fallback labels must not use copy that implies the label is attached to a
+  satellite or active path
+
 ## Orbit Motion Policy
 
 The demonstration must not make display-context satellites look like they are
@@ -252,7 +320,10 @@ handover review, the default accepted direction is credible orbit passage.
 Preferred implementation directions:
 
 1. Use source-propagated TLE positions for visual actor motion when the camera
-   and label strategy can keep the accepted endpoint corridor reviewable.
+   and label strategy can keep the accepted endpoint corridor reviewable. This
+   means using TLE lineage already embedded in the repo-owned projection/module;
+   it must not introduce live source reads or runtime reads of raw `itri`
+   packages.
 2. If viewer-owned display tracks are still required for readability, replace
    ping-pong interpolation with a monotonic display pass or wrapped path that
    looks like orbit passage, and label it as display-context projection.
@@ -269,6 +340,22 @@ Rejected for `V4.8`:
 
 Any motion correction must preserve the accepted `V4.6D` state selection
 semantics. The model may still use normalized replay ratio for state windows.
+
+Motion sampling acceptance:
+
+- sample each non-GEO representative actor at least `8` times across its
+  active window
+- accepted product motion must not traverse a short segment and then reverse
+  over the same segment within that same window
+- tests must fail on an A-B-A pattern where a later sample returns within
+  `20%` of the starting projected segment after moving at least `40%` across
+  that segment
+- if a wrapped display path is used, tests must identify the wrap seam and
+  prove the actor advances through the seam instead of reversing direction
+- if source-propagated motion is used, tests must record that positions came
+  from the repo-owned projection/module lineage, not from a live source read
+- GEO guard motion may remain near-fixed, but tests must treat it separately
+  from LEO/MEO passage validation
 
 ## Layout Strategy
 
@@ -302,6 +389,8 @@ Required visual checks:
 
 - one screenshot or visual probe per `V4.6D` state per desktop matrix, with
   narrow coverage for at least initial, middle, and final states
+- narrow viewport must also have lightweight all-five-state DOM/geometry probes
+  even if not every narrow state produces a saved screenshot
 - no duplicate primary timeline/progress semantics
 - dynamic inspector content changes across all five windows
 - scene-near annotation either anchors to the correct cue or is absent with a
@@ -319,14 +408,22 @@ Required smoke additions:
 
 - per-state dynamic content assertions for all five `V4.6D` windows
 - fixed-versus-dynamic DOM classification checks
+- visible text classification seam: every accepted visible product text node
+  must expose `data-m8a-v48-info-class="fixed"`, `"dynamic"`,
+  `"disclosure"`, or `"control"`, or an equivalent test seam with the same
+  categories
 - assertion that details/inspector body text changes when the handover state
   changes
 - assertion that each state maps to a specific display representative,
   candidate context, fallback context, and scene cue
 - duplicate timeline scan: fail if product UI exposes a second primary
   progress/timeline while Cesium timeline is visible
+- duplicate timeline allow/deny scan based on the policy above
 - scene-anchor geometry check against Cesium canvas coordinates for the chosen
   actor or relation cue
+- connector endpoint threshold check at desktop and narrow viewport sizes
+- selected cue protection-rectangle obstruction check while the inspector is
+  closed and while it is open
 - fallback check proving non-anchored labels do not claim a scene anchor
 - motion sampling check proving accepted product motion is not ping-pong
   display shuttle behavior
