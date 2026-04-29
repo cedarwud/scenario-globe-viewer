@@ -75,7 +75,7 @@ const M8A_V4_FULL_LEO_ORBIT_REPLAY_MARGIN_MS = 5 * 60 * 1000;
 const M8A_V47_PRODUCT_UX_VERSION =
   "m8a-v4.7.1-handover-product-ux-correction-runtime.v1";
 const M8A_V48_UI_IA_VERSION =
-  "m8a-v4.8-handover-demonstration-ui-ia-phase2-runtime.v1";
+  "m8a-v4.8-handover-demonstration-ui-ia-phase3-runtime.v1";
 const M8A_V47_GUIDED_REVIEW_MULTIPLIER = 30;
 const M8A_V47_PRODUCT_DEFAULT_MULTIPLIER = 60;
 const M8A_V47_QUICK_SCAN_MULTIPLIER = 120;
@@ -340,9 +340,31 @@ interface M8aV4ActorRuntimeRecord {
   artifactRenderPosition: M8aV4OrbitActorProjection["artifactRenderPosition"];
   renderTrackBasis: string;
   renderTrackIsSourceTruth: false;
+  displayMotion: M8aV4ActorDisplayMotionState;
   propagationTimeUtc: string;
   emphasis: M8aV4ActorEmphasis["emphasis"];
   labelVisibility: "always-visible" | "hidden-context";
+}
+
+type M8aV4ActorDisplayMotionPolicy =
+  | "monotonic-wrapped-display-pass"
+  | "near-fixed-geo-guard";
+
+interface M8aV4ActorDisplayMotionState {
+  policy: M8aV4ActorDisplayMotionPolicy;
+  sourceBoundary:
+    "M8A_V4_GROUND_STATION_RUNTIME_PROJECTION.orbitActors.runtimeDisplayTrack";
+  trackKind: M8aV4OrbitActorProjection["runtimeDisplayTrack"]["trackKind"];
+  pathProgress: number;
+  unwrappedTrackProgress: number;
+  wrapIndex: number;
+  phaseOffset: number;
+  cycleRate: number;
+  renderTrackBasis: string;
+  renderTrackIsSourceTruth: false;
+  truthBoundary:
+    | "viewer-owned-display-projection-not-source-truth"
+    | "near-fixed-geo-display-context-guard-not-service-truth";
 }
 
 type M8aV48InfoClass = "fixed" | "dynamic" | "disclosure" | "control";
@@ -885,14 +907,56 @@ function resolveSimulationHandoverWindow(
 
 function resolveActorDisplayHeightMeters(
   orbitClass: M8aV4OrbitClass,
-  easedRatio: number,
+  pathProgress: number,
   loopRatio: number
 ): number {
   const heightBand = M8A_V4_DISPLAY_ORBIT_HEIGHT_METERS[orbitClass];
   return (
-    lerp(heightBand.start, heightBand.stop, easedRatio) +
+    lerp(heightBand.start, heightBand.stop, pathProgress) +
     Math.sin(loopRatio * Math.PI * 2) * heightBand.wobble
   );
+}
+
+function resolveActorDisplayMotionState(
+  actor: M8aV4OrbitActorProjection,
+  replayRatio: number
+): M8aV4ActorDisplayMotionState {
+  const track = actor.runtimeDisplayTrack;
+
+  if (track.trackKind === "east-asia-near-fixed-geo-anchor") {
+    return {
+      policy: "near-fixed-geo-guard",
+      sourceBoundary:
+        "M8A_V4_GROUND_STATION_RUNTIME_PROJECTION.orbitActors.runtimeDisplayTrack",
+      trackKind: track.trackKind,
+      pathProgress: 0,
+      unwrappedTrackProgress: 0,
+      wrapIndex: 0,
+      phaseOffset: track.phaseOffset,
+      cycleRate: track.cycleRate,
+      renderTrackBasis: track.renderTrackBasis,
+      renderTrackIsSourceTruth: track.renderTrackIsSourceTruth,
+      truthBoundary: "near-fixed-geo-display-context-guard-not-service-truth"
+    };
+  }
+
+  const unwrappedTrackProgress =
+    replayRatio * track.cycleRate + track.phaseOffset;
+
+  return {
+    policy: "monotonic-wrapped-display-pass",
+    sourceBoundary:
+      "M8A_V4_GROUND_STATION_RUNTIME_PROJECTION.orbitActors.runtimeDisplayTrack",
+    trackKind: track.trackKind,
+    pathProgress: normalizeUnit(unwrappedTrackProgress),
+    unwrappedTrackProgress,
+    wrapIndex: Math.floor(unwrappedTrackProgress),
+    phaseOffset: track.phaseOffset,
+    cycleRate: track.cycleRate,
+    renderTrackBasis: track.renderTrackBasis,
+    renderTrackIsSourceTruth: track.renderTrackIsSourceTruth,
+    truthBoundary: "viewer-owned-display-projection-not-source-truth"
+  };
 }
 
 function resolveModelUri(): string {
@@ -2430,6 +2494,9 @@ function cloneActorState(
     },
     artifactRenderPosition: {
       ...actor.artifactRenderPosition
+    },
+    displayMotion: {
+      ...actor.displayMotion
     }
   };
 }
@@ -3092,6 +3159,10 @@ export function createM8aV4GroundStationSceneController({
         })
       : resolveReplayWindowRatio(replayState);
     const track = actor.runtimeDisplayTrack;
+    const displayMotion = resolveActorDisplayMotionState(actor, timeRatio);
+    const propagationTimeUtc = time
+      ? JulianDate.toDate(time).toISOString()
+      : toIsoTimestamp(replayState.currentTime);
 
     if (track.trackKind === "east-asia-near-fixed-geo-anchor") {
       // Source GEO altitude stays in sourcePosition; render height is compressed
@@ -3104,27 +3175,24 @@ export function createM8aV4GroundStationSceneController({
           undefined,
           result ?? new Cartesian3()
         ),
-        propagationTimeUtc: toIsoTimestamp(replayState.currentTime)
+        propagationTimeUtc
       };
     }
 
-    const loopRatio = normalizeUnit(
-      timeRatio * track.cycleRate + track.phaseOffset
-    );
-    const easedRatio = 0.5 - Math.cos(loopRatio * Math.PI * 2) * 0.5;
+    const loopRatio = displayMotion.pathProgress;
     const heightMeters = resolveActorDisplayHeightMeters(
       actor.orbitClass,
-      easedRatio,
+      loopRatio,
       loopRatio
     );
 
     return {
       cartesian: Cartesian3.fromDegrees(
-        lerp(track.start.lon, track.stop.lon, easedRatio) +
+        lerp(track.start.lon, track.stop.lon, loopRatio) +
           (actor.orbitClass === "meo"
             ? M8A_V4_MEO_DISPLAY_LANE_LONGITUDE_BIAS_DEGREES
             : 0),
-        lerp(track.start.lat, track.stop.lat, easedRatio) +
+        lerp(track.start.lat, track.stop.lat, loopRatio) +
           (actor.orbitClass === "meo"
             ? M8A_V4_MEO_DISPLAY_LANE_LATITUDE_BIAS_DEGREES
             : 0),
@@ -3132,7 +3200,7 @@ export function createM8aV4GroundStationSceneController({
         undefined,
         result ?? new Cartesian3()
       ),
-      propagationTimeUtc: toIsoTimestamp(replayState.currentTime)
+      propagationTimeUtc
     };
   };
 
@@ -3463,6 +3531,10 @@ export function createM8aV4GroundStationSceneController({
           renderTrackBasis: actor.runtimeDisplayTrack.renderTrackBasis,
           renderTrackIsSourceTruth:
             actor.runtimeDisplayTrack.renderTrackIsSourceTruth,
+          displayMotion: resolveActorDisplayMotionState(
+            actor,
+            resolveReplayWindowRatio(replayState)
+          ),
           propagationTimeUtc: sourcePropagated.propagationTimeUtc,
           emphasis: emphasis.emphasis,
           labelVisibility: shouldRenderActorLabel(actor, simulationWindow)

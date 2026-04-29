@@ -19,8 +19,11 @@ const EXPECTED_ENDPOINT_PAIR_ID =
 const EXPECTED_PRECISION = "operator-family-only";
 const EXPECTED_MODEL_ID = "m8a-v4.6d-simulation-handover-model.v1";
 const EXPECTED_V48_VERSION =
-  "m8a-v4.8-handover-demonstration-ui-ia-phase2-runtime.v1";
+  "m8a-v4.8-handover-demonstration-ui-ia-phase3-runtime.v1";
 const EXPECTED_ACTOR_COUNTS = { leo: 6, meo: 5, geo: 2 };
+const PHASE3_MOTION_SAMPLE_COUNT = 8;
+const EXPECTED_DISPLAY_MOTION_SOURCE_BOUNDARY =
+  "M8A_V4_GROUND_STATION_RUNTIME_PROJECTION.orbitActors.runtimeDisplayTrack";
 const VIEWPORTS = [
   {
     name: "desktop-1440",
@@ -984,6 +987,400 @@ async function verifySceneAnchorGeometry(client, viewport) {
   return results;
 }
 
+function distance3d(left, right) {
+  return Math.hypot(
+    left.x - right.x,
+    left.y - right.y,
+    left.z - right.z
+  );
+}
+
+function assertForwardDisplayPass(samples, label) {
+  assert(
+    samples.length >= PHASE3_MOTION_SAMPLE_COUNT,
+    "V4.8 Phase 3 must sample each non-GEO representative actor at least 8 times: " +
+      JSON.stringify({ label, sampleCount: samples.length })
+  );
+
+  for (const sample of samples) {
+    assert(
+      sample.displayMotion?.policy === "monotonic-wrapped-display-pass" &&
+        sample.displayMotion.sourceBoundary ===
+          EXPECTED_DISPLAY_MOTION_SOURCE_BOUNDARY &&
+        sample.displayMotion.renderTrackIsSourceTruth === false &&
+        sample.displayMotion.truthBoundary ===
+          "viewer-owned-display-projection-not-source-truth",
+      "V4.8 Phase 3 non-GEO motion must use the repo-owned monotonic display-pass policy: " +
+        JSON.stringify({ label, sample })
+    );
+  }
+
+  for (let index = 1; index < samples.length; index += 1) {
+    assert(
+      samples[index].displayMotion.unwrappedTrackProgress >
+        samples[index - 1].displayMotion.unwrappedTrackProgress,
+      "V4.8 Phase 3 non-GEO motion must advance monotonically through active-window samples: " +
+        JSON.stringify({ label, samples })
+    );
+  }
+
+  const wrapIndexes = new Set(
+    samples.map((sample) => sample.displayMotion.wrapIndex)
+  );
+
+  if (wrapIndexes.size === 1) {
+    for (let index = 1; index < samples.length; index += 1) {
+      assert(
+        samples[index].displayMotion.pathProgress >
+          samples[index - 1].displayMotion.pathProgress,
+        "V4.8 Phase 3 active-window samples without a seam must not reverse along the projected segment: " +
+          JSON.stringify({ label, samples })
+      );
+    }
+  }
+
+  const startProgress = samples[0].displayMotion.pathProgress;
+  const progressDistances = samples.map((sample) =>
+    Math.abs(sample.displayMotion.pathProgress - startProgress)
+  );
+  const maxProgressDistance = Math.max(...progressDistances);
+  let movedMeaningfully = false;
+  const abaHits = [];
+
+  for (let index = 1; index < samples.length; index += 1) {
+    if (progressDistances[index] >= maxProgressDistance * 0.4) {
+      movedMeaningfully = true;
+      continue;
+    }
+
+    if (
+      movedMeaningfully &&
+      progressDistances[index] <= maxProgressDistance * 0.2
+    ) {
+      abaHits.push({
+        index,
+        progress: samples[index].displayMotion.pathProgress,
+        distanceFromStart: progressDistances[index]
+      });
+    }
+  }
+
+  const renderStart = samples[0].renderPositionEcefMeters;
+  const maxRenderDistance = Math.max(
+    ...samples.map((sample) =>
+      distance3d(sample.renderPositionEcefMeters, renderStart)
+    )
+  );
+
+  assert(
+    maxProgressDistance > 0.06 && maxRenderDistance > 75_000,
+    "V4.8 Phase 3 non-GEO representative actor must show meaningful active-window travel: " +
+      JSON.stringify({
+        label,
+        maxProgressDistance,
+        maxRenderDistance
+      })
+  );
+  assert(
+    abaHits.length === 0,
+    "V4.8 Phase 3 motion sampling must fail A-B-A / ping-pong returns after meaningful travel: " +
+      JSON.stringify({
+        label,
+        startProgress,
+        maxProgressDistance,
+        abaHits,
+        samples: samples.map((sample) => ({
+          ratio: sample.requestedRatio,
+          pathProgress: sample.displayMotion.pathProgress,
+          unwrappedTrackProgress:
+            sample.displayMotion.unwrappedTrackProgress,
+          wrapIndex: sample.displayMotion.wrapIndex
+        }))
+      })
+  );
+}
+
+async function captureOrbitMotionSample(client, ratio, actorId) {
+  await seekReplayRatio(client, ratio);
+
+  return await evaluateRuntimeValue(
+    client,
+    `((ratio, actorId) => {
+      const capture = window.__SCENARIO_GLOBE_VIEWER_CAPTURE__;
+      const state = capture.m8aV4GroundStationScene.getState();
+      const actor = state.actors.find((candidate) => {
+        return candidate.actorId === actorId;
+      });
+
+      if (!actor) {
+        throw new Error("Missing V4.8 Phase 3 motion actor " + actorId);
+      }
+
+      return {
+        requestedRatio: ratio,
+        activeWindowId: state.productUx.activeWindowId,
+        representativeActorId:
+          state.simulationHandoverModel.window.displayRepresentativeActorId,
+        actorId: actor.actorId,
+        orbitClass: actor.orbitClass,
+        motionMode: actor.motionMode,
+        renderPositionEcefMeters: actor.renderPositionEcefMeters,
+        sourcePositionEcefMeters: actor.sourcePositionEcefMeters,
+        renderTrackBasis: actor.renderTrackBasis,
+        renderTrackIsSourceTruth: actor.renderTrackIsSourceTruth,
+        displayMotion: actor.displayMotion,
+        sourceLineage: state.sourceLineage
+      };
+    })(${JSON.stringify(ratio)}, ${JSON.stringify(actorId)})`
+  );
+}
+
+async function readV46dTimeline(client) {
+  return await evaluateRuntimeValue(
+    client,
+    `(() => {
+      const state =
+        window.__SCENARIO_GLOBE_VIEWER_CAPTURE__.m8aV4GroundStationScene.getState();
+
+      return state.simulationHandoverModel.timeline.map((windowDefinition) => ({
+        windowId: windowDefinition.windowId,
+        startRatioInclusive: windowDefinition.startRatioInclusive,
+        stopRatioExclusive: windowDefinition.stopRatioExclusive,
+        displayRepresentativeOrbitClass:
+          windowDefinition.displayRepresentativeOrbitClass,
+        displayRepresentativeActorId:
+          windowDefinition.displayRepresentativeActorId
+      }));
+    })()`
+  );
+}
+
+async function verifyRepresentativeOrbitMotion(client) {
+  const timeline = await readV46dTimeline(client);
+  const nonGeoRepresentativeWindows = timeline.filter((windowDefinition) => {
+    return windowDefinition.displayRepresentativeOrbitClass !== "geo";
+  });
+  const results = [];
+
+  assert(
+    nonGeoRepresentativeWindows.length === 4,
+    "V4.8 Phase 3 expected four non-GEO representative windows: " +
+      JSON.stringify(timeline)
+  );
+
+  for (const windowDefinition of nonGeoRepresentativeWindows) {
+    const span =
+      windowDefinition.stopRatioExclusive -
+      windowDefinition.startRatioInclusive;
+    const samples = [];
+
+    for (let index = 0; index < PHASE3_MOTION_SAMPLE_COUNT; index += 1) {
+      const sampleOffset = (index + 0.5) / PHASE3_MOTION_SAMPLE_COUNT;
+      const ratio = windowDefinition.startRatioInclusive + span * sampleOffset;
+      const sample = await captureOrbitMotionSample(
+        client,
+        ratio,
+        windowDefinition.displayRepresentativeActorId
+      );
+
+      assert(
+        sample.activeWindowId === windowDefinition.windowId &&
+          sample.representativeActorId ===
+            windowDefinition.displayRepresentativeActorId &&
+          sample.orbitClass ===
+            windowDefinition.displayRepresentativeOrbitClass,
+        "V4.8 Phase 3 motion sample must stay inside the actor's active V4.6D window: " +
+          JSON.stringify({ windowDefinition, sample })
+      );
+      samples.push(sample);
+    }
+
+    assertForwardDisplayPass(
+      samples,
+      `${windowDefinition.windowId}:${windowDefinition.displayRepresentativeActorId}`
+    );
+    results.push({
+      windowId: windowDefinition.windowId,
+      representativeActorId: windowDefinition.displayRepresentativeActorId,
+      orbitClass: windowDefinition.displayRepresentativeOrbitClass,
+      sampleCount: samples.length,
+      startPathProgress: samples[0].displayMotion.pathProgress,
+      stopPathProgress: samples[samples.length - 1].displayMotion.pathProgress,
+      startUnwrappedTrackProgress:
+        samples[0].displayMotion.unwrappedTrackProgress,
+      stopUnwrappedTrackProgress:
+        samples[samples.length - 1].displayMotion.unwrappedTrackProgress
+    });
+  }
+
+  return results;
+}
+
+async function verifyWrappedDisplaySeam(client) {
+  const seamCandidate = await evaluateRuntimeValue(
+    client,
+    `(() => {
+      const state =
+        window.__SCENARIO_GLOBE_VIEWER_CAPTURE__.m8aV4GroundStationScene.getState();
+      const candidates = state.actors
+        .filter((actor) => {
+          return (
+            actor.orbitClass !== "geo" &&
+            actor.displayMotion?.policy === "monotonic-wrapped-display-pass" &&
+            actor.displayMotion.cycleRate > 0
+          );
+        })
+        .map((actor) => {
+          const phase = actor.displayMotion.phaseOffset;
+          const cycleRate = actor.displayMotion.cycleRate;
+          const firstWrapRatio = (Math.floor(phase) + 1 - phase) / cycleRate;
+
+          return {
+            actorId: actor.actorId,
+            orbitClass: actor.orbitClass,
+            phaseOffset: phase,
+            cycleRate,
+            firstWrapRatio
+          };
+        })
+        .filter((candidate) => {
+          return candidate.firstWrapRatio > 0.01 && candidate.firstWrapRatio < 0.99;
+        })
+        .sort((left, right) => left.firstWrapRatio - right.firstWrapRatio);
+
+      return candidates[0] ?? null;
+    })()`
+  );
+
+  assert(
+    seamCandidate,
+    "V4.8 Phase 3 wrapped display-pass validation must find a non-GEO wrap seam."
+  );
+
+  const epsilon = Math.min(0.004, seamCandidate.firstWrapRatio / 3);
+  const before = await captureOrbitMotionSample(
+    client,
+    seamCandidate.firstWrapRatio - epsilon,
+    seamCandidate.actorId
+  );
+  const after = await captureOrbitMotionSample(
+    client,
+    seamCandidate.firstWrapRatio + epsilon,
+    seamCandidate.actorId
+  );
+  const later = await captureOrbitMotionSample(
+    client,
+    Math.min(seamCandidate.firstWrapRatio + epsilon * 4, 0.995),
+    seamCandidate.actorId
+  );
+
+  assert(
+    before.displayMotion.wrapIndex + 1 === after.displayMotion.wrapIndex &&
+      after.displayMotion.wrapIndex === later.displayMotion.wrapIndex &&
+      before.displayMotion.pathProgress > 0.95 &&
+      after.displayMotion.pathProgress < 0.05 &&
+      later.displayMotion.pathProgress > after.displayMotion.pathProgress &&
+      before.displayMotion.unwrappedTrackProgress <
+        after.displayMotion.unwrappedTrackProgress &&
+      after.displayMotion.unwrappedTrackProgress <
+        later.displayMotion.unwrappedTrackProgress,
+    "V4.8 Phase 3 wrapped display path must advance through the seam instead of reversing: " +
+      JSON.stringify({ seamCandidate, before, after, later })
+  );
+
+  return {
+    actorId: seamCandidate.actorId,
+    orbitClass: seamCandidate.orbitClass,
+    firstWrapRatio: seamCandidate.firstWrapRatio,
+    before: {
+      pathProgress: before.displayMotion.pathProgress,
+      unwrappedTrackProgress: before.displayMotion.unwrappedTrackProgress,
+      wrapIndex: before.displayMotion.wrapIndex
+    },
+    after: {
+      pathProgress: after.displayMotion.pathProgress,
+      unwrappedTrackProgress: after.displayMotion.unwrappedTrackProgress,
+      wrapIndex: after.displayMotion.wrapIndex
+    },
+    later: {
+      pathProgress: later.displayMotion.pathProgress,
+      unwrappedTrackProgress: later.displayMotion.unwrappedTrackProgress,
+      wrapIndex: later.displayMotion.wrapIndex
+    }
+  };
+}
+
+async function verifyGeoGuardMotionSeparately(client) {
+  const timeline = await readV46dTimeline(client);
+  const geoWindow = timeline.find((windowDefinition) => {
+    return windowDefinition.displayRepresentativeOrbitClass === "geo";
+  });
+
+  assert(
+    geoWindow,
+    "V4.8 Phase 3 GEO guard validation must find the GEO representative window."
+  );
+
+  const span = geoWindow.stopRatioExclusive - geoWindow.startRatioInclusive;
+  const samples = [];
+
+  for (let index = 0; index < PHASE3_MOTION_SAMPLE_COUNT; index += 1) {
+    const sampleOffset = (index + 0.5) / PHASE3_MOTION_SAMPLE_COUNT;
+    const ratio = Math.min(
+      geoWindow.startRatioInclusive + span * sampleOffset,
+      0.995
+    );
+    samples.push(
+      await captureOrbitMotionSample(
+        client,
+        ratio,
+        geoWindow.displayRepresentativeActorId
+      )
+    );
+  }
+
+  const startPosition = samples[0].renderPositionEcefMeters;
+  const maxGuardDrift = Math.max(
+    ...samples.map((sample) =>
+      distance3d(sample.renderPositionEcefMeters, startPosition)
+    )
+  );
+
+  assert(
+    samples.every((sample) => {
+      return (
+        sample.orbitClass === "geo" &&
+        sample.displayMotion?.policy === "near-fixed-geo-guard" &&
+        sample.displayMotion.sourceBoundary ===
+          EXPECTED_DISPLAY_MOTION_SOURCE_BOUNDARY &&
+        sample.displayMotion.truthBoundary ===
+          "near-fixed-geo-display-context-guard-not-service-truth"
+      );
+    }) && maxGuardDrift < 1,
+    "V4.8 Phase 3 GEO guard motion must remain separate from LEO/MEO passage validation: " +
+      JSON.stringify({ geoWindow, maxGuardDrift, samples })
+  );
+
+  return {
+    windowId: geoWindow.windowId,
+    representativeActorId: geoWindow.displayRepresentativeActorId,
+    sampleCount: samples.length,
+    maxGuardDrift
+  };
+}
+
+async function verifyOrbitMotionDisplayCorrection(client) {
+  const representativeMotion = await verifyRepresentativeOrbitMotion(client);
+  const wrappedSeam = await verifyWrappedDisplaySeam(client);
+  const geoGuardMotion = await verifyGeoGuardMotionSeparately(client);
+
+  return {
+    representativeMotion,
+    wrappedSeam,
+    geoGuardMotion
+  };
+}
+
 async function verifyFallbackBehavior(client) {
   await setViewport(client, VIEWPORTS[0]);
   await seekReplayRatio(client, EXPECTED_REVIEW_MODELS["leo-acquisition-context"].ratio);
@@ -1061,10 +1458,14 @@ async function main() {
       });
     }
 
+    await setViewport(client, VIEWPORTS[0]);
+    await sleep(160);
+    const orbitMotionDisplayCorrection =
+      await verifyOrbitMotionDisplayCorrection(client);
     const fallbackBehavior = await verifyFallbackBehavior(client);
 
     console.log(
-      `M8A-V4.8 handover demonstration UI IA Phase 2 smoke passed: ${JSON.stringify(
+      `M8A-V4.8 handover demonstration UI IA Phase 3 smoke passed: ${JSON.stringify(
         {
           domInspection,
           reviewWindows: reviewModels.map((result) => ({
@@ -1087,6 +1488,7 @@ async function main() {
                 result.closedResult.connectorEndpointDistancePx
             }))
           })),
+          orbitMotionDisplayCorrection,
           fallbackBehavior: {
             anchorStatus: fallbackBehavior.anchorStatus,
             fallbackReason: fallbackBehavior.fallbackReason,
