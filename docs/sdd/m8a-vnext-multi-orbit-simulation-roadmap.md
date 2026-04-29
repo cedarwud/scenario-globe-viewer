@@ -34,6 +34,10 @@ Related V4.8 Phase 2 final handoff:
 [./m8a-v4.8-handover-demonstration-ui-ia-phase2-final-handoff.md](./m8a-v4.8-handover-demonstration-ui-ia-phase2-final-handoff.md).
 Related V4.8 Phase 3 final handoff:
 [./m8a-v4.8-handover-demonstration-ui-ia-phase3-final-handoff.md](./m8a-v4.8-handover-demonstration-ui-ia-phase3-final-handoff.md).
+Related V4.9 product comprehension SDD:
+[./m8a-v4.9-product-comprehension-progressive-disclosure-plan.md](./m8a-v4.9-product-comprehension-progressive-disclosure-plan.md).
+Related V4.9 Slice 1 final handoff:
+[./m8a-v4.9-product-comprehension-slice1-final-handoff.md](./m8a-v4.9-product-comprehension-slice1-final-handoff.md).
 Related V4.6C/R2 endpoint evidence catalog review:
 [../../../itri/multi-orbit/download/ground-station-endpoint-candidates/2026-04-25/r2-endpoint-evidence-catalog-2026-04-28.md](../../../itri/multi-orbit/download/ground-station-endpoint-candidates/2026-04-25/r2-endpoint-evidence-catalog-2026-04-28.md).
 
@@ -46,6 +50,10 @@ Related V4.6C/R2 endpoint evidence catalog review:
 - V4.7.1 product usability correction accepted and closed 2026-04-29
 - V4.8 handover demonstration UI IA SDD accepted; Phase 1, Phase 2, and
   Phase 3 runtime slices closed 2026-04-29
+- V4.9 product comprehension and progressive disclosure SDD added 2026-04-29
+  as a doc-only planning delta
+- V4.9 Runtime Slice 1 product copy/view-model inventory and persistent layer
+  correction closed 2026-04-29; no remaining V4.9 runtime phase is open
 - no runtime implementation authority by itself
 - intended handoff surface for the next planning/control thread
 
@@ -96,6 +104,10 @@ Completed baseline:
   `7349f13`
 - `M8A-V4.8` Phase 3 orbit motion display correction completed at commit
   `d4553fd`
+- `M8A-V4.9` product comprehension and progressive disclosure SDD exists as a
+  doc-only planning delta
+- `M8A-V4.9` Runtime Slice 1 product copy/view-model inventory and persistent
+  layer correction is closed in the current delivery state
 - remaining `M8A-V4.8` runtime phases are not open
 - `M8A-V4.6C/R2` source/catalog boundary exists at commit `e5d99c7`
 - the `R2` root endpoint evidence catalog exists at commit `d061c676`
@@ -236,6 +248,11 @@ Closeout status:
   endpoint B is runtime-ready
 - `V4.7` product UX runtime implementation is complete for the accepted single
   scenario; no additional runtime phase is unblocked by this roadmap alone
+- `V4.9` is the current doc-only product comprehension and progressive
+  disclosure planning delta after the closed `V4.8` Phase 1-3 runtime slices;
+  it does not open runtime work by itself
+- `V4.9` Runtime Slice 1 is closed for product copy/view-model inventory and
+  persistent layer correction; no remaining `V4.9` runtime slice is open
 
 ## Phase V4.6A - Full LEO Orbit Replay
 
@@ -564,6 +581,86 @@ Implementation status:
 - no deviations from route, endpoint pair, precision, actor set, source
   boundary, or V4.6D model truth were reported
 
+## Phase V4.9 - Product Comprehension And Progressive Disclosure
+
+Goal:
+
+- make the accepted V4 route understandable as a product review surface without
+  requiring the user to open a dense details block
+
+Planning home:
+
+- [m8a-v4.9-product-comprehension-progressive-disclosure-plan.md](./m8a-v4.9-product-comprehension-progressive-disclosure-plan.md)
+
+Starting baseline:
+
+- `M8A-V4.8` Phase 1, Phase 2, and Phase 3 runtime slices are closed
+- the current details sheet is state-specific but still too engineering-facing
+- the scene already has endpoint, actor, cue, and state data, but the
+  information is not yet placed where it is most useful to a reviewer
+
+Scope:
+
+- product comprehension
+- progressive disclosure
+- scene-near state meaning
+- short transition annotations or toasts
+- inspector/details copy and hierarchy
+- desktop and narrow viewport layout validation
+- visual acceptance focused on first-read understanding
+
+Non-goals:
+
+- `V5`
+- endpoint expansion
+- endpoint selector work
+- route expansion
+- precision expansion
+- actor-set expansion
+- source-data expansion
+- `R2` runtime promotion
+- measured metric work
+- active satellite, active gateway, active path, or native RF handover claims
+
+Key product decisions:
+
+- persistent UI should orient the user and provide controls, not carry raw
+  engineering metadata
+- the scene should carry the current handover meaning when a reliable anchor
+  exists
+- short transition events may explain state changes, but must not become a
+  persistent status panel
+- details/inspector content should answer what the state means before exposing
+  ids, cue metadata, or long candidate/fallback arrays
+- raw actor ids, cue ids, anchor ids, and long evidence arrays belong in a
+  collapsed debug/evidence section, closed by default
+- truth-boundary copy remains visible or one click away, but it must not replace
+  the dynamic handover explanation
+
+Acceptance criteria:
+
+- a reviewer can understand the current state, orbit focus, what to watch, next
+  transition, and truth boundary within about five seconds without opening
+  details
+- the `Details`/inspector surface is no longer the primary place where routine
+  handover meaning appears
+- scene-near labels appear only when their anchor geometry is reliable
+- transition annotations are concise, temporary, non-blocking, and not the only
+  source of current-state truth
+- desktop and narrow screenshots prove controls, labels, badges, details, and
+  scene cues do not overlap incoherently
+- forbidden-claim scan remains clean
+- route, endpoint pair, precision, actor set, source boundary, `R2` read-only
+  boundary, and `V4.6D` model truth remain unchanged
+
+Implementation status:
+
+- SDD added as doc-only planning authority on 2026-04-29
+- Runtime Slice 1 closed product copy/view-model inventory and persistent layer
+  correction on 2026-04-29
+- no remaining `V4.9` runtime implementation phase is open from this roadmap by
+  itself
+
 ## Phase V5 Decision Gate
 
 The line should remain `V4.6` while it is improving the accepted
@@ -596,10 +693,21 @@ and closed:
 
 `M8A-V4.8 handover demonstration UI IA Phase 3 final handoff`
 
+The current V4.9 product comprehension plan is written as a doc-only SDD
+delta:
+
+`M8A-V4.9 product comprehension and progressive disclosure SDD`
+
+The current V4.9 Runtime Slice 1 is implemented and closed:
+
+`M8A-V4.9 product comprehension Slice 1 final handoff`
+
 The next available decisions are:
 
+- explicitly open the next `V4.9` runtime slice only if scene-near meaning,
+  transition event, inspector, or validation work should proceed
 - keep further runtime work closed and continue source/candidate work
-- open the next `V4.8` runtime slice only after an explicit user decision
+- open remaining `V4.8` layout/camera work only after an explicit user decision
 - open a new decision gate only when new accepted scope exists
 
 Other available tracks remain:
@@ -616,6 +724,9 @@ Reason:
   not a runtime selector or source expansion; Phase 1, Phase 2, and Phase 3
   are closed, while layout/camera pass and full visual acceptance remain
   separate unopened phases
+- `V4.9` is a product comprehension and progressive disclosure line for the
+  same accepted single scenario; it reorganizes information placement and copy,
+  not endpoint data, actor data, model truth, or source scope
 - V5 is blocked until new accepted endpoint-pair scenarios exist
 - legacy aviation/YKA cleanup is blocked until the user explicitly opens that
   cleanup/archive gate
@@ -650,6 +761,18 @@ Remaining V4.8 runtime work, if later opened, may change only:
 
 - layout/camera refinement and full visual acceptance validation for the
   accepted single scenario
+
+V4.9 runtime work, if later opened, may change only:
+
+- `src/runtime/m8a-v4-ground-station-handover-scene-controller.ts`
+- `src/styles.css`
+- a new focused smoke test such as
+  `tests/smoke/verify-m8a-v4.9-product-comprehension-runtime.mjs`
+- a final handoff doc for the implemented `V4.9` slice
+
+Runtime Slice 1 has already used these surfaces for product copy/view-model
+inventory and persistent layer correction. Future V4.9 runtime work must not
+reopen Slice 1 unless the user explicitly asks for a correction.
 
 Legacy aviation/YKA cleanup may later change old route, fixture, and regression
 surfaces only if the cleanup/archive gate is explicitly opened.
@@ -696,3 +819,22 @@ following are true:
   refinement and visual validation upgrades
 - route, endpoint pair, precision, actor set, source boundary, and V4.6D model
   truth remain unchanged
+
+Do not create a V4.9 runtime implementation prompt unless all of the following
+are true:
+
+- [m8a-v4.9-product-comprehension-progressive-disclosure-plan.md](./m8a-v4.9-product-comprehension-progressive-disclosure-plan.md)
+  is accepted or explicitly adjusted
+- [m8a-v4.8-handover-demonstration-ui-ia-phase3-final-handoff.md](./m8a-v4.8-handover-demonstration-ui-ia-phase3-final-handoff.md)
+  is read as the latest runtime closeout state
+- the user explicitly opens a `V4.9` runtime implementation phase
+- implementation scope is limited to product comprehension, progressive
+  disclosure, scene-near meaning, transition annotations, inspector hierarchy,
+  copy, layout, and visual validation
+- route, endpoint pair, precision, actor set, source boundary, `R2` read-only
+  boundary, and `V4.6D` model truth remain unchanged
+- no active satellite, active gateway, pair-specific path, measured metric, or
+  native RF handover claim is introduced
+
+Runtime Slice 1 already met these conditions and is closed. Apply the same gate
+again before any future V4.9 runtime slice.
