@@ -2193,12 +2193,28 @@ body {
 }
 
 .m8a-v47-product-ux__scene-annotation::before {
-  content: "";
+  display: none;
+}
+
+.m8a-v47-product-ux__scene-connector {
   position: absolute;
-  left: -17px;
-  top: 50%;
-  width: 14px;
-  border-top: 2px solid rgba(255, 209, 102, 0.76);
+  z-index: 1;
+  height: 2px;
+  min-width: 0;
+  border-radius: 999px;
+  background:
+    linear-gradient(
+      90deg,
+      rgba(255, 209, 102, 0.84),
+      rgba(255, 209, 102, 0.18)
+    );
+  box-shadow: 0 0 10px rgba(255, 209, 102, 0.18);
+  pointer-events: none;
+  transform-origin: 0 50%;
+}
+
+.m8a-v47-product-ux__scene-connector[hidden] {
+  display: none !important;
 }
 
 .m8a-v47-product-ux__scene-annotation span,
@@ -2580,7 +2596,7 @@ body {
     right: var(--hud-frame-gap);
     bottom: calc(var(--hud-frame-gap) + 3.4rem);
     width: auto;
-    max-height: 44vh;
+    max-height: 28vh;
     padding: 0.76rem;
   }
 

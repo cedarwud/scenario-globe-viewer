@@ -75,7 +75,7 @@ const M8A_V4_FULL_LEO_ORBIT_REPLAY_MARGIN_MS = 5 * 60 * 1000;
 const M8A_V47_PRODUCT_UX_VERSION =
   "m8a-v4.7.1-handover-product-ux-correction-runtime.v1";
 const M8A_V48_UI_IA_VERSION =
-  "m8a-v4.8-handover-demonstration-ui-ia-phase1-runtime.v1";
+  "m8a-v4.8-handover-demonstration-ui-ia-phase2-runtime.v1";
 const M8A_V47_GUIDED_REVIEW_MULTIPLIER = 30;
 const M8A_V47_PRODUCT_DEFAULT_MULTIPLIER = 60;
 const M8A_V47_QUICK_SCAN_MULTIPLIER = 120;
@@ -353,15 +353,79 @@ interface M8aV48ReviewActorReference {
   orbitClass: M8aV4OrbitClass;
 }
 
-interface M8aV48SceneAnchorStatePlaceholder {
-  state: "phase1-placeholder";
-  selectedAnchorType:
-    (typeof M8A_V48_REVIEW_COPY)[M8aV46dSimulationHandoverWindowId]["sceneAnchorType"];
-  selectedActorId: M8aV46dActorId;
-  selectedRelationCueId:
-    | "m8a-v46e-simulation-displayRepresentative-context-ribbon"
-    | "m8a-v46e-simulation-geo-guard-cue";
-  anchorClaim: "placeholder-only-no-final-geometry-claim";
+type M8aV48RelationCueId =
+  | "m8a-v46e-simulation-displayRepresentative-context-ribbon"
+  | "m8a-v46e-simulation-geo-guard-cue";
+
+type M8aV48EndpointCorridorId =
+  "m8a-v4-operator-family-endpoint-context-ribbon";
+
+type M8aV48SelectedSceneAnchorType =
+  | "display-representative-actor"
+  | "display-representative-relation-cue"
+  | "endpoint-corridor-anchor"
+  | "geo-guard-cue";
+
+type M8aV48SceneAnchorStateId =
+  | "representative-actor-anchor"
+  | "representative-meo-actor-anchor"
+  | "representative-leo-actor-anchor"
+  | "geo-guard-cue-anchor";
+
+type M8aV48SceneAnchorRuntimeStatus =
+  | "geometry-reliable"
+  | "fallback";
+
+type M8aV48SceneAnchorFallbackReason =
+  | "anchor-not-projected"
+  | "anchor-outside-viewport"
+  | "anchor-behind-camera"
+  | "protection-rect-obstructed";
+
+interface M8aV48SceneAnchorState {
+  state: M8aV48SceneAnchorStateId;
+  selectedAnchorType: M8aV48SelectedSceneAnchorType;
+  selectedActorId: M8aV46dActorId | null;
+  selectedRelationCueId: M8aV48RelationCueId | null;
+  selectedCorridorId: M8aV48EndpointCorridorId | null;
+  anchorStatus: "requires-render-geometry-validation";
+  fallbackReason: null;
+  anchorClaim: "selected-display-context-cue-not-service-truth";
+}
+
+interface M8aV48SceneAnchorProtectionRect {
+  left: number;
+  top: number;
+  right: number;
+  bottom: number;
+  width: number;
+  height: number;
+}
+
+interface M8aV48SceneAnchorPlacement {
+  anchorActorId: M8aV46dActorId | "";
+  anchorX: number;
+  anchorY: number;
+  left: number;
+  top: number;
+  width: number;
+  height: number;
+  projected: boolean;
+  selectedAnchorType: M8aV48SelectedSceneAnchorType | "non-scene-fallback";
+  selectedActorId: M8aV46dActorId | "";
+  selectedRelationCueId: M8aV48RelationCueId | "";
+  selectedCorridorId: M8aV48EndpointCorridorId | "";
+  anchorStatus: M8aV48SceneAnchorRuntimeStatus;
+  fallbackReason: M8aV48SceneAnchorFallbackReason | "";
+  connectorStartX: number;
+  connectorStartY: number;
+  connectorEndX: number;
+  connectorEndY: number;
+  connectorLength: number;
+  connectorAngleDegrees: number;
+  connectorEndpointDistancePx: number;
+  connectorThresholdPx: number;
+  protectionRect: M8aV48SceneAnchorProtectionRect;
 }
 
 interface M8aV48RelationCueRole {
@@ -385,7 +449,7 @@ interface M8aV48HandoverReviewViewModel {
   whatToWatch: string;
   nextStateHint: string;
   relationCueRole: M8aV48RelationCueRole;
-  sceneAnchorState: M8aV48SceneAnchorStatePlaceholder;
+  sceneAnchorState: M8aV48SceneAnchorState;
   truthBoundarySummary:
     "Display-context simulation review; not active satellite, gateway, path, measured metric, native RF handover, or operator log truth.";
 }
@@ -975,6 +1039,67 @@ function resolveV48StateOrdinalLabel(
   };
 }
 
+function buildV48SceneAnchorState(
+  windowDefinition: M8aV46dSimulationHandoverWindow
+): M8aV48SceneAnchorState {
+  const selectedRelationCueId =
+    windowDefinition.windowId === "geo-continuity-guard"
+      ? "m8a-v46e-simulation-geo-guard-cue"
+      : "m8a-v46e-simulation-displayRepresentative-context-ribbon";
+  const selectedCorridorId: M8aV48EndpointCorridorId | null =
+    windowDefinition.windowId === "leo-acquisition-context"
+      ? "m8a-v4-operator-family-endpoint-context-ribbon"
+      : null;
+
+  switch (windowDefinition.windowId) {
+    case "meo-continuity-hold":
+      return {
+        state: "representative-meo-actor-anchor",
+        selectedAnchorType: "display-representative-actor",
+        selectedActorId: windowDefinition.displayRepresentativeActorId,
+        selectedRelationCueId,
+        selectedCorridorId,
+        anchorStatus: "requires-render-geometry-validation",
+        fallbackReason: null,
+        anchorClaim: "selected-display-context-cue-not-service-truth"
+      };
+    case "leo-reentry-candidate":
+      return {
+        state: "representative-leo-actor-anchor",
+        selectedAnchorType: "display-representative-actor",
+        selectedActorId: windowDefinition.displayRepresentativeActorId,
+        selectedRelationCueId,
+        selectedCorridorId,
+        anchorStatus: "requires-render-geometry-validation",
+        fallbackReason: null,
+        anchorClaim: "selected-display-context-cue-not-service-truth"
+      };
+    case "geo-continuity-guard":
+      return {
+        state: "geo-guard-cue-anchor",
+        selectedAnchorType: "geo-guard-cue",
+        selectedActorId: windowDefinition.displayRepresentativeActorId,
+        selectedRelationCueId,
+        selectedCorridorId,
+        anchorStatus: "requires-render-geometry-validation",
+        fallbackReason: null,
+        anchorClaim: "selected-display-context-cue-not-service-truth"
+      };
+    case "leo-acquisition-context":
+    case "leo-aging-pressure":
+      return {
+        state: "representative-actor-anchor",
+        selectedAnchorType: "display-representative-actor",
+        selectedActorId: windowDefinition.displayRepresentativeActorId,
+        selectedRelationCueId,
+        selectedCorridorId,
+        anchorStatus: "requires-render-geometry-validation",
+        fallbackReason: null,
+        anchorClaim: "selected-display-context-cue-not-service-truth"
+      };
+  }
+}
+
 function buildV48HandoverReviewViewModel(
   simulationHandoverModel: M8aV4GroundStationSceneState["simulationHandoverModel"]
 ): M8aV48HandoverReviewViewModel {
@@ -985,10 +1110,6 @@ function buildV48HandoverReviewViewModel(
     windowDefinition.windowId
   );
   const reviewCopy = M8A_V48_REVIEW_COPY[windowDefinition.windowId];
-  const selectedRelationCueId =
-    windowDefinition.windowId === "geo-continuity-guard"
-      ? "m8a-v46e-simulation-geo-guard-cue"
-      : "m8a-v46e-simulation-displayRepresentative-context-ribbon";
 
   return {
     version: M8A_V48_UI_IA_VERSION,
@@ -1015,11 +1136,7 @@ function buildV48HandoverReviewViewModel(
         "displayRepresentative primary; candidateContext secondary"
     },
     sceneAnchorState: {
-      state: "phase1-placeholder",
-      selectedAnchorType: reviewCopy.sceneAnchorType,
-      selectedActorId: windowDefinition.displayRepresentativeActorId,
-      selectedRelationCueId,
-      anchorClaim: "placeholder-only-no-final-geometry-claim"
+      ...buildV48SceneAnchorState(windowDefinition)
     },
     truthBoundarySummary:
       "Display-context simulation review; not active satellite, gateway, path, measured metric, native RF handover, or operator log truth."
@@ -1491,6 +1608,7 @@ function ensureProductUxStructure(root: HTMLElement): void {
   }
 
   root.innerHTML = `
+    <div class="m8a-v47-product-ux__scene-connector" data-m8a-v48-scene-connector="true" aria-hidden="true" hidden></div>
     <div class="m8a-v47-product-ux__scene-annotation" data-m8a-v47-ui-surface="scene-near-annotation" data-m8a-v47-scene-annotation="true" aria-live="polite">
       <span data-m8a-v48-info-class="fixed">Display-context state</span>
       <strong data-m8a-v47-active-label="scene-annotation" data-m8a-v48-info-class="dynamic"></strong>
@@ -1601,31 +1719,165 @@ function setProductUxHidden(element: HTMLElement, hidden: boolean): void {
   element.setAttribute("aria-hidden", hidden ? "true" : "false");
 }
 
+function rectsIntersect(
+  left: M8aV48SceneAnchorProtectionRect,
+  right: M8aV48SceneAnchorProtectionRect
+): boolean {
+  return (
+    left.left < right.right &&
+    left.right > right.left &&
+    left.top < right.bottom &&
+    left.bottom > right.top
+  );
+}
+
+function buildRect(
+  left: number,
+  top: number,
+  width: number,
+  height: number
+): M8aV48SceneAnchorProtectionRect {
+  return {
+    left,
+    top,
+    right: left + width,
+    bottom: top + height,
+    width,
+    height
+  };
+}
+
+function buildPointProtectionRect(
+  x: number,
+  y: number,
+  width: number,
+  height: number
+): M8aV48SceneAnchorProtectionRect {
+  return buildRect(x - width / 2, y - height / 2, width, height);
+}
+
+function buildUnionProtectionRect(
+  points: ReadonlyArray<{ x: number; y: number }>,
+  padding: number
+): M8aV48SceneAnchorProtectionRect | null {
+  if (points.length === 0) {
+    return null;
+  }
+
+  const left = Math.min(...points.map((point) => point.x)) - padding;
+  const right = Math.max(...points.map((point) => point.x)) + padding;
+  const top = Math.min(...points.map((point) => point.y)) - padding;
+  const bottom = Math.max(...points.map((point) => point.y)) + padding;
+
+  return {
+    left,
+    top,
+    right,
+    bottom,
+    width: right - left,
+    height: bottom - top
+  };
+}
+
+function projectSceneAnchorPoint(
+  viewer: Viewer,
+  cartesian: Cartesian3
+): {
+  x: number;
+  y: number;
+  projected: boolean;
+  inFrontOfCamera: boolean;
+} {
+  const canvasRect = viewer.scene.canvas.getBoundingClientRect();
+  const point = viewer.scene.cartesianToCanvasCoordinates(cartesian);
+  const cameraToPoint = Cartesian3.subtract(
+    cartesian,
+    viewer.camera.positionWC,
+    new Cartesian3()
+  );
+  const inFrontOfCamera =
+    Cartesian3.dot(cameraToPoint, viewer.camera.directionWC) > 0;
+
+  if (!point || !Number.isFinite(point.x) || !Number.isFinite(point.y)) {
+    return {
+      x: canvasRect.left + canvasRect.width / 2,
+      y: canvasRect.top + canvasRect.height / 2,
+      projected: false,
+      inFrontOfCamera
+    };
+  }
+
+  return {
+    x: canvasRect.left + point.x,
+    y: canvasRect.top + point.y,
+    projected: true,
+    inFrontOfCamera
+  };
+}
+
+function resolveConnectorStart(
+  annotationRect: M8aV48SceneAnchorProtectionRect,
+  anchorX: number,
+  anchorY: number
+): {
+  x: number;
+  y: number;
+} {
+  const clampedX = clamp(anchorX, annotationRect.left, annotationRect.right);
+  const clampedY = clamp(anchorY, annotationRect.top, annotationRect.bottom);
+  const distances = [
+    {
+      x: annotationRect.left,
+      y: clampedY,
+      distance: Math.abs(anchorX - annotationRect.left)
+    },
+    {
+      x: annotationRect.right,
+      y: clampedY,
+      distance: Math.abs(anchorX - annotationRect.right)
+    },
+    {
+      x: clampedX,
+      y: annotationRect.top,
+      distance: Math.abs(anchorY - annotationRect.top)
+    },
+    {
+      x: clampedX,
+      y: annotationRect.bottom,
+      distance: Math.abs(anchorY - annotationRect.bottom)
+    }
+  ];
+
+  return distances.reduce((nearest, candidate) =>
+    candidate.distance < nearest.distance ? candidate : nearest
+  );
+}
+
 function resolveSceneAnnotationPlacement(
   state: M8aV4GroundStationSceneState,
   viewer: Viewer
-): {
-  anchorActorId: string;
-  anchorX: number;
-  anchorY: number;
-  left: number;
-  top: number;
-  projected: boolean;
-} {
+): M8aV48SceneAnchorPlacement {
   const canvas = viewer.scene.canvas;
-  const width = Math.max(canvas.clientWidth, 1);
-  const height = Math.max(canvas.clientHeight, 1);
-  const anchorActorId =
-    state.simulationHandoverModel.window.displayRepresentativeActorId;
+  const canvasRect = canvas.getBoundingClientRect();
+  const width = Math.max(canvasRect.width, 1);
+  const height = Math.max(canvasRect.height, 1);
+  const canvasLeft = canvasRect.left;
+  const canvasTop = canvasRect.top;
+  const canvasRight = canvasRect.left + width;
+  const canvasBottom = canvasRect.top + height;
+  const reviewAnchor = state.productUx.reviewViewModel.sceneAnchorState;
+  const anchorActorId = reviewAnchor.selectedActorId ?? "";
   const actor = state.actors.find((candidate) => {
     return candidate.actorId === anchorActorId;
   });
-  let anchorX = width * 0.56;
-  let anchorY = height * 0.42;
+  let anchorX = canvasLeft + width * 0.56;
+  let anchorY = canvasTop + height * 0.42;
   let projected = false;
+  let inFrontOfCamera = false;
 
   if (actor) {
-    const point = viewer.scene.cartesianToCanvasCoordinates(
+    const point = projectSceneAnchorPoint(
+      viewer,
       Cartesian3.fromElements(
         actor.renderPositionEcefMeters.x,
         actor.renderPositionEcefMeters.y,
@@ -1633,34 +1885,248 @@ function resolveSceneAnnotationPlacement(
       )
     );
 
-    if (
-      point &&
-      Number.isFinite(point.x) &&
-      Number.isFinite(point.y)
-    ) {
-      anchorX = point.x;
-      anchorY = point.y;
-      projected = true;
-    }
+    anchorX = point.x;
+    anchorY = point.y;
+    projected = point.projected;
+    inFrontOfCamera = point.inFrontOfCamera;
   }
 
   const isNarrow = state.productUx.layout.viewportClass === "narrow";
   const annotationWidth = isNarrow ? 208 : 258;
+  const annotationHeight = isNarrow ? 92 : 88;
   const minTop = isNarrow ? 258 : 112;
-  const maxTop = Math.max(minTop, height - (isNarrow ? 260 : 150));
+  const maxTop = Math.max(
+    minTop,
+    canvasTop + height - annotationHeight - (isNarrow ? 138 : 26)
+  );
+  const minLeft = canvasLeft + 14;
+  const maxLeft = Math.max(
+    minLeft,
+    canvasRight - annotationWidth - 14
+  );
   const placeLeft =
-    anchorX > width * 0.35 || anchorX > width - annotationWidth - 42;
-  const offsetX = placeLeft ? -annotationWidth - 90 : 30;
-  const offsetY = isNarrow ? -205 : -190;
+    anchorX > canvasLeft + width * 0.35 ||
+    anchorX > canvasRight - annotationWidth - 42;
+  const protectionRect = buildPointProtectionRect(
+    anchorX,
+    anchorY,
+    isNarrow ? 112 : 96,
+    isNarrow ? 88 : 72
+  );
+  const endpointPoints = M8A_V4_GROUND_STATION_RUNTIME_PROJECTION.endpoints
+    .map((endpoint) =>
+      projectSceneAnchorPoint(
+        viewer,
+        positionToCartesian(endpoint.renderMarker.displayPosition)
+      )
+    )
+    .filter((point) => point.projected && point.inFrontOfCamera);
+  const endpointCorridorRect = buildUnionProtectionRect(
+    endpointPoints,
+    isNarrow ? 42 : 58
+  );
+  const endpointLabelRects = endpointPoints.map((point) =>
+    buildPointProtectionRect(
+      point.x,
+      point.y,
+      isNarrow ? 118 : 156,
+      isNarrow ? 46 : 58
+    )
+  );
+  const geoGuardRects = state.actors
+    .filter((candidate) => candidate.orbitClass === "geo")
+    .map((candidate) =>
+      projectSceneAnchorPoint(
+        viewer,
+        Cartesian3.fromElements(
+          candidate.renderPositionEcefMeters.x,
+          candidate.renderPositionEcefMeters.y,
+          candidate.renderPositionEcefMeters.z
+        )
+      )
+    )
+    .filter((point) => point.projected && point.inFrontOfCamera)
+    .map((point) =>
+      buildPointProtectionRect(
+        point.x,
+        point.y,
+        isNarrow ? 76 : 112,
+        isNarrow ? 64 : 96
+      )
+    );
+  const avoidedRects = [
+    protectionRect,
+    ...(endpointCorridorRect ? [endpointCorridorRect] : []),
+    ...endpointLabelRects,
+    ...geoGuardRects
+  ];
+  const candidatePlacements = [
+    {
+      left: anchorX + (placeLeft ? -annotationWidth - 86 : 86),
+      top: anchorY - annotationHeight / 2
+    },
+    {
+      left: anchorX + (placeLeft ? -annotationWidth - 46 : 46),
+      top: anchorY - (isNarrow ? 182 : 156)
+    },
+    {
+      left: anchorX - annotationWidth / 2,
+      top: anchorY + (isNarrow ? 86 : 74)
+    },
+    {
+      left: anchorX + (placeLeft ? 46 : -annotationWidth - 46),
+      top: anchorY - annotationHeight / 2
+    }
+  ].map((candidate) =>
+    buildRect(
+      clamp(candidate.left, minLeft, maxLeft),
+      clamp(candidate.top, minTop, maxTop),
+      annotationWidth,
+      annotationHeight
+    )
+  );
+  const annotationRect =
+    candidatePlacements.find((candidate) => {
+      return avoidedRects.every((avoidRect) => {
+        return !rectsIntersect(candidate, avoidRect);
+      });
+    }) ?? candidatePlacements[0];
+  const isInsideViewport =
+    anchorX >= canvasLeft &&
+    anchorX <= canvasRight &&
+    anchorY >= canvasTop &&
+    anchorY <= canvasBottom;
+  const connectorThresholdPx = isNarrow ? 32 : 24;
+  const connectorStart = resolveConnectorStart(
+    annotationRect,
+    anchorX,
+    anchorY
+  );
+  const connectorLength = Math.hypot(
+    anchorX - connectorStart.x,
+    anchorY - connectorStart.y
+  );
+  const connectorAngleDegrees =
+    Math.atan2(anchorY - connectorStart.y, anchorX - connectorStart.x) *
+    (180 / Math.PI);
+  const forceFallback =
+    document.documentElement.dataset.m8aV48ForceSceneAnchorFallback === "true";
+  let anchorStatus: M8aV48SceneAnchorRuntimeStatus = "geometry-reliable";
+  let fallbackReason: M8aV48SceneAnchorFallbackReason | "" = "";
+
+  if (forceFallback) {
+    anchorStatus = "fallback";
+    fallbackReason = "anchor-not-projected";
+  } else if (!projected) {
+    anchorStatus = "fallback";
+    fallbackReason = "anchor-not-projected";
+  } else if (!inFrontOfCamera) {
+    anchorStatus = "fallback";
+    fallbackReason = "anchor-behind-camera";
+  } else if (!isInsideViewport) {
+    anchorStatus = "fallback";
+    fallbackReason = "anchor-outside-viewport";
+  } else if (rectsIntersect(annotationRect, protectionRect)) {
+    anchorStatus = "fallback";
+    fallbackReason = "protection-rect-obstructed";
+  }
 
   return {
     anchorActorId,
     anchorX,
     anchorY,
-    left: clamp(anchorX + offsetX, 14, width - annotationWidth - 14),
-    top: clamp(anchorY + offsetY, minTop, maxTop),
-    projected
+    left: annotationRect.left,
+    top: annotationRect.top,
+    width: annotationWidth,
+    height: annotationHeight,
+    projected,
+    selectedAnchorType:
+      anchorStatus === "geometry-reliable"
+        ? reviewAnchor.selectedAnchorType
+        : "non-scene-fallback",
+    selectedActorId:
+      anchorStatus === "geometry-reliable" && reviewAnchor.selectedActorId
+        ? reviewAnchor.selectedActorId
+        : "",
+    selectedRelationCueId:
+      anchorStatus === "geometry-reliable" && reviewAnchor.selectedRelationCueId
+        ? reviewAnchor.selectedRelationCueId
+        : "",
+    selectedCorridorId:
+      anchorStatus === "geometry-reliable" && reviewAnchor.selectedCorridorId
+        ? reviewAnchor.selectedCorridorId
+        : "",
+    anchorStatus,
+    fallbackReason,
+    connectorStartX: connectorStart.x,
+    connectorStartY: connectorStart.y,
+    connectorEndX: anchorX,
+    connectorEndY: anchorY,
+    connectorLength,
+    connectorAngleDegrees,
+    connectorEndpointDistancePx: 0,
+    connectorThresholdPx,
+    protectionRect
   };
+}
+
+function resetInspectorSheetPlacement(sheet: HTMLElement): void {
+  sheet.style.left = "";
+  sheet.style.top = "";
+  sheet.style.right = "";
+  sheet.style.bottom = "";
+  sheet.style.width = "";
+  delete sheet.dataset.m8aV48InspectorPlacement;
+}
+
+function placeInspectorSheetAwayFromSelectedCue(
+  sheet: HTMLElement,
+  placement: M8aV48SceneAnchorPlacement,
+  sheetOpen: boolean
+): void {
+  resetInspectorSheetPlacement(sheet);
+
+  if (!sheetOpen || placement.anchorStatus !== "geometry-reliable") {
+    return;
+  }
+
+  const rect = sheet.getBoundingClientRect();
+  const width = Math.min(rect.width, window.innerWidth - 24);
+  const height = Math.min(rect.height, window.innerHeight - 24);
+  const gap = 18;
+  const topClearance =
+    placement.protectionRect.top < window.innerHeight * 0.5 ? 152 : gap;
+  const bottom = Math.max(gap, window.innerHeight - gap - height);
+  const right = Math.max(gap, window.innerWidth - gap - width);
+  const candidates = [
+    {
+      placement: "default",
+      rect: buildRect(rect.left, rect.top, width, height)
+    },
+    {
+      placement: "bottom-left",
+      rect: buildRect(gap, bottom, width, height)
+    },
+    {
+      placement: "top-right",
+      rect: buildRect(right, topClearance, width, height)
+    },
+    {
+      placement: "top-left",
+      rect: buildRect(gap, topClearance, width, height)
+    }
+  ];
+  const selected =
+    candidates.find((candidate) => {
+      return !rectsIntersect(candidate.rect, placement.protectionRect);
+    }) ?? candidates[0];
+
+  sheet.style.left = `${selected.rect.left.toFixed(1)}px`;
+  sheet.style.top = `${selected.rect.top.toFixed(1)}px`;
+  sheet.style.right = "auto";
+  sheet.style.bottom = "auto";
+  sheet.style.width = `${selected.rect.width.toFixed(1)}px`;
+  sheet.dataset.m8aV48InspectorPlacement = selected.placement;
 }
 
 function renderProductUx(
@@ -1707,6 +2173,13 @@ function renderProductUx(
     serializeList(candidateActorIds);
   root.dataset.m8aV48ReviewFallbackContextActorIds =
     serializeList(fallbackActorIds);
+  root.dataset.m8aV48SceneAnchorState = review.sceneAnchorState.state;
+  root.dataset.m8aV48SelectedAnchorType = placement.selectedAnchorType;
+  root.dataset.m8aV48SelectedActorId = placement.selectedActorId;
+  root.dataset.m8aV48SelectedRelationCueId = placement.selectedRelationCueId;
+  root.dataset.m8aV48SelectedCorridorId = placement.selectedCorridorId;
+  root.dataset.m8aV48AnchorStatus = placement.anchorStatus;
+  root.dataset.m8aV48FallbackReason = placement.fallbackReason;
 
   updateProductUxText(
     root,
@@ -1731,9 +2204,11 @@ function renderProductUx(
   updateProductUxText(
     root,
     "[data-m8a-v47-annotation-context]",
-    review.windowId === "geo-continuity-guard"
-      ? "GEO guard cue"
-      : "Representative display cue"
+    placement.anchorStatus === "geometry-reliable"
+      ? review.windowId === "geo-continuity-guard"
+        ? "GEO guard cue"
+        : "Representative display cue"
+      : "State label only; no scene anchor"
   );
   updateProductUxText(
     root,
@@ -1773,7 +2248,9 @@ function renderProductUx(
   updateProductUxText(
     root,
     "[data-m8a-v48-review-cue]",
-    `${review.relationCueRole.displayLabel}; scene anchor ${review.sceneAnchorState.selectedAnchorType}; anchor placeholder ${review.sceneAnchorState.state}.`
+    placement.anchorStatus === "geometry-reliable"
+      ? `${review.relationCueRole.displayLabel}; scene anchor ${placement.selectedAnchorType}; selected actor ${placement.selectedActorId}; selected cue ${placement.selectedRelationCueId || "none"}.`
+      : `${review.relationCueRole.displayLabel}; no scene anchor claimed; fallback ${placement.fallbackReason}.`
   );
   updateProductUxText(
     root,
@@ -1795,8 +2272,66 @@ function renderProductUx(
   annotation.dataset.m8aV48SceneAnchorState =
     review.sceneAnchorState.state;
   annotation.dataset.sceneAnchorState = review.sceneAnchorState.state;
+  annotation.dataset.m8aV48SelectedAnchorType = placement.selectedAnchorType;
+  annotation.dataset.m8aV48SelectedActorId = placement.selectedActorId;
+  annotation.dataset.m8aV48SelectedRelationCueId =
+    placement.selectedRelationCueId;
+  annotation.dataset.m8aV48SelectedCorridorId = placement.selectedCorridorId;
+  annotation.dataset.m8aV48AnchorStatus = placement.anchorStatus;
+  annotation.dataset.m8aV48FallbackReason = placement.fallbackReason;
+  annotation.dataset.m8aV48ConnectorThresholdPx =
+    placement.connectorThresholdPx.toFixed(1);
+  annotation.dataset.m8aV48ConnectorEndpointDistancePx =
+    placement.connectorEndpointDistancePx.toFixed(1);
+  annotation.dataset.m8aV48ProtectionRectLeft =
+    placement.protectionRect.left.toFixed(1);
+  annotation.dataset.m8aV48ProtectionRectTop =
+    placement.protectionRect.top.toFixed(1);
+  annotation.dataset.m8aV48ProtectionRectRight =
+    placement.protectionRect.right.toFixed(1);
+  annotation.dataset.m8aV48ProtectionRectBottom =
+    placement.protectionRect.bottom.toFixed(1);
+  annotation.dataset.m8aV48ProtectionRectWidth =
+    placement.protectionRect.width.toFixed(1);
+  annotation.dataset.m8aV48ProtectionRectHeight =
+    placement.protectionRect.height.toFixed(1);
   annotation.style.left = `${placement.left.toFixed(1)}px`;
   annotation.style.top = `${placement.top.toFixed(1)}px`;
+
+  const connector = getProductUxElement(
+    root,
+    "[data-m8a-v48-scene-connector='true']"
+  );
+  connector.dataset.m8aV48AnchorStatus = placement.anchorStatus;
+  connector.dataset.m8aV48SelectedAnchorType = placement.selectedAnchorType;
+  connector.dataset.m8aV48SelectedActorId = placement.selectedActorId;
+  connector.dataset.m8aV48SelectedRelationCueId =
+    placement.selectedRelationCueId;
+  connector.dataset.m8aV48ConnectorStartX =
+    placement.connectorStartX.toFixed(1);
+  connector.dataset.m8aV48ConnectorStartY =
+    placement.connectorStartY.toFixed(1);
+  connector.dataset.m8aV48ConnectorEndX = placement.connectorEndX.toFixed(1);
+  connector.dataset.m8aV48ConnectorEndY = placement.connectorEndY.toFixed(1);
+  connector.dataset.m8aV48ConnectorLength =
+    placement.connectorLength.toFixed(1);
+  connector.dataset.m8aV48ConnectorAngleDegrees =
+    placement.connectorAngleDegrees.toFixed(2);
+  connector.dataset.m8aV48ConnectorEndpointDistancePx =
+    placement.connectorEndpointDistancePx.toFixed(1);
+  connector.dataset.m8aV48ConnectorThresholdPx =
+    placement.connectorThresholdPx.toFixed(1);
+  connector.hidden = placement.anchorStatus !== "geometry-reliable";
+  connector.setAttribute(
+    "aria-hidden",
+    placement.anchorStatus === "geometry-reliable" ? "false" : "true"
+  );
+  connector.style.left = `${placement.connectorStartX.toFixed(1)}px`;
+  connector.style.top = `${placement.connectorStartY.toFixed(1)}px`;
+  connector.style.width = `${placement.connectorLength.toFixed(1)}px`;
+  connector.style.transform = `rotate(${placement.connectorAngleDegrees.toFixed(
+    2
+  )}deg)`;
 
   const playButton = getProductUxElement(
     root,
@@ -1842,7 +2377,14 @@ function renderProductUx(
   sheet.dataset.m8aV48RelationCueRole = review.relationCueRole.displayLabel;
   sheet.dataset.m8aV48SceneAnchorState = review.sceneAnchorState.state;
   sheet.dataset.sceneAnchorState = review.sceneAnchorState.state;
+  sheet.dataset.m8aV48SelectedAnchorType = placement.selectedAnchorType;
+  sheet.dataset.m8aV48SelectedActorId = placement.selectedActorId;
+  sheet.dataset.m8aV48SelectedRelationCueId = placement.selectedRelationCueId;
+  sheet.dataset.m8aV48SelectedCorridorId = placement.selectedCorridorId;
+  sheet.dataset.m8aV48AnchorStatus = placement.anchorStatus;
+  sheet.dataset.m8aV48FallbackReason = placement.fallbackReason;
   setProductUxHidden(sheet, !sheetOpen);
+  placeInspectorSheetAwayFromSelectedCue(sheet, placement, sheetOpen);
 
   const inspectorBody = getProductUxElement(
     root,
@@ -1857,6 +2399,14 @@ function renderProductUx(
     serializeList(fallbackActorIds);
   inspectorBody.dataset.m8aV48SceneAnchorState =
     review.sceneAnchorState.state;
+  inspectorBody.dataset.m8aV48SelectedAnchorType = placement.selectedAnchorType;
+  inspectorBody.dataset.m8aV48SelectedActorId = placement.selectedActorId;
+  inspectorBody.dataset.m8aV48SelectedRelationCueId =
+    placement.selectedRelationCueId;
+  inspectorBody.dataset.m8aV48SelectedCorridorId =
+    placement.selectedCorridorId;
+  inspectorBody.dataset.m8aV48AnchorStatus = placement.anchorStatus;
+  inspectorBody.dataset.m8aV48FallbackReason = placement.fallbackReason;
 
   for (const stage of root.querySelectorAll<HTMLElement>(
     "[data-m8a-v47-window-id]"

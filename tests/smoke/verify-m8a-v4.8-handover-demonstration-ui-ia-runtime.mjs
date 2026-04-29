@@ -19,13 +19,38 @@ const EXPECTED_ENDPOINT_PAIR_ID =
 const EXPECTED_PRECISION = "operator-family-only";
 const EXPECTED_MODEL_ID = "m8a-v4.6d-simulation-handover-model.v1";
 const EXPECTED_V48_VERSION =
-  "m8a-v4.8-handover-demonstration-ui-ia-phase1-runtime.v1";
+  "m8a-v4.8-handover-demonstration-ui-ia-phase2-runtime.v1";
 const EXPECTED_ACTOR_COUNTS = { leo: 6, meo: 5, geo: 2 };
+const VIEWPORTS = [
+  {
+    name: "desktop-1440",
+    width: 1440,
+    height: 900,
+    mobile: false,
+    expectedViewportClass: "desktop",
+    connectorThresholdPx: 24,
+    protectionRect: { width: 96, height: 72 }
+  },
+  {
+    name: "narrow-390",
+    width: 390,
+    height: 844,
+    mobile: true,
+    expectedViewportClass: "narrow",
+    connectorThresholdPx: 32,
+    protectionRect: { width: 112, height: 88 }
+  }
+];
 const EXPECTED_REVIEW_MODELS = {
   "leo-acquisition-context": {
     ratio: 0.1,
     productLabel: "LEO acquire",
     representativeActorId: "oneweb-0386-leo-display-context",
+    sceneAnchorState: "representative-actor-anchor",
+    selectedAnchorType: "display-representative-actor",
+    selectedRelationCueId:
+      "m8a-v46e-simulation-displayRepresentative-context-ribbon",
+    selectedCorridorId: "m8a-v4-operator-family-endpoint-context-ribbon",
     candidateContextActorIds: [
       "oneweb-0537-leo-display-context",
       "oneweb-0701-leo-display-context",
@@ -40,6 +65,11 @@ const EXPECTED_REVIEW_MODELS = {
     ratio: 0.3,
     productLabel: "LEO pressure",
     representativeActorId: "oneweb-0537-leo-display-context",
+    sceneAnchorState: "representative-actor-anchor",
+    selectedAnchorType: "display-representative-actor",
+    selectedRelationCueId:
+      "m8a-v46e-simulation-displayRepresentative-context-ribbon",
+    selectedCorridorId: null,
     candidateContextActorIds: [
       "oneweb-0012-leo-display-context",
       "oneweb-0249-leo-display-context",
@@ -55,6 +85,11 @@ const EXPECTED_REVIEW_MODELS = {
     ratio: 0.5,
     productLabel: "MEO hold",
     representativeActorId: "o3b-mpower-f6-meo-display-context",
+    sceneAnchorState: "representative-meo-actor-anchor",
+    selectedAnchorType: "display-representative-actor",
+    selectedRelationCueId:
+      "m8a-v46e-simulation-displayRepresentative-context-ribbon",
+    selectedCorridorId: null,
     candidateContextActorIds: [
       "o3b-mpower-f1-meo-display-context",
       "o3b-mpower-f2-meo-display-context",
@@ -71,6 +106,11 @@ const EXPECTED_REVIEW_MODELS = {
     ratio: 0.7,
     productLabel: "LEO re-entry",
     representativeActorId: "oneweb-0702-leo-display-context",
+    sceneAnchorState: "representative-leo-actor-anchor",
+    selectedAnchorType: "display-representative-actor",
+    selectedRelationCueId:
+      "m8a-v46e-simulation-displayRepresentative-context-ribbon",
+    selectedCorridorId: null,
     candidateContextActorIds: [
       "oneweb-0012-leo-display-context",
       "oneweb-0249-leo-display-context",
@@ -86,6 +126,10 @@ const EXPECTED_REVIEW_MODELS = {
     ratio: 0.92,
     productLabel: "GEO guard",
     representativeActorId: "st-2-geo-continuity-anchor",
+    sceneAnchorState: "geo-guard-cue-anchor",
+    selectedAnchorType: "geo-guard-cue",
+    selectedRelationCueId: "m8a-v46e-simulation-geo-guard-cue",
+    selectedCorridorId: null,
     candidateContextActorIds: [
       "ses-9-geo-display-context",
       "o3b-mpower-f3-meo-display-context",
@@ -134,12 +178,12 @@ function assert(condition, message) {
   }
 }
 
-async function setViewport(client) {
+async function setViewport(client, viewport = VIEWPORTS[0]) {
   await client.send("Emulation.setDeviceMetricsOverride", {
-    width: 1440,
-    height: 900,
+    width: viewport.width,
+    height: viewport.height,
     deviceScaleFactor: 1,
-    mobile: false
+    mobile: viewport.mobile
   });
 }
 
@@ -242,7 +286,7 @@ async function seekReplayRatio(client, ratio) {
   await sleep(180);
 }
 
-async function inspectPhaseOneDom(client) {
+async function inspectPhaseTwoDom(client) {
   return await evaluateRuntimeValue(
     client,
     `((config) => {
@@ -362,6 +406,12 @@ async function inspectPhaseOneDom(client) {
         .filter((entry) => entry.infoClass !== "control");
       const classificationFailures = visibleTextClassificationFailures(productRoot);
       const visibleText = document.body.innerText;
+      const phaseOnePlaceholderHits = [
+        state?.productUx?.reviewViewModel?.sceneAnchorState?.state,
+        productRoot?.dataset?.m8aV48SceneAnchorState,
+        document.documentElement.dataset.m8aV48SceneAnchorState,
+        visibleText
+      ].filter((value) => String(value ?? "").includes("phase1-placeholder"));
       const forbiddenUnitHits = config.forbiddenUnitPatterns
         .map((pattern) => new RegExp(pattern.source, pattern.flags))
         .filter((pattern) => pattern.test(visibleText))
@@ -452,6 +502,11 @@ async function inspectPhaseOneDom(client) {
         "V4.8 runtime fetched a raw source or live external resource: " +
           JSON.stringify(resourceHits)
       );
+      assert(
+        phaseOnePlaceholderHits.length === 0,
+        "V4.8 Phase 2 must not accept phase1-placeholder as a runtime anchor state: " +
+          JSON.stringify(phaseOnePlaceholderHits)
+      );
 
       return {
         infoClassValues: state.productUx.infoClassValues,
@@ -490,6 +545,22 @@ async function openInspector(client) {
 
       if (sheet.hidden) {
         toggle.click();
+      }
+    })()`
+  );
+  await sleep(160);
+}
+
+async function closeInspector(client) {
+  await evaluateRuntimeValue(
+    client,
+    `(() => {
+      const root = document.querySelector("[data-m8a-v47-product-ux='true']");
+      const close = root?.querySelector("[data-m8a-v47-control-id='details-close']");
+      const sheet = root?.querySelector("[data-m8a-v47-ui-surface='inspection-sheet']");
+
+      if (sheet instanceof HTMLElement && !sheet.hidden) {
+        close?.click();
       }
     })()`
   );
@@ -540,6 +611,12 @@ async function verifyReviewViewModels(client) {
           bodyFallbackContextActorIds:
             body.dataset.m8aV48FallbackContextActorIds,
           bodySceneAnchorState: body.dataset.m8aV48SceneAnchorState,
+          bodySelectedAnchorType: body.dataset.m8aV48SelectedAnchorType,
+          bodySelectedActorId: body.dataset.m8aV48SelectedActorId,
+          bodySelectedRelationCueId:
+            body.dataset.m8aV48SelectedRelationCueId,
+          bodySelectedCorridorId: body.dataset.m8aV48SelectedCorridorId,
+          bodyAnchorStatus: body.dataset.m8aV48AnchorStatus,
           review: {
             version: review.version,
             windowId: review.windowId,
@@ -625,11 +702,25 @@ async function verifyReviewViewModels(client) {
     assert(
       result.review.relationCueRole.primary === "displayRepresentative" &&
         result.review.relationCueRole.secondary === "candidateContext" &&
-        result.review.sceneAnchorState.state === "phase1-placeholder" &&
+        result.review.sceneAnchorState.state === expected.sceneAnchorState &&
+        result.review.sceneAnchorState.selectedAnchorType ===
+          expected.selectedAnchorType &&
         result.review.sceneAnchorState.selectedActorId ===
           expected.representativeActorId &&
-        result.bodySceneAnchorState === "phase1-placeholder",
-      "V4.8 review model must expose the Phase 1 relation cue and scene-anchor placeholder: " +
+        result.review.sceneAnchorState.selectedRelationCueId ===
+          expected.selectedRelationCueId &&
+        result.review.sceneAnchorState.selectedCorridorId ===
+          expected.selectedCorridorId &&
+        result.review.sceneAnchorState.anchorStatus ===
+          "requires-render-geometry-validation" &&
+        result.review.sceneAnchorState.anchorClaim ===
+          "selected-display-context-cue-not-service-truth" &&
+        result.bodySceneAnchorState === expected.sceneAnchorState &&
+        result.bodySelectedAnchorType === expected.selectedAnchorType &&
+        result.bodySelectedActorId === expected.representativeActorId &&
+        result.bodySelectedRelationCueId === expected.selectedRelationCueId &&
+        (result.bodySelectedCorridorId || null) === expected.selectedCorridorId,
+      "V4.8 review model must expose the Phase 2 per-state selected anchor metadata: " +
         JSON.stringify(result)
     );
 
@@ -647,6 +738,291 @@ async function verifyReviewViewModels(client) {
   );
 
   return results;
+}
+
+function assertSceneAnchorGeometry(result, expected, viewport, sheetOpen) {
+  assert(
+    result.activeWindowId === result.expectedWindowId &&
+    result.viewportClass === viewport.expectedViewportClass,
+    "V4.8 scene anchor viewport class mismatch: " + JSON.stringify(result)
+  );
+  assert(
+    !JSON.stringify(result).includes("phase1-placeholder"),
+    "V4.8 scene anchor runtime geometry must not retain phase1-placeholder: " +
+      JSON.stringify(result)
+  );
+  assert(
+    result.annotationText.includes(expected.productLabel),
+    "V4.8 scene-near label must track the selected V4.6D state: " +
+      JSON.stringify(result)
+  );
+
+  if (result.anchorStatus === "geometry-reliable") {
+    assert(
+      result.selectedAnchorType === expected.selectedAnchorType &&
+        result.selectedActorId === expected.representativeActorId &&
+        result.selectedRelationCueId === expected.selectedRelationCueId &&
+        (result.selectedCorridorId || null) === expected.selectedCorridorId,
+      "V4.8 reliable anchor metadata did not match the selected state: " +
+        JSON.stringify(result)
+    );
+    assert(
+      result.connectorVisible === true &&
+        result.connectorEndpointDistancePx <= viewport.connectorThresholdPx &&
+        result.connectorThresholdPx === viewport.connectorThresholdPx,
+      "V4.8 connector endpoint must land within the accepted threshold: " +
+        JSON.stringify(result)
+    );
+    assert(
+      result.anchorPointDistanceToEntity <= viewport.connectorThresholdPx,
+      "V4.8 selected anchor point must match the projected actor/cue point: " +
+        JSON.stringify(result)
+    );
+    assert(
+      result.connectorQuadrantOk === true,
+      "V4.8 connector must point toward the selected anchor quadrant: " +
+        JSON.stringify(result)
+    );
+    assert(
+      result.protectionRect.width === viewport.protectionRect.width &&
+        result.protectionRect.height === viewport.protectionRect.height &&
+        result.annotationProtectionHit === false,
+      "V4.8 annotation must not cover the selected cue protection rectangle: " +
+        JSON.stringify(result)
+    );
+
+    if (sheetOpen) {
+      assert(
+        result.sheetVisible === true && result.sheetProtectionHit === false,
+        "V4.8 inspector must not cover the selected cue protection rectangle: " +
+          JSON.stringify(result)
+      );
+    } else {
+      assert(
+        result.sheetVisible === false,
+        "V4.8 inspector should be closed for the closed-cue obstruction check: " +
+          JSON.stringify(result)
+      );
+    }
+  } else {
+    assert(
+      result.anchorStatus === "fallback" &&
+        result.selectedAnchorType === "non-scene-fallback" &&
+        result.connectorVisible === false &&
+        result.fallbackReason,
+      "V4.8 fallback anchor state must be explicit and must not render a connector: " +
+        JSON.stringify(result)
+    );
+    assert(
+      !/\b(attached|serving satellite|active path|active service|teleport path)\b/i.test(
+        result.annotationText
+      ),
+      "V4.8 fallback label must not imply attachment to a satellite, active path, or active service: " +
+        JSON.stringify(result)
+    );
+  }
+}
+
+async function captureSceneAnchorGeometry(client, expectedWindowId, sheetOpen) {
+  return await evaluateRuntimeValue(
+    client,
+    `((expectedWindowId) => {
+      const isVisible = (element) => {
+        if (!(element instanceof HTMLElement)) {
+          return false;
+        }
+
+        const style = getComputedStyle(element);
+        const rect = element.getBoundingClientRect();
+
+        return (
+          element.hidden !== true &&
+          style.display !== "none" &&
+          style.visibility !== "hidden" &&
+          rect.width > 0 &&
+          rect.height > 0
+        );
+      };
+      const rectToPlain = (rect) => ({
+        left: rect.left,
+        top: rect.top,
+        right: rect.right,
+        bottom: rect.bottom,
+        width: rect.width,
+        height: rect.height
+      });
+      const intersects = (a, b) =>
+        a.left < b.right &&
+        a.right > b.left &&
+        a.top < b.bottom &&
+        a.bottom > b.top;
+      const numberDataset = (element, key) => {
+        const value = Number(element?.dataset?.[key]);
+        return Number.isFinite(value) ? value : null;
+      };
+      const capture = window.__SCENARIO_GLOBE_VIEWER_CAPTURE__;
+      const viewer = capture.viewer;
+      const state = capture.m8aV4GroundStationScene.getState();
+      const productRoot = document.querySelector("[data-m8a-v47-product-ux='true']");
+      const annotation = productRoot.querySelector("[data-m8a-v47-scene-annotation='true']");
+      const connector = productRoot.querySelector("[data-m8a-v48-scene-connector='true']");
+      const sheet = productRoot.querySelector("[data-m8a-v47-ui-surface='inspection-sheet']");
+      const dataSource = viewer.dataSources.getByName(state.dataSourceName)[0];
+      const canvasRect = viewer.scene.canvas.getBoundingClientRect();
+      const entityPoint = (entityId) => {
+        const entity = dataSource?.entities?.getById?.(entityId);
+        const position = entity?.position?.getValue?.(viewer.clock.currentTime);
+        const point = position
+          ? viewer.scene.cartesianToCanvasCoordinates(position)
+          : null;
+
+        return point
+          ? { x: canvasRect.left + point.x, y: canvasRect.top + point.y }
+          : null;
+      };
+      const annotationRect = rectToPlain(annotation.getBoundingClientRect());
+      const sheetRect = rectToPlain(sheet.getBoundingClientRect());
+      const protectionRect = {
+        left: numberDataset(annotation, "m8aV48ProtectionRectLeft"),
+        top: numberDataset(annotation, "m8aV48ProtectionRectTop"),
+        right: numberDataset(annotation, "m8aV48ProtectionRectRight"),
+        bottom: numberDataset(annotation, "m8aV48ProtectionRectBottom"),
+        width: numberDataset(annotation, "m8aV48ProtectionRectWidth"),
+        height: numberDataset(annotation, "m8aV48ProtectionRectHeight")
+      };
+      const connectorStart = {
+        x: numberDataset(connector, "m8aV48ConnectorStartX"),
+        y: numberDataset(connector, "m8aV48ConnectorStartY")
+      };
+      const connectorEnd = {
+        x: numberDataset(connector, "m8aV48ConnectorEndX"),
+        y: numberDataset(connector, "m8aV48ConnectorEndY")
+      };
+      const anchor = {
+        x: Number(annotation.dataset.m8aV47SceneAnchorX),
+        y: Number(annotation.dataset.m8aV47SceneAnchorY)
+      };
+      const selectedActorId = annotation.dataset.m8aV48SelectedActorId;
+      const selectedEntityPoint = selectedActorId
+        ? entityPoint(selectedActorId)
+        : null;
+      const vectorToAnchor = {
+        x: anchor.x - connectorStart.x,
+        y: anchor.y - connectorStart.y
+      };
+      const vectorToEnd = {
+        x: connectorEnd.x - connectorStart.x,
+        y: connectorEnd.y - connectorStart.y
+      };
+      const sameDirection = (left, right) =>
+        Math.abs(left) < 0.1 ||
+        Math.abs(right) < 0.1 ||
+        Math.sign(left) === Math.sign(right);
+      const connectorVisible = isVisible(connector);
+
+      return {
+        expectedWindowId,
+        activeWindowId: state.productUx.activeWindowId,
+        viewportClass: state.productUx.layout.viewportClass,
+        reviewSceneAnchorState: state.productUx.reviewViewModel.sceneAnchorState,
+        rootSceneAnchorState: productRoot.dataset.m8aV48SceneAnchorState,
+        annotationSceneAnchorState: annotation.dataset.m8aV48SceneAnchorState,
+        anchorStatus: annotation.dataset.m8aV48AnchorStatus,
+        fallbackReason: annotation.dataset.m8aV48FallbackReason,
+        selectedAnchorType: annotation.dataset.m8aV48SelectedAnchorType,
+        selectedActorId,
+        selectedRelationCueId: annotation.dataset.m8aV48SelectedRelationCueId,
+        selectedCorridorId: annotation.dataset.m8aV48SelectedCorridorId,
+        annotationText: annotation.innerText,
+        annotationRect,
+        connectorVisible,
+        connectorStart,
+        connectorEnd,
+        connectorEndpointDistancePx: Number(
+          connector.dataset.m8aV48ConnectorEndpointDistancePx
+        ),
+        connectorThresholdPx: Number(
+          connector.dataset.m8aV48ConnectorThresholdPx
+        ),
+        connectorQuadrantOk:
+          connectorVisible &&
+          sameDirection(vectorToAnchor.x, vectorToEnd.x) &&
+          sameDirection(vectorToAnchor.y, vectorToEnd.y),
+        anchor,
+        selectedEntityPoint,
+        anchorPointDistanceToEntity: selectedEntityPoint
+          ? Math.hypot(anchor.x - selectedEntityPoint.x, anchor.y - selectedEntityPoint.y)
+          : Infinity,
+        protectionRect,
+        annotationProtectionHit: intersects(annotationRect, protectionRect),
+        sheetVisible: isVisible(sheet),
+        sheetRect,
+        sheetProtectionHit:
+          isVisible(sheet) && intersects(sheetRect, protectionRect),
+        sheetOpen: ${JSON.stringify(sheetOpen)}
+      };
+    })(${JSON.stringify(expectedWindowId)})`
+  );
+}
+
+async function verifySceneAnchorGeometry(client, viewport) {
+  const results = [];
+
+  for (const [windowId, expected] of Object.entries(EXPECTED_REVIEW_MODELS)) {
+    await closeInspector(client);
+    await seekReplayRatio(client, expected.ratio);
+    const closedResult = await captureSceneAnchorGeometry(client, windowId, false);
+    assertSceneAnchorGeometry(closedResult, expected, viewport, false);
+
+    await openInspector(client);
+    const openResult = await captureSceneAnchorGeometry(client, windowId, true);
+    assertSceneAnchorGeometry(openResult, expected, viewport, true);
+    results.push({ closedResult, openResult });
+  }
+
+  await closeInspector(client);
+  return results;
+}
+
+async function verifyFallbackBehavior(client) {
+  await setViewport(client, VIEWPORTS[0]);
+  await seekReplayRatio(client, EXPECTED_REVIEW_MODELS["leo-acquisition-context"].ratio);
+  await closeInspector(client);
+  await evaluateRuntimeValue(
+    client,
+    `(() => {
+      const capture = window.__SCENARIO_GLOBE_VIEWER_CAPTURE__;
+      document.documentElement.dataset.m8aV48ForceSceneAnchorFallback = "true";
+      capture.m8aV4GroundStationScene.pause();
+    })()`
+  );
+  await sleep(220);
+
+  const result = await captureSceneAnchorGeometry(
+    client,
+    "leo-acquisition-context",
+    false
+  );
+
+  assert(
+    result.anchorStatus === "fallback" &&
+      result.selectedAnchorType === "non-scene-fallback" &&
+      result.connectorVisible === false &&
+      result.fallbackReason &&
+      !/\b(attached|serving satellite|active path|active service|teleport path)\b/i.test(
+        result.annotationText
+      ),
+    "V4.8 unreliable geometry must fall back without a connector or attachment claim: " +
+      JSON.stringify(result)
+  );
+  await evaluateRuntimeValue(
+    client,
+    `(() => {
+      delete document.documentElement.dataset.m8aV48ForceSceneAnchorFallback;
+    })()`
+  );
+
+  return result;
 }
 
 async function main() {
@@ -669,14 +1045,26 @@ async function main() {
     await client.send("Page.enable");
     await client.send("Runtime.enable");
 
-    await setViewport(client);
+    await setViewport(client, VIEWPORTS[0]);
     await navigateAndWait(client, serverHandle.baseUrl);
 
-    const domInspection = await inspectPhaseOneDom(client);
+    const domInspection = await inspectPhaseTwoDom(client);
     const reviewModels = await verifyReviewViewModels(client);
+    const sceneAnchorGeometry = [];
+
+    for (const viewport of VIEWPORTS) {
+      await setViewport(client, viewport);
+      await sleep(160);
+      sceneAnchorGeometry.push({
+        viewport: viewport.name,
+        results: await verifySceneAnchorGeometry(client, viewport)
+      });
+    }
+
+    const fallbackBehavior = await verifyFallbackBehavior(client);
 
     console.log(
-      `M8A-V4.8 handover demonstration UI IA Phase 1 smoke passed: ${JSON.stringify(
+      `M8A-V4.8 handover demonstration UI IA Phase 2 smoke passed: ${JSON.stringify(
         {
           domInspection,
           reviewWindows: reviewModels.map((result) => ({
@@ -685,8 +1073,25 @@ async function main() {
             representativeActorId: result.review.representativeActorId,
             candidateContextActorIds: result.review.candidateContextActorIds,
             fallbackContextActorIds: result.review.fallbackContextActorIds,
-            sceneAnchorState: result.review.sceneAnchorState.state
+            sceneAnchorState: result.review.sceneAnchorState.state,
+            selectedAnchorType: result.review.sceneAnchorState.selectedAnchorType
           })),
+          sceneAnchorGeometry: sceneAnchorGeometry.map((viewportResult) => ({
+            viewport: viewportResult.viewport,
+            windows: viewportResult.results.map((result) => ({
+              windowId: result.closedResult.expectedWindowId,
+              closedAnchorStatus: result.closedResult.anchorStatus,
+              openAnchorStatus: result.openResult.anchorStatus,
+              selectedAnchorType: result.closedResult.selectedAnchorType,
+              connectorEndpointDistancePx:
+                result.closedResult.connectorEndpointDistancePx
+            }))
+          })),
+          fallbackBehavior: {
+            anchorStatus: fallbackBehavior.anchorStatus,
+            fallbackReason: fallbackBehavior.fallbackReason,
+            connectorVisible: fallbackBehavior.connectorVisible
+          },
           runtimeProcessFacts: {
             serverPid: serverHandle.server.pid,
             browserPid: browserHandle.browserProcess.pid
