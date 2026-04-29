@@ -13,6 +13,8 @@ Related VNext roadmap:
 [./m8a-vnext-multi-orbit-simulation-roadmap.md](./m8a-vnext-multi-orbit-simulation-roadmap.md).
 Related planning-control handoff:
 [./m8a-vnext-planning-control-handoff.md](./m8a-vnext-planning-control-handoff.md).
+Related final handoff:
+[./m8a-v4.7.1-handover-product-ux-final-handoff.md](./m8a-v4.7.1-handover-product-ux-final-handoff.md).
 
 ## Status
 
@@ -22,6 +24,8 @@ Related planning-control handoff:
 - no runtime implementation authority by itself
 - runtime correction implementation completed after explicit implementation
   opening on 2026-04-29; final accepted runtime fix commit `9604bde`
+- final runtime/product acceptance closed at head
+  `a48b0a6 Clean V4.7.1 accepted runtime status`
 - intended phase: `M8A-V4.7.1` product usability correction
 - baseline runtime commit: `26781b8 Implement M8A V4.7 handover product UX`
 - baseline hardening commit: `df829af Harden M8A V4.7 acceptance records`

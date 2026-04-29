@@ -62,8 +62,9 @@ after the current line. They need explicit reopen authority.
   scenario-globe-viewer runtime baseline.
 - `V4.7` product UX / playback / information architecture SDD is accepted as
   doc-only authority for the existing accepted V4 scene; runtime implementation
-  completed after explicit opening, with commit hash pending at documentation
-  time.
+  completed after explicit opening at commit `26781b8`.
+- `V4.7.1` product usability correction is accepted and closed at head
+  `a48b0a6`; final runtime obstruction fix completed at commit `9604bde`.
 - `V4.6C/R2` remains catalog/source-only; no alternate endpoint B is
   runtime-ready.
 - The next available tracks are primary-source hunt for new candidates, a `V5`
@@ -274,7 +275,7 @@ Status:
 
 - planning-control SDD and closeout handoff
 - `V4.6A/B/D/E` complete in runtime baseline
-- `V4.7` product UX runtime complete in current change set
+- `V4.7/V4.7.1` product UX runtime correction complete and closed
 - `V4.6C/R2` catalog/source-only; no alternate endpoint B runtime-ready
 - no additional runtime execution phase currently unblocked
 

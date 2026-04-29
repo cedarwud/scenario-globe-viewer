@@ -9,7 +9,7 @@ canonical SDDs below to make phase decisions.
 
 - handoff report
 - doc-only
-- current as of 2026-04-28
+- current as of 2026-04-29
 - intended reader: the next M8A-VNext planning/control thread
 
 ## Read Order For New Control Thread
@@ -21,9 +21,11 @@ Read these first:
 3. [../data-contracts/m8a-v4-ground-station-projection.md](../data-contracts/m8a-v4-ground-station-projection.md)
 4. [m8a-v4.6d-simulation-handover-model-contract.md](./m8a-v4.6d-simulation-handover-model-contract.md)
 5. [m8a-v4.7-handover-product-ux-plan.md](./m8a-v4.7-handover-product-ux-plan.md)
-6. [multi-orbit-follow-on-roadmap.md](./multi-orbit-follow-on-roadmap.md)
-7. [multi-orbit-program-skeleton.md](./multi-orbit-program-skeleton.md)
-8. [../decisions/0013-ground-station-multi-orbit-scope-reset.md](../decisions/0013-ground-station-multi-orbit-scope-reset.md)
+6. [m8a-v4.7.1-handover-product-ux-correction-plan.md](./m8a-v4.7.1-handover-product-ux-correction-plan.md)
+7. [m8a-v4.7.1-handover-product-ux-final-handoff.md](./m8a-v4.7.1-handover-product-ux-final-handoff.md)
+8. [multi-orbit-follow-on-roadmap.md](./multi-orbit-follow-on-roadmap.md)
+9. [multi-orbit-program-skeleton.md](./multi-orbit-program-skeleton.md)
+10. [../decisions/0013-ground-station-multi-orbit-scope-reset.md](../decisions/0013-ground-station-multi-orbit-scope-reset.md)
 
 Supporting accepted data:
 
@@ -48,7 +50,9 @@ Completed:
 - `M8A-V4.6E` handover visual language completed at commit `db85439`
 - `M8A-V4.6E` floating HUD hidden at commit `1f33697`
 - `M8A-V4.7` product UX / playback / information architecture runtime
-  implementation completed; commit hash pending at documentation time
+  implementation completed at commit `26781b8`
+- `M8A-V4.7.1` product usability correction accepted and closed at head
+  `a48b0a6`; final runtime obstruction fix completed at commit `9604bde`
 - `M8A-V4.6C/R2` source/catalog boundary documented at commit `e5d99c7`
 - `R2` root endpoint evidence catalog added at commit `d061c676`
 - `R2` alternate endpoint B MEO no-change hunt documented at commit `c8e30b2e`
@@ -212,8 +216,9 @@ Current phase status:
 - `V4.6A`, `V4.6B`, `V4.6D`, and `V4.6E` are complete in the runtime baseline
 - `V4.7` product UX / playback / information architecture is accepted as a
   doc-only SDD authority
-- `V4.7` runtime implementation is complete in the current change set after
-  explicit opening
+- `V4.7` runtime implementation is complete at commit `26781b8`
+- `V4.7.1` runtime/product usability correction is accepted and closed at head
+  `a48b0a6`
 - `V4.6C/R2` has source/catalog updates only; it does not create a runtime
   selector or accepted selectable scenario set
 - no alternate endpoint B outside Speedcast Singapore is runtime-ready
@@ -221,15 +226,15 @@ Current phase status:
 
 ## Remaining Available Tracks
 
-The current V4.7 track is implemented:
+The current V4.7/V4.7.1 track is implemented and closed:
 
 1. `V4.7` product UX / playback / information architecture SDD
+2. `V4.7.1` product usability correction SDD and final handoff
 
 The next available decisions are:
 
-1. perform final delivery review / commit / PR handling for the current V4.7
-   change set
-2. keep runtime closed and continue source/candidate work
+1. keep runtime closed and continue source/candidate work
+2. open a new decision gate only when new accepted scope exists
 
 Other available tracks remain:
 

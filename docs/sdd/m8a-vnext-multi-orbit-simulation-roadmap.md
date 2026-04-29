@@ -22,6 +22,10 @@ Related accepted V4.6D simulation handover model contract:
 [./m8a-v4.6d-simulation-handover-model-contract.md](./m8a-v4.6d-simulation-handover-model-contract.md).
 Related V4.7 product UX SDD:
 [./m8a-v4.7-handover-product-ux-plan.md](./m8a-v4.7-handover-product-ux-plan.md).
+Related V4.7.1 product UX correction SDD:
+[./m8a-v4.7.1-handover-product-ux-correction-plan.md](./m8a-v4.7.1-handover-product-ux-correction-plan.md).
+Related V4.7.1 final handoff:
+[./m8a-v4.7.1-handover-product-ux-final-handoff.md](./m8a-v4.7.1-handover-product-ux-final-handoff.md).
 Related V4.6C/R2 endpoint evidence catalog review:
 [../../../itri/multi-orbit/download/ground-station-endpoint-candidates/2026-04-25/r2-endpoint-evidence-catalog-2026-04-28.md](../../../itri/multi-orbit/download/ground-station-endpoint-candidates/2026-04-25/r2-endpoint-evidence-catalog-2026-04-28.md).
 
@@ -31,6 +35,7 @@ Related V4.6C/R2 endpoint evidence catalog review:
 - doc-only continuation plan
 - V4.6 closeout synchronized 2026-04-28
 - V4.7 product UX SDD accepted 2026-04-28
+- V4.7.1 product usability correction accepted and closed 2026-04-29
 - no runtime implementation authority by itself
 - intended handoff surface for the next planning/control thread
 
@@ -71,7 +76,9 @@ Completed baseline:
 - `M8A-V4.6E` handover visual language exists at commit `db85439`
 - `M8A-V4.6E` floating HUD is hidden at commit `1f33697`
 - `M8A-V4.7` product UX / playback / information architecture runtime
-  implementation completed; commit hash pending at documentation time
+  implementation completed at commit `26781b8`
+- `M8A-V4.7.1` product usability correction is accepted and closed at head
+  `a48b0a6`; final runtime obstruction fix completed at commit `9604bde`
 - `M8A-V4.6C/R2` source/catalog boundary exists at commit `e5d99c7`
 - the `R2` root endpoint evidence catalog exists at commit `d061c676`
 - the `R2` alternate endpoint B MEO no-change hunt exists at commit `c8e30b2e`
@@ -530,11 +537,12 @@ Acceptance criteria:
 Implementation status:
 
 - SDD accepted as doc-only product UX authority
-- runtime implementation completed in the current change set after explicit
+- `V4.7` runtime implementation completed at commit `26781b8` after explicit
   opening
-- validation passed: `npm run test:m8a-v4.7`,
-  `npm run test:m8a-v4.6e`, `npm run test:m8a-v4.6a`, and
-  `npm run test:m8a-v4.6b`
+- `V4.7.1` product usability correction accepted and closed at head `a48b0a6`
+- validation passed: `npm run test:m8a-v4.7.1`,
+  `npm run test:m8a-v4.6d`, `npm run test:m8a-v4.6e`,
+  `npm run test:m8a-v4.6a`, and `npm run test:m8a-v4.6b`
 - no deviations from route, endpoint pair, precision, actor set, source
   boundary, or V4.6D model truth were reported
 
@@ -555,15 +563,16 @@ runtime prompt is created.
 
 No additional runtime execution phase is currently unblocked.
 
-The current V4.7 product UX track is implemented:
+The current V4.7/V4.7.1 product UX track is implemented and closed:
 
 `M8A-V4.7 product UX / playback / information architecture SDD`
 
+`M8A-V4.7.1 product usability correction SDD and final handoff`
+
 The next available decisions are:
 
-- perform final delivery review / commit / PR handling for the current change
-  set
 - keep further runtime work closed and continue source/candidate work
+- open a new decision gate only when new accepted scope exists
 
 Other available tracks remain:
 
@@ -573,8 +582,8 @@ Reason:
 
 - `V4.6A/B/D/E` are already complete in the runtime baseline
 - `V4.6C/R2` did not promote any alternate endpoint B
-- `V4.7` is a product UX SDD delta for the accepted single scenario, not a
-  runtime selector or source expansion
+- `V4.7/V4.7.1` is a product UX correction line for the accepted single
+  scenario, not a runtime selector or source expansion
 - V5 is blocked until new accepted endpoint-pair scenarios exist
 - legacy aviation/YKA cleanup is blocked until the user explicitly opens that
   cleanup/archive gate
@@ -595,14 +604,15 @@ exist:
 - viewer-owned projection artifacts under `public/fixtures/ground-station-projections/`
 - runtime and smoke tests only after a new runtime prompt is genuinely unblocked
 
-V4.7 runtime work has changed in the current implementation:
+V4.7/V4.7.1 runtime correction is closed with these accepted surfaces:
 
 - playback policy and controls
 - product information architecture
 - desktop/narrow layout and disclosure surfaces
 - visual and playback smoke tests
 
-Future V4.7 corrections may change those surfaces only if explicitly opened.
+Future V4.7/V4.7.1 corrections are closed from this record. Any new runtime
+work needs a new explicit planning/control decision.
 
 Legacy aviation/YKA cleanup may later change old route, fixture, and regression
 surfaces only if the cleanup/archive gate is explicitly opened.
@@ -620,12 +630,14 @@ of the following are true:
 - the user explicitly opens the corresponding runtime phase
 - R2 remains read-only and no raw `itri` package is read at runtime
 
-Do not create a future V4.7 correction runtime prompt unless all of the
+Do not create a future V4.7/V4.7.1 correction runtime prompt unless all of the
 following are true:
 
 - [m8a-v4.7-handover-product-ux-plan.md](./m8a-v4.7-handover-product-ux-plan.md)
   is accepted
-- the user explicitly opens V4.7 runtime implementation
+- [m8a-v4.7.1-handover-product-ux-final-handoff.md](./m8a-v4.7.1-handover-product-ux-final-handoff.md)
+  is read as the latest closeout state
+- the user explicitly opens a new runtime implementation decision
 - implementation scope is limited to playback policy, information architecture,
   layout, disclosure, and validation
 - route, endpoint pair, precision, actor set, source boundary, and V4.6D model
