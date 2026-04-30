@@ -21,8 +21,11 @@ const EXPECTED_MODEL_ID = "m8a-v4.6d-simulation-handover-model.v1";
 const EXPECTED_V48_VERSION =
   "m8a-v4.8-handover-demonstration-ui-ia-phase3-runtime.v1";
 const EXPECTED_V49_VERSION =
-  "m8a-v4.9-product-comprehension-slice2-runtime.v1";
-const EXPECTED_V49_SCOPE = "slice2-scene-near-meaning-layer-correction";
+  "m8a-v4.9-product-comprehension-slice3-runtime.v1";
+const EXPECTED_V49_SCOPE = "slice3-transition-event-layer";
+const EXPECTED_SCENE_NEAR_SCOPE =
+  "slice2-scene-near-meaning-layer-correction";
+const EXPECTED_TRANSITION_DURATION_MS = 2600;
 const EXPECTED_ACTOR_COUNTS = { leo: 6, meo: 5, geo: 2 };
 const EXPECTED_WINDOW_IDS = [
   "leo-acquisition-context",
@@ -61,6 +64,19 @@ const EXPECTED_SCENE_NEAR_FALLBACK_CONTENT = [
   "product-label",
   "state-ordinal",
   "no-scene-attachment"
+];
+const EXPECTED_TRANSITION_VISIBLE_CONTENT = [
+  "transition-summary",
+  "transition-context"
+];
+const EXPECTED_TRANSITION_DENIED_VISIBLE_CONTENT = [
+  "actor-ids",
+  "cue-ids",
+  "selected-anchor-ids",
+  "candidate-context-actor-id-arrays",
+  "fallback-context-actor-id-arrays",
+  "full-truth-boundary-disclosure",
+  "user-action-required"
 ];
 const EXPECTED_PRODUCT_COPY = {
   "leo-acquisition-context": {
@@ -320,6 +336,9 @@ async function capturePersistentLayer(client) {
       const sheet = productRoot?.querySelector("[data-m8a-v47-ui-surface='inspection-sheet']");
       const annotation = productRoot?.querySelector("[data-m8a-v47-scene-annotation='true']");
       const connector = productRoot?.querySelector("[data-m8a-v48-scene-connector='true']");
+      const transitionEvent = productRoot?.querySelector("[data-m8a-v49-transition-event='true']");
+      const transitionSummary = transitionEvent?.querySelector("[data-m8a-v49-transition-summary='true']");
+      const transitionContext = transitionEvent?.querySelector("[data-m8a-v49-transition-context='true']");
       const sceneNearMeaning = annotation?.querySelector("[data-m8a-v49-scene-near-meaning='true']");
       const sceneNearCue = annotation?.querySelector(
         "[data-m8a-v49-scene-near-cue='true'], [data-m8a-v47-annotation-context='true']"
@@ -384,6 +403,30 @@ async function capturePersistentLayer(client) {
             productRoot?.dataset.m8aV49SceneNearFallbackVisible ?? null,
           sceneNearAttachmentClaim:
             productRoot?.dataset.m8aV49SceneNearAttachmentClaim ?? null,
+          transitionEventLayer:
+            productRoot?.dataset.m8aV49TransitionEventLayer ?? null,
+          transitionEventTrigger:
+            productRoot?.dataset.m8aV49TransitionEventTrigger ?? null,
+          transitionEventDurationMs:
+            productRoot?.dataset.m8aV49TransitionEventDurationMs ?? null,
+          transitionEventVisibleContent:
+            productRoot?.dataset.m8aV49TransitionEventVisibleContent ?? null,
+          transitionEventDeniedVisibleContent:
+            productRoot?.dataset.m8aV49TransitionEventDeniedVisibleContent ?? null,
+          transitionEventVisible:
+            productRoot?.dataset.m8aV49TransitionEventVisible ?? null,
+          transitionEventFromLabel:
+            productRoot?.dataset.m8aV49TransitionEventFromLabel ?? null,
+          transitionEventToLabel:
+            productRoot?.dataset.m8aV49TransitionEventToLabel ?? null,
+          transitionEventText:
+            productRoot?.dataset.m8aV49TransitionEventText ?? null,
+          transitionEventContext:
+            productRoot?.dataset.m8aV49TransitionEventContext ?? null,
+          transitionEventStateTruthSource:
+            productRoot?.dataset.m8aV49TransitionEventStateTruthSource ?? null,
+          transitionEventNonBlocking:
+            productRoot?.dataset.m8aV49TransitionEventNonBlocking ?? null,
           allowedPersistent:
             productRoot?.dataset.m8aV49PersistentAllowedContent ?? null,
           deniedPersistent:
@@ -405,6 +448,9 @@ async function capturePersistentLayer(client) {
         sheetVisible: sheet ? isVisible(sheet) : null,
         annotationText:
           annotation?.innerText.replace(/\\s+/g, " ").trim() ?? null,
+        annotationRect: annotation
+          ? rectToPlain(annotation.getBoundingClientRect())
+          : null,
         annotationDataset: {
           windowId: annotation?.dataset.m8aV47WindowId ?? null,
           anchorStatus: annotation?.dataset.m8aV48AnchorStatus ?? null,
@@ -453,6 +499,39 @@ async function capturePersistentLayer(client) {
             connector?.dataset.m8aV48SelectedRelationCueId ?? null,
           attachmentClaim:
             connector?.dataset.m8aV49SceneNearAttachmentClaim ?? null
+        },
+        transitionEvent: {
+          visible: isVisible(transitionEvent),
+          text:
+            transitionEvent?.innerText.replace(/\\s+/g, " ").trim() ?? "",
+          summary: isVisible(transitionSummary)
+            ? (transitionSummary.textContent ?? "").replace(/\\s+/g, " ").trim()
+            : "",
+          context: isVisible(transitionContext)
+            ? (transitionContext.textContent ?? "").replace(/\\s+/g, " ").trim()
+            : "",
+          rect: transitionEvent
+            ? rectToPlain(transitionEvent.getBoundingClientRect())
+            : null,
+          pointerEvents: transitionEvent
+            ? getComputedStyle(transitionEvent).pointerEvents
+            : null,
+          dataset: {
+            visible:
+              transitionEvent?.dataset.m8aV49TransitionEventVisible ?? null,
+            durationMs:
+              transitionEvent?.dataset.m8aV49TransitionEventDurationMs ?? null,
+            fromLabel:
+              transitionEvent?.dataset.m8aV49TransitionEventFromLabel ?? null,
+            toLabel:
+              transitionEvent?.dataset.m8aV49TransitionEventToLabel ?? null,
+            stateTruthSource:
+              transitionEvent?.dataset.m8aV49TransitionEventStateTruthSource ?? null,
+            nonBlocking:
+              transitionEvent?.dataset.m8aV49TransitionEventNonBlocking ?? null,
+            placement:
+              transitionEvent?.dataset.m8aV49TransitionPlacement ?? null
+          }
         },
         truthAffordanceVisible: isVisible(truthAffordance),
         compactTruthText,
@@ -513,13 +592,13 @@ function assertProductCopy(result, expected) {
     comprehension.version === EXPECTED_V49_VERSION &&
       result.productRootDataset.v49ProductComprehension ===
         EXPECTED_V49_VERSION,
-    "V4.9 Slice 2 version seam mismatch: " +
+    "V4.9 Slice 3 version seam mismatch: " +
       JSON.stringify(result.productRootDataset)
   );
   assert(
     comprehension.scope === EXPECTED_V49_SCOPE &&
       result.productRootDataset.v49SliceScope === comprehension.scope,
-    "V4.9 Slice 2 scope seam mismatch: " +
+    "V4.9 Slice 3 scope seam mismatch: " +
       JSON.stringify(result.productRootDataset)
   );
   assert(
@@ -552,7 +631,7 @@ function assertProductCopy(result, expected) {
       JSON.stringify(activeCopy)
   );
   assert(
-    comprehension.sceneNearMeaningLayer.scope === EXPECTED_V49_SCOPE &&
+    comprehension.sceneNearMeaningLayer.scope === EXPECTED_SCENE_NEAR_SCOPE &&
       comprehension.sceneNearMeaningLayer.reliableAnchorRequired === true &&
       comprehension.sceneNearMeaningLayer.fallbackPolicy ===
         "persistent-layer-wording-without-scene-attachment" &&
@@ -566,7 +645,8 @@ function assertProductCopy(result, expected) {
         expected.firstReadMessage &&
       comprehension.sceneNearMeaningLayer.activeWatchCueLabel ===
         expected.watchCueLabel &&
-      result.productRootDataset.sceneNearMeaningLayer === EXPECTED_V49_SCOPE &&
+      result.productRootDataset.sceneNearMeaningLayer ===
+        EXPECTED_SCENE_NEAR_SCOPE &&
       result.productRootDataset.sceneNearReliableAnchorRequired === "true" &&
       result.productRootDataset.sceneNearReliableVisibleContent ===
         EXPECTED_SCENE_NEAR_RELIABLE_CONTENT.join("|") &&
@@ -575,6 +655,41 @@ function assertProductCopy(result, expected) {
     "V4.9 Slice 2 scene-near meaning seam mismatch: " +
       JSON.stringify({
         sceneNearMeaningLayer: comprehension.sceneNearMeaningLayer,
+        productRootDataset: result.productRootDataset
+      })
+  );
+  assert(
+    comprehension.transitionEventLayer.scope === EXPECTED_V49_SCOPE &&
+      comprehension.transitionEventLayer.trigger ===
+        "active-v46d-window-id-change" &&
+      comprehension.transitionEventLayer.durationMs ===
+        EXPECTED_TRANSITION_DURATION_MS &&
+      JSON.stringify(comprehension.transitionEventLayer.visibleContent) ===
+        JSON.stringify(EXPECTED_TRANSITION_VISIBLE_CONTENT) &&
+      JSON.stringify(comprehension.transitionEventLayer.deniedVisibleContent) ===
+        JSON.stringify(EXPECTED_TRANSITION_DENIED_VISIBLE_CONTENT) &&
+      comprehension.transitionEventLayer.currentStateTruthSource ===
+        "persistent-and-scene-near-layers" &&
+      comprehension.transitionEventLayer.blockingPolicy ===
+        "non-blocking-no-user-action" &&
+      comprehension.transitionEventLayer.placementPolicy ===
+        "avoid-reliable-scene-near-cue" &&
+      result.productRootDataset.transitionEventLayer === EXPECTED_V49_SCOPE &&
+      result.productRootDataset.transitionEventTrigger ===
+        "active-v46d-window-id-change" &&
+      result.productRootDataset.transitionEventDurationMs ===
+        String(EXPECTED_TRANSITION_DURATION_MS) &&
+      result.productRootDataset.transitionEventVisibleContent ===
+        EXPECTED_TRANSITION_VISIBLE_CONTENT.join("|") &&
+      result.productRootDataset.transitionEventDeniedVisibleContent ===
+        EXPECTED_TRANSITION_DENIED_VISIBLE_CONTENT.join("|") &&
+      result.productRootDataset.transitionEventStateTruthSource ===
+        "persistent-and-scene-near-layers" &&
+      result.productRootDataset.transitionEventNonBlocking ===
+        "non-blocking-no-user-action",
+    "V4.9 Slice 3 transition-event seam mismatch: " +
+      JSON.stringify({
+        transitionEventLayer: comprehension.transitionEventLayer,
         productRootDataset: result.productRootDataset
       })
   );
@@ -728,6 +843,56 @@ function assertCleanSceneNearText(text, context) {
     forbiddenPatterns.every((pattern) => !pattern.test(text)),
     "V4.9 scene-near visible text exposed ids, metadata, or forbidden claims: " +
       JSON.stringify({ text, context })
+  );
+}
+
+function assertCleanTransitionText(text, context) {
+  const forbiddenPatterns = [
+    /oneweb-\d{4}-leo-display-context/i,
+    /o3b-mpower-f\d-meo-display-context/i,
+    /st-2-geo-continuity-anchor/i,
+    /ses-9-geo-display-context/i,
+    /m8a-v46e-simulation-/i,
+    /m8a-v4-operator-family-endpoint-context-ribbon/i,
+    /candidateContextActorIds/i,
+    /fallbackContextActorIds/i,
+    /selected actor/i,
+    /selected cue/i,
+    /selected anchor/i,
+    /simulation output/i,
+    /operator-family precision/i,
+    /display-context actors/i,
+    /active serving/i,
+    /active gateway/i,
+    /active path/i,
+    /active service/i,
+    /pair-specific/i,
+    /teleport path/i,
+    /native RF handover/i,
+    /operator handover log/i,
+    /operator log truth/i,
+    /latency|jitter|throughput/i,
+    /No active gateway assignment is claimed/i,
+    /No pair-specific teleport path is claimed/i
+  ];
+
+  assert(
+    forbiddenPatterns.every((pattern) => !pattern.test(text)),
+    "V4.9 transition event visible text exposed ids, metadata, full disclosure, or forbidden claims: " +
+      JSON.stringify({ text, context })
+  );
+}
+
+function rectsOverlap(first, second) {
+  if (!first || !second || first.width <= 0 || second.width <= 0) {
+    return false;
+  }
+
+  return !(
+    first.right <= second.left ||
+    first.left >= second.right ||
+    first.bottom <= second.top ||
+    first.top >= second.bottom
   );
 }
 
@@ -943,6 +1108,446 @@ async function verifyTruthAffordanceOpensInspector(client) {
   return result;
 }
 
+function expectedTransitionContext(expectedTo) {
+  if (expectedTo.orbitClassToken === "MEO") {
+    return "Continuity context shifts to MEO display context";
+  }
+
+  if (expectedTo.orbitClassToken === "GEO") {
+    return "Continuity guard shifts to GEO display context";
+  }
+
+  return "Review context shifts to LEO display context";
+}
+
+function assertTransitionEvent(result, expectedFrom, expectedTo) {
+  const transition = result.transitionEvent;
+  const layer = result.state.productUx.productComprehension.transitionEventLayer;
+  const activeEvent = layer.activeEvent;
+  const expectedSummary = `${expectedFrom.productLabel} -> ${expectedTo.productLabel}`;
+  const expectedContext = expectedTransitionContext(expectedTo);
+
+  assert(
+    result.activeWindowId === expectedTo.windowId ||
+      result.activeProductLabel === expectedTo.productLabel,
+    "V4.9 transition test must capture the target active window: " +
+      JSON.stringify({
+        activeWindowId: result.activeWindowId,
+        activeProductLabel: result.activeProductLabel,
+        expectedTo
+      })
+  );
+  assert(
+    transition.visible === true &&
+      result.productRootDataset.transitionEventVisible === "true" &&
+      transition.dataset.visible === "true" &&
+      activeEvent,
+    "V4.9 transition event must be visible after a V4.6D window change: " +
+      JSON.stringify({ transition, productRootDataset: result.productRootDataset, layer })
+  );
+  assert(
+    activeEvent.fromProductLabel === expectedFrom.productLabel &&
+      activeEvent.toProductLabel === expectedTo.productLabel &&
+      activeEvent.summaryText === expectedSummary &&
+      activeEvent.contextText === expectedContext &&
+      activeEvent.durationMs === EXPECTED_TRANSITION_DURATION_MS &&
+      activeEvent.source === "active-v46d-window-id-change" &&
+      activeEvent.stateTruthSource === "persistent-and-scene-near-layers" &&
+      activeEvent.blocksControls === false &&
+      activeEvent.requiresUserAction === false,
+    "V4.9 transition event state seam must be concise and window-change sourced: " +
+      JSON.stringify({ activeEvent, expectedSummary, expectedContext })
+  );
+  assert(
+    transition.summary === expectedSummary &&
+      transition.context === expectedContext &&
+      transition.text === `${expectedSummary} ${expectedContext}` &&
+      result.productRootDataset.transitionEventText === expectedSummary &&
+      result.productRootDataset.transitionEventContext === expectedContext &&
+      transition.dataset.fromLabel === expectedFrom.productLabel &&
+      transition.dataset.toLabel === expectedTo.productLabel &&
+      transition.dataset.durationMs === String(EXPECTED_TRANSITION_DURATION_MS) &&
+      transition.dataset.stateTruthSource === "persistent-and-scene-near-layers" &&
+      transition.dataset.nonBlocking === "non-blocking-no-user-action",
+    "V4.9 transition visible text/dataset mismatch: " +
+      JSON.stringify({ transition, productRootDataset: result.productRootDataset })
+  );
+  assert(
+    transition.summary.length <= 32 && transition.context.length <= 62,
+    "V4.9 transition text must remain concise: " +
+      JSON.stringify(transition)
+  );
+  assertCleanTransitionText(transition.text, {
+    from: expectedFrom.productLabel,
+    to: expectedTo.productLabel
+  });
+  assert(
+    transition.pointerEvents === "none",
+    "V4.9 transition event must not intercept pointer controls: " +
+      JSON.stringify(transition)
+  );
+  assert(
+    result.stripText.includes(expectedTo.productLabel) &&
+      result.sceneNearVisibleText.meaning === expectedTo.firstReadMessage,
+    "V4.9 transition event must not be the only current-state truth source: " +
+      JSON.stringify({
+        stripText: result.stripText,
+        sceneNearVisibleText: result.sceneNearVisibleText,
+        expectedTo
+      })
+  );
+
+  if (result.annotationDataset.anchorStatus === "geometry-reliable") {
+    assert(
+      !rectsOverlap(transition.rect, result.annotationRect),
+      "V4.9 transition event must not cover the selected reliable scene cue: " +
+        JSON.stringify({
+          transitionRect: transition.rect,
+          annotationRect: result.annotationRect,
+          transitionPlacement: transition.dataset.placement
+        })
+    );
+  }
+}
+
+async function waitForTransitionEvent(client, expectedFrom, expectedTo) {
+  let lastResult = null;
+
+  for (let attempt = 0; attempt < 30; attempt += 1) {
+    lastResult = await capturePersistentLayer(client);
+
+    if (
+      lastResult.transitionEvent.visible &&
+      lastResult.transitionEvent.summary ===
+        `${expectedFrom.productLabel} -> ${expectedTo.productLabel}`
+    ) {
+      assertTransitionEvent(lastResult, expectedFrom, expectedTo);
+      return lastResult;
+    }
+
+    await sleep(80);
+  }
+
+  throw new Error(
+    "V4.9 transition event did not appear for expected window change: " +
+      JSON.stringify({
+        from: expectedFrom.productLabel,
+        to: expectedTo.productLabel,
+        lastResult
+      })
+  );
+}
+
+async function triggerTransition(client, fromExpected, toExpected) {
+  await closeInspector(client);
+  await seekReplayRatio(client, fromExpected.ratio);
+
+  const fromResult = await capturePersistentLayer(client);
+
+  assert(
+    fromResult.activeProductLabel === fromExpected.productLabel,
+    "V4.9 transition test failed to establish source window: " +
+      JSON.stringify({
+        activeProductLabel: fromResult.activeProductLabel,
+        fromExpected
+      })
+  );
+
+  await seekReplayRatio(client, toExpected.ratio);
+
+  return await waitForTransitionEvent(client, fromExpected, toExpected);
+}
+
+async function verifyTransitionInitialState(client) {
+  await setViewport(client, VIEWPORTS.desktop);
+  await closeInspector(client);
+  const expected = EXPECTED_PRODUCT_COPY["leo-acquisition-context"];
+
+  await seekReplayRatio(client, expected.ratio);
+
+  const initial = await capturePersistentLayer(client);
+
+  assert(
+    initial.activeProductLabel === expected.productLabel &&
+      initial.transitionEvent.visible === false &&
+      initial.state.productUx.productComprehension.transitionEventLayer
+        .activeEvent === null &&
+      initial.productRootDataset.transitionEventVisible === "false",
+    "V4.9 transition event must not be visible before a window change: " +
+      JSON.stringify(initial.transitionEvent)
+  );
+
+  await seekReplayRatio(client, 0.12);
+
+  const sameWindow = await capturePersistentLayer(client);
+
+  assert(
+    sameWindow.activeProductLabel === expected.productLabel &&
+      sameWindow.transitionEvent.visible === false &&
+      sameWindow.state.productUx.productComprehension.transitionEventLayer
+        .activeEvent === null,
+    "V4.9 transition event must not appear for same-window replay movement: " +
+      JSON.stringify(sameWindow.transitionEvent)
+  );
+
+  return {
+    initialVisible: initial.transitionEvent.visible,
+    sameWindowVisible: sameWindow.transitionEvent.visible
+  };
+}
+
+async function verifyTransitionTimeout(client, visibleResult) {
+  await sleep(1200);
+
+  const midDuration = await capturePersistentLayer(client);
+
+  assert(
+    midDuration.transitionEvent.visible === true &&
+      midDuration.transitionEvent.summary === visibleResult.transitionEvent.summary,
+    "V4.9 transition event should remain briefly visible before timeout: " +
+      JSON.stringify({
+        initial: visibleResult.transitionEvent,
+        midDuration: midDuration.transitionEvent
+      })
+  );
+
+  await sleep(1900);
+
+  const afterTimeout = await capturePersistentLayer(client);
+
+  assert(
+    afterTimeout.transitionEvent.visible === false &&
+      afterTimeout.productRootDataset.transitionEventVisible === "false" &&
+      afterTimeout.state.productUx.productComprehension.transitionEventLayer
+        .activeEvent === null,
+    "V4.9 transition event must disappear within the accepted 2-3 second duration: " +
+      JSON.stringify(afterTimeout.transitionEvent)
+  );
+
+  return {
+    midDurationVisible: midDuration.transitionEvent.visible,
+    afterTimeoutVisible: afterTimeout.transitionEvent.visible,
+    durationMs: EXPECTED_TRANSITION_DURATION_MS
+  };
+}
+
+async function clickAt(client, point) {
+  await client.send("Input.dispatchMouseEvent", {
+    type: "mousePressed",
+    x: point.x,
+    y: point.y,
+    button: "left",
+    clickCount: 1
+  });
+  await client.send("Input.dispatchMouseEvent", {
+    type: "mouseReleased",
+    x: point.x,
+    y: point.y,
+    button: "left",
+    clickCount: 1
+  });
+}
+
+async function captureControlHitTargets(client) {
+  return await evaluateRuntimeValue(
+    client,
+    `(() => {
+      const root = document.querySelector("[data-m8a-v47-product-ux='true']");
+      const transitionEvent = root?.querySelector("[data-m8a-v49-transition-event='true']");
+      const controls = {
+        playPause: "[data-m8a-v47-control-id='play-pause']",
+        restart: "[data-m8a-v47-control-id='restart']",
+        speed120: "[data-m8a-v47-playback-multiplier='120']",
+        details: "[data-m8a-v47-control-id='details-toggle']",
+        truth: "[data-m8a-v49-truth-affordance='compact']"
+      };
+      const centerOf = (element) => {
+        const rect = element.getBoundingClientRect();
+        return {
+          x: rect.left + rect.width / 2,
+          y: rect.top + rect.height / 2,
+          rect: {
+            left: rect.left,
+            top: rect.top,
+            right: rect.right,
+            bottom: rect.bottom,
+            width: rect.width,
+            height: rect.height
+          }
+        };
+      };
+
+      return Object.fromEntries(
+        Object.entries(controls).map(([name, selector]) => {
+          const element = root?.querySelector(selector);
+
+          if (!(element instanceof HTMLElement)) {
+            return [name, { missing: true }];
+          }
+
+          const center = centerOf(element);
+          const hit = document.elementFromPoint(center.x, center.y);
+          const hitControl = hit?.closest(
+            "[data-m8a-v47-control-id], [data-m8a-v47-playback-multiplier], [data-m8a-v49-truth-affordance]"
+          );
+
+          return [
+            name,
+            {
+              missing: false,
+              center,
+              hitText: hitControl?.textContent?.replace(/\\s+/g, " ").trim() ?? "",
+              hitControlId: hitControl?.dataset.m8aV47ControlId ?? null,
+              hitMultiplier: hitControl?.dataset.m8aV47PlaybackMultiplier ?? null,
+              hitTruth:
+                hitControl?.dataset.m8aV49TruthAffordance ?? null,
+              transitionVisible:
+                transitionEvent instanceof HTMLElement &&
+                transitionEvent.hidden !== true &&
+                getComputedStyle(transitionEvent).display !== "none"
+            }
+          ];
+        })
+      );
+    })()`
+  );
+}
+
+async function verifyTransitionControlsNonBlocking(client) {
+  const fromExpected = EXPECTED_PRODUCT_COPY["meo-continuity-hold"];
+  const toExpected = EXPECTED_PRODUCT_COPY["leo-reentry-candidate"];
+  const visibleResult = await triggerTransition(
+    client,
+    fromExpected,
+    toExpected
+  );
+  const hitTargets = await captureControlHitTargets(client);
+  const expectedHits = {
+    playPause: { controlId: "play-pause" },
+    restart: { controlId: "restart" },
+    speed120: { multiplier: "120" },
+    details: { controlId: "details-toggle" },
+    truth: { truth: "compact" }
+  };
+
+  for (const [name, expected] of Object.entries(expectedHits)) {
+    const target = hitTargets[name];
+
+    assert(
+      target?.missing === false &&
+        target.transitionVisible === true &&
+        (!expected.controlId || target.hitControlId === expected.controlId) &&
+        (!expected.multiplier || target.hitMultiplier === expected.multiplier) &&
+        (!expected.truth || target.hitTruth === expected.truth),
+      "V4.9 transition event must not intercept persistent controls: " +
+        JSON.stringify({ name, target, expected, hitTargets })
+    );
+  }
+
+  await clickAt(client, hitTargets.playPause.center);
+  await sleep(120);
+
+  let state = await capturePersistentLayer(client);
+  assert(
+    state.state.productUx.playback.status === "playing",
+    "V4.9 play control must work while transition event is visible: " +
+      JSON.stringify(state.state.productUx.playback)
+  );
+
+  await clickAt(client, hitTargets.playPause.center);
+  await sleep(120);
+  state = await capturePersistentLayer(client);
+  assert(
+    state.state.productUx.playback.status === "paused",
+    "V4.9 pause control must work while transition event is visible: " +
+      JSON.stringify(state.state.productUx.playback)
+  );
+
+  await clickAt(client, hitTargets.speed120.center);
+  await sleep(120);
+  state = await capturePersistentLayer(client);
+  assert(
+    state.state.productUx.playback.multiplier === 120,
+    "V4.9 speed control must work while transition event is visible: " +
+      JSON.stringify(state.state.productUx.playback)
+  );
+
+  await clickAt(client, hitTargets.details.center);
+  await sleep(120);
+  state = await capturePersistentLayer(client);
+  assert(
+    state.state.productUx.disclosure.state === "open" &&
+      state.sheetVisible === true,
+    "V4.9 details control must work while transition event is visible: " +
+      JSON.stringify({ disclosure: state.state.productUx.disclosure, sheetVisible: state.sheetVisible })
+  );
+  await closeInspector(client);
+
+  await clickAt(client, hitTargets.truth.center);
+  await sleep(120);
+  state = await capturePersistentLayer(client);
+  assert(
+    state.state.productUx.disclosure.state === "open" &&
+      state.sheetVisible === true,
+    "V4.9 truth affordance must work while transition event is visible: " +
+      JSON.stringify({ disclosure: state.state.productUx.disclosure, sheetVisible: state.sheetVisible })
+  );
+  await closeInspector(client);
+
+  await clickAt(client, hitTargets.restart.center);
+  await sleep(160);
+  state = await capturePersistentLayer(client);
+  assert(
+    state.activeProductLabel ===
+      EXPECTED_PRODUCT_COPY["leo-acquisition-context"].productLabel,
+    "V4.9 restart control must work while transition event is visible: " +
+      JSON.stringify({
+        activeProductLabel: state.activeProductLabel,
+        activeWindowId: state.activeWindowId
+      })
+  );
+
+  return {
+    visibleTransition: visibleResult.transitionEvent.text,
+    hitTargets,
+    restartWindow: state.activeWindowId
+  };
+}
+
+async function verifyTransitionEventLayer(client) {
+  const initialState = await verifyTransitionInitialState(client);
+  const firstTransition = await triggerTransition(
+    client,
+    EXPECTED_PRODUCT_COPY["leo-acquisition-context"],
+    EXPECTED_PRODUCT_COPY["leo-aging-pressure"]
+  );
+  const firstTimeout = await verifyTransitionTimeout(client, firstTransition);
+  const secondTransition = await triggerTransition(
+    client,
+    EXPECTED_PRODUCT_COPY["leo-aging-pressure"],
+    EXPECTED_PRODUCT_COPY["meo-continuity-hold"]
+  );
+  const secondTimeout = await verifyTransitionTimeout(client, secondTransition);
+  const nonBlockingControls = await verifyTransitionControlsNonBlocking(client);
+
+  return {
+    initialState,
+    transitions: [
+      {
+        text: firstTransition.transitionEvent.text,
+        placement: firstTransition.transitionEvent.dataset.placement,
+        timeout: firstTimeout
+      },
+      {
+        text: secondTransition.transitionEvent.text,
+        placement: secondTransition.transitionEvent.dataset.placement,
+        timeout: secondTimeout
+      }
+    ],
+    nonBlockingControls
+  };
+}
+
 async function verifyViewport(client, viewport) {
   await setViewport(client, viewport);
   await sleep(180);
@@ -1007,6 +1612,7 @@ async function main() {
     await setViewport(client, VIEWPORTS.desktop);
     await navigateAndWait(client, serverHandle.baseUrl);
 
+    const transitionEventLayer = await verifyTransitionEventLayer(client);
     const desktopResults = await verifyViewport(client, VIEWPORTS.desktop);
     const truthAffordance = await verifyTruthAffordanceOpensInspector(client);
     const narrowResults = await verifyViewport(client, VIEWPORTS.narrow);
@@ -1014,7 +1620,7 @@ async function main() {
       await verifyForcedUnreliableAnchorFallback(client);
 
     console.log(
-      `M8A-V4.9 product comprehension Slice 2 smoke passed: ${JSON.stringify(
+      `M8A-V4.9 product comprehension Slice 3 smoke passed: ${JSON.stringify(
         {
           desktopWindows: desktopResults.map((result) => ({
             windowId: result.windowId,
@@ -1030,6 +1636,7 @@ async function main() {
             sceneNearMode: result.sceneNearMode,
             anchorStatus: result.anchorStatus
           })),
+          transitionEventLayer,
           truthAffordance,
           unreliableAnchorFallback,
           runtimeProcessFacts: {

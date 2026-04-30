@@ -77,7 +77,7 @@ const M8A_V47_PRODUCT_UX_VERSION =
 const M8A_V48_UI_IA_VERSION =
   "m8a-v4.8-handover-demonstration-ui-ia-phase3-runtime.v1";
 const M8A_V49_PRODUCT_COMPREHENSION_VERSION =
-  "m8a-v4.9-product-comprehension-slice2-runtime.v1";
+  "m8a-v4.9-product-comprehension-slice3-runtime.v1";
 const M8A_V47_GUIDED_REVIEW_MULTIPLIER = 30;
 const M8A_V47_PRODUCT_DEFAULT_MULTIPLIER = 60;
 const M8A_V47_QUICK_SCAN_MULTIPLIER = 120;
@@ -134,6 +134,20 @@ const M8A_V49_SCENE_NEAR_FALLBACK_VISIBLE_CONTENT = [
   "product-label",
   "state-ordinal",
   "no-scene-attachment"
+] as const;
+const M8A_V49_TRANSITION_EVENT_DURATION_MS = 2_600;
+const M8A_V49_TRANSITION_EVENT_VISIBLE_CONTENT = [
+  "transition-summary",
+  "transition-context"
+] as const;
+const M8A_V49_TRANSITION_EVENT_DENIED_VISIBLE_CONTENT = [
+  "actor-ids",
+  "cue-ids",
+  "selected-anchor-ids",
+  "candidate-context-actor-id-arrays",
+  "fallback-context-actor-id-arrays",
+  "full-truth-boundary-disclosure",
+  "user-action-required"
 ] as const;
 const M8A_V49_PRODUCT_COPY = {
   "leo-acquisition-context": {
@@ -378,6 +392,18 @@ const M8A_V4_TELEMETRY_KEYS = [
   "m8aV49SceneNearFallbackPolicy",
   "m8aV49SceneNearConnectorPolicy",
   "m8aV49SceneNearActiveMeaning",
+  "m8aV49TransitionEventLayer",
+  "m8aV49TransitionEventTrigger",
+  "m8aV49TransitionEventDurationMs",
+  "m8aV49TransitionEventVisibleContent",
+  "m8aV49TransitionEventDeniedVisibleContent",
+  "m8aV49TransitionEventVisible",
+  "m8aV49TransitionEventFromLabel",
+  "m8aV49TransitionEventToLabel",
+  "m8aV49TransitionEventText",
+  "m8aV49TransitionEventContext",
+  "m8aV49TransitionEventStateTruthSource",
+  "m8aV49TransitionEventNonBlocking",
   "m8aV4GroundStationRawItriSideReadOwnership",
   "m8aV4GroundStationRuntimeConsumptionRule",
   "m8aV4GroundStationProofSeam",
@@ -588,9 +614,25 @@ interface M8aV49WindowProductCopy {
   transitionRole: string;
 }
 
+interface M8aV49TransitionEventRuntime {
+  fromWindowId: M8aV46dSimulationHandoverWindowId;
+  toWindowId: M8aV46dSimulationHandoverWindowId;
+  fromProductLabel: string;
+  toProductLabel: string;
+  summaryText: string;
+  contextText: string;
+  durationMs: typeof M8A_V49_TRANSITION_EVENT_DURATION_MS;
+  startedAtEpochMs: number;
+  expiresAtEpochMs: number;
+  source: "active-v46d-window-id-change";
+  stateTruthSource: "persistent-and-scene-near-layers";
+  blocksControls: false;
+  requiresUserAction: false;
+}
+
 interface M8aV49ProductComprehensionRuntime {
   version: typeof M8A_V49_PRODUCT_COMPREHENSION_VERSION;
-  scope: "slice2-scene-near-meaning-layer-correction";
+  scope: "slice3-transition-event-layer";
   windowIds: ReadonlyArray<M8aV46dSimulationHandoverWindowId>;
   activeWindowCopy: M8aV49WindowProductCopy;
   copyInventory: ReadonlyArray<M8aV49WindowProductCopy>;
@@ -612,6 +654,17 @@ interface M8aV49ProductComprehensionRuntime {
     activeMeaning: string;
     activeWatchCueLabel: string;
     activeOrbitClassToken: M8aV49WindowProductCopy["orbitClassToken"];
+  };
+  transitionEventLayer: {
+    scope: "slice3-transition-event-layer";
+    trigger: "active-v46d-window-id-change";
+    durationMs: typeof M8A_V49_TRANSITION_EVENT_DURATION_MS;
+    visibleContent: typeof M8A_V49_TRANSITION_EVENT_VISIBLE_CONTENT;
+    deniedVisibleContent: typeof M8A_V49_TRANSITION_EVENT_DENIED_VISIBLE_CONTENT;
+    currentStateTruthSource: "persistent-and-scene-near-layers";
+    blockingPolicy: "non-blocking-no-user-action";
+    placementPolicy: "avoid-reliable-scene-near-cue";
+    activeEvent: M8aV49TransitionEventRuntime | null;
   };
 }
 
@@ -1375,8 +1428,47 @@ function resolveV49WindowProductCopy(
   };
 }
 
+function resolveV49TransitionContextText(
+  toCopy: M8aV49WindowProductCopy
+): string {
+  switch (toCopy.orbitClassToken) {
+    case "MEO":
+      return "Continuity context shifts to MEO display context";
+    case "GEO":
+      return "Continuity guard shifts to GEO display context";
+    case "LEO":
+      return "Review context shifts to LEO display context";
+  }
+}
+
+function buildV49TransitionEvent(
+  fromWindowId: M8aV46dSimulationHandoverWindowId,
+  toWindowId: M8aV46dSimulationHandoverWindowId,
+  startedAtEpochMs: number
+): M8aV49TransitionEventRuntime {
+  const fromCopy = resolveV49WindowProductCopy(fromWindowId);
+  const toCopy = resolveV49WindowProductCopy(toWindowId);
+
+  return {
+    fromWindowId,
+    toWindowId,
+    fromProductLabel: fromCopy.productLabel,
+    toProductLabel: toCopy.productLabel,
+    summaryText: `${fromCopy.productLabel} -> ${toCopy.productLabel}`,
+    contextText: resolveV49TransitionContextText(toCopy),
+    durationMs: M8A_V49_TRANSITION_EVENT_DURATION_MS,
+    startedAtEpochMs,
+    expiresAtEpochMs: startedAtEpochMs + M8A_V49_TRANSITION_EVENT_DURATION_MS,
+    source: "active-v46d-window-id-change",
+    stateTruthSource: "persistent-and-scene-near-layers",
+    blocksControls: false,
+    requiresUserAction: false
+  };
+}
+
 function buildV49ProductComprehensionRuntime(
-  simulationHandoverModel: M8aV4GroundStationSceneState["simulationHandoverModel"]
+  simulationHandoverModel: M8aV4GroundStationSceneState["simulationHandoverModel"],
+  activeTransitionEvent: M8aV49TransitionEventRuntime | null
 ): M8aV49ProductComprehensionRuntime {
   const windowIds = simulationHandoverModel.timeline.map(
     (windowDefinition) => windowDefinition.windowId
@@ -1388,7 +1480,7 @@ function buildV49ProductComprehensionRuntime(
 
   return {
     version: M8A_V49_PRODUCT_COMPREHENSION_VERSION,
-    scope: "slice2-scene-near-meaning-layer-correction",
+    scope: "slice3-transition-event-layer",
     windowIds,
     activeWindowCopy,
     copyInventory,
@@ -1410,6 +1502,17 @@ function buildV49ProductComprehensionRuntime(
       activeMeaning: activeWindowCopy.firstReadMessage,
       activeWatchCueLabel: activeWindowCopy.watchCueLabel,
       activeOrbitClassToken: activeWindowCopy.orbitClassToken
+    },
+    transitionEventLayer: {
+      scope: "slice3-transition-event-layer",
+      trigger: "active-v46d-window-id-change",
+      durationMs: M8A_V49_TRANSITION_EVENT_DURATION_MS,
+      visibleContent: M8A_V49_TRANSITION_EVENT_VISIBLE_CONTENT,
+      deniedVisibleContent: M8A_V49_TRANSITION_EVENT_DENIED_VISIBLE_CONTENT,
+      currentStateTruthSource: "persistent-and-scene-near-layers",
+      blockingPolicy: "non-blocking-no-user-action",
+      placementPolicy: "avoid-reliable-scene-near-cue",
+      activeEvent: activeTransitionEvent
     }
   };
 }
@@ -1893,17 +1996,25 @@ function ensureProductUxStructure(root: HTMLElement): void {
   const hasSlice2SceneNearStructure = Boolean(
     root.querySelector("[data-m8a-v49-scene-near-meaning]")
   );
+  const hasSlice3TransitionStructure = Boolean(
+    root.querySelector("[data-m8a-v49-transition-event='true']")
+  );
 
   if (
     root.dataset.m8aV471StableControls === "true" &&
     root.dataset.m8aV49StructureVersion === M8A_V49_PRODUCT_COMPREHENSION_VERSION &&
-    hasSlice2SceneNearStructure
+    hasSlice2SceneNearStructure &&
+    hasSlice3TransitionStructure
   ) {
     return;
   }
 
   root.innerHTML = `
     <div class="m8a-v47-product-ux__scene-connector" data-m8a-v48-scene-connector="true" aria-hidden="true" hidden></div>
+    <div class="m8a-v47-product-ux__transition-event" data-m8a-v49-transition-event="true" data-m8a-v47-ui-surface="transition-event" aria-live="polite" hidden>
+      <strong data-m8a-v49-transition-summary="true" data-m8a-v48-info-class="dynamic"></strong>
+      <small data-m8a-v49-transition-context="true" data-m8a-v48-info-class="dynamic"></small>
+    </div>
     <div class="m8a-v47-product-ux__scene-annotation" data-m8a-v47-ui-surface="scene-near-annotation" data-m8a-v47-scene-annotation="true" aria-live="polite">
       <span data-m8a-v49-scene-near-orbit-token="true" data-m8a-v48-info-class="fixed">Display-context state</span>
       <strong data-m8a-v47-active-label="scene-annotation" data-m8a-v48-info-class="dynamic"></strong>
@@ -2041,6 +2152,72 @@ function buildRect(
     width,
     height
   };
+}
+
+function placeTransitionEventAwayFromSelectedCue(
+  transitionEvent: HTMLElement,
+  placement: M8aV48SceneAnchorPlacement,
+  root: HTMLElement
+): void {
+  const viewportWidth = window.innerWidth;
+  const viewportHeight = window.innerHeight;
+  const gap = 16;
+  const width = Math.min(340, Math.max(250, viewportWidth - gap * 2));
+  const strip = root.querySelector<HTMLElement>(
+    "[data-m8a-v47-control-strip='true']"
+  );
+  const stripRect = strip?.getBoundingClientRect();
+
+  transitionEvent.style.width = `${width}px`;
+
+  const measuredRect = transitionEvent.getBoundingClientRect();
+  const height = Math.max(56, measuredRect.height || 64);
+  const selectedCueRect =
+    placement.anchorStatus === "geometry-reliable"
+      ? placement.protectionRect
+      : null;
+  const topBelowStrip = stripRect ? stripRect.bottom + 8 : gap + 96;
+  const candidates = [
+    {
+      placement: "below-strip-right",
+      left: viewportWidth - width - gap,
+      top: topBelowStrip
+    },
+    {
+      placement: "upper-left",
+      left: gap,
+      top: gap + 76
+    },
+    {
+      placement: "mid-left",
+      left: gap,
+      top: Math.min(
+        Math.max(topBelowStrip + 72, gap),
+        viewportHeight - height - 96
+      )
+    }
+  ];
+  const selected =
+    candidates.find((candidate) => {
+      const candidateRect = buildRect(
+        candidate.left,
+        candidate.top,
+        width,
+        height
+      );
+
+      return (
+        candidateRect.left >= gap &&
+        candidateRect.right <= viewportWidth - gap &&
+        candidateRect.top >= gap &&
+        candidateRect.bottom <= viewportHeight - gap &&
+        (!selectedCueRect || !rectsIntersect(candidateRect, selectedCueRect))
+      );
+    }) ?? candidates[0];
+
+  transitionEvent.style.left = `${selected.left.toFixed(1)}px`;
+  transitionEvent.style.top = `${selected.top.toFixed(1)}px`;
+  transitionEvent.dataset.m8aV49TransitionPlacement = selected.placement;
 }
 
 function buildPointProtectionRect(
@@ -2490,6 +2667,8 @@ function renderProductUx(
     review,
     placement
   );
+  const transitionEvent = comprehension.transitionEventLayer.activeEvent;
+  const transitionEventVisible = Boolean(transitionEvent);
 
   ensureProductUxStructure(root);
   root.hidden = false;
@@ -2550,6 +2729,33 @@ function renderProductUx(
   );
   root.dataset.m8aV49SceneNearAttachmentClaim =
     sceneNear.attachmentClaim;
+  root.dataset.m8aV49TransitionEventLayer =
+    comprehension.transitionEventLayer.scope;
+  root.dataset.m8aV49TransitionEventTrigger =
+    comprehension.transitionEventLayer.trigger;
+  root.dataset.m8aV49TransitionEventDurationMs = String(
+    comprehension.transitionEventLayer.durationMs
+  );
+  root.dataset.m8aV49TransitionEventVisibleContent = serializeList([
+    ...comprehension.transitionEventLayer.visibleContent
+  ]);
+  root.dataset.m8aV49TransitionEventDeniedVisibleContent = serializeList([
+    ...comprehension.transitionEventLayer.deniedVisibleContent
+  ]);
+  root.dataset.m8aV49TransitionEventVisible =
+    String(transitionEventVisible);
+  root.dataset.m8aV49TransitionEventFromLabel =
+    transitionEvent?.fromProductLabel ?? "";
+  root.dataset.m8aV49TransitionEventToLabel =
+    transitionEvent?.toProductLabel ?? "";
+  root.dataset.m8aV49TransitionEventText =
+    transitionEvent?.summaryText ?? "";
+  root.dataset.m8aV49TransitionEventContext =
+    transitionEvent?.contextText ?? "";
+  root.dataset.m8aV49TransitionEventStateTruthSource =
+    comprehension.transitionEventLayer.currentStateTruthSource;
+  root.dataset.m8aV49TransitionEventNonBlocking =
+    comprehension.transitionEventLayer.blockingPolicy;
   root.dataset.m8aV48ReviewWindowId = review.windowId;
   root.dataset.m8aV48ReviewRepresentativeActorId =
     review.representativeActor.actorId;
@@ -2759,6 +2965,43 @@ function renderProductUx(
   connector.style.transform = `rotate(${placement.connectorAngleDegrees.toFixed(
     2
   )}deg)`;
+
+  const transitionElement = getProductUxElement(
+    root,
+    "[data-m8a-v49-transition-event='true']"
+  );
+  transitionElement.dataset.m8aV49TransitionEventVisible =
+    String(transitionEventVisible);
+  transitionElement.dataset.m8aV49TransitionEventDurationMs = String(
+    comprehension.transitionEventLayer.durationMs
+  );
+  transitionElement.dataset.m8aV49TransitionEventFromLabel =
+    transitionEvent?.fromProductLabel ?? "";
+  transitionElement.dataset.m8aV49TransitionEventToLabel =
+    transitionEvent?.toProductLabel ?? "";
+  transitionElement.dataset.m8aV49TransitionEventStateTruthSource =
+    comprehension.transitionEventLayer.currentStateTruthSource;
+  transitionElement.dataset.m8aV49TransitionEventNonBlocking =
+    comprehension.transitionEventLayer.blockingPolicy;
+  updateProductUxText(
+    root,
+    "[data-m8a-v49-transition-summary]",
+    transitionEvent?.summaryText ?? ""
+  );
+  updateProductUxText(
+    root,
+    "[data-m8a-v49-transition-context]",
+    transitionEvent?.contextText ?? ""
+  );
+  setProductUxHidden(transitionElement, !transitionEventVisible);
+
+  if (transitionEventVisible) {
+    placeTransitionEventAwayFromSelectedCue(
+      transitionElement,
+      placement,
+      root
+    );
+  }
 
   const playButton = getProductUxElement(
     root,
@@ -3058,6 +3301,24 @@ function cloneState(
             ...state.productUx.productComprehension.sceneNearMeaningLayer
               .fallbackVisibleContent
           ] as typeof M8A_V49_SCENE_NEAR_FALLBACK_VISIBLE_CONTENT
+        },
+        transitionEventLayer: {
+          ...state.productUx.productComprehension.transitionEventLayer,
+          visibleContent: [
+            ...state.productUx.productComprehension.transitionEventLayer
+              .visibleContent
+          ] as typeof M8A_V49_TRANSITION_EVENT_VISIBLE_CONTENT,
+          deniedVisibleContent: [
+            ...state.productUx.productComprehension.transitionEventLayer
+              .deniedVisibleContent
+          ] as typeof M8A_V49_TRANSITION_EVENT_DENIED_VISIBLE_CONTENT,
+          activeEvent: state.productUx.productComprehension.transitionEventLayer
+            .activeEvent
+            ? {
+                ...state.productUx.productComprehension.transitionEventLayer
+                  .activeEvent
+              }
+            : null
         }
       },
       truthBadges: [...state.productUx.truthBadges] as typeof M8A_V47_TRUTH_BADGES,
@@ -3096,6 +3357,10 @@ function notifyListeners(
 }
 
 function syncTelemetry(state: M8aV4GroundStationSceneState): void {
+  const transitionEventLayer =
+    state.productUx.productComprehension.transitionEventLayer;
+  const activeTransitionEvent = transitionEventLayer.activeEvent;
+
   syncDocumentTelemetry({
     m8aV4GroundStationRuntimeState: state.runtimeState,
     m8aV4GroundStationScenarioId: state.scenarioId,
@@ -3278,6 +3543,25 @@ function syncTelemetry(state: M8aV4GroundStationSceneState): void {
       state.productUx.productComprehension.sceneNearMeaningLayer.connectorPolicy,
     m8aV49SceneNearActiveMeaning:
       state.productUx.productComprehension.sceneNearMeaningLayer.activeMeaning,
+    m8aV49TransitionEventLayer: transitionEventLayer.scope,
+    m8aV49TransitionEventTrigger: transitionEventLayer.trigger,
+    m8aV49TransitionEventDurationMs: String(transitionEventLayer.durationMs),
+    m8aV49TransitionEventVisibleContent: serializeList([
+      ...transitionEventLayer.visibleContent
+    ]),
+    m8aV49TransitionEventDeniedVisibleContent: serializeList([
+      ...transitionEventLayer.deniedVisibleContent
+    ]),
+    m8aV49TransitionEventVisible: String(Boolean(activeTransitionEvent)),
+    m8aV49TransitionEventFromLabel:
+      activeTransitionEvent?.fromProductLabel ?? "",
+    m8aV49TransitionEventToLabel:
+      activeTransitionEvent?.toProductLabel ?? "",
+    m8aV49TransitionEventText: activeTransitionEvent?.summaryText ?? "",
+    m8aV49TransitionEventContext: activeTransitionEvent?.contextText ?? "",
+    m8aV49TransitionEventStateTruthSource:
+      transitionEventLayer.currentStateTruthSource,
+    m8aV49TransitionEventNonBlocking: transitionEventLayer.blockingPolicy,
     m8aV4GroundStationRawItriSideReadOwnership:
       state.sourceLineage.rawPackageSideReadOwnership,
     m8aV4GroundStationRuntimeConsumptionRule:
@@ -3358,7 +3642,8 @@ function buildProductUxState({
   finalHoldStartedAtEpochMs,
   finalHoldCompletedAtEpochMs,
   finalHoldLoopCount,
-  truthDisclosureOpen
+  truthDisclosureOpen,
+  activeTransitionEvent
 }: {
   replayState: ReplayClockState;
   simulationHandoverModel: M8aV4GroundStationSceneState["simulationHandoverModel"];
@@ -3368,6 +3653,7 @@ function buildProductUxState({
   finalHoldCompletedAtEpochMs: number | null;
   finalHoldLoopCount: number;
   truthDisclosureOpen: boolean;
+  activeTransitionEvent: M8aV49TransitionEventRuntime | null;
 }): M8aV4GroundStationSceneState["productUx"] {
   const replayRatio = resolveReplayWindowRatio(replayState);
   const multiplier = coercePlaybackMultiplier(replayState.multiplier);
@@ -3382,7 +3668,10 @@ function buildProductUxState({
   const reviewViewModel =
     buildV48HandoverReviewViewModel(simulationHandoverModel);
   const productComprehension =
-    buildV49ProductComprehensionRuntime(simulationHandoverModel);
+    buildV49ProductComprehensionRuntime(
+      simulationHandoverModel,
+      activeTransitionEvent
+    );
   const disclosureState: M8aV47DisclosureState = truthDisclosureOpen
     ? "open"
     : "closed";
@@ -3500,6 +3789,9 @@ export function createM8aV4GroundStationSceneController({
   let latestSimulationWindow = resolveSimulationHandoverWindow(
     replayClock.getState()
   );
+  let activeTransitionEvent: M8aV49TransitionEventRuntime | null = null;
+  let transitionTimeoutId: number | undefined;
+  let refreshAfterTransitionTimeout: (() => void) | null = null;
 
   configureReplayClock(viewer, replayClock);
   applyV4Camera(viewer);
@@ -3929,6 +4221,47 @@ export function createM8aV4GroundStationSceneController({
     syncState();
   };
 
+  const clearTransitionTimer = (): void => {
+    if (typeof transitionTimeoutId === "number") {
+      window.clearTimeout(transitionTimeoutId);
+      transitionTimeoutId = undefined;
+    }
+  };
+
+  const resolveVisibleTransitionEvent =
+    (): M8aV49TransitionEventRuntime | null => {
+      if (!activeTransitionEvent) {
+        return null;
+      }
+
+      if (Date.now() >= activeTransitionEvent.expiresAtEpochMs) {
+        return null;
+      }
+
+      return activeTransitionEvent;
+    };
+
+  const startTransitionEvent = (
+    fromWindowId: M8aV46dSimulationHandoverWindowId,
+    toWindowId: M8aV46dSimulationHandoverWindowId
+  ): void => {
+    if (fromWindowId === toWindowId) {
+      return;
+    }
+
+    clearTransitionTimer();
+    activeTransitionEvent = buildV49TransitionEvent(
+      fromWindowId,
+      toWindowId,
+      Date.now()
+    );
+    transitionTimeoutId = window.setTimeout(() => {
+      activeTransitionEvent = null;
+      transitionTimeoutId = undefined;
+      refreshAfterTransitionTimeout?.();
+    }, M8A_V49_TRANSITION_EVENT_DURATION_MS);
+  };
+
   const createState = (): M8aV4GroundStationSceneState => {
     const replayState = replayClock.getState();
     const serviceWindow = resolveServiceStateWindow(replayState);
@@ -3943,7 +4276,8 @@ export function createM8aV4GroundStationSceneController({
       finalHoldStartedAtEpochMs,
       finalHoldCompletedAtEpochMs,
       finalHoldLoopCount,
-      truthDisclosureOpen
+      truthDisclosureOpen,
+      activeTransitionEvent: resolveVisibleTransitionEvent()
     });
     const actorEmphasis =
       M8A_V4_GROUND_STATION_RUNTIME_PROJECTION.orbitActors.map((actor) =>
@@ -4114,7 +4448,15 @@ export function createM8aV4GroundStationSceneController({
   };
 
   const syncState = (): M8aV4GroundStationSceneState => {
-    const nextState = createState();
+    let nextState = createState();
+    const previousWindowId = latestSimulationWindow.windowId;
+    const nextWindowId = nextState.simulationHandoverModel.window.windowId;
+
+    if (previousWindowId !== nextWindowId) {
+      startTransitionEvent(previousWindowId, nextWindowId);
+      nextState = createState();
+    }
+
     latestSimulationWindow = nextState.simulationHandoverModel.window;
     const emphasisById = new Map(
       nextState.actors.map((actor) => [
@@ -4152,6 +4494,11 @@ export function createM8aV4GroundStationSceneController({
     }
 
     return nextState;
+  };
+  refreshAfterTransitionTimeout = () => {
+    if (!disposed) {
+      syncState();
+    }
   };
 
   const handleProductUxClick = (event: MouseEvent): void => {
@@ -4271,6 +4618,9 @@ export function createM8aV4GroundStationSceneController({
     dispose(): void {
       disposed = true;
       clearFinalHoldTimer();
+      clearTransitionTimer();
+      activeTransitionEvent = null;
+      refreshAfterTransitionTimeout = null;
       removeFinalHoldClockListener();
       unsubscribeReplayClock();
       listeners.clear();

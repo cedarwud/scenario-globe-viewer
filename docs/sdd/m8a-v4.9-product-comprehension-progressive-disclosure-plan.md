@@ -17,6 +17,8 @@ Related V4.9 Slice 1 final handoff:
 [./m8a-v4.9-product-comprehension-slice1-final-handoff.md](./m8a-v4.9-product-comprehension-slice1-final-handoff.md).
 Related V4.9 Slice 2 final handoff:
 [./m8a-v4.9-product-comprehension-slice2-final-handoff.md](./m8a-v4.9-product-comprehension-slice2-final-handoff.md).
+Related V4.9 Slice 3 final handoff:
+[./m8a-v4.9-product-comprehension-slice3-final-handoff.md](./m8a-v4.9-product-comprehension-slice3-final-handoff.md).
 Related V4.6D model contract:
 [./m8a-v4.6d-simulation-handover-model-contract.md](./m8a-v4.6d-simulation-handover-model-contract.md).
 
@@ -33,6 +35,8 @@ Related V4.6D model contract:
   persistent layer correction
 - accepted by planning/control for runtime Slice 2 on 2026-04-30
 - Runtime Slice 2 is closed for scene-near meaning layer correction
+- accepted by planning/control for runtime Slice 3 on 2026-04-30
+- Runtime Slice 3 is closed for transition event layer
 - no remaining `V4.9` runtime slice is open from this SDD by itself
 
 ## Current Understanding
@@ -396,8 +400,9 @@ Visual checks must fail if:
 ## Implementation Phase Breakdown
 
 This SDD is the product-comprehension planning authority. Runtime
-implementation remains phase-gated. Slice 1 and Slice 2 have been opened and
-closed; the remaining phases require a new explicit planning/control decision.
+implementation remains phase-gated. Slice 1, Slice 2, and Slice 3 have been
+opened and closed; the remaining phases require a new explicit
+planning/control decision.
 
 1. Product copy and view-model inventory - closed by Runtime Slice 1
    - define first-read and inspector copy per state
@@ -413,7 +418,7 @@ closed; the remaining phases require a new explicit planning/control decision.
    - shorten state annotation copy
    - show orbit-class/state meaning only when anchor geometry is reliable
    - preserve fallback behavior for unreliable anchors
-4. Transition event layer
+4. Transition event layer - closed by Runtime Slice 3
    - add window-change event annotations/toasts
    - keep them short-lived, non-blocking, and source-aligned
 5. Inspector redesign
@@ -438,8 +443,8 @@ Runtime implementation may open only after:
 - route, endpoint pair, precision, actor set, source boundary, `R2` read-only
   boundary, and `V4.6D` model truth remain unchanged
 
-These conditions were met for Runtime Slice 1 and Runtime Slice 2. They must be
-re-applied for any future `V4.9` runtime slice.
+These conditions were met for Runtime Slice 1, Runtime Slice 2, and Runtime
+Slice 3. They must be re-applied for any future `V4.9` runtime slice.
 
 ## Current Runtime Closeout
 
@@ -448,6 +453,9 @@ Runtime Slice 1 is closed by
 
 Runtime Slice 2 is closed by
 [m8a-v4.9-product-comprehension-slice2-final-handoff.md](./m8a-v4.9-product-comprehension-slice2-final-handoff.md).
+
+Runtime Slice 3 is closed by
+[m8a-v4.9-product-comprehension-slice3-final-handoff.md](./m8a-v4.9-product-comprehension-slice3-final-handoff.md).
 
 Accepted result:
 
@@ -462,6 +470,8 @@ Accepted result:
   anchor geometry is reliable
 - unreliable anchors fall back to persistent wording with explicit no-scene
   attachment and no connector
+- transition event appears only after active `V4.6D` window changes, remains
+  short-lived, and does not block persistent controls
 - `npm run test:m8a-v4.8` and `npm run test:m8a-v4.9` were reported passing
 - route, endpoint pair, precision, actor set, source boundary, `R2` read-only
   boundary, and `V4.6D` model truth remain unchanged

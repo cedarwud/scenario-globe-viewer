@@ -2217,6 +2217,48 @@ body {
   display: none !important;
 }
 
+.m8a-v47-product-ux__transition-event {
+  position: absolute;
+  z-index: 2;
+  display: grid;
+  gap: 0.2rem;
+  min-width: 0;
+  padding: 0.56rem 0.68rem 0.62rem;
+  border: 1px solid rgba(126, 226, 184, 0.34);
+  border-left: 3px solid rgba(126, 226, 184, 0.86);
+  border-radius: 7px;
+  background:
+    linear-gradient(90deg, rgba(8, 24, 22, 0.88), rgba(8, 21, 24, 0.72)),
+    rgba(6, 17, 18, 0.84);
+  box-shadow:
+    0 0 0 1px rgba(4, 9, 12, 0.5),
+    0 12px 26px rgba(0, 0, 0, 0.24);
+  pointer-events: none;
+}
+
+.m8a-v47-product-ux__transition-event[hidden] {
+  display: none !important;
+}
+
+.m8a-v47-product-ux__transition-event strong {
+  min-width: 0;
+  color: rgba(234, 255, 244, 0.98);
+  font-size: 0.98rem;
+  font-weight: 820;
+  line-height: 1.16;
+  letter-spacing: 0;
+  overflow-wrap: anywhere;
+}
+
+.m8a-v47-product-ux__transition-event small {
+  min-width: 0;
+  color: rgba(201, 237, 226, 0.9);
+  font-size: 0.8rem;
+  line-height: 1.25;
+  letter-spacing: 0;
+  overflow-wrap: anywhere;
+}
+
 .m8a-v47-product-ux__scene-annotation span,
 .m8a-v47-product-ux__strip-state span,
 .m8a-v47-product-ux__sheet-state span {
@@ -2600,6 +2642,15 @@ body {
 
   .m8a-v47-product-ux__scene-annotation strong {
     font-size: 1rem;
+  }
+
+  .m8a-v47-product-ux__transition-event {
+    max-width: calc(100vw - 2rem);
+    padding: 0.5rem 0.58rem;
+  }
+
+  .m8a-v47-product-ux__transition-event strong {
+    font-size: 0.92rem;
   }
 
   .m8a-v47-product-ux__sheet {
