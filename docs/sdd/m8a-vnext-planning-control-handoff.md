@@ -80,7 +80,7 @@ Completed:
 - `M8A-V4.9` Runtime Slice 4 inspector/details hierarchy redesign closed in
   the current delivery state at commit `7a4e5d6`
 - `M8A-V4.9` Runtime Slice 5 product comprehension validation / visual
-  evidence matrix closed in the current delivery state; commit hash pending
+  evidence matrix closed in the current delivery state at commit `837ddc5`
 - planned `M8A-V4.9` product comprehension phase is complete
 - remaining `M8A-V4.8` runtime phases are not open
 - `M8A-V4.6C/R2` source/catalog boundary documented at commit `e5d99c7`
