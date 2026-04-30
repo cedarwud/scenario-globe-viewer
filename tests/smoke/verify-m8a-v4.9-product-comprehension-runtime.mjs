@@ -21,10 +21,11 @@ const EXPECTED_MODEL_ID = "m8a-v4.6d-simulation-handover-model.v1";
 const EXPECTED_V48_VERSION =
   "m8a-v4.8-handover-demonstration-ui-ia-phase3-runtime.v1";
 const EXPECTED_V49_VERSION =
-  "m8a-v4.9-product-comprehension-slice3-runtime.v1";
-const EXPECTED_V49_SCOPE = "slice3-transition-event-layer";
+  "m8a-v4.9-product-comprehension-slice4-runtime.v1";
+const EXPECTED_V49_SCOPE = "slice4-inspector-details-hierarchy-redesign";
 const EXPECTED_SCENE_NEAR_SCOPE =
   "slice2-scene-near-meaning-layer-correction";
+const EXPECTED_TRANSITION_SCOPE = "slice3-transition-event-layer";
 const EXPECTED_TRANSITION_DURATION_MS = 2600;
 const EXPECTED_ACTOR_COUNTS = { leo: 6, meo: 5, geo: 2 };
 const EXPECTED_WINDOW_IDS = [
@@ -77,6 +78,40 @@ const EXPECTED_TRANSITION_DENIED_VISIBLE_CONTENT = [
   "fallback-context-actor-id-arrays",
   "full-truth-boundary-disclosure",
   "user-action-required"
+];
+const EXPECTED_INSPECTOR_PRIMARY_CONTENT = [
+  "current-state",
+  "why-this-state-exists",
+  "what-changed-from-previous-state",
+  "what-to-watch-now",
+  "what-happens-next",
+  "boundary-summary"
+];
+const EXPECTED_INSPECTOR_DENIED_PRIMARY_CONTENT = [
+  "raw-actor-ids",
+  "cue-ids",
+  "selected-anchor-ids",
+  "selected-relation-corridor-ids",
+  "anchor-metadata",
+  "full-candidate-context-arrays",
+  "full-fallback-context-arrays"
+];
+const EXPECTED_INSPECTOR_DEBUG_CONTENT = [
+  "representative-actor-id",
+  "candidate-context-actor-id-array",
+  "fallback-context-actor-id-array",
+  "selected-anchor-id",
+  "selected-relation-cue-id",
+  "selected-corridor-id",
+  "anchor-runtime-metadata"
+];
+const EXPECTED_INSPECTOR_LABELS = [
+  "Current state",
+  "Why",
+  "Changed",
+  "Watch",
+  "Next",
+  "Boundary"
 ];
 const EXPECTED_PRODUCT_COPY = {
   "leo-acquisition-context": {
@@ -427,6 +462,20 @@ async function capturePersistentLayer(client) {
             productRoot?.dataset.m8aV49TransitionEventStateTruthSource ?? null,
           transitionEventNonBlocking:
             productRoot?.dataset.m8aV49TransitionEventNonBlocking ?? null,
+          inspectorLayer:
+            productRoot?.dataset.m8aV49InspectorLayer ?? null,
+          inspectorPrimaryVisibleContent:
+            productRoot?.dataset.m8aV49InspectorPrimaryVisibleContent ?? null,
+          inspectorDeniedPrimaryContent:
+            productRoot?.dataset.m8aV49InspectorDeniedPrimaryContent ?? null,
+          inspectorDebugEvidenceContent:
+            productRoot?.dataset.m8aV49InspectorDebugEvidenceContent ?? null,
+          inspectorDebugEvidenceDefaultOpen:
+            productRoot?.dataset.m8aV49InspectorDebugEvidenceDefaultOpen ?? null,
+          inspectorTruthBoundaryPlacement:
+            productRoot?.dataset.m8aV49InspectorTruthBoundaryPlacement ?? null,
+          inspectorMetadataPolicy:
+            productRoot?.dataset.m8aV49InspectorMetadataPolicy ?? null,
           allowedPersistent:
             productRoot?.dataset.m8aV49PersistentAllowedContent ?? null,
           deniedPersistent:
@@ -592,13 +641,13 @@ function assertProductCopy(result, expected) {
     comprehension.version === EXPECTED_V49_VERSION &&
       result.productRootDataset.v49ProductComprehension ===
         EXPECTED_V49_VERSION,
-    "V4.9 Slice 3 version seam mismatch: " +
+    "V4.9 Slice 4 version seam mismatch: " +
       JSON.stringify(result.productRootDataset)
   );
   assert(
     comprehension.scope === EXPECTED_V49_SCOPE &&
       result.productRootDataset.v49SliceScope === comprehension.scope,
-    "V4.9 Slice 3 scope seam mismatch: " +
+    "V4.9 Slice 4 scope seam mismatch: " +
       JSON.stringify(result.productRootDataset)
   );
   assert(
@@ -659,7 +708,7 @@ function assertProductCopy(result, expected) {
       })
   );
   assert(
-    comprehension.transitionEventLayer.scope === EXPECTED_V49_SCOPE &&
+    comprehension.transitionEventLayer.scope === EXPECTED_TRANSITION_SCOPE &&
       comprehension.transitionEventLayer.trigger ===
         "active-v46d-window-id-change" &&
       comprehension.transitionEventLayer.durationMs ===
@@ -674,7 +723,7 @@ function assertProductCopy(result, expected) {
         "non-blocking-no-user-action" &&
       comprehension.transitionEventLayer.placementPolicy ===
         "avoid-reliable-scene-near-cue" &&
-      result.productRootDataset.transitionEventLayer === EXPECTED_V49_SCOPE &&
+      result.productRootDataset.transitionEventLayer === EXPECTED_TRANSITION_SCOPE &&
       result.productRootDataset.transitionEventTrigger ===
         "active-v46d-window-id-change" &&
       result.productRootDataset.transitionEventDurationMs ===
@@ -690,6 +739,33 @@ function assertProductCopy(result, expected) {
     "V4.9 Slice 3 transition-event seam mismatch: " +
       JSON.stringify({
         transitionEventLayer: comprehension.transitionEventLayer,
+        productRootDataset: result.productRootDataset
+      })
+  );
+  assert(
+    comprehension.inspectorLayer.scope === EXPECTED_V49_SCOPE &&
+      JSON.stringify(comprehension.inspectorLayer.primaryVisibleContent) ===
+        JSON.stringify(EXPECTED_INSPECTOR_PRIMARY_CONTENT) &&
+      JSON.stringify(comprehension.inspectorLayer.deniedPrimaryVisibleContent) ===
+        JSON.stringify(EXPECTED_INSPECTOR_DENIED_PRIMARY_CONTENT) &&
+      JSON.stringify(comprehension.inspectorLayer.debugEvidenceContent) ===
+        JSON.stringify(EXPECTED_INSPECTOR_DEBUG_CONTENT) &&
+      comprehension.inspectorLayer.debugEvidenceDefaultOpen === false &&
+      comprehension.inspectorLayer.truthBoundaryPlacement ===
+        "concise-primary-summary-full-secondary-disclosure" &&
+      comprehension.inspectorLayer.metadataPolicy ===
+        "raw-ids-and-arrays-collapsed-implementation-evidence" &&
+      result.productRootDataset.inspectorLayer === EXPECTED_V49_SCOPE &&
+      result.productRootDataset.inspectorPrimaryVisibleContent ===
+        EXPECTED_INSPECTOR_PRIMARY_CONTENT.join("|") &&
+      result.productRootDataset.inspectorDeniedPrimaryContent ===
+        EXPECTED_INSPECTOR_DENIED_PRIMARY_CONTENT.join("|") &&
+      result.productRootDataset.inspectorDebugEvidenceContent ===
+        EXPECTED_INSPECTOR_DEBUG_CONTENT.join("|") &&
+      result.productRootDataset.inspectorDebugEvidenceDefaultOpen === "false",
+    "V4.9 Slice 4 inspector seam mismatch: " +
+      JSON.stringify({
+        inspectorLayer: comprehension.inspectorLayer,
         productRootDataset: result.productRootDataset
       })
   );
@@ -1106,6 +1182,310 @@ async function verifyTruthAffordanceOpensInspector(client) {
   await closeInspector(client);
 
   return result;
+}
+
+async function captureInspectorLayer(client) {
+  return await evaluateRuntimeValue(
+    client,
+    `(() => {
+      const isVisible = (element) => {
+        if (!(element instanceof HTMLElement)) {
+          return false;
+        }
+
+        const style = getComputedStyle(element);
+        const rect = element.getBoundingClientRect();
+
+        return (
+          element.hidden !== true &&
+          style.display !== "none" &&
+          style.visibility !== "hidden" &&
+          rect.width > 0 &&
+          rect.height > 0
+        );
+      };
+      const normalize = (value) => (value ?? "").replace(/\\s+/g, " ").trim();
+      const visibleTextNodes = (scope) => {
+        const nodes = [];
+        const walker = document.createTreeWalker(scope, NodeFilter.SHOW_TEXT);
+
+        while (walker.nextNode()) {
+          const node = walker.currentNode;
+          const text = normalize(node.textContent);
+          const parent = node.parentElement;
+
+          if (text && parent && isVisible(parent)) {
+            nodes.push(text);
+          }
+        }
+
+        return nodes;
+      };
+      const root = document.querySelector("[data-m8a-v47-product-ux='true']");
+      const details = root?.querySelector("[data-m8a-v47-control-id='details-toggle']");
+      const sheet = root?.querySelector("[data-m8a-v47-ui-surface='inspection-sheet']");
+
+      if (!(details instanceof HTMLButtonElement)) {
+        throw new Error("Missing Details trigger for Slice 4 inspector.");
+      }
+
+      if (sheet instanceof HTMLElement && sheet.hidden) {
+        details.click();
+      }
+
+      const state =
+        window.__SCENARIO_GLOBE_VIEWER_CAPTURE__.m8aV4GroundStationScene.getState();
+      const primary = root?.querySelector("[data-m8a-v49-inspector-primary-body='true']");
+      const debugEvidence = root?.querySelector("[data-m8a-v49-debug-evidence='true']");
+      const truthBoundary = root?.querySelector("[data-m8a-v49-truth-boundary-details='true']");
+      const primarySections = Array.from(
+        primary?.querySelectorAll("[data-m8a-v49-inspector-primary]") ?? []
+      );
+      const sectionText = Object.fromEntries(
+        primarySections.map((section) => [
+          section.dataset.m8aV49InspectorPrimary,
+          normalize(section.innerText)
+        ])
+      );
+
+      return {
+        state,
+        activeWindowId: state.productUx.activeWindowId,
+        activeProductLabel: state.productUx.activeProductLabel,
+        detailsAriaExpanded: details.getAttribute("aria-expanded"),
+        sheetVisible: isVisible(sheet),
+        sheetDataset: {
+          inspectorLayer: sheet?.dataset.m8aV49InspectorLayer ?? null,
+          primaryVisibleContent:
+            sheet?.dataset.m8aV49InspectorPrimaryVisibleContent ?? null,
+          deniedPrimaryContent:
+            sheet?.dataset.m8aV49InspectorDeniedPrimaryContent ?? null,
+          debugEvidenceContent:
+            sheet?.dataset.m8aV49InspectorDebugEvidenceContent ?? null,
+          debugEvidenceDefaultOpen:
+            sheet?.dataset.m8aV49InspectorDebugEvidenceDefaultOpen ?? null,
+          truthBoundaryPlacement:
+            sheet?.dataset.m8aV49InspectorTruthBoundaryPlacement ?? null,
+          metadataPolicy: sheet?.dataset.m8aV49InspectorMetadataPolicy ?? null
+        },
+        primary: {
+          visible: isVisible(primary),
+          text: normalize(primary?.innerText),
+          labels: primarySections.map((section) =>
+            normalize(section.querySelector("span")?.textContent)
+          ),
+          sections: sectionText,
+          dataset: {
+            windowId: primary?.dataset.m8aV48WindowId ?? null,
+            primaryVisibleContent:
+              primary?.dataset.m8aV49PrimaryVisibleContent ?? null,
+            deniedPrimaryContent:
+              primary?.dataset.m8aV49DeniedPrimaryContent ?? null
+          }
+        },
+        debugEvidence: {
+          visible: isVisible(debugEvidence),
+          open: debugEvidence instanceof HTMLDetailsElement
+            ? debugEvidence.open
+            : null,
+          summaryText: normalize(
+            debugEvidence?.querySelector("summary")?.textContent
+          ),
+          visibleText: debugEvidence instanceof HTMLElement
+            ? visibleTextNodes(debugEvidence).join(" ")
+            : "",
+          textContent: normalize(debugEvidence?.textContent),
+          dataset: {
+            defaultOpen:
+              debugEvidence?.dataset.m8aV49DebugEvidenceDefaultOpen ?? null,
+            content:
+              debugEvidence?.dataset.m8aV49DebugEvidenceContent ?? null,
+            open:
+              debugEvidence?.dataset.m8aV49DebugEvidenceOpen ?? null
+          }
+        },
+        truthBoundary: {
+          visible: isVisible(truthBoundary),
+          open: truthBoundary instanceof HTMLDetailsElement
+            ? truthBoundary.open
+            : null,
+          summaryText: normalize(
+            truthBoundary?.querySelector("summary")?.textContent
+          ),
+          visibleText: truthBoundary instanceof HTMLElement
+            ? visibleTextNodes(truthBoundary).join(" ")
+            : "",
+          textContent: normalize(truthBoundary?.textContent),
+          dataset: {
+            placement:
+              truthBoundary?.dataset.m8aV49TruthBoundaryPlacement ?? null,
+            open:
+              truthBoundary?.dataset.m8aV49TruthBoundaryOpen ?? null
+          }
+        }
+      };
+    })()`
+  );
+}
+
+function assertInspectorPrimaryClean(result, expected) {
+  const primaryText = result.primary.text;
+  const debugVisibleText = result.debugEvidence.visibleText;
+  const forbiddenPrimaryPatterns = [
+    /oneweb-\d{4}-leo-display-context/i,
+    /o3b-mpower-f\d-meo-display-context/i,
+    /st-2-geo-continuity-anchor/i,
+    /ses-9-geo-display-context/i,
+    /m8a-v46e-simulation-/i,
+    /m8a-v4-operator-family-endpoint-context-ribbon/i,
+    /displayRepresentative primary/i,
+    /candidateContext/i,
+    /fallbackContext/i,
+    /selected actor/i,
+    /selected cue/i,
+    /selected anchor/i,
+    /selected corridor/i,
+    /anchor metadata/i,
+    /Candidate actor ids/i,
+    /Fallback actor ids/i,
+    /Representative actor id/i
+  ];
+
+  assert(
+    forbiddenPrimaryPatterns.every((pattern) => !pattern.test(primaryText)),
+    "V4.9 Slice 4 primary inspector exposed raw ids or metadata: " +
+      JSON.stringify({ primaryText, expected })
+  );
+  assert(
+    forbiddenPrimaryPatterns.every((pattern) => !pattern.test(debugVisibleText)),
+    "V4.9 Slice 4 closed debug evidence leaked raw ids into visible text: " +
+      JSON.stringify({ debugVisibleText, expected })
+  );
+}
+
+function assertInspectorLayer(result, expected) {
+  const review = result.state.productUx.reviewViewModel;
+  const primary = result.primary;
+  const debugEvidence = result.debugEvidence;
+  const truthBoundary = result.truthBoundary;
+
+  assert(
+    result.sheetVisible === true &&
+      result.detailsAriaExpanded === "true" &&
+      primary.visible === true,
+    "V4.9 Slice 4 Details path must open the primary inspector: " +
+      JSON.stringify(result)
+  );
+  assert(
+    result.sheetDataset.inspectorLayer === EXPECTED_V49_SCOPE &&
+      result.sheetDataset.primaryVisibleContent ===
+        EXPECTED_INSPECTOR_PRIMARY_CONTENT.join("|") &&
+      result.sheetDataset.deniedPrimaryContent ===
+        EXPECTED_INSPECTOR_DENIED_PRIMARY_CONTENT.join("|") &&
+      result.sheetDataset.debugEvidenceContent ===
+        EXPECTED_INSPECTOR_DEBUG_CONTENT.join("|") &&
+      result.sheetDataset.debugEvidenceDefaultOpen === "false" &&
+      result.sheetDataset.truthBoundaryPlacement ===
+        "concise-primary-summary-full-secondary-disclosure" &&
+      result.sheetDataset.metadataPolicy ===
+        "raw-ids-and-arrays-collapsed-implementation-evidence" &&
+      primary.dataset.primaryVisibleContent ===
+        EXPECTED_INSPECTOR_PRIMARY_CONTENT.join("|") &&
+      primary.dataset.deniedPrimaryContent ===
+        EXPECTED_INSPECTOR_DENIED_PRIMARY_CONTENT.join("|"),
+    "V4.9 Slice 4 inspector sheet dataset mismatch: " +
+      JSON.stringify({ sheetDataset: result.sheetDataset, primaryDataset: primary.dataset })
+  );
+  assert(
+    JSON.stringify(primary.labels) === JSON.stringify(EXPECTED_INSPECTOR_LABELS),
+    "V4.9 Slice 4 primary inspector labels mismatch: " +
+      JSON.stringify(primary.labels)
+  );
+  assert(
+    primary.sections["current-state"].includes(expected.productLabel) &&
+      primary.sections["current-state"].includes(expected.stateOrdinalLabel) &&
+      primary.sections["current-state"].includes(expected.firstReadMessage) &&
+      primary.sections.why.includes(review.reviewPurpose) &&
+      primary.sections.changed.includes(review.whatChangedFromPreviousState) &&
+      primary.sections.watch.includes(review.whatToWatch) &&
+      primary.sections.next.includes(review.nextStateHint) &&
+      primary.sections.boundary.includes(review.truthBoundarySummary),
+    "V4.9 Slice 4 primary inspector content must be state-specific and complete: " +
+      JSON.stringify({ sections: primary.sections, review, expected })
+  );
+  assertInspectorPrimaryClean(result, expected);
+  assert(
+    debugEvidence.visible === true &&
+      debugEvidence.open === false &&
+      debugEvidence.dataset.defaultOpen === "false" &&
+      debugEvidence.dataset.open === "false" &&
+      debugEvidence.dataset.content === EXPECTED_INSPECTOR_DEBUG_CONTENT.join("|") &&
+      debugEvidence.summaryText === "Implementation evidence" &&
+      /implementation evidence/i.test(debugEvidence.visibleText) &&
+      /not the primary product explanation/i.test(debugEvidence.textContent) &&
+      /oneweb-\d{4}-leo-display-context|o3b-mpower-f\d-meo-display-context|st-2-geo-continuity-anchor|ses-9-geo-display-context/i.test(
+        debugEvidence.textContent
+      ) &&
+      /m8a-v46e-simulation-|m8a-v4-operator-family-endpoint-context-ribbon|selected actor|selected cue|fallback/i.test(
+        debugEvidence.textContent
+      ),
+    "V4.9 Slice 4 debug/evidence metadata must exist but stay collapsed by default: " +
+      JSON.stringify(debugEvidence)
+  );
+  assert(
+    truthBoundary.visible === true &&
+      truthBoundary.open === false &&
+      truthBoundary.summaryText === "Full truth boundary" &&
+      truthBoundary.dataset.placement ===
+        "concise-primary-summary-full-secondary-disclosure" &&
+      truthBoundary.dataset.open === "false" &&
+      /Full truth boundary/i.test(truthBoundary.visibleText) &&
+      /No active gateway assignment is claimed/i.test(truthBoundary.textContent) &&
+      /No native RF handover is claimed/i.test(truthBoundary.textContent),
+    "V4.9 Slice 4 truth boundary must remain available without replacing primary explanation: " +
+      JSON.stringify(truthBoundary)
+  );
+}
+
+async function verifyInspectorLayerForAllWindows(client) {
+  await setViewport(client, VIEWPORTS.desktop);
+  await closeInspector(client);
+
+  const primaryTexts = [];
+  const results = [];
+
+  for (const [windowId, expected] of Object.entries(EXPECTED_PRODUCT_COPY)) {
+    await seekReplayRatio(client, expected.ratio);
+
+    const result = await captureInspectorLayer(client);
+
+    assert(
+      result.activeWindowId === windowId &&
+        result.activeProductLabel === expected.productLabel,
+      "V4.9 Slice 4 inspector test did not reach the expected active window: " +
+        JSON.stringify({ result, expected, windowId })
+    );
+    assertInspectorLayer(result, expected);
+
+    primaryTexts.push(result.primary.text);
+    results.push({
+      windowId,
+      productLabel: expected.productLabel,
+      labels: result.primary.labels,
+      debugEvidenceOpen: result.debugEvidence.open,
+      truthBoundaryOpen: result.truthBoundary.open
+    });
+
+    await closeInspector(client);
+  }
+
+  assert(
+    new Set(primaryTexts).size === EXPECTED_WINDOW_IDS.length,
+    "V4.9 Slice 4 primary inspector body must change across all five windows: " +
+      JSON.stringify(primaryTexts)
+  );
+
+  return results;
 }
 
 function expectedTransitionContext(expectedTo) {
@@ -1614,13 +1994,14 @@ async function main() {
 
     const transitionEventLayer = await verifyTransitionEventLayer(client);
     const desktopResults = await verifyViewport(client, VIEWPORTS.desktop);
+    const inspectorLayer = await verifyInspectorLayerForAllWindows(client);
     const truthAffordance = await verifyTruthAffordanceOpensInspector(client);
     const narrowResults = await verifyViewport(client, VIEWPORTS.narrow);
     const unreliableAnchorFallback =
       await verifyForcedUnreliableAnchorFallback(client);
 
     console.log(
-      `M8A-V4.9 product comprehension Slice 3 smoke passed: ${JSON.stringify(
+      `M8A-V4.9 product comprehension Slice 4 smoke passed: ${JSON.stringify(
         {
           desktopWindows: desktopResults.map((result) => ({
             windowId: result.windowId,
@@ -1637,6 +2018,7 @@ async function main() {
             anchorStatus: result.anchorStatus
           })),
           transitionEventLayer,
+          inspectorLayer,
           truthAffordance,
           unreliableAnchorFallback,
           runtimeProcessFacts: {

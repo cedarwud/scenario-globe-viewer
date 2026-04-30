@@ -19,6 +19,8 @@ Related V4.9 Slice 2 final handoff:
 [./m8a-v4.9-product-comprehension-slice2-final-handoff.md](./m8a-v4.9-product-comprehension-slice2-final-handoff.md).
 Related V4.9 Slice 3 final handoff:
 [./m8a-v4.9-product-comprehension-slice3-final-handoff.md](./m8a-v4.9-product-comprehension-slice3-final-handoff.md).
+Related V4.9 Slice 4 final handoff:
+[./m8a-v4.9-product-comprehension-slice4-final-handoff.md](./m8a-v4.9-product-comprehension-slice4-final-handoff.md).
 Related V4.6D model contract:
 [./m8a-v4.6d-simulation-handover-model-contract.md](./m8a-v4.6d-simulation-handover-model-contract.md).
 
@@ -37,6 +39,8 @@ Related V4.6D model contract:
 - Runtime Slice 2 is closed for scene-near meaning layer correction
 - accepted by planning/control for runtime Slice 3 on 2026-04-30
 - Runtime Slice 3 is closed for transition event layer
+- accepted by planning/control for runtime Slice 4 on 2026-04-30
+- Runtime Slice 4 is closed for inspector/details hierarchy redesign
 - no remaining `V4.9` runtime slice is open from this SDD by itself
 
 ## Current Understanding
@@ -400,8 +404,8 @@ Visual checks must fail if:
 ## Implementation Phase Breakdown
 
 This SDD is the product-comprehension planning authority. Runtime
-implementation remains phase-gated. Slice 1, Slice 2, and Slice 3 have been
-opened and closed; the remaining phases require a new explicit
+implementation remains phase-gated. Slice 1, Slice 2, Slice 3, and Slice 4
+have been opened and closed; the remaining phase requires a new explicit
 planning/control decision.
 
 1. Product copy and view-model inventory - closed by Runtime Slice 1
@@ -421,7 +425,7 @@ planning/control decision.
 4. Transition event layer - closed by Runtime Slice 3
    - add window-change event annotations/toasts
    - keep them short-lived, non-blocking, and source-aligned
-5. Inspector redesign
+5. Inspector redesign - closed by Runtime Slice 4
    - move primary inspector body to Why / Changed / Watch / Next / Boundary
    - demote ids and raw cue metadata into a collapsed debug/evidence section
    - keep truth-boundary disclosure concise by default
@@ -443,8 +447,9 @@ Runtime implementation may open only after:
 - route, endpoint pair, precision, actor set, source boundary, `R2` read-only
   boundary, and `V4.6D` model truth remain unchanged
 
-These conditions were met for Runtime Slice 1, Runtime Slice 2, and Runtime
-Slice 3. They must be re-applied for any future `V4.9` runtime slice.
+These conditions were met for Runtime Slice 1, Runtime Slice 2, Runtime Slice
+3, and Runtime Slice 4. They must be re-applied for any future `V4.9` runtime
+slice.
 
 ## Current Runtime Closeout
 
@@ -456,6 +461,9 @@ Runtime Slice 2 is closed by
 
 Runtime Slice 3 is closed by
 [m8a-v4.9-product-comprehension-slice3-final-handoff.md](./m8a-v4.9-product-comprehension-slice3-final-handoff.md).
+
+Runtime Slice 4 is closed by
+[m8a-v4.9-product-comprehension-slice4-final-handoff.md](./m8a-v4.9-product-comprehension-slice4-final-handoff.md).
 
 Accepted result:
 
@@ -472,6 +480,13 @@ Accepted result:
   attachment and no connector
 - transition event appears only after active `V4.6D` window changes, remains
   short-lived, and does not block persistent controls
+- primary inspector now presents state-specific `Current state`, `Why`,
+  `Changed`, `Watch`, `Next`, and `Boundary` explanations
+- raw actor ids, cue ids, selected anchor/corridor ids, anchor metadata, and
+  full candidate/fallback arrays are collapsed into `Implementation evidence`
+  by default
+- full truth disclosure remains available under collapsed `Full truth boundary`
+  while concise boundary copy remains in the primary explanation
 - `npm run test:m8a-v4.8` and `npm run test:m8a-v4.9` were reported passing
 - route, endpoint pair, precision, actor set, source boundary, `R2` read-only
   boundary, and `V4.6D` model truth remain unchanged

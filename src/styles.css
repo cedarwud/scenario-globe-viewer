@@ -2465,8 +2465,15 @@ body {
   min-width: 0;
 }
 
+.m8a-v47-product-ux__inspector-primary {
+  display: grid;
+  gap: 0.58rem;
+  min-width: 0;
+}
+
 .m8a-v47-product-ux__review-section,
-.m8a-v47-product-ux__disclosure {
+.m8a-v47-product-ux__disclosure,
+.m8a-v47-product-ux__evidence {
   display: grid;
   gap: 0.28rem;
   min-width: 0;
@@ -2475,7 +2482,9 @@ body {
 }
 
 .m8a-v47-product-ux__review-section > span,
-.m8a-v47-product-ux__disclosure > span {
+.m8a-v47-product-ux__disclosure > span,
+.m8a-v47-product-ux__disclosure summary,
+.m8a-v47-product-ux__evidence summary {
   color: rgba(184, 221, 233, 0.88);
   font-size: 0.75rem;
   font-weight: 780;
@@ -2484,13 +2493,29 @@ body {
 }
 
 .m8a-v47-product-ux__review-section p,
-.m8a-v47-product-ux__disclosure p {
+.m8a-v47-product-ux__disclosure p,
+.m8a-v47-product-ux__evidence p {
   min-width: 0;
   margin: 0;
   color: rgba(225, 238, 243, 0.92);
   font-size: 0.875rem;
   line-height: 1.38;
   overflow-wrap: anywhere;
+}
+
+.m8a-v47-product-ux__disclosure summary,
+.m8a-v47-product-ux__evidence summary {
+  cursor: pointer;
+}
+
+.m8a-v47-product-ux__disclosure:not([open]) > :not(summary),
+.m8a-v47-product-ux__evidence:not([open]) > :not(summary) {
+  display: none;
+}
+
+.m8a-v47-product-ux__disclosure[open],
+.m8a-v47-product-ux__evidence[open] {
+  gap: 0.48rem;
 }
 
 .m8a-v47-product-ux__actor-list {

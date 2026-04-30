@@ -77,7 +77,7 @@ const M8A_V47_PRODUCT_UX_VERSION =
 const M8A_V48_UI_IA_VERSION =
   "m8a-v4.8-handover-demonstration-ui-ia-phase3-runtime.v1";
 const M8A_V49_PRODUCT_COMPREHENSION_VERSION =
-  "m8a-v4.9-product-comprehension-slice3-runtime.v1";
+  "m8a-v4.9-product-comprehension-slice4-runtime.v1";
 const M8A_V47_GUIDED_REVIEW_MULTIPLIER = 30;
 const M8A_V47_PRODUCT_DEFAULT_MULTIPLIER = 60;
 const M8A_V47_QUICK_SCAN_MULTIPLIER = 120;
@@ -148,6 +148,32 @@ const M8A_V49_TRANSITION_EVENT_DENIED_VISIBLE_CONTENT = [
   "fallback-context-actor-id-arrays",
   "full-truth-boundary-disclosure",
   "user-action-required"
+] as const;
+const M8A_V49_INSPECTOR_PRIMARY_VISIBLE_CONTENT = [
+  "current-state",
+  "why-this-state-exists",
+  "what-changed-from-previous-state",
+  "what-to-watch-now",
+  "what-happens-next",
+  "boundary-summary"
+] as const;
+const M8A_V49_INSPECTOR_DENIED_PRIMARY_CONTENT = [
+  "raw-actor-ids",
+  "cue-ids",
+  "selected-anchor-ids",
+  "selected-relation-corridor-ids",
+  "anchor-metadata",
+  "full-candidate-context-arrays",
+  "full-fallback-context-arrays"
+] as const;
+const M8A_V49_INSPECTOR_DEBUG_EVIDENCE_CONTENT = [
+  "representative-actor-id",
+  "candidate-context-actor-id-array",
+  "fallback-context-actor-id-array",
+  "selected-anchor-id",
+  "selected-relation-cue-id",
+  "selected-corridor-id",
+  "anchor-runtime-metadata"
 ] as const;
 const M8A_V49_PRODUCT_COPY = {
   "leo-acquisition-context": {
@@ -632,7 +658,7 @@ interface M8aV49TransitionEventRuntime {
 
 interface M8aV49ProductComprehensionRuntime {
   version: typeof M8A_V49_PRODUCT_COMPREHENSION_VERSION;
-  scope: "slice3-transition-event-layer";
+  scope: "slice4-inspector-details-hierarchy-redesign";
   windowIds: ReadonlyArray<M8aV46dSimulationHandoverWindowId>;
   activeWindowCopy: M8aV49WindowProductCopy;
   copyInventory: ReadonlyArray<M8aV49WindowProductCopy>;
@@ -665,6 +691,15 @@ interface M8aV49ProductComprehensionRuntime {
     blockingPolicy: "non-blocking-no-user-action";
     placementPolicy: "avoid-reliable-scene-near-cue";
     activeEvent: M8aV49TransitionEventRuntime | null;
+  };
+  inspectorLayer: {
+    scope: "slice4-inspector-details-hierarchy-redesign";
+    primaryVisibleContent: typeof M8A_V49_INSPECTOR_PRIMARY_VISIBLE_CONTENT;
+    deniedPrimaryVisibleContent: typeof M8A_V49_INSPECTOR_DENIED_PRIMARY_CONTENT;
+    debugEvidenceContent: typeof M8A_V49_INSPECTOR_DEBUG_EVIDENCE_CONTENT;
+    debugEvidenceDefaultOpen: false;
+    truthBoundaryPlacement: "concise-primary-summary-full-secondary-disclosure";
+    metadataPolicy: "raw-ids-and-arrays-collapsed-implementation-evidence";
   };
 }
 
@@ -1480,7 +1515,7 @@ function buildV49ProductComprehensionRuntime(
 
   return {
     version: M8A_V49_PRODUCT_COMPREHENSION_VERSION,
-    scope: "slice3-transition-event-layer",
+    scope: "slice4-inspector-details-hierarchy-redesign",
     windowIds,
     activeWindowCopy,
     copyInventory,
@@ -1513,6 +1548,15 @@ function buildV49ProductComprehensionRuntime(
       blockingPolicy: "non-blocking-no-user-action",
       placementPolicy: "avoid-reliable-scene-near-cue",
       activeEvent: activeTransitionEvent
+    },
+    inspectorLayer: {
+      scope: "slice4-inspector-details-hierarchy-redesign",
+      primaryVisibleContent: M8A_V49_INSPECTOR_PRIMARY_VISIBLE_CONTENT,
+      deniedPrimaryVisibleContent: M8A_V49_INSPECTOR_DENIED_PRIMARY_CONTENT,
+      debugEvidenceContent: M8A_V49_INSPECTOR_DEBUG_EVIDENCE_CONTENT,
+      debugEvidenceDefaultOpen: false,
+      truthBoundaryPlacement: "concise-primary-summary-full-secondary-disclosure",
+      metadataPolicy: "raw-ids-and-arrays-collapsed-implementation-evidence"
     }
   };
 }
@@ -1999,12 +2043,17 @@ function ensureProductUxStructure(root: HTMLElement): void {
   const hasSlice3TransitionStructure = Boolean(
     root.querySelector("[data-m8a-v49-transition-event='true']")
   );
+  const hasSlice4InspectorStructure = Boolean(
+    root.querySelector("[data-m8a-v49-inspector-primary-body='true']") &&
+      root.querySelector("[data-m8a-v49-debug-evidence='true']")
+  );
 
   if (
     root.dataset.m8aV471StableControls === "true" &&
     root.dataset.m8aV49StructureVersion === M8A_V49_PRODUCT_COMPREHENSION_VERSION &&
     hasSlice2SceneNearStructure &&
-    hasSlice3TransitionStructure
+    hasSlice3TransitionStructure &&
+    hasSlice4InspectorStructure
   ) {
     return;
   }
@@ -2050,48 +2099,64 @@ function ensureProductUxStructure(root: HTMLElement): void {
         <small data-m8a-v47-time-label="simulated" data-m8a-v48-info-class="dynamic"></small>
       </div>
       <div class="m8a-v47-product-ux__inspector" data-m8a-v48-inspector-body="true">
-        <section class="m8a-v47-product-ux__review-section" data-m8a-v48-review-section="purpose">
-          <span data-m8a-v48-info-class="fixed">Review purpose</span>
-          <p data-m8a-v48-review-purpose="true" data-m8a-v48-info-class="dynamic"></p>
-        </section>
-        <section class="m8a-v47-product-ux__review-section" data-m8a-v48-review-section="actors">
-          <span data-m8a-v48-info-class="fixed">Actors</span>
+        <div class="m8a-v47-product-ux__inspector-primary" data-m8a-v49-inspector-primary-body="true">
+          <section class="m8a-v47-product-ux__review-section" data-m8a-v49-inspector-primary="current-state">
+            <span data-m8a-v48-info-class="fixed">Current state</span>
+            <p data-m8a-v49-inspector-current="true" data-m8a-v48-info-class="dynamic"></p>
+          </section>
+          <section class="m8a-v47-product-ux__review-section" data-m8a-v49-inspector-primary="why">
+            <span data-m8a-v48-info-class="fixed">Why</span>
+            <p data-m8a-v48-review-purpose="true" data-m8a-v49-inspector-why="true" data-m8a-v48-info-class="dynamic"></p>
+          </section>
+          <section class="m8a-v47-product-ux__review-section" data-m8a-v49-inspector-primary="changed">
+            <span data-m8a-v48-info-class="fixed">Changed</span>
+            <p data-m8a-v48-review-changed="true" data-m8a-v49-inspector-changed="true" data-m8a-v48-info-class="dynamic"></p>
+          </section>
+          <section class="m8a-v47-product-ux__review-section" data-m8a-v49-inspector-primary="watch">
+            <span data-m8a-v48-info-class="fixed">Watch</span>
+            <p data-m8a-v48-review-watch="true" data-m8a-v49-inspector-watch="true" data-m8a-v48-info-class="dynamic"></p>
+          </section>
+          <section class="m8a-v47-product-ux__review-section" data-m8a-v49-inspector-primary="next">
+            <span data-m8a-v48-info-class="fixed">Next</span>
+            <p data-m8a-v48-review-next="true" data-m8a-v49-inspector-next="true" data-m8a-v48-info-class="dynamic"></p>
+          </section>
+          <section class="m8a-v47-product-ux__review-section" data-m8a-v49-inspector-primary="boundary">
+            <span data-m8a-v48-info-class="disclosure">Boundary</span>
+            <p data-m8a-v48-review-truth-boundary="true" data-m8a-v49-inspector-boundary="true" data-m8a-v48-info-class="disclosure"></p>
+          </section>
+        </div>
+        <details class="m8a-v47-product-ux__evidence" data-m8a-v49-debug-evidence="true">
+          <summary data-m8a-v48-info-class="disclosure">Implementation evidence</summary>
+          <p data-m8a-v48-info-class="disclosure">Raw ids, selected cue ids, anchor metadata, and full candidate/fallback arrays. This evidence supports tests and implementation review; it is not the primary product explanation.</p>
           <dl class="m8a-v47-product-ux__actor-list">
             <div>
-              <dt data-m8a-v48-info-class="fixed">Representative</dt>
-              <dd data-m8a-v48-review-representative="true" data-m8a-v48-info-class="dynamic"></dd>
+              <dt data-m8a-v48-info-class="fixed">Representative actor id</dt>
+              <dd data-m8a-v48-review-representative="true" data-m8a-v49-debug-representative="true" data-m8a-v48-info-class="dynamic"></dd>
             </div>
             <div>
-              <dt data-m8a-v48-info-class="fixed">Candidate context</dt>
-              <dd data-m8a-v48-review-candidates="true" data-m8a-v48-info-class="dynamic"></dd>
+              <dt data-m8a-v48-info-class="fixed">Candidate actor ids</dt>
+              <dd data-m8a-v48-review-candidates="true" data-m8a-v49-debug-candidates="true" data-m8a-v48-info-class="dynamic"></dd>
             </div>
             <div>
-              <dt data-m8a-v48-info-class="fixed">Fallback context</dt>
-              <dd data-m8a-v48-review-fallbacks="true" data-m8a-v48-info-class="dynamic"></dd>
+              <dt data-m8a-v48-info-class="fixed">Fallback actor ids</dt>
+              <dd data-m8a-v48-review-fallbacks="true" data-m8a-v49-debug-fallbacks="true" data-m8a-v48-info-class="dynamic"></dd>
+            </div>
+            <div>
+              <dt data-m8a-v48-info-class="fixed">Scene cue ids</dt>
+              <dd data-m8a-v48-review-cue="true" data-m8a-v49-debug-scene-cue="true" data-m8a-v48-info-class="dynamic"></dd>
             </div>
           </dl>
-        </section>
-        <section class="m8a-v47-product-ux__review-section" data-m8a-v48-review-section="change-watch">
-          <span data-m8a-v48-info-class="fixed">Review notes</span>
-          <p data-m8a-v48-review-changed="true" data-m8a-v48-info-class="dynamic"></p>
-          <p data-m8a-v48-review-watch="true" data-m8a-v48-info-class="dynamic"></p>
-          <p data-m8a-v48-review-next="true" data-m8a-v48-info-class="dynamic"></p>
-        </section>
-        <section class="m8a-v47-product-ux__review-section" data-m8a-v48-review-section="scene-cue">
-          <span data-m8a-v48-info-class="fixed">Scene cue</span>
-          <p data-m8a-v48-review-cue="true" data-m8a-v48-info-class="dynamic"></p>
-        </section>
+        </details>
       </div>
-      <div class="m8a-v47-product-ux__badges">
-        ${renderTruthBadges()}
-      </div>
-      <div class="m8a-v47-product-ux__disclosure" data-m8a-v48-review-section="disclosure">
-        <span data-m8a-v48-info-class="disclosure">Truth boundary</span>
-        <p data-m8a-v48-review-truth-boundary="true" data-m8a-v48-info-class="disclosure"></p>
-      <ul>
-        ${renderDisclosureLines()}
-      </ul>
-      </div>
+      <details class="m8a-v47-product-ux__disclosure" data-m8a-v48-review-section="disclosure" data-m8a-v49-truth-boundary-details="true">
+        <summary data-m8a-v48-info-class="disclosure">Full truth boundary</summary>
+        <div class="m8a-v47-product-ux__badges">
+          ${renderTruthBadges()}
+        </div>
+        <ul>
+          ${renderDisclosureLines()}
+        </ul>
+      </details>
     </aside>
   `;
   root.dataset.m8aV471StableControls = "true";
@@ -2756,6 +2821,23 @@ function renderProductUx(
     comprehension.transitionEventLayer.currentStateTruthSource;
   root.dataset.m8aV49TransitionEventNonBlocking =
     comprehension.transitionEventLayer.blockingPolicy;
+  root.dataset.m8aV49InspectorLayer = comprehension.inspectorLayer.scope;
+  root.dataset.m8aV49InspectorPrimaryVisibleContent = serializeList([
+    ...comprehension.inspectorLayer.primaryVisibleContent
+  ]);
+  root.dataset.m8aV49InspectorDeniedPrimaryContent = serializeList([
+    ...comprehension.inspectorLayer.deniedPrimaryVisibleContent
+  ]);
+  root.dataset.m8aV49InspectorDebugEvidenceContent = serializeList([
+    ...comprehension.inspectorLayer.debugEvidenceContent
+  ]);
+  root.dataset.m8aV49InspectorDebugEvidenceDefaultOpen = String(
+    comprehension.inspectorLayer.debugEvidenceDefaultOpen
+  );
+  root.dataset.m8aV49InspectorTruthBoundaryPlacement =
+    comprehension.inspectorLayer.truthBoundaryPlacement;
+  root.dataset.m8aV49InspectorMetadataPolicy =
+    comprehension.inspectorLayer.metadataPolicy;
   root.dataset.m8aV48ReviewWindowId = review.windowId;
   root.dataset.m8aV48ReviewRepresentativeActorId =
     review.representativeActor.actorId;
@@ -2813,6 +2895,11 @@ function renderProductUx(
   );
   updateProductUxText(
     root,
+    "[data-m8a-v49-inspector-current]",
+    `${review.productLabel} - ${review.stateOrdinalLabel}. ${comprehension.activeWindowCopy.firstReadMessage}`
+  );
+  updateProductUxText(
+    root,
     "[data-m8a-v48-review-purpose]",
     review.reviewPurpose
   );
@@ -2834,12 +2921,12 @@ function renderProductUx(
   updateProductUxText(
     root,
     "[data-m8a-v48-review-changed]",
-    `Changed: ${review.whatChangedFromPreviousState}`
+    review.whatChangedFromPreviousState
   );
   updateProductUxText(
     root,
     "[data-m8a-v48-review-watch]",
-    `Watch: ${review.whatToWatch}`
+    review.whatToWatch
   );
   updateProductUxText(
     root,
@@ -3049,6 +3136,23 @@ function renderProductUx(
     root,
     "[data-m8a-v47-ui-surface='inspection-sheet']"
   );
+  sheet.dataset.m8aV49InspectorLayer = comprehension.inspectorLayer.scope;
+  sheet.dataset.m8aV49InspectorPrimaryVisibleContent = serializeList([
+    ...comprehension.inspectorLayer.primaryVisibleContent
+  ]);
+  sheet.dataset.m8aV49InspectorDeniedPrimaryContent = serializeList([
+    ...comprehension.inspectorLayer.deniedPrimaryVisibleContent
+  ]);
+  sheet.dataset.m8aV49InspectorDebugEvidenceContent = serializeList([
+    ...comprehension.inspectorLayer.debugEvidenceContent
+  ]);
+  sheet.dataset.m8aV49InspectorDebugEvidenceDefaultOpen = String(
+    comprehension.inspectorLayer.debugEvidenceDefaultOpen
+  );
+  sheet.dataset.m8aV49InspectorTruthBoundaryPlacement =
+    comprehension.inspectorLayer.truthBoundaryPlacement;
+  sheet.dataset.m8aV49InspectorMetadataPolicy =
+    comprehension.inspectorLayer.metadataPolicy;
   sheet.dataset.m8aV48WindowId = review.windowId;
   sheet.dataset.m8aV48RepresentativeActorId =
     review.representativeActor.actorId;
@@ -3089,6 +3193,48 @@ function renderProductUx(
     placement.selectedCorridorId;
   inspectorBody.dataset.m8aV48AnchorStatus = placement.anchorStatus;
   inspectorBody.dataset.m8aV48FallbackReason = placement.fallbackReason;
+  inspectorBody.dataset.m8aV49InspectorLayer =
+    comprehension.inspectorLayer.scope;
+  inspectorBody.dataset.m8aV49PrimaryVisibleContent = serializeList([
+    ...comprehension.inspectorLayer.primaryVisibleContent
+  ]);
+  inspectorBody.dataset.m8aV49DeniedPrimaryContent = serializeList([
+    ...comprehension.inspectorLayer.deniedPrimaryVisibleContent
+  ]);
+
+  const primaryInspector = getProductUxElement(
+    root,
+    "[data-m8a-v49-inspector-primary-body='true']"
+  );
+  primaryInspector.dataset.m8aV48WindowId = review.windowId;
+  primaryInspector.dataset.m8aV49PrimaryVisibleContent = serializeList([
+    ...comprehension.inspectorLayer.primaryVisibleContent
+  ]);
+  primaryInspector.dataset.m8aV49DeniedPrimaryContent = serializeList([
+    ...comprehension.inspectorLayer.deniedPrimaryVisibleContent
+  ]);
+
+  const debugEvidence = getProductUxElement(
+    root,
+    "[data-m8a-v49-debug-evidence='true']"
+  ) as HTMLDetailsElement;
+  debugEvidence.dataset.m8aV49DebugEvidenceDefaultOpen = String(
+    comprehension.inspectorLayer.debugEvidenceDefaultOpen
+  );
+  debugEvidence.dataset.m8aV49DebugEvidenceContent = serializeList([
+    ...comprehension.inspectorLayer.debugEvidenceContent
+  ]);
+  debugEvidence.dataset.m8aV49DebugEvidenceOpen = String(debugEvidence.open);
+
+  const fullTruthBoundary = getProductUxElement(
+    root,
+    "[data-m8a-v49-truth-boundary-details='true']"
+  ) as HTMLDetailsElement;
+  fullTruthBoundary.dataset.m8aV49TruthBoundaryPlacement =
+    comprehension.inspectorLayer.truthBoundaryPlacement;
+  fullTruthBoundary.dataset.m8aV49TruthBoundaryOpen = String(
+    fullTruthBoundary.open
+  );
 
   for (const stage of root.querySelectorAll<HTMLElement>(
     "[data-m8a-v47-window-id]"
@@ -3319,6 +3465,21 @@ function cloneState(
                   .activeEvent
               }
             : null
+        },
+        inspectorLayer: {
+          ...state.productUx.productComprehension.inspectorLayer,
+          primaryVisibleContent: [
+            ...state.productUx.productComprehension.inspectorLayer
+              .primaryVisibleContent
+          ] as typeof M8A_V49_INSPECTOR_PRIMARY_VISIBLE_CONTENT,
+          deniedPrimaryVisibleContent: [
+            ...state.productUx.productComprehension.inspectorLayer
+              .deniedPrimaryVisibleContent
+          ] as typeof M8A_V49_INSPECTOR_DENIED_PRIMARY_CONTENT,
+          debugEvidenceContent: [
+            ...state.productUx.productComprehension.inspectorLayer
+              .debugEvidenceContent
+          ] as typeof M8A_V49_INSPECTOR_DEBUG_EVIDENCE_CONTENT
         }
       },
       truthBadges: [...state.productUx.truthBadges] as typeof M8A_V47_TRUTH_BADGES,
@@ -3562,6 +3723,29 @@ function syncTelemetry(state: M8aV4GroundStationSceneState): void {
     m8aV49TransitionEventStateTruthSource:
       transitionEventLayer.currentStateTruthSource,
     m8aV49TransitionEventNonBlocking: transitionEventLayer.blockingPolicy,
+    m8aV49InspectorLayer:
+      state.productUx.productComprehension.inspectorLayer.scope,
+    m8aV49InspectorPrimaryVisibleContent: serializeList([
+      ...state.productUx.productComprehension.inspectorLayer
+        .primaryVisibleContent
+    ]),
+    m8aV49InspectorDeniedPrimaryContent: serializeList([
+      ...state.productUx.productComprehension.inspectorLayer
+        .deniedPrimaryVisibleContent
+    ]),
+    m8aV49InspectorDebugEvidenceContent: serializeList([
+      ...state.productUx.productComprehension.inspectorLayer
+        .debugEvidenceContent
+    ]),
+    m8aV49InspectorDebugEvidenceDefaultOpen: String(
+      state.productUx.productComprehension.inspectorLayer
+        .debugEvidenceDefaultOpen
+    ),
+    m8aV49InspectorTruthBoundaryPlacement:
+      state.productUx.productComprehension.inspectorLayer
+        .truthBoundaryPlacement,
+    m8aV49InspectorMetadataPolicy:
+      state.productUx.productComprehension.inspectorLayer.metadataPolicy,
     m8aV4GroundStationRawItriSideReadOwnership:
       state.sourceLineage.rawPackageSideReadOwnership,
     m8aV4GroundStationRuntimeConsumptionRule:
