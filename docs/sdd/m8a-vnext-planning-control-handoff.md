@@ -77,7 +77,7 @@ Completed:
 - `M8A-V4.9` Runtime Slice 3 transition event layer closed in the current
   delivery state at commit `b9c2199`
 - `M8A-V4.9` Runtime Slice 4 inspector/details hierarchy redesign closed in
-  the current delivery state; commit hash pending
+  the current delivery state at commit `7a4e5d6`
 - remaining `M8A-V4.8` runtime phases are not open
 - `M8A-V4.6C/R2` source/catalog boundary documented at commit `e5d99c7`
 - `R2` root endpoint evidence catalog added at commit `d061c676`

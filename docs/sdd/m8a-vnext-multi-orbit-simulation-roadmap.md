@@ -119,11 +119,11 @@ Completed baseline:
 - `M8A-V4.9` Runtime Slice 1 product copy/view-model inventory and persistent
   layer correction is closed at commit `2afbfa5`
 - `M8A-V4.9` Runtime Slice 2 scene-near meaning layer correction is closed in
-  the current delivery state
+  the current delivery state at commit `889725f`
 - `M8A-V4.9` Runtime Slice 3 transition event layer is closed in the current
-  delivery state
+  delivery state at commit `b9c2199`
 - `M8A-V4.9` Runtime Slice 4 inspector/details hierarchy redesign is closed in
-  the current delivery state
+  the current delivery state at commit `7a4e5d6`
 - remaining `M8A-V4.8` runtime phases are not open
 - `M8A-V4.6C/R2` source/catalog boundary exists at commit `e5d99c7`
 - the `R2` root endpoint evidence catalog exists at commit `d061c676`
