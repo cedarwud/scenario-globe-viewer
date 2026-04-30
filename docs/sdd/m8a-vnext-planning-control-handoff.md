@@ -32,9 +32,10 @@ Read these first:
 14. [m8a-v4.9-product-comprehension-slice2-final-handoff.md](./m8a-v4.9-product-comprehension-slice2-final-handoff.md)
 15. [m8a-v4.9-product-comprehension-slice3-final-handoff.md](./m8a-v4.9-product-comprehension-slice3-final-handoff.md)
 16. [m8a-v4.9-product-comprehension-slice4-final-handoff.md](./m8a-v4.9-product-comprehension-slice4-final-handoff.md)
-17. [multi-orbit-follow-on-roadmap.md](./multi-orbit-follow-on-roadmap.md)
-18. [multi-orbit-program-skeleton.md](./multi-orbit-program-skeleton.md)
-19. [../decisions/0013-ground-station-multi-orbit-scope-reset.md](../decisions/0013-ground-station-multi-orbit-scope-reset.md)
+17. [m8a-v4.9-product-comprehension-slice5-final-handoff.md](./m8a-v4.9-product-comprehension-slice5-final-handoff.md)
+18. [multi-orbit-follow-on-roadmap.md](./multi-orbit-follow-on-roadmap.md)
+19. [multi-orbit-program-skeleton.md](./multi-orbit-program-skeleton.md)
+20. [../decisions/0013-ground-station-multi-orbit-scope-reset.md](../decisions/0013-ground-station-multi-orbit-scope-reset.md)
 
 Supporting accepted data:
 
@@ -78,6 +79,9 @@ Completed:
   delivery state at commit `b9c2199`
 - `M8A-V4.9` Runtime Slice 4 inspector/details hierarchy redesign closed in
   the current delivery state at commit `7a4e5d6`
+- `M8A-V4.9` Runtime Slice 5 product comprehension validation / visual
+  evidence matrix closed in the current delivery state; commit hash pending
+- planned `M8A-V4.9` product comprehension phase is complete
 - remaining `M8A-V4.8` runtime phases are not open
 - `M8A-V4.6C/R2` source/catalog boundary documented at commit `e5d99c7`
 - `R2` root endpoint evidence catalog added at commit `d061c676`
@@ -266,6 +270,10 @@ Current phase status:
   `m8a-v4.9-product-comprehension-slice3-final-handoff.md`
 - `V4.9` Runtime Slice 4 inspector/details hierarchy redesign is closed by
   `m8a-v4.9-product-comprehension-slice4-final-handoff.md`
+- `V4.9` Runtime Slice 5 product comprehension validation / visual evidence
+  matrix is closed by
+  `m8a-v4.9-product-comprehension-slice5-final-handoff.md`
+- the planned `V4.9` product comprehension phase is complete
 - remaining `V4.9` runtime slices are not open
 - remaining `V4.8` layout/camera pass and full visual acceptance phases are
   not open
@@ -283,11 +291,10 @@ The current V4.7/V4.7.1 track is implemented and closed:
 
 The next available decisions are:
 
-1. explicitly open the next `V4.9` runtime slice only if validation work should
-   proceed
+1. keep runtime closed and continue source/candidate work
 2. open the remaining `V4.8` layout/camera and visual acceptance slice only
    after an explicit user decision
-3. keep runtime closed and continue source/candidate work
+3. open a new `V4.9` correction/follow-on only after an explicit user decision
 4. open a new decision gate only when new accepted scope exists
 
 Other available tracks remain:
@@ -322,6 +329,9 @@ asks for a correction to the Slice 3 result.
 
 Runtime Slice 4 is already closed. Do not reopen it unless the user explicitly
 asks for a correction to the Slice 4 result.
+
+Runtime Slice 5 is already closed. Do not reopen it unless the user explicitly
+asks for a correction to the Slice 5 result.
 
 ## R2 Clarification
 
@@ -365,6 +375,8 @@ Checked during this handoff pass:
 - `docs/sdd/m8a-v4.9-product-comprehension-slice1-final-handoff.md`
 - `docs/sdd/m8a-v4.9-product-comprehension-slice2-final-handoff.md`
 - `docs/sdd/m8a-v4.9-product-comprehension-slice3-final-handoff.md`
+- `docs/sdd/m8a-v4.9-product-comprehension-slice4-final-handoff.md`
+- `docs/sdd/m8a-v4.9-product-comprehension-slice5-final-handoff.md`
 - `docs/sdd/multi-orbit-follow-on-roadmap.md`
 - `docs/sdd/multi-orbit-program-skeleton.md`
 - `../../../itri/multi-orbit/download/ground-station-endpoint-candidates/2026-04-25/r2-endpoint-evidence-catalog-2026-04-28.md`
@@ -376,7 +388,8 @@ Closeout sync result:
   and Phase 3 are closed
 - this handoff and the VNext roadmap now record that `V4.9` is a product
   comprehension planning delta with Runtime Slice 1, Runtime Slice 2, Runtime
-  Slice 3, and Runtime Slice 4 closed and no remaining runtime slice open
+  Slice 3, Runtime Slice 4, and Runtime Slice 5 closed, and that the planned
+  V4.9 product comprehension phase is complete
 - remaining `V4.8` runtime phases are not open
 - `V4.6C/R2` is recorded as catalog/source-only with no runtime-ready alternate
   endpoint B
@@ -405,6 +418,7 @@ First read:
 - docs/sdd/m8a-v4.9-product-comprehension-slice2-final-handoff.md
 - docs/sdd/m8a-v4.9-product-comprehension-slice3-final-handoff.md
 - docs/sdd/m8a-v4.9-product-comprehension-slice4-final-handoff.md
+- docs/sdd/m8a-v4.9-product-comprehension-slice5-final-handoff.md
 - docs/sdd/m8a-v4-ground-station-multi-orbit-handover-plan.md
 - docs/data-contracts/m8a-v4-ground-station-projection.md
 - docs/sdd/multi-orbit-follow-on-roadmap.md
@@ -427,13 +441,16 @@ Current direction:
   is closed for product copy/view-model inventory and persistent layer
   correction, and Runtime Slice 2 is closed for scene-near meaning layer
   correction, Runtime Slice 3 is closed for transition event layer, and Runtime
-  Slice 4 is closed for inspector/details hierarchy redesign; no remaining
-  V4.9 runtime slice is open.
+  Slice 4 is closed for inspector/details hierarchy redesign, and Runtime Slice
+  5 is closed for product comprehension validation / visual evidence matrix.
+  The planned V4.9 product comprehension phase is complete; no remaining V4.9
+  runtime slice is open.
 - V4.6C/R2 remains catalog/source-only; no alternate endpoint B is
   runtime-ready.
 - Do not create another V4.9 runtime prompt unless the user explicitly opens a
-  new slice from the V4.9 SDD, and keep route, endpoint pair, precision, actor
-  set, source boundary, R2 read-only boundary, and V4.6D model truth unchanged.
+  correction/follow-on with an accepted SDD adjustment, and keep route,
+  endpoint pair, precision, actor set, source boundary, R2 read-only boundary,
+  and V4.6D model truth unchanged.
 - Do not create an endpoint or selector runtime prompt unless new accepted
   endpoint-pair scenarios emerge and a viewer-owned projection unblocks runtime
   use.

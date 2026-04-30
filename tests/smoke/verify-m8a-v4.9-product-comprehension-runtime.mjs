@@ -162,14 +162,49 @@ const EXPECTED_PRODUCT_COPY = {
     transitionRole: "final guard"
   }
 };
+const FORBIDDEN_POSITIVE_PHRASES = [
+  "real operator handover event",
+  "operator handover log",
+  "active serving satellite",
+  "serving satellite",
+  "active gateway assignment",
+  "active gateway",
+  "active path",
+  "active service",
+  "pair-specific teleport path",
+  "teleport path",
+  "native rf handover",
+  "measured latency",
+  "measured jitter",
+  "measured throughput",
+  "measured continuity",
+  "live network time",
+  "operator event time",
+  "r2 runtime selector"
+];
+const FORBIDDEN_UNIT_PATTERNS = [
+  /\b\d+(?:\.\d+)?\s*ms\b/i,
+  /\b\d+(?:\.\d+)?\s*Mbps\b/i,
+  /\b\d+(?:\.\d+)?\s*Gbps\b/i,
+  /\bmeasured\s+\d+(?:\.\d+)?\s*%/i
+];
 const VIEWPORTS = {
   desktop: {
+    name: "desktop-1440",
     width: 1440,
     height: 900,
     mobile: false,
     expectedViewportClass: "desktop"
   },
+  desktopCompact: {
+    name: "desktop-1280",
+    width: 1280,
+    height: 720,
+    mobile: false,
+    expectedViewportClass: "desktop"
+  },
   narrow: {
+    name: "narrow-390",
     width: 390,
     height: 844,
     mobile: true,
@@ -348,6 +383,12 @@ async function capturePersistentLayer(client) {
         width: rect.width,
         height: rect.height
       });
+      const validInfoClasses = new Set([
+        "fixed",
+        "dynamic",
+        "disclosure",
+        "control"
+      ]);
       const visibleTextNodes = (scope) => {
         const nodes = [];
         const walker = document.createTreeWalker(scope, NodeFilter.SHOW_TEXT);
@@ -363,6 +404,55 @@ async function capturePersistentLayer(client) {
         }
 
         return nodes;
+      };
+      const visibleTextClassificationFailures = (scope) => {
+        const failures = [];
+        const walker = document.createTreeWalker(scope, NodeFilter.SHOW_TEXT);
+
+        while (walker.nextNode()) {
+          const node = walker.currentNode;
+          const text = node.textContent.replace(/\\s+/g, " ").trim();
+          const parent = node.parentElement;
+
+          if (!text || !parent || !isVisible(parent)) {
+            continue;
+          }
+
+          const classified = parent.closest("[data-m8a-v48-info-class]");
+          const infoClass =
+            classified?.getAttribute("data-m8a-v48-info-class") ?? null;
+
+          if (!validInfoClasses.has(infoClass)) {
+            failures.push({
+              text,
+              parent: parent.tagName.toLowerCase(),
+              infoClass
+            });
+          }
+        }
+
+        return failures;
+      };
+      const readSurface = (selector) => {
+        const element = document.querySelector(selector);
+
+        if (!(element instanceof HTMLElement)) {
+          return {
+            selector,
+            mounted: false,
+            visible: false,
+            rect: null,
+            text: ""
+          };
+        }
+
+        return {
+          selector,
+          mounted: true,
+          visible: isVisible(element),
+          rect: rectToPlain(element.getBoundingClientRect()),
+          text: element.innerText?.replace(/\\s+/g, " ").trim() ?? ""
+        };
       };
       const capture = window.__SCENARIO_GLOBE_VIEWER_CAPTURE__;
       const state = capture?.m8aV4GroundStationScene?.getState?.();
@@ -397,13 +487,21 @@ async function capturePersistentLayer(client) {
           action: button.dataset.m8aV47Action ?? null,
           ariaExpanded: button.getAttribute("aria-expanded"),
           ariaPressed: button.getAttribute("aria-pressed"),
-          rect: rectToPlain(button.getBoundingClientRect())
+          rect: rectToPlain(button.getBoundingClientRect()),
+          clientWidth: button.clientWidth,
+          clientHeight: button.clientHeight,
+          scrollWidth: button.scrollWidth,
+          scrollHeight: button.scrollHeight
         }));
       const stripText = strip?.innerText.replace(/\\s+/g, " ").trim() ?? "";
       const visibleProductText = visibleTextNodes(productRoot).join(" ");
       const compactTruthText = truthAffordance?.textContent
         .replace(/\\s+/g, " ")
         .trim() ?? null;
+      const resourceHits = performance
+        .getEntriesByType("resource")
+        .map((entry) => entry.name)
+        .filter((name) => /celestrak|itri\\/multi-orbit/i.test(name));
 
       return {
         state,
@@ -491,8 +589,16 @@ async function capturePersistentLayer(client) {
         viewportClass: state?.productUx?.layout?.viewportClass ?? null,
         activeWindowId: state?.productUx?.activeWindowId ?? null,
         activeProductLabel: state?.productUx?.activeProductLabel ?? null,
+        viewport: {
+          width: window.innerWidth,
+          height: window.innerHeight
+        },
         stripText,
         visibleProductText,
+        visibleTextClassificationFailures: productRoot
+          ? visibleTextClassificationFailures(productRoot)
+          : [],
+        resourceHits,
         stripRect: strip ? rectToPlain(strip.getBoundingClientRect()) : null,
         sheetVisible: sheet ? isVisible(sheet) : null,
         annotationText:
@@ -589,7 +695,49 @@ async function capturePersistentLayer(client) {
           element.textContent.replace(/\\s+/g, " ").trim()
         ),
         visibleProgressCount: visibleProgress.length,
-        visibleButtons
+        visibleButtons,
+        visualSurfaces: {
+          productRoot: productRoot
+            ? {
+                visible: isVisible(productRoot),
+                rect: rectToPlain(productRoot.getBoundingClientRect())
+              }
+            : null,
+          strip: strip
+            ? {
+                visible: isVisible(strip),
+                rect: rectToPlain(strip.getBoundingClientRect())
+              }
+            : null,
+          annotation: annotation
+            ? {
+                visible: isVisible(annotation),
+                rect: rectToPlain(annotation.getBoundingClientRect())
+              }
+            : null,
+          connector: connector
+            ? {
+                visible: isVisible(connector),
+                rect: rectToPlain(connector.getBoundingClientRect())
+              }
+            : null,
+          transitionEvent: transitionEvent
+            ? {
+                visible: isVisible(transitionEvent),
+                rect: rectToPlain(transitionEvent.getBoundingClientRect())
+              }
+            : null,
+          sheet: sheet
+            ? {
+                visible: isVisible(sheet),
+                rect: rectToPlain(sheet.getBoundingClientRect())
+              }
+            : null,
+          cesiumToolbar: readSurface(".cesium-viewer-toolbar"),
+          cesiumAnimation: readSurface(".cesium-viewer-animationContainer"),
+          cesiumTimeline: readSurface(".cesium-viewer-timelineContainer"),
+          cesiumCredits: readSurface(".cesium-widget-credits")
+        }
       };
     })()`
   );
@@ -597,6 +745,9 @@ async function capturePersistentLayer(client) {
 
 function assertPreservedScenarioFacts(result) {
   const state = result.state;
+  const expectations = state?.simulationHandoverModel?.validationExpectations;
+  const requiredNonClaimKeys =
+    expectations?.requiredWindowNonClaimKeys ?? [];
 
   assert(state, "Missing V4.9 runtime state.");
   assert(
@@ -630,6 +781,49 @@ function assertPreservedScenarioFacts(result) {
       state.sourceLineage.rawSourcePathsIncluded === false,
     "V4.9 Slice 1 must preserve repo-owned runtime source boundary: " +
       JSON.stringify(state.sourceLineage)
+  );
+  assert(
+    JSON.stringify(state.simulationHandoverModel.timelineWindowIds) ===
+      JSON.stringify(EXPECTED_WINDOW_IDS) &&
+      JSON.stringify(expectations.expectedWindowIds) ===
+        JSON.stringify(EXPECTED_WINDOW_IDS) &&
+      JSON.stringify(expectations.expectedActorCounts) ===
+        JSON.stringify(EXPECTED_ACTOR_COUNTS) &&
+      expectations.endpointPairAndPrecisionMustRemainUnchanged === true &&
+      expectations.runtimeRawItriSideReadAllowed === false &&
+      expectations.measuredMetricTruthAllowed === false,
+    "V4.9 Slice 5 must preserve V4.6D window, actor, endpoint, source, and measured-metric validation facts: " +
+      JSON.stringify({
+        timelineWindowIds: state.simulationHandoverModel.timelineWindowIds,
+        expectations
+      })
+  );
+  assert(
+    requiredNonClaimKeys.includes("noR2RuntimeSelector") &&
+      requiredNonClaimKeys.includes("noEndpointPairOrPrecisionChange") &&
+      requiredNonClaimKeys.includes("noRawItriOrLiveExternalRuntimeSource") &&
+      state.simulationHandoverModel.timeline.every(
+        (windowDefinition) =>
+          windowDefinition.nonClaims.noR2RuntimeSelector === true &&
+          windowDefinition.nonClaims.noEndpointPairOrPrecisionChange === true &&
+          windowDefinition.nonClaims.noRawItriOrLiveExternalRuntimeSource ===
+            true
+      ),
+    "V4.9 Slice 5 must keep R2 read-only and prevent endpoint/source promotion through every V4.6D window: " +
+      JSON.stringify({
+        requiredNonClaimKeys,
+        windows: state.simulationHandoverModel.timeline.map(
+          (windowDefinition) => ({
+            windowId: windowDefinition.windowId,
+            nonClaims: windowDefinition.nonClaims
+          })
+        )
+      })
+  );
+  assert(
+    result.resourceHits.length === 0,
+    "V4.9 runtime must not fetch raw ITRI packages or live external source resources: " +
+      JSON.stringify(result.resourceHits)
   );
 }
 
@@ -885,6 +1079,20 @@ function assertPersistentLayer(result, expected, viewport) {
       JSON.stringify({ visibleProductText })
   );
   assert(
+    result.visibleTextClassificationFailures.length === 0,
+    "V4.9 visible product text must keep a valid info classification: " +
+      JSON.stringify(result.visibleTextClassificationFailures)
+  );
+  assertVisibleForbiddenClaimScanClean(visibleProductText, {
+    windowId: result.activeWindowId,
+    viewport: viewport.name
+  });
+  assertPrimaryMetadataDemoted(visibleProductText, {
+    surface: "persistent-default-product-text",
+    windowId: result.activeWindowId,
+    viewport: viewport.name
+  });
+  assert(
     result.stripRect.height < viewport.height * 0.34,
     "V4.9 persistent strip must remain concise on the viewport: " +
       JSON.stringify({ viewport, stripRect: result.stripRect })
@@ -970,6 +1178,202 @@ function rectsOverlap(first, second) {
     first.bottom <= second.top ||
     first.top >= second.bottom
   );
+}
+
+function collectPositiveClaimHits(text) {
+  const sourceText = String(text ?? "");
+  const lowered = sourceText.toLowerCase();
+  const hits = [];
+  const isNegated = (index) => {
+    const prefix = sourceText
+      .slice(Math.max(0, index - 120), index)
+      .toLowerCase();
+
+    return /\b(no|not|without|forbidden|must not|does not claim|not claimed|non-claim)\b/.test(
+      prefix
+    );
+  };
+
+  for (const phrase of FORBIDDEN_POSITIVE_PHRASES) {
+    const needle = phrase.toLowerCase();
+    let index = lowered.indexOf(needle);
+
+    while (index !== -1) {
+      if (!isNegated(index)) {
+        hits.push({
+          phrase,
+          context: sourceText
+            .slice(Math.max(0, index - 70), index + needle.length + 70)
+            .replace(/\s+/g, " ")
+            .trim()
+        });
+      }
+
+      index = lowered.indexOf(needle, index + needle.length);
+    }
+  }
+
+  return hits;
+}
+
+function assertVisibleForbiddenClaimScanClean(text, context) {
+  const positiveClaimHits = collectPositiveClaimHits(text);
+  const forbiddenUnitHits = FORBIDDEN_UNIT_PATTERNS.filter((pattern) =>
+    pattern.test(text)
+  ).map((pattern) => pattern.toString());
+
+  assert(
+    positiveClaimHits.length === 0 && forbiddenUnitHits.length === 0,
+    "V4.9 visible forbidden-claim scan found promoted claim text: " +
+      JSON.stringify({ context, positiveClaimHits, forbiddenUnitHits, text })
+  );
+}
+
+function assertPrimaryMetadataDemoted(text, context) {
+  const forbiddenPrimaryPatterns = [
+    /oneweb-\d{4}-leo-display-context/i,
+    /o3b-mpower-f\d-meo-display-context/i,
+    /st-2-geo-continuity-anchor/i,
+    /ses-9-geo-display-context/i,
+    /m8a-v46e-simulation-/i,
+    /m8a-v4-operator-family-endpoint-context-ribbon/i,
+    /\braw ids?\b/i,
+    /\bcue ids?\b/i,
+    /\banchor metadata\b/i,
+    /\bselected anchor\b/i,
+    /\bselected cue\b/i,
+    /\bcandidate actor ids?\b/i,
+    /\bfallback actor ids?\b/i,
+    /\bcandidateContextActorIds\b/i,
+    /\bfallbackContextActorIds\b/i,
+    /\brepresentative actor id\b/i
+  ];
+
+  assert(
+    forbiddenPrimaryPatterns.every((pattern) => !pattern.test(text)),
+    "V4.9 primary product copy exposed raw metadata that must stay demoted: " +
+      JSON.stringify({ context, text })
+  );
+}
+
+function assertRectInsideViewport(rect, viewport, context) {
+  assert(
+    rect &&
+      rect.width > 0 &&
+      rect.height > 0 &&
+      rect.left >= -1 &&
+      rect.top >= -1 &&
+      rect.right <= viewport.width + 1 &&
+      rect.bottom <= viewport.height + 1,
+    "V4.9 visual surface escaped the viewport matrix bounds: " +
+      JSON.stringify({ context, viewport, rect })
+  );
+}
+
+function assertNoSurfaceOverlap(firstName, first, secondName, second, context) {
+  if (!first?.visible || !second?.visible) {
+    return;
+  }
+
+  assert(
+    !rectsOverlap(first.rect, second.rect),
+    "V4.9 visual evidence matrix found incoherent surface overlap: " +
+      JSON.stringify({
+        context,
+        firstName,
+        firstRect: first.rect,
+        secondName,
+        secondRect: second.rect
+      })
+  );
+}
+
+function assertDefaultVisualEvidence(result, expected, viewport) {
+  const surfaces = result.visualSurfaces;
+  const nativeSurfaces = [
+    ["cesiumToolbar", surfaces.cesiumToolbar],
+    ["cesiumAnimation", surfaces.cesiumAnimation],
+    ["cesiumTimeline", surfaces.cesiumTimeline],
+    ["cesiumCredits", surfaces.cesiumCredits]
+  ];
+  const minimumButtonHeight =
+    viewport.expectedViewportClass === "narrow" ? 40 : 36;
+
+  assert(
+    result.viewport.width === viewport.width &&
+      result.viewport.height === viewport.height,
+    "V4.9 visual evidence viewport dimensions mismatch: " +
+      JSON.stringify({ actual: result.viewport, expected: viewport })
+  );
+  assertRectInsideViewport(result.stripRect, viewport, {
+    surface: "persistent-strip",
+    windowId: result.activeWindowId,
+    viewport: viewport.name
+  });
+
+  if (surfaces.annotation?.visible) {
+    assertRectInsideViewport(surfaces.annotation.rect, viewport, {
+      surface: "scene-near-annotation",
+      windowId: result.activeWindowId,
+      viewport: viewport.name
+    });
+    assertNoSurfaceOverlap("strip", surfaces.strip, "annotation", surfaces.annotation, {
+      windowId: result.activeWindowId,
+      viewport: viewport.name
+    });
+  }
+
+  if (surfaces.transitionEvent?.visible) {
+    assertRectInsideViewport(surfaces.transitionEvent.rect, viewport, {
+      surface: "transition-event",
+      windowId: result.activeWindowId,
+      viewport: viewport.name
+    });
+    assertNoSurfaceOverlap(
+      "strip",
+      surfaces.strip,
+      "transitionEvent",
+      surfaces.transitionEvent,
+      {
+        windowId: result.activeWindowId,
+        viewport: viewport.name
+      }
+    );
+  }
+
+  for (const [nativeName, nativeSurface] of nativeSurfaces) {
+    assertNoSurfaceOverlap("strip", surfaces.strip, nativeName, nativeSurface, {
+      windowId: result.activeWindowId,
+      viewport: viewport.name
+    });
+
+    if (surfaces.annotation?.visible) {
+      assertNoSurfaceOverlap(
+        "annotation",
+        surfaces.annotation,
+        nativeName,
+        nativeSurface,
+        {
+          windowId: result.activeWindowId,
+          viewport: viewport.name
+        }
+      );
+    }
+  }
+
+  for (const button of result.visibleButtons) {
+    assert(
+      button.rect.height >= minimumButtonHeight &&
+        button.scrollWidth <= button.clientWidth + 2 &&
+        button.scrollHeight <= button.clientHeight + 3,
+      "V4.9 persistent control text must fit its hit target in the viewport matrix: " +
+        JSON.stringify({
+          button,
+          expected,
+          viewport: viewport.name
+        })
+    );
+  }
 }
 
 function assertSceneNearMeaning(result, expected, viewport) {
@@ -1205,6 +1609,20 @@ async function captureInspectorLayer(client) {
         );
       };
       const normalize = (value) => (value ?? "").replace(/\\s+/g, " ").trim();
+      const rectToPlain = (rect) => ({
+        left: rect.left,
+        top: rect.top,
+        right: rect.right,
+        bottom: rect.bottom,
+        width: rect.width,
+        height: rect.height
+      });
+      const validInfoClasses = new Set([
+        "fixed",
+        "dynamic",
+        "disclosure",
+        "control"
+      ]);
       const visibleTextNodes = (scope) => {
         const nodes = [];
         const walker = document.createTreeWalker(scope, NodeFilter.SHOW_TEXT);
@@ -1221,8 +1639,37 @@ async function captureInspectorLayer(client) {
 
         return nodes;
       };
+      const visibleTextClassificationFailures = (scope) => {
+        const failures = [];
+        const walker = document.createTreeWalker(scope, NodeFilter.SHOW_TEXT);
+
+        while (walker.nextNode()) {
+          const node = walker.currentNode;
+          const text = normalize(node.textContent);
+          const parent = node.parentElement;
+
+          if (!text || !parent || !isVisible(parent)) {
+            continue;
+          }
+
+          const classified = parent.closest("[data-m8a-v48-info-class]");
+          const infoClass =
+            classified?.getAttribute("data-m8a-v48-info-class") ?? null;
+
+          if (!validInfoClasses.has(infoClass)) {
+            failures.push({
+              text,
+              parent: parent.tagName.toLowerCase(),
+              infoClass
+            });
+          }
+        }
+
+        return failures;
+      };
       const root = document.querySelector("[data-m8a-v47-product-ux='true']");
       const details = root?.querySelector("[data-m8a-v47-control-id='details-toggle']");
+      const strip = root?.querySelector("[data-m8a-v47-control-strip='true']");
       const sheet = root?.querySelector("[data-m8a-v47-ui-surface='inspection-sheet']");
 
       if (!(details instanceof HTMLButtonElement)) {
@@ -1252,8 +1699,22 @@ async function captureInspectorLayer(client) {
         state,
         activeWindowId: state.productUx.activeWindowId,
         activeProductLabel: state.productUx.activeProductLabel,
+        viewport: {
+          width: window.innerWidth,
+          height: window.innerHeight
+        },
+        stripText: normalize(strip?.innerText),
+        stripRect: strip
+          ? rectToPlain(strip.getBoundingClientRect())
+          : null,
         detailsAriaExpanded: details.getAttribute("aria-expanded"),
         sheetVisible: isVisible(sheet),
+        sheetRect: sheet
+          ? rectToPlain(sheet.getBoundingClientRect())
+          : null,
+        visibleTextClassificationFailures: root
+          ? visibleTextClassificationFailures(root)
+          : [],
         sheetDataset: {
           inspectorLayer: sheet?.dataset.m8aV49InspectorLayer ?? null,
           primaryVisibleContent:
@@ -1346,6 +1807,8 @@ function assertInspectorPrimaryClean(result, expected) {
     /selected anchor/i,
     /selected corridor/i,
     /anchor metadata/i,
+    /raw ids/i,
+    /cue ids/i,
     /Candidate actor ids/i,
     /Fallback actor ids/i,
     /Representative actor id/i
@@ -1363,7 +1826,65 @@ function assertInspectorPrimaryClean(result, expected) {
   );
 }
 
-function assertInspectorLayer(result, expected) {
+function assertInspectorVisualEvidence(result, expected, viewport) {
+  assert(
+    result.viewport.width === viewport.width &&
+      result.viewport.height === viewport.height,
+    "V4.9 inspector visual evidence viewport dimensions mismatch: " +
+      JSON.stringify({ actual: result.viewport, expected: viewport })
+  );
+  assertRectInsideViewport(result.stripRect, viewport, {
+    surface: "persistent-strip-with-inspector-open",
+    windowId: result.activeWindowId,
+    viewport: viewport.name
+  });
+  assertRectInsideViewport(result.sheetRect, viewport, {
+    surface: "inspection-sheet",
+    windowId: result.activeWindowId,
+    viewport: viewport.name
+  });
+  assert(
+    !rectsOverlap(result.stripRect, result.sheetRect),
+    "V4.9 inspector sheet must not cover the persistent current-state strip: " +
+      JSON.stringify({
+        viewport: viewport.name,
+        windowId: result.activeWindowId,
+        stripRect: result.stripRect,
+        sheetRect: result.sheetRect
+      })
+  );
+  assert(
+    result.stripText.includes(expected.productLabel) &&
+      result.stripText.includes(expected.stateOrdinalLabel),
+    "V4.9 inspector-open viewport must retain first-read current-state context in the persistent layer: " +
+      JSON.stringify({
+        viewport: viewport.name,
+        stripText: result.stripText,
+        expected
+      })
+  );
+  assert(
+    result.sheetRect.height <
+      viewport.height * (viewport.expectedViewportClass === "narrow" ? 0.34 : 0.64),
+    "V4.9 inspector sheet must remain secondary to the scene in the viewport matrix: " +
+      JSON.stringify({
+        viewport: viewport.name,
+        sheetRect: result.sheetRect
+      })
+  );
+  assert(
+    result.visibleTextClassificationFailures.length === 0,
+    "V4.9 inspector-open visible product text must keep valid info classifications: " +
+      JSON.stringify(result.visibleTextClassificationFailures)
+  );
+  assertVisibleForbiddenClaimScanClean(result.primary.text, {
+    surface: "primary-inspector",
+    windowId: result.activeWindowId,
+    viewport: viewport.name
+  });
+}
+
+function assertInspectorLayer(result, expected, viewport = VIEWPORTS.desktop) {
   const review = result.state.productUx.reviewViewModel;
   const primary = result.primary;
   const debugEvidence = result.debugEvidence;
@@ -1414,6 +1935,7 @@ function assertInspectorLayer(result, expected) {
       JSON.stringify({ sections: primary.sections, review, expected })
   );
   assertInspectorPrimaryClean(result, expected);
+  assertInspectorVisualEvidence(result, expected, viewport);
   assert(
     debugEvidence.visible === true &&
       debugEvidence.open === false &&
@@ -1432,6 +1954,11 @@ function assertInspectorLayer(result, expected) {
     "V4.9 Slice 4 debug/evidence metadata must exist but stay collapsed by default: " +
       JSON.stringify(debugEvidence)
   );
+  assertPrimaryMetadataDemoted(debugEvidence.visibleText, {
+    surface: "closed-implementation-evidence-summary",
+    windowId: result.activeWindowId,
+    viewport: viewport.name
+  });
   assert(
     truthBoundary.visible === true &&
       truthBoundary.open === false &&
@@ -1445,16 +1972,29 @@ function assertInspectorLayer(result, expected) {
     "V4.9 Slice 4 truth boundary must remain available without replacing primary explanation: " +
       JSON.stringify(truthBoundary)
   );
+  assert(
+    !/No active gateway assignment is claimed|No native RF handover is claimed|simulation output|operator-family precision|display-context actors/i.test(
+      truthBoundary.visibleText
+    ),
+    "V4.9 closed Full truth boundary must not leak full disclosure text into the primary inspector view: " +
+      JSON.stringify(truthBoundary)
+  );
 }
 
-async function verifyInspectorLayerForAllWindows(client) {
-  await setViewport(client, VIEWPORTS.desktop);
+async function verifyInspectorLayerForWindows(
+  client,
+  viewport,
+  windowIds = EXPECTED_WINDOW_IDS
+) {
+  await setViewport(client, viewport);
   await closeInspector(client);
 
   const primaryTexts = [];
   const results = [];
 
-  for (const [windowId, expected] of Object.entries(EXPECTED_PRODUCT_COPY)) {
+  for (const windowId of windowIds) {
+    const expected = EXPECTED_PRODUCT_COPY[windowId];
+
     await seekReplayRatio(client, expected.ratio);
 
     const result = await captureInspectorLayer(client);
@@ -1462,28 +2002,32 @@ async function verifyInspectorLayerForAllWindows(client) {
     assert(
       result.activeWindowId === windowId &&
         result.activeProductLabel === expected.productLabel,
-      "V4.9 Slice 4 inspector test did not reach the expected active window: " +
-        JSON.stringify({ result, expected, windowId })
+      "V4.9 Slice 5 inspector matrix did not reach the expected active window: " +
+        JSON.stringify({ result, expected, windowId, viewport })
     );
-    assertInspectorLayer(result, expected);
+    assertInspectorLayer(result, expected, viewport);
 
     primaryTexts.push(result.primary.text);
     results.push({
+      viewport: viewport.name,
       windowId,
       productLabel: expected.productLabel,
       labels: result.primary.labels,
       debugEvidenceOpen: result.debugEvidence.open,
-      truthBoundaryOpen: result.truthBoundary.open
+      truthBoundaryOpen: result.truthBoundary.open,
+      sheetHeight: result.sheetRect.height
     });
 
     await closeInspector(client);
   }
 
-  assert(
-    new Set(primaryTexts).size === EXPECTED_WINDOW_IDS.length,
-    "V4.9 Slice 4 primary inspector body must change across all five windows: " +
-      JSON.stringify(primaryTexts)
-  );
+  if (windowIds.length === EXPECTED_WINDOW_IDS.length) {
+    assert(
+      new Set(primaryTexts).size === EXPECTED_WINDOW_IDS.length,
+      "V4.9 Slice 4 primary inspector body must change across all five windows: " +
+        JSON.stringify(primaryTexts)
+    );
+  }
 
   return results;
 }
@@ -1566,6 +2110,7 @@ function assertTransitionEvent(result, expectedFrom, expectedTo) {
     "V4.9 transition event must not intercept pointer controls: " +
       JSON.stringify(transition)
   );
+  assertDefaultVisualEvidence(result, expectedTo, VIEWPORTS.desktop);
   assert(
     result.stripText.includes(expectedTo.productLabel) &&
       result.sceneNearVisibleText.meaning === expectedTo.firstReadMessage,
@@ -1955,14 +2500,22 @@ async function verifyViewport(client, viewport) {
     assertProductCopy(result, expected);
     assertPersistentLayer(result, expected, viewport);
     assertSceneNearMeaning(result, expected, viewport);
+    assertDefaultVisualEvidence(result, expected, viewport);
 
     results.push({
+      viewport: viewport.name,
       windowId,
       productLabel: expected.productLabel,
       stripText: result.stripText,
       stripRect: result.stripRect,
+      annotationRect: result.annotationRect,
+      transitionVisible: result.transitionEvent.visible,
+      transitionRect: result.transitionEvent.rect,
       sceneNearMode: result.annotationDataset.sceneNearMode,
-      anchorStatus: result.annotationDataset.anchorStatus
+      anchorStatus: result.annotationDataset.anchorStatus,
+      textClassificationFailures:
+        result.visibleTextClassificationFailures.length,
+      resourceHits: result.resourceHits.length
     });
   }
 
@@ -1993,32 +2546,63 @@ async function main() {
     await navigateAndWait(client, serverHandle.baseUrl);
 
     const transitionEventLayer = await verifyTransitionEventLayer(client);
+    await sleep(EXPECTED_TRANSITION_DURATION_MS + 250);
     const desktopResults = await verifyViewport(client, VIEWPORTS.desktop);
-    const inspectorLayer = await verifyInspectorLayerForAllWindows(client);
+    const desktopCompactResults = await verifyViewport(
+      client,
+      VIEWPORTS.desktopCompact
+    );
+    const inspectorLayer = await verifyInspectorLayerForWindows(
+      client,
+      VIEWPORTS.desktop
+    );
     const truthAffordance = await verifyTruthAffordanceOpensInspector(client);
     const narrowResults = await verifyViewport(client, VIEWPORTS.narrow);
+    const narrowInspectorLayer = await verifyInspectorLayerForWindows(
+      client,
+      VIEWPORTS.narrow,
+      [
+        "leo-acquisition-context",
+        "meo-continuity-hold",
+        "geo-continuity-guard"
+      ]
+    );
     const unreliableAnchorFallback =
       await verifyForcedUnreliableAnchorFallback(client);
 
     console.log(
-      `M8A-V4.9 product comprehension Slice 4 smoke passed: ${JSON.stringify(
+      `M8A-V4.9 product comprehension Slice 5 validation matrix smoke passed: ${JSON.stringify(
         {
           desktopWindows: desktopResults.map((result) => ({
+            viewport: result.viewport,
             windowId: result.windowId,
             productLabel: result.productLabel,
             stripHeight: result.stripRect.height,
             sceneNearMode: result.sceneNearMode,
-            anchorStatus: result.anchorStatus
+            anchorStatus: result.anchorStatus,
+            transitionVisible: result.transitionVisible
+          })),
+          desktopCompactWindows: desktopCompactResults.map((result) => ({
+            viewport: result.viewport,
+            windowId: result.windowId,
+            productLabel: result.productLabel,
+            stripHeight: result.stripRect.height,
+            sceneNearMode: result.sceneNearMode,
+            anchorStatus: result.anchorStatus,
+            transitionVisible: result.transitionVisible
           })),
           narrowWindows: narrowResults.map((result) => ({
+            viewport: result.viewport,
             windowId: result.windowId,
             productLabel: result.productLabel,
             stripHeight: result.stripRect.height,
             sceneNearMode: result.sceneNearMode,
-            anchorStatus: result.anchorStatus
+            anchorStatus: result.anchorStatus,
+            transitionVisible: result.transitionVisible
           })),
           transitionEventLayer,
           inspectorLayer,
+          narrowInspectorLayer,
           truthAffordance,
           unreliableAnchorFallback,
           runtimeProcessFacts: {

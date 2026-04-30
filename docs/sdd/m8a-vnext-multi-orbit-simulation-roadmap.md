@@ -44,6 +44,8 @@ Related V4.9 Slice 3 final handoff:
 [./m8a-v4.9-product-comprehension-slice3-final-handoff.md](./m8a-v4.9-product-comprehension-slice3-final-handoff.md).
 Related V4.9 Slice 4 final handoff:
 [./m8a-v4.9-product-comprehension-slice4-final-handoff.md](./m8a-v4.9-product-comprehension-slice4-final-handoff.md).
+Related V4.9 Slice 5 final handoff:
+[./m8a-v4.9-product-comprehension-slice5-final-handoff.md](./m8a-v4.9-product-comprehension-slice5-final-handoff.md).
 Related V4.6C/R2 endpoint evidence catalog review:
 [../../../itri/multi-orbit/download/ground-station-endpoint-candidates/2026-04-25/r2-endpoint-evidence-catalog-2026-04-28.md](../../../itri/multi-orbit/download/ground-station-endpoint-candidates/2026-04-25/r2-endpoint-evidence-catalog-2026-04-28.md).
 
@@ -62,8 +64,10 @@ Related V4.6C/R2 endpoint evidence catalog review:
   correction closed 2026-04-29
 - V4.9 Runtime Slice 2 scene-near meaning layer correction closed 2026-04-30;
 - V4.9 Runtime Slice 3 transition event layer closed 2026-04-30
-- V4.9 Runtime Slice 4 inspector/details hierarchy redesign closed 2026-04-30;
-  no remaining V4.9 runtime phase is open
+- V4.9 Runtime Slice 4 inspector/details hierarchy redesign closed 2026-04-30
+- V4.9 Runtime Slice 5 product comprehension validation / visual evidence
+  matrix closed 2026-04-30; planned V4.9 phase complete; no remaining V4.9
+  runtime phase is open
 - no runtime implementation authority by itself
 - intended handoff surface for the next planning/control thread
 
@@ -124,6 +128,9 @@ Completed baseline:
   delivery state at commit `b9c2199`
 - `M8A-V4.9` Runtime Slice 4 inspector/details hierarchy redesign is closed in
   the current delivery state at commit `7a4e5d6`
+- `M8A-V4.9` Runtime Slice 5 product comprehension validation / visual
+  evidence matrix is closed in the current delivery state
+- planned `M8A-V4.9` product comprehension phase is complete
 - remaining `M8A-V4.8` runtime phases are not open
 - `M8A-V4.6C/R2` source/catalog boundary exists at commit `e5d99c7`
 - the `R2` root endpoint evidence catalog exists at commit `d061c676`
@@ -272,6 +279,9 @@ Closeout status:
 - `V4.9` Runtime Slice 2 is closed for scene-near meaning layer correction
 - `V4.9` Runtime Slice 3 is closed for transition event layer
 - `V4.9` Runtime Slice 4 is closed for inspector/details hierarchy redesign
+- `V4.9` Runtime Slice 5 is closed for product comprehension validation /
+  visual evidence matrix
+- planned `V4.9` product comprehension phase is complete
 
 ## Phase V4.6A - Full LEO Orbit Replay
 
@@ -680,6 +690,9 @@ Implementation status:
 - Runtime Slice 2 closed scene-near meaning layer correction on 2026-04-30
 - Runtime Slice 3 closed transition event layer on 2026-04-30
 - Runtime Slice 4 closed inspector/details hierarchy redesign on 2026-04-30
+- Runtime Slice 5 closed product comprehension validation / visual evidence
+  matrix on 2026-04-30
+- the planned `V4.9` product comprehension phase is complete
 - no remaining `V4.9` runtime implementation phase is open from this roadmap by
   itself
 
@@ -736,12 +749,15 @@ The current V4.9 Runtime Slice 4 is implemented and closed:
 
 `M8A-V4.9 product comprehension Slice 4 final handoff`
 
+The current V4.9 Runtime Slice 5 is implemented and closed:
+
+`M8A-V4.9 product comprehension Slice 5 final handoff`
+
 The next available decisions are:
 
-- explicitly open the next `V4.9` runtime slice only if validation work should
-  proceed
 - keep further runtime work closed and continue source/candidate work
 - open remaining `V4.8` layout/camera work only after an explicit user decision
+- open a new `V4.9` correction/follow-on only after an explicit user decision
 - open a new decision gate only when new accepted scope exists
 
 Other available tracks remain:
@@ -820,6 +836,10 @@ Runtime Slice 4 has already used these surfaces for inspector/details hierarchy
 redesign. Future V4.9 runtime work must not reopen Slice 4 unless the user
 explicitly asks for a correction.
 
+Runtime Slice 5 has already used these surfaces for product comprehension
+validation / visual evidence matrix work. Future V4.9 runtime work must not
+reopen Slice 5 unless the user explicitly asks for a correction.
+
 Legacy aviation/YKA cleanup may later change old route, fixture, and regression
 surfaces only if the cleanup/archive gate is explicitly opened.
 
@@ -882,6 +902,6 @@ are true:
 - no active satellite, active gateway, pair-specific path, measured metric, or
   native RF handover claim is introduced
 
-Runtime Slice 1, Runtime Slice 2, Runtime Slice 3, and Runtime Slice 4 already
-met these conditions and are closed. Apply the same gate again before any
-future V4.9 runtime slice.
+Runtime Slice 1, Runtime Slice 2, Runtime Slice 3, Runtime Slice 4, and Runtime
+Slice 5 already met these conditions and are closed. Apply the same gate again
+before any future V4.9 correction or follow-on runtime slice.

@@ -21,6 +21,8 @@ Related V4.9 Slice 3 final handoff:
 [./m8a-v4.9-product-comprehension-slice3-final-handoff.md](./m8a-v4.9-product-comprehension-slice3-final-handoff.md).
 Related V4.9 Slice 4 final handoff:
 [./m8a-v4.9-product-comprehension-slice4-final-handoff.md](./m8a-v4.9-product-comprehension-slice4-final-handoff.md).
+Related V4.9 Slice 5 final handoff:
+[./m8a-v4.9-product-comprehension-slice5-final-handoff.md](./m8a-v4.9-product-comprehension-slice5-final-handoff.md).
 Related V4.6D model contract:
 [./m8a-v4.6d-simulation-handover-model-contract.md](./m8a-v4.6d-simulation-handover-model-contract.md).
 
@@ -41,7 +43,11 @@ Related V4.6D model contract:
 - Runtime Slice 3 is closed for transition event layer
 - accepted by planning/control for runtime Slice 4 on 2026-04-30
 - Runtime Slice 4 is closed for inspector/details hierarchy redesign
-- no remaining `V4.9` runtime slice is open from this SDD by itself
+- accepted by planning/control for runtime Slice 5 on 2026-04-30
+- Runtime Slice 5 is closed for product comprehension validation / visual
+  evidence matrix
+- the planned `M8A-V4.9` product comprehension phase is complete
+- no remaining `V4.9` runtime slice is open from this SDD
 
 ## Current Understanding
 
@@ -54,7 +60,9 @@ Related V4.6D model contract:
 - route, endpoint pair, precision, actor set, source boundary, `R2` read-only
   boundary, and `V4.6D` model truth remain preserved
 
-Those fixes still do not make the experience product-complete.
+Before `V4.9`, those fixes still did not make the experience product-complete.
+Closed Runtime Slices 1-5 now address this plan's product-comprehension scope
+without changing the accepted scenario facts.
 
 Recent user review and viewport inspection show a comprehension gap:
 
@@ -404,9 +412,9 @@ Visual checks must fail if:
 ## Implementation Phase Breakdown
 
 This SDD is the product-comprehension planning authority. Runtime
-implementation remains phase-gated. Slice 1, Slice 2, Slice 3, and Slice 4
-have been opened and closed; the remaining phase requires a new explicit
-planning/control decision.
+implementation remains phase-gated. Slice 1, Slice 2, Slice 3, Slice 4, and
+Slice 5 have been opened and closed; any further runtime work requires a new
+explicit planning/control decision.
 
 1. Product copy and view-model inventory - closed by Runtime Slice 1
    - define first-read and inspector copy per state
@@ -429,7 +437,7 @@ planning/control decision.
    - move primary inspector body to Why / Changed / Watch / Next / Boundary
    - demote ids and raw cue metadata into a collapsed debug/evidence section
    - keep truth-boundary disclosure concise by default
-6. Product comprehension validation
+6. Product comprehension validation - closed by Runtime Slice 5
    - add smoke checks for first-read content and metadata demotion
    - add visual evidence across the viewport/state matrix
    - retain V4.8 anchor/motion/source-boundary regression coverage
@@ -448,8 +456,8 @@ Runtime implementation may open only after:
   boundary, and `V4.6D` model truth remain unchanged
 
 These conditions were met for Runtime Slice 1, Runtime Slice 2, Runtime Slice
-3, and Runtime Slice 4. They must be re-applied for any future `V4.9` runtime
-slice.
+3, Runtime Slice 4, and Runtime Slice 5. They must be re-applied for any
+future `V4.9` correction or follow-on runtime slice.
 
 ## Current Runtime Closeout
 
@@ -464,6 +472,9 @@ Runtime Slice 3 is closed by
 
 Runtime Slice 4 is closed by
 [m8a-v4.9-product-comprehension-slice4-final-handoff.md](./m8a-v4.9-product-comprehension-slice4-final-handoff.md).
+
+Runtime Slice 5 is closed by
+[m8a-v4.9-product-comprehension-slice5-final-handoff.md](./m8a-v4.9-product-comprehension-slice5-final-handoff.md).
 
 Accepted result:
 
@@ -487,9 +498,21 @@ Accepted result:
   by default
 - full truth disclosure remains available under collapsed `Full truth boundary`
   while concise boundary copy remains in the primary explanation
+- product comprehension validation covers all five `V4.6D` windows across
+  `1440x900`, `1280x720`, and `390x844`
+- persistent layer, scene-near meaning, transition event, and inspector
+  hierarchy are validated together instead of as isolated checks
+- validation confirms control text fit, no incoherent overlap, valid visible
+  text classification, metadata demotion, closed disclosure behavior, no raw
+  source side-read, and clean forbidden-claim scans
+- a CSS-only speed-button padding fix was accepted as a validation-found
+  text-fit correction without changing runtime state or product scope
 - `npm run test:m8a-v4.8` and `npm run test:m8a-v4.9` were reported passing
 - route, endpoint pair, precision, actor set, source boundary, `R2` read-only
   boundary, and `V4.6D` model truth remain unchanged
+
+Planning/control reconciliation accepts these results as completing the
+planned `M8A-V4.9` product comprehension and progressive disclosure phase.
 
 ## Blocked Unless A Future SDD Changes Scope
 

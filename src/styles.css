@@ -2364,6 +2364,11 @@ body {
   gap: 0.3rem;
 }
 
+.m8a-v47-product-ux__strip .m8a-v47-product-ux__speed {
+  padding-right: 0.18rem;
+  padding-left: 0.18rem;
+}
+
 .m8a-v47-product-ux__speed[aria-pressed="true"] {
   border-color: rgba(126, 226, 184, 0.62);
   background: rgba(25, 72, 56, 0.76);
