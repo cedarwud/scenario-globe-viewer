@@ -1,0 +1,245 @@
+{
+  "readiness": {
+    "bootstrapState": "ready",
+    "scenePreset": "regional",
+    "v48UiIaVersion": "m8a-v4.8-handover-demonstration-ui-ia-phase3-runtime.v1",
+    "v49ProductComprehension": "m8a-v4.9-product-comprehension-slice4-runtime.v1",
+    "productRootV49": "m8a-v4.9-product-comprehension-slice4-runtime.v1",
+    "hasCapture": true,
+    "activeWindowId": "leo-acquisition-context"
+  },
+  "globe": {
+    "hasViewer": true,
+    "tilesLoaded": true,
+    "imageryLayerCount": 1
+  },
+  "dom": {
+    "label": "baseline-default-1280x720",
+    "viewport": {
+      "width": 1280,
+      "height": 720
+    },
+    "url": "http://127.0.0.1:36675/?scenePreset=regional&m8aV4GroundStationScene=1",
+    "documentDatasets": {
+      "bootstrapState": "ready",
+      "scenePreset": "regional",
+      "v48UiIaVersion": "m8a-v4.8-handover-demonstration-ui-ia-phase3-runtime.v1",
+      "v49ProductComprehension": "m8a-v4.9-product-comprehension-slice4-runtime.v1"
+    },
+    "productRootDatasets": {
+      "v49ProductComprehension": "m8a-v4.9-product-comprehension-slice4-runtime.v1",
+      "v49SliceScope": "slice4-inspector-details-hierarchy-redesign",
+      "firstReadMessage": "LEO display context establishes the first review focus.",
+      "watchCueLabel": "Representative LEO cue",
+      "orbitClassToken": "LEO",
+      "sceneNearMode": "scene-near-meaning",
+      "sceneNearFallbackPolicy": "persistent-layer-wording-without-scene-attachment",
+      "inspectorLayer": "slice4-inspector-details-hierarchy-redesign",
+      "inspectorPrimaryVisibleContent": "current-state|why-this-state-exists|what-changed-from-previous-state|what-to-watch-now|what-happens-next|boundary-summary",
+      "inspectorTruthBoundaryPlacement": "concise-primary-summary-full-secondary-disclosure",
+      "transitionEventLayer": "slice3-transition-event-layer",
+      "transitionEventVisible": "false"
+    },
+    "state": {
+      "activeWindowId": "leo-acquisition-context",
+      "activeProductLabel": "LEO acquire",
+      "viewportClass": "desktop",
+      "modelId": null,
+      "endpointPairId": null
+    },
+    "strip": {
+      "visible": true,
+      "rect": {
+        "left": 579.53125,
+        "top": 71.671875,
+        "right": 1259.53125,
+        "bottom": 144.953125,
+        "width": 680,
+        "height": 73.28125
+      },
+      "text": "Current  tate\nLEO acquire\nState 1 of 5\nPlay\nRe tart\n30x\n60x\n120x\nDetail \nTruth",
+      "persistentLayer": "true",
+      "defaultVisibleContent": "current-state|state-ordinal|play-pause|restart|30x|60x|120x|compact-truth-affordance|details-trigger",
+      "deniedDefaultVisibleContent": "actor-ids|cue-ids|selected-anchor-ids|candidate-context-actor-id-arrays|fallback-context-actor-id-arrays|long-truth-badge-row|duplicate-product-progress"
+    },
+    "annotation": {
+      "visible": true,
+      "rect": {
+        "left": 139,
+        "top": 409,
+        "right": 417,
+        "bottom": 521.90625,
+        "width": 278,
+        "height": 112.90625
+      },
+      "text": "LEO di play context\nLEO acquire\nLEO di play context e tabli he  the fir t review focu .\nRepre entative LEO cue",
+      "anchorStatus": "geometry-reliable",
+      "fallbackReason": "",
+      "sceneNearMode": "scene-near-meaning"
+    },
+    "controls": {
+      "details": {
+        "exists": true,
+        "visible": true,
+        "text": "Detail",
+        "ariaExpanded": "false",
+        "rect": {
+          "left": 1086.171875,
+          "top": 88.3125,
+          "right": 1165.109375,
+          "bottom": 128.3125,
+          "width": 78.9375,
+          "height": 40
+        }
+      },
+      "compactTruth": {
+        "exists": true,
+        "visible": true,
+        "text": "Truth",
+        "ariaExpanded": "false",
+        "rect": {
+          "left": 1172.78125,
+          "top": 88.3125,
+          "right": 1249.578125,
+          "bottom": 128.3125,
+          "width": 76.796875,
+          "height": 40
+        }
+      },
+      "close": {
+        "exists": true,
+        "visible": false,
+        "text": "Clo e"
+      },
+      "visibleButtons": [
+        {
+          "text": "Play",
+          "controlId": "play-pause",
+          "action": "play",
+          "ariaExpanded": null,
+          "rect": {
+            "left": 782.671875,
+            "top": 88.3125,
+            "right": 849.859375,
+            "bottom": 128.3125,
+            "width": 67.1875,
+            "height": 40
+          }
+        },
+        {
+          "text": "Re tart",
+          "controlId": "restart",
+          "action": "restart",
+          "ariaExpanded": null,
+          "rect": {
+            "left": 857.53125,
+            "top": 88.3125,
+            "right": 939.640625,
+            "bottom": 128.3125,
+            "width": 82.109375,
+            "height": 40
+          }
+        },
+        {
+          "text": "30x",
+          "controlId": null,
+          "action": "speed",
+          "ariaExpanded": null,
+          "rect": {
+            "left": 947.3125,
+            "top": 88.3125,
+            "right": 987.84375,
+            "bottom": 128.3125,
+            "width": 40.53125,
+            "height": 40
+          }
+        },
+        {
+          "text": "60x",
+          "controlId": null,
+          "action": "speed",
+          "ariaExpanded": null,
+          "rect": {
+            "left": 992.640625,
+            "top": 88.3125,
+            "right": 1033.171875,
+            "bottom": 128.3125,
+            "width": 40.53125,
+            "height": 40
+          }
+        },
+        {
+          "text": "120x",
+          "controlId": null,
+          "action": "speed",
+          "ariaExpanded": null,
+          "rect": {
+            "left": 1037.96875,
+            "top": 88.3125,
+            "right": 1078.5,
+            "bottom": 128.3125,
+            "width": 40.53125,
+            "height": 40
+          }
+        },
+        {
+          "text": "Detail",
+          "controlId": "details-toggle",
+          "action": "toggle-disclosure",
+          "ariaExpanded": "false",
+          "rect": {
+            "left": 1086.171875,
+            "top": 88.3125,
+            "right": 1165.109375,
+            "bottom": 128.3125,
+            "width": 78.9375,
+            "height": 40
+          }
+        },
+        {
+          "text": "Truth",
+          "controlId": "truth-affordance",
+          "action": "toggle-disclosure",
+          "ariaExpanded": "false",
+          "rect": {
+            "left": 1172.78125,
+            "top": 88.3125,
+            "right": 1249.578125,
+            "bottom": 128.3125,
+            "width": 76.796875,
+            "height": 40
+          }
+        }
+      ]
+    },
+    "sheet": {
+      "mounted": true,
+      "hidden": true,
+      "visible": false,
+      "rect": {
+        "left": 0,
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "width": 0,
+        "height": 0
+      },
+      "text": "Handover review\n        Clo e\n      \n      \n        Current  tate\n        LEO acquire\n        State 1 of 5\n        Replay UTC 2026-04-28T08:56:47.132Z\n        Sim replay 00:05 / 01:54\n      \n      \n        \n          \n            Current  tate\n            LEO acquire - State 1 of 5. LEO di play context e tabli he  the fir t review focu .\n          \n          \n            Why\n            E tabli h the initial LEO di play context for the accepted endpoint corridor.\n          \n          \n            Changed\n            Replay begin  with LEO repre entative context empha ized.\n          \n          \n            Watch\n            Repre entative LEO di play cue and endpoint corridor relation hip.\n          \n          \n            Next\n            Next: the determini tic review move  into LEO pre ure context.\n          \n          \n            Boundary\n            Di play-context  imulation review; not active  atellite, gateway, path, mea ured metric, native RF handover, or operator log truth.\n          \n        \n        \n          Implementation evidence\n          Raw id ,  elected cue id , anchor metadata, and full candidate/fallback array . Thi  evidence  upport  te t  and implementation review; it i  not the primary product explanation.\n          \n            \n              Repre entative actor id\n              ONEWEB-0386 LEO context (oneweb-0386-leo-di play-context)\n            \n            \n              Candidate actor id \n              ONEWEB-0537 LEO context (oneweb-0537-leo-di play-context), ONEWEB-0701 LEO context (oneweb-0701-leo-di play-context), O3b mPOWER F6 MEO context (o3b-mpower-f6-meo-di play-context)\n            \n            \n              Fallback actor id \n              ST-2 GEO guard ( t-2-geo-continuity-anchor), SES-9 GEO guard ( e -9-geo-di play-context)\n            \n            \n              Scene cue id \n              di playRepre entative primary; candidateContext  econdary;  cene anchor di play-repre entative-actor;  elected actor oneweb-0386-leo-di play-context;  elected cue m8a-v46e- imulation-di playRepre entative-context-ribbon.\n            \n          \n        \n      \n      \n        Full truth boundary\n        \n           imulation outputoperator-family preci iondi play-context actor \n        \n        \n          Simulated di play-context  tate, not an operator handover log.Source-lineaged di play-context actor , not active  erving  atellite .Endpoint preci ion  tay  operator-family only.No active gateway a ignment i  claimed.No pair- pecific teleport path i  claimed.No mea ured latency, jitter, throughput, or continuity value  are  hown.No native RF handover i  claimed.",
+      "primaryLabels": [],
+      "primaryValues": [],
+      "disclosureDetails": [
+        {
+          "summary": "Implementation evidence",
+          "open": false,
+          "text": "Implementation evidence\n          Raw id ,  elected cue id , anchor metadata, and full candidate/fallback array . Thi  evidence  upport  te t  and implementation review; it i  not the primary product explanation.\n          \n            \n              Repre entative actor id\n              ONEWEB-0386 LEO context (oneweb-0386-leo-di play-context)\n            \n            \n              Candidate actor id \n              ONEWEB-0537 LEO context (oneweb-0537-leo-di play-context), ONEWEB-0701 LEO context (oneweb-0701-leo-di play-context), O3b mPOWER F6 MEO context (o3b-mpower-f6-meo-di play-context)\n            \n            \n              Fallback actor id \n              ST-2 GEO guard ( t-2-geo-continuity-anchor), SES-9 GEO guard ( e -9-geo-di play-context)\n            \n            \n              Scene cue id \n              di playRepre entative primary; candidateContext  econdary;  cene anchor di play-repre entative-actor;  elected actor oneweb-0386-leo-di play-context;  elected cue m8a-v46e- imulation-di playRepre entative-context-ribbon."
+        },
+        {
+          "summary": "Full truth boundary",
+          "open": false,
+          "text": "Full truth boundary\n        \n           imulation outputoperator-family preci iondi play-context actor \n        \n        \n          Simulated di play-context  tate, not an operator handover log.Source-lineaged di play-context actor , not active  erving  atellite .Endpoint preci ion  tay  operator-family only.No active gateway a ignment i  claimed.No pair- pecific teleport path i  claimed.No mea ured latency, jitter, throughput, or continuity value  are  hown.No native RF handover i  claimed."
+        }
+      ]
+    },
+    "visibleText": "LEO di play context\nLEO acquire\nLEO di play context e tabli he  the fir t review focu .\nRepre entative LEO cue\nCurrent  tate\nLEO acquire\nState 1 of 5\nPlay\nRe tart\n30x\n60x\n120x\nDetail \nTruth"
+  }
+}

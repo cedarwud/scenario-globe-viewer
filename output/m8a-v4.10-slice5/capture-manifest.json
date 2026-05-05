@@ -1,0 +1,580 @@
+{
+  "generatedAt": "2026-05-04T03:11:31.767Z",
+  "status": "cleanup-complete",
+  "route": "/?scenePreset=regional&m8aV4GroundStationScene=1",
+  "outputRoot": "output/m8a-v4.10-slice5",
+  "productVisibleAcceptance": {
+    "acceptanceReady": true,
+    "blockerCount": 0,
+    "detailsVsTruthSeparated": true,
+    "detailsDefaultClosed": true,
+    "truthBoundaryDefaultClosed": true,
+    "sourceAndModelInvariantsPreserved": true
+  },
+  "validationMatrix": [
+    {
+      "slice": "Slice 1",
+      "result": "passed",
+      "checks": [
+        "default first viewport reads as handover review product",
+        "scene narrative visible and primary",
+        "Details closed by default"
+      ],
+      "evidence": [
+        "output/m8a-v4.10-slice5/v4.10-slice5-default-1440x900.metadata.json",
+        "output/m8a-v4.10-slice5/v4.10-slice5-default-1280x720.metadata.json",
+        "output/m8a-v4.10-slice5/v4.10-slice5-default-390x844.metadata.json"
+      ]
+    },
+    {
+      "slice": "Slice 2",
+      "result": "passed",
+      "checks": [
+        "five-state sequence rail visible",
+        "accepted V4.6D order preserved",
+        "active and next states marked correctly",
+        "transition state capture verified"
+      ],
+      "evidence": [
+        "output/m8a-v4.10-slice5/v4.10-slice5-default-1440x900.metadata.json",
+        "output/m8a-v4.10-slice5/v4.10-slice5-default-1280x720.metadata.json",
+        "output/m8a-v4.10-slice5/v4.10-slice5-default-390x844.metadata.json",
+        "output/m8a-v4.10-slice5/v4.10-slice5-transition-leo-aging-pressure-1440x900.metadata.json"
+      ]
+    },
+    {
+      "slice": "Slice 3",
+      "result": "passed",
+      "checks": [
+        "Truth opens focused boundary surface only",
+        "Details remains closed while Truth is open",
+        "full truth disclosure inspectable inside boundary surface"
+      ],
+      "evidence": [
+        "output/m8a-v4.10-slice5/v4.10-slice5-boundary-open-1440x900.metadata.json"
+      ]
+    },
+    {
+      "slice": "Slice 4",
+      "result": "passed",
+      "checks": [
+        "Details opens evidence inspector only",
+        "Truth boundary remains closed while Details is open",
+        "inspector remains source/boundary/evidence-oriented"
+      ],
+      "evidence": [
+        "output/m8a-v4.10-slice5/v4.10-slice5-details-open-1440x900.metadata.json"
+      ]
+    },
+    {
+      "slice": "Slice 5",
+      "result": "passed",
+      "checks": [
+        "invariants preserved",
+        "desktop/narrow screenshot evidence written",
+        "forbidden positive claim scan passed",
+        "package scripts for Slice 1-5 present; Slice 1-4 pass/fail is validated by the required external npm commands in final closeout"
+      ],
+      "evidence": [
+        "output/m8a-v4.10-slice5/capture-manifest.json"
+      ],
+      "packageScripts": {
+        "test:m8a-v4.10:slice1": "npm run build && node scripts/verify-m8a-v4.3-raw-itri-side-read.mjs && node scripts/verify-m8a-v4.6b-runtime-source-boundary.mjs && node tests/smoke/verify-m8a-v4.10-slice1-first-viewport-composition-runtime.mjs",
+        "test:m8a-v4.10:slice2": "npm run build && node scripts/verify-m8a-v4.3-raw-itri-side-read.mjs && node scripts/verify-m8a-v4.6b-runtime-source-boundary.mjs && node tests/smoke/verify-m8a-v4.10-slice2-handover-sequence-rail-runtime.mjs",
+        "test:m8a-v4.10:slice3": "npm run build && node scripts/verify-m8a-v4.3-raw-itri-side-read.mjs && node scripts/verify-m8a-v4.6b-runtime-source-boundary.mjs && node tests/smoke/verify-m8a-v4.10-slice3-boundary-affordance-separation-runtime.mjs",
+        "test:m8a-v4.10:slice4": "npm run build && node scripts/verify-m8a-v4.3-raw-itri-side-read.mjs && node scripts/verify-m8a-v4.6b-runtime-source-boundary.mjs && node tests/smoke/verify-m8a-v4.10-slice4-inspector-evidence-redesign-runtime.mjs",
+        "test:m8a-v4.10:slice5": "npm run build && node scripts/verify-m8a-v4.3-raw-itri-side-read.mjs && node scripts/verify-m8a-v4.6b-runtime-source-boundary.mjs && node tests/smoke/verify-m8a-v4.10-slice5-validation-matrix-runtime.mjs"
+      }
+    }
+  ],
+  "captures": [
+    {
+      "name": "default-1440x900",
+      "action": "default",
+      "screenshot": {
+        "path": "output/m8a-v4.10-slice5/v4.10-slice5-default-1440x900.png",
+        "sizeBytes": 1174306,
+        "dimensions": {
+          "width": 1440,
+          "height": 900
+        }
+      },
+      "metadata": "output/m8a-v4.10-slice5/v4.10-slice5-default-1440x900.metadata.json",
+      "activeWindowId": "leo-acquisition-context",
+      "nextWindowId": "leo-aging-pressure",
+      "detailsSheetState": "closed",
+      "boundarySurfaceState": "closed",
+      "boundaryFullTruthDisclosureState": "closed",
+      "sceneNarrativeRect": {
+        "left": 118.1875,
+        "top": 485.6875,
+        "right": 214.1875,
+        "bottom": 509.6875,
+        "width": 96,
+        "height": 24
+      },
+      "sequenceRailRect": {
+        "left": 304,
+        "top": 788,
+        "right": 1136,
+        "bottom": 844,
+        "width": 832,
+        "height": 56
+      },
+      "stripRect": {
+        "left": 23.03125,
+        "top": 74.234375,
+        "right": 607.03125,
+        "bottom": 159.390625,
+        "width": 584,
+        "height": 85.15625
+      },
+      "sheetRect": {
+        "left": 0,
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "width": 0,
+        "height": 0
+      },
+      "boundarySurfaceRect": {
+        "left": 0,
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "width": 0,
+        "height": 0
+      },
+      "desktopOverlayRisk": {
+        "accepted": true,
+        "observed": false,
+        "reviewNote": "No desktop Details-open sequence-rail overlap observed in this capture."
+      },
+      "narrowLayoutReview": []
+    },
+    {
+      "name": "default-1280x720",
+      "action": "default",
+      "screenshot": {
+        "path": "output/m8a-v4.10-slice5/v4.10-slice5-default-1280x720.png",
+        "sizeBytes": 882119,
+        "dimensions": {
+          "width": 1280,
+          "height": 720
+        }
+      },
+      "metadata": "output/m8a-v4.10-slice5/v4.10-slice5-default-1280x720.metadata.json",
+      "activeWindowId": "leo-acquisition-context",
+      "nextWindowId": "leo-aging-pressure",
+      "detailsSheetState": "closed",
+      "boundarySurfaceState": "closed",
+      "boundaryFullTruthDisclosureState": "closed",
+      "sceneNarrativeRect": {
+        "left": 53.1875,
+        "top": 383.796875,
+        "right": 149.1875,
+        "bottom": 407.796875,
+        "width": 96,
+        "height": 24
+      },
+      "sequenceRailRect": {
+        "left": 224,
+        "top": 608,
+        "right": 1056,
+        "bottom": 664,
+        "width": 832,
+        "height": 56
+      },
+      "stripRect": {
+        "left": 20.46875,
+        "top": 71.671875,
+        "right": 604.46875,
+        "bottom": 156.828125,
+        "width": 584,
+        "height": 85.15625
+      },
+      "sheetRect": {
+        "left": 0,
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "width": 0,
+        "height": 0
+      },
+      "boundarySurfaceRect": {
+        "left": 0,
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "width": 0,
+        "height": 0
+      },
+      "desktopOverlayRisk": {
+        "accepted": true,
+        "observed": false,
+        "reviewNote": "No desktop Details-open sequence-rail overlap observed in this capture."
+      },
+      "narrowLayoutReview": []
+    },
+    {
+      "name": "default-390x844",
+      "action": "default",
+      "screenshot": {
+        "path": "output/m8a-v4.10-slice5/v4.10-slice5-default-390x844.png",
+        "sizeBytes": 354624,
+        "dimensions": {
+          "width": 390,
+          "height": 844
+        }
+      },
+      "metadata": "output/m8a-v4.10-slice5/v4.10-slice5-default-390x844.metadata.json",
+      "activeWindowId": "leo-acquisition-context",
+      "nextWindowId": "leo-aging-pressure",
+      "detailsSheetState": "closed",
+      "boundarySurfaceState": "closed",
+      "boundaryFullTruthDisclosureState": "closed",
+      "sceneNarrativeRect": {
+        "left": 14,
+        "top": 402.296875,
+        "right": 106.046875,
+        "bottom": 426.296875,
+        "width": 92.046875,
+        "height": 24
+      },
+      "sequenceRailRect": {
+        "left": 12,
+        "top": 594.546875,
+        "right": 378,
+        "bottom": 680,
+        "width": 366,
+        "height": 85.453125
+      },
+      "stripRect": {
+        "left": 12,
+        "top": 46,
+        "right": 378,
+        "bottom": 207.90625,
+        "width": 366,
+        "height": 161.90625
+      },
+      "sheetRect": {
+        "left": 0,
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "width": 0,
+        "height": 0
+      },
+      "boundarySurfaceRect": {
+        "left": 0,
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "width": 0,
+        "height": 0
+      },
+      "desktopOverlayRisk": {
+        "accepted": true,
+        "observed": false,
+        "reviewNote": "No desktop Details-open sequence-rail overlap observed in this capture."
+      },
+      "narrowLayoutReview": [
+        {
+          "name": "secondary-controls",
+          "rect": {
+            "left": 12,
+            "top": 46,
+            "right": 378,
+            "bottom": 207.90625,
+            "width": 366,
+            "height": 161.90625
+          },
+          "visible": true
+        },
+        {
+          "name": "defaultTokenNotice",
+          "rect": {
+            "left": 111,
+            "top": 708,
+            "right": 373.46875,
+            "bottom": 812,
+            "width": 262.46875,
+            "height": 104
+          },
+          "visible": true
+        },
+        {
+          "name": "attribution",
+          "rect": {
+            "left": 204.921875,
+            "top": 801,
+            "right": 277.75,
+            "bottom": 812,
+            "width": 72.828125,
+            "height": 11
+          },
+          "visible": true
+        },
+        {
+          "name": "credits",
+          "rect": {
+            "left": 111,
+            "top": 708,
+            "right": 373.46875,
+            "bottom": 812,
+            "width": 262.46875,
+            "height": 104
+          },
+          "visible": true
+        },
+        {
+          "name": "viewerBottom",
+          "rect": {
+            "left": 111,
+            "top": 696,
+            "right": 390,
+            "bottom": 814,
+            "width": 279,
+            "height": 118
+          },
+          "visible": true
+        },
+        {
+          "name": "timeline",
+          "rect": {
+            "left": 106,
+            "top": 817,
+            "right": 361,
+            "bottom": 844,
+            "width": 255,
+            "height": 27
+          },
+          "visible": true
+        }
+      ]
+    },
+    {
+      "name": "details-open-1440x900",
+      "action": "details",
+      "screenshot": {
+        "path": "output/m8a-v4.10-slice5/v4.10-slice5-details-open-1440x900.png",
+        "sizeBytes": 1162826,
+        "dimensions": {
+          "width": 1440,
+          "height": 900
+        }
+      },
+      "metadata": "output/m8a-v4.10-slice5/v4.10-slice5-details-open-1440x900.metadata.json",
+      "activeWindowId": "leo-acquisition-context",
+      "nextWindowId": "leo-aging-pressure",
+      "detailsSheetState": "open",
+      "boundarySurfaceState": "closed",
+      "boundaryFullTruthDisclosureState": "closed",
+      "sceneNarrativeRect": {
+        "left": 118.890625,
+        "top": 485.1875,
+        "right": 214.890625,
+        "bottom": 509.1875,
+        "width": 96,
+        "height": 24
+      },
+      "sequenceRailRect": {
+        "left": 304,
+        "top": 788,
+        "right": 1136,
+        "bottom": 844,
+        "width": 832,
+        "height": 56
+      },
+      "stripRect": {
+        "left": 23.03125,
+        "top": 74.234375,
+        "right": 607.03125,
+        "bottom": 159.390625,
+        "width": 584,
+        "height": 85.15625
+      },
+      "sheetRect": {
+        "left": 1097,
+        "top": 23,
+        "right": 1417,
+        "bottom": 550.859375,
+        "width": 320,
+        "height": 527.859375
+      },
+      "boundarySurfaceRect": {
+        "left": 0,
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "width": 0,
+        "height": 0
+      },
+      "desktopOverlayRisk": {
+        "accepted": true,
+        "observed": false,
+        "reviewNote": "No desktop Details-open sequence-rail overlap observed in this capture."
+      },
+      "narrowLayoutReview": []
+    },
+    {
+      "name": "boundary-open-1440x900",
+      "action": "boundary-full-truth",
+      "screenshot": {
+        "path": "output/m8a-v4.10-slice5/v4.10-slice5-boundary-open-1440x900.png",
+        "sizeBytes": 1163349,
+        "dimensions": {
+          "width": 1440,
+          "height": 900
+        }
+      },
+      "metadata": "output/m8a-v4.10-slice5/v4.10-slice5-boundary-open-1440x900.metadata.json",
+      "activeWindowId": "leo-acquisition-context",
+      "nextWindowId": "leo-aging-pressure",
+      "detailsSheetState": "closed",
+      "boundarySurfaceState": "open",
+      "boundaryFullTruthDisclosureState": "open",
+      "sceneNarrativeRect": {
+        "left": 119,
+        "top": 485.09375,
+        "right": 215,
+        "bottom": 509.09375,
+        "width": 96,
+        "height": 24
+      },
+      "sequenceRailRect": {
+        "left": 304,
+        "top": 788,
+        "right": 1136,
+        "bottom": 844,
+        "width": 832,
+        "height": 56
+      },
+      "stripRect": {
+        "left": 23.03125,
+        "top": 74.234375,
+        "right": 607.03125,
+        "bottom": 159.390625,
+        "width": 584,
+        "height": 85.15625
+      },
+      "sheetRect": {
+        "left": 1097,
+        "top": 23,
+        "right": 1417,
+        "bottom": 771,
+        "width": 320,
+        "height": 748
+      },
+      "boundarySurfaceRect": {
+        "left": 0,
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "width": 0,
+        "height": 0
+      },
+      "desktopOverlayRisk": {
+        "accepted": true,
+        "observed": false,
+        "reviewNote": "No desktop Details-open sequence-rail overlap observed in this capture."
+      },
+      "narrowLayoutReview": []
+    },
+    {
+      "name": "transition-leo-aging-pressure-1440x900",
+      "action": "transition",
+      "screenshot": {
+        "path": "output/m8a-v4.10-slice5/v4.10-slice5-transition-leo-aging-pressure-1440x900.png",
+        "sizeBytes": 1202571,
+        "dimensions": {
+          "width": 1440,
+          "height": 900
+        }
+      },
+      "metadata": "output/m8a-v4.10-slice5/v4.10-slice5-transition-leo-aging-pressure-1440x900.metadata.json",
+      "activeWindowId": "leo-aging-pressure",
+      "nextWindowId": "meo-continuity-hold",
+      "detailsSheetState": "closed",
+      "boundarySurfaceState": "closed",
+      "boundaryFullTruthDisclosureState": "closed",
+      "sceneNarrativeRect": {
+        "left": 396.5,
+        "top": 457,
+        "right": 514.828125,
+        "bottom": 481,
+        "width": 118.328125,
+        "height": 24
+      },
+      "sequenceRailRect": {
+        "left": 304,
+        "top": 788,
+        "right": 1136,
+        "bottom": 844,
+        "width": 832,
+        "height": 56
+      },
+      "stripRect": {
+        "left": 23.03125,
+        "top": 74.234375,
+        "right": 607.03125,
+        "bottom": 159.390625,
+        "width": 584,
+        "height": 85.15625
+      },
+      "sheetRect": {
+        "left": 0,
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "width": 0,
+        "height": 0
+      },
+      "boundarySurfaceRect": {
+        "left": 0,
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "width": 0,
+        "height": 0
+      },
+      "desktopOverlayRisk": {
+        "accepted": true,
+        "observed": false,
+        "reviewNote": "No desktop Details-open sequence-rail overlap observed in this capture."
+      },
+      "narrowLayoutReview": []
+    }
+  ],
+  "packageScripts": {
+    "test:m8a-v4.10:slice1": "npm run build && node scripts/verify-m8a-v4.3-raw-itri-side-read.mjs && node scripts/verify-m8a-v4.6b-runtime-source-boundary.mjs && node tests/smoke/verify-m8a-v4.10-slice1-first-viewport-composition-runtime.mjs",
+    "test:m8a-v4.10:slice2": "npm run build && node scripts/verify-m8a-v4.3-raw-itri-side-read.mjs && node scripts/verify-m8a-v4.6b-runtime-source-boundary.mjs && node tests/smoke/verify-m8a-v4.10-slice2-handover-sequence-rail-runtime.mjs",
+    "test:m8a-v4.10:slice3": "npm run build && node scripts/verify-m8a-v4.3-raw-itri-side-read.mjs && node scripts/verify-m8a-v4.6b-runtime-source-boundary.mjs && node tests/smoke/verify-m8a-v4.10-slice3-boundary-affordance-separation-runtime.mjs",
+    "test:m8a-v4.10:slice4": "npm run build && node scripts/verify-m8a-v4.3-raw-itri-side-read.mjs && node scripts/verify-m8a-v4.6b-runtime-source-boundary.mjs && node tests/smoke/verify-m8a-v4.10-slice4-inspector-evidence-redesign-runtime.mjs",
+    "test:m8a-v4.10:slice5": "npm run build && node scripts/verify-m8a-v4.3-raw-itri-side-read.mjs && node scripts/verify-m8a-v4.6b-runtime-source-boundary.mjs && node tests/smoke/verify-m8a-v4.10-slice5-validation-matrix-runtime.mjs"
+  },
+  "taskOwnedProcesses": [
+    {
+      "type": "static-server-started",
+      "at": "2026-05-04T03:10:31.584Z",
+      "pid": 74975,
+      "baseUrl": "http://127.0.0.1:37945"
+    },
+    {
+      "type": "headless-browser-started",
+      "at": "2026-05-04T03:10:31.694Z",
+      "pid": 74983,
+      "browserCommand": "google-chrome"
+    },
+    {
+      "type": "headless-browser-stop-requested",
+      "at": "2026-05-04T03:11:31.726Z",
+      "pid": 74983
+    },
+    {
+      "type": "static-server-stop-requested",
+      "at": "2026-05-04T03:11:31.764Z",
+      "pid": 74975
+    }
+  ]
+}

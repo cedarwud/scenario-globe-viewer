@@ -1,0 +1,164 @@
+{
+  "generatedAt": "2026-05-01T03:38:31.345Z",
+  "route": "/?scenePreset=regional&m8aV4GroundStationScene=1",
+  "baseUrl": "http://127.0.0.1:36675",
+  "distSource": "existing dist/; no rebuild was run for Slice 0",
+  "taskOwnedProcesses": [
+    {
+      "type": "static-server-started",
+      "at": "2026-05-01T03:37:38.544Z",
+      "pid": 25788,
+      "baseUrl": "http://127.0.0.1:36675"
+    },
+    {
+      "type": "headless-browser-started",
+      "at": "2026-05-01T03:37:38.712Z",
+      "pid": 25799,
+      "browserCommand": "google-chrome"
+    },
+    {
+      "type": "headless-browser-stop-requested",
+      "at": "2026-05-01T03:38:31.345Z",
+      "pid": 25799
+    },
+    {
+      "type": "static-server-stop-requested",
+      "at": "2026-05-01T03:38:31.385Z",
+      "pid": 25788
+    },
+    {
+      "type": "wireframe-recapture-browser-started",
+      "at": "2026-05-01T03:39:41.755Z",
+      "pid": 27965,
+      "browserCommand": "google-chrome"
+    },
+    {
+      "type": "wireframe-recapture-browser-stop-requested",
+      "at": "2026-05-01T03:39:42.472Z",
+      "pid": 27965
+    },
+    {
+      "type": "wireframe-narrow-copyfit-recapture-browser-started",
+      "at": "2026-05-01T03:40:00Z",
+      "pid": 28653,
+      "browserCommand": "google-chrome"
+    },
+    {
+      "type": "wireframe-narrow-copyfit-recapture-browser-stop-requested",
+      "at": "2026-05-01T03:40:01Z",
+      "pid": 28653
+    }
+  ],
+  "captures": [
+    {
+      "filename": "v4.9-baseline-default-1440x900.png",
+      "path": "/home/u24/papers/scenario-globe-viewer/output/m8a-v4.10-slice0/v4.9-baseline-default-1440x900.png",
+      "sizeBytes": 1164033,
+      "dimensions": {
+        "width": 1440,
+        "height": 900
+      },
+      "type": "v4.9-baseline-default",
+      "viewport": "1440x900",
+      "metadata": "v4.9-baseline-default-1440x900.metadata.json",
+      "activeWindowId": "leo-acquisition-context"
+    },
+    {
+      "filename": "v4.9-baseline-default-1280x720.png",
+      "path": "/home/u24/papers/scenario-globe-viewer/output/m8a-v4.10-slice0/v4.9-baseline-default-1280x720.png",
+      "sizeBytes": 880778,
+      "dimensions": {
+        "width": 1280,
+        "height": 720
+      },
+      "type": "v4.9-baseline-default",
+      "viewport": "1280x720",
+      "metadata": "v4.9-baseline-default-1280x720.metadata.json",
+      "activeWindowId": "leo-acquisition-context"
+    },
+    {
+      "filename": "v4.9-baseline-default-390x844.png",
+      "path": "/home/u24/papers/scenario-globe-viewer/output/m8a-v4.10-slice0/v4.9-baseline-default-390x844.png",
+      "sizeBytes": 364124,
+      "dimensions": {
+        "width": 390,
+        "height": 844
+      },
+      "type": "v4.9-baseline-default",
+      "viewport": "390x844",
+      "metadata": "v4.9-baseline-default-390x844.metadata.json",
+      "activeWindowId": "leo-acquisition-context"
+    },
+    {
+      "filename": "v4.9-behavior-details-open-1440x900.png",
+      "path": "/home/u24/papers/scenario-globe-viewer/output/m8a-v4.10-slice0/v4.9-behavior-details-open-1440x900.png",
+      "sizeBytes": 1102680,
+      "dimensions": {
+        "width": 1440,
+        "height": 900
+      },
+      "type": "v4.9-behavior",
+      "viewport": "1440x900",
+      "interaction": "details-open",
+      "activeWindowId": "leo-acquisition-context"
+    },
+    {
+      "filename": "v4.9-behavior-truth-open-1440x900.png",
+      "path": "/home/u24/papers/scenario-globe-viewer/output/m8a-v4.10-slice0/v4.9-behavior-truth-open-1440x900.png",
+      "sizeBytes": 1102610,
+      "dimensions": {
+        "width": 1440,
+        "height": 900
+      },
+      "type": "v4.9-behavior",
+      "viewport": "1440x900",
+      "interaction": "truth-open",
+      "activeWindowId": "leo-acquisition-context"
+    },
+    {
+      "filename": "target-wireframe-desktop-1440x900.png",
+      "path": "/home/u24/papers/scenario-globe-viewer/output/m8a-v4.10-slice0/target-wireframe-desktop-1440x900.png",
+      "sizeBytes": 84910,
+      "dimensions": {
+        "width": 1440,
+        "height": 900
+      },
+      "type": "target-wireframe",
+      "viewport": "1440x900",
+      "sourceSvg": "target-wireframe-desktop.svg",
+      "recaptureReason": "inline-html-wrapper-to-avoid-image-document-scaling"
+    },
+    {
+      "filename": "target-wireframe-narrow-390x844.png",
+      "path": "/home/u24/papers/scenario-globe-viewer/output/m8a-v4.10-slice0/target-wireframe-narrow-390x844.png",
+      "sizeBytes": 53290,
+      "dimensions": {
+        "width": 390,
+        "height": 844
+      },
+      "type": "target-wireframe",
+      "viewport": "390x844",
+      "sourceSvg": "target-wireframe-narrow.svg",
+      "recaptureReason": "inline-html-wrapper-and-narrow-boundary-copy-fit-correction"
+    }
+  ],
+  "metadataFiles": [
+    "v4.9-baseline-default-1440x900.metadata.json",
+    "v4.9-baseline-default-1280x720.metadata.json",
+    "v4.9-baseline-default-390x844.metadata.json",
+    "v4.9-details-truth-behavior.metadata.json"
+  ],
+  "targetWireframes": [
+    "target-wireframe-desktop.svg",
+    "target-wireframe-desktop-1440x900.png",
+    "target-wireframe-narrow.svg",
+    "target-wireframe-narrow-390x844.png"
+  ],
+  "forbiddenRuntimeChange": "No runtime source, styles, tests, or package files were modified by this capture script.",
+  "captureNotes": [
+    "Existing dist/ was used; Slice 0 did not run a rebuild and did not modify runtime output except the requested evidence folder.",
+    "The target is static wireframe evidence only, not runtime implementation.",
+    "Narrow target wireframe copy was wrapped to keep boundary text inside the viewport."
+  ],
+  "manifestUpdatedAt": "2026-05-01T03:41:02.835Z"
+}

@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="390" height="844" viewBox="0 0 390 844">
+  <rect width="390" height="844" fill="#07100e"/>
+  <rect x="0" y="0" width="390" height="88" fill="#0d1413"/>
+  <text x="18" y="28" fill="#eff7f3" font-family="Inter, Arial, sans-serif" font-size="16" font-weight="700">M8A V4.10 target: handover review</text>
+  <text x="18" y="52" fill="#f2bf5a" font-family="Inter, Arial, sans-serif" font-size="11">Simulation review - not an operator log</text>
+  <text x="18" y="68" fill="#f2bf5a" font-family="Inter, Arial, sans-serif" font-size="11">No satellite, gateway, path, or metric claim</text>
+  <rect x="18" y="120" width="354" height="420" rx="10" fill="#091614" stroke="#1d302d"/>
+  <circle cx="187.2" cy="365" r="145" fill="#102723" stroke="#335d54" stroke-width="2"/>
+  <ellipse cx="187.2" cy="401.25" rx="133.4" ry="37.7" fill="none" stroke="#284741" stroke-width="1"/>
+  <path d="M 45.099999999999994 357 C 150.95 324.4, 235.04999999999998 396.9, 324.95 353" fill="none" stroke="#76d8c5" stroke-width="3" opacity="0.84"/>
+  <path d="M 79.89999999999999 298.3 C 169.79999999999998 260.6, 271.29999999999995 321.5, 306.09999999999997 394" fill="none" stroke="#bf8cff" stroke-width="2" opacity="0.66"/>
+  <path d="M 62.499999999999986 443.3 C 158.2 481, 248.1 457.8, 329.29999999999995 417.2" fill="none" stroke="#95d66b" stroke-width="2" opacity="0.58"/>
+  <circle cx="172.7" cy="328.75" r="9" fill="#f2bf5a"/>
+  <line x1="172.7" y1="328.75" x2="34" y2="184" stroke="#f2bf5a" stroke-width="2"/>
+  <rect x="24" y="146" width="342" height="92" rx="8" fill="#14201e" stroke="#f2bf5a"/>
+  <text x="42" y="174" fill="#f2bf5a" font-family="Inter, Arial, sans-serif" font-size="12" font-weight="700">LEO pressure</text>
+  <text x="42" y="200" fill="#eff7f3" font-family="Inter, Arial, sans-serif" font-size="14" font-weight="700">Watch the LEO candidate cue</text>
+  <text x="42" y="226" fill="#8fa19d" font-family="Inter, Arial, sans-serif" font-size="12">Next: continuity shifts to MEO context.</text>
+  <rect x="20" y="758" width="350" height="54" rx="8" fill="#101817" stroke="#2a3836"/>
+  <text x="36" y="786" fill="#eff7f3" font-family="Inter, Arial, sans-serif" font-size="13" font-weight="700">Details optional</text>
+  <text x="36" y="806" fill="#8fa19d" font-family="Inter, Arial, sans-serif" font-size="11">Evidence opens as sheet.</text>
+  <g><circle cx="36" cy="686" r="8" fill="#26312f" stroke="#76d8c5" stroke-width="1.5"/><text x="36" y="718" fill="#8fa19d" font-size="11" text-anchor="middle" font-family="Inter, Arial, sans-serif">1</text></g>
+<g><circle cx="115.5" cy="686" r="13" fill="#f2bf5a" stroke="#f2bf5a" stroke-width="1.5"/><text x="115.5" y="718" fill="#eff7f3" font-size="11" text-anchor="middle" font-family="Inter, Arial, sans-serif">2</text></g>
+<g><circle cx="195" cy="686" r="8" fill="#26312f" stroke="#f2bf5a" stroke-width="3"/><text x="195" y="718" fill="#8fa19d" font-size="11" text-anchor="middle" font-family="Inter, Arial, sans-serif">3</text><text x="195" y="666" fill="#f2bf5a" font-size="11" text-anchor="middle" font-family="Inter, Arial, sans-serif">next</text></g>
+<g><circle cx="274.5" cy="686" r="8" fill="#26312f" stroke="#76d8c5" stroke-width="1.5"/><text x="274.5" y="718" fill="#8fa19d" font-size="11" text-anchor="middle" font-family="Inter, Arial, sans-serif">4</text></g>
+<g><circle cx="354" cy="686" r="8" fill="#26312f" stroke="#95d66b" stroke-width="1.5"/><text x="354" y="718" fill="#8fa19d" font-size="11" text-anchor="middle" font-family="Inter, Arial, sans-serif">5</text></g>
+  <text x="20" y="644" fill="#eff7f3" font-family="Inter, Arial, sans-serif" font-size="14" font-weight="700">Sequence rail: active LEO pressure, next MEO hold</text>
+</svg>

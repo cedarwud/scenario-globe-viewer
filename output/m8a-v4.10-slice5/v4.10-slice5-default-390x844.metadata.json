@@ -1,0 +1,910 @@
+{
+  "capturedAt": "2026-05-04T03:10:59.880Z",
+  "route": "/?scenePreset=regional&m8aV4GroundStationScene=1",
+  "capture": {
+    "name": "default-390x844",
+    "action": "default",
+    "width": 390,
+    "height": 844,
+    "expectedViewportClass": "narrow",
+    "screenshot": "v4.10-slice5-default-390x844.png",
+    "metadata": "v4.10-slice5-default-390x844.metadata.json"
+  },
+  "screenshot": {
+    "path": "output/m8a-v4.10-slice5/v4.10-slice5-default-390x844.png",
+    "sizeBytes": 354624,
+    "dimensions": {
+      "width": 390,
+      "height": 844
+    }
+  },
+  "productVisibleAcceptance": {
+    "firstViewportReadsAsHandoverReviewProduct": true,
+    "detailsClosedByDefault": true,
+    "truthBoundaryClosedByDefault": true,
+    "sceneNarrativePrimary": true,
+    "sequenceRailVisibleAndOrdered": true,
+    "forbiddenPositiveClaimScan": "passed"
+  },
+  "desktopOverlayRisk": {
+    "accepted": true,
+    "observed": false,
+    "reviewNote": "No desktop Details-open sequence-rail overlap observed in this capture."
+  },
+  "narrowLayoutReview": [
+    {
+      "name": "secondary-controls",
+      "rect": {
+        "left": 12,
+        "top": 46,
+        "right": 378,
+        "bottom": 207.90625,
+        "width": 366,
+        "height": 161.90625
+      },
+      "visible": true
+    },
+    {
+      "name": "defaultTokenNotice",
+      "rect": {
+        "left": 111,
+        "top": 708,
+        "right": 373.46875,
+        "bottom": 812,
+        "width": 262.46875,
+        "height": 104
+      },
+      "visible": true
+    },
+    {
+      "name": "attribution",
+      "rect": {
+        "left": 204.921875,
+        "top": 801,
+        "right": 277.75,
+        "bottom": 812,
+        "width": 72.828125,
+        "height": 11
+      },
+      "visible": true
+    },
+    {
+      "name": "credits",
+      "rect": {
+        "left": 111,
+        "top": 708,
+        "right": 373.46875,
+        "bottom": 812,
+        "width": 262.46875,
+        "height": 104
+      },
+      "visible": true
+    },
+    {
+      "name": "viewerBottom",
+      "rect": {
+        "left": 111,
+        "top": 696,
+        "right": 390,
+        "bottom": 814,
+        "width": 279,
+        "height": 118
+      },
+      "visible": true
+    },
+    {
+      "name": "timeline",
+      "rect": {
+        "left": 106,
+        "top": 817,
+        "right": 361,
+        "bottom": 844,
+        "width": 255,
+        "height": 27
+      },
+      "visible": true
+    }
+  ],
+  "result": {
+    "label": "default-390x844",
+    "urlPath": "/?scenePreset=regional&m8aV4GroundStationScene=1",
+    "viewport": {
+      "width": 390,
+      "height": 844
+    },
+    "viewportClass": "narrow",
+    "visibleProductText": "13 顆衛星模擬展示 · 完整 ≥500 LEO 多軌道驗證見後續階段 LEO MEO GEO ✓ LEO MEO GEO ✓ LEO LEO LEO LEO LEO LEO MEO MEO MEO MEO GEO focus · LEO State 1 of 5: LEO review focus Next: State 2 of 5 LEO pressure 1 LEO 2 LEO 3 MEO 4 LEO 5 GEO Current state LEO review focus State 1 of 5 Pause Restart 30x 60x 120x Details 模擬展示 operator-family precision TLE: CelesTrak NORAD GP · 2026-04-26 13 actors 服務時間：~19 分鐘 下一段：訊號減弱 ~ 為模擬推演值",
+    "stateFacts": {
+      "route": "/?scenePreset=regional&m8aV4GroundStationScene=1",
+      "endpointPairId": "taiwan-cht-speedcast-singapore-operator-family-2026-04-26",
+      "acceptedPairPrecision": "operator-family-only",
+      "modelId": "m8a-v4.6d-simulation-handover-model.v1",
+      "modelTruth": "simulation-output-not-operator-log",
+      "orbitActorCounts": {
+        "leo": 6,
+        "meo": 5,
+        "geo": 2
+      },
+      "sourceLineage": {
+        "projectionRead": "M8A_V4_GROUND_STATION_RUNTIME_PROJECTION",
+        "serviceStateRead": "M8A_V4_GROUND_STATION_RUNTIME_PROJECTION.serviceStateModel.timeline",
+        "simulationHandoverRead": "M8A_V4_GROUND_STATION_RUNTIME_PROJECTION.simulationHandoverModel.timeline",
+        "rawPackageSideReadOwnership": "forbidden",
+        "rawSourcePathsIncluded": false
+      },
+      "timelineWindowIds": [
+        "leo-acquisition-context",
+        "leo-aging-pressure",
+        "meo-continuity-hold",
+        "leo-reentry-candidate",
+        "geo-continuity-guard"
+      ],
+      "requiredWindowNonClaimKeys": [
+        "noRealOperatorHandoverEvent",
+        "noActiveServingSatelliteIdentity",
+        "noActiveGatewayAssignment",
+        "noPairSpecificTeleportPathTruth",
+        "noMeasuredLatencyJitterThroughputTruth",
+        "noNativeRfHandover",
+        "noEndpointPairOrPrecisionChange",
+        "noR2RuntimeSelector",
+        "noRawItriOrLiveExternalRuntimeSource"
+      ],
+      "timelineNonClaims": [
+        {
+          "windowId": "leo-acquisition-context",
+          "nonClaims": {
+            "noRealOperatorHandoverEvent": true,
+            "noActiveServingSatelliteIdentity": true,
+            "noActiveGatewayAssignment": true,
+            "noPairSpecificTeleportPathTruth": true,
+            "noMeasuredLatencyJitterThroughputTruth": true,
+            "noNativeRfHandover": true,
+            "noEndpointPairOrPrecisionChange": true,
+            "noR2RuntimeSelector": true,
+            "noRawItriOrLiveExternalRuntimeSource": true
+          }
+        },
+        {
+          "windowId": "leo-aging-pressure",
+          "nonClaims": {
+            "noRealOperatorHandoverEvent": true,
+            "noActiveServingSatelliteIdentity": true,
+            "noActiveGatewayAssignment": true,
+            "noPairSpecificTeleportPathTruth": true,
+            "noMeasuredLatencyJitterThroughputTruth": true,
+            "noNativeRfHandover": true,
+            "noEndpointPairOrPrecisionChange": true,
+            "noR2RuntimeSelector": true,
+            "noRawItriOrLiveExternalRuntimeSource": true
+          }
+        },
+        {
+          "windowId": "meo-continuity-hold",
+          "nonClaims": {
+            "noRealOperatorHandoverEvent": true,
+            "noActiveServingSatelliteIdentity": true,
+            "noActiveGatewayAssignment": true,
+            "noPairSpecificTeleportPathTruth": true,
+            "noMeasuredLatencyJitterThroughputTruth": true,
+            "noNativeRfHandover": true,
+            "noEndpointPairOrPrecisionChange": true,
+            "noR2RuntimeSelector": true,
+            "noRawItriOrLiveExternalRuntimeSource": true
+          }
+        },
+        {
+          "windowId": "leo-reentry-candidate",
+          "nonClaims": {
+            "noRealOperatorHandoverEvent": true,
+            "noActiveServingSatelliteIdentity": true,
+            "noActiveGatewayAssignment": true,
+            "noPairSpecificTeleportPathTruth": true,
+            "noMeasuredLatencyJitterThroughputTruth": true,
+            "noNativeRfHandover": true,
+            "noEndpointPairOrPrecisionChange": true,
+            "noR2RuntimeSelector": true,
+            "noRawItriOrLiveExternalRuntimeSource": true
+          }
+        },
+        {
+          "windowId": "geo-continuity-guard",
+          "nonClaims": {
+            "noRealOperatorHandoverEvent": true,
+            "noActiveServingSatelliteIdentity": true,
+            "noActiveGatewayAssignment": true,
+            "noPairSpecificTeleportPathTruth": true,
+            "noMeasuredLatencyJitterThroughputTruth": true,
+            "noNativeRfHandover": true,
+            "noEndpointPairOrPrecisionChange": true,
+            "noR2RuntimeSelector": true,
+            "noRawItriOrLiveExternalRuntimeSource": true
+          }
+        }
+      ],
+      "activeWindowId": "leo-acquisition-context",
+      "detailsSheetState": "closed",
+      "boundarySurfaceState": "closed",
+      "boundaryFullTruthDisclosureState": "closed",
+      "firstViewportComposition": {
+        "version": "m8a-v4.10-first-viewport-composition-slice1-runtime.v1",
+        "scope": "slice1-first-viewport-composition",
+        "sceneNarrativeVisibleContent": [
+          "active-state-title",
+          "orbit-class-token",
+          "first-read-line",
+          "watch-cue-or-fallback",
+          "next-line"
+        ],
+        "controlsPriority": "secondary",
+        "inspectorDefaultOpen": false,
+        "routePreservation": "1",
+        "endpointPairPreserved": "taiwan-cht-speedcast-singapore-operator-family-2026-04-26",
+        "sequenceRailScope": "slice2-handover-sequence-rail"
+      },
+      "handoverSequenceRail": {
+        "version": "m8a-v4.10-handover-sequence-rail-slice2-runtime.v1",
+        "scope": "slice2-handover-sequence-rail",
+        "visibleContent": [
+          "five-state-path",
+          "active-state-mark",
+          "next-state-mark",
+          "transition-event-link"
+        ],
+        "viewportPolicy": "desktop-visible-narrow-compact",
+        "windowIds": [
+          "leo-acquisition-context",
+          "leo-aging-pressure",
+          "meo-continuity-hold",
+          "leo-reentry-candidate",
+          "geo-continuity-guard"
+        ],
+        "activeWindowId": "leo-acquisition-context",
+        "nextWindowId": "leo-aging-pressure",
+        "activeProductLabel": "LEO review focus",
+        "nextProductLabel": "LEO pressure",
+        "activeOrdinalLabel": "State 1 of 5",
+        "nextOrdinalLabel": "State 2 of 5",
+        "items": [
+          {
+            "windowId": "leo-acquisition-context",
+            "stateIndex": 1,
+            "stateCount": 5,
+            "ordinalLabel": "State 1 of 5",
+            "railLabel": "LEO review",
+            "productLabel": "LEO review focus",
+            "orbitClassToken": "LEO",
+            "isActive": true,
+            "isNext": false,
+            "isTransitionFrom": false,
+            "isTransitionTo": false
+          },
+          {
+            "windowId": "leo-aging-pressure",
+            "stateIndex": 2,
+            "stateCount": 5,
+            "ordinalLabel": "State 2 of 5",
+            "railLabel": "LEO pressure",
+            "productLabel": "LEO pressure",
+            "orbitClassToken": "LEO",
+            "isActive": false,
+            "isNext": true,
+            "isTransitionFrom": false,
+            "isTransitionTo": false
+          },
+          {
+            "windowId": "meo-continuity-hold",
+            "stateIndex": 3,
+            "stateCount": 5,
+            "ordinalLabel": "State 3 of 5",
+            "railLabel": "MEO hold",
+            "productLabel": "MEO continuity hold",
+            "orbitClassToken": "MEO",
+            "isActive": false,
+            "isNext": false,
+            "isTransitionFrom": false,
+            "isTransitionTo": false
+          },
+          {
+            "windowId": "leo-reentry-candidate",
+            "stateIndex": 4,
+            "stateCount": 5,
+            "ordinalLabel": "State 4 of 5",
+            "railLabel": "LEO re-entry",
+            "productLabel": "LEO re-entry",
+            "orbitClassToken": "LEO",
+            "isActive": false,
+            "isNext": false,
+            "isTransitionFrom": false,
+            "isTransitionTo": false
+          },
+          {
+            "windowId": "geo-continuity-guard",
+            "stateIndex": 5,
+            "stateCount": 5,
+            "ordinalLabel": "State 5 of 5",
+            "railLabel": "GEO guard",
+            "productLabel": "GEO guard context",
+            "orbitClassToken": "GEO",
+            "isActive": false,
+            "isNext": false,
+            "isTransitionFrom": false,
+            "isTransitionTo": false
+          }
+        ],
+        "transitionEvent": {
+          "visible": false,
+          "fromWindowId": "",
+          "toWindowId": ""
+        }
+      },
+      "boundaryAffordance": {
+        "version": "m8a-v4.10-boundary-affordance-separation-slice3-runtime.v1",
+        "scope": "slice3-boundary-affordance-separation",
+        "visibleContent": [
+          "compact-boundary-line",
+          "focused-boundary-surface",
+          "full-truth-disclosure",
+          "details-independent-state"
+        ],
+        "compactCopy": "Simulation review - not operator log",
+        "secondaryCopy": "No active satellite, gateway, path, or measured metric claim.",
+        "triggerLabel": "Truth",
+        "defaultVisible": true,
+        "detailsBehavior": "focused-boundary-surface-not-generic-details-inspector",
+        "detailsSheetState": "closed",
+        "boundarySurfaceState": "closed",
+        "fullTruthDisclosureState": "closed",
+        "fullTruthDisclosurePlacement": "boundary-surface-and-details-secondary-disclosure",
+        "forbiddenBehavior": [
+          "truth-does-not-open-generic-details-inspector",
+          "truth-and-details-do-not-share-open-state",
+          "truth-and-details-do-not-share-sheet-surface"
+        ]
+      },
+      "inspectorLayer": {
+        "scope": "slice4-inspector-details-hierarchy-redesign",
+        "v410EvidenceRedesignVersion": "m8a-v4.10-inspector-evidence-redesign-slice4-runtime.v1",
+        "evidenceStructure": [
+          "current-replay-event-evidence",
+          "sequence-selected-window-context",
+          "source-and-boundary-notes",
+          "not-being-claimed"
+        ],
+        "primaryVisibleContent": [
+          "current-state",
+          "why-this-state-exists",
+          "what-changed-from-previous-state",
+          "what-to-watch-now",
+          "what-happens-next",
+          "boundary-summary"
+        ],
+        "deniedPrimaryVisibleContent": [
+          "raw-actor-ids",
+          "cue-ids",
+          "selected-anchor-ids",
+          "selected-relation-corridor-ids",
+          "anchor-metadata",
+          "full-candidate-context-arrays",
+          "full-fallback-context-arrays"
+        ],
+        "debugEvidenceContent": [
+          "representative-actor-id",
+          "candidate-context-actor-id-array",
+          "fallback-context-actor-id-array",
+          "selected-anchor-id",
+          "selected-relation-cue-id",
+          "selected-corridor-id",
+          "anchor-runtime-metadata"
+        ],
+        "debugEvidenceDefaultOpen": false,
+        "firstReadRole": "secondary-evidence-inspector",
+        "deniedFirstReadRoles": [
+          "operator-log",
+          "claim-panel",
+          "mission-narrative",
+          "primary-product-narrative"
+        ],
+        "truthBoundaryPlacement": "concise-primary-summary-full-secondary-disclosure",
+        "metadataPolicy": "raw-ids-and-arrays-collapsed-implementation-evidence",
+        "notClaimedContent": [
+          "not-active-satellite",
+          "not-active-gateway-or-path",
+          "not-measured-metric",
+          "not-native-rf",
+          "not-operator-log-truth"
+        ],
+        "surfaceSeparation": "details-inspector-and-truth-boundary-are-separate-states-and-surfaces"
+      }
+    },
+    "rootDataset": {
+      "firstViewport": "m8a-v4.10-first-viewport-composition-slice1-runtime.v1",
+      "controlsPriority": "secondary",
+      "sceneNarrativeVisibleContent": [
+        "active-state-title",
+        "orbit-class-token",
+        "first-read-line",
+        "watch-cue-or-fallback",
+        "next-line"
+      ],
+      "sequenceRail": "m8a-v4.10-handover-sequence-rail-slice2-runtime.v1",
+      "sequenceRailVisibleContent": [
+        "five-state-path",
+        "active-state-mark",
+        "next-state-mark",
+        "transition-event-link"
+      ],
+      "boundaryAffordance": "m8a-v4.10-boundary-affordance-separation-slice3-runtime.v1",
+      "boundaryVisibleContent": [
+        "compact-boundary-line",
+        "focused-boundary-surface",
+        "full-truth-disclosure",
+        "details-independent-state"
+      ],
+      "detailsSheetState": "closed",
+      "boundarySurfaceState": "closed",
+      "inspectorEvidence": "m8a-v4.10-inspector-evidence-redesign-slice4-runtime.v1",
+      "inspectorStructure": [
+        "current-replay-event-evidence",
+        "sequence-selected-window-context",
+        "source-and-boundary-notes",
+        "not-being-claimed"
+      ],
+      "inspectorFirstReadRole": "secondary-evidence-inspector",
+      "inspectorDeniedFirstReadRoles": [
+        "operator-log",
+        "claim-panel",
+        "mission-narrative",
+        "primary-product-narrative"
+      ],
+      "inspectorSurfaceSeparation": "details-inspector-and-truth-boundary-are-separate-states-and-surfaces"
+    },
+    "sceneNarrative": {
+      "exists": true,
+      "visible": true,
+      "hidden": false,
+      "rect": {
+        "left": 14,
+        "top": 402.296875,
+        "right": 106.046875,
+        "bottom": 426.296875,
+        "width": 92.046875,
+        "height": 24
+      },
+      "text": "focus · LEO",
+      "visibleText": "focus · LEO"
+    },
+    "strip": {
+      "exists": true,
+      "visible": true,
+      "hidden": false,
+      "rect": {
+        "left": 12,
+        "top": 46,
+        "right": 378,
+        "bottom": 207.90625,
+        "width": 366,
+        "height": 161.90625
+      },
+      "text": "Current state LEO review focus State 1 of 5 Pause Restart 30x 60x 120x Details",
+      "visibleText": "Current state LEO review focus State 1 of 5 Pause Restart 30x 60x 120x Details",
+      "controlsPriority": "secondary"
+    },
+    "sequenceRail": {
+      "exists": true,
+      "visible": true,
+      "hidden": false,
+      "rect": {
+        "left": 12,
+        "top": 594.546875,
+        "right": 378,
+        "bottom": 680,
+        "width": 366,
+        "height": 85.453125
+      },
+      "text": "State 1 of 5: LEO review focus Next: State 2 of 5 LEO pressure 1 LEO 2 LEO 3 MEO 4 LEO 5 GEO",
+      "visibleText": "State 1 of 5: LEO review focus Next: State 2 of 5 LEO pressure 1 LEO 2 LEO 3 MEO 4 LEO 5 GEO",
+      "version": "m8a-v4.10-handover-sequence-rail-slice2-runtime.v1",
+      "visibleContent": [
+        "five-state-path",
+        "active-state-mark",
+        "next-state-mark",
+        "transition-event-link"
+      ],
+      "windowIds": [
+        "leo-acquisition-context",
+        "leo-aging-pressure",
+        "meo-continuity-hold",
+        "leo-reentry-candidate",
+        "geo-continuity-guard"
+      ],
+      "activeWindowId": "leo-acquisition-context",
+      "nextWindowId": "leo-aging-pressure",
+      "transitionFromWindowId": "",
+      "transitionToWindowId": "",
+      "activeSummary": "State 1 of 5: LEO review focus",
+      "nextSummary": "Next: State 2 of 5 LEO pressure",
+      "marks": [
+        {
+          "windowId": "leo-acquisition-context",
+          "index": "1",
+          "active": "true",
+          "next": "false",
+          "visible": true,
+          "rect": {
+            "left": 20.359375,
+            "top": 629.40625,
+            "right": 87.90625,
+            "bottom": 672.28125,
+            "width": 67.546875,
+            "height": 42.875
+          },
+          "text": "1LEO reviewLEO"
+        },
+        {
+          "windowId": "leo-aging-pressure",
+          "index": "2",
+          "active": "false",
+          "next": "true",
+          "visible": true,
+          "rect": {
+            "left": 90.78125,
+            "top": 629.40625,
+            "right": 158.34375,
+            "bottom": 672.28125,
+            "width": 67.5625,
+            "height": 42.875
+          },
+          "text": "2LEO pressureLEO"
+        },
+        {
+          "windowId": "meo-continuity-hold",
+          "index": "3",
+          "active": "false",
+          "next": "false",
+          "visible": true,
+          "rect": {
+            "left": 161.21875,
+            "top": 629.40625,
+            "right": 228.765625,
+            "bottom": 672.28125,
+            "width": 67.546875,
+            "height": 42.875
+          },
+          "text": "3MEO holdMEO"
+        },
+        {
+          "windowId": "leo-reentry-candidate",
+          "index": "4",
+          "active": "false",
+          "next": "false",
+          "visible": true,
+          "rect": {
+            "left": 231.640625,
+            "top": 629.40625,
+            "right": 299.203125,
+            "bottom": 672.28125,
+            "width": 67.5625,
+            "height": 42.875
+          },
+          "text": "4LEO re-entryLEO"
+        },
+        {
+          "windowId": "geo-continuity-guard",
+          "index": "5",
+          "active": "false",
+          "next": "false",
+          "visible": true,
+          "rect": {
+            "left": 302.078125,
+            "top": 629.40625,
+            "right": 369.640625,
+            "bottom": 672.28125,
+            "width": 67.5625,
+            "height": 42.875
+          },
+          "text": "5GEO guardGEO"
+        }
+      ]
+    },
+    "details": {
+      "exists": true,
+      "visible": true,
+      "hidden": false,
+      "rect": {
+        "left": 314,
+        "top": 792,
+        "right": 378,
+        "bottom": 836,
+        "width": 64,
+        "height": 44
+      },
+      "text": "Details",
+      "visibleText": "Details",
+      "ariaExpanded": "false"
+    },
+    "truth": {
+      "exists": true,
+      "visible": true,
+      "hidden": false,
+      "rect": {
+        "left": 12,
+        "top": 806,
+        "right": 48.015625,
+        "bottom": 822,
+        "width": 36.015625,
+        "height": 16
+      },
+      "text": "模擬展示",
+      "visibleText": "模擬展示",
+      "ariaExpanded": "false"
+    },
+    "sheet": {
+      "exists": true,
+      "visible": false,
+      "hidden": true,
+      "rect": {
+        "left": 0,
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "width": 0,
+        "height": 0
+      },
+      "text": "Details Inspector Close Selected replay window LEO review focus State 1 of 5 Replay UTC 2026-04-28T08:55:04.214Z Sim replay 00:03 / 01:54 Evidence for the selected replay window. The scene narrative and sequence rail remain primary. State Evidence 剛接上 OneWeb LEO · LEO review focus 剛接上 OneWeb LEO，連線品質強。約 22 分鐘後，因為位置條件變化會進入訊號減弱階段。 The simulation review is currently anchored on the OneWeb LEO context marked as the focus role. The five-state V4.6D model is in window 1 of 5. Watch the LEO actor for the early pressure signal — the next modeled state is LEO pressure. Endpoint precision remains operator-family only and no active gateway is being claimed. Source provenance Truth Boundary Truth boundary simulation outputoperator-family precisiondisplay-context actors Simulated display-context state, not an operator handover log.Source-lineaged display-context actors, not active serving satellites.Endpoint precision stays operator-family only.No active gateway assignment is claimed.No pair-specific teleport path is claimed.No measured latency, jitter, throughput, or continuity values are shown.No native RF handover is claimed. Sources Source provenance All repo-owned projection sources. Satellite TLE provenance Eutelsat OneWeb · LEO · ONEWEB-0386 · fetched 2026-04-28T08:51:17ZEutelsat OneWeb · LEO · ONEWEB-0537 · fetched 2026-04-28T08:51:17ZEutelsat OneWeb · LEO · ONEWEB-0701 · fetched 2026-04-28T08:51:17ZEutelsat OneWeb · LEO · ONEWEB-0012 · fetched 2026-04-28T08:51:17ZEutelsat OneWeb · LEO · ONEWEB-0249 · fetched 2026-04-28T08:51:17ZEutelsat OneWeb · LEO · ONEWEB-0702 · fetched 2026-04-28T08:51:17ZSES O3b mPOWER · MEO · O3B MPOWER F6 · fetched 2026-04-28T08:51:17ZSES O3b mPOWER · MEO · O3B MPOWER F1 · fetched 2026-04-28T08:51:17ZSES O3b mPOWER · MEO · O3B MPOWER F2 · fetched 2026-04-28T08:51:17ZSES O3b mPOWER · MEO · O3B MPOWER F4 · fetched 2026-04-28T08:51:17ZSES O3b mPOWER · MEO · O3B MPOWER F3 · fetched 2026-04-28T08:51:17ZST-2 CHT/Singtel GEO service context · GEO · ST-2 · fetched 2026-04-28T08:51:17ZSES GEO display context; not endpoint-pair path or active service claim · GEO · SES-9 · fetched 2026-04-28T08:51:17Z Ground-station evidence URLs Taiwan / Chunghwa Telecom multi-orbit ground infrastructureLEO strong · https://www.cht.com.tw/zh-tw/home/cht/messages/2025/1103-1000 · operator press releaseLEO strong · https://www.cht.com.tw/en/home/cht/messages/2023/1115-1530 · operator press releaseMEO strong · https://www.cht.com.tw/zh-tw/home/cht/messages/2025/1103-1000 · operator press releaseMEO strong · https://www.cht.com.tw/en/home/cht/messages/2026/0122-1410 · operator press releaseGEO strong · https://www.cht.com.tw/zh-tw/home/cht/messages/2025/1103-1000 · operator press releaseGEO strong · https://www.cht.com.tw/en/home/cht/messages/2023/1115-1530 · operator press releaseSingapore / Speedcast Singapore TeleportLEO strong · https://www.speedcast.com/our-solution/product/vsat-satellite/ngso-leo-meo/ · operator sourceMEO strong · https://www.speedcast.com/our-solution/product/vsat-satellite/ngso-leo-meo/ · operator sourceGEO strong · https://www.speedcast.com/newsroom/press-releases/2024/speedcasts-teleport-in-singapore-joins-wtas-growing-list-of-tier-4-certified-teleports/ · third-party certificationGEO strong · https://www.speedcast.com/about-us/teleports/ · operator source R2 read-only candidate catalog Taiwan site-level CHT earth-station family · blocked: site-family upgrade lacks accepted LEO/MEO site mapping · blocked · R2 read-only - not promotable to runtimeThailand NT Sirindhorn OneWeb SNP Gateway · blocked: MEO evidence gap · blocked · R2 read-only - not promotable to runtimeSingapore Singtel Bukit Timah Satellite Earth Station · blocked: MEO evidence gap and site-family split · blocked · R2 read-only - not promotable to runtimeJapan KDDI Yamaguchi / SoftBank OneWeb country family · blocked: MEO gap and split operator-family evidence · blocked · R2 read-only - not promotable to runtimeKorea KT SAT Kumsan / OneWeb terminal ecosystem · blocked: MEO remains partial/planned evidence · blocked · R2 read-only - not promotable to runtime Implementation evidence Raw ids, selected cue ids, anchor metadata, and full candidate/fallback arrays. This evidence supports tests and implementation review; it is not the primary product explanation. Representative actor id ONEWEB-0386 LEO context (oneweb-0386-leo-display-context) Candidate actor ids ONEWEB-0537 LEO context (oneweb-0537-leo-display-context), ONEWEB-0701 LEO context (oneweb-0701-leo-display-context), O3b mPOWER F6 MEO context (o3b-mpower-f6-meo-display-context) Fallback actor ids ST-2 GEO guard (st-2-geo-continuity-anchor), SES-9 GEO guard (ses-9-geo-display-context) Scene cue ids displayRepresentative primary; candidateContext secondary; no scene anchor claimed; fallback protection-rect-obstructed.",
+      "visibleText": "",
+      "title": "Inspector",
+      "lead": "Evidence for the selected replay window. The scene narrative and sequence rail remain primary.",
+      "dataset": {
+        "inspectorEvidence": "m8a-v4.10-inspector-evidence-redesign-slice4-runtime.v1",
+        "inspectorStructure": [
+          "current-replay-event-evidence",
+          "sequence-selected-window-context",
+          "source-and-boundary-notes",
+          "not-being-claimed"
+        ],
+        "firstReadRole": "secondary-evidence-inspector",
+        "surfaceSeparation": "details-inspector-and-truth-boundary-are-separate-states-and-surfaces"
+      }
+    },
+    "inspector": {
+      "exists": true,
+      "visible": false,
+      "hidden": false,
+      "rect": {
+        "left": 0,
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "width": 0,
+        "height": 0
+      },
+      "text": "State Evidence 剛接上 OneWeb LEO · LEO review focus 剛接上 OneWeb LEO，連線品質強。約 22 分鐘後，因為位置條件變化會進入訊號減弱階段。 The simulation review is currently anchored on the OneWeb LEO context marked as the focus role. The five-state V4.6D model is in window 1 of 5. Watch the LEO actor for the early pressure signal — the next modeled state is LEO pressure. Endpoint precision remains operator-family only and no active gateway is being claimed. Source provenance Truth Boundary Truth boundary simulation outputoperator-family precisiondisplay-context actors Simulated display-context state, not an operator handover log.Source-lineaged display-context actors, not active serving satellites.Endpoint precision stays operator-family only.No active gateway assignment is claimed.No pair-specific teleport path is claimed.No measured latency, jitter, throughput, or continuity values are shown.No native RF handover is claimed. Sources Source provenance All repo-owned projection sources. Satellite TLE provenance Eutelsat OneWeb · LEO · ONEWEB-0386 · fetched 2026-04-28T08:51:17ZEutelsat OneWeb · LEO · ONEWEB-0537 · fetched 2026-04-28T08:51:17ZEutelsat OneWeb · LEO · ONEWEB-0701 · fetched 2026-04-28T08:51:17ZEutelsat OneWeb · LEO · ONEWEB-0012 · fetched 2026-04-28T08:51:17ZEutelsat OneWeb · LEO · ONEWEB-0249 · fetched 2026-04-28T08:51:17ZEutelsat OneWeb · LEO · ONEWEB-0702 · fetched 2026-04-28T08:51:17ZSES O3b mPOWER · MEO · O3B MPOWER F6 · fetched 2026-04-28T08:51:17ZSES O3b mPOWER · MEO · O3B MPOWER F1 · fetched 2026-04-28T08:51:17ZSES O3b mPOWER · MEO · O3B MPOWER F2 · fetched 2026-04-28T08:51:17ZSES O3b mPOWER · MEO · O3B MPOWER F4 · fetched 2026-04-28T08:51:17ZSES O3b mPOWER · MEO · O3B MPOWER F3 · fetched 2026-04-28T08:51:17ZST-2 CHT/Singtel GEO service context · GEO · ST-2 · fetched 2026-04-28T08:51:17ZSES GEO display context; not endpoint-pair path or active service claim · GEO · SES-9 · fetched 2026-04-28T08:51:17Z Ground-station evidence URLs Taiwan / Chunghwa Telecom multi-orbit ground infrastructureLEO strong · https://www.cht.com.tw/zh-tw/home/cht/messages/2025/1103-1000 · operator press releaseLEO strong · https://www.cht.com.tw/en/home/cht/messages/2023/1115-1530 · operator press releaseMEO strong · https://www.cht.com.tw/zh-tw/home/cht/messages/2025/1103-1000 · operator press releaseMEO strong · https://www.cht.com.tw/en/home/cht/messages/2026/0122-1410 · operator press releaseGEO strong · https://www.cht.com.tw/zh-tw/home/cht/messages/2025/1103-1000 · operator press releaseGEO strong · https://www.cht.com.tw/en/home/cht/messages/2023/1115-1530 · operator press releaseSingapore / Speedcast Singapore TeleportLEO strong · https://www.speedcast.com/our-solution/product/vsat-satellite/ngso-leo-meo/ · operator sourceMEO strong · https://www.speedcast.com/our-solution/product/vsat-satellite/ngso-leo-meo/ · operator sourceGEO strong · https://www.speedcast.com/newsroom/press-releases/2024/speedcasts-teleport-in-singapore-joins-wtas-growing-list-of-tier-4-certified-teleports/ · third-party certificationGEO strong · https://www.speedcast.com/about-us/teleports/ · operator source R2 read-only candidate catalog Taiwan site-level CHT earth-station family · blocked: site-family upgrade lacks accepted LEO/MEO site mapping · blocked · R2 read-only - not promotable to runtimeThailand NT Sirindhorn OneWeb SNP Gateway · blocked: MEO evidence gap · blocked · R2 read-only - not promotable to runtimeSingapore Singtel Bukit Timah Satellite Earth Station · blocked: MEO evidence gap and site-family split · blocked · R2 read-only - not promotable to runtimeJapan KDDI Yamaguchi / SoftBank OneWeb country family · blocked: MEO gap and split operator-family evidence · blocked · R2 read-only - not promotable to runtimeKorea KT SAT Kumsan / OneWeb terminal ecosystem · blocked: MEO remains partial/planned evidence · blocked · R2 read-only - not promotable to runtime",
+      "visibleText": "",
+      "dataset": {
+        "inspectorEvidence": "m8a-v4.10-inspector-evidence-redesign-slice4-runtime.v1",
+        "inspectorStructure": [
+          "current-replay-event-evidence",
+          "sequence-selected-window-context",
+          "source-and-boundary-notes",
+          "not-being-claimed"
+        ],
+        "firstReadRole": "secondary-evidence-inspector",
+        "primaryVisibleContent": "current-state|why-this-state-exists|what-changed-from-previous-state|what-to-watch-now|what-happens-next|boundary-summary",
+        "deniedPrimaryContent": "raw-actor-ids|cue-ids|selected-anchor-ids|selected-relation-corridor-ids|anchor-metadata|full-candidate-context-arrays|full-fallback-context-arrays"
+      },
+      "groups": [],
+      "primarySections": {
+        "current-state": "State Evidence 剛接上 OneWeb LEO · LEO review focus 剛接上 OneWeb LEO，連線品質強。約 22 分鐘後，因為位置條件變化會進入訊號減弱階段。 The simulation review is currently anchored on the OneWeb LEO context marked as the focus role. The five-state V4.6D model is in window 1 of 5. Watch the LEO actor for the early pressure signal — the next modeled state is LEO pressure. Endpoint precision remains operator-family only and no active gateway is being claimed. Source provenance",
+        "boundary": "Truth Boundary Truth boundary simulation outputoperator-family precisiondisplay-context actors Simulated display-context state, not an operator handover log.Source-lineaged display-context actors, not active serving satellites.Endpoint precision stays operator-family only.No active gateway assignment is claimed.No pair-specific teleport path is claimed.No measured latency, jitter, throughput, or continuity values are shown.No native RF handover is claimed.",
+        "sources": "Sources Source provenance All repo-owned projection sources. Satellite TLE provenance Eutelsat OneWeb · LEO · ONEWEB-0386 · fetched 2026-04-28T08:51:17ZEutelsat OneWeb · LEO · ONEWEB-0537 · fetched 2026-04-28T08:51:17ZEutelsat OneWeb · LEO · ONEWEB-0701 · fetched 2026-04-28T08:51:17ZEutelsat OneWeb · LEO · ONEWEB-0012 · fetched 2026-04-28T08:51:17ZEutelsat OneWeb · LEO · ONEWEB-0249 · fetched 2026-04-28T08:51:17ZEutelsat OneWeb · LEO · ONEWEB-0702 · fetched 2026-04-28T08:51:17ZSES O3b mPOWER · MEO · O3B MPOWER F6 · fetched 2026-04-28T08:51:17ZSES O3b mPOWER · MEO · O3B MPOWER F1 · fetched 2026-04-28T08:51:17ZSES O3b mPOWER · MEO · O3B MPOWER F2 · fetched 2026-04-28T08:51:17ZSES O3b mPOWER · MEO · O3B MPOWER F4 · fetched 2026-04-28T08:51:17ZSES O3b mPOWER · MEO · O3B MPOWER F3 · fetched 2026-04-28T08:51:17ZST-2 CHT/Singtel GEO service context · GEO · ST-2 · fetched 2026-04-28T08:51:17ZSES GEO display context; not endpoint-pair path or active service claim · GEO · SES-9 · fetched 2026-04-28T08:51:17Z Ground-station evidence URLs Taiwan / Chunghwa Telecom multi-orbit ground infrastructureLEO strong · https://www.cht.com.tw/zh-tw/home/cht/messages/2025/1103-1000 · operator press releaseLEO strong · https://www.cht.com.tw/en/home/cht/messages/2023/1115-1530 · operator press releaseMEO strong · https://www.cht.com.tw/zh-tw/home/cht/messages/2025/1103-1000 · operator press releaseMEO strong · https://www.cht.com.tw/en/home/cht/messages/2026/0122-1410 · operator press releaseGEO strong · https://www.cht.com.tw/zh-tw/home/cht/messages/2025/1103-1000 · operator press releaseGEO strong · https://www.cht.com.tw/en/home/cht/messages/2023/1115-1530 · operator press releaseSingapore / Speedcast Singapore TeleportLEO strong · https://www.speedcast.com/our-solution/product/vsat-satellite/ngso-leo-meo/ · operator sourceMEO strong · https://www.speedcast.com/our-solution/product/vsat-satellite/ngso-leo-meo/ · operator sourceGEO strong · https://www.speedcast.com/newsroom/press-releases/2024/speedcasts-teleport-in-singapore-joins-wtas-growing-list-of-tier-4-certified-teleports/ · third-party certificationGEO strong · https://www.speedcast.com/about-us/teleports/ · operator source R2 read-only candidate catalog Taiwan site-level CHT earth-station family · blocked: site-family upgrade lacks accepted LEO/MEO site mapping · blocked · R2 read-only - not promotable to runtimeThailand NT Sirindhorn OneWeb SNP Gateway · blocked: MEO evidence gap · blocked · R2 read-only - not promotable to runtimeSingapore Singtel Bukit Timah Satellite Earth Station · blocked: MEO evidence gap and site-family split · blocked · R2 read-only - not promotable to runtimeJapan KDDI Yamaguchi / SoftBank OneWeb country family · blocked: MEO gap and split operator-family evidence · blocked · R2 read-only - not promotable to runtimeKorea KT SAT Kumsan / OneWeb terminal ecosystem · blocked: MEO remains partial/planned evidence · blocked · R2 read-only - not promotable to runtime"
+      },
+      "debugEvidence": {
+        "visible": false,
+        "open": false,
+        "text": "Implementation evidence Raw ids, selected cue ids, anchor metadata, and full candidate/fallback arrays. This evidence supports tests and implementation review; it is not the primary product explanation. Representative actor id ONEWEB-0386 LEO context (oneweb-0386-leo-display-context) Candidate actor ids ONEWEB-0537 LEO context (oneweb-0537-leo-display-context), ONEWEB-0701 LEO context (oneweb-0701-leo-display-context), O3b mPOWER F6 MEO context (o3b-mpower-f6-meo-display-context) Fallback actor ids ST-2 GEO guard (st-2-geo-continuity-anchor), SES-9 GEO guard (ses-9-geo-display-context) Scene cue ids displayRepresentative primary; candidateContext secondary; no scene anchor claimed; fallback protection-rect-obstructed.",
+        "visibleText": ""
+      },
+      "detailsFullTruth": {
+        "visible": false,
+        "open": null,
+        "text": "Truth Boundary Truth boundary simulation outputoperator-family precisiondisplay-context actors Simulated display-context state, not an operator handover log.Source-lineaged display-context actors, not active serving satellites.Endpoint precision stays operator-family only.No active gateway assignment is claimed.No pair-specific teleport path is claimed.No measured latency, jitter, throughput, or continuity values are shown.No native RF handover is claimed.",
+        "visibleText": ""
+      }
+    },
+    "boundarySurface": {
+      "exists": true,
+      "visible": false,
+      "hidden": true,
+      "rect": {
+        "left": 0,
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "width": 0,
+        "height": 0
+      },
+      "text": "Truth boundary Close Simulation review - not operator log. No active satellite, gateway, path, or measured metric claim. Full truth disclosure simulation outputoperator-family precisiondisplay-context actors Simulated display-context state, not an operator handover log.Source-lineaged display-context actors, not active serving satellites.Endpoint precision stays operator-family only.No active gateway assignment is claimed.No pair-specific teleport path is claimed.No measured latency, jitter, throughput, or continuity values are shown.No native RF handover is claimed.",
+      "visibleText": "",
+      "fullTruth": {
+        "visible": false,
+        "open": false,
+        "datasetOpen": "false",
+        "datasetState": "closed",
+        "placement": "boundary-surface-and-details-secondary-disclosure",
+        "text": "Full truth disclosure simulation outputoperator-family precisiondisplay-context actors Simulated display-context state, not an operator handover log.Source-lineaged display-context actors, not active serving satellites.Endpoint precision stays operator-family only.No active gateway assignment is claimed.No pair-specific teleport path is claimed.No measured latency, jitter, throughput, or continuity values are shown.No native RF handover is claimed.",
+        "visibleText": ""
+      }
+    },
+    "nativeSurfaces": {
+      "defaultTokenNotice": {
+        "exists": true,
+        "visible": true,
+        "hidden": false,
+        "rect": {
+          "left": 111,
+          "top": 708,
+          "right": 373.46875,
+          "bottom": 812,
+          "width": 262.46875,
+          "height": 104
+        },
+        "text": "This application is using Cesium's default ion access token. Please assign Cesium.Ion.defaultAccessToken with an access token from your ion account before making any Cesium API calls. You can sign up for a free ion account at https://cesium.com.",
+        "visibleText": "This application is using Cesium's default ion access token. Please assign Cesium.Ion.defaultAccessToken with an access token from your ion account before making any Cesium API calls. You can sign up for a free ion account at https://cesium.com ."
+      },
+      "attribution": {
+        "exists": true,
+        "visible": true,
+        "hidden": false,
+        "rect": {
+          "left": 204.921875,
+          "top": 801,
+          "right": 277.75,
+          "bottom": 812,
+          "width": 72.828125,
+          "height": 11
+        },
+        "text": "Data attribution",
+        "visibleText": "Data attribution"
+      },
+      "credits": {
+        "exists": true,
+        "visible": true,
+        "hidden": false,
+        "rect": {
+          "left": 111,
+          "top": 708,
+          "right": 373.46875,
+          "bottom": 812,
+          "width": 262.46875,
+          "height": 104
+        },
+        "text": "This application is using Cesium's default ion access token. Please assign Cesium.Ion.defaultAccessToken with an access token from your ion account before making any Cesium API calls. You can sign up for a free ion account at https://cesium.com.Data attribution",
+        "visibleText": "This application is using Cesium's default ion access token. Please assign Cesium.Ion.defaultAccessToken with an access token from your ion account before making any Cesium API calls. You can sign up for a free ion account at https://cesium.com . Data attribution"
+      },
+      "viewerBottom": {
+        "exists": true,
+        "visible": true,
+        "hidden": false,
+        "rect": {
+          "left": 111,
+          "top": 696,
+          "right": 390,
+          "bottom": 814,
+          "width": 279,
+          "height": 118
+        },
+        "text": "This application is using Cesium's default ion access token. Please assign Cesium.Ion.defaultAccessToken with an access token from your ion account before making any Cesium API calls. You can sign up for a free ion account at https://cesium.com.Data attribution",
+        "visibleText": "This application is using Cesium's default ion access token. Please assign Cesium.Ion.defaultAccessToken with an access token from your ion account before making any Cesium API calls. You can sign up for a free ion account at https://cesium.com . Data attribution"
+      },
+      "timeline": {
+        "exists": true,
+        "visible": true,
+        "hidden": false,
+        "rect": {
+          "left": 106,
+          "top": 817,
+          "right": 361,
+          "bottom": 844,
+          "width": 255,
+          "height": 27
+        },
+        "text": "Apr 28 2026 08:00:00 UTC Apr 28 2026 10:00:00 UTC Apr 28 2026 12:00:00 UTC",
+        "visibleText": "Apr 28 2026 08:00:00 UTC Apr 28 2026 10:00:00 UTC Apr 28 2026 12:00:00 UTC"
+      }
+    },
+    "visibleButtons": [
+      {
+        "text": "Pause",
+        "controlId": "play-pause",
+        "action": "pause",
+        "ariaExpanded": null,
+        "ariaPressed": null,
+        "rect": {
+          "left": 18.4375,
+          "top": 109.640625,
+          "right": 103.84375,
+          "bottom": 153.640625,
+          "width": 85.40625,
+          "height": 44
+        }
+      },
+      {
+        "text": "Restart",
+        "controlId": "restart",
+        "action": "restart",
+        "ariaExpanded": null,
+        "ariaPressed": null,
+        "rect": {
+          "left": 107.671875,
+          "top": 109.640625,
+          "right": 193.078125,
+          "bottom": 153.640625,
+          "width": 85.40625,
+          "height": 44
+        }
+      },
+      {
+        "text": "30x",
+        "controlId": null,
+        "action": "speed",
+        "ariaExpanded": null,
+        "ariaPressed": "false",
+        "rect": {
+          "left": 18.4375,
+          "top": 157.46875,
+          "right": 132.9375,
+          "bottom": 201.46875,
+          "width": 114.5,
+          "height": 44
+        }
+      },
+      {
+        "text": "60x",
+        "controlId": null,
+        "action": "speed",
+        "ariaExpanded": null,
+        "ariaPressed": "true",
+        "rect": {
+          "left": 137.734375,
+          "top": 157.46875,
+          "right": 252.25,
+          "bottom": 201.46875,
+          "width": 114.515625,
+          "height": 44
+        }
+      },
+      {
+        "text": "120x",
+        "controlId": null,
+        "action": "speed",
+        "ariaExpanded": null,
+        "ariaPressed": "false",
+        "rect": {
+          "left": 257.046875,
+          "top": 157.46875,
+          "right": 371.546875,
+          "bottom": 201.46875,
+          "width": 114.5,
+          "height": 44
+        }
+      },
+      {
+        "text": "Details",
+        "controlId": "details-toggle",
+        "action": "toggle-disclosure",
+        "ariaExpanded": "false",
+        "ariaPressed": null,
+        "rect": {
+          "left": 314,
+          "top": 792,
+          "right": 378,
+          "bottom": 836,
+          "width": 64,
+          "height": 44
+        }
+      }
+    ],
+    "resourceHits": []
+  }
+}

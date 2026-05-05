@@ -1,0 +1,599 @@
+{
+  "generatedAt": "2026-05-04T16:03:56.548Z",
+  "status": "cleanup-complete",
+  "route": "/?scenePreset=regional&m8aV4GroundStationScene=1",
+  "outputRoot": "output/m8a-v4.10-slice4",
+  "captures": [
+    {
+      "viewport": "default-1440x900",
+      "action": "default",
+      "screenshot": {
+        "path": "output/m8a-v4.10-slice4/v4.10-slice4-default-1440x900.png",
+        "sizeBytes": 949624,
+        "dimensions": {
+          "width": 1440,
+          "height": 900
+        }
+      },
+      "metadata": "output/m8a-v4.10-slice4/v4.10-slice4-default-1440x900.metadata.json",
+      "activeWindowId": "leo-acquisition-context",
+      "nextWindowId": "leo-aging-pressure",
+      "detailsSheetState": "closed",
+      "boundarySurfaceState": "closed",
+      "sceneNarrativeRect": {
+        "left": 340,
+        "top": 485.59375,
+        "right": 433.1875,
+        "bottom": 509.59375,
+        "width": 93.1875,
+        "height": 24
+      },
+      "sequenceRailRect": {
+        "left": 304,
+        "top": 704,
+        "right": 1136,
+        "bottom": 760,
+        "width": 832,
+        "height": 56
+      },
+      "stripRect": {
+        "left": 340,
+        "top": 74.234375,
+        "right": 924,
+        "bottom": 159.390625,
+        "width": 584,
+        "height": 85.15625
+      },
+      "sheetRect": {
+        "left": 0,
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "width": 0,
+        "height": 0
+      },
+      "boundarySurfaceRect": {
+        "left": 0,
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "width": 0,
+        "height": 0
+      },
+      "inspectorGroups": [],
+      "nativeSurfaces": {
+        "defaultTokenNotice": {
+          "exists": true,
+          "visible": true,
+          "hidden": false,
+          "rect": {
+            "left": 174,
+            "top": 836,
+            "right": 1413.578125,
+            "bottom": 868,
+            "width": 1239.578125,
+            "height": 32
+          },
+          "text": "This application is using Cesium's default ion access token. Please assign Cesium.Ion.defaultAccessToken with an access token from your ion account before making any Cesium API calls. You can sign up for a free ion account at https://cesium.com.",
+          "visibleText": "This application is using Cesium's default ion access token. Please assign Cesium.Ion.defaultAccessToken with an access token from your ion account before making any Cesium API calls. You can sign up for a free ion account at https://cesium.com ."
+        },
+        "attribution": {
+          "exists": true,
+          "visible": true,
+          "hidden": false,
+          "rect": {
+            "left": 267.921875,
+            "top": 857,
+            "right": 340.75,
+            "bottom": 868,
+            "width": 72.828125,
+            "height": 11
+          },
+          "text": "Data attribution",
+          "visibleText": "Data attribution"
+        },
+        "credits": {
+          "exists": true,
+          "visible": true,
+          "hidden": false,
+          "rect": {
+            "left": 174,
+            "top": 836,
+            "right": 1413.578125,
+            "bottom": 868,
+            "width": 1239.578125,
+            "height": 32
+          },
+          "text": "This application is using Cesium's default ion access token. Please assign Cesium.Ion.defaultAccessToken with an access token from your ion account before making any Cesium API calls. You can sign up for a free ion account at https://cesium.com.Data attribution",
+          "visibleText": "This application is using Cesium's default ion access token. Please assign Cesium.Ion.defaultAccessToken with an access token from your ion account before making any Cesium API calls. You can sign up for a free ion account at https://cesium.com . Data attribution"
+        },
+        "viewerBottom": {
+          "exists": true,
+          "visible": true,
+          "hidden": false,
+          "rect": {
+            "left": 174,
+            "top": 824,
+            "right": 1440,
+            "bottom": 870,
+            "width": 1266,
+            "height": 46
+          },
+          "text": "This application is using Cesium's default ion access token. Please assign Cesium.Ion.defaultAccessToken with an access token from your ion account before making any Cesium API calls. You can sign up for a free ion account at https://cesium.com.Data attribution",
+          "visibleText": "This application is using Cesium's default ion access token. Please assign Cesium.Ion.defaultAccessToken with an access token from your ion account before making any Cesium API calls. You can sign up for a free ion account at https://cesium.com . Data attribution"
+        },
+        "timeline": {
+          "exists": true,
+          "visible": true,
+          "hidden": false,
+          "rect": {
+            "left": 169,
+            "top": 873,
+            "right": 1411,
+            "bottom": 900,
+            "width": 1242,
+            "height": 27
+          },
+          "text": "Apr 28 2026 08:45:00 UTC Apr 28 2026 09:00:00 UTC Apr 28 2026 09:15:00 UTC Apr 28 2026 09:30:00 UTC Apr 28 2026 09:45:00 UTC Apr 28 2026 10:00:00 UTC Apr 28 2026 10:15:00 UTC Apr 28 2026 10:30:00 UTC Apr 28 2026 10:45:00 UTC Apr 28 2026 11:00:00 UTC",
+          "visibleText": "Apr 28 2026 08:45:00 UTC Apr 28 2026 09:00:00 UTC Apr 28 2026 09:15:00 UTC Apr 28 2026 09:30:00 UTC Apr 28 2026 09:45:00 UTC Apr 28 2026 10:00:00 UTC Apr 28 2026 10:15:00 UTC Apr 28 2026 10:30:00 UTC Apr 28 2026 10:45:00 UTC Apr 28 2026 11:00:00 UTC"
+        }
+      }
+    },
+    {
+      "viewport": "default-390x844",
+      "action": "default",
+      "screenshot": {
+        "path": "output/m8a-v4.10-slice4/v4.10-slice4-default-390x844.png",
+        "sizeBytes": 356810,
+        "dimensions": {
+          "width": 390,
+          "height": 844
+        }
+      },
+      "metadata": "output/m8a-v4.10-slice4/v4.10-slice4-default-390x844.metadata.json",
+      "activeWindowId": "leo-acquisition-context",
+      "nextWindowId": "leo-aging-pressure",
+      "detailsSheetState": "closed",
+      "boundarySurfaceState": "closed",
+      "sceneNarrativeRect": {
+        "left": 14,
+        "top": 401.890625,
+        "right": 103.3125,
+        "bottom": 425.890625,
+        "width": 89.3125,
+        "height": 24
+      },
+      "sequenceRailRect": {
+        "left": 12,
+        "top": 556.765625,
+        "right": 378,
+        "bottom": 642.21875,
+        "width": 366,
+        "height": 85.453125
+      },
+      "stripRect": {
+        "left": 12,
+        "top": 46,
+        "right": 378,
+        "bottom": 207.90625,
+        "width": 366,
+        "height": 161.90625
+      },
+      "sheetRect": {
+        "left": 0,
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "width": 0,
+        "height": 0
+      },
+      "boundarySurfaceRect": {
+        "left": 0,
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "width": 0,
+        "height": 0
+      },
+      "inspectorGroups": [],
+      "nativeSurfaces": {
+        "defaultTokenNotice": {
+          "exists": true,
+          "visible": true,
+          "hidden": false,
+          "rect": {
+            "left": 111,
+            "top": 708,
+            "right": 373.46875,
+            "bottom": 812,
+            "width": 262.46875,
+            "height": 104
+          },
+          "text": "This application is using Cesium's default ion access token. Please assign Cesium.Ion.defaultAccessToken with an access token from your ion account before making any Cesium API calls. You can sign up for a free ion account at https://cesium.com.",
+          "visibleText": "This application is using Cesium's default ion access token. Please assign Cesium.Ion.defaultAccessToken with an access token from your ion account before making any Cesium API calls. You can sign up for a free ion account at https://cesium.com ."
+        },
+        "attribution": {
+          "exists": true,
+          "visible": true,
+          "hidden": false,
+          "rect": {
+            "left": 204.921875,
+            "top": 801,
+            "right": 277.75,
+            "bottom": 812,
+            "width": 72.828125,
+            "height": 11
+          },
+          "text": "Data attribution",
+          "visibleText": "Data attribution"
+        },
+        "credits": {
+          "exists": true,
+          "visible": true,
+          "hidden": false,
+          "rect": {
+            "left": 111,
+            "top": 708,
+            "right": 373.46875,
+            "bottom": 812,
+            "width": 262.46875,
+            "height": 104
+          },
+          "text": "This application is using Cesium's default ion access token. Please assign Cesium.Ion.defaultAccessToken with an access token from your ion account before making any Cesium API calls. You can sign up for a free ion account at https://cesium.com.Data attribution",
+          "visibleText": "This application is using Cesium's default ion access token. Please assign Cesium.Ion.defaultAccessToken with an access token from your ion account before making any Cesium API calls. You can sign up for a free ion account at https://cesium.com . Data attribution"
+        },
+        "viewerBottom": {
+          "exists": true,
+          "visible": true,
+          "hidden": false,
+          "rect": {
+            "left": 111,
+            "top": 696,
+            "right": 390,
+            "bottom": 814,
+            "width": 279,
+            "height": 118
+          },
+          "text": "This application is using Cesium's default ion access token. Please assign Cesium.Ion.defaultAccessToken with an access token from your ion account before making any Cesium API calls. You can sign up for a free ion account at https://cesium.com.Data attribution",
+          "visibleText": "This application is using Cesium's default ion access token. Please assign Cesium.Ion.defaultAccessToken with an access token from your ion account before making any Cesium API calls. You can sign up for a free ion account at https://cesium.com . Data attribution"
+        },
+        "timeline": {
+          "exists": true,
+          "visible": true,
+          "hidden": false,
+          "rect": {
+            "left": 106,
+            "top": 817,
+            "right": 361,
+            "bottom": 844,
+            "width": 255,
+            "height": 27
+          },
+          "text": "Apr 28 2026 08:00:00 UTC Apr 28 2026 10:00:00 UTC Apr 28 2026 12:00:00 UTC",
+          "visibleText": "Apr 28 2026 08:00:00 UTC Apr 28 2026 10:00:00 UTC Apr 28 2026 12:00:00 UTC"
+        }
+      }
+    },
+    {
+      "viewport": "details-open-1440x900",
+      "action": "details",
+      "screenshot": {
+        "path": "output/m8a-v4.10-slice4/v4.10-slice4-details-open-1440x900.png",
+        "sizeBytes": 932469,
+        "dimensions": {
+          "width": 1440,
+          "height": 900
+        }
+      },
+      "metadata": "output/m8a-v4.10-slice4/v4.10-slice4-details-open-1440x900.metadata.json",
+      "activeWindowId": "leo-acquisition-context",
+      "nextWindowId": "leo-aging-pressure",
+      "detailsSheetState": "open",
+      "boundarySurfaceState": "closed",
+      "sceneNarrativeRect": {
+        "left": 340,
+        "top": 485.09375,
+        "right": 433.1875,
+        "bottom": 509.09375,
+        "width": 93.1875,
+        "height": 24
+      },
+      "sequenceRailRect": {
+        "left": 304,
+        "top": 704,
+        "right": 1136,
+        "bottom": 760,
+        "width": 832,
+        "height": 56
+      },
+      "stripRect": {
+        "left": 340,
+        "top": 74.234375,
+        "right": 924,
+        "bottom": 159.390625,
+        "width": 584,
+        "height": 85.15625
+      },
+      "sheetRect": {
+        "left": 1097,
+        "top": 23,
+        "right": 1417,
+        "bottom": 771,
+        "width": 320,
+        "height": 748
+      },
+      "boundarySurfaceRect": {
+        "left": 0,
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "width": 0,
+        "height": 0
+      },
+      "inspectorGroups": [],
+      "nativeSurfaces": {
+        "defaultTokenNotice": {
+          "exists": true,
+          "visible": true,
+          "hidden": false,
+          "rect": {
+            "left": 174,
+            "top": 836,
+            "right": 1413.578125,
+            "bottom": 868,
+            "width": 1239.578125,
+            "height": 32
+          },
+          "text": "This application is using Cesium's default ion access token. Please assign Cesium.Ion.defaultAccessToken with an access token from your ion account before making any Cesium API calls. You can sign up for a free ion account at https://cesium.com.",
+          "visibleText": "This application is using Cesium's default ion access token. Please assign Cesium.Ion.defaultAccessToken with an access token from your ion account before making any Cesium API calls. You can sign up for a free ion account at https://cesium.com ."
+        },
+        "attribution": {
+          "exists": true,
+          "visible": true,
+          "hidden": false,
+          "rect": {
+            "left": 267.921875,
+            "top": 857,
+            "right": 340.75,
+            "bottom": 868,
+            "width": 72.828125,
+            "height": 11
+          },
+          "text": "Data attribution",
+          "visibleText": "Data attribution"
+        },
+        "credits": {
+          "exists": true,
+          "visible": true,
+          "hidden": false,
+          "rect": {
+            "left": 174,
+            "top": 836,
+            "right": 1413.578125,
+            "bottom": 868,
+            "width": 1239.578125,
+            "height": 32
+          },
+          "text": "This application is using Cesium's default ion access token. Please assign Cesium.Ion.defaultAccessToken with an access token from your ion account before making any Cesium API calls. You can sign up for a free ion account at https://cesium.com.Data attribution",
+          "visibleText": "This application is using Cesium's default ion access token. Please assign Cesium.Ion.defaultAccessToken with an access token from your ion account before making any Cesium API calls. You can sign up for a free ion account at https://cesium.com . Data attribution"
+        },
+        "viewerBottom": {
+          "exists": true,
+          "visible": true,
+          "hidden": false,
+          "rect": {
+            "left": 174,
+            "top": 824,
+            "right": 1440,
+            "bottom": 870,
+            "width": 1266,
+            "height": 46
+          },
+          "text": "This application is using Cesium's default ion access token. Please assign Cesium.Ion.defaultAccessToken with an access token from your ion account before making any Cesium API calls. You can sign up for a free ion account at https://cesium.com.Data attribution",
+          "visibleText": "This application is using Cesium's default ion access token. Please assign Cesium.Ion.defaultAccessToken with an access token from your ion account before making any Cesium API calls. You can sign up for a free ion account at https://cesium.com . Data attribution"
+        },
+        "timeline": {
+          "exists": true,
+          "visible": true,
+          "hidden": false,
+          "rect": {
+            "left": 169,
+            "top": 873,
+            "right": 1411,
+            "bottom": 900,
+            "width": 1242,
+            "height": 27
+          },
+          "text": "Apr 28 2026 08:45:00 UTC Apr 28 2026 09:00:00 UTC Apr 28 2026 09:15:00 UTC Apr 28 2026 09:30:00 UTC Apr 28 2026 09:45:00 UTC Apr 28 2026 10:00:00 UTC Apr 28 2026 10:15:00 UTC Apr 28 2026 10:30:00 UTC Apr 28 2026 10:45:00 UTC Apr 28 2026 11:00:00 UTC",
+          "visibleText": "Apr 28 2026 08:45:00 UTC Apr 28 2026 09:00:00 UTC Apr 28 2026 09:15:00 UTC Apr 28 2026 09:30:00 UTC Apr 28 2026 09:45:00 UTC Apr 28 2026 10:00:00 UTC Apr 28 2026 10:15:00 UTC Apr 28 2026 10:30:00 UTC Apr 28 2026 10:45:00 UTC Apr 28 2026 11:00:00 UTC"
+        }
+      }
+    },
+    {
+      "viewport": "boundary-open-1440x900",
+      "action": "boundary",
+      "screenshot": {
+        "path": "output/m8a-v4.10-slice4/v4.10-slice4-boundary-open-1440x900.png",
+        "sizeBytes": 932261,
+        "dimensions": {
+          "width": 1440,
+          "height": 900
+        }
+      },
+      "metadata": "output/m8a-v4.10-slice4/v4.10-slice4-boundary-open-1440x900.metadata.json",
+      "activeWindowId": "leo-acquisition-context",
+      "nextWindowId": "leo-aging-pressure",
+      "detailsSheetState": "closed",
+      "boundarySurfaceState": "open",
+      "sceneNarrativeRect": {
+        "left": 340,
+        "top": 485.296875,
+        "right": 433.1875,
+        "bottom": 509.296875,
+        "width": 93.1875,
+        "height": 24
+      },
+      "sequenceRailRect": {
+        "left": 304,
+        "top": 704,
+        "right": 1136,
+        "bottom": 760,
+        "width": 832,
+        "height": 56
+      },
+      "stripRect": {
+        "left": 340,
+        "top": 74.234375,
+        "right": 924,
+        "bottom": 159.390625,
+        "width": 584,
+        "height": 85.15625
+      },
+      "sheetRect": {
+        "left": 1097,
+        "top": 23,
+        "right": 1417,
+        "bottom": 771,
+        "width": 320,
+        "height": 748
+      },
+      "boundarySurfaceRect": {
+        "left": 0,
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "width": 0,
+        "height": 0
+      },
+      "inspectorGroups": [],
+      "nativeSurfaces": {
+        "defaultTokenNotice": {
+          "exists": true,
+          "visible": true,
+          "hidden": false,
+          "rect": {
+            "left": 174,
+            "top": 836,
+            "right": 1413.578125,
+            "bottom": 868,
+            "width": 1239.578125,
+            "height": 32
+          },
+          "text": "This application is using Cesium's default ion access token. Please assign Cesium.Ion.defaultAccessToken with an access token from your ion account before making any Cesium API calls. You can sign up for a free ion account at https://cesium.com.",
+          "visibleText": "This application is using Cesium's default ion access token. Please assign Cesium.Ion.defaultAccessToken with an access token from your ion account before making any Cesium API calls. You can sign up for a free ion account at https://cesium.com ."
+        },
+        "attribution": {
+          "exists": true,
+          "visible": true,
+          "hidden": false,
+          "rect": {
+            "left": 267.921875,
+            "top": 857,
+            "right": 340.75,
+            "bottom": 868,
+            "width": 72.828125,
+            "height": 11
+          },
+          "text": "Data attribution",
+          "visibleText": "Data attribution"
+        },
+        "credits": {
+          "exists": true,
+          "visible": true,
+          "hidden": false,
+          "rect": {
+            "left": 174,
+            "top": 836,
+            "right": 1413.578125,
+            "bottom": 868,
+            "width": 1239.578125,
+            "height": 32
+          },
+          "text": "This application is using Cesium's default ion access token. Please assign Cesium.Ion.defaultAccessToken with an access token from your ion account before making any Cesium API calls. You can sign up for a free ion account at https://cesium.com.Data attribution",
+          "visibleText": "This application is using Cesium's default ion access token. Please assign Cesium.Ion.defaultAccessToken with an access token from your ion account before making any Cesium API calls. You can sign up for a free ion account at https://cesium.com . Data attribution"
+        },
+        "viewerBottom": {
+          "exists": true,
+          "visible": true,
+          "hidden": false,
+          "rect": {
+            "left": 174,
+            "top": 824,
+            "right": 1440,
+            "bottom": 870,
+            "width": 1266,
+            "height": 46
+          },
+          "text": "This application is using Cesium's default ion access token. Please assign Cesium.Ion.defaultAccessToken with an access token from your ion account before making any Cesium API calls. You can sign up for a free ion account at https://cesium.com.Data attribution",
+          "visibleText": "This application is using Cesium's default ion access token. Please assign Cesium.Ion.defaultAccessToken with an access token from your ion account before making any Cesium API calls. You can sign up for a free ion account at https://cesium.com . Data attribution"
+        },
+        "timeline": {
+          "exists": true,
+          "visible": true,
+          "hidden": false,
+          "rect": {
+            "left": 169,
+            "top": 873,
+            "right": 1411,
+            "bottom": 900,
+            "width": 1242,
+            "height": 27
+          },
+          "text": "Apr 28 2026 08:45:00 UTC Apr 28 2026 09:00:00 UTC Apr 28 2026 09:15:00 UTC Apr 28 2026 09:30:00 UTC Apr 28 2026 09:45:00 UTC Apr 28 2026 10:00:00 UTC Apr 28 2026 10:15:00 UTC Apr 28 2026 10:30:00 UTC Apr 28 2026 10:45:00 UTC Apr 28 2026 11:00:00 UTC",
+          "visibleText": "Apr 28 2026 08:45:00 UTC Apr 28 2026 09:00:00 UTC Apr 28 2026 09:15:00 UTC Apr 28 2026 09:30:00 UTC Apr 28 2026 09:45:00 UTC Apr 28 2026 10:00:00 UTC Apr 28 2026 10:15:00 UTC Apr 28 2026 10:30:00 UTC Apr 28 2026 10:45:00 UTC Apr 28 2026 11:00:00 UTC"
+        }
+      }
+    }
+  ],
+  "sequenceChecks": [
+    {
+      "ratio": 0.1,
+      "activeWindowId": "leo-acquisition-context",
+      "nextWindowId": "leo-aging-pressure"
+    },
+    {
+      "ratio": 0.25,
+      "activeWindowId": "leo-aging-pressure",
+      "nextWindowId": "meo-continuity-hold"
+    },
+    {
+      "ratio": 0.45,
+      "activeWindowId": "meo-continuity-hold",
+      "nextWindowId": "leo-reentry-candidate"
+    },
+    {
+      "ratio": 0.7,
+      "activeWindowId": "leo-reentry-candidate",
+      "nextWindowId": "geo-continuity-guard"
+    },
+    {
+      "ratio": 0.9,
+      "activeWindowId": "geo-continuity-guard",
+      "nextWindowId": "leo-acquisition-context"
+    }
+  ],
+  "taskOwnedProcesses": [
+    {
+      "type": "static-server-started",
+      "at": "2026-05-04T16:03:05.123Z",
+      "pid": 30833,
+      "baseUrl": "http://127.0.0.1:43215"
+    },
+    {
+      "type": "headless-browser-started",
+      "at": "2026-05-04T16:03:05.230Z",
+      "pid": 30838,
+      "browserCommand": "google-chrome"
+    },
+    {
+      "type": "headless-browser-stop-requested",
+      "at": "2026-05-04T16:03:56.511Z",
+      "pid": 30838
+    },
+    {
+      "type": "static-server-stop-requested",
+      "at": "2026-05-04T16:03:56.546Z",
+      "pid": 30833
+    }
+  ]
+}

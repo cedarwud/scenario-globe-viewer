@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="900" viewBox="0 0 1440 900">
+  <rect width="1440" height="900" fill="#07100e"/>
+  <rect x="0" y="0" width="1440" height="58" fill="#0d1413"/>
+  <text x="34" y="35" fill="#eff7f3" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="700">M8A V4.10 target: handover review</text>
+  <text x="920" y="35" fill="#f2bf5a" font-family="Inter, Arial, sans-serif" font-size="14">Simulation review - no active satellite, gateway, path, or measured metric claim</text>
+  <rect x="76" y="94" width="1288" height="575" rx="14" fill="#091614" stroke="#1d302d"/>
+  <circle cx="633.6" cy="404" r="245" fill="#102723" stroke="#335d54" stroke-width="2"/>
+  <ellipse cx="633.6" cy="465.25" rx="225.4" ry="63.7" fill="none" stroke="#284741" stroke-width="1"/>
+  <path d="M 393.5 396 C 572.35 335.4, 714.45 457.9, 866.35 392" fill="none" stroke="#76d8c5" stroke-width="3" opacity="0.84"/>
+  <path d="M 452.3 291.3 C 604.2 227.6, 775.7 330.5, 834.5 453" fill="none" stroke="#bf8cff" stroke-width="2" opacity="0.66"/>
+  <path d="M 422.90000000000003 536.3 C 584.6 600, 736.5 560.8, 873.7 492.2" fill="none" stroke="#95d66b" stroke-width="2" opacity="0.58"/>
+  <circle cx="609.1" cy="342.75" r="12" fill="#f2bf5a"/>
+  <line x1="609.1" y1="342.75" x2="132" y2="190" stroke="#f2bf5a" stroke-width="2"/>
+  <rect x="104" y="142" width="410" height="112" rx="8" fill="#14201e" stroke="#f2bf5a"/>
+  <text x="128" y="176" fill="#f2bf5a" font-family="Inter, Arial, sans-serif" font-size="14" font-weight="700">LEO pressure</text>
+  <text x="128" y="206" fill="#eff7f3" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="700">Watch the LEO candidate cue</text>
+  <text x="128" y="236" fill="#8fa19d" font-family="Inter, Arial, sans-serif" font-size="14">Next: continuity shifts to MEO context.</text>
+  <rect x="1128" y="104" width="236" height="134" rx="8" fill="#101817" stroke="#2a3836"/>
+  <text x="1144" y="132" fill="#eff7f3" font-family="Inter, Arial, sans-serif" font-size="14" font-weight="700">Details optional</text>
+  <text x="1144" y="162" fill="#8fa19d" font-family="Inter, Arial, sans-serif" font-size="12">Evidence and source trace stay behind review controls.</text>
+  <g><circle cx="250" cy="782" r="8" fill="#26312f" stroke="#76d8c5" stroke-width="1.5"/><text x="250" y="816" fill="#8fa19d" font-size="13" text-anchor="middle" font-family="Inter, Arial, sans-serif">LEO review</text></g>
+<g><circle cx="445" cy="782" r="13" fill="#f2bf5a" stroke="#f2bf5a" stroke-width="1.5"/><text x="445" y="816" fill="#eff7f3" font-size="13" text-anchor="middle" font-family="Inter, Arial, sans-serif">LEO pressure</text></g>
+<g><circle cx="640" cy="782" r="8" fill="#26312f" stroke="#f2bf5a" stroke-width="3"/><text x="640" y="816" fill="#8fa19d" font-size="13" text-anchor="middle" font-family="Inter, Arial, sans-serif">MEO hold</text><text x="640" y="762" fill="#f2bf5a" font-size="11" text-anchor="middle" font-family="Inter, Arial, sans-serif">next</text></g>
+<g><circle cx="835" cy="782" r="8" fill="#26312f" stroke="#76d8c5" stroke-width="1.5"/><text x="835" y="816" fill="#8fa19d" font-size="13" text-anchor="middle" font-family="Inter, Arial, sans-serif">LEO re-entry</text></g>
+<g><circle cx="1030" cy="782" r="8" fill="#26312f" stroke="#95d66b" stroke-width="1.5"/><text x="1030" y="816" fill="#8fa19d" font-size="13" text-anchor="middle" font-family="Inter, Arial, sans-serif">GEO guard</text></g>
+  <text x="76" y="740" fill="#eff7f3" font-family="Inter, Arial, sans-serif" font-size="16" font-weight="700">Sequence rail: active LEO pressure, next MEO hold</text>
+</svg>
