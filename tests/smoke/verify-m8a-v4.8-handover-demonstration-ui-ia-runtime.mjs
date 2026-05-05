@@ -20,6 +20,7 @@ const EXPECTED_PRECISION = "operator-family-only";
 const EXPECTED_MODEL_ID = "m8a-v4.6d-simulation-handover-model.v1";
 const EXPECTED_V48_VERSION =
   "m8a-v4.8-handover-demonstration-ui-ia-phase3-runtime.v1";
+const EXPECTED_V411_CORRECTION_A_RAIL_INFO_CLASS = "dynamic";
 const EXPECTED_ACTOR_COUNTS = { leo: 6, meo: 5, geo: 2 };
 const PHASE3_MOTION_SAMPLE_COUNT = 8;
 const EXPECTED_DISPLAY_MOTION_SOURCE_BOUNDARY =
@@ -187,6 +188,12 @@ const FORBIDDEN_UNIT_PATTERNS = [
   /\b\d+(?:\.\d+)?\s*Gbps\b/i,
   /\bmeasured\s+\d+(?:\.\d+)?\s*%/i
 ];
+
+// §Smoke Softening Disclosure: Correction A Phase B adds a visible left
+// Handover Decision Rail. V4.8 now accepts those rail text nodes when they
+// carry the existing dynamic info class; route, five-window order, V4.6D model,
+// pair, precision, actor-count, endpoint identity, source-boundary, and
+// forbidden-claim invariants remain unchanged.
 
 function sleep(ms) {
   return new Promise((resolve) => {
@@ -417,6 +424,15 @@ async function inspectPhaseTwoDom(client) {
         )
       ).filter(isVisible);
       const hiddenProgress = productRoot.querySelector("[data-m8a-v47-progress='true']");
+      const railSlotInfoClasses = Array.from(
+        productRoot.querySelectorAll("[data-m8a-v411-rail-slot]")
+      )
+        .filter(isVisible)
+        .map((element) => ({
+          slot: element.getAttribute("data-m8a-v411-rail-slot"),
+          text: element.textContent.replace(/\\s+/g, " ").trim(),
+          infoClass: element.getAttribute("data-m8a-v48-info-class")
+        }));
       const isSourcesAffordance = (element) =>
         element?.getAttribute?.("data-m8a-v47-action") === "open-sources";
       const visibleControls = Array.from(
@@ -482,6 +498,14 @@ async function inspectPhaseTwoDom(client) {
           JSON.stringify(classificationFailures)
       );
       assert(
+        railSlotInfoClasses.length === 5 &&
+          railSlotInfoClasses.every(
+            (entry) => entry.infoClass === config.expectedCorrectionARailInfoClass
+          ),
+        "V4.8 Correction A rail text nodes must use the existing dynamic info class: " +
+          JSON.stringify(railSlotInfoClasses)
+      );
+      assert(
         controlClassFailures.length === 0,
         "Every visible V4.8 product control must be classified as control: " +
           JSON.stringify(controlClassFailures)
@@ -534,6 +558,7 @@ async function inspectPhaseTwoDom(client) {
 
       return {
         infoClassValues: state.productUx.infoClassValues,
+        railSlotInfoClasses,
         visibleControlCount: visibleControls.length,
         stripText: strip.innerText,
         resourceHits
@@ -544,6 +569,7 @@ async function inspectPhaseTwoDom(client) {
       expectedPrecision: EXPECTED_PRECISION,
       expectedModelId: EXPECTED_MODEL_ID,
       expectedV48Version: EXPECTED_V48_VERSION,
+      expectedCorrectionARailInfoClass: EXPECTED_V411_CORRECTION_A_RAIL_INFO_CLASS,
       expectedActorCounts: EXPECTED_ACTOR_COUNTS,
       forbiddenPositivePhrases: FORBIDDEN_POSITIVE_PHRASES,
       forbiddenUnitPatterns: FORBIDDEN_UNIT_PATTERNS.map((pattern) => ({

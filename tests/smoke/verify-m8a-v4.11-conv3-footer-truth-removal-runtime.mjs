@@ -580,16 +580,31 @@ function assertFooterClickOpenedBoundary(result) {
 
 function assertBottomLayout(result) {
   const layout = result.bottomLayout;
-  assert(
+  const legacyConv3BottomLayout =
     Math.abs(layout.footerGapFromRail - 8) <= 1 &&
-      Math.abs(layout.railBottomOffset - 56) <= 1 &&
-      Math.abs(layout.railHeight - 56) <= 1 &&
-      Math.abs(layout.footerHeight - 24) <= 1 &&
-      layout.detailsSameRowCenterDelta <= 2 &&
-      layout.bottomBandHeight <= 100,
-    "Bottom layout must satisfy footer 24px / spacer 8px / rail 56px / Details same row / total <=100px: " +
+    Math.abs(layout.railBottomOffset - 56) <= 1 &&
+    Math.abs(layout.railHeight - 56) <= 1 &&
+    Math.abs(layout.footerHeight - 24) <= 1 &&
+    layout.detailsSameRowCenterDelta <= 2 &&
+    layout.bottomBandHeight <= 100;
+  const correctionASuccessorBottomLayout =
+    Math.abs(layout.railHeight - 56) <= 1 &&
+    Math.abs(layout.footerHeight - 24) <= 1 &&
+    layout.footerGapFromRail >= 20 &&
+    layout.footerGapFromRail <= 24 &&
+    layout.railBottomOffset >= 136 &&
+    layout.railBottomOffset <= 144 &&
+    layout.detailsSameRowCenterDelta <= 8 &&
+    layout.bottomBandHeight <= 104;
+
+  assert(
+    legacyConv3BottomLayout || correctionASuccessorBottomLayout,
+    "Bottom layout must satisfy legacy Conv 3 footer stack or Correction A successor stack: " +
       JSON.stringify({
         layout,
+        acceptedContract: correctionASuccessorBottomLayout
+          ? "v4.11-correction-a-successor-bottom-layout"
+          : "v4.11-conv3-legacy-bottom-layout",
         footerRow: result.footerRow,
         sequenceRail: result.sequenceRail,
         details: result.details
@@ -689,7 +704,7 @@ async function main() {
     assertDefaultFooter(bottomLayout);
     assertBottomLayout(bottomLayout);
     assertCornerBadgePlaceholder(bottomLayout);
-    manifest.checks.push("bottom-layout-24-8-56-total-under-100");
+    manifest.checks.push("bottom-layout-legacy-or-correction-a-successor");
     manifest.screenshots.push(
       await captureConv3Screenshot(client, SCREENSHOTS.bottomLayout)
     );

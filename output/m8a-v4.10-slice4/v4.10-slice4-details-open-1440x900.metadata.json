@@ -1,5 +1,5 @@
 {
-  "capturedAt": "2026-05-04T16:03:35.310Z",
+  "capturedAt": "2026-05-05T01:33:14.976Z",
   "route": "/?scenePreset=regional&m8aV4GroundStationScene=1",
   "viewport": {
     "name": "details-open-1440x900",
@@ -12,7 +12,7 @@
   },
   "screenshot": {
     "path": "output/m8a-v4.10-slice4/v4.10-slice4-details-open-1440x900.png",
-    "sizeBytes": 932469,
+    "sizeBytes": 933003,
     "dimensions": {
       "width": 1440,
       "height": 900
@@ -369,9 +369,9 @@
       "hidden": false,
       "rect": {
         "left": 340,
-        "top": 485.09375,
+        "top": 482.6875,
         "right": 433.1875,
-        "bottom": 509.09375,
+        "bottom": 506.6875,
         "width": 93.1875,
         "height": 24
       },
@@ -554,8 +554,8 @@
         "width": 320,
         "height": 748
       },
-      "text": "Details Inspector Close Decision Metrics Boundary Evidence Selected replay window LEO review focus State 1 of 5 Replay UTC 2026-04-28T08:56:29.240Z Sim replay 00:05 / 01:54 Source provenance Decision · State Evidence 剛接上 OneWeb LEO · LEO review focus 剛接上 OneWeb LEO，連線品質強。約 22 分鐘後，因為位置條件變化會進入訊號減弱階段。 NowNow: LEO is the modeled primary service state for this window. WhyWhy: position conditions support low-latency LEO review focus. NextNext: watch for LEO aging pressure before the MEO hold window. WatchWatch: simulated service time and modeled quality class only. The simulation review is currently anchored on the OneWeb LEO context marked as the focus role. The five-state V4.6D model is in window 1 of 5. Watch the LEO actor for the early pressure signal — the next modeled state is LEO pressure. Endpoint precision remains operator-family only and no active gateway is being claimed. Implementation evidence",
-      "visibleText": "Details Inspector Close Decision Metrics Boundary Evidence Selected replay window LEO review focus State 1 of 5 Replay UTC 2026-04-28T08:56:29.240Z Sim replay 00:05 / 01:54 Source provenance Decision · State Evidence 剛接上 OneWeb LEO · LEO review focus 剛接上 OneWeb LEO，連線品質強。約 22 分鐘後，因為位置條件變化會進入訊號減弱階段。 Now Now: LEO is the modeled primary service state for this window. Why Why: position conditions support low-latency LEO review focus. Next Next: watch for LEO aging pressure before the MEO hold window. Watch Watch: simulated service time and modeled quality class only. The simulation review is currently anchored on the OneWeb LEO context marked as the focus role. The five-state V4.6D model is in window 1 of 5. Watch the LEO actor for the early pressure signal — the next modeled state is LEO pressure. Endpoint precision remains operator-family only and no active gateway is being claimed. Implementation evidence",
+      "text": "Details Inspector Close Decision Metrics Boundary Evidence Selected replay window LEO review focus State 1 of 5 Replay UTC 2026-04-28T08:57:38.588Z Sim replay 00:06 / 01:54 Source provenance Decision · State Evidence 剛接上 OneWeb LEO · LEO review focus 剛接上 OneWeb LEO，連線品質強。約 22 分鐘後，因為位置條件變化會進入訊號減弱階段。 NowNow: LEO is the modeled primary service state for this window. WhyWhy: position conditions support low-latency LEO review focus. NextNext: watch for LEO aging pressure before the MEO hold window. WatchWatch: simulated service time and modeled quality class only. The simulation review is currently anchored on the OneWeb LEO context marked as the focus role. The five-state V4.6D model is in window 1 of 5. Watch the LEO actor for the early pressure signal — the next modeled state is LEO pressure. Endpoint precision remains operator-family only and no active gateway is being claimed. Implementation evidence",
+      "visibleText": "Details Inspector Close Decision Metrics Boundary Evidence Selected replay window LEO review focus State 1 of 5 Replay UTC 2026-04-28T08:57:38.588Z Sim replay 00:06 / 01:54 Source provenance Decision · State Evidence 剛接上 OneWeb LEO · LEO review focus 剛接上 OneWeb LEO，連線品質強。約 22 分鐘後，因為位置條件變化會進入訊號減弱階段。 Now Now: LEO is the modeled primary service state for this window. Why Why: position conditions support low-latency LEO review focus. Next Next: watch for LEO aging pressure before the MEO hold window. Watch Watch: simulated service time and modeled quality class only. The simulation review is currently anchored on the OneWeb LEO context marked as the focus role. The five-state V4.6D model is in window 1 of 5. Watch the LEO actor for the early pressure signal — the next modeled state is LEO pressure. Endpoint precision remains operator-family only and no active gateway is being claimed. Implementation evidence",
       "title": "Inspector",
       "lead": "Evidence for the selected replay window. The scene narrative and sequence rail remain primary.",
       "dataset": {

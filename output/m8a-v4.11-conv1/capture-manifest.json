@@ -56,9 +56,9 @@
       "windowId": "leo-reentry-candidate",
       "screenshot": "output/m8a-v4.11-conv1/v4.11-conv1-w4-1440x900.png",
       "visibleTokenEntityIds": [
-        "m8a-v4.11-w4-candidate-pulse-ring-0",
-        "m8a-v4.11-w4-candidate-pulse-ring-1",
-        "m8a-v4.11-w4-candidate-pulse-ring-2"
+        "m8a-v4.11-w4-candidate-entry-cue",
+        "m8a-v4.11-w4-candidate-halo",
+        "m8a-v4.11-w4-candidate-label"
       ]
     },
     {

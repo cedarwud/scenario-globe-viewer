@@ -1,5 +1,5 @@
 {
-  "capturedAt": "2026-05-04T03:09:03.807Z",
+  "capturedAt": "2026-05-05T01:32:09.911Z",
   "route": "/?scenePreset=regional&m8aV4GroundStationScene=1",
   "viewport": {
     "name": "boundary-open-1440x900",
@@ -11,7 +11,7 @@
   },
   "screenshot": {
     "path": "output/m8a-v4.10-slice3/v4.10-slice3-boundary-open-1440x900.png",
-    "sizeBytes": 1165214,
+    "sizeBytes": 932855,
     "dimensions": {
       "width": 1440,
       "height": 900
@@ -314,17 +314,17 @@
       "boundarySurfaceState": "open",
       "detailsSheetState": "closed"
     },
-    "rootDatasetText": "true m8a-v4.8-handover-demonstration-ui-ia-phase3-runtime.v1 m8a-v4.9-product-comprehension-slice4-runtime.v1 m8a-v4.10-first-viewport-composition-slice1-runtime.v1 m8a-v4.11-glance-rank-surface-slice1-runtime.v1 m8a-v4.11-hover-popover-slice2-runtime.v1 m8a-v4.11-transition-toast-slice4-runtime.v1 true m8a-v4.9-product-comprehension-slice4-runtime.v1 m8a-v4.11-product-ux-structure-conv3-footer-runtime.v1 desktop playing 60 leo-acquisition-context LEO review focus false 0.050563 open closed open false data-m8a-v48-info-class fixed|dynamic|disclosure|control slice4-inspector-details-hierarchy-redesign slice1-first-viewport-composition active-state-title|orbit-class-token|first-read-line|watch-cue-or-fallback|next-line secondary slice2-handover-sequence-rail false m8a-v4.10-handover-sequence-rail-slice2-runtime.v1 five-state-path|active-state-mark|next-state-mark|transition-event-link leo-acquisition-context|leo-aging-pressure|meo-continuity-hold|leo-reentry-candidate|geo-continuity-guard leo-acquisition-context leo-aging-pressure LEO review focus LEO pressure State 1 of 5 State 2 of 5 desktop-visible-narrow-compact m8a-v4.10-boundary-affordance-separation-slice3-runtime.v1 slice3-boundary-affordance-separation compact-boundary-line|focused-boundary-surface|full-truth-disclosure|details-independent-state Simulation review - not operator log No active satellite, gateway, path, or measured metric claim. focused-boundary-surface-not-generic-details-inspector boundary-surface-and-details-secondary-disclosure truth-does-not-open-generic-details-inspector|truth-and-details-do-not-share-open-state|truth-and-details-do-not-share-sheet-surface slice1-glance-rank-surface focus · LEO max-width-180px|max-height-24px TLE: CelesTrak NORAD GP · fetched 2026-04-26 · 13 actors LEO ✓ · MEO ✓ · GEO ✓ LEO MEO GEO ✓ 96 18 11 0.3 13 m8a-v4.11-visual-tokens-conv1-runtime.v1 conv1-window-active-token m8a-v4.11-visual-tokens-conv1 W1 800000 60000000 60000000 60000000 35000000 90000000 m8a-v4.11-scene-context-chip-conv1-runtime.v1 13 顆衛星模擬展示 · 完整 ≥500 LEO 多軌道驗證見後續階段 380 28 14 slice2-hover-popover phase-specific-three-line 150 240 140 m8a-v4.11-inspector-concurrency-slice3-runtime.v1 slice3-inspector-concurrency single-state-evidence-role-truth-button-shows-state-evidence state-evidence state-evidence|truth-boundary|sources closed open m8a-v411-footer-chip-system-conv3-runtime.v1 true m8a-v4.11-sources-role-slice5-runtime.v1 advanced-source-provenance-toggle-only closed {\"trigger\":\"advanced-source-provenance\",\"endpointId\":\"\",\"orbitClass\":\"\"} 13 2 5 true false 320 calc(100vh - 9.5rem) 0.28 slice4-transition-toast 2500 2 320 0.22 180 24 200 2000 leo-acquisition-context|leo-aging-pressure|meo-continuity-hold|leo-reentry-candidate|geo-continuity-guard LEO is the simulated review focus for this corridor. Watch: representative LEO cue. LEO is the simulated review focus for this corridor. Watch: representative LEO cue. Next: watch for pressure before the MEO hold. LEO current-state|state-ordinal|play-pause|restart|30x|60x|120x|compact-truth-affordance|details-trigger actor-ids|cue-ids|selected-anchor-ids|candidate-context-actor-id-arrays|fallback-context-actor-id-arrays|long-truth-badge-row|duplicate-product-progress Truth slice2-scene-near-meaning-layer-correction orbit-class-token|product-label|first-read-line|watch-cue-label|next-line product-label|state-ordinal|first-read-line|no-reliable-scene-attachment true persistent-layer-wording-without-scene-attachment visible-only-when-anchor-geometry-reliable LEO is the simulated review focus for this corridor. scene-near-meaning true true false display-context-cue-attachment-only-when-geometry-reliable slice3-transition-event-layer active-v46d-window-id-change 2600 transition-summary|transition-context actor-ids|cue-ids|selected-anchor-ids|candidate-context-actor-id-arrays|fallback-context-actor-id-arrays|full-truth-boundary-disclosure|user-action-required false persistent-and-scene-near-layers non-blocking-no-user-action slice4-inspector-details-hierarchy-redesign m8a-v4.10-inspector-evidence-redesign-slice4-runtime.v1 current-replay-event-evidence|sequence-selected-window-context|source-and-boundary-notes|not-being-claimed secondary-evidence-inspector operator-log|claim-panel|mission-narrative|primary-product-narrative not-active-satellite|not-active-gateway-or-path|not-measured-metric|not-native-rf|not-operator-log-truth details-inspector-and-truth-boundary-are-separate-states-and-surfaces current-state|why-this-state-exists|what-changed-from-previous-state|what-to-watch-now|what-happens-next|boundary-summary raw-actor-ids|cue-ids|selected-anchor-ids|selected-relation-corridor-ids|anchor-metadata|full-candidate-context-arrays|full-fallback-context-arrays representative-actor-id|candidate-context-actor-id-array|fallback-context-actor-id-array|selected-anchor-id|selected-relation-cue-id|selected-corridor-id|anchor-runtime-metadata false concise-primary-summary-full-secondary-disclosure raw-ids-and-arrays-collapsed-implementation-evidence leo-acquisition-context oneweb-0386-leo-display-context oneweb-0537-leo-display-context|oneweb-0701-leo-display-context|o3b-mpower-f6-meo-display-context st-2-geo-continuity-anchor|ses-9-geo-display-context representative-actor-anchor display-representative-actor oneweb-0386-leo-display-context m8a-v46e-simulation-displayRepresentative-context-ribbon m8a-v4-operator-family-endpoint-context-ribbon geometry-reliable m8a-v4.11-countdown-surface-conv2-runtime.v1 addendum-1.1 6893.53 0.050563 leo-acquisition-context 1030.15 ~17 分鐘 ~ 為模擬推演值 14 8 footer-chip-opens-state-evidence-with-truth-tail-visible",
-    "productText": "13 顆衛星模擬展示 · 完整 ≥500 LEO 多軌道驗證見後續階段 LEO MEO GEO ✓ LEO MEO GEO ✓ LEO LEO LEO LEO LEO LEO MEO MEO MEO MEO MEO GEO GEO focus · LEO Handover sequence State 1 of 5: LEO review focus Next: State 2 of 5 LEO pressure 1 LEO review LEO 2 LEO pressure LEO 3 MEO hold MEO 4 LEO re-entry LEO 5 GEO guard GEO Current state LEO review focus State 1 of 5 Pause Restart 30x 60x 120x Details Details Inspector Close Selected replay window LEO review focus State 1 of 5 Replay UTC 2026-04-28T08:57:05.558Z Sim replay 00:05 / 01:54 State Evidence 剛接上 OneWeb LEO · LEO review focus 剛接上 OneWeb LEO，連線品質強。約 22 分鐘後，因為位置條件變化會進入訊號減弱階段。 The simulation review is currently anchored on the OneWeb LEO context marked as the focus role. The five-state V4.6D model is in window 1 of 5. Watch the LEO actor for the early pressure signal — the next modeled state is LEO pressure. Endpoint precision remains operator-family only and no active gateway is being claimed. Source provenance Truth Boundary Truth boundary simulation output operator-family precision display-context actors Simulated display-context state, not an operator handover log. Source-lineaged display-context actors, not active serving satellites. Endpoint precision stays operator-family only. No active gateway assignment is claimed. No pair-specific teleport path is claimed. No measured latency, jitter, throughput, or continuity values are shown. No native RF handover is claimed. Implementation evidence 模擬展示 operator-family precision TLE: CelesTrak NORAD GP · 2026-04-26 13 actors 服務時間：~17 分鐘 下一段：訊號減弱 ~ 為模擬推演值",
+    "rootDatasetText": "true m8a-v4.8-handover-demonstration-ui-ia-phase3-runtime.v1 m8a-v4.9-product-comprehension-slice4-runtime.v1 m8a-v4.10-first-viewport-composition-slice1-runtime.v1 m8a-v4.11-glance-rank-surface-slice1-runtime.v1 m8a-v4.11-hover-popover-slice2-runtime.v1 m8a-v4.11-transition-toast-slice4-runtime.v1 true m8a-v4.9-product-comprehension-slice4-runtime.v1 m8a-v4.11-product-ux-structure-conv3-footer-runtime.v1 desktop playing 60 leo-acquisition-context LEO review focus false 0.053891 open closed open false data-m8a-v48-info-class fixed|dynamic|disclosure|control slice4-inspector-details-hierarchy-redesign slice1-first-viewport-composition active-state-title|orbit-class-token|first-read-line|watch-cue-or-fallback|next-line secondary slice2-handover-sequence-rail false m8a-v4.10-handover-sequence-rail-slice2-runtime.v1 five-state-path|active-state-mark|next-state-mark|transition-event-link leo-acquisition-context|leo-aging-pressure|meo-continuity-hold|leo-reentry-candidate|geo-continuity-guard leo-acquisition-context leo-aging-pressure LEO review focus LEO pressure State 1 of 5 State 2 of 5 desktop-visible-narrow-compact m8a-v4.10-boundary-affordance-separation-slice3-runtime.v1 slice3-boundary-affordance-separation compact-boundary-line|focused-boundary-surface|full-truth-disclosure|details-independent-state Simulation review - not operator log No active satellite, gateway, path, or measured metric claim. focused-boundary-surface-not-generic-details-inspector boundary-surface-and-details-secondary-disclosure truth-does-not-open-generic-details-inspector|truth-and-details-do-not-share-open-state|truth-and-details-do-not-share-sheet-surface slice1-glance-rank-surface focus · LEO max-width-180px|max-height-24px TLE: CelesTrak NORAD GP · fetched 2026-04-26 · 13 actors LEO ✓ · MEO ✓ · GEO ✓ LEO MEO GEO ✓ 96 18 11 0.3 13 m8a-v4.11-visual-tokens-conv1-runtime.v1 conv1-window-active-token m8a-v4.11-visual-tokens-conv1 W1 800000 60000000 60000000 60000000 35000000 90000000 m8a-v4.11-scene-context-chip-conv1-runtime.v1 13 顆衛星模擬展示 · 完整 ≥500 LEO 多軌道驗證見後續階段 380 28 14 slice2-hover-popover phase-specific-three-line 150 240 140 m8a-v4.11-inspector-concurrency-slice3-runtime.v1 slice3-inspector-concurrency single-state-evidence-role-truth-button-shows-state-evidence state-evidence state-evidence|truth-boundary|sources closed open boundary decision|boundary m8a-v411-footer-chip-system-conv3-runtime.v1 true m8a-v4.11-sources-role-slice5-runtime.v1 advanced-source-provenance-toggle-only closed {\"trigger\":\"advanced-source-provenance\",\"endpointId\":\"\",\"orbitClass\":\"\"} 13 2 5 true false 320 calc(100vh - 9.5rem) 0.28 slice4-transition-toast 2500 2 320 0.22 180 24 200 2000 leo-acquisition-context|leo-aging-pressure|meo-continuity-hold|leo-reentry-candidate|geo-continuity-guard LEO is the simulated review focus for this corridor. Watch: representative LEO cue. LEO is the simulated review focus for this corridor. Watch: representative LEO cue. Next: watch for pressure before the MEO hold. LEO current-state|state-ordinal|play-pause|restart|30x|60x|120x|compact-truth-affordance|details-trigger actor-ids|cue-ids|selected-anchor-ids|candidate-context-actor-id-arrays|fallback-context-actor-id-arrays|long-truth-badge-row|duplicate-product-progress Truth slice2-scene-near-meaning-layer-correction orbit-class-token|product-label|first-read-line|watch-cue-label|next-line product-label|state-ordinal|first-read-line|no-reliable-scene-attachment true persistent-layer-wording-without-scene-attachment visible-only-when-anchor-geometry-reliable LEO is the simulated review focus for this corridor. scene-near-meaning true true false display-context-cue-attachment-only-when-geometry-reliable slice3-transition-event-layer active-v46d-window-id-change 2600 transition-summary|transition-context actor-ids|cue-ids|selected-anchor-ids|candidate-context-actor-id-arrays|fallback-context-actor-id-arrays|full-truth-boundary-disclosure|user-action-required false persistent-and-scene-near-layers non-blocking-no-user-action slice4-inspector-details-hierarchy-redesign m8a-v4.10-inspector-evidence-redesign-slice4-runtime.v1 current-replay-event-evidence|sequence-selected-window-context|source-and-boundary-notes|not-being-claimed secondary-evidence-inspector operator-log|claim-panel|mission-narrative|primary-product-narrative not-active-satellite|not-active-gateway-or-path|not-measured-metric|not-native-rf|not-operator-log-truth details-inspector-and-truth-boundary-are-separate-states-and-surfaces current-state|why-this-state-exists|what-changed-from-previous-state|what-to-watch-now|what-happens-next|boundary-summary raw-actor-ids|cue-ids|selected-anchor-ids|selected-relation-corridor-ids|anchor-metadata|full-candidate-context-arrays|full-fallback-context-arrays representative-actor-id|candidate-context-actor-id-array|fallback-context-actor-id-array|selected-anchor-id|selected-relation-cue-id|selected-corridor-id|anchor-runtime-metadata false concise-primary-summary-full-secondary-disclosure raw-ids-and-arrays-collapsed-implementation-evidence leo-acquisition-context oneweb-0386-leo-display-context oneweb-0537-leo-display-context|oneweb-0701-leo-display-context|o3b-mpower-f6-meo-display-context st-2-geo-continuity-anchor|ses-9-geo-display-context representative-actor-anchor display-representative-actor oneweb-0386-leo-display-context m8a-v46e-simulation-displayRepresentative-context-ribbon m8a-v4-operator-family-endpoint-context-ribbon geometry-reliable entry-cue-once-then-stable-candidate-halo inactive false false 1500 0 120 54 候選 LEO false one-shot-entry-only false not-active-serving-satellite false m8a-v4.11-countdown-surface-conv2-runtime.v1 addendum-1.1 6893.53 0.053891 leo-acquisition-context 1007.20 ~17 分鐘 ~ 為模擬推演值 14 8 footer-chip-opens-state-evidence-with-truth-tail-visible",
+    "productText": "13 顆衛星模擬展示 · 完整 ≥500 LEO 多軌道驗證見後續階段 LEO MEO GEO ✓ LEO MEO GEO ✓ LEO LEO LEO LEO LEO LEO MEO MEO MEO MEO MEO GEO GEO Scenario Scope Scope: 13-actor demo · LEO/MEO/GEO (6/5/2) Time: Sim replay 00:06 / 01:54 · replay · 60x Precision: operator-family precision Boundary: repo-owned projection · not measured truth Current: W1 LEO primary review Candidate: none promoted in W1 Fallback: MEO/GEO observed only Decision: LEO is usable now; watch service time Time/Quality: simulated remaining time; modeled quality strong focus · LEO Handover sequence State 1 of 5: LEO review focus Next: State 2 of 5 LEO pressure 1 LEO review LEO 2 LEO pressure LEO 3 MEO hold MEO 4 LEO re-entry LEO 5 GEO guard GEO Current state LEO review focus State 1 of 5 Pause Restart 30x 60x 120x Details Details Inspector Close Decision Metrics Boundary Evidence Selected replay window LEO review focus State 1 of 5 Replay UTC 2026-04-28T08:57:28.502Z Sim replay 00:06 / 01:54 Source provenance Decision · State Evidence 剛接上 OneWeb LEO · LEO review focus 剛接上 OneWeb LEO，連線品質強。約 22 分鐘後，因為位置條件變化會進入訊號減弱階段。 Now Now: LEO is the modeled primary service state for this window. Why Why: position conditions support low-latency LEO review focus. Next Next: watch for LEO aging pressure before the MEO hold window. Watch Watch: simulated service time and modeled quality class only. The simulation review is currently anchored on the OneWeb LEO context marked as the focus role. The five-state V4.6D model is in window 1 of 5. Watch the LEO actor for the early pressure signal — the next modeled state is LEO pressure. Endpoint precision remains operator-family only and no active gateway is being claimed. Boundary · Truth Boundary Truth boundary Simulation boundary: 13-actor demo, repo-owned projection, not measured truth. Service-layer boundary: modeled service handover, not native RF handover. Endpoint boundary: operator-family precision, not site-level gateway claim. Scale boundary: not >=500 LEO validation and not 24h hardware-GPU closeout. simulation output operator-family precision display-context actors Simulated display-context state, not an operator handover log. Source-lineaged display-context actors, not active serving satellites. Endpoint precision stays operator-family only. No active gateway assignment is claimed. No pair-specific teleport path is claimed. No measured latency, jitter, throughput, or continuity values are shown. No native RF handover is claimed. Implementation evidence 模擬展示 operator-family precision TLE: CelesTrak NORAD GP · 2026-04-26 13 actors Boundary & Sources 服務時間：~17 分鐘 下一段：訊號減弱 ~ 為模擬推演值",
     "sceneNarrative": {
       "exists": true,
       "visible": true,
       "rect": {
-        "left": 120.796875,
-        "top": 483.796875,
-        "right": 216.796875,
-        "bottom": 507.796875,
-        "width": 96,
+        "left": 340,
+        "top": 483,
+        "right": 433.1875,
+        "bottom": 507,
+        "width": 93.1875,
         "height": 24
       },
       "text": "focus · LEO",
@@ -350,9 +350,9 @@
       "exists": true,
       "visible": true,
       "rect": {
-        "left": 23.03125,
+        "left": 340,
         "top": 74.234375,
-        "right": 607.03125,
+        "right": 924,
         "bottom": 159.390625,
         "width": 584,
         "height": 85.15625
@@ -367,9 +367,9 @@
       "visible": true,
       "rect": {
         "left": 304,
-        "top": 788,
+        "top": 704,
         "right": 1136,
-        "bottom": 844,
+        "bottom": 760,
         "width": 832,
         "height": 56
       },
@@ -420,9 +420,9 @@
           "visible": true,
           "rect": {
             "left": 518.9375,
-            "top": 797,
+            "top": 713,
             "right": 635.796875,
-            "bottom": 835,
+            "bottom": 751,
             "width": 116.859375,
             "height": 38
           },
@@ -443,9 +443,9 @@
           "visible": true,
           "rect": {
             "left": 641.234375,
-            "top": 797,
+            "top": 713,
             "right": 758.09375,
-            "bottom": 835,
+            "bottom": 751,
             "width": 116.859375,
             "height": 38
           },
@@ -466,9 +466,9 @@
           "visible": true,
           "rect": {
             "left": 763.53125,
-            "top": 797,
+            "top": 713,
             "right": 880.390625,
-            "bottom": 835,
+            "bottom": 751,
             "width": 116.859375,
             "height": 38
           },
@@ -489,9 +489,9 @@
           "visible": true,
           "rect": {
             "left": 885.828125,
-            "top": 797,
+            "top": 713,
             "right": 1002.6875,
-            "bottom": 835,
+            "bottom": 751,
             "width": 116.859375,
             "height": 38
           },
@@ -512,9 +512,9 @@
           "visible": true,
           "rect": {
             "left": 1008.125,
-            "top": 797,
+            "top": 713,
             "right": 1125,
-            "bottom": 835,
+            "bottom": 751,
             "width": 116.875,
             "height": 38
           },
@@ -533,7 +533,7 @@
         "width": 320,
         "height": 748
       },
-      "text": "Details Inspector Close Selected replay window LEO review focus State 1 of 5 Replay UTC 2026-04-28T08:57:05.558Z Sim replay 00:05 / 01:54 State Evidence 剛接上 OneWeb LEO · LEO review focus 剛接上 OneWeb LEO，連線品質強。約 22 分鐘後，因為位置條件變化會進入訊號減弱階段。 The simulation review is currently anchored on the OneWeb LEO context marked as the focus role. The five-state V4.6D model is in window 1 of 5. Watch the LEO actor for the early pressure signal — the next modeled state is LEO pressure. Endpoint precision remains operator-family only and no active gateway is being claimed. Source provenance Truth Boundary Truth boundary simulation output operator-family precision display-context actors Simulated display-context state, not an operator handover log. Source-lineaged display-context actors, not active serving satellites. Endpoint precision stays operator-family only. No active gateway assignment is claimed. No pair-specific teleport path is claimed. No measured latency, jitter, throughput, or continuity values are shown. No native RF handover is claimed. Implementation evidence",
+      "text": "Details Inspector Close Decision Metrics Boundary Evidence Selected replay window LEO review focus State 1 of 5 Replay UTC 2026-04-28T08:57:28.502Z Sim replay 00:06 / 01:54 Source provenance Decision · State Evidence 剛接上 OneWeb LEO · LEO review focus 剛接上 OneWeb LEO，連線品質強。約 22 分鐘後，因為位置條件變化會進入訊號減弱階段。 NowNow: LEO is the modeled primary service state for this window. WhyWhy: position conditions support low-latency LEO review focus. NextNext: watch for LEO aging pressure before the MEO hold window. WatchWatch: simulated service time and modeled quality class only. The simulation review is currently anchored on the OneWeb LEO context marked as the focus role. The five-state V4.6D model is in window 1 of 5. Watch the LEO actor for the early pressure signal — the next modeled state is LEO pressure. Endpoint precision remains operator-family only and no active gateway is being claimed. Boundary · Truth Boundary Truth boundary Simulation boundary: 13-actor demo, repo-owned projection, not measured truth. Service-layer boundary: modeled service handover, not native RF handover. Endpoint boundary: operator-family precision, not site-level gateway claim. Scale boundary: not >=500 LEO validation and not 24h hardware-GPU closeout. simulation output operator-family precision display-context actors Simulated display-context state, not an operator handover log. Source-lineaged display-context actors, not active serving satellites. Endpoint precision stays operator-family only. No active gateway assignment is claimed. No pair-specific teleport path is claimed. No measured latency, jitter, throughput, or continuity values are shown. No native RF handover is claimed. Implementation evidence",
       "pointerEvents": "auto",
       "hidden": false
     },
@@ -542,9 +542,9 @@
       "visible": true,
       "rect": {
         "left": 1344.96875,
-        "top": 846,
+        "top": 770.40625,
         "right": 1416.96875,
-        "bottom": 882,
+        "bottom": 806.40625,
         "width": 72,
         "height": 36
       },
@@ -565,11 +565,11 @@
       "exists": true,
       "visible": true,
       "rect": {
-        "left": 23.03125,
-        "top": 855,
-        "right": 69.84375,
-        "bottom": 873,
-        "width": 46.8125,
+        "left": 187.03125,
+        "top": 785.40625,
+        "right": 253.046875,
+        "bottom": 803.40625,
+        "width": 66.015625,
         "height": 18
       },
       "text": "模擬展示",
@@ -582,14 +582,14 @@
       "exists": true,
       "visible": true,
       "rect": {
-        "left": 23.03125,
-        "top": 852,
+        "left": 187.03125,
+        "top": 782.40625,
         "right": 1328.96875,
-        "bottom": 876,
-        "width": 1305.9375,
+        "bottom": 806.40625,
+        "width": 1141.9375,
         "height": 24
       },
-      "text": "模擬展示 operator-family precision TLE: CelesTrak NORAD GP · 2026-04-26 13 actors",
+      "text": "模擬展示 operator-family precision TLE: CelesTrak NORAD GP · 2026-04-26 13 actors Boundary & Sources",
       "pointerEvents": "none"
     },
     "boundarySurface": {
@@ -725,9 +725,9 @@
         "ariaExpanded": null,
         "ariaPressed": null,
         "rect": {
-          "left": 136.328125,
+          "left": 453.296875,
           "top": 98.8125,
-          "right": 195.515625,
+          "right": 512.484375,
           "bottom": 134.8125,
           "width": 59.1875,
           "height": 36
@@ -747,9 +747,9 @@
         "ariaExpanded": null,
         "ariaPressed": null,
         "rect": {
-          "left": 201.265625,
+          "left": 518.234375,
           "top": 98.8125,
-          "right": 271.65625,
+          "right": 588.625,
           "bottom": 134.8125,
           "width": 70.390625,
           "height": 36
@@ -769,9 +769,9 @@
         "ariaExpanded": null,
         "ariaPressed": "false",
         "rect": {
-          "left": 277.40625,
+          "left": 594.375,
           "top": 98.8125,
-          "right": 316.875,
+          "right": 633.84375,
           "bottom": 134.8125,
           "width": 39.46875,
           "height": 36
@@ -791,9 +791,9 @@
         "ariaExpanded": null,
         "ariaPressed": "true",
         "rect": {
-          "left": 321.671875,
+          "left": 638.640625,
           "top": 98.8125,
-          "right": 361.140625,
+          "right": 678.109375,
           "bottom": 134.8125,
           "width": 39.46875,
           "height": 36
@@ -813,9 +813,9 @@
         "ariaExpanded": null,
         "ariaPressed": "false",
         "rect": {
-          "left": 365.9375,
+          "left": 682.90625,
           "top": 98.8125,
-          "right": 405.40625,
+          "right": 722.375,
           "bottom": 134.8125,
           "width": 39.46875,
           "height": 36
@@ -836,9 +836,9 @@
         "ariaPressed": null,
         "rect": {
           "left": 1344.96875,
-          "top": 846,
+          "top": 770.40625,
           "right": 1416.96875,
-          "bottom": 882,
+          "bottom": 806.40625,
           "width": 72,
           "height": 36
         },

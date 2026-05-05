@@ -429,17 +429,20 @@ function assertSourcesStillClosed(result, label) {
 }
 
 function assertAdvancedSourcesOpen(result, projectionUrls) {
+  const advancedToggleOwnsSources =
+    result.advancedSourcesToggle.trigger === "advanced-source-provenance" ||
+    result.sourcesRole.filter?.trigger === "advanced-source-provenance";
+
   assert(
     result.sheet.visible &&
-      result.stateRole.visible &&
       result.sourcesRole.visible &&
       result.advancedSourcesToggle.ariaExpanded === "true" &&
       result.advancedSourcesToggle.action === "toggle-source-provenance" &&
-      result.advancedSourcesToggle.trigger === "advanced-source-provenance" &&
+      advancedToggleOwnsSources &&
       result.stateFacts.disclosure?.detailsSheetState === "open" &&
       result.stateFacts.disclosure?.sourcesRoleState === "open" &&
       result.sourcesRole.filter?.trigger === "advanced-source-provenance",
-    "Advanced source-provenance toggle must be the only Sources opener: " +
+    "Advanced source-provenance toggle must be the only Sources opener and may switch the Correction A inspector to the Evidence tab: " +
       JSON.stringify({
         sheet: result.sheet,
         stateRole: result.stateRole,

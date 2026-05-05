@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-05-04T03:11:31.767Z",
+  "generatedAt": "2026-05-05T01:35:33.469Z",
   "status": "cleanup-complete",
   "route": "/?scenePreset=regional&m8aV4GroundStationScene=1",
   "outputRoot": "output/m8a-v4.10-slice5",
@@ -93,7 +93,7 @@
       "action": "default",
       "screenshot": {
         "path": "output/m8a-v4.10-slice5/v4.10-slice5-default-1440x900.png",
-        "sizeBytes": 1174306,
+        "sizeBytes": 951806,
         "dimensions": {
           "width": 1440,
           "height": 900
@@ -106,25 +106,25 @@
       "boundarySurfaceState": "closed",
       "boundaryFullTruthDisclosureState": "closed",
       "sceneNarrativeRect": {
-        "left": 118.1875,
-        "top": 485.6875,
-        "right": 214.1875,
-        "bottom": 509.6875,
-        "width": 96,
+        "left": 340,
+        "top": 478.09375,
+        "right": 433.1875,
+        "bottom": 502.09375,
+        "width": 93.1875,
         "height": 24
       },
       "sequenceRailRect": {
         "left": 304,
-        "top": 788,
+        "top": 704,
         "right": 1136,
-        "bottom": 844,
+        "bottom": 760,
         "width": 832,
         "height": 56
       },
       "stripRect": {
-        "left": 23.03125,
+        "left": 340,
         "top": 74.234375,
-        "right": 607.03125,
+        "right": 924,
         "bottom": 159.390625,
         "width": 584,
         "height": 85.15625
@@ -157,7 +157,7 @@
       "action": "default",
       "screenshot": {
         "path": "output/m8a-v4.10-slice5/v4.10-slice5-default-1280x720.png",
-        "sizeBytes": 882119,
+        "sizeBytes": 684088,
         "dimensions": {
           "width": 1280,
           "height": 720
@@ -170,25 +170,25 @@
       "boundarySurfaceState": "closed",
       "boundaryFullTruthDisclosureState": "closed",
       "sceneNarrativeRect": {
-        "left": 53.1875,
-        "top": 383.796875,
-        "right": 149.1875,
-        "bottom": 407.796875,
-        "width": 96,
+        "left": 340,
+        "top": 380.59375,
+        "right": 433.1875,
+        "bottom": 404.59375,
+        "width": 93.1875,
         "height": 24
       },
       "sequenceRailRect": {
         "left": 224,
-        "top": 608,
+        "top": 524,
         "right": 1056,
-        "bottom": 664,
+        "bottom": 580,
         "width": 832,
         "height": 56
       },
       "stripRect": {
-        "left": 20.46875,
+        "left": 340,
         "top": 71.671875,
-        "right": 604.46875,
+        "right": 924,
         "bottom": 156.828125,
         "width": 584,
         "height": 85.15625
@@ -221,7 +221,7 @@
       "action": "default",
       "screenshot": {
         "path": "output/m8a-v4.10-slice5/v4.10-slice5-default-390x844.png",
-        "sizeBytes": 354624,
+        "sizeBytes": 357212,
         "dimensions": {
           "width": 390,
           "height": 844
@@ -235,17 +235,17 @@
       "boundaryFullTruthDisclosureState": "closed",
       "sceneNarrativeRect": {
         "left": 14,
-        "top": 402.296875,
-        "right": 106.046875,
-        "bottom": 426.296875,
-        "width": 92.046875,
+        "top": 399.1875,
+        "right": 103.3125,
+        "bottom": 423.1875,
+        "width": 89.3125,
         "height": 24
       },
       "sequenceRailRect": {
         "left": 12,
-        "top": 594.546875,
+        "top": 556.765625,
         "right": 378,
-        "bottom": 680,
+        "bottom": 642.21875,
         "width": 366,
         "height": 85.453125
       },
@@ -358,7 +358,7 @@
       "action": "details",
       "screenshot": {
         "path": "output/m8a-v4.10-slice5/v4.10-slice5-details-open-1440x900.png",
-        "sizeBytes": 1162826,
+        "sizeBytes": 934528,
         "dimensions": {
           "width": 1440,
           "height": 900
@@ -371,25 +371,25 @@
       "boundarySurfaceState": "closed",
       "boundaryFullTruthDisclosureState": "closed",
       "sceneNarrativeRect": {
-        "left": 118.890625,
-        "top": 485.1875,
-        "right": 214.890625,
-        "bottom": 509.1875,
-        "width": 96,
+        "left": 340,
+        "top": 477.09375,
+        "right": 433.1875,
+        "bottom": 501.09375,
+        "width": 93.1875,
         "height": 24
       },
       "sequenceRailRect": {
         "left": 304,
-        "top": 788,
+        "top": 704,
         "right": 1136,
-        "bottom": 844,
+        "bottom": 760,
         "width": 832,
         "height": 56
       },
       "stripRect": {
-        "left": 23.03125,
+        "left": 340,
         "top": 74.234375,
-        "right": 607.03125,
+        "right": 924,
         "bottom": 159.390625,
         "width": 584,
         "height": 85.15625
@@ -398,9 +398,9 @@
         "left": 1097,
         "top": 23,
         "right": 1417,
-        "bottom": 550.859375,
+        "bottom": 771,
         "width": 320,
-        "height": 527.859375
+        "height": 748
       },
       "boundarySurfaceRect": {
         "left": 0,
@@ -412,8 +412,8 @@
       },
       "desktopOverlayRisk": {
         "accepted": true,
-        "observed": false,
-        "reviewNote": "No desktop Details-open sequence-rail overlap observed in this capture."
+        "observed": true,
+        "reviewNote": "Accepted overlay risk: the on-demand Details inspector overlaps the far-right portion of the sequence rail, while the scene narrative, controls, and evidence/Truth separation remain readable and intentional."
       },
       "narrowLayoutReview": []
     },
@@ -422,7 +422,7 @@
       "action": "boundary-full-truth",
       "screenshot": {
         "path": "output/m8a-v4.10-slice5/v4.10-slice5-boundary-open-1440x900.png",
-        "sizeBytes": 1163349,
+        "sizeBytes": 936797,
         "dimensions": {
           "width": 1440,
           "height": 900
@@ -435,25 +435,25 @@
       "boundarySurfaceState": "open",
       "boundaryFullTruthDisclosureState": "open",
       "sceneNarrativeRect": {
-        "left": 119,
-        "top": 485.09375,
-        "right": 215,
-        "bottom": 509.09375,
-        "width": 96,
+        "left": 340,
+        "top": 472.296875,
+        "right": 433.1875,
+        "bottom": 496.296875,
+        "width": 93.1875,
         "height": 24
       },
       "sequenceRailRect": {
         "left": 304,
-        "top": 788,
+        "top": 704,
         "right": 1136,
-        "bottom": 844,
+        "bottom": 760,
         "width": 832,
         "height": 56
       },
       "stripRect": {
-        "left": 23.03125,
+        "left": 340,
         "top": 74.234375,
-        "right": 607.03125,
+        "right": 924,
         "bottom": 159.390625,
         "width": 584,
         "height": 85.15625
@@ -486,7 +486,7 @@
       "action": "transition",
       "screenshot": {
         "path": "output/m8a-v4.10-slice5/v4.10-slice5-transition-leo-aging-pressure-1440x900.png",
-        "sizeBytes": 1202571,
+        "sizeBytes": 977713,
         "dimensions": {
           "width": 1440,
           "height": 900
@@ -499,25 +499,25 @@
       "boundarySurfaceState": "closed",
       "boundaryFullTruthDisclosureState": "closed",
       "sceneNarrativeRect": {
-        "left": 396.5,
+        "left": 340,
         "top": 457,
-        "right": 514.828125,
+        "right": 455.515625,
         "bottom": 481,
-        "width": 118.328125,
+        "width": 115.515625,
         "height": 24
       },
       "sequenceRailRect": {
         "left": 304,
-        "top": 788,
+        "top": 704,
         "right": 1136,
-        "bottom": 844,
+        "bottom": 760,
         "width": 832,
         "height": 56
       },
       "stripRect": {
-        "left": 23.03125,
+        "left": 340,
         "top": 74.234375,
-        "right": 607.03125,
+        "right": 924,
         "bottom": 159.390625,
         "width": 584,
         "height": 85.15625
@@ -556,25 +556,25 @@
   "taskOwnedProcesses": [
     {
       "type": "static-server-started",
-      "at": "2026-05-04T03:10:31.584Z",
-      "pid": 74975,
-      "baseUrl": "http://127.0.0.1:37945"
+      "at": "2026-05-05T01:33:56.183Z",
+      "pid": 16322,
+      "baseUrl": "http://127.0.0.1:43879"
     },
     {
       "type": "headless-browser-started",
-      "at": "2026-05-04T03:10:31.694Z",
-      "pid": 74983,
+      "at": "2026-05-05T01:33:56.314Z",
+      "pid": 16327,
       "browserCommand": "google-chrome"
     },
     {
       "type": "headless-browser-stop-requested",
-      "at": "2026-05-04T03:11:31.726Z",
-      "pid": 74983
+      "at": "2026-05-05T01:35:33.404Z",
+      "pid": 16327
     },
     {
       "type": "static-server-stop-requested",
-      "at": "2026-05-04T03:11:31.764Z",
-      "pid": 74975
+      "at": "2026-05-05T01:35:33.466Z",
+      "pid": 16322
     }
   ]
 }

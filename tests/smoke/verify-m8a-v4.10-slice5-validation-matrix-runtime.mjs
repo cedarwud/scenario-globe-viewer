@@ -197,6 +197,11 @@ const FORBIDDEN_UNIT_PATTERNS = [
   /\bmeasured\s+\d+(?:\.\d+)?\s*%/i
 ];
 
+// §Smoke Softening Disclosure: Correction A supersedes the legacy first-read
+// layout, but Slice 5 does not carry the old strip-left baseline assertion.
+// This smoke keeps its validation-matrix successor coverage and retains route,
+// endpoint, precision, actor, source-boundary, and forbidden-claim invariants.
+
 function sleep(ms) {
   return new Promise((resolve) => {
     setTimeout(resolve, ms);

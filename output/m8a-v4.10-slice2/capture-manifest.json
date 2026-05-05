@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-05-04T03:08:07.142Z",
+  "generatedAt": "2026-05-05T01:31:12.151Z",
   "status": "cleanup-complete",
   "route": "/?scenePreset=regional&m8aV4GroundStationScene=1",
   "outputRoot": "output/m8a-v4.10-slice2",
@@ -14,9 +14,9 @@
       "height": 73.28125
     },
     "currentStrip": {
-      "left": 23.03125,
+      "left": 340,
       "top": 74.234375,
-      "right": 607.03125,
+      "right": 924,
       "bottom": 159.390625,
       "width": 584,
       "height": 85.15625
@@ -30,15 +30,16 @@
       "height": 112.90625
     },
     "currentAnnotation": {
-      "left": 118.6875,
-      "top": 485.296875,
-      "right": 214.6875,
-      "bottom": 509.296875,
-      "width": 96,
+      "left": 340,
+      "top": 482.6875,
+      "right": 433.1875,
+      "bottom": 506.6875,
+      "width": 93.1875,
       "height": 24
     },
+    "acceptedGeometryContract": "v4.11-correction-a-successor",
     "visibleDifferenceFacts": [
-      "controls moved from dominant top-right strip to secondary top-left strip",
+      "Correction A successor layout keeps the scope/control strip at left 340 with focus LEO micro-cue",
       "scene narrative is wider and taller than the V4.9 annotation",
       "active state title, first-read line, watch cue, and next line are visible without Details"
     ]
@@ -48,7 +49,7 @@
       "viewport": "default-1440x900",
       "screenshot": {
         "path": "output/m8a-v4.10-slice2/v4.10-slice2-default-1440x900.png",
-        "sizeBytes": 1174500,
+        "sizeBytes": 950680,
         "dimensions": {
           "width": 1440,
           "height": 900
@@ -61,25 +62,25 @@
       "transitionToWindowId": "",
       "anchorStatus": "geometry-reliable",
       "sceneNarrativeRect": {
-        "left": 118.6875,
-        "top": 485.296875,
-        "right": 214.6875,
-        "bottom": 509.296875,
-        "width": 96,
+        "left": 340,
+        "top": 482.6875,
+        "right": 433.1875,
+        "bottom": 506.6875,
+        "width": 93.1875,
         "height": 24
       },
       "sequenceRailRect": {
         "left": 304,
-        "top": 788,
+        "top": 704,
         "right": 1136,
-        "bottom": 844,
+        "bottom": 760,
         "width": 832,
         "height": 56
       },
       "stripRect": {
-        "left": 23.03125,
+        "left": 340,
         "top": 74.234375,
-        "right": 607.03125,
+        "right": 924,
         "bottom": 159.390625,
         "width": 584,
         "height": 85.15625
@@ -162,7 +163,7 @@
       "viewport": "default-1280x720",
       "screenshot": {
         "path": "output/m8a-v4.10-slice2/v4.10-slice2-default-1280x720.png",
-        "sizeBytes": 882525,
+        "sizeBytes": 683094,
         "dimensions": {
           "width": 1280,
           "height": 720
@@ -175,25 +176,25 @@
       "transitionToWindowId": "",
       "anchorStatus": "geometry-reliable",
       "sceneNarrativeRect": {
-        "left": 54,
-        "top": 383.1875,
-        "right": 150,
-        "bottom": 407.1875,
-        "width": 96,
+        "left": 340,
+        "top": 382.5,
+        "right": 433.1875,
+        "bottom": 406.5,
+        "width": 93.1875,
         "height": 24
       },
       "sequenceRailRect": {
         "left": 224,
-        "top": 608,
+        "top": 524,
         "right": 1056,
-        "bottom": 664,
+        "bottom": 580,
         "width": 832,
         "height": 56
       },
       "stripRect": {
-        "left": 20.46875,
+        "left": 340,
         "top": 71.671875,
-        "right": 604.46875,
+        "right": 924,
         "bottom": 156.828125,
         "width": 584,
         "height": 85.15625
@@ -276,7 +277,7 @@
       "viewport": "default-390x844",
       "screenshot": {
         "path": "output/m8a-v4.10-slice2/v4.10-slice2-default-390x844.png",
-        "sizeBytes": 354523,
+        "sizeBytes": 356870,
         "dimensions": {
           "width": 390,
           "height": 844
@@ -290,17 +291,17 @@
       "anchorStatus": "fallback",
       "sceneNarrativeRect": {
         "left": 14,
-        "top": 401.796875,
-        "right": 106.046875,
-        "bottom": 425.796875,
-        "width": 92.046875,
+        "top": 401.09375,
+        "right": 103.3125,
+        "bottom": 425.09375,
+        "width": 89.3125,
         "height": 24
       },
       "sequenceRailRect": {
         "left": 12,
-        "top": 594.546875,
+        "top": 556.765625,
         "right": 378,
-        "bottom": 680,
+        "bottom": 642.21875,
         "width": 366,
         "height": 85.453125
       },
@@ -390,7 +391,7 @@
       "viewport": "transition-leo-aging-pressure-1440x900",
       "screenshot": {
         "path": "output/m8a-v4.10-slice2/v4.10-slice2-transition-leo-aging-pressure-1440x900.png",
-        "sizeBytes": 1202560,
+        "sizeBytes": 977830,
         "dimensions": {
           "width": 1440,
           "height": 900
@@ -403,25 +404,25 @@
       "transitionToWindowId": "leo-aging-pressure",
       "anchorStatus": "geometry-reliable",
       "sceneNarrativeRect": {
-        "left": 396.5,
+        "left": 340,
         "top": 457,
-        "right": 514.828125,
+        "right": 455.515625,
         "bottom": 481,
-        "width": 118.328125,
+        "width": 115.515625,
         "height": 24
       },
       "sequenceRailRect": {
         "left": 304,
-        "top": 788,
+        "top": 704,
         "right": 1136,
-        "bottom": 844,
+        "bottom": 760,
         "width": 832,
         "height": 56
       },
       "stripRect": {
-        "left": 23.03125,
+        "left": 340,
         "top": 74.234375,
-        "right": 607.03125,
+        "right": 924,
         "bottom": 159.390625,
         "width": 584,
         "height": 85.15625
@@ -541,25 +542,25 @@
   "taskOwnedProcesses": [
     {
       "type": "static-server-started",
-      "at": "2026-05-04T03:07:15.776Z",
-      "pid": 73288,
-      "baseUrl": "http://127.0.0.1:45145"
+      "at": "2026-05-05T01:30:18.350Z",
+      "pid": 10629,
+      "baseUrl": "http://127.0.0.1:44349"
     },
     {
       "type": "headless-browser-started",
-      "at": "2026-05-04T03:07:15.889Z",
-      "pid": 73293,
+      "at": "2026-05-05T01:30:18.460Z",
+      "pid": 10634,
       "browserCommand": "google-chrome"
     },
     {
       "type": "headless-browser-stop-requested",
-      "at": "2026-05-04T03:08:07.106Z",
-      "pid": 73293
+      "at": "2026-05-05T01:31:12.097Z",
+      "pid": 10634
     },
     {
       "type": "static-server-stop-requested",
-      "at": "2026-05-04T03:08:07.140Z",
-      "pid": 73288
+      "at": "2026-05-05T01:31:12.149Z",
+      "pid": 10629
     }
   ]
 }

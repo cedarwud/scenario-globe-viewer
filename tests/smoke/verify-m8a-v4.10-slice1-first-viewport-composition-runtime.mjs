@@ -125,6 +125,16 @@ const FORBIDDEN_UNIT_PATTERNS = [
   /\b\d+(?:\.\d+)?\s*Gbps\b/i,
   /\bmeasured\s+\d+(?:\.\d+)?\s*%/i
 ];
+const V411_CORRECTION_A_SUCCESSOR_STRIP_LEFT_PX = 340;
+const V411_CORRECTION_A_SUCCESSOR_STRIP_LEFT_TOLERANCE_PX = 2;
+const V411_CORRECTION_A_SUCCESSOR_MICRO_CUE = "focus · LEO";
+
+// §Smoke Softening Disclosure: Correction A §5.2 and §5.3 intentionally move
+// the first-read layout to a left handover rail plus top scope strip. Slice 1
+// now accepts either the original V4.10 baseline-difference geometry or the
+// V4.11 Correction A successor geometry (`left ~= 340`, `focus · LEO`), while
+// retaining route, endpoint, precision, actor, source-boundary, and
+// forbidden-claim invariants.
 
 function sleep(ms) {
   return new Promise((resolve) => {
@@ -766,13 +776,20 @@ function assertVisibleDifferenceFromV49Baseline(result) {
   const baselineAnnotation = baseline.dom?.annotation?.rect;
   const currentStrip = result.strip.rect;
   const currentAnnotation = result.sceneNarrative.rect;
+  const legacyV410BaselineDelta =
+    baselineStrip?.left > result.viewport.width * 0.45 &&
+    currentStrip.left < result.viewport.width * 0.08 &&
+    Math.abs((baselineAnnotation?.width ?? 0) - currentAnnotation.width) >= 8 &&
+    (result.sceneNarrative.text.includes("LEO review focus") ||
+      result.sceneNarrative.text.includes(V411_CORRECTION_A_SUCCESSOR_MICRO_CUE));
+  const v411CorrectionASuccessorGeometry =
+    baselineStrip?.left > result.viewport.width * 0.45 &&
+    Math.abs(currentStrip.left - V411_CORRECTION_A_SUCCESSOR_STRIP_LEFT_PX) <=
+      V411_CORRECTION_A_SUCCESSOR_STRIP_LEFT_TOLERANCE_PX &&
+    result.sceneNarrative.text.includes(V411_CORRECTION_A_SUCCESSOR_MICRO_CUE);
 
   assert(
-    baselineStrip?.left > result.viewport.width * 0.45 &&
-      currentStrip.left < result.viewport.width * 0.08 &&
-      Math.abs((baselineAnnotation?.width ?? 0) - currentAnnotation.width) >= 8 &&
-      (result.sceneNarrative.text.includes("LEO review focus") ||
-        result.sceneNarrative.text.includes("focus · LEO")),
+    legacyV410BaselineDelta || v411CorrectionASuccessorGeometry,
     "Default desktop screenshot must visibly differ from the accepted V4.9 baseline: " +
       JSON.stringify({
         baselineStrip,
@@ -789,8 +806,13 @@ function assertVisibleDifferenceFromV49Baseline(result) {
     currentStrip,
     baselineAnnotation,
     currentAnnotation,
+    acceptedGeometryContract: v411CorrectionASuccessorGeometry
+      ? "v4.11-correction-a-successor"
+      : "v4.10-legacy-baseline-delta",
     visibleDifferenceFacts: [
-      "controls moved from dominant top-right strip to secondary top-left strip",
+      v411CorrectionASuccessorGeometry
+        ? "Correction A successor layout keeps the scope/control strip at left 340 with focus LEO micro-cue"
+        : "controls moved from dominant top-right strip to secondary top-left strip",
       "scene narrative is wider and taller than the V4.9 annotation",
       "active state title, first-read line, watch cue, and next line are visible without Details"
     ]

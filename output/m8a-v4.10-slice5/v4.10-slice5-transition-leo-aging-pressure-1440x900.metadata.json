@@ -1,5 +1,5 @@
 {
-  "capturedAt": "2026-05-04T03:11:31.724Z",
+  "capturedAt": "2026-05-05T01:35:33.400Z",
   "route": "/?scenePreset=regional&m8aV4GroundStationScene=1",
   "capture": {
     "name": "transition-leo-aging-pressure-1440x900",
@@ -17,7 +17,7 @@
   },
   "screenshot": {
     "path": "output/m8a-v4.10-slice5/v4.10-slice5-transition-leo-aging-pressure-1440x900.png",
-    "sizeBytes": 1202571,
+    "sizeBytes": 977713,
     "dimensions": {
       "width": 1440,
       "height": 900
@@ -45,7 +45,7 @@
       "height": 900
     },
     "viewportClass": "desktop",
-    "visibleProductText": "pressure · LEO LEO pressure Continuity will shift to the MEO hold next. 13 顆衛星模擬展示 · 完整 ≥500 LEO 多軌道驗證見後續階段 LEO MEO GEO ✓ LEO MEO GEO ✓ LEO LEO LEO LEO LEO LEO MEO MEO MEO MEO MEO GEO GEO LEO review -> LEO pressure Review context shifts to LEO focus pressure · LEO Handover sequence State 2 of 5: LEO pressure Next: State 3 of 5 MEO continuity hold 1 LEO review LEO 2 LEO pressure LEO 3 MEO hold MEO 4 LEO re-entry LEO 5 GEO guard GEO Current state LEO pressure State 2 of 5 Play Restart 30x 60x 120x Details 模擬展示 operator-family precision TLE: CelesTrak NORAD GP · 2026-04-26 13 actors LEO pressure. Continuity will shift to the MEO hold next. 切換到 MEO：~17 分鐘 位置條件變差 ~ 為模擬推演值",
+    "visibleProductText": "pressure · LEO LEO pressure Continuity will shift to the MEO hold next. 13 顆衛星模擬展示 · 完整 ≥500 LEO 多軌道驗證見後續階段 LEO MEO GEO ✓ LEO MEO GEO ✓ LEO LEO LEO LEO LEO LEO MEO MEO MEO MEO MEO GEO GEO Scenario Scope Scope: 13-actor demo · LEO/MEO/GEO (6/5/2) Time: Sim replay 00:28 / 01:54 · replay · 60x Precision: operator-family precision Boundary: repo-owned projection · not measured truth Current: W2 LEO primary under pressure Candidate: MEO continuity hold queued Fallback: GEO guard coverage available Decision: position condition is worsening; prepare switch Time/Quality: simulated countdown; modeled quality drops LEO review -> LEO pressure Review context shifts to LEO focus pressure · LEO Handover sequence State 2 of 5: LEO pressure Next: State 3 of 5 MEO continuity hold 1 LEO review LEO 2 LEO pressure LEO 3 MEO hold MEO 4 LEO re-entry LEO 5 GEO guard GEO Current state LEO pressure State 2 of 5 Play Restart 30x 60x 120x Details 模擬展示 operator-family precision TLE: CelesTrak NORAD GP · 2026-04-26 13 actors Boundary & Sources LEO pressure. Continuity will shift to the MEO hold next. 切換到 MEO：~17 分鐘 位置條件變差 ~ 為模擬推演值",
     "stateFacts": {
       "route": "/?scenePreset=regional&m8aV4GroundStationScene=1",
       "endpointPairId": "taiwan-cht-speedcast-singapore-operator-family-2026-04-26",
@@ -396,11 +396,11 @@
       "visible": true,
       "hidden": false,
       "rect": {
-        "left": 396.5,
+        "left": 340,
         "top": 457,
-        "right": 514.828125,
+        "right": 455.515625,
         "bottom": 481,
-        "width": 118.328125,
+        "width": 115.515625,
         "height": 24
       },
       "text": "pressure · LEO",
@@ -411,9 +411,9 @@
       "visible": true,
       "hidden": false,
       "rect": {
-        "left": 23.03125,
+        "left": 340,
         "top": 74.234375,
-        "right": 607.03125,
+        "right": 924,
         "bottom": 159.390625,
         "width": 584,
         "height": 85.15625
@@ -428,9 +428,9 @@
       "hidden": false,
       "rect": {
         "left": 304,
-        "top": 788,
+        "top": 704,
         "right": 1136,
-        "bottom": 844,
+        "bottom": 760,
         "width": 832,
         "height": 56
       },
@@ -465,9 +465,9 @@
           "visible": true,
           "rect": {
             "left": 518.9375,
-            "top": 797,
+            "top": 713,
             "right": 635.796875,
-            "bottom": 835,
+            "bottom": 751,
             "width": 116.859375,
             "height": 38
           },
@@ -481,9 +481,9 @@
           "visible": true,
           "rect": {
             "left": 641.234375,
-            "top": 797,
+            "top": 713,
             "right": 758.09375,
-            "bottom": 835,
+            "bottom": 751,
             "width": 116.859375,
             "height": 38
           },
@@ -497,9 +497,9 @@
           "visible": true,
           "rect": {
             "left": 763.53125,
-            "top": 797,
+            "top": 713,
             "right": 880.390625,
-            "bottom": 835,
+            "bottom": 751,
             "width": 116.859375,
             "height": 38
           },
@@ -513,9 +513,9 @@
           "visible": true,
           "rect": {
             "left": 885.828125,
-            "top": 797,
+            "top": 713,
             "right": 1002.6875,
-            "bottom": 835,
+            "bottom": 751,
             "width": 116.859375,
             "height": 38
           },
@@ -529,9 +529,9 @@
           "visible": true,
           "rect": {
             "left": 1008.125,
-            "top": 797,
+            "top": 713,
             "right": 1125,
-            "bottom": 835,
+            "bottom": 751,
             "width": 116.875,
             "height": 38
           },
@@ -545,9 +545,9 @@
       "hidden": false,
       "rect": {
         "left": 1344.96875,
-        "top": 846,
+        "top": 770.40625,
         "right": 1416.96875,
-        "bottom": 882,
+        "bottom": 806.40625,
         "width": 72,
         "height": 36
       },
@@ -560,11 +560,11 @@
       "visible": true,
       "hidden": false,
       "rect": {
-        "left": 23.03125,
-        "top": 855,
-        "right": 69.84375,
-        "bottom": 873,
-        "width": 46.8125,
+        "left": 187.03125,
+        "top": 785.40625,
+        "right": 253.046875,
+        "bottom": 803.40625,
+        "width": 66.015625,
         "height": 18
       },
       "text": "模擬展示",
@@ -583,7 +583,7 @@
         "width": 0,
         "height": 0
       },
-      "text": "Details Inspector Close Selected replay window LEO pressure State 2 of 5 Replay UTC 2026-04-28T09:20:00.383Z Sim replay 00:28 / 01:54 Evidence for the selected replay window. The scene narrative and sequence rail remain primary. State Evidence LEO 訊號減弱中 · LEO pressure LEO 的位置條件正在變差。約 10 分鐘後，連線會切到較廣覆蓋的 MEO 暫時接住。 The simulation marks the LEO context as under aging pressure in window 2 of 5. The geometry is degrading by simulation, not by measurement. The next modeled state holds continuity on the MEO context. No real RF handover is being asserted. Source provenance Truth Boundary Truth boundary simulation outputoperator-family precisiondisplay-context actors Simulated display-context state, not an operator handover log.Source-lineaged display-context actors, not active serving satellites.Endpoint precision stays operator-family only.No active gateway assignment is claimed.No pair-specific teleport path is claimed.No measured latency, jitter, throughput, or continuity values are shown.No native RF handover is claimed. Sources Source provenance All repo-owned projection sources. Satellite TLE provenance Eutelsat OneWeb · LEO · ONEWEB-0386 · fetched 2026-04-28T08:51:17ZEutelsat OneWeb · LEO · ONEWEB-0537 · fetched 2026-04-28T08:51:17ZEutelsat OneWeb · LEO · ONEWEB-0701 · fetched 2026-04-28T08:51:17ZEutelsat OneWeb · LEO · ONEWEB-0012 · fetched 2026-04-28T08:51:17ZEutelsat OneWeb · LEO · ONEWEB-0249 · fetched 2026-04-28T08:51:17ZEutelsat OneWeb · LEO · ONEWEB-0702 · fetched 2026-04-28T08:51:17ZSES O3b mPOWER · MEO · O3B MPOWER F6 · fetched 2026-04-28T08:51:17ZSES O3b mPOWER · MEO · O3B MPOWER F1 · fetched 2026-04-28T08:51:17ZSES O3b mPOWER · MEO · O3B MPOWER F2 · fetched 2026-04-28T08:51:17ZSES O3b mPOWER · MEO · O3B MPOWER F4 · fetched 2026-04-28T08:51:17ZSES O3b mPOWER · MEO · O3B MPOWER F3 · fetched 2026-04-28T08:51:17ZST-2 CHT/Singtel GEO service context · GEO · ST-2 · fetched 2026-04-28T08:51:17ZSES GEO display context; not endpoint-pair path or active service claim · GEO · SES-9 · fetched 2026-04-28T08:51:17Z Ground-station evidence URLs Taiwan / Chunghwa Telecom multi-orbit ground infrastructureLEO strong · https://www.cht.com.tw/zh-tw/home/cht/messages/2025/1103-1000 · operator press releaseLEO strong · https://www.cht.com.tw/en/home/cht/messages/2023/1115-1530 · operator press releaseMEO strong · https://www.cht.com.tw/zh-tw/home/cht/messages/2025/1103-1000 · operator press releaseMEO strong · https://www.cht.com.tw/en/home/cht/messages/2026/0122-1410 · operator press releaseGEO strong · https://www.cht.com.tw/zh-tw/home/cht/messages/2025/1103-1000 · operator press releaseGEO strong · https://www.cht.com.tw/en/home/cht/messages/2023/1115-1530 · operator press releaseSingapore / Speedcast Singapore TeleportLEO strong · https://www.speedcast.com/our-solution/product/vsat-satellite/ngso-leo-meo/ · operator sourceMEO strong · https://www.speedcast.com/our-solution/product/vsat-satellite/ngso-leo-meo/ · operator sourceGEO strong · https://www.speedcast.com/newsroom/press-releases/2024/speedcasts-teleport-in-singapore-joins-wtas-growing-list-of-tier-4-certified-teleports/ · third-party certificationGEO strong · https://www.speedcast.com/about-us/teleports/ · operator source R2 read-only candidate catalog Taiwan site-level CHT earth-station family · blocked: site-family upgrade lacks accepted LEO/MEO site mapping · blocked · R2 read-only - not promotable to runtimeThailand NT Sirindhorn OneWeb SNP Gateway · blocked: MEO evidence gap · blocked · R2 read-only - not promotable to runtimeSingapore Singtel Bukit Timah Satellite Earth Station · blocked: MEO evidence gap and site-family split · blocked · R2 read-only - not promotable to runtimeJapan KDDI Yamaguchi / SoftBank OneWeb country family · blocked: MEO gap and split operator-family evidence · blocked · R2 read-only - not promotable to runtimeKorea KT SAT Kumsan / OneWeb terminal ecosystem · blocked: MEO remains partial/planned evidence · blocked · R2 read-only - not promotable to runtime Implementation evidence Raw ids, selected cue ids, anchor metadata, and full candidate/fallback arrays. This evidence supports tests and implementation review; it is not the primary product explanation. Representative actor id ONEWEB-0537 LEO context (oneweb-0537-leo-display-context) Candidate actor ids ONEWEB-0012 LEO context (oneweb-0012-leo-display-context), ONEWEB-0249 LEO context (oneweb-0249-leo-display-context), O3b mPOWER F1 MEO context (o3b-mpower-f1-meo-display-context), O3b mPOWER F2 MEO context (o3b-mpower-f2-meo-display-context) Fallback actor ids ST-2 GEO guard (st-2-geo-continuity-anchor), SES-9 GEO guard (ses-9-geo-display-context) Scene cue ids displayRepresentative primary; candidateContext secondary; scene anchor display-representative-actor; selected actor oneweb-0537-leo-display-context; selected cue m8a-v46e-simulation-displayRepresentative-context-ribbon.",
+      "text": "Details Inspector Close Decision Metrics Boundary Evidence Selected replay window LEO pressure State 2 of 5 Replay UTC 2026-04-28T09:20:00.383Z Sim replay 00:28 / 01:54 Source provenance Evidence for the selected replay window. The scene narrative and sequence rail remain primary. Decision · State Evidence LEO 訊號減弱中 · LEO pressure LEO 的位置條件正在變差。約 10 分鐘後，連線會切到較廣覆蓋的 MEO 暫時接住。 NowNow: LEO remains primary but is under modeled pressure. WhyWhy: the replay window says position conditions are worsening. NextNext: MEO is the modeled continuity hold candidate. WatchWatch: simulated countdown and quality-class drop, not measured jitter. The simulation marks the LEO context as under aging pressure in window 2 of 5. The geometry is degrading by simulation, not by measurement. The next modeled state holds continuity on the MEO context. No real RF handover is being asserted. Metrics Modeled classes Modeled link quality: LEO class drops as geometry degrades. Communication time: derived remaining replay-window time. Unavailable measured data Unavailable measured data: no ping, iperf, ESTNeT/INET, DUT, latency, jitter, throughput, or packet-loss feed is connected to this route. Unavailable physical factors: rain, antenna, ITU/V group, and rain attenuation models are not connected in this scene. Boundary · Truth Boundary Truth boundary Simulation boundary: 13-actor demo, repo-owned projection, not measured truth. Service-layer boundary: modeled service handover, not native RF handover. Endpoint boundary: operator-family precision, not site-level gateway claim. Scale boundary: not >=500 LEO validation and not 24h hardware-GPU closeout. simulation outputoperator-family precisiondisplay-context actors Simulated display-context state, not an operator handover log.Source-lineaged display-context actors, not active serving satellites.Endpoint precision stays operator-family only.No active gateway assignment is claimed.No pair-specific teleport path is claimed.No measured latency, jitter, throughput, or continuity values are shown.No native RF handover is claimed. Evidence Source provenance All repo-owned projection sources. TLE source summary: CelesTrak NORAD GP records are retained through the repo-owned projection. Endpoint evidence: Taiwan / CHT and Singapore / Speedcast are operator-family evidence only. R2 archive: read-only provenance, not a precision mode or runtime selector. Satellite TLE provenance Eutelsat OneWeb · LEO · ONEWEB-0386 · fetched 2026-04-28T08:51:17ZEutelsat OneWeb · LEO · ONEWEB-0537 · fetched 2026-04-28T08:51:17ZEutelsat OneWeb · LEO · ONEWEB-0701 · fetched 2026-04-28T08:51:17ZEutelsat OneWeb · LEO · ONEWEB-0012 · fetched 2026-04-28T08:51:17ZEutelsat OneWeb · LEO · ONEWEB-0249 · fetched 2026-04-28T08:51:17ZEutelsat OneWeb · LEO · ONEWEB-0702 · fetched 2026-04-28T08:51:17ZSES O3b mPOWER · MEO · O3B MPOWER F6 · fetched 2026-04-28T08:51:17ZSES O3b mPOWER · MEO · O3B MPOWER F1 · fetched 2026-04-28T08:51:17ZSES O3b mPOWER · MEO · O3B MPOWER F2 · fetched 2026-04-28T08:51:17ZSES O3b mPOWER · MEO · O3B MPOWER F4 · fetched 2026-04-28T08:51:17ZSES O3b mPOWER · MEO · O3B MPOWER F3 · fetched 2026-04-28T08:51:17ZST-2 CHT/Singtel GEO service context · GEO · ST-2 · fetched 2026-04-28T08:51:17ZSES GEO display context; not endpoint-pair path or active service claim · GEO · SES-9 · fetched 2026-04-28T08:51:17Z Ground-station evidence URLs Taiwan / Chunghwa Telecom multi-orbit ground infrastructureLEO strong · https://www.cht.com.tw/zh-tw/home/cht/messages/2025/1103-1000 · operator press releaseLEO strong · https://www.cht.com.tw/en/home/cht/messages/2023/1115-1530 · operator press releaseMEO strong · https://www.cht.com.tw/zh-tw/home/cht/messages/2025/1103-1000 · operator press releaseMEO strong · https://www.cht.com.tw/en/home/cht/messages/2026/0122-1410 · operator press releaseGEO strong · https://www.cht.com.tw/zh-tw/home/cht/messages/2025/1103-1000 · operator press releaseGEO strong · https://www.cht.com.tw/en/home/cht/messages/2023/1115-1530 · operator press releaseSingapore / Speedcast Singapore TeleportLEO strong · https://www.speedcast.com/our-solution/product/vsat-satellite/ngso-leo-meo/ · operator sourceMEO strong · https://www.speedcast.com/our-solution/product/vsat-satellite/ngso-leo-meo/ · operator sourceGEO strong · https://www.speedcast.com/newsroom/press-releases/2024/speedcasts-teleport-in-singapore-joins-wtas-growing-list-of-tier-4-certified-teleports/ · third-party certificationGEO strong · https://www.speedcast.com/about-us/teleports/ · operator source R2 read-only candidate catalog Taiwan site-level CHT earth-station family · blocked: site-family upgrade lacks accepted LEO/MEO site mapping · blocked · R2 read-only - not promotable to runtimeThailand NT Sirindhorn OneWeb SNP Gateway · blocked: MEO evidence gap · blocked · R2 read-only - not promotable to runtimeSingapore Singtel Bukit Timah Satellite Earth Station · blocked: MEO evidence gap and site-family split · blocked · R2 read-only - not promotable to runtimeJapan KDDI Yamaguchi / SoftBank OneWeb country family · blocked: MEO gap and split operator-family evidence · blocked · R2 read-only - not promotable to runtimeKorea KT SAT Kumsan / OneWeb terminal ecosystem · blocked: MEO remains partial/planned evidence · blocked · R2 read-only - not promotable to runtime Implementation evidence Raw ids, selected cue ids, anchor metadata, and full candidate/fallback arrays. This evidence supports tests and implementation review; it is not the primary product explanation. Representative actor id ONEWEB-0537 LEO context (oneweb-0537-leo-display-context) Candidate actor ids ONEWEB-0012 LEO context (oneweb-0012-leo-display-context), ONEWEB-0249 LEO context (oneweb-0249-leo-display-context), O3b mPOWER F1 MEO context (o3b-mpower-f1-meo-display-context), O3b mPOWER F2 MEO context (o3b-mpower-f2-meo-display-context) Fallback actor ids ST-2 GEO guard (st-2-geo-continuity-anchor), SES-9 GEO guard (ses-9-geo-display-context) Scene cue ids displayRepresentative primary; candidateContext secondary; scene anchor display-representative-actor; selected actor oneweb-0537-leo-display-context; selected cue m8a-v46e-simulation-displayRepresentative-context-ribbon.",
       "visibleText": "",
       "title": "Inspector",
       "lead": "Evidence for the selected replay window. The scene narrative and sequence rail remain primary.",
@@ -611,7 +611,7 @@
         "width": 0,
         "height": 0
       },
-      "text": "State Evidence LEO 訊號減弱中 · LEO pressure LEO 的位置條件正在變差。約 10 分鐘後，連線會切到較廣覆蓋的 MEO 暫時接住。 The simulation marks the LEO context as under aging pressure in window 2 of 5. The geometry is degrading by simulation, not by measurement. The next modeled state holds continuity on the MEO context. No real RF handover is being asserted. Source provenance Truth Boundary Truth boundary simulation outputoperator-family precisiondisplay-context actors Simulated display-context state, not an operator handover log.Source-lineaged display-context actors, not active serving satellites.Endpoint precision stays operator-family only.No active gateway assignment is claimed.No pair-specific teleport path is claimed.No measured latency, jitter, throughput, or continuity values are shown.No native RF handover is claimed. Sources Source provenance All repo-owned projection sources. Satellite TLE provenance Eutelsat OneWeb · LEO · ONEWEB-0386 · fetched 2026-04-28T08:51:17ZEutelsat OneWeb · LEO · ONEWEB-0537 · fetched 2026-04-28T08:51:17ZEutelsat OneWeb · LEO · ONEWEB-0701 · fetched 2026-04-28T08:51:17ZEutelsat OneWeb · LEO · ONEWEB-0012 · fetched 2026-04-28T08:51:17ZEutelsat OneWeb · LEO · ONEWEB-0249 · fetched 2026-04-28T08:51:17ZEutelsat OneWeb · LEO · ONEWEB-0702 · fetched 2026-04-28T08:51:17ZSES O3b mPOWER · MEO · O3B MPOWER F6 · fetched 2026-04-28T08:51:17ZSES O3b mPOWER · MEO · O3B MPOWER F1 · fetched 2026-04-28T08:51:17ZSES O3b mPOWER · MEO · O3B MPOWER F2 · fetched 2026-04-28T08:51:17ZSES O3b mPOWER · MEO · O3B MPOWER F4 · fetched 2026-04-28T08:51:17ZSES O3b mPOWER · MEO · O3B MPOWER F3 · fetched 2026-04-28T08:51:17ZST-2 CHT/Singtel GEO service context · GEO · ST-2 · fetched 2026-04-28T08:51:17ZSES GEO display context; not endpoint-pair path or active service claim · GEO · SES-9 · fetched 2026-04-28T08:51:17Z Ground-station evidence URLs Taiwan / Chunghwa Telecom multi-orbit ground infrastructureLEO strong · https://www.cht.com.tw/zh-tw/home/cht/messages/2025/1103-1000 · operator press releaseLEO strong · https://www.cht.com.tw/en/home/cht/messages/2023/1115-1530 · operator press releaseMEO strong · https://www.cht.com.tw/zh-tw/home/cht/messages/2025/1103-1000 · operator press releaseMEO strong · https://www.cht.com.tw/en/home/cht/messages/2026/0122-1410 · operator press releaseGEO strong · https://www.cht.com.tw/zh-tw/home/cht/messages/2025/1103-1000 · operator press releaseGEO strong · https://www.cht.com.tw/en/home/cht/messages/2023/1115-1530 · operator press releaseSingapore / Speedcast Singapore TeleportLEO strong · https://www.speedcast.com/our-solution/product/vsat-satellite/ngso-leo-meo/ · operator sourceMEO strong · https://www.speedcast.com/our-solution/product/vsat-satellite/ngso-leo-meo/ · operator sourceGEO strong · https://www.speedcast.com/newsroom/press-releases/2024/speedcasts-teleport-in-singapore-joins-wtas-growing-list-of-tier-4-certified-teleports/ · third-party certificationGEO strong · https://www.speedcast.com/about-us/teleports/ · operator source R2 read-only candidate catalog Taiwan site-level CHT earth-station family · blocked: site-family upgrade lacks accepted LEO/MEO site mapping · blocked · R2 read-only - not promotable to runtimeThailand NT Sirindhorn OneWeb SNP Gateway · blocked: MEO evidence gap · blocked · R2 read-only - not promotable to runtimeSingapore Singtel Bukit Timah Satellite Earth Station · blocked: MEO evidence gap and site-family split · blocked · R2 read-only - not promotable to runtimeJapan KDDI Yamaguchi / SoftBank OneWeb country family · blocked: MEO gap and split operator-family evidence · blocked · R2 read-only - not promotable to runtimeKorea KT SAT Kumsan / OneWeb terminal ecosystem · blocked: MEO remains partial/planned evidence · blocked · R2 read-only - not promotable to runtime",
+      "text": "Decision · State Evidence LEO 訊號減弱中 · LEO pressure LEO 的位置條件正在變差。約 10 分鐘後，連線會切到較廣覆蓋的 MEO 暫時接住。 NowNow: LEO remains primary but is under modeled pressure. WhyWhy: the replay window says position conditions are worsening. NextNext: MEO is the modeled continuity hold candidate. WatchWatch: simulated countdown and quality-class drop, not measured jitter. The simulation marks the LEO context as under aging pressure in window 2 of 5. The geometry is degrading by simulation, not by measurement. The next modeled state holds continuity on the MEO context. No real RF handover is being asserted. Metrics Modeled classes Modeled link quality: LEO class drops as geometry degrades. Communication time: derived remaining replay-window time. Unavailable measured data Unavailable measured data: no ping, iperf, ESTNeT/INET, DUT, latency, jitter, throughput, or packet-loss feed is connected to this route. Unavailable physical factors: rain, antenna, ITU/V group, and rain attenuation models are not connected in this scene. Boundary · Truth Boundary Truth boundary Simulation boundary: 13-actor demo, repo-owned projection, not measured truth. Service-layer boundary: modeled service handover, not native RF handover. Endpoint boundary: operator-family precision, not site-level gateway claim. Scale boundary: not >=500 LEO validation and not 24h hardware-GPU closeout. simulation outputoperator-family precisiondisplay-context actors Simulated display-context state, not an operator handover log.Source-lineaged display-context actors, not active serving satellites.Endpoint precision stays operator-family only.No active gateway assignment is claimed.No pair-specific teleport path is claimed.No measured latency, jitter, throughput, or continuity values are shown.No native RF handover is claimed. Evidence Source provenance All repo-owned projection sources. TLE source summary: CelesTrak NORAD GP records are retained through the repo-owned projection. Endpoint evidence: Taiwan / CHT and Singapore / Speedcast are operator-family evidence only. R2 archive: read-only provenance, not a precision mode or runtime selector. Satellite TLE provenance Eutelsat OneWeb · LEO · ONEWEB-0386 · fetched 2026-04-28T08:51:17ZEutelsat OneWeb · LEO · ONEWEB-0537 · fetched 2026-04-28T08:51:17ZEutelsat OneWeb · LEO · ONEWEB-0701 · fetched 2026-04-28T08:51:17ZEutelsat OneWeb · LEO · ONEWEB-0012 · fetched 2026-04-28T08:51:17ZEutelsat OneWeb · LEO · ONEWEB-0249 · fetched 2026-04-28T08:51:17ZEutelsat OneWeb · LEO · ONEWEB-0702 · fetched 2026-04-28T08:51:17ZSES O3b mPOWER · MEO · O3B MPOWER F6 · fetched 2026-04-28T08:51:17ZSES O3b mPOWER · MEO · O3B MPOWER F1 · fetched 2026-04-28T08:51:17ZSES O3b mPOWER · MEO · O3B MPOWER F2 · fetched 2026-04-28T08:51:17ZSES O3b mPOWER · MEO · O3B MPOWER F4 · fetched 2026-04-28T08:51:17ZSES O3b mPOWER · MEO · O3B MPOWER F3 · fetched 2026-04-28T08:51:17ZST-2 CHT/Singtel GEO service context · GEO · ST-2 · fetched 2026-04-28T08:51:17ZSES GEO display context; not endpoint-pair path or active service claim · GEO · SES-9 · fetched 2026-04-28T08:51:17Z Ground-station evidence URLs Taiwan / Chunghwa Telecom multi-orbit ground infrastructureLEO strong · https://www.cht.com.tw/zh-tw/home/cht/messages/2025/1103-1000 · operator press releaseLEO strong · https://www.cht.com.tw/en/home/cht/messages/2023/1115-1530 · operator press releaseMEO strong · https://www.cht.com.tw/zh-tw/home/cht/messages/2025/1103-1000 · operator press releaseMEO strong · https://www.cht.com.tw/en/home/cht/messages/2026/0122-1410 · operator press releaseGEO strong · https://www.cht.com.tw/zh-tw/home/cht/messages/2025/1103-1000 · operator press releaseGEO strong · https://www.cht.com.tw/en/home/cht/messages/2023/1115-1530 · operator press releaseSingapore / Speedcast Singapore TeleportLEO strong · https://www.speedcast.com/our-solution/product/vsat-satellite/ngso-leo-meo/ · operator sourceMEO strong · https://www.speedcast.com/our-solution/product/vsat-satellite/ngso-leo-meo/ · operator sourceGEO strong · https://www.speedcast.com/newsroom/press-releases/2024/speedcasts-teleport-in-singapore-joins-wtas-growing-list-of-tier-4-certified-teleports/ · third-party certificationGEO strong · https://www.speedcast.com/about-us/teleports/ · operator source R2 read-only candidate catalog Taiwan site-level CHT earth-station family · blocked: site-family upgrade lacks accepted LEO/MEO site mapping · blocked · R2 read-only - not promotable to runtimeThailand NT Sirindhorn OneWeb SNP Gateway · blocked: MEO evidence gap · blocked · R2 read-only - not promotable to runtimeSingapore Singtel Bukit Timah Satellite Earth Station · blocked: MEO evidence gap and site-family split · blocked · R2 read-only - not promotable to runtimeJapan KDDI Yamaguchi / SoftBank OneWeb country family · blocked: MEO gap and split operator-family evidence · blocked · R2 read-only - not promotable to runtimeKorea KT SAT Kumsan / OneWeb terminal ecosystem · blocked: MEO remains partial/planned evidence · blocked · R2 read-only - not promotable to runtime",
       "visibleText": "",
       "dataset": {
         "inspectorEvidence": "m8a-v4.10-inspector-evidence-redesign-slice4-runtime.v1",
@@ -627,9 +627,9 @@
       },
       "groups": [],
       "primarySections": {
-        "current-state": "State Evidence LEO 訊號減弱中 · LEO pressure LEO 的位置條件正在變差。約 10 分鐘後，連線會切到較廣覆蓋的 MEO 暫時接住。 The simulation marks the LEO context as under aging pressure in window 2 of 5. The geometry is degrading by simulation, not by measurement. The next modeled state holds continuity on the MEO context. No real RF handover is being asserted. Source provenance",
-        "boundary": "Truth Boundary Truth boundary simulation outputoperator-family precisiondisplay-context actors Simulated display-context state, not an operator handover log.Source-lineaged display-context actors, not active serving satellites.Endpoint precision stays operator-family only.No active gateway assignment is claimed.No pair-specific teleport path is claimed.No measured latency, jitter, throughput, or continuity values are shown.No native RF handover is claimed.",
-        "sources": "Sources Source provenance All repo-owned projection sources. Satellite TLE provenance Eutelsat OneWeb · LEO · ONEWEB-0386 · fetched 2026-04-28T08:51:17ZEutelsat OneWeb · LEO · ONEWEB-0537 · fetched 2026-04-28T08:51:17ZEutelsat OneWeb · LEO · ONEWEB-0701 · fetched 2026-04-28T08:51:17ZEutelsat OneWeb · LEO · ONEWEB-0012 · fetched 2026-04-28T08:51:17ZEutelsat OneWeb · LEO · ONEWEB-0249 · fetched 2026-04-28T08:51:17ZEutelsat OneWeb · LEO · ONEWEB-0702 · fetched 2026-04-28T08:51:17ZSES O3b mPOWER · MEO · O3B MPOWER F6 · fetched 2026-04-28T08:51:17ZSES O3b mPOWER · MEO · O3B MPOWER F1 · fetched 2026-04-28T08:51:17ZSES O3b mPOWER · MEO · O3B MPOWER F2 · fetched 2026-04-28T08:51:17ZSES O3b mPOWER · MEO · O3B MPOWER F4 · fetched 2026-04-28T08:51:17ZSES O3b mPOWER · MEO · O3B MPOWER F3 · fetched 2026-04-28T08:51:17ZST-2 CHT/Singtel GEO service context · GEO · ST-2 · fetched 2026-04-28T08:51:17ZSES GEO display context; not endpoint-pair path or active service claim · GEO · SES-9 · fetched 2026-04-28T08:51:17Z Ground-station evidence URLs Taiwan / Chunghwa Telecom multi-orbit ground infrastructureLEO strong · https://www.cht.com.tw/zh-tw/home/cht/messages/2025/1103-1000 · operator press releaseLEO strong · https://www.cht.com.tw/en/home/cht/messages/2023/1115-1530 · operator press releaseMEO strong · https://www.cht.com.tw/zh-tw/home/cht/messages/2025/1103-1000 · operator press releaseMEO strong · https://www.cht.com.tw/en/home/cht/messages/2026/0122-1410 · operator press releaseGEO strong · https://www.cht.com.tw/zh-tw/home/cht/messages/2025/1103-1000 · operator press releaseGEO strong · https://www.cht.com.tw/en/home/cht/messages/2023/1115-1530 · operator press releaseSingapore / Speedcast Singapore TeleportLEO strong · https://www.speedcast.com/our-solution/product/vsat-satellite/ngso-leo-meo/ · operator sourceMEO strong · https://www.speedcast.com/our-solution/product/vsat-satellite/ngso-leo-meo/ · operator sourceGEO strong · https://www.speedcast.com/newsroom/press-releases/2024/speedcasts-teleport-in-singapore-joins-wtas-growing-list-of-tier-4-certified-teleports/ · third-party certificationGEO strong · https://www.speedcast.com/about-us/teleports/ · operator source R2 read-only candidate catalog Taiwan site-level CHT earth-station family · blocked: site-family upgrade lacks accepted LEO/MEO site mapping · blocked · R2 read-only - not promotable to runtimeThailand NT Sirindhorn OneWeb SNP Gateway · blocked: MEO evidence gap · blocked · R2 read-only - not promotable to runtimeSingapore Singtel Bukit Timah Satellite Earth Station · blocked: MEO evidence gap and site-family split · blocked · R2 read-only - not promotable to runtimeJapan KDDI Yamaguchi / SoftBank OneWeb country family · blocked: MEO gap and split operator-family evidence · blocked · R2 read-only - not promotable to runtimeKorea KT SAT Kumsan / OneWeb terminal ecosystem · blocked: MEO remains partial/planned evidence · blocked · R2 read-only - not promotable to runtime"
+        "current-state": "Decision · State Evidence LEO 訊號減弱中 · LEO pressure LEO 的位置條件正在變差。約 10 分鐘後，連線會切到較廣覆蓋的 MEO 暫時接住。 NowNow: LEO remains primary but is under modeled pressure. WhyWhy: the replay window says position conditions are worsening. NextNext: MEO is the modeled continuity hold candidate. WatchWatch: simulated countdown and quality-class drop, not measured jitter. The simulation marks the LEO context as under aging pressure in window 2 of 5. The geometry is degrading by simulation, not by measurement. The next modeled state holds continuity on the MEO context. No real RF handover is being asserted.",
+        "boundary": "Boundary · Truth Boundary Truth boundary Simulation boundary: 13-actor demo, repo-owned projection, not measured truth. Service-layer boundary: modeled service handover, not native RF handover. Endpoint boundary: operator-family precision, not site-level gateway claim. Scale boundary: not >=500 LEO validation and not 24h hardware-GPU closeout. simulation outputoperator-family precisiondisplay-context actors Simulated display-context state, not an operator handover log.Source-lineaged display-context actors, not active serving satellites.Endpoint precision stays operator-family only.No active gateway assignment is claimed.No pair-specific teleport path is claimed.No measured latency, jitter, throughput, or continuity values are shown.No native RF handover is claimed.",
+        "sources": "Evidence Source provenance All repo-owned projection sources. TLE source summary: CelesTrak NORAD GP records are retained through the repo-owned projection. Endpoint evidence: Taiwan / CHT and Singapore / Speedcast are operator-family evidence only. R2 archive: read-only provenance, not a precision mode or runtime selector. Satellite TLE provenance Eutelsat OneWeb · LEO · ONEWEB-0386 · fetched 2026-04-28T08:51:17ZEutelsat OneWeb · LEO · ONEWEB-0537 · fetched 2026-04-28T08:51:17ZEutelsat OneWeb · LEO · ONEWEB-0701 · fetched 2026-04-28T08:51:17ZEutelsat OneWeb · LEO · ONEWEB-0012 · fetched 2026-04-28T08:51:17ZEutelsat OneWeb · LEO · ONEWEB-0249 · fetched 2026-04-28T08:51:17ZEutelsat OneWeb · LEO · ONEWEB-0702 · fetched 2026-04-28T08:51:17ZSES O3b mPOWER · MEO · O3B MPOWER F6 · fetched 2026-04-28T08:51:17ZSES O3b mPOWER · MEO · O3B MPOWER F1 · fetched 2026-04-28T08:51:17ZSES O3b mPOWER · MEO · O3B MPOWER F2 · fetched 2026-04-28T08:51:17ZSES O3b mPOWER · MEO · O3B MPOWER F4 · fetched 2026-04-28T08:51:17ZSES O3b mPOWER · MEO · O3B MPOWER F3 · fetched 2026-04-28T08:51:17ZST-2 CHT/Singtel GEO service context · GEO · ST-2 · fetched 2026-04-28T08:51:17ZSES GEO display context; not endpoint-pair path or active service claim · GEO · SES-9 · fetched 2026-04-28T08:51:17Z Ground-station evidence URLs Taiwan / Chunghwa Telecom multi-orbit ground infrastructureLEO strong · https://www.cht.com.tw/zh-tw/home/cht/messages/2025/1103-1000 · operator press releaseLEO strong · https://www.cht.com.tw/en/home/cht/messages/2023/1115-1530 · operator press releaseMEO strong · https://www.cht.com.tw/zh-tw/home/cht/messages/2025/1103-1000 · operator press releaseMEO strong · https://www.cht.com.tw/en/home/cht/messages/2026/0122-1410 · operator press releaseGEO strong · https://www.cht.com.tw/zh-tw/home/cht/messages/2025/1103-1000 · operator press releaseGEO strong · https://www.cht.com.tw/en/home/cht/messages/2023/1115-1530 · operator press releaseSingapore / Speedcast Singapore TeleportLEO strong · https://www.speedcast.com/our-solution/product/vsat-satellite/ngso-leo-meo/ · operator sourceMEO strong · https://www.speedcast.com/our-solution/product/vsat-satellite/ngso-leo-meo/ · operator sourceGEO strong · https://www.speedcast.com/newsroom/press-releases/2024/speedcasts-teleport-in-singapore-joins-wtas-growing-list-of-tier-4-certified-teleports/ · third-party certificationGEO strong · https://www.speedcast.com/about-us/teleports/ · operator source R2 read-only candidate catalog Taiwan site-level CHT earth-station family · blocked: site-family upgrade lacks accepted LEO/MEO site mapping · blocked · R2 read-only - not promotable to runtimeThailand NT Sirindhorn OneWeb SNP Gateway · blocked: MEO evidence gap · blocked · R2 read-only - not promotable to runtimeSingapore Singtel Bukit Timah Satellite Earth Station · blocked: MEO evidence gap and site-family split · blocked · R2 read-only - not promotable to runtimeJapan KDDI Yamaguchi / SoftBank OneWeb country family · blocked: MEO gap and split operator-family evidence · blocked · R2 read-only - not promotable to runtimeKorea KT SAT Kumsan / OneWeb terminal ecosystem · blocked: MEO remains partial/planned evidence · blocked · R2 read-only - not promotable to runtime"
       },
       "debugEvidence": {
         "visible": false,
@@ -640,7 +640,7 @@
       "detailsFullTruth": {
         "visible": false,
         "open": null,
-        "text": "Truth Boundary Truth boundary simulation outputoperator-family precisiondisplay-context actors Simulated display-context state, not an operator handover log.Source-lineaged display-context actors, not active serving satellites.Endpoint precision stays operator-family only.No active gateway assignment is claimed.No pair-specific teleport path is claimed.No measured latency, jitter, throughput, or continuity values are shown.No native RF handover is claimed.",
+        "text": "Boundary · Truth Boundary Truth boundary Simulation boundary: 13-actor demo, repo-owned projection, not measured truth. Service-layer boundary: modeled service handover, not native RF handover. Endpoint boundary: operator-family precision, not site-level gateway claim. Scale boundary: not >=500 LEO validation and not 24h hardware-GPU closeout. simulation outputoperator-family precisiondisplay-context actors Simulated display-context state, not an operator handover log.Source-lineaged display-context actors, not active serving satellites.Endpoint precision stays operator-family only.No active gateway assignment is claimed.No pair-specific teleport path is claimed.No measured latency, jitter, throughput, or continuity values are shown.No native RF handover is claimed.",
         "visibleText": ""
       }
     },
@@ -753,9 +753,9 @@
         "ariaExpanded": null,
         "ariaPressed": null,
         "rect": {
-          "left": 136.328125,
+          "left": 453.296875,
           "top": 98.8125,
-          "right": 195.515625,
+          "right": 512.484375,
           "bottom": 134.8125,
           "width": 59.1875,
           "height": 36
@@ -768,9 +768,9 @@
         "ariaExpanded": null,
         "ariaPressed": null,
         "rect": {
-          "left": 201.265625,
+          "left": 518.234375,
           "top": 98.8125,
-          "right": 271.65625,
+          "right": 588.625,
           "bottom": 134.8125,
           "width": 70.390625,
           "height": 36
@@ -783,9 +783,9 @@
         "ariaExpanded": null,
         "ariaPressed": "false",
         "rect": {
-          "left": 277.40625,
+          "left": 594.375,
           "top": 98.8125,
-          "right": 316.875,
+          "right": 633.84375,
           "bottom": 134.8125,
           "width": 39.46875,
           "height": 36
@@ -798,9 +798,9 @@
         "ariaExpanded": null,
         "ariaPressed": "true",
         "rect": {
-          "left": 321.671875,
+          "left": 638.640625,
           "top": 98.8125,
-          "right": 361.140625,
+          "right": 678.109375,
           "bottom": 134.8125,
           "width": 39.46875,
           "height": 36
@@ -813,9 +813,9 @@
         "ariaExpanded": null,
         "ariaPressed": "false",
         "rect": {
-          "left": 365.9375,
+          "left": 682.90625,
           "top": 98.8125,
-          "right": 405.40625,
+          "right": 722.375,
           "bottom": 134.8125,
           "width": 39.46875,
           "height": 36
@@ -829,9 +829,9 @@
         "ariaPressed": null,
         "rect": {
           "left": 1344.96875,
-          "top": 846,
+          "top": 770.40625,
           "right": 1416.96875,
-          "bottom": 882,
+          "bottom": 806.40625,
           "width": 72,
           "height": 36
         }

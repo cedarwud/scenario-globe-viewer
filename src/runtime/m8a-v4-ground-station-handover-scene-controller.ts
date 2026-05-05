@@ -2641,11 +2641,11 @@ function ensureProductUxStructure(root: HTMLElement): void {
     </div>
     <aside class="m8a-v411-handover-rail" data-m8a-v411-handover-rail="true" data-m8a-v47-ui-surface="left-handover-rail">
       <div data-m8a-v411-handover-rail-content="true">
-        <div class="m8a-v411-rail-slot" data-m8a-v411-rail-slot="current">Current: --</div>
-        <div class="m8a-v411-rail-slot" data-m8a-v411-rail-slot="candidate">Candidate: --</div>
-        <div class="m8a-v411-rail-slot" data-m8a-v411-rail-slot="fallback">Fallback: --</div>
-        <div class="m8a-v411-rail-slot" data-m8a-v411-rail-slot="decision">Decision: --</div>
-        <div class="m8a-v411-rail-slot" data-m8a-v411-rail-slot="quality">Time/Quality: --</div>
+        <div class="m8a-v411-rail-slot" data-m8a-v411-rail-slot="current" data-m8a-v48-info-class="dynamic">Current: --</div>
+        <div class="m8a-v411-rail-slot" data-m8a-v411-rail-slot="candidate" data-m8a-v48-info-class="dynamic">Candidate: --</div>
+        <div class="m8a-v411-rail-slot" data-m8a-v411-rail-slot="fallback" data-m8a-v48-info-class="dynamic">Fallback: --</div>
+        <div class="m8a-v411-rail-slot" data-m8a-v411-rail-slot="decision" data-m8a-v48-info-class="dynamic">Decision: --</div>
+        <div class="m8a-v411-rail-slot" data-m8a-v411-rail-slot="quality" data-m8a-v48-info-class="dynamic">Time/Quality: --</div>
       </div>
     </aside>
     <div class="m8a-v47-product-ux__scene-connector" data-m8a-v48-scene-connector="true" aria-hidden="true" hidden></div>
@@ -2732,10 +2732,10 @@ function ensureProductUxStructure(root: HTMLElement): void {
             <strong data-m8a-v411-state-evidence-title="true" data-m8a-v48-info-class="dynamic"></strong>
             <p data-m8a-v49-inspector-current="true" data-m8a-v411-state-evidence-copy="true" data-m8a-v48-info-class="dynamic"></p>
             <div class="m8a-v411-inspector__module-list" data-m8a-v411-decision-modules="true">
-              <p><strong>Now</strong><span data-m8a-v411-decision-now="true" data-m8a-v48-info-class="dynamic"></span></p>
-              <p><strong>Why</strong><span data-m8a-v411-decision-why="true" data-m8a-v48-info-class="dynamic"></span></p>
-              <p><strong>Next</strong><span data-m8a-v411-decision-next="true" data-m8a-v48-info-class="dynamic"></span></p>
-              <p><strong>Watch</strong><span data-m8a-v411-decision-watch="true" data-m8a-v48-info-class="dynamic"></span></p>
+              <p><strong data-m8a-v48-info-class="fixed">Now</strong><span data-m8a-v411-decision-now="true" data-m8a-v48-info-class="dynamic"></span></p>
+              <p><strong data-m8a-v48-info-class="fixed">Why</strong><span data-m8a-v411-decision-why="true" data-m8a-v48-info-class="dynamic"></span></p>
+              <p><strong data-m8a-v48-info-class="fixed">Next</strong><span data-m8a-v411-decision-next="true" data-m8a-v48-info-class="dynamic"></span></p>
+              <p><strong data-m8a-v48-info-class="fixed">Watch</strong><span data-m8a-v411-decision-watch="true" data-m8a-v48-info-class="dynamic"></span></p>
             </div>
             <p class="m8a-v411-inspector__state-evidence-detail" data-m8a-v411-state-evidence-detail="true" data-m8a-v48-info-class="disclosure"></p>
           </section>
@@ -2743,12 +2743,12 @@ function ensureProductUxStructure(root: HTMLElement): void {
           <section class="m8a-v411-inspector__role" data-m8a-v411-inspector-panel="metrics" hidden>
             <span class="m8a-v410-inspector__group-label" data-m8a-v48-info-class="fixed">Metrics</span>
             <div class="m8a-v411-inspector__module-list" data-m8a-v411-metrics-modeled="true">
-              <strong>Modeled classes</strong>
+              <strong data-m8a-v48-info-class="fixed">Modeled classes</strong>
               <p data-m8a-v411-metrics-quality="true" data-m8a-v48-info-class="dynamic"></p>
               <p data-m8a-v411-metrics-timing="true" data-m8a-v48-info-class="dynamic"></p>
             </div>
             <div class="m8a-v411-inspector__module-list" data-m8a-v411-metrics-unavailable="true">
-              <strong>Unavailable measured data</strong>
+              <strong data-m8a-v48-info-class="fixed">Unavailable measured data</strong>
               <p data-m8a-v411-metrics-measurement="true" data-m8a-v48-info-class="dynamic"></p>
               <p data-m8a-v411-metrics-physical="true" data-m8a-v48-info-class="dynamic"></p>
             </div>

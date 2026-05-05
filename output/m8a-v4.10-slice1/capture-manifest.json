@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-05-04T03:07:11.858Z",
+  "generatedAt": "2026-05-05T01:30:09.711Z",
   "status": "cleanup-complete",
   "route": "/?scenePreset=regional&m8aV4GroundStationScene=1",
   "outputRoot": "output/m8a-v4.10-slice1",
@@ -14,9 +14,9 @@
       "height": 73.28125
     },
     "currentStrip": {
-      "left": 23.03125,
+      "left": 340,
       "top": 74.234375,
-      "right": 607.03125,
+      "right": 924,
       "bottom": 159.390625,
       "width": 584,
       "height": 85.15625
@@ -30,15 +30,16 @@
       "height": 112.90625
     },
     "currentAnnotation": {
-      "left": 116.890625,
-      "top": 486.6875,
-      "right": 212.890625,
-      "bottom": 510.6875,
-      "width": 96,
+      "left": 340,
+      "top": 478.796875,
+      "right": 433.1875,
+      "bottom": 502.796875,
+      "width": 93.1875,
       "height": 24
     },
+    "acceptedGeometryContract": "v4.11-correction-a-successor",
     "visibleDifferenceFacts": [
-      "controls moved from dominant top-right strip to secondary top-left strip",
+      "Correction A successor layout keeps the scope/control strip at left 340 with focus LEO micro-cue",
       "scene narrative is wider and taller than the V4.9 annotation",
       "active state title, first-read line, watch cue, and next line are visible without Details"
     ]
@@ -48,7 +49,7 @@
       "viewport": "default-1440x900",
       "screenshot": {
         "path": "output/m8a-v4.10-slice1/v4.10-slice1-default-1440x900.png",
-        "sizeBytes": 1173885,
+        "sizeBytes": 951696,
         "dimensions": {
           "width": 1440,
           "height": 900
@@ -58,17 +59,17 @@
       "activeWindowId": "leo-acquisition-context",
       "anchorStatus": "geometry-reliable",
       "sceneNarrativeRect": {
-        "left": 116.890625,
-        "top": 486.6875,
-        "right": 212.890625,
-        "bottom": 510.6875,
-        "width": 96,
+        "left": 340,
+        "top": 478.796875,
+        "right": 433.1875,
+        "bottom": 502.796875,
+        "width": 93.1875,
         "height": 24
       },
       "stripRect": {
-        "left": 23.03125,
+        "left": 340,
         "top": 74.234375,
-        "right": 607.03125,
+        "right": 924,
         "bottom": 159.390625,
         "width": 584,
         "height": 85.15625
@@ -79,7 +80,7 @@
       "viewport": "default-1280x720",
       "screenshot": {
         "path": "output/m8a-v4.10-slice1/v4.10-slice1-default-1280x720.png",
-        "sizeBytes": 882914,
+        "sizeBytes": 684508,
         "dimensions": {
           "width": 1280,
           "height": 720
@@ -89,17 +90,17 @@
       "activeWindowId": "leo-acquisition-context",
       "anchorStatus": "geometry-reliable",
       "sceneNarrativeRect": {
-        "left": 55.1875,
-        "top": 382.296875,
-        "right": 151.1875,
-        "bottom": 406.296875,
-        "width": 96,
+        "left": 340,
+        "top": 378.6875,
+        "right": 433.1875,
+        "bottom": 402.6875,
+        "width": 93.1875,
         "height": 24
       },
       "stripRect": {
-        "left": 20.46875,
+        "left": 340,
         "top": 71.671875,
-        "right": 604.46875,
+        "right": 924,
         "bottom": 156.828125,
         "width": 584,
         "height": 85.15625
@@ -110,7 +111,7 @@
       "viewport": "default-390x844",
       "screenshot": {
         "path": "output/m8a-v4.10-slice1/v4.10-slice1-default-390x844.png",
-        "sizeBytes": 354372,
+        "sizeBytes": 356891,
         "dimensions": {
           "width": 390,
           "height": 844
@@ -122,9 +123,9 @@
       "sceneNarrativeRect": {
         "left": 14,
         "top": 402.09375,
-        "right": 106.046875,
+        "right": 103.3125,
         "bottom": 426.09375,
-        "width": 92.046875,
+        "width": 89.3125,
         "height": 24
       },
       "stripRect": {
@@ -141,7 +142,7 @@
       "viewport": "active-meo-continuity-hold-1440x900",
       "screenshot": {
         "path": "output/m8a-v4.10-slice1/v4.10-slice1-active-meo-continuity-hold-1440x900.png",
-        "sizeBytes": 1228782,
+        "sizeBytes": 994175,
         "dimensions": {
           "width": 1440,
           "height": 900
@@ -151,17 +152,17 @@
       "activeWindowId": "meo-continuity-hold",
       "anchorStatus": "geometry-reliable",
       "sceneNarrativeRect": {
-        "left": 545.09375,
+        "left": 340,
         "top": 258.296875,
-        "right": 638.71875,
+        "right": 430.8125,
         "bottom": 282.296875,
-        "width": 93.625,
+        "width": 90.8125,
         "height": 24
       },
       "stripRect": {
-        "left": 23.03125,
+        "left": 340,
         "top": 74.234375,
-        "right": 607.03125,
+        "right": 924,
         "bottom": 175.875,
         "width": 584,
         "height": 101.640625
@@ -172,25 +173,25 @@
   "taskOwnedProcesses": [
     {
       "type": "static-server-started",
-      "at": "2026-05-04T03:06:30.776Z",
-      "pid": 72854,
-      "baseUrl": "http://127.0.0.1:37255"
+      "at": "2026-05-05T01:29:19.017Z",
+      "pid": 9101,
+      "baseUrl": "http://127.0.0.1:44389"
     },
     {
       "type": "headless-browser-started",
-      "at": "2026-05-04T03:06:30.882Z",
-      "pid": 72859,
+      "at": "2026-05-05T01:29:19.172Z",
+      "pid": 9106,
       "browserCommand": "google-chrome"
     },
     {
       "type": "headless-browser-stop-requested",
-      "at": "2026-05-04T03:07:11.806Z",
-      "pid": 72859
+      "at": "2026-05-05T01:30:09.651Z",
+      "pid": 9106
     },
     {
       "type": "static-server-stop-requested",
-      "at": "2026-05-04T03:07:11.857Z",
-      "pid": 72854
+      "at": "2026-05-05T01:30:09.709Z",
+      "pid": 9101
     }
   ]
 }
