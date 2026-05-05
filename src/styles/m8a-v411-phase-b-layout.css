@@ -1,0 +1,133 @@
+.m8a-v411-top-strip {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  min-height: 40px;
+  background-color: var(--m8a-v47-color-bg-base, #111111);
+  border-bottom: 1px solid var(--m8a-v47-color-border-subtle, #333333);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 16px;
+  row-gap: 4px;
+  padding: 6px 16px;
+  z-index: 100;
+  color: var(--m8a-v47-color-text-primary, #ffffff);
+  font-family: var(--m8a-v47-font-family-base, sans-serif);
+  font-size: 13px;
+}
+
+.m8a-v411-handover-rail {
+  position: absolute;
+  top: 40px;
+  bottom: clamp(7.1rem, 12vh, 7.65rem);
+  left: 0;
+  width: 320px;
+  background-color: var(--m8a-v47-color-bg-elevated, #1a1a1a);
+  border-right: 1px solid var(--m8a-v47-color-border-subtle, #333333);
+  padding: 16px;
+  z-index: 90;
+  color: var(--m8a-v47-color-text-primary, #ffffff);
+  overflow-y: auto;
+  font-family: var(--m8a-v47-font-family-base, sans-serif);
+  font-size: 14px;
+}
+
+.m8a-v411-rail-slot {
+  margin-bottom: 12px;
+  padding: 8px;
+  background: var(--m8a-v47-color-bg-base, #111111);
+  border-radius: 4px;
+  border: 1px solid var(--m8a-v47-color-border-subtle, #333333);
+}
+
+/* Adjust globe position if necessary, or the rail just sits on top */
+/* The globe is likely handled elsewhere, but since it's a shell, giving it dimensions is enough for Phase B */
+
+/* Ensure the top strip label is visible */
+[data-m8a-v411-top-strip-label="true"] {
+  font-weight: 600;
+  color: var(--m8a-v47-color-text-secondary, #aaaaaa);
+}
+
+/* Push existing left-aligned overlays out of the way of the new left rail */
+@media (min-width: 721px) {
+  .m8a-v47-product-ux__strip {
+    left: 340px !important;
+  }
+
+  .m8a-v47-product-ux__scene-annotation {
+    left: 340px !important;
+  }
+}
+
+@media (max-width: 720px) {
+  .m8a-v411-handover-rail {
+    display: none;
+  }
+  .m8a-v411-top-strip {
+    display: none;
+  }
+}
+
+/* Add basic tab styles for the Details inspector */
+.m8a-v411-inspector__tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 8px 16px;
+  border-bottom: 1px solid var(--m8a-v47-color-border-subtle, #333333);
+}
+
+.m8a-v411-inspector__tabs button {
+  background: none;
+  border: none;
+  color: var(--m8a-v47-color-text-secondary, #aaaaaa);
+  padding: 6px 12px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+  border-radius: 4px;
+}
+
+.m8a-v411-inspector__tabs button[aria-selected="true"] {
+  color: var(--m8a-v47-color-text-primary, #ffffff);
+  background-color: var(--m8a-v47-color-bg-active, #333333);
+}
+
+.m8a-v411-inspector__source-toggle {
+  margin: 8px 16px 0;
+  padding: 6px 10px;
+  border: 1px solid var(--m8a-v47-color-border-subtle, #333333);
+  border-radius: 4px;
+  background: transparent;
+  color: var(--m8a-v47-color-text-primary, #ffffff);
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.m8a-v411-inspector__module-list {
+  margin: 10px 0;
+  padding-left: 10px;
+  border-left: 2px solid var(--m8a-v47-color-border-subtle, #333333);
+}
+
+.m8a-v411-inspector__module-list > strong {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 13px;
+  color: var(--m8a-v47-color-text-secondary, #aaaaaa);
+}
+
+.m8a-v411-inspector__module-list p {
+  margin: 0 0 8px;
+  line-height: 1.45;
+}
+
+.m8a-v411-inspector__module-list p > strong {
+  display: inline-block;
+  min-width: 48px;
+  margin-right: 8px;
+  color: var(--m8a-v47-color-text-secondary, #aaaaaa);
+}

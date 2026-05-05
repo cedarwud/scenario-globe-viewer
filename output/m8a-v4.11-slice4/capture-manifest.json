@@ -1,0 +1,124 @@
+{
+  "route": "/?scenePreset=regional&m8aV4GroundStationScene=1",
+  "transientVersion": "m8a-v4.11-transition-toast-slice4-runtime.v1",
+  "captures": [
+    {
+      "windowId": "leo-aging-pressure",
+      "screenshot": "output/m8a-v4.11-slice4/v4.11-w2-toast-1440x900.png",
+      "metadata": "output/m8a-v4.11-slice4/v4.11-w2-toast-1440x900.metadata.json",
+      "elapsedMs": 25,
+      "toastRect": {
+        "left": 23.03125,
+        "top": 225.03125,
+        "right": 339.828125,
+        "bottom": 277.296875,
+        "width": 316.796875,
+        "height": 52.265625
+      },
+      "sceneCueRect": {
+        "left": 872.5,
+        "top": 505,
+        "right": 981.640625,
+        "bottom": 529,
+        "width": 109.140625,
+        "height": 24
+      }
+    },
+    {
+      "windowId": "meo-continuity-hold",
+      "screenshot": "output/m8a-v4.11-slice4/v4.11-w3-toast-1440x900.png",
+      "metadata": "output/m8a-v4.11-slice4/v4.11-w3-toast-1440x900.metadata.json",
+      "elapsedMs": 18,
+      "toastRect": {
+        "left": 23.03125,
+        "top": 225.03125,
+        "right": 339.828125,
+        "bottom": 277.296875,
+        "width": 316.796875,
+        "height": 52.265625
+      },
+      "sceneCueRect": {
+        "left": 505.5,
+        "top": 297.1875,
+        "right": 591.3125,
+        "bottom": 321.1875,
+        "width": 85.8125,
+        "height": 24
+      }
+    },
+    {
+      "windowId": "leo-reentry-candidate",
+      "screenshot": "output/m8a-v4.11-slice4/v4.11-w4-toast-1440x900.png",
+      "metadata": "output/m8a-v4.11-slice4/v4.11-w4-toast-1440x900.metadata.json",
+      "elapsedMs": 15,
+      "toastRect": {
+        "left": 23.03125,
+        "top": 225.03125,
+        "right": 339.828125,
+        "bottom": 277.296875,
+        "width": 316.796875,
+        "height": 52.265625
+      },
+      "sceneCueRect": {
+        "left": 815.796875,
+        "top": 477.296875,
+        "right": 921,
+        "bottom": 501.296875,
+        "width": 105.203125,
+        "height": 24
+      }
+    },
+    {
+      "windowId": "geo-continuity-guard",
+      "screenshot": "output/m8a-v4.11-slice4/v4.11-w5-toast-1440x900.png",
+      "metadata": "output/m8a-v4.11-slice4/v4.11-w5-toast-1440x900.metadata.json",
+      "elapsedMs": 15,
+      "toastRect": {
+        "left": 23.03125,
+        "top": 225.03125,
+        "right": 339.828125,
+        "bottom": 277.296875,
+        "width": 316.796875,
+        "height": 52.265625
+      },
+      "sceneCueRect": {
+        "left": 123,
+        "top": 183.390625,
+        "right": 216.203125,
+        "bottom": 207.390625,
+        "width": 93.203125,
+        "height": 24
+      }
+    }
+  ],
+  "reducedMotion": {
+    "elapsedMs": 12,
+    "toastStyle": {
+      "animationName": "none",
+      "transform": "none",
+      "opacity": "1"
+    },
+    "sceneCueStyle": {
+      "animationName": "none",
+      "transform": "none",
+      "opacity": "1"
+    }
+  },
+  "stackCap": {
+    "visibleToastCount": 2,
+    "stack": [
+      {
+        "windowId": "leo-reentry-candidate",
+        "text": "LEO re-entry GEO will close the sequence as guard context."
+      },
+      {
+        "windowId": "meo-continuity-hold",
+        "text": "MEO continuity hold MEO holds continuity in this simulation window."
+      }
+    ]
+  },
+  "concurrencyBackfill": {
+    "screenshot": "output/m8a-v4.11-slice4/v4.11-w3-hold-concurrency-1440x900.png",
+    "metadata": "output/m8a-v4.11-slice4/v4.11-w3-hold-concurrency-1440x900.metadata.json"
+  }
+}

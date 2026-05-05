@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>M8A-V4.11 Visual-Token Spike (sandbox, not production)</title>
+    <style>
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        background: #000;
+        color: #eee;
+        font-family: system-ui, sans-serif;
+        height: 100%;
+        width: 100%;
+        overflow: hidden;
+      }
+      #toolbar {
+        position: absolute;
+        top: 8px;
+        left: 8px;
+        z-index: 999;
+        display: flex;
+        gap: 6px;
+        background: rgba(0, 0, 0, 0.55);
+        padding: 6px 8px;
+        border-radius: 6px;
+        font-size: 12px;
+      }
+      #toolbar button {
+        background: #1a1a1a;
+        color: #ddd;
+        border: 1px solid #333;
+        padding: 4px 8px;
+        cursor: pointer;
+        border-radius: 4px;
+      }
+      #toolbar button:hover {
+        background: #222;
+        border-color: #555;
+      }
+      #fps {
+        position: absolute;
+        top: 8px;
+        right: 8px;
+        z-index: 999;
+        background: rgba(0, 0, 0, 0.55);
+        padding: 6px 10px;
+        font-family: monospace;
+        font-size: 12px;
+        border-radius: 6px;
+      }
+      #legend {
+        position: absolute;
+        bottom: 8px;
+        left: 8px;
+        z-index: 999;
+        background: rgba(0, 0, 0, 0.55);
+        padding: 8px 10px;
+        font-size: 11px;
+        line-height: 1.5;
+        border-radius: 6px;
+        max-width: 360px;
+      }
+      #cesiumContainer {
+        position: absolute;
+        inset: 0;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="cesiumContainer"></div>
+    <div id="toolbar">
+      <span style="margin-right:8px;opacity:0.7;">spike:</span>
+      <button data-fly="W1">W1 rising arc</button>
+      <button data-fly="W2">W2 fading arc</button>
+      <button data-fly="W3">W3 breathing disk</button>
+      <button data-fly="W4">W4 candidate pulse</button>
+      <button data-fly="W5">W5 steady ring</button>
+      <button data-fly="ALL">ALL</button>
+    </div>
+    <div id="fps">fps: --</div>
+    <div id="legend">
+      <strong>M8A-V4.11 visual-token spike</strong> (sandbox, not production)<br />
+      W1 cyan stepped polyline · W2 amber→red gradient + dashed predicted ·
+      W3 blue breathing ellipse (0.5 Hz) · W4 green expanding rings (1 Hz) ·
+      W5 gold halo ring (steady)
+    </div>
+    <script>
+      window.CESIUM_BASE_URL = "/cesium/";
+    </script>
+    <script type="module" src="./main.js"></script>
+  </body>
+</html>

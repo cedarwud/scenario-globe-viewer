@@ -1,0 +1,276 @@
+.app-shell .viewer-shell .hud-frame {
+  z-index: 12;
+}
+
+.m8a-v47-product-ux {
+  --m8a-v411-native-bottom-clearance: clamp(5.5rem, 8.4vh, 6.15rem);
+  --m8a-v411-footer-row-bottom: calc(
+    var(--m8a-v411-native-bottom-clearance) + 0.35rem
+  );
+  --m8a-v411-bottom-button-height: 36px;
+  --m8a-v411-sequence-rail-bottom: calc(
+    var(--m8a-v411-footer-row-bottom) +
+      var(--m8a-v411-bottom-button-height) + 0.65rem
+  );
+}
+
+.m8a-v411-footer-chip__row {
+  position: absolute;
+  left: calc(var(--hud-frame-gap) + 10.25rem);
+  right: calc(var(--hud-frame-gap) + 88px);
+  bottom: var(--m8a-v411-footer-row-bottom);
+  z-index: 5;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 6px;
+  height: 24px;
+  pointer-events: none;
+}
+
+.m8a-v411-footer-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 4px;
+  white-space: nowrap;
+  pointer-events: auto;
+  line-height: 1;
+  letter-spacing: 0;
+}
+
+.m8a-v411-footer-chip--ambient {
+  background: rgba(216, 224, 228, 0.14);
+  border: 1px solid rgba(216, 224, 228, 0.24);
+  color: rgba(226, 235, 238, 0.82);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: default;
+}
+
+.m8a-v411-footer-chip--ambient[data-m8a-v411-footer-chip-boundary-trigger="true"] {
+  cursor: pointer;
+}
+
+.m8a-v411-footer-chip--ambient[data-m8a-v411-footer-chip-boundary-trigger="true"]:hover,
+.m8a-v411-footer-chip--ambient[data-m8a-v411-footer-chip-boundary-trigger="true"]:focus-visible {
+  background: rgba(18, 30, 40, 0.88);
+  border-color: rgba(166, 210, 224, 0.44);
+  color: rgba(220, 242, 250, 0.92);
+  outline: none;
+}
+
+.m8a-v411-footer-chip--w5-warning {
+  background: rgba(48, 14, 8, 0.82);
+  border: 1.5px solid #ff6b3d;
+  color: #ffb8a0;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  margin-left: auto;
+}
+
+.m8a-v411-footer-chip--w5-warning:hover,
+.m8a-v411-footer-chip--w5-warning:focus-visible {
+  background: rgba(64, 18, 8, 0.92);
+  border-color: #ff8c64;
+  color: #ffd0bc;
+  outline: none;
+}
+
+.m8a-v411-footer-chip--w5-warning[hidden] {
+  display: none !important;
+}
+
+.m8a-v47-product-ux .m8a-v410-product-ux__sequence-rail {
+  bottom: var(--m8a-v411-sequence-rail-bottom);
+  height: 56px;
+  display: grid;
+  grid-template-columns: minmax(10.5rem, 0.32fr) minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+  padding: 0 10px;
+}
+
+.m8a-v47-product-ux .m8a-v410-sequence-rail__summary {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 1px;
+}
+
+.m8a-v47-product-ux .m8a-v410-sequence-rail__summary span {
+  font-size: 11px;
+  line-height: 1;
+}
+
+.m8a-v47-product-ux .m8a-v410-sequence-rail__summary strong {
+  font-size: 13px;
+  line-height: 1.05;
+}
+
+.m8a-v47-product-ux .m8a-v410-sequence-rail__summary small {
+  font-size: 10px;
+  line-height: 1;
+  text-align: left;
+}
+
+.m8a-v47-product-ux .m8a-v410-sequence-rail__track {
+  align-items: center;
+  height: 42px;
+}
+
+.m8a-v47-product-ux .m8a-v410-sequence-rail__track::before {
+  top: 20px;
+}
+
+.m8a-v47-product-ux .m8a-v410-sequence-rail__mark {
+  min-height: 38px;
+  padding: 3px 6px;
+  gap: 1px 5px;
+}
+
+.m8a-v47-product-ux .m8a-v410-sequence-rail__number {
+  width: 20px;
+  height: 20px;
+  font-size: 10px;
+}
+
+.m8a-v47-product-ux .m8a-v410-sequence-rail__label {
+  font-size: 10px;
+  line-height: 1.05;
+}
+
+.m8a-v47-product-ux .m8a-v410-sequence-rail__orbit {
+  font-size: 9px;
+  line-height: 1;
+}
+
+.m8a-v47-product-ux
+  .m8a-v47-product-ux__strip
+  [data-m8a-v47-control-id="details-toggle"] {
+  position: fixed;
+  right: var(--hud-frame-gap);
+  bottom: var(--m8a-v411-footer-row-bottom);
+  z-index: 5;
+  width: 72px;
+  height: 36px;
+  min-height: 36px;
+  padding: 0 10px;
+}
+
+@media (max-width: 720px) {
+  .m8a-v47-product-ux {
+    --m8a-v411-native-bottom-clearance: clamp(9.7rem, 18.6vh, 10.7rem);
+    --m8a-v411-footer-row-bottom: calc(
+      var(--m8a-v411-native-bottom-clearance) + 0.45rem
+    );
+    --m8a-v411-sequence-rail-bottom: calc(
+      var(--m8a-v411-footer-row-bottom) + 2.35rem
+    );
+  }
+
+  .m8a-v411-footer-chip__row {
+    left: var(--hud-frame-gap);
+    right: var(--hud-frame-gap);
+    bottom: var(--m8a-v411-footer-row-bottom);
+    gap: 4px;
+    height: 28px;
+    overflow: hidden;
+  }
+
+  .m8a-v411-footer-chip {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .m8a-v411-footer-chip--ambient {
+    font-size: 10px;
+    padding: 2px 5px;
+  }
+
+  .m8a-v411-footer-chip--explicit-disclosure {
+    order: 1;
+    flex: 0 0 122px;
+    justify-content: center;
+    min-width: 0;
+  }
+
+  .m8a-v411-footer-chip--ambient[data-m8a-v411-footer-chip="simulation-display"],
+  .m8a-v411-footer-chip--ambient[data-m8a-v411-footer-chip="actor-count"] {
+    flex: 0 0 auto;
+  }
+
+  .m8a-v411-footer-chip--ambient[data-m8a-v411-footer-chip="precision"] {
+    display: none;
+  }
+
+  .m8a-v411-footer-chip--ambient[data-m8a-v411-footer-chip="tle-source"] {
+    order: 2;
+    flex: 1 1 auto;
+  }
+
+  .m8a-v411-footer-chip--ambient[data-m8a-v411-footer-chip="simulation-display"] {
+    order: 3;
+  }
+
+  .m8a-v411-footer-chip--ambient[data-m8a-v411-footer-chip="actor-count"] {
+    order: 4;
+  }
+
+  .m8a-v411-footer-chip--w5-warning {
+    order: 5;
+    flex: 0 1 72px;
+    margin-left: 0;
+    font-size: 12px;
+    padding: 2px 6px;
+  }
+
+  .m8a-v47-product-ux .m8a-v410-product-ux__sequence-rail {
+    bottom: var(--m8a-v411-sequence-rail-bottom);
+    height: auto;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.24rem;
+    padding: 0.36rem 0.46rem 0.42rem;
+  }
+
+  .m8a-v47-product-ux .m8a-v410-sequence-rail__summary {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.04rem;
+  }
+
+  .m8a-v47-product-ux .m8a-v410-sequence-rail__summary span {
+    display: none;
+    font-size: 0.68rem;
+  }
+
+  .m8a-v47-product-ux .m8a-v410-sequence-rail__summary strong {
+    font-size: 0.78rem;
+  }
+
+  .m8a-v47-product-ux .m8a-v410-sequence-rail__summary small {
+    display: block;
+    font-size: 0.66rem;
+  }
+
+  .m8a-v47-product-ux .m8a-v410-sequence-rail__track {
+    height: auto;
+  }
+
+  .m8a-v47-product-ux .m8a-v410-sequence-rail__mark {
+    min-height: 42px;
+    padding: 0.34rem 0.42rem;
+  }
+
+  .m8a-v47-product-ux
+    .m8a-v47-product-ux__strip
+    [data-m8a-v47-control-id="details-toggle"] {
+    position: static;
+    right: auto;
+    bottom: auto;
+    z-index: auto;
+    width: auto;
+    height: auto;
+    min-height: 44px;
+  }
+}

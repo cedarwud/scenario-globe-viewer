@@ -1,0 +1,11 @@
+{
+  "screenshots": [
+    "/home/u24/papers/scenario-globe-viewer/output/m8a-v4.11-correction-a-phase-b/v4.11-phase-b-default-1440x900.png",
+    "/home/u24/papers/scenario-globe-viewer/output/m8a-v4.11-correction-a-phase-b/v4.11-phase-b-footer-clicked-1440x900.png",
+    "/home/u24/papers/scenario-globe-viewer/output/m8a-v4.11-correction-a-phase-b/v4.11-phase-b-details-open-1440x900.png",
+    "/home/u24/papers/scenario-globe-viewer/output/m8a-v4.11-correction-a-phase-b/v4.11-phase-b-details-open-1280x720.png"
+  ],
+  "checks": [
+    "phase-b-layout-verified"
+  ]
+}

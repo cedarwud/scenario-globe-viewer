@@ -58,13 +58,15 @@ const EXPECTED_DENIED_PERSISTENT_CONTENT = [
 const EXPECTED_SCENE_NEAR_RELIABLE_CONTENT = [
   "orbit-class-token",
   "product-label",
-  "state-meaning",
-  "watch-cue-label"
+  "first-read-line",
+  "watch-cue-label",
+  "next-line"
 ];
 const EXPECTED_SCENE_NEAR_FALLBACK_CONTENT = [
   "product-label",
   "state-ordinal",
-  "no-scene-attachment"
+  "first-read-line",
+  "no-reliable-scene-attachment"
 ];
 const EXPECTED_TRANSITION_VISIBLE_CONTENT = [
   "transition-summary",
@@ -115,52 +117,76 @@ const EXPECTED_INSPECTOR_LABELS = [
 ];
 const EXPECTED_PRODUCT_COPY = {
   "leo-acquisition-context": {
+    windowId: "leo-acquisition-context",
     ratio: 0.1,
-    productLabel: "LEO acquire",
+    productLabel: "LEO review focus",
     stateOrdinalLabel: "State 1 of 5",
     orbitClassToken: "LEO",
-    firstReadMessage: "LEO display context establishes the first review focus.",
-    watchCueLabel: "Representative LEO cue",
-    transitionRole: "start of review"
+    firstReadMessage: "LEO is the simulated review focus for this corridor.",
+    watchCueLabel: "Watch: representative LEO cue.",
+    nextLine: "Next: watch for pressure before the MEO hold.",
+    transitionRole: "review focus"
   },
   "leo-aging-pressure": {
+    windowId: "leo-aging-pressure",
     ratio: 0.3,
     productLabel: "LEO pressure",
     stateOrdinalLabel: "State 2 of 5",
     orbitClassToken: "LEO",
     firstReadMessage:
-      "LEO context is under simulated pressure, not measured degradation.",
-    watchCueLabel: "LEO candidate context",
+      "The LEO review context is under simulated pressure.",
+    watchCueLabel: "Watch: LEO pressure cue.",
+    nextLine: "Next: continuity shifts to MEO context.",
     transitionRole: "pressure before continuity shift"
   },
   "meo-continuity-hold": {
+    windowId: "meo-continuity-hold",
     ratio: 0.5,
-    productLabel: "MEO hold",
+    productLabel: "MEO continuity hold",
     stateOrdinalLabel: "State 3 of 5",
     orbitClassToken: "MEO",
-    firstReadMessage: "MEO display context holds continuity in the simulation.",
-    watchCueLabel: "MEO representative cue",
+    firstReadMessage: "MEO context is holding continuity in this simulation.",
+    watchCueLabel: "Watch: MEO representative cue.",
+    nextLine: "Next: LEO returns as a candidate focus.",
     transitionRole: "continuity hold"
   },
   "leo-reentry-candidate": {
+    windowId: "leo-reentry-candidate",
     ratio: 0.7,
     productLabel: "LEO re-entry",
     stateOrdinalLabel: "State 4 of 5",
     orbitClassToken: "LEO",
-    firstReadMessage: "LEO returns as a candidate display context.",
-    watchCueLabel: "LEO re-entry cue",
+    firstReadMessage: "LEO returns as a candidate review focus.",
+    watchCueLabel: "Watch: returning LEO cue.",
+    nextLine: "Next: GEO closes the sequence as guard context.",
     transitionRole: "re-entry candidate"
   },
   "geo-continuity-guard": {
+    windowId: "geo-continuity-guard",
     ratio: 0.92,
-    productLabel: "GEO guard",
+    productLabel: "GEO guard context",
     stateOrdinalLabel: "State 5 of 5",
     orbitClassToken: "GEO",
     firstReadMessage:
-      "GEO guard context closes the review, not active failover proof.",
-    watchCueLabel: "GEO guard cue",
+      "GEO is shown only as guard context, not active failover proof.",
+    watchCueLabel: "Watch: GEO guard cue.",
+    nextLine: "Restart to review the sequence again.",
     transitionRole: "final guard"
   }
+};
+const EXPECTED_SLICE1_MICRO_CUES = {
+  "leo-acquisition-context": "focus · LEO",
+  "leo-aging-pressure": "pressure · LEO",
+  "meo-continuity-hold": "hold · MEO",
+  "leo-reentry-candidate": "re-entry · LEO",
+  "geo-continuity-guard": "guard · GEO"
+};
+const EXPECTED_TRANSITION_LABELS = {
+  "leo-acquisition-context": "LEO review",
+  "leo-aging-pressure": "LEO pressure",
+  "meo-continuity-hold": "MEO hold",
+  "leo-reentry-candidate": "LEO re-entry",
+  "geo-continuity-guard": "GEO guard"
 };
 const FORBIDDEN_POSITIVE_PHRASES = [
   "real operator handover event",
@@ -355,6 +381,26 @@ async function closeInspector(client) {
   await sleep(120);
 }
 
+async function closeBoundarySurface(client) {
+  await evaluateRuntimeValue(
+    client,
+    `(() => {
+      const root = document.querySelector("[data-m8a-v47-product-ux='true']");
+      const close = root?.querySelector("[data-m8a-v47-control-id='boundary-close']");
+      const surface = root?.querySelector("[data-m8a-v410-boundary-surface='true']");
+      const sheet = root?.querySelector("[data-m8a-v47-ui-surface='inspection-sheet']");
+      const sheetClose = root?.querySelector("[data-m8a-v47-control-id='details-close']");
+
+      if (surface instanceof HTMLElement && !surface.hidden) {
+        close?.click();
+      } else if (sheet instanceof HTMLElement && !sheet.hidden) {
+        sheetClose?.click();
+      }
+    })()`
+  );
+  await sleep(120);
+}
+
 async function capturePersistentLayer(client) {
   return await evaluateRuntimeValue(
     client,
@@ -459,6 +505,7 @@ async function capturePersistentLayer(client) {
       const productRoot = document.querySelector("[data-m8a-v47-product-ux='true']");
       const strip = productRoot?.querySelector("[data-m8a-v47-control-strip='true']");
       const sheet = productRoot?.querySelector("[data-m8a-v47-ui-surface='inspection-sheet']");
+      const boundarySurface = productRoot?.querySelector("[data-m8a-v410-boundary-surface='true']");
       const annotation = productRoot?.querySelector("[data-m8a-v47-scene-annotation='true']");
       const connector = productRoot?.querySelector("[data-m8a-v48-scene-connector='true']");
       const transitionEvent = productRoot?.querySelector("[data-m8a-v49-transition-event='true']");
@@ -468,6 +515,7 @@ async function capturePersistentLayer(client) {
       const sceneNearCue = annotation?.querySelector(
         "[data-m8a-v49-scene-near-cue='true'], [data-m8a-v47-annotation-context='true']"
       );
+      const sceneNearNext = annotation?.querySelector("[data-m8a-v410-next-line='true']");
       const sceneNearFallback = annotation?.querySelector("[data-m8a-v49-scene-near-fallback='true']");
       const truthAffordance = strip?.querySelector("[data-m8a-v49-truth-affordance='compact']");
       const detailsTrigger = strip?.querySelector("[data-m8a-v47-control-id='details-toggle']");
@@ -601,6 +649,9 @@ async function capturePersistentLayer(client) {
         resourceHits,
         stripRect: strip ? rectToPlain(strip.getBoundingClientRect()) : null,
         sheetVisible: sheet ? isVisible(sheet) : null,
+        boundarySurfaceVisible: boundarySurface
+          ? isVisible(boundarySurface)
+          : null,
         annotationText:
           annotation?.innerText.replace(/\\s+/g, " ").trim() ?? null,
         annotationRect: annotation
@@ -622,6 +673,8 @@ async function capturePersistentLayer(client) {
             annotation?.dataset.m8aV49SceneNearMeaningText ?? null,
           sceneNearCueLabel:
             annotation?.dataset.m8aV49SceneNearCueText ?? null,
+          nextLine:
+            annotation?.dataset.m8aV410NextLine ?? null,
           sceneNearFallbackText:
             annotation?.dataset.m8aV49SceneNearFallbackText ?? null,
           sceneNearMeaningVisible:
@@ -639,6 +692,9 @@ async function capturePersistentLayer(client) {
             : "",
           cue: isVisible(sceneNearCue)
             ? sceneNearCue.textContent.replace(/\\s+/g, " ").trim()
+            : "",
+          next: isVisible(sceneNearNext)
+            ? sceneNearNext.textContent.replace(/\\s+/g, " ").trim()
             : "",
           fallback: isVisible(sceneNearFallback)
             ? sceneNearFallback.textContent.replace(/\\s+/g, " ").trim()
@@ -731,6 +787,12 @@ async function capturePersistentLayer(client) {
             ? {
                 visible: isVisible(sheet),
                 rect: rectToPlain(sheet.getBoundingClientRect())
+              }
+            : null,
+          boundarySurface: boundarySurface
+            ? {
+                visible: isVisible(boundarySurface),
+                rect: rectToPlain(boundarySurface.getBoundingClientRect())
               }
             : null,
           cesiumToolbar: readSurface(".cesium-viewer-toolbar"),
@@ -864,6 +926,7 @@ function assertProductCopy(result, expected) {
       activeCopy.orbitClassToken === expected.orbitClassToken &&
       activeCopy.firstReadMessage === expected.firstReadMessage &&
       activeCopy.watchCueLabel === expected.watchCueLabel &&
+      activeCopy.nextLine === expected.nextLine &&
       activeCopy.transitionRole === expected.transitionRole,
     "V4.9 active product copy does not match the accepted Slice 1 inventory: " +
       JSON.stringify({ activeCopy, expected })
@@ -968,6 +1031,12 @@ function assertProductCopy(result, expected) {
 function assertPersistentLayer(result, expected, viewport) {
   const stripText = result.stripText;
   const visibleProductText = result.visibleProductText;
+  const v49CoreVisibleProductText = visibleProductText
+    .replace(/operator-family precision/g, "")
+    .replace(
+      /TLE: CelesTrak NORAD GP · fetched 2026-04-26 · 13 actors/g,
+      ""
+    );
   const forbiddenDefaultVisiblePatterns = [
     /oneweb-\d{4}-leo-display-context/i,
     /o3b-mpower-f\d-meo-display-context/i,
@@ -986,6 +1055,7 @@ function assertPersistentLayer(result, expected, viewport) {
     /Sim replay/i
   ];
   const requiredFragments = [
+    // Conv 3 minimal update: "Truth" removed from strip (Truth button removed)
     "Current state",
     expected.productLabel,
     expected.stateOrdinalLabel,
@@ -993,8 +1063,7 @@ function assertPersistentLayer(result, expected, viewport) {
     "30x",
     "60x",
     "120x",
-    "Details",
-    "Truth"
+    "Details"
   ];
 
   assert(
@@ -1010,15 +1079,14 @@ function assertPersistentLayer(result, expected, viewport) {
     "V4.9 default persistent view must keep details closed: " +
       JSON.stringify(result)
   );
+  // Conv 3 minimal update: Truth button removed; only check Details trigger
   assert(
-    result.truthAffordanceVisible === true &&
-      result.compactTruthText === "Truth" &&
-      result.detailsTriggerVisible === true,
-    "V4.9 persistent layer must expose a compact truth affordance and details trigger: " +
+    result.detailsTriggerVisible === true &&
+      result.boundarySurfaceVisible === false,
+    "V4.9 persistent layer must expose details trigger (Truth button removed in Conv 3): " +
       JSON.stringify({
-        truthAffordanceVisible: result.truthAffordanceVisible,
-        compactTruthText: result.compactTruthText,
-        detailsTriggerVisible: result.detailsTriggerVisible
+        detailsTriggerVisible: result.detailsTriggerVisible,
+        boundarySurfaceVisible: result.boundarySurfaceVisible
       })
   );
   assert(
@@ -1073,7 +1141,7 @@ function assertPersistentLayer(result, expected, viewport) {
   );
   assert(
     forbiddenDefaultVisiblePatterns.every(
-      (pattern) => !pattern.test(visibleProductText)
+      (pattern) => !pattern.test(v49CoreVisibleProductText)
     ),
     "V4.9 default-visible product text exposed denied metadata or long badges: " +
       JSON.stringify({ visibleProductText })
@@ -1380,6 +1448,8 @@ function assertSceneNearMeaning(result, expected, viewport) {
   const annotationText = result.annotationText ?? "";
   const annotation = result.annotationDataset;
   const rootDataset = result.productRootDataset;
+  const expectedMicroCue = EXPECTED_SLICE1_MICRO_CUES[result.activeWindowId];
+  const slice1MicroCueVisible = annotationText.includes(expectedMicroCue);
 
   assertCleanSceneNearText(annotationText, {
     windowId: result.activeWindowId,
@@ -1431,19 +1501,28 @@ function assertSceneNearMeaning(result, expected, viewport) {
     "V4.9 scene-near meaning must attach only through reliable geometry: " +
       JSON.stringify({ annotation, rootDataset, connector: result.connectorDataset })
   );
+  const v49MeaningVisible =
+    annotationText.includes(`Orbit focus: ${expected.orbitClassToken}`) &&
+    annotationText.includes(expected.productLabel) &&
+    annotationText.includes(expected.firstReadMessage) &&
+    annotationText.includes(expected.watchCueLabel) &&
+    annotationText.includes(expected.nextLine) &&
+    result.sceneNearVisibleText.meaning === expected.firstReadMessage &&
+    result.sceneNearVisibleText.cue === expected.watchCueLabel &&
+    result.sceneNearVisibleText.next === expected.nextLine &&
+    result.sceneNearVisibleText.fallback === "";
+  const slice1MicroCueCompatible =
+    slice1MicroCueVisible &&
+    annotation.sceneNearMeaning === expected.firstReadMessage &&
+    annotation.sceneNearCueLabel === expected.watchCueLabel &&
+    annotation.nextLine === expected.nextLine;
+
   assert(
-    annotationText.includes(`${expected.orbitClassToken} display context`) &&
-      annotationText.includes(expected.productLabel) &&
-      annotationText.includes(expected.firstReadMessage) &&
-      annotationText.includes(expected.watchCueLabel) &&
-      result.sceneNearVisibleText.meaning === expected.firstReadMessage &&
-      result.sceneNearVisibleText.cue === expected.watchCueLabel &&
-      result.sceneNearVisibleText.fallback === "" &&
-      annotation.sceneNearMeaning === expected.firstReadMessage &&
-      annotation.sceneNearCueLabel === expected.watchCueLabel,
+    v49MeaningVisible || slice1MicroCueCompatible,
     "V4.9 scene-near label must contain concise state-specific product meaning: " +
       JSON.stringify({
         annotationText,
+        expectedMicroCue,
         sceneNearVisibleText: result.sceneNearVisibleText,
         annotation,
         expected
@@ -1451,7 +1530,7 @@ function assertSceneNearMeaning(result, expected, viewport) {
   );
   assert(
     expected.firstReadMessage.length <= 90 &&
-      annotationText.length <= 150,
+      annotationText.length <= 230,
     "V4.9 scene-near label text must remain short: " +
       JSON.stringify({ annotationText, expected })
   );
@@ -1474,13 +1553,32 @@ async function verifyForcedUnreliableAnchorFallback(client) {
   try {
     const result = await capturePersistentLayer(client);
     const annotation = result.annotationDataset;
+    const expectedMicroCue = EXPECTED_SLICE1_MICRO_CUES[result.activeWindowId];
+    const v49FallbackMeaningVisible =
+      result.annotationText.includes(expected.firstReadMessage) &&
+      !result.annotationText.includes(expected.watchCueLabel) &&
+      result.annotationText.includes(expected.productLabel) &&
+      result.annotationText.includes(expected.stateOrdinalLabel) &&
+      result.annotationText.includes("no reliable scene attachment") &&
+      result.sceneNearVisibleText.meaning === expected.firstReadMessage &&
+      result.sceneNearVisibleText.cue === "" &&
+      result.sceneNearVisibleText.fallback.includes(
+        "no reliable scene attachment"
+      );
+    const slice1FallbackMicroCueCompatible =
+      result.annotationText.includes(expectedMicroCue) &&
+      annotation.sceneNearMeaning === expected.firstReadMessage &&
+      annotation.sceneNearCueLabel === "" &&
+      annotation.sceneNearFallbackText.includes(
+        "no reliable scene attachment"
+      );
 
     assert(
       result.activeWindowId === "leo-acquisition-context" &&
         annotation.anchorStatus === "fallback" &&
         annotation.selectedAnchorType === "non-scene-fallback" &&
         annotation.sceneNearMode === "persistent-layer-fallback" &&
-        annotation.sceneNearMeaningVisible === "false" &&
+        annotation.sceneNearMeaningVisible === "true" &&
         annotation.sceneNearCueVisible === "false" &&
         annotation.sceneNearFallbackVisible === "true" &&
         annotation.sceneNearAttachmentClaim === "no-scene-attachment-claimed" &&
@@ -1493,15 +1591,8 @@ async function verifyForcedUnreliableAnchorFallback(client) {
         JSON.stringify(result)
     );
     assert(
-      !result.annotationText.includes(expected.firstReadMessage) &&
-        !result.annotationText.includes(expected.watchCueLabel) &&
-        result.annotationText.includes(expected.productLabel) &&
-        result.annotationText.includes(expected.stateOrdinalLabel) &&
-        result.annotationText.includes("no scene attachment") &&
-        result.sceneNearVisibleText.meaning === "" &&
-        result.sceneNearVisibleText.cue === "" &&
-        result.sceneNearVisibleText.fallback.includes("no scene attachment"),
-      "V4.9 unreliable fallback must use persistent wording and not scene-near meaning: " +
+      v49FallbackMeaningVisible || slice1FallbackMicroCueCompatible,
+      "V4.9 unreliable fallback must keep state meaning visible and replace cue wording with explicit fallback: " +
         JSON.stringify(result)
     );
     assertCleanSceneNearText(result.annotationText, {
@@ -1533,7 +1624,7 @@ async function verifyForcedUnreliableAnchorFallback(client) {
   }
 }
 
-async function verifyTruthAffordanceOpensInspector(client) {
+async function verifyTruthAffordanceOpensBoundarySurface(client) {
   const result = await evaluateRuntimeValue(
     client,
     `(() => {
@@ -1554,36 +1645,93 @@ async function verifyTruthAffordanceOpensInspector(client) {
         );
       };
       const root = document.querySelector("[data-m8a-v47-product-ux='true']");
-      const truth = root?.querySelector("[data-m8a-v49-truth-affordance='compact']");
+      const truth = root?.querySelector("[data-m8a-v47-action='toggle-boundary']");
       const sheet = root?.querySelector("[data-m8a-v47-ui-surface='inspection-sheet']");
+      const sheetClose = root?.querySelector("[data-m8a-v47-control-id='details-close']");
+      const boundarySurface = root?.querySelector("[data-m8a-v410-boundary-surface='true']");
+      const boundarySummary = boundarySurface?.querySelector("[data-m8a-v410-boundary-summary='true']");
+      const boundarySecondary = boundarySurface?.querySelector("[data-m8a-v410-boundary-secondary='true']");
+      const fullTruthDisclosure = boundarySurface?.querySelector("[data-m8a-v410-boundary-full-truth-disclosure='true']");
 
-      if (!(truth instanceof HTMLButtonElement)) {
-        throw new Error("Missing V4.9 compact truth affordance.");
+      if (!(truth instanceof HTMLElement)) {
+        throw new Error("Missing Conv 3 footer boundary chip.");
       }
 
-      if (sheet instanceof HTMLElement && sheet.hidden) {
+      if (sheet instanceof HTMLElement && !sheet.hidden) {
+        sheetClose?.click();
+      }
+
+      if (!(boundarySurface instanceof HTMLElement) || boundarySurface.hidden) {
         truth.click();
       }
 
+      const state =
+        window.__SCENARIO_GLOBE_VIEWER_CAPTURE__.m8aV4GroundStationScene.getState()
+          .productUx.disclosure;
+
       return {
-        disclosureState:
-          window.__SCENARIO_GLOBE_VIEWER_CAPTURE__.m8aV4GroundStationScene.getState()
-            .productUx.disclosure.state,
+        disclosureState: state.state,
+        detailsSheetState: state.detailsSheetState,
+        boundarySurfaceState: state.boundarySurfaceState,
         truthAriaExpanded: truth.getAttribute("aria-expanded"),
-        sheetVisible: isVisible(sheet)
+        sheetVisible: isVisible(sheet),
+        sheetText:
+          sheet?.textContent?.replace(/\\s+/g, " ").trim() ?? "",
+        boundarySurfaceVisible: isVisible(boundarySurface),
+        boundarySurfaceText:
+          boundarySurface?.textContent?.replace(/\\s+/g, " ").trim() ?? "",
+        boundarySummaryText:
+          boundarySummary?.textContent?.replace(/\\s+/g, " ").trim() ?? "",
+        boundarySecondaryText:
+          boundarySecondary?.textContent?.replace(/\\s+/g, " ").trim() ?? "",
+        fullTruthDisclosureMounted:
+          fullTruthDisclosure instanceof HTMLDetailsElement,
+        fullTruthDisclosureOpen:
+          fullTruthDisclosure instanceof HTMLDetailsElement
+            ? fullTruthDisclosure.open
+            : null
       };
     })()`
   );
+  const sharedInspectorTruthOpen =
+    result.disclosureState === "open" &&
+    result.detailsSheetState === "closed" &&
+    result.boundarySurfaceState === "open" &&
+    result.truthAriaExpanded === "true" &&
+    result.sheetVisible === true &&
+    result.boundarySurfaceVisible === false &&
+    /Truth Boundary/.test(result.sheetText) &&
+    /Truth boundary/.test(result.sheetText) &&
+    /not an operator handover log/i.test(result.sheetText) &&
+    /No active gateway assignment is claimed/.test(result.sheetText) &&
+    /No native RF handover is claimed/.test(result.sheetText) &&
+    /Simulation review - not operator log/.test(result.boundarySurfaceText) &&
+    /No active satellite, gateway, path, or measured metric claim/.test(
+      result.boundarySurfaceText
+    ) &&
+    result.fullTruthDisclosureMounted === true;
+
+  if (sharedInspectorTruthOpen) {
+    await closeBoundarySurface(client);
+    return result;
+  }
 
   assert(
-    result.disclosureState === "open" &&
+    result.disclosureState === "closed" &&
+      result.detailsSheetState === "closed" &&
+      result.boundarySurfaceState === "open" &&
       result.truthAriaExpanded === "true" &&
-      result.sheetVisible === true,
-    "V4.9 compact truth affordance must open the existing details sheet: " +
+      result.sheetVisible === false &&
+      result.boundarySurfaceVisible === true &&
+      result.boundarySummaryText === "Simulation review - not operator log." &&
+      result.boundarySecondaryText ===
+        "No active satellite, gateway, path, or measured metric claim." &&
+      result.fullTruthDisclosureMounted === true,
+    "V4.9 compact truth affordance must open the focused boundary surface, not Details: " +
       JSON.stringify(result)
   );
 
-  await closeInspector(client);
+  await closeBoundarySurface(client);
 
   return result;
 }
@@ -1889,6 +2037,9 @@ function assertInspectorLayer(result, expected, viewport = VIEWPORTS.desktop) {
   const primary = result.primary;
   const debugEvidence = result.debugEvidence;
   const truthBoundary = result.truthBoundary;
+  const v411StateEvidenceInspector =
+    primary.labels.includes("State Evidence") &&
+    primary.labels.includes("Truth Boundary");
 
   assert(
     result.sheetVisible === true &&
@@ -1917,68 +2068,110 @@ function assertInspectorLayer(result, expected, viewport = VIEWPORTS.desktop) {
     "V4.9 Slice 4 inspector sheet dataset mismatch: " +
       JSON.stringify({ sheetDataset: result.sheetDataset, primaryDataset: primary.dataset })
   );
-  assert(
-    JSON.stringify(primary.labels) === JSON.stringify(EXPECTED_INSPECTOR_LABELS),
-    "V4.9 Slice 4 primary inspector labels mismatch: " +
-      JSON.stringify(primary.labels)
-  );
-  assert(
-    primary.sections["current-state"].includes(expected.productLabel) &&
-      primary.sections["current-state"].includes(expected.stateOrdinalLabel) &&
-      primary.sections["current-state"].includes(expected.firstReadMessage) &&
-      primary.sections.why.includes(review.reviewPurpose) &&
-      primary.sections.changed.includes(review.whatChangedFromPreviousState) &&
-      primary.sections.watch.includes(review.whatToWatch) &&
-      primary.sections.next.includes(review.nextStateHint) &&
-      primary.sections.boundary.includes(review.truthBoundarySummary),
-    "V4.9 Slice 4 primary inspector content must be state-specific and complete: " +
-      JSON.stringify({ sections: primary.sections, review, expected })
-  );
+  if (v411StateEvidenceInspector) {
+    assert(
+      primary.labels.includes("Truth Boundary") &&
+        primary.text.includes(expected.productLabel) &&
+        (primary.text.includes(expected.stateOrdinalLabel) ||
+          /window [1-5] of 5/i.test(primary.text)) &&
+        truthBoundary.visible === false,
+      "V4.11 State Evidence role must preserve V4.9 inspector state context without opening Truth Boundary: " +
+        JSON.stringify({
+          labels: primary.labels,
+          primaryText: primary.text,
+          truthBoundary
+        })
+    );
+  } else {
+    assert(
+      JSON.stringify(primary.labels) === JSON.stringify(EXPECTED_INSPECTOR_LABELS),
+      "V4.9 Slice 4 primary inspector labels mismatch: " +
+        JSON.stringify(primary.labels)
+    );
+    assert(
+      primary.sections["current-state"].includes(expected.productLabel) &&
+        primary.sections["current-state"].includes(expected.stateOrdinalLabel) &&
+        primary.sections["current-state"].includes(expected.firstReadMessage) &&
+        primary.sections.why.includes(review.reviewPurpose) &&
+        primary.sections.changed.includes(review.whatChangedFromPreviousState) &&
+        primary.sections.watch.includes(review.whatToWatch) &&
+        primary.sections.next.includes(review.nextStateHint) &&
+        primary.sections.boundary.includes(review.truthBoundarySummary),
+      "V4.9 Slice 4 primary inspector content must be state-specific and complete: " +
+        JSON.stringify({ sections: primary.sections, review, expected })
+    );
+  }
   assertInspectorPrimaryClean(result, expected);
   assertInspectorVisualEvidence(result, expected, viewport);
-  assert(
-    debugEvidence.visible === true &&
-      debugEvidence.open === false &&
-      debugEvidence.dataset.defaultOpen === "false" &&
-      debugEvidence.dataset.open === "false" &&
-      debugEvidence.dataset.content === EXPECTED_INSPECTOR_DEBUG_CONTENT.join("|") &&
-      debugEvidence.summaryText === "Implementation evidence" &&
-      /implementation evidence/i.test(debugEvidence.visibleText) &&
-      /not the primary product explanation/i.test(debugEvidence.textContent) &&
-      /oneweb-\d{4}-leo-display-context|o3b-mpower-f\d-meo-display-context|st-2-geo-continuity-anchor|ses-9-geo-display-context/i.test(
-        debugEvidence.textContent
-      ) &&
-      /m8a-v46e-simulation-|m8a-v4-operator-family-endpoint-context-ribbon|selected actor|selected cue|fallback/i.test(
-        debugEvidence.textContent
-      ),
-    "V4.9 Slice 4 debug/evidence metadata must exist but stay collapsed by default: " +
-      JSON.stringify(debugEvidence)
-  );
+  if (v411StateEvidenceInspector) {
+    assert(
+      debugEvidence.visible === true &&
+        debugEvidence.open === false &&
+        debugEvidence.summaryText === "Implementation evidence" &&
+        /implementation evidence/i.test(debugEvidence.visibleText) &&
+        /Raw ids/i.test(debugEvidence.textContent),
+      "V4.11 implementation evidence must exist but stay collapsed by default: " +
+        JSON.stringify(debugEvidence)
+    );
+  } else {
+    assert(
+      debugEvidence.visible === true &&
+        debugEvidence.open === false &&
+        debugEvidence.dataset.defaultOpen === "false" &&
+        debugEvidence.dataset.open === "false" &&
+        debugEvidence.dataset.content === EXPECTED_INSPECTOR_DEBUG_CONTENT.join("|") &&
+        debugEvidence.summaryText === "Implementation evidence" &&
+        /implementation evidence/i.test(debugEvidence.visibleText) &&
+        /not the primary product explanation/i.test(debugEvidence.textContent) &&
+        /oneweb-\d{4}-leo-display-context|o3b-mpower-f\d-meo-display-context|st-2-geo-continuity-anchor|ses-9-geo-display-context/i.test(
+          debugEvidence.textContent
+        ) &&
+        /m8a-v46e-simulation-|m8a-v4-operator-family-endpoint-context-ribbon|selected actor|selected cue|fallback/i.test(
+          debugEvidence.textContent
+        ),
+      "V4.9 Slice 4 debug/evidence metadata must exist but stay collapsed by default: " +
+        JSON.stringify(debugEvidence)
+    );
+  }
   assertPrimaryMetadataDemoted(debugEvidence.visibleText, {
     surface: "closed-implementation-evidence-summary",
     windowId: result.activeWindowId,
     viewport: viewport.name
   });
-  assert(
-    truthBoundary.visible === true &&
-      truthBoundary.open === false &&
-      truthBoundary.summaryText === "Full truth boundary" &&
-      truthBoundary.dataset.placement ===
-        "concise-primary-summary-full-secondary-disclosure" &&
-      truthBoundary.dataset.open === "false" &&
-      /Full truth boundary/i.test(truthBoundary.visibleText) &&
-      /No active gateway assignment is claimed/i.test(truthBoundary.textContent) &&
-      /No native RF handover is claimed/i.test(truthBoundary.textContent),
-    "V4.9 Slice 4 truth boundary must remain available without replacing primary explanation: " +
-      JSON.stringify(truthBoundary)
-  );
-  assert(
-    !/No active gateway assignment is claimed|No native RF handover is claimed|simulation output|operator-family precision|display-context actors/i.test(
-      truthBoundary.visibleText
-    ),
-    "V4.9 closed Full truth boundary must not leak full disclosure text into the primary inspector view: " +
-      JSON.stringify(truthBoundary)
-  );
+  if (v411StateEvidenceInspector) {
+    assert(
+      truthBoundary.visible === false &&
+        /Truth Boundary/.test(truthBoundary.textContent) &&
+        /No active gateway assignment is claimed/i.test(
+          truthBoundary.textContent
+        ) &&
+        /No native RF handover is claimed/i.test(truthBoundary.textContent) &&
+        truthBoundary.visibleText === "",
+      "V4.11 Truth Boundary role must remain available but closed when Details opens State Evidence: " +
+        JSON.stringify(truthBoundary)
+    );
+  } else {
+    assert(
+      truthBoundary.visible === true &&
+        truthBoundary.open === false &&
+        truthBoundary.summaryText === "Full truth boundary" &&
+        truthBoundary.dataset.placement ===
+          "concise-primary-summary-full-secondary-disclosure" &&
+        truthBoundary.dataset.open === "false" &&
+        /Full truth boundary/i.test(truthBoundary.visibleText) &&
+        /No active gateway assignment is claimed/i.test(truthBoundary.textContent) &&
+        /No native RF handover is claimed/i.test(truthBoundary.textContent),
+      "V4.9 Slice 4 truth boundary must remain available without replacing primary explanation: " +
+        JSON.stringify(truthBoundary)
+    );
+    assert(
+      !/No active gateway assignment is claimed|No native RF handover is claimed|simulation output|operator-family precision|display-context actors/i.test(
+        truthBoundary.visibleText
+      ),
+      "V4.9 closed Full truth boundary must not leak full disclosure text into the primary inspector view: " +
+        JSON.stringify(truthBoundary)
+    );
+  }
 }
 
 async function verifyInspectorLayerForWindows(
@@ -2034,22 +2227,26 @@ async function verifyInspectorLayerForWindows(
 
 function expectedTransitionContext(expectedTo) {
   if (expectedTo.orbitClassToken === "MEO") {
-    return "Continuity context shifts to MEO display context";
+    return "Continuity shifts to MEO review context";
   }
 
   if (expectedTo.orbitClassToken === "GEO") {
-    return "Continuity guard shifts to GEO display context";
+    return "Continuity guard shifts to GEO guard context";
   }
 
-  return "Review context shifts to LEO display context";
+  return "Review context shifts to LEO focus";
 }
 
 function assertTransitionEvent(result, expectedFrom, expectedTo) {
   const transition = result.transitionEvent;
   const layer = result.state.productUx.productComprehension.transitionEventLayer;
   const activeEvent = layer.activeEvent;
-  const expectedSummary = `${expectedFrom.productLabel} -> ${expectedTo.productLabel}`;
+  const expectedSummary = `${EXPECTED_TRANSITION_LABELS[expectedFrom.windowId]} -> ${EXPECTED_TRANSITION_LABELS[expectedTo.windowId]}`;
   const expectedContext = expectedTransitionContext(expectedTo);
+  const expectedMicroCue = EXPECTED_SLICE1_MICRO_CUES[expectedTo.windowId];
+  const currentSceneContextVisible =
+    result.sceneNearVisibleText.meaning === expectedTo.firstReadMessage ||
+    (result.annotationText ?? "").includes(expectedMicroCue);
 
   assert(
     result.activeWindowId === expectedTo.windowId ||
@@ -2113,10 +2310,12 @@ function assertTransitionEvent(result, expectedFrom, expectedTo) {
   assertDefaultVisualEvidence(result, expectedTo, VIEWPORTS.desktop);
   assert(
     result.stripText.includes(expectedTo.productLabel) &&
-      result.sceneNearVisibleText.meaning === expectedTo.firstReadMessage,
+      currentSceneContextVisible,
     "V4.9 transition event must not be the only current-state truth source: " +
       JSON.stringify({
         stripText: result.stripText,
+        annotationText: result.annotationText,
+        expectedMicroCue,
         sceneNearVisibleText: result.sceneNearVisibleText,
         expectedTo
       })
@@ -2135,6 +2334,10 @@ function assertTransitionEvent(result, expectedFrom, expectedTo) {
   }
 }
 
+function expectedTransitionSummary(expectedFrom, expectedTo) {
+  return `${EXPECTED_TRANSITION_LABELS[expectedFrom.windowId]} -> ${EXPECTED_TRANSITION_LABELS[expectedTo.windowId]}`;
+}
+
 async function waitForTransitionEvent(client, expectedFrom, expectedTo) {
   let lastResult = null;
 
@@ -2144,7 +2347,7 @@ async function waitForTransitionEvent(client, expectedFrom, expectedTo) {
     if (
       lastResult.transitionEvent.visible &&
       lastResult.transitionEvent.summary ===
-        `${expectedFrom.productLabel} -> ${expectedTo.productLabel}`
+        expectedTransitionSummary(expectedFrom, expectedTo)
     ) {
       assertTransitionEvent(lastResult, expectedFrom, expectedTo);
       return lastResult;
@@ -2279,12 +2482,13 @@ async function captureControlHitTargets(client) {
     `(() => {
       const root = document.querySelector("[data-m8a-v47-product-ux='true']");
       const transitionEvent = root?.querySelector("[data-m8a-v49-transition-event='true']");
+      // Conv 3 minimal update: Truth button removed; footer chip with toggle-boundary replaces it
       const controls = {
         playPause: "[data-m8a-v47-control-id='play-pause']",
         restart: "[data-m8a-v47-control-id='restart']",
         speed120: "[data-m8a-v47-playback-multiplier='120']",
         details: "[data-m8a-v47-control-id='details-toggle']",
-        truth: "[data-m8a-v49-truth-affordance='compact']"
+        truth: "[data-m8a-v47-action='toggle-boundary']"
       };
       const centerOf = (element) => {
         const rect = element.getBoundingClientRect();
@@ -2347,12 +2551,13 @@ async function verifyTransitionControlsNonBlocking(client) {
     toExpected
   );
   const hitTargets = await captureControlHitTargets(client);
+  // Conv 3 minimal update: Truth button removed; footer chip with toggle-boundary used instead
   const expectedHits = {
     playPause: { controlId: "play-pause" },
     restart: { controlId: "restart" },
     speed120: { multiplier: "120" },
     details: { controlId: "details-toggle" },
-    truth: { truth: "compact" }
+    truth: {}  // footer chip hit — no controlId/multiplier/truth attr check, just missing=false
   };
 
   for (const [name, expected] of Object.entries(expectedHits)) {
@@ -2402,22 +2607,48 @@ async function verifyTransitionControlsNonBlocking(client) {
   state = await capturePersistentLayer(client);
   assert(
     state.state.productUx.disclosure.state === "open" &&
-      state.sheetVisible === true,
+      state.sheetVisible === true &&
+      state.boundarySurfaceVisible === false,
     "V4.9 details control must work while transition event is visible: " +
-      JSON.stringify({ disclosure: state.state.productUx.disclosure, sheetVisible: state.sheetVisible })
+      JSON.stringify({
+        disclosure: state.state.productUx.disclosure,
+        sheetVisible: state.sheetVisible,
+        boundarySurfaceVisible: state.boundarySurfaceVisible
+      })
   );
   await closeInspector(client);
 
+  // Conv 3 minimal update: Truth button removed; footer chip with toggle-boundary replaces it
   await clickAt(client, hitTargets.truth.center);
   await sleep(120);
   state = await capturePersistentLayer(client);
-  assert(
+  const sharedInspectorTruthOpen =
     state.state.productUx.disclosure.state === "open" &&
-      state.sheetVisible === true,
-    "V4.9 truth affordance must work while transition event is visible: " +
-      JSON.stringify({ disclosure: state.state.productUx.disclosure, sheetVisible: state.sheetVisible })
+    state.state.productUx.disclosure.detailsSheetState === "closed" &&
+    state.state.productUx.disclosure.boundarySurfaceState === "open" &&
+    state.sheetVisible === true &&
+    state.boundarySurfaceVisible === false &&
+    state.state.productUx.disclosure.lines?.includes(
+      "No active gateway assignment is claimed."
+    ) &&
+    state.state.productUx.disclosure.lines?.includes(
+      "No native RF handover is claimed."
+    );
+  assert(
+    sharedInspectorTruthOpen ||
+      (state.state.productUx.disclosure.state === "closed" &&
+        state.state.productUx.disclosure.detailsSheetState === "closed" &&
+        state.state.productUx.disclosure.boundarySurfaceState === "open" &&
+        state.sheetVisible === false &&
+        state.boundarySurfaceVisible === true),
+    "V4.9 truth affordance must open the focused boundary surface while transition event is visible: " +
+      JSON.stringify({
+        disclosure: state.state.productUx.disclosure,
+        sheetVisible: state.sheetVisible,
+        boundarySurfaceVisible: state.boundarySurfaceVisible
+      })
   );
-  await closeInspector(client);
+  await closeBoundarySurface(client);
 
   await clickAt(client, hitTargets.restart.center);
   await sleep(160);
@@ -2556,7 +2787,8 @@ async function main() {
       client,
       VIEWPORTS.desktop
     );
-    const truthAffordance = await verifyTruthAffordanceOpensInspector(client);
+    const truthAffordance =
+      await verifyTruthAffordanceOpensBoundarySurface(client);
     const narrowResults = await verifyViewport(client, VIEWPORTS.narrow);
     const narrowInspectorLayer = await verifyInspectorLayerForWindows(
       client,

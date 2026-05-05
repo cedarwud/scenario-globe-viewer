@@ -1,0 +1,386 @@
+{
+  "viewport": {
+    "name": "desktop-1440x900",
+    "width": 1440,
+    "height": 900
+  },
+  "screenshot": "output/m8a-v4.11-slice3/v4.11-w1-pinned-1440x900.png",
+  "result": {
+    "label": "details-then-truth",
+    "urlPath": "/?scenePreset=regional&m8aV4GroundStationScene=1",
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "stateFacts": {
+      "route": "/?scenePreset=regional&m8aV4GroundStationScene=1",
+      "endpointPairId": "taiwan-cht-speedcast-singapore-operator-family-2026-04-26",
+      "acceptedPairPrecision": "operator-family-only",
+      "modelId": "m8a-v4.6d-simulation-handover-model.v1",
+      "modelTruth": "simulation-output-not-operator-log",
+      "orbitActorCounts": {
+        "leo": 6,
+        "meo": 5,
+        "geo": 2
+      },
+      "actorCount": 13,
+      "sourceLineage": {
+        "projectionRead": "M8A_V4_GROUND_STATION_RUNTIME_PROJECTION",
+        "serviceStateRead": "M8A_V4_GROUND_STATION_RUNTIME_PROJECTION.serviceStateModel.timeline",
+        "simulationHandoverRead": "M8A_V4_GROUND_STATION_RUNTIME_PROJECTION.simulationHandoverModel.timeline",
+        "rawPackageSideReadOwnership": "forbidden",
+        "rawSourcePathsIncluded": false
+      },
+      "timelineWindowIds": [
+        "leo-acquisition-context",
+        "leo-aging-pressure",
+        "meo-continuity-hold",
+        "leo-reentry-candidate",
+        "geo-continuity-guard"
+      ],
+      "requiredWindowNonClaimKeys": [
+        "noRealOperatorHandoverEvent",
+        "noActiveServingSatelliteIdentity",
+        "noActiveGatewayAssignment",
+        "noPairSpecificTeleportPathTruth",
+        "noMeasuredLatencyJitterThroughputTruth",
+        "noNativeRfHandover",
+        "noEndpointPairOrPrecisionChange",
+        "noR2RuntimeSelector",
+        "noRawItriOrLiveExternalRuntimeSource"
+      ],
+      "timelineNonClaims": [
+        {
+          "windowId": "leo-acquisition-context",
+          "nonClaims": {
+            "noRealOperatorHandoverEvent": true,
+            "noActiveServingSatelliteIdentity": true,
+            "noActiveGatewayAssignment": true,
+            "noPairSpecificTeleportPathTruth": true,
+            "noMeasuredLatencyJitterThroughputTruth": true,
+            "noNativeRfHandover": true,
+            "noEndpointPairOrPrecisionChange": true,
+            "noR2RuntimeSelector": true,
+            "noRawItriOrLiveExternalRuntimeSource": true
+          }
+        },
+        {
+          "windowId": "leo-aging-pressure",
+          "nonClaims": {
+            "noRealOperatorHandoverEvent": true,
+            "noActiveServingSatelliteIdentity": true,
+            "noActiveGatewayAssignment": true,
+            "noPairSpecificTeleportPathTruth": true,
+            "noMeasuredLatencyJitterThroughputTruth": true,
+            "noNativeRfHandover": true,
+            "noEndpointPairOrPrecisionChange": true,
+            "noR2RuntimeSelector": true,
+            "noRawItriOrLiveExternalRuntimeSource": true
+          }
+        },
+        {
+          "windowId": "meo-continuity-hold",
+          "nonClaims": {
+            "noRealOperatorHandoverEvent": true,
+            "noActiveServingSatelliteIdentity": true,
+            "noActiveGatewayAssignment": true,
+            "noPairSpecificTeleportPathTruth": true,
+            "noMeasuredLatencyJitterThroughputTruth": true,
+            "noNativeRfHandover": true,
+            "noEndpointPairOrPrecisionChange": true,
+            "noR2RuntimeSelector": true,
+            "noRawItriOrLiveExternalRuntimeSource": true
+          }
+        },
+        {
+          "windowId": "leo-reentry-candidate",
+          "nonClaims": {
+            "noRealOperatorHandoverEvent": true,
+            "noActiveServingSatelliteIdentity": true,
+            "noActiveGatewayAssignment": true,
+            "noPairSpecificTeleportPathTruth": true,
+            "noMeasuredLatencyJitterThroughputTruth": true,
+            "noNativeRfHandover": true,
+            "noEndpointPairOrPrecisionChange": true,
+            "noR2RuntimeSelector": true,
+            "noRawItriOrLiveExternalRuntimeSource": true
+          }
+        },
+        {
+          "windowId": "geo-continuity-guard",
+          "nonClaims": {
+            "noRealOperatorHandoverEvent": true,
+            "noActiveServingSatelliteIdentity": true,
+            "noActiveGatewayAssignment": true,
+            "noPairSpecificTeleportPathTruth": true,
+            "noMeasuredLatencyJitterThroughputTruth": true,
+            "noNativeRfHandover": true,
+            "noEndpointPairOrPrecisionChange": true,
+            "noR2RuntimeSelector": true,
+            "noRawItriOrLiveExternalRuntimeSource": true
+          }
+        }
+      ],
+      "activeWindowId": "leo-acquisition-context",
+      "disclosureState": "open",
+      "detailsSheetState": "open",
+      "boundarySurfaceState": "open",
+      "sourcesRoleState": "closed"
+    },
+    "rootDataset": {
+      "glance": "m8a-v4.11-glance-rank-surface-slice1-runtime.v1",
+      "hover": "m8a-v4.11-hover-popover-slice2-runtime.v1",
+      "concurrency": "m8a-v4.11-inspector-concurrency-slice3-runtime.v1",
+      "scope": "slice3-inspector-concurrency",
+      "roles": [
+        "state-evidence",
+        "truth-boundary",
+        "sources"
+      ],
+      "stateRole": "open",
+      "truthRole": "open",
+      "sourcesRole": "closed",
+      "combinedOpen": "true",
+      "evidenceDefaultOpen": "false",
+      "maxWidthPx": "320",
+      "maxHeightCss": "calc(100vh - 9.5rem)",
+      "maxCanvasWidthRatio": "0.28"
+    },
+    "sheet": {
+      "exists": true,
+      "visible": true,
+      "hidden": false,
+      "rect": {
+        "left": 1097,
+        "top": 23,
+        "right": 1417,
+        "bottom": 771,
+        "width": 320,
+        "height": 748
+      },
+      "text": "Details Inspector Close Decision Metrics Boundary Evidence Selected replay window LEO review focus State 1 of 5 Replay UTC 2026-04-28T08:57:47.054Z Sim replay 00:06 / 01:54 Source provenance Decision · State Evidence 剛接上 OneWeb LEO · LEO review focus 剛接上 OneWeb LEO，連線品質強。約 22 分鐘後，因為位置條件變化會進入訊號減弱階段。 NowNow: LEO is the modeled primary service state for this window. WhyWhy: position conditions support low-latency LEO review focus. NextNext: watch for LEO aging pressure before the MEO hold window. WatchWatch: simulated service time and modeled quality class only. The simulation review is currently anchored on the OneWeb LEO context marked as the focus role. The five-state V4.6D model is in window 1 of 5. Watch the LEO actor for the early pressure signal — the next modeled state is LEO pressure. Endpoint precision remains operator-family only and no active gateway is being claimed. Boundary · Truth Boundary Truth boundary Simulation boundary: 13-actor demo, repo-owned projection, not measured truth. Service-layer boundary: modeled service handover, not native RF handover. Endpoint boundary: operator-family precision, not site-level gateway claim. Scale boundary: not >=500 LEO validation and not 24h hardware-GPU closeout. simulation output operator-family precision display-context actors Simulated display-context state, not an operator handover log. Source-lineaged display-context actors, not active serving satellites. Endpoint precision stays operator-family only. No active gateway assignment is claimed. No pair-specific teleport path is claimed. No measured latency, jitter, throughput, or continuity values are shown. No native RF handover is claimed. Implementation evidence",
+      "dataset": {
+        "concurrency": "m8a-v4.11-inspector-concurrency-slice3-runtime.v1",
+        "stateRole": "open",
+        "truthRole": "open",
+        "combinedOpen": "true"
+      }
+    },
+    "stateRole": {
+      "exists": true,
+      "visible": true,
+      "hidden": false,
+      "rect": {
+        "left": 1110.15625,
+        "top": 261.234375,
+        "right": 1388.84375,
+        "bottom": 770.34375,
+        "width": 278.6875,
+        "height": 509.109375
+      },
+      "text": "Decision · State Evidence 剛接上 OneWeb LEO · LEO review focus 剛接上 OneWeb LEO，連線品質強。約 22 分鐘後，因為位置條件變化會進入訊號減弱階段。 NowNow: LEO is the modeled primary service state for this window. WhyWhy: position conditions support low-latency LEO review focus. NextNext: watch for LEO aging pressure before the MEO hold window. WatchWatch: simulated service time and modeled quality class only. The simulation review is currently anchored on the OneWeb LEO context marked as the focus role. The five-state V4.6D model is in window 1 of 5. Watch the LEO actor for the early pressure signal — the next modeled state is LEO pressure. Endpoint precision remains operator-family only and no active gateway is being claimed.",
+      "roleState": "open",
+      "title": "剛接上 OneWeb LEO · LEO review focus",
+      "copy": "剛接上 OneWeb LEO，連線品質強。約 22 分鐘後，因為位置條件變化會進入訊號減弱階段。",
+      "detail": "The simulation review is currently anchored on the OneWeb LEO context marked as the focus role. The five-state V4.6D model is in window 1 of 5. Watch the LEO actor for the early pressure signal — the next modeled state is LEO pressure. Endpoint precision remains operator-family only and no active gateway is being claimed.",
+      "triggeredByDetails": "true",
+      "triggeredByTruth": "true",
+      "inspectorPrimaryRole": "state-evidence"
+    },
+    "truthRole": {
+      "exists": true,
+      "visible": true,
+      "hidden": false,
+      "rect": {
+        "left": 1110.15625,
+        "top": 780.578125,
+        "right": 1388.84375,
+        "bottom": 1517.234375,
+        "width": 278.6875,
+        "height": 736.65625
+      },
+      "text": "Boundary · Truth Boundary Truth boundary Simulation boundary: 13-actor demo, repo-owned projection, not measured truth. Service-layer boundary: modeled service handover, not native RF handover. Endpoint boundary: operator-family precision, not site-level gateway claim. Scale boundary: not >=500 LEO validation and not 24h hardware-GPU closeout. simulation output operator-family precision display-context actors Simulated display-context state, not an operator handover log. Source-lineaged display-context actors, not active serving satellites. Endpoint precision stays operator-family only. No active gateway assignment is claimed. No pair-specific teleport path is claimed. No measured latency, jitter, throughput, or continuity values are shown. No native RF handover is claimed.",
+      "roleState": "open",
+      "lineCount": "7",
+      "lines": [
+        "Simulated display-context state, not an operator handover log.",
+        "Source-lineaged display-context actors, not active serving satellites.",
+        "Endpoint precision stays operator-family only.",
+        "No active gateway assignment is claimed.",
+        "No pair-specific teleport path is claimed.",
+        "No measured latency, jitter, throughput, or continuity values are shown.",
+        "No native RF handover is claimed."
+      ],
+      "conv2TailOfStateEvidence": "true"
+    },
+    "stateEvidenceTruthTail": {
+      "exists": true,
+      "visible": true,
+      "hidden": false,
+      "rect": {
+        "left": 1110.15625,
+        "top": 780.578125,
+        "right": 1388.84375,
+        "bottom": 1517.234375,
+        "width": 278.6875,
+        "height": 736.65625
+      },
+      "text": "Boundary · Truth Boundary Truth boundary Simulation boundary: 13-actor demo, repo-owned projection, not measured truth. Service-layer boundary: modeled service handover, not native RF handover. Endpoint boundary: operator-family precision, not site-level gateway claim. Scale boundary: not >=500 LEO validation and not 24h hardware-GPU closeout. simulation output operator-family precision display-context actors Simulated display-context state, not an operator handover log. Source-lineaged display-context actors, not active serving satellites. Endpoint precision stays operator-family only. No active gateway assignment is claimed. No pair-specific teleport path is claimed. No measured latency, jitter, throughput, or continuity values are shown. No native RF handover is claimed.",
+      "isTail": "true"
+    },
+    "implementationEvidence": {
+      "exists": true,
+      "visible": true,
+      "hidden": false,
+      "rect": {
+        "left": 1110.15625,
+        "top": 1527.140625,
+        "right": 1388.84375,
+        "bottom": 1556.265625,
+        "width": 278.6875,
+        "height": 29.125
+      },
+      "text": "Implementation evidence",
+      "open": false
+    },
+    "details": {
+      "exists": true,
+      "visible": true,
+      "hidden": false,
+      "rect": {
+        "left": 1344.96875,
+        "top": 770.40625,
+        "right": 1416.96875,
+        "bottom": 806.40625,
+        "width": 72,
+        "height": 36
+      },
+      "text": "Details",
+      "ariaExpanded": "true"
+    },
+    "truth": {
+      "exists": false,
+      "visible": false,
+      "hidden": null,
+      "rect": null,
+      "text": "",
+      "ariaExpanded": null
+    },
+    "footerBoundaryChip": {
+      "exists": true,
+      "visible": true,
+      "hidden": false,
+      "rect": {
+        "left": 187.03125,
+        "top": 785.40625,
+        "right": 253.046875,
+        "bottom": 803.40625,
+        "width": 66.015625,
+        "height": 18
+      },
+      "text": "模擬展示",
+      "ariaExpanded": "true"
+    },
+    "close": {
+      "exists": true,
+      "visible": true,
+      "hidden": false,
+      "rect": {
+        "left": 1332.96875,
+        "top": -41.84375,
+        "right": 1388.84375,
+        "bottom": -5.84375,
+        "width": 55.875,
+        "height": 36
+      },
+      "text": "Close"
+    },
+    "boundarySurface": {
+      "exists": true,
+      "visible": false,
+      "hidden": true,
+      "rect": {
+        "left": 0,
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "width": 0,
+        "height": 0
+      },
+      "text": "Truth boundary Close Simulation review - not operator log. No active satellite, gateway, path, or measured metric claim. Full truth disclosure simulation outputoperator-family precisiondisplay-context actors Simulated display-context state, not an operator handover log.Source-lineaged display-context actors, not active serving satellites.Endpoint precision stays operator-family only.No active gateway assignment is claimed.No pair-specific teleport path is claimed.No measured latency, jitter, throughput, or continuity values are shown.No native RF handover is claimed."
+    },
+    "transitionEvent": {
+      "exists": true,
+      "visible": false,
+      "hidden": true,
+      "rect": {
+        "left": 0,
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "width": 0,
+        "height": 0
+      },
+      "text": ""
+    },
+    "sequenceRail": {
+      "exists": true,
+      "visible": true,
+      "hidden": false,
+      "rect": {
+        "left": 304,
+        "top": 704,
+        "right": 1136,
+        "bottom": 760,
+        "width": 832,
+        "height": 56
+      },
+      "text": "Handover sequence State 1 of 5: LEO review focus Next: State 2 of 5 LEO pressure 1 LEO review LEO 2 LEO pressure LEO 3 MEO hold MEO 4 LEO re-entry LEO 5 GEO guard GEO",
+      "marks": [
+        {
+          "windowId": "leo-acquisition-context",
+          "index": "1",
+          "active": "true",
+          "next": "false",
+          "text": "1LEO reviewLEO"
+        },
+        {
+          "windowId": "leo-aging-pressure",
+          "index": "2",
+          "active": "false",
+          "next": "true",
+          "text": "2LEO pressureLEO"
+        },
+        {
+          "windowId": "meo-continuity-hold",
+          "index": "3",
+          "active": "false",
+          "next": "false",
+          "text": "3MEO holdMEO"
+        },
+        {
+          "windowId": "leo-reentry-candidate",
+          "index": "4",
+          "active": "false",
+          "next": "false",
+          "text": "4LEO re-entryLEO"
+        },
+        {
+          "windowId": "geo-continuity-guard",
+          "index": "5",
+          "active": "false",
+          "next": "false",
+          "text": "5GEO guardGEO"
+        }
+      ]
+    },
+    "forbiddenScopeLeak": {
+      "transitionToast": false,
+      "sceneCue": false,
+      "sourcesRole": true,
+      "r2Listing": false
+    },
+    "visibleText": "13 顆衛星模擬展示 · 完整 ≥500 LEO 多軌道驗證見後續階段 LEO MEO GEO ✓ LEO MEO GEO ✓ LEO LEO LEO LEO LEO LEO MEO MEO MEO MEO MEO GEO GEO Scenario Scope Scope: 13-actor demo · LEO/MEO/GEO (6/5/2) Time: Sim replay 00:06 / 01:54 · replay · 60x Precision: operator-family precision Boundary: repo-owned projection · not measured truth Current: W1 LEO primary review Candidate: none promoted in W1 Fallback: MEO/GEO observed only Decision: LEO is usable now; watch service time Time/Quality: simulated remaining time; modeled quality strong focus · LEO Handover sequence State 1 of 5: LEO review focus Next: State 2 of 5 LEO pressure 1 LEO review LEO 2 LEO pressure LEO 3 MEO hold MEO 4 LEO re-entry LEO 5 GEO guard GEO Current state LEO review focus State 1 of 5 Pause Restart 30x 60x 120x Details Details Inspector Close Decision Metrics Boundary Evidence Selected replay window LEO review focus State 1 of 5 Replay UTC 2026-04-28T08:57:47.054Z Sim replay 00:06 / 01:54 Source provenance Decision · State Evidence 剛接上 OneWeb LEO · LEO review focus 剛接上 OneWeb LEO，連線品質強。約 22 分鐘後，因為位置條件變化會進入訊號減弱階段。 NowNow: LEO is the modeled primary service state for this window. WhyWhy: position conditions support low-latency LEO review focus. NextNext: watch for LEO aging pressure before the MEO hold window. WatchWatch: simulated service time and modeled quality class only. The simulation review is currently anchored on the OneWeb LEO context marked as the focus role. The five-state V4.6D model is in window 1 of 5. Watch the LEO actor for the early pressure signal — the next modeled state is LEO pressure. Endpoint precision remains operator-family only and no active gateway is being claimed. Boundary · Truth Boundary Truth boundary Simulation boundary: 13-actor demo, repo-owned projection, not measured truth. Service-layer boundary: modeled service handover, not native RF handover. Endpoint boundary: operator-family precision, not site-level gateway claim. Scale boundary: not >=500 LEO validation and not 24h hardware-GPU closeout. simulation output operator-family precision display-context actors Simulated display-context state, not an operator handover log. Source-lineaged display-context actors, not active serving satellites. Endpoint precision stays operator-family only. No active gateway assignment is claimed. No pair-specific teleport path is claimed. No measured latency, jitter, throughput, or continuity values are shown. No native RF handover is claimed. Implementation evidence 模擬展示 operator-family precision TLE: CelesTrak NORAD GP · 2026-04-26 13 actors Boundary & Sources 服務時間：~16 分鐘 下一段：訊號減弱 ~ 為模擬推演值",
+    "resourceHits": []
+  }
+}

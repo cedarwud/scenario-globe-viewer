@@ -1,0 +1,100 @@
+{
+  "route": "/?scenePreset=regional&m8aV4GroundStationScene=1",
+  "version": "m8a-v4.11-glance-rank-surface-slice1-runtime.v1",
+  "captures": [
+    {
+      "viewport": "default-1440x900",
+      "screenshot": "output/m8a-v4.11-slice1/v4.11-slice1-default-1440x900.png",
+      "metadata": "output/m8a-v4.11-slice1/v4.11-slice1-default-1440x900.metadata.json",
+      "annotationRect": {
+        "left": 340,
+        "top": 496.390625,
+        "right": 433.1875,
+        "bottom": 520.390625,
+        "width": 93.1875,
+        "height": 24
+      },
+      "visibleRealDataChipTypes": [
+        "footer-tle-source",
+        "footer-actor-count",
+        "orbit-oneweb-0386-leo-display-context",
+        "orbit-oneweb-0537-leo-display-context",
+        "orbit-oneweb-0701-leo-display-context",
+        "orbit-oneweb-0012-leo-display-context",
+        "orbit-oneweb-0249-leo-display-context",
+        "orbit-oneweb-0702-leo-display-context",
+        "orbit-o3b-mpower-f6-meo-display-context",
+        "orbit-o3b-mpower-f1-meo-display-context",
+        "orbit-o3b-mpower-f2-meo-display-context",
+        "orbit-o3b-mpower-f4-meo-display-context",
+        "orbit-o3b-mpower-f3-meo-display-context",
+        "orbit-st-2-geo-continuity-anchor",
+        "orbit-ses-9-geo-display-context",
+        "ground-short-tw-cht-multi-orbit-ground-infrastructure",
+        "ground-short-sg-speedcast-singapore-teleport"
+      ]
+    },
+    {
+      "viewport": "default-1280x720",
+      "screenshot": "output/m8a-v4.11-slice1/v4.11-slice1-default-1280x720.png",
+      "metadata": "output/m8a-v4.11-slice1/v4.11-slice1-default-1280x720.metadata.json",
+      "annotationRect": {
+        "left": 340,
+        "top": 391.5,
+        "right": 433.1875,
+        "bottom": 415.5,
+        "width": 93.1875,
+        "height": 24
+      },
+      "visibleRealDataChipTypes": [
+        "footer-tle-source",
+        "footer-actor-count",
+        "orbit-oneweb-0386-leo-display-context",
+        "orbit-oneweb-0537-leo-display-context",
+        "orbit-oneweb-0701-leo-display-context",
+        "orbit-oneweb-0012-leo-display-context",
+        "orbit-oneweb-0249-leo-display-context",
+        "orbit-oneweb-0702-leo-display-context",
+        "orbit-o3b-mpower-f6-meo-display-context",
+        "orbit-o3b-mpower-f1-meo-display-context",
+        "orbit-o3b-mpower-f2-meo-display-context",
+        "orbit-o3b-mpower-f4-meo-display-context",
+        "orbit-o3b-mpower-f3-meo-display-context",
+        "orbit-st-2-geo-continuity-anchor",
+        "orbit-ses-9-geo-display-context",
+        "ground-short-tw-cht-multi-orbit-ground-infrastructure",
+        "ground-short-sg-speedcast-singapore-teleport"
+      ]
+    },
+    {
+      "viewport": "default-390x844",
+      "screenshot": "output/m8a-v4.11-slice1/v4.11-slice1-default-390x844.png",
+      "metadata": "output/m8a-v4.11-slice1/v4.11-slice1-default-390x844.metadata.json",
+      "annotationRect": {
+        "left": 14,
+        "top": 407.1875,
+        "right": 103.3125,
+        "bottom": 431.1875,
+        "width": 89.3125,
+        "height": 24
+      },
+      "visibleRealDataChipTypes": [
+        "footer-tle-source",
+        "footer-actor-count",
+        "orbit-oneweb-0386-leo-display-context",
+        "orbit-oneweb-0537-leo-display-context",
+        "orbit-oneweb-0701-leo-display-context",
+        "orbit-oneweb-0012-leo-display-context",
+        "orbit-oneweb-0249-leo-display-context",
+        "orbit-oneweb-0702-leo-display-context",
+        "orbit-o3b-mpower-f1-meo-display-context",
+        "orbit-o3b-mpower-f2-meo-display-context",
+        "orbit-o3b-mpower-f4-meo-display-context",
+        "orbit-o3b-mpower-f3-meo-display-context",
+        "orbit-ses-9-geo-display-context",
+        "ground-short-tw-cht-multi-orbit-ground-infrastructure",
+        "ground-short-sg-speedcast-singapore-teleport"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,13 @@
+{
+  "screenshots": [
+    "/home/u24/papers/scenario-globe-viewer/output/m8a-v4.11-correction-a-phase-c/w1-default-1440x900.png",
+    "/home/u24/papers/scenario-globe-viewer/output/m8a-v4.11-correction-a-phase-c/w2-metrics-tab-1440x900.png",
+    "/home/u24/papers/scenario-globe-viewer/output/m8a-v4.11-correction-a-phase-c/w3-decision-tab-1440x900.png",
+    "/home/u24/papers/scenario-globe-viewer/output/m8a-v4.11-correction-a-phase-c/w5-boundary-tab-1440x900.png",
+    "/home/u24/papers/scenario-globe-viewer/output/m8a-v4.11-correction-a-phase-c/evidence-tab-1440x900.png",
+    "/home/u24/papers/scenario-globe-viewer/output/m8a-v4.11-correction-a-phase-c/details-overlap-check-1280x720.png"
+  ],
+  "checks": [
+    "phase-c-rail-top-strip-inspector-content-verified"
+  ]
+}

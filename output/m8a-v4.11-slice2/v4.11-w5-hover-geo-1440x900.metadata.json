@@ -1,0 +1,862 @@
+{
+  "viewport": {
+    "name": "desktop-1440x900",
+    "width": 1440,
+    "height": 900
+  },
+  "route": "/?scenePreset=regional&m8aV4GroundStationScene=1",
+  "windowId": "geo-continuity-guard",
+  "screenshot": "output/m8a-v4.11-slice2/v4.11-w5-hover-geo-1440x900.png",
+  "result": {
+    "urlPath": "/?scenePreset=regional&m8aV4GroundStationScene=1",
+    "stateFacts": {
+      "route": "/?scenePreset=regional&m8aV4GroundStationScene=1",
+      "endpointPairId": "taiwan-cht-speedcast-singapore-operator-family-2026-04-26",
+      "acceptedPairPrecision": "operator-family-only",
+      "modelId": "m8a-v4.6d-simulation-handover-model.v1",
+      "modelTruth": "simulation-output-not-operator-log",
+      "orbitActorCounts": {
+        "leo": 6,
+        "meo": 5,
+        "geo": 2
+      },
+      "actorCount": 13,
+      "sourceLineage": {
+        "projectionRead": "M8A_V4_GROUND_STATION_RUNTIME_PROJECTION",
+        "serviceStateRead": "M8A_V4_GROUND_STATION_RUNTIME_PROJECTION.serviceStateModel.timeline",
+        "simulationHandoverRead": "M8A_V4_GROUND_STATION_RUNTIME_PROJECTION.simulationHandoverModel.timeline",
+        "rawPackageSideReadOwnership": "forbidden",
+        "rawSourcePathsIncluded": false
+      },
+      "activeWindowId": "geo-continuity-guard",
+      "timelineWindowIds": [
+        "leo-acquisition-context",
+        "leo-aging-pressure",
+        "meo-continuity-hold",
+        "leo-reentry-candidate",
+        "geo-continuity-guard"
+      ],
+      "requiredWindowNonClaimKeys": [
+        "noRealOperatorHandoverEvent",
+        "noActiveServingSatelliteIdentity",
+        "noActiveGatewayAssignment",
+        "noPairSpecificTeleportPathTruth",
+        "noMeasuredLatencyJitterThroughputTruth",
+        "noNativeRfHandover",
+        "noEndpointPairOrPrecisionChange",
+        "noR2RuntimeSelector",
+        "noRawItriOrLiveExternalRuntimeSource"
+      ],
+      "timelineNonClaims": [
+        {
+          "windowId": "leo-acquisition-context",
+          "nonClaims": {
+            "noRealOperatorHandoverEvent": true,
+            "noActiveServingSatelliteIdentity": true,
+            "noActiveGatewayAssignment": true,
+            "noPairSpecificTeleportPathTruth": true,
+            "noMeasuredLatencyJitterThroughputTruth": true,
+            "noNativeRfHandover": true,
+            "noEndpointPairOrPrecisionChange": true,
+            "noR2RuntimeSelector": true,
+            "noRawItriOrLiveExternalRuntimeSource": true
+          }
+        },
+        {
+          "windowId": "leo-aging-pressure",
+          "nonClaims": {
+            "noRealOperatorHandoverEvent": true,
+            "noActiveServingSatelliteIdentity": true,
+            "noActiveGatewayAssignment": true,
+            "noPairSpecificTeleportPathTruth": true,
+            "noMeasuredLatencyJitterThroughputTruth": true,
+            "noNativeRfHandover": true,
+            "noEndpointPairOrPrecisionChange": true,
+            "noR2RuntimeSelector": true,
+            "noRawItriOrLiveExternalRuntimeSource": true
+          }
+        },
+        {
+          "windowId": "meo-continuity-hold",
+          "nonClaims": {
+            "noRealOperatorHandoverEvent": true,
+            "noActiveServingSatelliteIdentity": true,
+            "noActiveGatewayAssignment": true,
+            "noPairSpecificTeleportPathTruth": true,
+            "noMeasuredLatencyJitterThroughputTruth": true,
+            "noNativeRfHandover": true,
+            "noEndpointPairOrPrecisionChange": true,
+            "noR2RuntimeSelector": true,
+            "noRawItriOrLiveExternalRuntimeSource": true
+          }
+        },
+        {
+          "windowId": "leo-reentry-candidate",
+          "nonClaims": {
+            "noRealOperatorHandoverEvent": true,
+            "noActiveServingSatelliteIdentity": true,
+            "noActiveGatewayAssignment": true,
+            "noPairSpecificTeleportPathTruth": true,
+            "noMeasuredLatencyJitterThroughputTruth": true,
+            "noNativeRfHandover": true,
+            "noEndpointPairOrPrecisionChange": true,
+            "noR2RuntimeSelector": true,
+            "noRawItriOrLiveExternalRuntimeSource": true
+          }
+        },
+        {
+          "windowId": "geo-continuity-guard",
+          "nonClaims": {
+            "noRealOperatorHandoverEvent": true,
+            "noActiveServingSatelliteIdentity": true,
+            "noActiveGatewayAssignment": true,
+            "noPairSpecificTeleportPathTruth": true,
+            "noMeasuredLatencyJitterThroughputTruth": true,
+            "noNativeRfHandover": true,
+            "noEndpointPairOrPrecisionChange": true,
+            "noR2RuntimeSelector": true,
+            "noRawItriOrLiveExternalRuntimeSource": true
+          }
+        }
+      ],
+      "disclosure": {
+        "state": "closed",
+        "detailsSheetState": "closed",
+        "boundarySurfaceState": "closed",
+        "sourcesRoleState": "closed",
+        "activeInspectorTab": "decision",
+        "sourcesFilter": {
+          "trigger": "advanced-source-provenance",
+          "endpointId": "",
+          "orbitClass": ""
+        },
+        "boundaryFullTruthDisclosureState": "closed",
+        "lines": [
+          "Simulated display-context state, not an operator handover log.",
+          "Source-lineaged display-context actors, not active serving satellites.",
+          "Endpoint precision stays operator-family only.",
+          "No active gateway assignment is claimed.",
+          "No pair-specific teleport path is claimed.",
+          "No measured latency, jitter, throughput, or continuity values are shown.",
+          "No native RF handover is claimed."
+        ]
+      }
+    },
+    "rootDataset": {
+      "v411GlanceRankSurface": "m8a-v4.11-glance-rank-surface-slice1-runtime.v1",
+      "sliceScope": "slice1-glance-rank-surface",
+      "hoverPopover": "m8a-v4.11-hover-popover-slice2-runtime.v1",
+      "hoverSliceScope": "slice2-hover-popover",
+      "hoverDelayMs": "150",
+      "hoverMaxWidthPx": "240",
+      "hoverMaxHeightPx": "140",
+      "hoverVisible": "true",
+      "pinnedHoverRole": "state-evidence",
+      "pinnedHoverTargetKind": "satellite",
+      "pinnedHoverTargetId": "oneweb-0386-leo-display-context"
+    },
+    "visibleProductText": "13 顆衛星模擬展示 · 完整 ≥500 LEO 多軌道驗證見後續階段 LEO MEO GEO ✓ LEO MEO GEO ✓ LEO LEO LEO LEO LEO LEO MEO MEO MEO MEO MEO GEO GEO Scenario Scope Scope: 13-actor demo · LEO/MEO/GEO (6/5/2) Time: Sim replay 01:43 / 01:54 · replay · 60x Precision: operator-family precision Boundary: repo-owned projection · not measured truth Current: W5 GEO guard context Candidate: no next candidate in final window Fallback: GEO is the modeled guard role Decision: GEO is fallback/guard coverage Time/Quality: sequence ending; boundary-only quality guard · GEO Handover sequence State 5 of 5: GEO guard context Restart: State 1 of 5 LEO review focus 1 LEO review LEO 2 LEO pressure LEO 3 MEO hold MEO 4 LEO re-entry LEO 5 GEO guard GEO Current state GEO guard context State 5 of 5 Play Restart 30x 60x 120x Details 模擬展示 operator-family precision TLE: CelesTrak NORAD GP · 2026-04-26 13 actors ⚠ 不是實際備援切換證據 Boundary & Sources GEO guard context. Restart to review the sequence again. Singtel/SES GEO · 保底覆蓋 永遠連得到 序列即將結束 序列結束：~11 分鐘 重新開始可以再看一次 ~ 為模擬推演值",
+    "annotation": {
+      "exists": true,
+      "visible": true,
+      "hidden": false,
+      "rect": {
+        "left": 340,
+        "top": 174,
+        "right": 438.640625,
+        "bottom": 198,
+        "width": 98.640625,
+        "height": 24
+      },
+      "text": "guard · GEO",
+      "microCueCopy": "guard · GEO"
+    },
+    "provenance": {
+      "exists": true,
+      "visible": false,
+      "hidden": true,
+      "rect": {
+        "left": 1392.96875,
+        "top": 33.4375,
+        "right": 1416.96875,
+        "bottom": 57.4375,
+        "width": 24,
+        "height": 24
+      },
+      "text": ""
+    },
+    "sequenceRail": {
+      "exists": true,
+      "visible": true,
+      "hidden": false,
+      "rect": {
+        "left": 304,
+        "top": 704,
+        "right": 1136,
+        "bottom": 760,
+        "width": 832,
+        "height": 56
+      },
+      "text": "Handover sequence State 5 of 5: GEO guard context Restart: State 1 of 5 LEO review focus 1 LEO review LEO 2 LEO pressure LEO 3 MEO hold MEO 4 LEO re-entry LEO 5 GEO guard GEO"
+    },
+    "details": {
+      "exists": true,
+      "visible": true,
+      "hidden": false,
+      "rect": {
+        "left": 1344.96875,
+        "top": 770.40625,
+        "right": 1416.96875,
+        "bottom": 806.40625,
+        "width": 72,
+        "height": 36
+      },
+      "text": "Details",
+      "ariaExpanded": "false"
+    },
+    "truth": {
+      "exists": false,
+      "visible": false,
+      "hidden": null,
+      "rect": null,
+      "text": "",
+      "ariaExpanded": null
+    },
+    "footerBoundaryChip": {
+      "exists": true,
+      "visible": true,
+      "hidden": false,
+      "rect": {
+        "left": 187.03125,
+        "top": 785.40625,
+        "right": 253.046875,
+        "bottom": 803.40625,
+        "width": 66.015625,
+        "height": 18
+      },
+      "text": "模擬展示",
+      "ariaExpanded": "false"
+    },
+    "sheet": {
+      "exists": true,
+      "visible": false,
+      "hidden": true,
+      "rect": {
+        "left": 0,
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "width": 0,
+        "height": 0
+      },
+      "text": "Details Inspector Close Decision Metrics Boundary Evidence Selected replay window GEO guard context State 5 of 5 Replay UTC 2026-04-28T10:34:41.178Z Sim replay 01:43 / 01:54 Source provenance Evidence for the selected replay window. The scene narrative and sequence rail remain primary. Decision · State Evidence GEO 保底覆蓋 · GEO guard context GEO 作為保底覆蓋角色，永遠連得到，但這只是模擬展示，不是實際備援切換證據。序列在這裡結束。 NowNow: GEO is shown as the modeled guard coverage state. WhyWhy: the replay closes on a coverage boundary, not failover proof. NextNext: restart returns to the LEO acquisition window. WatchWatch: guard role wording so it is not read as backup-switch evidence. The sequence closes on GEO as guard context in window 5 of 5. GEO is shown as continuity guard only — no failover proof is being asserted. Restart to review the simulation again. Metrics Modeled classes Modeled link quality: GEO guard boundary class only. Communication time: replay sequence ends in this window. Unavailable measured data Unavailable measured data: no ping, iperf, ESTNeT/INET, DUT, latency, jitter, throughput, or packet-loss feed is connected to this route. Unavailable physical factors: rain, antenna, ITU/V group, and rain attenuation models are not connected in this scene. Boundary · Truth Boundary Truth boundary Simulation boundary: 13-actor demo, repo-owned projection, not measured truth. Service-layer boundary: modeled service handover, not native RF handover. Endpoint boundary: operator-family precision, not site-level gateway claim. Scale boundary: not >=500 LEO validation and not 24h hardware-GPU closeout. simulation outputoperator-family precisiondisplay-context actors Simulated display-context state, not an operator handover log.Source-lineaged display-context actors, not active serving satellites.Endpoint precision stays operator-family only.No active gateway assignment is claimed.No pair-specific teleport path is claimed.No measured latency, jitter, throughput, or continuity values are shown.No native RF handover is claimed.No active failover proof is claimed. Evidence Source provenance All repo-owned projection sources. TLE source summary: CelesTrak NORAD GP records are retained through the repo-owned projection. Endpoint evidence: Taiwan / CHT and Singapore / Speedcast are operator-family evidence only. R2 archive: read-only provenance, not a precision mode or runtime selector. Satellite TLE provenance Eutelsat OneWeb · LEO · ONEWEB-0386 · fetched 2026-04-28T08:51:17ZEutelsat OneWeb · LEO · ONEWEB-0537 · fetched 2026-04-28T08:51:17ZEutelsat OneWeb · LEO · ONEWEB-0701 · fetched 2026-04-28T08:51:17ZEutelsat OneWeb · LEO · ONEWEB-0012 · fetched 2026-04-28T08:51:17ZEutelsat OneWeb · LEO · ONEWEB-0249 · fetched 2026-04-28T08:51:17ZEutelsat OneWeb · LEO · ONEWEB-0702 · fetched 2026-04-28T08:51:17ZSES O3b mPOWER · MEO · O3B MPOWER F6 · fetched 2026-04-28T08:51:17ZSES O3b mPOWER · MEO · O3B MPOWER F1 · fetched 2026-04-28T08:51:17ZSES O3b mPOWER · MEO · O3B MPOWER F2 · fetched 2026-04-28T08:51:17ZSES O3b mPOWER · MEO · O3B MPOWER F4 · fetched 2026-04-28T08:51:17ZSES O3b mPOWER · MEO · O3B MPOWER F3 · fetched 2026-04-28T08:51:17ZST-2 CHT/Singtel GEO service context · GEO · ST-2 · fetched 2026-04-28T08:51:17ZSES GEO display context; not endpoint-pair path or active service claim · GEO · SES-9 · fetched 2026-04-28T08:51:17Z Ground-station evidence URLs Taiwan / Chunghwa Telecom multi-orbit ground infrastructureLEO strong · https://www.cht.com.tw/zh-tw/home/cht/messages/2025/1103-1000 · operator press releaseLEO strong · https://www.cht.com.tw/en/home/cht/messages/2023/1115-1530 · operator press releaseMEO strong · https://www.cht.com.tw/zh-tw/home/cht/messages/2025/1103-1000 · operator press releaseMEO strong · https://www.cht.com.tw/en/home/cht/messages/2026/0122-1410 · operator press releaseGEO strong · https://www.cht.com.tw/zh-tw/home/cht/messages/2025/1103-1000 · operator press releaseGEO strong · https://www.cht.com.tw/en/home/cht/messages/2023/1115-1530 · operator press releaseSingapore / Speedcast Singapore TeleportLEO strong · https://www.speedcast.com/our-solution/product/vsat-satellite/ngso-leo-meo/ · operator sourceMEO strong · https://www.speedcast.com/our-solution/product/vsat-satellite/ngso-leo-meo/ · operator sourceGEO strong · https://www.speedcast.com/newsroom/press-releases/2024/speedcasts-teleport-in-singapore-joins-wtas-growing-list-of-tier-4-certified-teleports/ · third-party certificationGEO strong · https://www.speedcast.com/about-us/teleports/ · operator source R2 read-only candidate catalog Taiwan site-level CHT earth-station family · blocked: site-family upgrade lacks accepted LEO/MEO site mapping · blocked · R2 read-only - not promotable to runtimeThailand NT Sirindhorn OneWeb SNP Gateway · blocked: MEO evidence gap · blocked · R2 read-only - not promotable to runtimeSingapore Singtel Bukit Timah Satellite Earth Station · blocked: MEO evidence gap and site-family split · blocked · R2 read-only - not promotable to runtimeJapan KDDI Yamaguchi / SoftBank OneWeb country family · blocked: MEO gap and split operator-family evidence · blocked · R2 read-only - not promotable to runtimeKorea KT SAT Kumsan / OneWeb terminal ecosystem · blocked: MEO remains partial/planned evidence · blocked · R2 read-only - not promotable to runtime Implementation evidence Raw ids, selected cue ids, anchor metadata, and full candidate/fallback arrays. This evidence supports tests and implementation review; it is not the primary product explanation. Representative actor id ST-2 GEO guard (st-2-geo-continuity-anchor) Candidate actor ids SES-9 GEO guard (ses-9-geo-display-context), O3b mPOWER F3 MEO context (o3b-mpower-f3-meo-display-context), ONEWEB-0701 LEO context (oneweb-0701-leo-display-context) Fallback actor ids ST-2 GEO guard (st-2-geo-continuity-anchor), SES-9 GEO guard (ses-9-geo-display-context) Scene cue ids displayRepresentative primary; candidateContext secondary; scene anchor geo-guard-cue; selected actor st-2-geo-continuity-anchor; selected cue m8a-v46e-simulation-geo-guard-cue."
+    },
+    "boundarySurface": {
+      "exists": true,
+      "visible": false,
+      "hidden": true,
+      "rect": {
+        "left": 0,
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "width": 0,
+        "height": 0
+      },
+      "text": "Truth boundary Close Simulation review - not operator log. No active satellite, gateway, path, or measured metric claim. Full truth disclosure simulation outputoperator-family precisiondisplay-context actors Simulated display-context state, not an operator handover log.Source-lineaged display-context actors, not active serving satellites.Endpoint precision stays operator-family only.No active gateway assignment is claimed.No pair-specific teleport path is claimed.No measured latency, jitter, throughput, or continuity values are shown.No native RF handover is claimed."
+    },
+    "transitionEvent": {
+      "exists": true,
+      "visible": false,
+      "hidden": true,
+      "rect": {
+        "left": 0,
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "width": 0,
+        "height": 0
+      },
+      "text": ""
+    },
+    "popover": {
+      "exists": true,
+      "visible": true,
+      "hidden": false,
+      "rect": {
+        "left": 127,
+        "top": 212.390625,
+        "right": 310.71875,
+        "bottom": 275.921875,
+        "width": 183.71875,
+        "height": 63.53125
+      },
+      "text": "Singtel/SES GEO · 保底覆蓋 永遠連得到 序列即將結束",
+      "state": "visible",
+      "kind": "satellite",
+      "targetId": "st-2-geo-continuity-anchor",
+      "windowId": "geo-continuity-guard",
+      "roleToken": "guard",
+      "lines": [
+        "Singtel/SES GEO · 保底覆蓋",
+        "永遠連得到",
+        "序列即將結束"
+      ]
+    },
+    "hoverTargets": [
+      {
+        "exists": true,
+        "visible": true,
+        "hidden": false,
+        "rect": {
+          "left": 726.296875,
+          "top": 487.296875,
+          "right": 822.296875,
+          "bottom": 505.296875,
+          "width": 96,
+          "height": 18
+        },
+        "text": "LEO MEO GEO ✓",
+        "kind": "ground-station",
+        "targetId": "tw-cht-multi-orbit-ground-infrastructure",
+        "windowId": null,
+        "roleToken": null,
+        "lineCount": 3,
+        "lines": [
+          "Chunghwa Telecom 地面站",
+          "operator-family precision",
+          "LEO MEO GEO 三軌道資料"
+        ],
+        "tabIndex": 0,
+        "role": "button",
+        "ariaLabel": "Chunghwa Telecom 地面站 ground-station hover evidence"
+      },
+      {
+        "exists": true,
+        "visible": true,
+        "hidden": false,
+        "rect": {
+          "left": 571.796875,
+          "top": 589.796875,
+          "right": 667.796875,
+          "bottom": 607.796875,
+          "width": 96,
+          "height": 18
+        },
+        "text": "LEO MEO GEO ✓",
+        "kind": "ground-station",
+        "targetId": "sg-speedcast-singapore-teleport",
+        "windowId": null,
+        "roleToken": null,
+        "lineCount": 3,
+        "lines": [
+          "Speedcast Singapore Teleport",
+          "operator-family precision",
+          "LEO MEO GEO 三軌道資料"
+        ],
+        "tabIndex": 0,
+        "role": "button",
+        "ariaLabel": "Speedcast Singapore Teleport ground-station hover evidence"
+      },
+      {
+        "exists": true,
+        "visible": true,
+        "hidden": false,
+        "rect": {
+          "left": 802.390625,
+          "top": 455,
+          "right": 838.390625,
+          "bottom": 473,
+          "width": 36,
+          "height": 18
+        },
+        "text": "LEO",
+        "kind": "satellite",
+        "targetId": "oneweb-0386-leo-display-context",
+        "windowId": "geo-continuity-guard",
+        "roleToken": "candidate",
+        "lineCount": 3,
+        "lines": [
+          "Eutelsat OneWeb LEO · 候選",
+          "ambient context",
+          "模擬展示"
+        ],
+        "tabIndex": 0,
+        "role": "button",
+        "ariaLabel": "Eutelsat OneWeb LEO · 候選 hover evidence"
+      },
+      {
+        "exists": true,
+        "visible": true,
+        "hidden": false,
+        "rect": {
+          "left": 743.5,
+          "top": 564.5,
+          "right": 779.5,
+          "bottom": 582.5,
+          "width": 36,
+          "height": 18
+        },
+        "text": "LEO",
+        "kind": "satellite",
+        "targetId": "oneweb-0537-leo-display-context",
+        "windowId": "geo-continuity-guard",
+        "roleToken": "candidate",
+        "lineCount": 3,
+        "lines": [
+          "Eutelsat OneWeb LEO · 候選",
+          "ambient context",
+          "模擬展示"
+        ],
+        "tabIndex": 0,
+        "role": "button",
+        "ariaLabel": "Eutelsat OneWeb LEO · 候選 hover evidence"
+      },
+      {
+        "exists": true,
+        "visible": true,
+        "hidden": false,
+        "rect": {
+          "left": 697.390625,
+          "top": 456.59375,
+          "right": 733.390625,
+          "bottom": 474.59375,
+          "width": 36,
+          "height": 18
+        },
+        "text": "LEO",
+        "kind": "satellite",
+        "targetId": "oneweb-0701-leo-display-context",
+        "windowId": "geo-continuity-guard",
+        "roleToken": "candidate",
+        "lineCount": 3,
+        "lines": [
+          "Eutelsat OneWeb LEO · 候選",
+          "ambient context",
+          "模擬展示"
+        ],
+        "tabIndex": 0,
+        "role": "button",
+        "ariaLabel": "Eutelsat OneWeb LEO · 候選 hover evidence"
+      },
+      {
+        "exists": true,
+        "visible": true,
+        "hidden": false,
+        "rect": {
+          "left": 625.5,
+          "top": 464.5,
+          "right": 661.5,
+          "bottom": 482.5,
+          "width": 36,
+          "height": 18
+        },
+        "text": "LEO",
+        "kind": "satellite",
+        "targetId": "oneweb-0012-leo-display-context",
+        "windowId": "geo-continuity-guard",
+        "roleToken": "candidate",
+        "lineCount": 3,
+        "lines": [
+          "Eutelsat OneWeb LEO · 候選",
+          "ambient context",
+          "模擬展示"
+        ],
+        "tabIndex": 0,
+        "role": "button",
+        "ariaLabel": "Eutelsat OneWeb LEO · 候選 hover evidence"
+      },
+      {
+        "exists": true,
+        "visible": true,
+        "hidden": false,
+        "rect": {
+          "left": 783.1875,
+          "top": 504.1875,
+          "right": 819.1875,
+          "bottom": 522.1875,
+          "width": 36,
+          "height": 18
+        },
+        "text": "LEO",
+        "kind": "satellite",
+        "targetId": "oneweb-0249-leo-display-context",
+        "windowId": "geo-continuity-guard",
+        "roleToken": "candidate",
+        "lineCount": 3,
+        "lines": [
+          "Eutelsat OneWeb LEO · 候選",
+          "ambient context",
+          "模擬展示"
+        ],
+        "tabIndex": 0,
+        "role": "button",
+        "ariaLabel": "Eutelsat OneWeb LEO · 候選 hover evidence"
+      },
+      {
+        "exists": true,
+        "visible": true,
+        "hidden": false,
+        "rect": {
+          "left": 730.796875,
+          "top": 507.390625,
+          "right": 766.796875,
+          "bottom": 525.390625,
+          "width": 36,
+          "height": 18
+        },
+        "text": "LEO",
+        "kind": "satellite",
+        "targetId": "oneweb-0702-leo-display-context",
+        "windowId": "geo-continuity-guard",
+        "roleToken": "candidate",
+        "lineCount": 3,
+        "lines": [
+          "Eutelsat OneWeb LEO · 候選",
+          "ambient context",
+          "模擬展示"
+        ],
+        "tabIndex": 0,
+        "role": "button",
+        "ariaLabel": "Eutelsat OneWeb LEO · 候選 hover evidence"
+      },
+      {
+        "exists": true,
+        "visible": true,
+        "hidden": false,
+        "rect": {
+          "left": 604.21875,
+          "top": 255.59375,
+          "right": 641.15625,
+          "bottom": 273.59375,
+          "width": 36.9375,
+          "height": 18
+        },
+        "text": "MEO",
+        "kind": "satellite",
+        "targetId": "o3b-mpower-f6-meo-display-context",
+        "windowId": "geo-continuity-guard",
+        "roleToken": "candidate",
+        "lineCount": 3,
+        "lines": [
+          "SES O3b mPOWER MEO · 候選",
+          "ambient context",
+          "模擬展示"
+        ],
+        "tabIndex": 0,
+        "role": "button",
+        "ariaLabel": "SES O3b mPOWER MEO · 候選 hover evidence"
+      },
+      {
+        "exists": true,
+        "visible": true,
+        "hidden": false,
+        "rect": {
+          "left": 829.21875,
+          "top": 240.59375,
+          "right": 866.15625,
+          "bottom": 258.59375,
+          "width": 36.9375,
+          "height": 18
+        },
+        "text": "MEO",
+        "kind": "satellite",
+        "targetId": "o3b-mpower-f1-meo-display-context",
+        "windowId": "geo-continuity-guard",
+        "roleToken": "candidate",
+        "lineCount": 3,
+        "lines": [
+          "SES O3b mPOWER MEO · 候選",
+          "ambient context",
+          "模擬展示"
+        ],
+        "tabIndex": 0,
+        "role": "button",
+        "ariaLabel": "SES O3b mPOWER MEO · 候選 hover evidence"
+      },
+      {
+        "exists": true,
+        "visible": true,
+        "hidden": false,
+        "rect": {
+          "left": 735.828125,
+          "top": 224.1875,
+          "right": 772.765625,
+          "bottom": 242.1875,
+          "width": 36.9375,
+          "height": 18
+        },
+        "text": "MEO",
+        "kind": "satellite",
+        "targetId": "o3b-mpower-f2-meo-display-context",
+        "windowId": "geo-continuity-guard",
+        "roleToken": "candidate",
+        "lineCount": 3,
+        "lines": [
+          "SES O3b mPOWER MEO · 候選",
+          "ambient context",
+          "模擬展示"
+        ],
+        "tabIndex": 0,
+        "role": "button",
+        "ariaLabel": "SES O3b mPOWER MEO · 候選 hover evidence"
+      },
+      {
+        "exists": true,
+        "visible": true,
+        "hidden": false,
+        "rect": {
+          "left": 653.828125,
+          "top": 406.296875,
+          "right": 690.765625,
+          "bottom": 424.296875,
+          "width": 36.9375,
+          "height": 18
+        },
+        "text": "MEO",
+        "kind": "satellite",
+        "targetId": "o3b-mpower-f4-meo-display-context",
+        "windowId": "geo-continuity-guard",
+        "roleToken": "candidate",
+        "lineCount": 3,
+        "lines": [
+          "SES O3b mPOWER MEO · 候選",
+          "ambient context",
+          "模擬展示"
+        ],
+        "tabIndex": 0,
+        "role": "button",
+        "ariaLabel": "SES O3b mPOWER MEO · 候選 hover evidence"
+      },
+      {
+        "exists": true,
+        "visible": true,
+        "hidden": false,
+        "rect": {
+          "left": 610.71875,
+          "top": 253.59375,
+          "right": 647.65625,
+          "bottom": 271.59375,
+          "width": 36.9375,
+          "height": 18
+        },
+        "text": "MEO",
+        "kind": "satellite",
+        "targetId": "o3b-mpower-f3-meo-display-context",
+        "windowId": "geo-continuity-guard",
+        "roleToken": "candidate",
+        "lineCount": 3,
+        "lines": [
+          "SES O3b mPOWER MEO · 候選",
+          "ambient context",
+          "模擬展示"
+        ],
+        "tabIndex": 0,
+        "role": "button",
+        "ariaLabel": "SES O3b mPOWER MEO · 候選 hover evidence"
+      },
+      {
+        "exists": true,
+        "visible": true,
+        "hidden": false,
+        "rect": {
+          "left": 95,
+          "top": 189.390625,
+          "right": 131,
+          "bottom": 207.390625,
+          "width": 36,
+          "height": 18
+        },
+        "text": "GEO",
+        "kind": "satellite",
+        "targetId": "st-2-geo-continuity-anchor",
+        "windowId": "geo-continuity-guard",
+        "roleToken": "guard",
+        "lineCount": 3,
+        "lines": [
+          "Singtel/SES GEO · 保底覆蓋",
+          "永遠連得到",
+          "序列即將結束"
+        ],
+        "tabIndex": 0,
+        "role": "button",
+        "ariaLabel": "Singtel/SES GEO · 保底覆蓋 hover evidence"
+      },
+      {
+        "exists": true,
+        "visible": true,
+        "hidden": false,
+        "rect": {
+          "left": 570.1875,
+          "top": 54.5,
+          "right": 606.1875,
+          "bottom": 72.5,
+          "width": 36,
+          "height": 18
+        },
+        "text": "GEO",
+        "kind": "satellite",
+        "targetId": "ses-9-geo-display-context",
+        "windowId": "geo-continuity-guard",
+        "roleToken": "candidate",
+        "lineCount": 3,
+        "lines": [
+          "SES GEO GEO · 候選",
+          "保底覆蓋待命",
+          "模擬展示"
+        ],
+        "tabIndex": 0,
+        "role": "button",
+        "ariaLabel": "SES GEO GEO · 候選 hover evidence"
+      },
+      {
+        "exists": true,
+        "visible": true,
+        "hidden": false,
+        "rect": {
+          "left": 518.9375,
+          "top": 716.140625,
+          "right": 635.796875,
+          "bottom": 754.140625,
+          "width": 116.859375,
+          "height": 38
+        },
+        "text": "1 LEO review LEO",
+        "kind": "sequence-rail",
+        "targetId": "leo-acquisition-context",
+        "windowId": "leo-acquisition-context",
+        "roleToken": null,
+        "lineCount": 3,
+        "lines": [
+          "剛接上 LEO",
+          "服務時間長:~22 分鐘",
+          "下一段:訊號減弱"
+        ],
+        "tabIndex": 0,
+        "role": "button",
+        "ariaLabel": "剛接上 LEO sequence hover evidence"
+      },
+      {
+        "exists": true,
+        "visible": true,
+        "hidden": false,
+        "rect": {
+          "left": 641.234375,
+          "top": 716.140625,
+          "right": 758.09375,
+          "bottom": 754.140625,
+          "width": 116.859375,
+          "height": 38
+        },
+        "text": "2 LEO pressure LEO",
+        "kind": "sequence-rail",
+        "targetId": "leo-aging-pressure",
+        "windowId": "leo-aging-pressure",
+        "roleToken": null,
+        "lineCount": 3,
+        "lines": [
+          "LEO 訊號減弱",
+          "位置條件變差",
+          "下一段:MEO 暫時接住"
+        ],
+        "tabIndex": 0,
+        "role": "button",
+        "ariaLabel": "LEO 訊號減弱 sequence hover evidence"
+      },
+      {
+        "exists": true,
+        "visible": true,
+        "hidden": false,
+        "rect": {
+          "left": 763.53125,
+          "top": 716.140625,
+          "right": 880.390625,
+          "bottom": 754.140625,
+          "width": 116.859375,
+          "height": 38
+        },
+        "text": "3 MEO hold MEO",
+        "kind": "sequence-rail",
+        "targetId": "meo-continuity-hold",
+        "windowId": "meo-continuity-hold",
+        "roleToken": null,
+        "lineCount": 3,
+        "lines": [
+          "MEO 暫時接住",
+          "覆蓋廣 · 延遲略高",
+          "下一段:新 LEO 候選"
+        ],
+        "tabIndex": 0,
+        "role": "button",
+        "ariaLabel": "MEO 暫時接住 sequence hover evidence"
+      },
+      {
+        "exists": true,
+        "visible": true,
+        "hidden": false,
+        "rect": {
+          "left": 885.828125,
+          "top": 716.140625,
+          "right": 1002.6875,
+          "bottom": 754.140625,
+          "width": 116.859375,
+          "height": 38
+        },
+        "text": "4 LEO re-entry LEO",
+        "kind": "sequence-rail",
+        "targetId": "leo-reentry-candidate",
+        "windowId": "leo-reentry-candidate",
+        "roleToken": null,
+        "lineCount": 3,
+        "lines": [
+          "新 LEO 候選回來",
+          "切回後可有 ~22 分鐘低延遲",
+          "MEO 仍接住可緩決定"
+        ],
+        "tabIndex": 0,
+        "role": "button",
+        "ariaLabel": "新 LEO 候選回來 sequence hover evidence"
+      },
+      {
+        "exists": true,
+        "visible": true,
+        "hidden": false,
+        "rect": {
+          "left": 1008.125,
+          "top": 716.140625,
+          "right": 1125,
+          "bottom": 754.140625,
+          "width": 116.875,
+          "height": 38
+        },
+        "text": "5 GEO guard GEO",
+        "kind": "sequence-rail",
+        "targetId": "geo-continuity-guard",
+        "windowId": "geo-continuity-guard",
+        "roleToken": null,
+        "lineCount": 3,
+        "lines": [
+          "GEO 保底覆蓋",
+          "永遠連得到",
+          "序列在這裡結束"
+        ],
+        "tabIndex": 0,
+        "role": "button",
+        "ariaLabel": "GEO 保底覆蓋 sequence hover evidence"
+      }
+    ],
+    "hoverTargetCounts": {
+      "satellite": 13,
+      "groundStation": 2,
+      "sequenceRail": 5
+    },
+    "forbiddenScopeLeak": {
+      "transitionToast": false,
+      "sceneCue": false,
+      "sourcesRole": true,
+      "r2Listing": false,
+      "detailsAndTruthConcurrent": false
+    },
+    "resourceHits": []
+  }
+}

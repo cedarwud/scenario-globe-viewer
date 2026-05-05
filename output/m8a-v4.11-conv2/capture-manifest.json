@@ -1,0 +1,160 @@
+{
+  "route": "/?scenePreset=regional&m8aV4GroundStationScene=1",
+  "hoverVersion": "m8a-v4.11-hover-popover-slice2-runtime.v1",
+  "hoverConv2Schema": "phase-specific-three-line",
+  "inspectorVersion": "m8a-v4.11-inspector-concurrency-slice3-runtime.v1",
+  "inspectorConv2Behavior": "single-state-evidence-role-truth-button-shows-state-evidence",
+  "countdownVersion": "m8a-v4.11-countdown-surface-conv2-runtime.v1",
+  "captures": [
+    {
+      "kind": "hover-phase-specific",
+      "windowId": "leo-acquisition-context",
+      "roleToken": "focus",
+      "lines": [
+        "OneWeb LEO · 現在看這顆",
+        "連線品質：強",
+        "服務時間:~22 分鐘"
+      ]
+    },
+    {
+      "kind": "hover-phase-specific",
+      "windowId": "leo-aging-pressure",
+      "roleToken": "pressure",
+      "lines": [
+        "OneWeb LEO · 訊號減弱中",
+        "切換在 ~10 分鐘",
+        "位置條件變差"
+      ]
+    },
+    {
+      "kind": "hover-phase-specific",
+      "windowId": "meo-continuity-hold",
+      "roleToken": "continuity-hold",
+      "lines": [
+        "SES O3b mPOWER MEO · 暫時接住",
+        "暫時接住 ~22 分鐘",
+        "新 LEO 即將回來"
+      ]
+    },
+    {
+      "kind": "hover-phase-specific",
+      "windowId": "leo-reentry-candidate",
+      "roleToken": "re-entry",
+      "lines": [
+        "OneWeb LEO · 候選",
+        "候選品質:強",
+        "若切回:~22 分鐘"
+      ]
+    },
+    {
+      "kind": "hover-phase-specific",
+      "windowId": "geo-continuity-guard",
+      "roleToken": "guard",
+      "lines": [
+        "Singtel/SES GEO · 保底覆蓋",
+        "永遠連得到",
+        "序列即將結束"
+      ]
+    },
+    {
+      "kind": "details-only-single-role",
+      "stateRoleVisible": true,
+      "truthRoleVisible": false
+    },
+    {
+      "kind": "truth-button-opens-state-evidence",
+      "screenshot": "output/m8a-v4.11-conv2/v4.11-conv2-truth-button-1440x900.png"
+    },
+    {
+      "kind": "w3-inspector-single-role",
+      "screenshot": "output/m8a-v4.11-conv2/v4.11-conv2-w3-inspector-1440x900.png"
+    },
+    {
+      "kind": "hover-screenshot",
+      "windowId": "leo-acquisition-context",
+      "screenshot": "output/m8a-v4.11-conv2/v4.11-conv2-w1-hover-1440x900.png"
+    },
+    {
+      "kind": "hover-screenshot",
+      "windowId": "meo-continuity-hold",
+      "screenshot": "output/m8a-v4.11-conv2/v4.11-conv2-w3-hover-1440x900.png"
+    },
+    {
+      "kind": "hover-screenshot",
+      "windowId": "leo-reentry-candidate",
+      "screenshot": "output/m8a-v4.11-conv2/v4.11-conv2-w4-hover-candidate-1440x900.png"
+    },
+    {
+      "kind": "hover-screenshot",
+      "windowId": "geo-continuity-guard",
+      "screenshot": "output/m8a-v4.11-conv2/v4.11-conv2-w5-hover-1440x900.png"
+    },
+    {
+      "kind": "w2-countdown",
+      "screenshot": "output/m8a-v4.11-conv2/v4.11-conv2-w2-countdown-1440x900.png"
+    },
+    {
+      "kind": "countdown-derivation",
+      "windowId": "leo-acquisition-context",
+      "replayRatio": "0.100000",
+      "approximate": "~11 分鐘",
+      "remainingSimulatedSec": "689.35"
+    },
+    {
+      "kind": "countdown-derivation",
+      "windowId": "leo-aging-pressure",
+      "replayRatio": "0.300000",
+      "approximate": "~11 分鐘",
+      "remainingSimulatedSec": "689.35"
+    },
+    {
+      "kind": "countdown-derivation",
+      "windowId": "meo-continuity-hold",
+      "replayRatio": "0.500000",
+      "approximate": "~11 分鐘",
+      "remainingSimulatedSec": "689.35"
+    },
+    {
+      "kind": "countdown-derivation",
+      "windowId": "leo-reentry-candidate",
+      "replayRatio": "0.700000",
+      "approximate": "~14 分鐘",
+      "remainingSimulatedSec": "827.22"
+    },
+    {
+      "kind": "countdown-derivation",
+      "windowId": "geo-continuity-guard",
+      "replayRatio": "0.900000",
+      "approximate": "~11 分鐘",
+      "remainingSimulatedSec": "689.35"
+    },
+    {
+      "kind": "countdown-monotone",
+      "remainingBefore": 1240.84,
+      "remainingAfter": 551.48
+    },
+    {
+      "kind": "w2-worked-example",
+      "surface": {
+        "version": "m8a-v4.11-countdown-surface-conv2-runtime.v1",
+        "derivation": "addendum-1.1",
+        "windowId": "leo-aging-pressure",
+        "replayRatio": "0.300000",
+        "startRatio": "0.200000",
+        "stopRatio": "0.400000",
+        "withinWindowFraction": "0.500000",
+        "remainingFraction": "0.500000",
+        "remainingSimulatedSec": "689.35",
+        "fullReplaySimulatedSec": "6893.53",
+        "approximateDisplay": "~11 分鐘",
+        "primaryText": "切換到 MEO：~11 分鐘",
+        "appendixText": "位置條件變差",
+        "footnoteText": "~ 為模擬推演值",
+        "fontSizePx": "14",
+        "gapFromMicroCuePx": "8"
+      },
+      "fullReplay": 6893.53,
+      "remaining": 689.35
+    }
+  ]
+}

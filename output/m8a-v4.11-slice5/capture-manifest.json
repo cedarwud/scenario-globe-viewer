@@ -1,0 +1,16 @@
+{
+  "viewport": {
+    "name": "desktop-1440x900",
+    "width": 1440,
+    "height": 900
+  },
+  "screenshots": [
+    "/home/u24/papers/scenario-globe-viewer/output/m8a-v4.11-slice5/v4.11-sources-advanced-toggle-1440x900.png"
+  ],
+  "checks": [
+    "sources-default-closed",
+    "corner-placeholder-does-not-open-sources",
+    "ground-short-chip-does-not-open-sources",
+    "advanced-toggle-opens-full-sources"
+  ]
+}

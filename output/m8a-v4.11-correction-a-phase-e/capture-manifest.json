@@ -1,0 +1,23 @@
+{
+  "screenshots": [
+    "/home/u24/papers/scenario-globe-viewer/output/m8a-v4.11-correction-a-phase-e/w1-default-1440x900.png",
+    "/home/u24/papers/scenario-globe-viewer/output/m8a-v4.11-correction-a-phase-e/w2-metrics-tab-1440x900.png",
+    "/home/u24/papers/scenario-globe-viewer/output/m8a-v4.11-correction-a-phase-e/w3-decision-tab-1440x900.png",
+    "/home/u24/papers/scenario-globe-viewer/output/m8a-v4.11-correction-a-phase-e/w4-steady-candidate-halo-1440x900.png",
+    "/home/u24/papers/scenario-globe-viewer/output/m8a-v4.11-correction-a-phase-e/w5-boundary-tab-1440x900.png",
+    "/home/u24/papers/scenario-globe-viewer/output/m8a-v4.11-correction-a-phase-e/evidence-tab-1440x900.png",
+    "/home/u24/papers/scenario-globe-viewer/output/m8a-v4.11-correction-a-phase-e/overlap-check-1280x720.png",
+    "/home/u24/papers/scenario-globe-viewer/output/m8a-v4.11-correction-a-phase-e/narrow-fallback-390x844.png"
+  ],
+  "checks": [
+    "footer-disclosure-opens-boundary",
+    "details-button-opens-decision",
+    "w1-w5-holistic-visual-acceptance",
+    "bottom-domrects-clear-of-cesium-timeline-animation-credits",
+    "no-fake-measured-values",
+    "no-cjk-tofu-glyphs",
+    "w4-entry-cue-then-steady-candidate-halo",
+    "source-boundary-and-runtime-forbidden-claim-boundaries"
+  ],
+  "softening": []
+}

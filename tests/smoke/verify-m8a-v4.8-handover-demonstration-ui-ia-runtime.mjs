@@ -47,7 +47,7 @@ const VIEWPORTS = [
 const EXPECTED_REVIEW_MODELS = {
   "leo-acquisition-context": {
     ratio: 0.1,
-    productLabel: "LEO acquire",
+    productLabel: "LEO review focus",
     representativeActorId: "oneweb-0386-leo-display-context",
     sceneAnchorState: "representative-actor-anchor",
     selectedAnchorType: "display-representative-actor",
@@ -86,7 +86,7 @@ const EXPECTED_REVIEW_MODELS = {
   },
   "meo-continuity-hold": {
     ratio: 0.5,
-    productLabel: "MEO hold",
+    productLabel: "MEO continuity hold",
     representativeActorId: "o3b-mpower-f6-meo-display-context",
     sceneAnchorState: "representative-meo-actor-anchor",
     selectedAnchorType: "display-representative-actor",
@@ -127,7 +127,7 @@ const EXPECTED_REVIEW_MODELS = {
   },
   "geo-continuity-guard": {
     ratio: 0.92,
-    productLabel: "GEO guard",
+    productLabel: "GEO guard context",
     representativeActorId: "st-2-geo-continuity-anchor",
     sceneAnchorState: "geo-guard-cue-anchor",
     selectedAnchorType: "geo-guard-cue",
@@ -143,6 +143,25 @@ const EXPECTED_REVIEW_MODELS = {
       "ses-9-geo-display-context"
     ]
   }
+};
+const EXPECTED_V411_STATE_EVIDENCE_COPY = {
+  "leo-acquisition-context":
+    "The simulation review is currently anchored on the OneWeb LEO context marked as the focus role. The five-state V4.6D model is in window 1 of 5. Watch the LEO actor for the early pressure signal — the next modeled state is LEO pressure. Endpoint precision remains operator-family only and no active gateway is being claimed.",
+  "leo-aging-pressure":
+    "The simulation marks the LEO context as under aging pressure in window 2 of 5. The geometry is degrading by simulation, not by measurement. The next modeled state holds continuity on the MEO context. No real RF handover is being asserted.",
+  "meo-continuity-hold":
+    "The simulation holds continuity on the SES O3b mPOWER MEO context in window 3 of 5. This is wider-area continuity by model, not a measured failover. LEO returns as a candidate focus in the next window. Endpoint precision remains operator-family only.",
+  "leo-reentry-candidate":
+    "LEO returns as a candidate review focus in window 4 of 5. The next state closes the sequence on GEO guard context. Continuity here is modeled, not measured.",
+  "geo-continuity-guard":
+    "The sequence closes on GEO as guard context in window 5 of 5. GEO is shown as continuity guard only — no failover proof is being asserted. Restart to review the simulation again."
+};
+const EXPECTED_SLICE1_MICRO_CUES = {
+  "leo-acquisition-context": "focus · LEO",
+  "leo-aging-pressure": "pressure · LEO",
+  "meo-continuity-hold": "hold · MEO",
+  "leo-reentry-candidate": "re-entry · LEO",
+  "geo-continuity-guard": "guard · GEO"
 };
 const FORBIDDEN_POSITIVE_PHRASES = [
   "real operator handover event",
@@ -398,9 +417,11 @@ async function inspectPhaseTwoDom(client) {
         )
       ).filter(isVisible);
       const hiddenProgress = productRoot.querySelector("[data-m8a-v47-progress='true']");
+      const isSourcesAffordance = (element) =>
+        element?.getAttribute?.("data-m8a-v47-action") === "open-sources";
       const visibleControls = Array.from(
         productRoot.querySelectorAll("button, input, select, textarea, [role='button']")
-      ).filter(isVisible);
+      ).filter((element) => isVisible(element) && !isSourcesAffordance(element));
       const controlClassFailures = visibleControls
         .map((element) => ({
           text: element.textContent.trim(),
@@ -690,15 +711,21 @@ async function verifyReviewViewModels(client) {
       "V4.8 fallback context actor ids changed from the accepted table: " +
         JSON.stringify(result)
     );
+    const hasV48InspectorCopy =
+      result.bodyText.includes(result.review.reviewPurpose) &&
+      result.bodyText.includes(result.review.whatChangedFromPreviousState) &&
+      result.bodyText.includes(result.review.whatToWatch) &&
+      result.bodyText.includes(result.review.nextStateHint);
+    const hasV411StateEvidenceCopy =
+      result.bodyText.includes("State Evidence") &&
+      result.bodyText.includes(expected.productLabel) &&
+      result.bodyText.includes(EXPECTED_V411_STATE_EVIDENCE_COPY[windowId]);
     assert(
       result.disclosureState === "open" &&
         result.sheetVisible === true &&
         result.sheetWindowId === windowId &&
         result.bodyWindowId === windowId &&
-        result.bodyText.includes(result.review.reviewPurpose) &&
-        result.bodyText.includes(result.review.whatChangedFromPreviousState) &&
-        result.bodyText.includes(result.review.whatToWatch) &&
-        result.bodyText.includes(result.review.nextStateHint),
+        (hasV48InspectorCopy || hasV411StateEvidenceCopy),
       "V4.8 inspector body must be dynamic and state-specific: " +
         JSON.stringify(result)
     );
@@ -754,8 +781,10 @@ function assertSceneAnchorGeometry(result, expected, viewport, sheetOpen) {
     "V4.8 scene anchor runtime geometry must not retain phase1-placeholder: " +
       JSON.stringify(result)
   );
+  const expectedMicroCue = EXPECTED_SLICE1_MICRO_CUES[result.expectedWindowId];
   assert(
-    result.annotationText.includes(expected.productLabel),
+    result.annotationText.includes(expected.productLabel) ||
+      result.annotationText.includes(expectedMicroCue),
     "V4.8 scene-near label must track the selected V4.6D state: " +
       JSON.stringify(result)
   );

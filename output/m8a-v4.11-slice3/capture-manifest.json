@@ -1,0 +1,19 @@
+{
+  "route": "/?scenePreset=regional&m8aV4GroundStationScene=1",
+  "version": "m8a-v4.11-inspector-concurrency-slice3-runtime.v1",
+  "captures": [
+    {
+      "label": "w1-pinned-concurrency",
+      "screenshot": "output/m8a-v4.11-slice3/v4.11-w1-pinned-1440x900.png",
+      "metadata": "output/m8a-v4.11-slice3/v4.11-w1-pinned-1440x900.metadata.json",
+      "inspectorRect": {
+        "left": 1097,
+        "top": 23,
+        "right": 1417,
+        "bottom": 771,
+        "width": 320,
+        "height": 748
+      }
+    }
+  ]
+}

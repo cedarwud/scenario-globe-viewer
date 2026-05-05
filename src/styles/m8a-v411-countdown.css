@@ -1,0 +1,73 @@
+.m8a-v411-product-ux__countdown-surface {
+  position: absolute;
+  z-index: 5;
+  top: calc(2.4rem + 24px + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  display: grid;
+  grid-auto-flow: row;
+  align-items: center;
+  justify-items: center;
+  gap: 0.18rem;
+  padding: 0.4rem 0.7rem;
+  max-width: 320px;
+  border: 1px solid rgba(172, 217, 235, 0.34);
+  border-radius: 8px;
+  background: rgba(7, 17, 22, 0.78);
+  color: rgba(232, 246, 250, 0.98);
+  font-size: 14px;
+  font-weight: 720;
+  letter-spacing: 0.01em;
+  line-height: 1.18;
+  text-align: center;
+  pointer-events: none;
+  box-shadow: 0 12px 22px rgba(0, 0, 0, 0.28);
+}
+
+.m8a-v411-product-ux__countdown-surface[data-m8a-v411-countdown-window-id="leo-aging-pressure"] {
+  border-color: rgba(255, 184, 110, 0.6);
+  background: rgba(34, 18, 12, 0.78);
+}
+
+.m8a-v411-product-ux__countdown-surface[data-m8a-v411-countdown-window-id="meo-continuity-hold"] {
+  border-color: rgba(120, 170, 220, 0.6);
+  background: rgba(15, 22, 36, 0.78);
+}
+
+.m8a-v411-product-ux__countdown-surface[data-m8a-v411-countdown-window-id="leo-reentry-candidate"] {
+  border-color: rgba(120, 218, 156, 0.6);
+  background: rgba(13, 26, 22, 0.78);
+}
+
+.m8a-v411-product-ux__countdown-surface[data-m8a-v411-countdown-window-id="geo-continuity-guard"] {
+  border-color: rgba(232, 200, 96, 0.7);
+  background: rgba(28, 23, 12, 0.82);
+}
+
+.m8a-v411-product-ux__countdown-surface[data-m8a-v411-countdown-primary] {
+  font-size: 14px;
+}
+
+.m8a-v411-product-ux__countdown-surface > [data-m8a-v411-countdown-primary="true"] {
+  font-size: 14px;
+  font-weight: 820;
+  color: rgba(255, 247, 224, 0.98);
+}
+
+.m8a-v411-product-ux__countdown-surface > [data-m8a-v411-countdown-appendix="true"] {
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(196, 232, 244, 0.92);
+}
+
+.m8a-v411-product-ux__countdown-surface > [data-m8a-v411-countdown-footnote="true"] {
+  margin-top: 0.12rem;
+  font-size: 10px;
+  font-weight: 500;
+  color: rgba(190, 210, 220, 0.78);
+  letter-spacing: 0.02em;
+}
+
+.m8a-v411-product-ux__countdown-surface[hidden] {
+  display: none !important;
+}

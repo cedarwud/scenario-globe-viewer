@@ -1,0 +1,13 @@
+{
+  "screenshots": [
+    "/home/u24/papers/scenario-globe-viewer/output/m8a-v4.11-correction-a-phase-d/w4-entry-cue-1440x900.png",
+    "/home/u24/papers/scenario-globe-viewer/output/m8a-v4.11-correction-a-phase-d/w4-steady-candidate-halo-1440x900.png",
+    "/home/u24/papers/scenario-globe-viewer/output/m8a-v4.11-correction-a-phase-d/w4-overlap-check-1280x720.png",
+    "/home/u24/papers/scenario-globe-viewer/output/m8a-v4.11-correction-a-phase-d/w4-reduced-motion-candidate-state-1440x900.png"
+  ],
+  "checks": [
+    "normal-motion-entry-and-steady-w4-candidate-token",
+    "reduced-motion-stable-w4-candidate-token",
+    "cjk-glyph-runtime-probe-no-tofu"
+  ]
+}

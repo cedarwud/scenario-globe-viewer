@@ -1,0 +1,151 @@
+.m8a-v411-product-ux__orbit-chip-layer,
+.m8a-v411-product-ux__ground-chip-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.m8a-v411-product-ux__orbit-chip {
+  position: absolute;
+  display: inline-grid;
+  place-items: center;
+  min-width: 2.25rem;
+  height: 18px;
+  padding: 0 0.36rem;
+  border: 1px solid rgba(172, 217, 235, 0.3);
+  border-radius: 999px;
+  background: rgba(5, 14, 18, 0.72);
+  color: rgba(234, 246, 250, 0.96);
+  font-size: 0.58rem;
+  font-weight: 840;
+  line-height: 1;
+  text-align: center;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.62);
+  transform: translate(-50%, -50%);
+  white-space: nowrap;
+}
+
+.m8a-v411-product-ux__orbit-chip[data-m8a-v411-orbit-class="LEO"] {
+  border-color: rgba(255, 209, 102, 0.5);
+  color: rgba(255, 238, 184, 0.98);
+}
+
+.m8a-v411-product-ux__orbit-chip[data-m8a-v411-orbit-class="MEO"] {
+  border-color: rgba(126, 226, 184, 0.46);
+  color: rgba(196, 255, 226, 0.98);
+}
+
+.m8a-v411-product-ux__orbit-chip[data-m8a-v411-orbit-class="GEO"] {
+  border-color: rgba(133, 186, 255, 0.52);
+  color: rgba(208, 229, 255, 0.98);
+}
+
+.m8a-v411-product-ux__ground-chip {
+  position: absolute;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.18rem;
+  width: max-content;
+  max-width: 96px;
+  height: 18px;
+  padding: 0 0.42rem;
+  border: 1px solid rgba(126, 226, 184, 0.34);
+  border-radius: 999px;
+  background: rgba(5, 16, 18, 0.74);
+  color: rgba(221, 252, 236, 0.98);
+  font-size: 11px;
+  font-weight: 820;
+  line-height: 1;
+  letter-spacing: 0;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.58);
+  white-space: nowrap;
+  transform: translate(-50%, -50%);
+}
+
+.m8a-v411-product-ux__ground-chip [data-m8a-v411-ground-orbit-token="LEO"] {
+  color: rgba(255, 232, 170, 0.98);
+}
+
+.m8a-v411-product-ux__ground-chip [data-m8a-v411-ground-orbit-token="MEO"] {
+  color: rgba(190, 255, 224, 0.98);
+}
+
+.m8a-v411-product-ux__ground-chip [data-m8a-v411-ground-orbit-token="GEO"] {
+  color: rgba(205, 227, 255, 0.98);
+}
+
+.m8a-v411-product-ux__ground-chip [data-m8a-v411-ground-evidence-strength-mark="true"] {
+  margin-left: 0.18rem;
+  color: rgba(126, 226, 184, 0.94);
+}
+
+.m8a-v411-product-ux__provenance-badge {
+  min-width: 0;
+  border: 1px solid rgba(126, 226, 184, 0.34);
+  border-radius: 999px;
+  background: rgba(5, 16, 18, 0.74);
+  color: rgba(221, 252, 236, 0.98);
+  font-size: 0.62rem;
+  font-weight: 820;
+  line-height: 1;
+  letter-spacing: 0;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.58);
+  white-space: nowrap;
+}
+
+.m8a-v411-product-ux__provenance-badge {
+  position: absolute;
+  top: calc(var(--hud-frame-gap) + 0.65rem);
+  right: var(--hud-frame-gap);
+  z-index: 3;
+  max-width: min(29rem, calc(100vw - 2 * var(--hud-frame-gap)));
+  height: 24px;
+  padding: 0.36rem 0.58rem;
+  border-color: rgba(172, 217, 235, 0.32);
+  background: rgba(6, 16, 22, 0.72);
+  color: rgba(230, 242, 248, 0.96);
+}
+
+.m8a-v411-product-ux__orbit-chip[hidden],
+.m8a-v411-product-ux__ground-chip[hidden] {
+  display: none !important;
+}
+
+/* Conv 3: corner badge is a ≤24×24 invisible placeholder (hidden via .hidden attr) */
+.m8a-v411-product-ux__provenance-badge[hidden] {
+  width: 24px !important;
+  max-width: 24px !important;
+  height: 24px !important;
+  overflow: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+  /* keep display so getBoundingClientRect returns a rect for selector smoke compat */
+  display: block !important;
+}
+
+@media (max-width: 720px) {
+  .m8a-v411-product-ux__orbit-chip {
+    min-width: 1.9rem;
+    height: 16px;
+    padding: 0 0.28rem;
+    font-size: 0.52rem;
+  }
+
+  .m8a-v411-product-ux__ground-chip {
+    max-width: 96px;
+  }
+
+  .m8a-v411-product-ux__provenance-badge {
+    top: calc(var(--hud-frame-gap) + 12.6rem);
+    right: auto;
+    left: var(--hud-frame-gap);
+    max-width: none;
+    height: auto;
+    min-height: 22px;
+    font-size: 0.55rem;
+    line-height: 1.15;
+    white-space: normal;
+  }
+}

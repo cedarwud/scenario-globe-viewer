@@ -1,0 +1,13 @@
+{
+  "viewport": {
+    "name": "desktop-1440x900",
+    "width": 1440,
+    "height": 900
+  },
+  "checks": [
+    "sources-default-closed-and-direct-triggers-demoted",
+    "corner-placeholder-click-does-not-open-sources",
+    "ground-chip-click-does-not-open-sources",
+    "details-advanced-toggle-opens-full-sources"
+  ]
+}

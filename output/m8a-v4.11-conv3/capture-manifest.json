@@ -1,0 +1,21 @@
+{
+  "viewport": {
+    "name": "desktop-1440x900",
+    "width": 1440,
+    "height": 900
+  },
+  "screenshots": [
+    "/home/u24/papers/scenario-globe-viewer/output/m8a-v4.11-conv3/v4.11-conv3-w1-default-1440x900.png",
+    "/home/u24/papers/scenario-globe-viewer/output/m8a-v4.11-conv3/v4.11-conv3-w5-warning-1440x900.png",
+    "/home/u24/papers/scenario-globe-viewer/output/m8a-v4.11-conv3/v4.11-conv3-truth-removed-1440x900.png",
+    "/home/u24/papers/scenario-globe-viewer/output/m8a-v4.11-conv3/v4.11-conv3-footer-chip-clicked-1440x900.png",
+    "/home/u24/papers/scenario-globe-viewer/output/m8a-v4.11-conv3/v4.11-conv3-bottom-layout-1440x900.png"
+  ],
+  "checks": [
+    "w1-default-footer-four-ambient-chips",
+    "w5-warning-chip-only-on-w5",
+    "truth-button-dom-removed",
+    "footer-chip-click-opens-boundary-state",
+    "bottom-layout-24-8-56-total-under-100"
+  ]
+}

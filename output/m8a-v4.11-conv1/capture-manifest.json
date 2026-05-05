@@ -1,0 +1,73 @@
+{
+  "route": "/?scenePreset=regional&m8aV4GroundStationScene=1",
+  "version": "m8a-v4.11-visual-tokens-conv1-runtime.v1",
+  "sceneContextChipVersion": "m8a-v4.11-scene-context-chip-conv1-runtime.v1",
+  "captures": [
+    {
+      "label": "default",
+      "screenshot": "output/m8a-v4.11-conv1/v4.11-conv1-default-1440x900.png",
+      "activeWindowId": "leo-acquisition-context",
+      "activeTokenId": "W1"
+    },
+    {
+      "label": "W1",
+      "windowId": "leo-acquisition-context",
+      "screenshot": "output/m8a-v4.11-conv1/v4.11-conv1-w1-1440x900.png",
+      "visibleTokenEntityIds": [
+        "m8a-v4.11-w1-rising-arc-segment-0",
+        "m8a-v4.11-w1-rising-arc-segment-1",
+        "m8a-v4.11-w1-rising-arc-segment-2",
+        "m8a-v4.11-w1-rising-arc-segment-3",
+        "m8a-v4.11-w1-rising-arc-segment-4",
+        "m8a-v4.11-w1-rising-arc-segment-5",
+        "m8a-v4.11-w1-rising-arc-segment-6",
+        "m8a-v4.11-w1-rising-arc-segment-7"
+      ]
+    },
+    {
+      "label": "W2",
+      "windowId": "leo-aging-pressure",
+      "screenshot": "output/m8a-v4.11-conv1/v4.11-conv1-w2-1440x900.png",
+      "visibleTokenEntityIds": [
+        "m8a-v4.11-w2-fading-arc-past-0",
+        "m8a-v4.11-w2-fading-arc-past-1",
+        "m8a-v4.11-w2-fading-arc-past-2",
+        "m8a-v4.11-w2-fading-arc-past-3",
+        "m8a-v4.11-w2-fading-arc-past-4",
+        "m8a-v4.11-w2-fading-arc-past-5",
+        "m8a-v4.11-w2-fading-arc-future-0",
+        "m8a-v4.11-w2-fading-arc-future-1",
+        "m8a-v4.11-w2-fading-arc-future-2",
+        "m8a-v4.11-w2-fading-arc-future-3",
+        "m8a-v4.11-w2-fading-arc-future-4",
+        "m8a-v4.11-w2-fading-arc-future-5"
+      ]
+    },
+    {
+      "label": "W3",
+      "windowId": "meo-continuity-hold",
+      "screenshot": "output/m8a-v4.11-conv1/v4.11-conv1-w3-1440x900.png",
+      "visibleTokenEntityIds": [
+        "m8a-v4.11-w3-breathing-disk"
+      ]
+    },
+    {
+      "label": "W4",
+      "windowId": "leo-reentry-candidate",
+      "screenshot": "output/m8a-v4.11-conv1/v4.11-conv1-w4-1440x900.png",
+      "visibleTokenEntityIds": [
+        "m8a-v4.11-w4-candidate-pulse-ring-0",
+        "m8a-v4.11-w4-candidate-pulse-ring-1",
+        "m8a-v4.11-w4-candidate-pulse-ring-2"
+      ]
+    },
+    {
+      "label": "W5",
+      "windowId": "geo-continuity-guard",
+      "screenshot": "output/m8a-v4.11-conv1/v4.11-conv1-w5-1440x900.png",
+      "visibleTokenEntityIds": [
+        "m8a-v4.11-w5-steady-ring"
+      ]
+    }
+  ]
+}

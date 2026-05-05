@@ -1,0 +1,657 @@
+{
+  "viewport": {
+    "name": "desktop-1440x900",
+    "width": 1440,
+    "height": 900
+  },
+  "route": "/?scenePreset=regional&m8aV4GroundStationScene=1",
+  "windowId": "leo-aging-pressure",
+  "screenshot": "output/m8a-v4.11-slice4/v4.11-w2-toast-1440x900.png",
+  "elapsedMs": 25,
+  "result": {
+    "label": "transition-leo-aging-pressure",
+    "urlPath": "/?scenePreset=regional&m8aV4GroundStationScene=1",
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "stateFacts": {
+      "route": "/?scenePreset=regional&m8aV4GroundStationScene=1",
+      "endpointPairId": "taiwan-cht-speedcast-singapore-operator-family-2026-04-26",
+      "acceptedPairPrecision": "operator-family-only",
+      "modelId": "m8a-v4.6d-simulation-handover-model.v1",
+      "modelTruth": "simulation-output-not-operator-log",
+      "orbitActorCounts": {
+        "leo": 6,
+        "meo": 5,
+        "geo": 2
+      },
+      "actorCount": 13,
+      "sourceLineage": {
+        "projectionRead": "M8A_V4_GROUND_STATION_RUNTIME_PROJECTION",
+        "serviceStateRead": "M8A_V4_GROUND_STATION_RUNTIME_PROJECTION.serviceStateModel.timeline",
+        "simulationHandoverRead": "M8A_V4_GROUND_STATION_RUNTIME_PROJECTION.simulationHandoverModel.timeline",
+        "rawPackageSideReadOwnership": "forbidden",
+        "rawSourcePathsIncluded": false
+      },
+      "activeWindowId": "leo-aging-pressure",
+      "timelineWindowIds": [
+        "leo-acquisition-context",
+        "leo-aging-pressure",
+        "meo-continuity-hold",
+        "leo-reentry-candidate",
+        "geo-continuity-guard"
+      ],
+      "requiredWindowNonClaimKeys": [
+        "noRealOperatorHandoverEvent",
+        "noActiveServingSatelliteIdentity",
+        "noActiveGatewayAssignment",
+        "noPairSpecificTeleportPathTruth",
+        "noMeasuredLatencyJitterThroughputTruth",
+        "noNativeRfHandover",
+        "noEndpointPairOrPrecisionChange",
+        "noR2RuntimeSelector",
+        "noRawItriOrLiveExternalRuntimeSource"
+      ],
+      "timelineNonClaims": [
+        {
+          "windowId": "leo-acquisition-context",
+          "nonClaims": {
+            "noRealOperatorHandoverEvent": true,
+            "noActiveServingSatelliteIdentity": true,
+            "noActiveGatewayAssignment": true,
+            "noPairSpecificTeleportPathTruth": true,
+            "noMeasuredLatencyJitterThroughputTruth": true,
+            "noNativeRfHandover": true,
+            "noEndpointPairOrPrecisionChange": true,
+            "noR2RuntimeSelector": true,
+            "noRawItriOrLiveExternalRuntimeSource": true
+          }
+        },
+        {
+          "windowId": "leo-aging-pressure",
+          "nonClaims": {
+            "noRealOperatorHandoverEvent": true,
+            "noActiveServingSatelliteIdentity": true,
+            "noActiveGatewayAssignment": true,
+            "noPairSpecificTeleportPathTruth": true,
+            "noMeasuredLatencyJitterThroughputTruth": true,
+            "noNativeRfHandover": true,
+            "noEndpointPairOrPrecisionChange": true,
+            "noR2RuntimeSelector": true,
+            "noRawItriOrLiveExternalRuntimeSource": true
+          }
+        },
+        {
+          "windowId": "meo-continuity-hold",
+          "nonClaims": {
+            "noRealOperatorHandoverEvent": true,
+            "noActiveServingSatelliteIdentity": true,
+            "noActiveGatewayAssignment": true,
+            "noPairSpecificTeleportPathTruth": true,
+            "noMeasuredLatencyJitterThroughputTruth": true,
+            "noNativeRfHandover": true,
+            "noEndpointPairOrPrecisionChange": true,
+            "noR2RuntimeSelector": true,
+            "noRawItriOrLiveExternalRuntimeSource": true
+          }
+        },
+        {
+          "windowId": "leo-reentry-candidate",
+          "nonClaims": {
+            "noRealOperatorHandoverEvent": true,
+            "noActiveServingSatelliteIdentity": true,
+            "noActiveGatewayAssignment": true,
+            "noPairSpecificTeleportPathTruth": true,
+            "noMeasuredLatencyJitterThroughputTruth": true,
+            "noNativeRfHandover": true,
+            "noEndpointPairOrPrecisionChange": true,
+            "noR2RuntimeSelector": true,
+            "noRawItriOrLiveExternalRuntimeSource": true
+          }
+        },
+        {
+          "windowId": "geo-continuity-guard",
+          "nonClaims": {
+            "noRealOperatorHandoverEvent": true,
+            "noActiveServingSatelliteIdentity": true,
+            "noActiveGatewayAssignment": true,
+            "noPairSpecificTeleportPathTruth": true,
+            "noMeasuredLatencyJitterThroughputTruth": true,
+            "noNativeRfHandover": true,
+            "noEndpointPairOrPrecisionChange": true,
+            "noR2RuntimeSelector": true,
+            "noRawItriOrLiveExternalRuntimeSource": true
+          }
+        }
+      ],
+      "disclosure": {
+        "state": "closed",
+        "detailsSheetState": "closed",
+        "boundarySurfaceState": "closed",
+        "sourcesRoleState": "closed",
+        "activeInspectorTab": "decision",
+        "sourcesFilter": {
+          "trigger": "advanced-source-provenance",
+          "endpointId": "",
+          "orbitClass": ""
+        },
+        "boundaryFullTruthDisclosureState": "closed",
+        "lines": [
+          "Simulated display-context state, not an operator handover log.",
+          "Source-lineaged display-context actors, not active serving satellites.",
+          "Endpoint precision stays operator-family only.",
+          "No active gateway assignment is claimed.",
+          "No pair-specific teleport path is claimed.",
+          "No measured latency, jitter, throughput, or continuity values are shown.",
+          "No native RF handover is claimed."
+        ]
+      }
+    },
+    "rootDataset": {
+      "glance": "m8a-v4.11-glance-rank-surface-slice1-runtime.v1",
+      "hover": "m8a-v4.11-hover-popover-slice2-runtime.v1",
+      "concurrency": "m8a-v4.11-inspector-concurrency-slice3-runtime.v1",
+      "transient": "m8a-v4.11-transition-toast-slice4-runtime.v1",
+      "scope": "slice4-transition-toast",
+      "toastDurationMs": "2500",
+      "toastMaxCount": "2",
+      "toastMaxWidthPx": "320",
+      "toastMaxCanvasWidthRatio": "0.22",
+      "sceneCueMaxWidthPx": "180",
+      "sceneCueMaxHeightPx": "24",
+      "sceneCueFadeInMs": "200",
+      "sceneCuePersistMs": "2000"
+    },
+    "toastStack": {
+      "exists": true,
+      "visible": true,
+      "hidden": false,
+      "rect": {
+        "left": 23.03125,
+        "top": 231.03125,
+        "right": 339.828125,
+        "bottom": 283.296875,
+        "width": 316.796875,
+        "height": 52.265625
+      },
+      "text": "LEO pressure Continuity will shift to the MEO hold next.",
+      "style": {
+        "animationName": "none",
+        "transform": "none",
+        "opacity": "1"
+      },
+      "count": 1,
+      "maxCount": 2
+    },
+    "toasts": [
+      {
+        "exists": true,
+        "visible": true,
+        "hidden": false,
+        "rect": {
+          "left": 23.03125,
+          "top": 225.03125,
+          "right": 339.828125,
+          "bottom": 277.296875,
+          "width": 316.796875,
+          "height": 52.265625
+        },
+        "text": "LEO pressure Continuity will shift to the MEO hold next.",
+        "style": {
+          "animationName": "m8a-v411-toast-lifecycle",
+          "transform": "matrix(1, 0, 0, 1, 0, -6)",
+          "opacity": "0.14"
+        },
+        "windowId": "leo-aging-pressure",
+        "fromWindowId": "leo-acquisition-context",
+        "title": "LEO pressure",
+        "line": "Continuity will shift to the MEO hold next.",
+        "durationMs": "2500",
+        "elapsedMs": "25.0",
+        "maxWidthPx": "320",
+        "maxCanvasWidthRatio": "0.22",
+        "stackIndex": "1",
+        "stackSize": "1"
+      }
+    ],
+    "visibleToasts": [
+      {
+        "exists": true,
+        "visible": true,
+        "hidden": false,
+        "rect": {
+          "left": 23.03125,
+          "top": 225.03125,
+          "right": 339.828125,
+          "bottom": 277.296875,
+          "width": 316.796875,
+          "height": 52.265625
+        },
+        "text": "LEO pressure Continuity will shift to the MEO hold next.",
+        "style": {
+          "animationName": "m8a-v411-toast-lifecycle",
+          "transform": "matrix(1, 0, 0, 1, 0, -6)",
+          "opacity": "0.14"
+        },
+        "windowId": "leo-aging-pressure",
+        "fromWindowId": "leo-acquisition-context",
+        "title": "LEO pressure",
+        "line": "Continuity will shift to the MEO hold next.",
+        "durationMs": "2500",
+        "elapsedMs": "25.0",
+        "maxWidthPx": "320",
+        "maxCanvasWidthRatio": "0.22",
+        "stackIndex": "1",
+        "stackSize": "1"
+      }
+    ],
+    "sceneCues": [
+      {
+        "exists": true,
+        "visible": true,
+        "hidden": false,
+        "rect": {
+          "left": 872.5,
+          "top": 505,
+          "right": 981.640625,
+          "bottom": 529,
+          "width": 109.140625,
+          "height": 24
+        },
+        "text": "pressure · LEO",
+        "style": {
+          "animationName": "m8a-v411-scene-cue-lifecycle",
+          "transform": "matrix(1, 0, 0, 1, 0, 3)",
+          "opacity": "0.14"
+        },
+        "windowId": "leo-aging-pressure",
+        "cueText": "pressure · LEO",
+        "maxWidthPx": "180",
+        "maxHeightPx": "24",
+        "fadeInMs": "200",
+        "persistMs": "2000",
+        "actorId": "oneweb-0537-leo-display-context",
+        "projected": "true",
+        "anchorStatus": "geometry-reliable"
+      }
+    ],
+    "visibleSceneCues": [
+      {
+        "exists": true,
+        "visible": true,
+        "hidden": false,
+        "rect": {
+          "left": 872.5,
+          "top": 505,
+          "right": 981.640625,
+          "bottom": 529,
+          "width": 109.140625,
+          "height": 24
+        },
+        "text": "pressure · LEO",
+        "style": {
+          "animationName": "m8a-v411-scene-cue-lifecycle",
+          "transform": "matrix(1, 0, 0, 1, 0, 3)",
+          "opacity": "0.14"
+        },
+        "windowId": "leo-aging-pressure",
+        "cueText": "pressure · LEO",
+        "maxWidthPx": "180",
+        "maxHeightPx": "24",
+        "fadeInMs": "200",
+        "persistMs": "2000",
+        "actorId": "oneweb-0537-leo-display-context",
+        "projected": "true",
+        "anchorStatus": "geometry-reliable"
+      }
+    ],
+    "status": {
+      "exists": true,
+      "visible": true,
+      "hidden": false,
+      "rect": {
+        "left": -1,
+        "top": -1,
+        "right": 0,
+        "bottom": 0,
+        "width": 1,
+        "height": 1
+      },
+      "text": "LEO pressure. Continuity will shift to the MEO hold next.",
+      "style": {
+        "animationName": "none",
+        "transform": "none",
+        "opacity": "1"
+      },
+      "role": "status",
+      "ariaLive": "polite",
+      "ariaAtomic": "true",
+      "ariaWindowId": "leo-aging-pressure",
+      "ariaText": "LEO pressure. Continuity will shift to the MEO hold next.",
+      "ariaTriggered": "true"
+    },
+    "transitionEvent": {
+      "exists": true,
+      "visible": true,
+      "hidden": false,
+      "rect": {
+        "left": 1084,
+        "top": 167.390625,
+        "right": 1424,
+        "bottom": 225.609375,
+        "width": 340,
+        "height": 58.21875
+      },
+      "text": "LEO review -> LEO pressure Review context shifts to LEO focus",
+      "style": {
+        "animationName": "none",
+        "transform": "none",
+        "opacity": "1"
+      }
+    },
+    "sequenceRail": {
+      "exists": true,
+      "visible": true,
+      "hidden": false,
+      "rect": {
+        "left": 304,
+        "top": 704,
+        "right": 1136,
+        "bottom": 760,
+        "width": 832,
+        "height": 56
+      },
+      "text": "Handover sequence State 2 of 5: LEO pressure Next: State 3 of 5 MEO continuity hold 1 LEO review LEO 2 LEO pressure LEO 3 MEO hold MEO 4 LEO re-entry LEO 5 GEO guard GEO",
+      "style": {
+        "animationName": "none",
+        "transform": "matrix(1, 0, 0, 1, -416, 0)",
+        "opacity": "1"
+      },
+      "activeWindowId": "leo-aging-pressure",
+      "nextWindowId": "meo-continuity-hold",
+      "marks": [
+        {
+          "windowId": "leo-acquisition-context",
+          "active": "false",
+          "next": "false",
+          "text": "1LEO reviewLEO"
+        },
+        {
+          "windowId": "leo-aging-pressure",
+          "active": "true",
+          "next": "false",
+          "text": "2LEO pressureLEO"
+        },
+        {
+          "windowId": "meo-continuity-hold",
+          "active": "false",
+          "next": "true",
+          "text": "3MEO holdMEO"
+        },
+        {
+          "windowId": "leo-reentry-candidate",
+          "active": "false",
+          "next": "false",
+          "text": "4LEO re-entryLEO"
+        },
+        {
+          "windowId": "geo-continuity-guard",
+          "active": "false",
+          "next": "false",
+          "text": "5GEO guardGEO"
+        }
+      ]
+    },
+    "controlRects": [
+      {
+        "selector": "handover-sequence-rail",
+        "rect": {
+          "left": 304,
+          "top": 704,
+          "right": 1136,
+          "bottom": 760,
+          "width": 832,
+          "height": 56
+        },
+        "text": "Handover sequence State 2 of 5: LEO pressure Next: State 3 of 5 MEO continuity hold 1 LEO review LEO 2 LEO pressure LEO 3 MEO hold MEO 4 LEO re-entry LEO 5 GEO guard GEO"
+      },
+      {
+        "selector": "compact-control-strip",
+        "rect": {
+          "left": 340,
+          "top": 74.234375,
+          "right": 924,
+          "bottom": 159.390625,
+          "width": 584,
+          "height": 85.15625
+        },
+        "text": "Current state LEO pressure State 2 of 5 Play Restart 30x 60x 120x Details"
+      },
+      {
+        "selector": "play-pause",
+        "rect": {
+          "left": 453.296875,
+          "top": 98.8125,
+          "right": 512.484375,
+          "bottom": 134.8125,
+          "width": 59.1875,
+          "height": 36
+        },
+        "text": "Play"
+      },
+      {
+        "selector": "restart",
+        "rect": {
+          "left": 518.234375,
+          "top": 98.8125,
+          "right": 588.625,
+          "bottom": 134.8125,
+          "width": 70.390625,
+          "height": 36
+        },
+        "text": "Restart"
+      },
+      {
+        "selector": "details-toggle",
+        "rect": {
+          "left": 1344.96875,
+          "top": 770.40625,
+          "right": 1416.96875,
+          "bottom": 806.40625,
+          "width": 72,
+          "height": 36
+        },
+        "text": "Details"
+      }
+    ],
+    "glyphRects": [
+      {
+        "selector": "tw-cht-multi-orbit-ground-infrastructure",
+        "rect": {
+          "left": 726.296875,
+          "top": 487.296875,
+          "right": 822.296875,
+          "bottom": 505.296875,
+          "width": 96,
+          "height": 18
+        },
+        "text": "LEO MEO GEO ✓"
+      },
+      {
+        "selector": "sg-speedcast-singapore-teleport",
+        "rect": {
+          "left": 571.796875,
+          "top": 589.796875,
+          "right": 667.796875,
+          "bottom": 607.796875,
+          "width": 96,
+          "height": 18
+        },
+        "text": "LEO MEO GEO ✓"
+      },
+      {
+        "selector": "oneweb-0386-leo-display-context",
+        "rect": {
+          "left": 629.796875,
+          "top": 502.890625,
+          "right": 665.796875,
+          "bottom": 520.890625,
+          "width": 36,
+          "height": 18
+        },
+        "text": "LEO"
+      },
+      {
+        "selector": "oneweb-0537-leo-display-context",
+        "rect": {
+          "left": 840.5,
+          "top": 517,
+          "right": 876.5,
+          "bottom": 535,
+          "width": 36,
+          "height": 18
+        },
+        "text": "LEO"
+      },
+      {
+        "selector": "oneweb-0701-leo-display-context",
+        "rect": {
+          "left": 801.5,
+          "top": 482.296875,
+          "right": 837.5,
+          "bottom": 500.296875,
+          "width": 36,
+          "height": 18
+        },
+        "text": "LEO"
+      },
+      {
+        "selector": "oneweb-0012-leo-display-context",
+        "rect": {
+          "left": 703.6875,
+          "top": 449.5,
+          "right": 739.6875,
+          "bottom": 467.5,
+          "width": 36,
+          "height": 18
+        },
+        "text": "LEO"
+      },
+      {
+        "selector": "oneweb-0249-leo-display-context",
+        "rect": {
+          "left": 861.09375,
+          "top": 482.296875,
+          "right": 897.09375,
+          "bottom": 500.296875,
+          "width": 36,
+          "height": 18
+        },
+        "text": "LEO"
+      },
+      {
+        "selector": "oneweb-0702-leo-display-context",
+        "rect": {
+          "left": 868.890625,
+          "top": 484.1875,
+          "right": 904.890625,
+          "bottom": 502.1875,
+          "width": 36,
+          "height": 18
+        },
+        "text": "LEO"
+      },
+      {
+        "selector": "o3b-mpower-f6-meo-display-context",
+        "rect": {
+          "left": 393.921875,
+          "top": 360.296875,
+          "right": 430.859375,
+          "bottom": 378.296875,
+          "width": 36.9375,
+          "height": 18
+        },
+        "text": "MEO"
+      },
+      {
+        "selector": "o3b-mpower-f1-meo-display-context",
+        "rect": {
+          "left": 650.03125,
+          "top": 252.390625,
+          "right": 686.96875,
+          "bottom": 270.390625,
+          "width": 36.9375,
+          "height": 18
+        },
+        "text": "MEO"
+      },
+      {
+        "selector": "o3b-mpower-f2-meo-display-context",
+        "rect": {
+          "left": 609.328125,
+          "top": 243.296875,
+          "right": 646.265625,
+          "bottom": 261.296875,
+          "width": 36.9375,
+          "height": 18
+        },
+        "text": "MEO"
+      },
+      {
+        "selector": "o3b-mpower-f4-meo-display-context",
+        "rect": {
+          "left": 981.421875,
+          "top": 271.796875,
+          "right": 1018.359375,
+          "bottom": 289.796875,
+          "width": 36.9375,
+          "height": 18
+        },
+        "text": "MEO"
+      },
+      {
+        "selector": "o3b-mpower-f3-meo-display-context",
+        "rect": {
+          "left": 947.328125,
+          "top": 280.09375,
+          "right": 984.265625,
+          "bottom": 298.09375,
+          "width": 36.9375,
+          "height": 18
+        },
+        "text": "MEO"
+      },
+      {
+        "selector": "st-2-geo-continuity-anchor",
+        "rect": {
+          "left": 95,
+          "top": 189.390625,
+          "right": 131,
+          "bottom": 207.390625,
+          "width": 36,
+          "height": 18
+        },
+        "text": "GEO"
+      },
+      {
+        "selector": "ses-9-geo-display-context",
+        "rect": {
+          "left": 570.1875,
+          "top": 54.5,
+          "right": 606.1875,
+          "bottom": 72.5,
+          "width": 36,
+          "height": 18
+        },
+        "text": "GEO"
+      }
+    ],
+    "visibleProductText": "pressure · LEO LEO pressure Continuity will shift to the MEO hold next. 13 顆衛星模擬展示 · 完整 ≥500 LEO 多軌道驗證見後續階段 LEO MEO GEO ✓ LEO MEO GEO ✓ LEO LEO LEO LEO LEO LEO MEO MEO MEO MEO MEO GEO GEO Scenario Scope Scope: 13-actor demo · LEO/MEO/GEO (6/5/2) Time: Sim replay 00:28 / 01:54 · replay · 60x Precision: operator-family precision Boundary: repo-owned projection · not measured truth Current: W2 LEO primary under pressure Candidate: MEO continuity hold queued Fallback: GEO guard coverage available Decision: position condition is worsening; prepare switch Time/Quality: simulated countdown; modeled quality drops LEO review -> LEO pressure Review context shifts to LEO focus pressure · LEO Handover sequence State 2 of 5: LEO pressure Next: State 3 of 5 MEO continuity hold 1 LEO review LEO 2 LEO pressure LEO 3 MEO hold MEO 4 LEO re-entry LEO 5 GEO guard GEO Current state LEO pressure State 2 of 5 Play Restart 30x 60x 120x Details 模擬展示 operator-family precision TLE: CelesTrak NORAD GP · 2026-04-26 13 actors Boundary & Sources LEO pressure. Continuity will shift to the MEO hold next. 切換到 MEO：~17 分鐘 位置條件變差 ~ 為模擬推演值",
+    "forbiddenScopeLeak": {
+      "sourcesRole": true,
+      "r2Listing": false
+    },
+    "resourceHits": []
+  }
+}
