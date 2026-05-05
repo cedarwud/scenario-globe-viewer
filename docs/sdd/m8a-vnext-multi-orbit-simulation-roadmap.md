@@ -2,9 +2,9 @@
 
 Source note: this planning-control SDD began as the next multi-orbit line after
 the completed `M8A-V4.5` ground-station scene. It now also records the
-`V4.6A/B/D/E` closeout state. It does not authorize new runtime implementation
-by itself. Execution remains phase-gated and must preserve the truth boundaries
-below.
+`V4.6A/B/D/E` and `V4.10` closeout state. It does not authorize new runtime
+implementation by itself. Execution remains phase-gated and must preserve the
+truth boundaries below.
 
 Related V4 SDD:
 [./m8a-v4-ground-station-multi-orbit-handover-plan.md](./m8a-v4-ground-station-multi-orbit-handover-plan.md).
@@ -46,13 +46,19 @@ Related V4.9 Slice 4 final handoff:
 [./m8a-v4.9-product-comprehension-slice4-final-handoff.md](./m8a-v4.9-product-comprehension-slice4-final-handoff.md).
 Related V4.9 Slice 5 final handoff:
 [./m8a-v4.9-product-comprehension-slice5-final-handoff.md](./m8a-v4.9-product-comprehension-slice5-final-handoff.md).
+Related V4.10 product experience redesign SDD:
+[./m8a-v4.10-product-experience-redesign-plan.md](./m8a-v4.10-product-experience-redesign-plan.md).
+Related V4.10 Slice 5 final validation:
+[./m8a-v4.10-slice5-validation-matrix-final-handoff.md](./m8a-v4.10-slice5-validation-matrix-final-handoff.md).
+Related V4.10 final reconciliation:
+[./m8a-v4.10-final-reconciliation-commit-readiness.md](./m8a-v4.10-final-reconciliation-commit-readiness.md).
 Related V4.6C/R2 endpoint evidence catalog review:
 [../../../itri/multi-orbit/download/ground-station-endpoint-candidates/2026-04-25/r2-endpoint-evidence-catalog-2026-04-28.md](../../../itri/multi-orbit/download/ground-station-endpoint-candidates/2026-04-25/r2-endpoint-evidence-catalog-2026-04-28.md).
 
 ## Status
 
 - planning-control SDD
-- doc-only continuation plan
+- planning-control continuation plan
 - V4.6 closeout synchronized 2026-04-28
 - V4.7 product UX SDD accepted 2026-04-28
 - V4.7.1 product usability correction accepted and closed 2026-04-29
@@ -68,6 +74,9 @@ Related V4.6C/R2 endpoint evidence catalog review:
 - V4.9 Runtime Slice 5 product comprehension validation / visual evidence
   matrix closed 2026-04-30; planned V4.9 phase complete; no remaining V4.9
   runtime phase is open
+- V4.10 product experience redesign Slice 0-5 closed 2026-05-01; Slice 5
+  accepted V4.10 as product-visible acceptance-ready, and runtime
+  implementation is complete
 - no runtime implementation authority by itself
 - intended handoff surface for the next planning/control thread
 
@@ -131,6 +140,10 @@ Completed baseline:
 - `M8A-V4.9` Runtime Slice 5 product comprehension validation / visual
   evidence matrix is closed in the current delivery state at commit `837ddc5`
 - planned `M8A-V4.9` product comprehension phase is complete
+- `M8A-V4.10` product experience redesign Slice 0-5 are closed in the current
+  delivery state after user review found the V4.9 result too visually similar
+  to the earlier demo; Slice 5 accepted V4.10 as product-visible
+  acceptance-ready, and runtime implementation is complete
 - remaining `M8A-V4.8` runtime phases are not open
 - `M8A-V4.6C/R2` source/catalog boundary exists at commit `e5d99c7`
 - the `R2` root endpoint evidence catalog exists at commit `d061c676`
@@ -282,6 +295,9 @@ Closeout status:
 - `V4.9` Runtime Slice 5 is closed for product comprehension validation /
   visual evidence matrix
 - planned `V4.9` product comprehension phase is complete
+- `V4.10` product-visible redesign Slice 0-5 are closed; the line records that
+  V4.9 was engineering-complete but not visibly different enough as a product
+  experience, then closes with product-visible acceptance-ready validation
 
 ## Phase V4.6A - Full LEO Orbit Replay
 
@@ -696,6 +712,81 @@ Implementation status:
 - no remaining `V4.9` runtime implementation phase is open from this roadmap by
   itself
 
+## Phase V4.10 - Product Experience Redesign
+
+Goal:
+
+- turn the accepted single-scenario route into a visibly different handover
+  review product instead of another engineering-complete overlay refinement
+
+Planning home:
+
+- [m8a-v4.10-product-experience-redesign-plan.md](./m8a-v4.10-product-experience-redesign-plan.md)
+
+Starting baseline:
+
+- `M8A-V4.9` is engineering-closed and regression-protected
+- user review found the route still too visually similar to the earlier demo
+- external reference ideas were captured, but V4.9 translated too much of them
+  into copy, DOM seams, and tests rather than visible product behavior
+
+Scope:
+
+- product-visible first-viewport redesign
+- before/after visual target and screenshot evidence
+- scene-first handover narrative
+- visible five-state handover sequence / next-transition treatment
+- boundary/truth affordance separated from `Details`
+- inspector demotion to evidence/support
+- manual comprehension checklist plus smoke/visual regression
+
+Non-goals:
+
+- `V5`
+- endpoint expansion
+- endpoint selector work
+- route expansion
+- precision expansion
+- actor-set expansion
+- source-data expansion
+- `R2` runtime promotion
+- measured metric work
+- active satellite, active gateway, active path, or native RF handover claims
+
+Key product decisions:
+
+- runtime work was gated by Slice 0 current-state screenshots and V4.10
+  visual target/storyboard acceptance
+- final default screenshots show a visible difference from V4.9
+- first-read understanding comes from scene narrative, sequence rail,
+  object/cue-near labels, and compact boundary treatment, not from `Details`
+- `Truth` and boundary behavior remain distinct from the `Details` action
+- completion was accepted through Slice 5 visual evidence, invariant checks,
+  and product-visible validation, not only DOM/seam smoke tests
+
+Acceptance criteria:
+
+- a reviewer can tell from default screenshots that the route is now a
+  cross-orbit handover review product
+- active state, orbit focus, scene cue, next transition, and truth boundary are
+  visible without opening details
+- `Details` is optional evidence/inspection, not the primary narrative
+- boundary/truth behavior is visibly distinct from details behavior
+- before/after screenshots at desktop and narrow sizes are included in the
+  final handoff
+- route, endpoint pair, precision, actor set, source boundary, `R2` read-only
+  boundary, and `V4.6D` model truth remain unchanged
+
+Implementation status:
+
+- SDD added as planning authority on 2026-05-01
+- Slice 0-5 are closed
+- Slice 5 final validation accepted V4.10 as product-visible acceptance-ready
+- runtime implementation is complete for V4.10
+- future work must be opened as a new plan/slice and must not silently expand
+  endpoint, route, precision, actor set, source boundary, R2 runtime selector,
+  or V4.6D model truth
+
 ## Phase V5 Decision Gate
 
 The line should remain `V4.6` while it is improving the accepted
@@ -753,9 +844,17 @@ The current V4.9 Runtime Slice 5 is implemented and closed:
 
 `M8A-V4.9 product comprehension Slice 5 final handoff`
 
+The current V4.10 product experience redesign line is implemented and closed:
+
+`M8A-V4.10 Slice 5 validation matrix final handoff`
+
+`M8A-V4.10 final reconciliation / commit readiness`
+
 The next available decisions are:
 
-- keep further runtime work closed and continue source/candidate work
+- open any post-V4.10 product correction only as a new plan/slice with
+  explicit acceptance criteria and invariant checks
+- keep runtime closed and continue source/candidate work
 - open remaining `V4.8` layout/camera work only after an explicit user decision
 - open a new `V4.9` correction/follow-on only after an explicit user decision
 - open a new decision gate only when new accepted scope exists
@@ -777,6 +876,10 @@ Reason:
 - `V4.9` is a product comprehension and progressive disclosure line for the
   same accepted single scenario; it reorganizes information placement and copy,
   not endpoint data, actor data, model truth, or source scope
+- `V4.10` is a closed product-visible experience redesign line for the same
+  accepted single scenario; it exists because V4.9 was engineering-complete but
+  not visually different enough, and it closed with Slice 5 product-visible
+  acceptance-ready validation
 - V5 is blocked until new accepted endpoint-pair scenarios exist
 - legacy aviation/YKA cleanup is blocked until the user explicitly opens that
   cleanup/archive gate
@@ -839,6 +942,20 @@ explicitly asks for a correction.
 Runtime Slice 5 has already used these surfaces for product comprehension
 validation / visual evidence matrix work. Future V4.9 runtime work must not
 reopen Slice 5 unless the user explicitly asks for a correction.
+
+Post-V4.10 product-visible correction work, if later opened as a new
+plan/slice, may change only after an explicit planning/control decision:
+
+- `src/runtime/m8a-v4-ground-station-handover-scene-controller.ts`
+- `src/styles.css`
+- visual/smoke tests for product-visible before/after evidence, such as
+  `tests/smoke/verify-m8a-v4.10-product-experience-runtime.mjs`
+- visual capture artifacts under an accepted test/output location
+- a final handoff doc for each implemented post-V4.10 slice
+
+That future work must not reopen V4.10 Slice 0-5 and must not silently expand
+endpoint, route, precision, actor set, source boundary, R2 runtime selector, or
+V4.6D model truth.
 
 Legacy aviation/YKA cleanup may later change old route, fixture, and regression
 surfaces only if the cleanup/archive gate is explicitly opened.
@@ -905,3 +1022,23 @@ are true:
 Runtime Slice 1, Runtime Slice 2, Runtime Slice 3, Runtime Slice 4, and Runtime
 Slice 5 already met these conditions and are closed. Apply the same gate again
 before any future V4.9 correction or follow-on runtime slice.
+
+V4.10 Slice 0-5 are closed and runtime implementation is complete. Do not
+create a prompt that treats V4.10 as awaiting initial runtime work, and do not
+reopen Slice 0-5 unless the user explicitly asks for a bounded correction.
+
+Any future post-V4.10 product-visible correction prompt must satisfy all of the
+following:
+
+- [m8a-v4.10-slice5-validation-matrix-final-handoff.md](./m8a-v4.10-slice5-validation-matrix-final-handoff.md)
+  is read as the latest validation closeout state
+- [m8a-v4.10-final-reconciliation-commit-readiness.md](./m8a-v4.10-final-reconciliation-commit-readiness.md)
+  is read as the latest package/readiness state
+- the user explicitly opens a new plan/slice
+- implementation scope is limited to the newly opened correction for the
+  accepted single scenario
+- route, endpoint pair, precision, actor set, source boundary, `R2` read-only
+  boundary, and `V4.6D` model truth remain unchanged unless a new accepted plan
+  explicitly changes them
+- no active satellite, active gateway, pair-specific path, measured metric, or
+  native RF handover claim is introduced
