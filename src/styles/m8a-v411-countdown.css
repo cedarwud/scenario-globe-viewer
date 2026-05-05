@@ -1,6 +1,7 @@
+/* Design tokens adapted from leo-beam-sim/src/constants/uiTokens.ts (ISC, 2026) */
 .m8a-v411-product-ux__countdown-surface {
   position: absolute;
-  z-index: 5;
+  z-index: var(--m8a-v411-layer-footer);
   top: calc(2.4rem + 24px + 8px);
   left: 50%;
   transform: translateX(-50%);
@@ -8,40 +9,52 @@
   grid-auto-flow: row;
   align-items: center;
   justify-items: center;
-  gap: 0.18rem;
-  padding: 0.4rem 0.7rem;
+  gap: var(--m8a-v411-space-1);
+  padding: var(--m8a-v411-space-2) var(--m8a-v411-space-3);
   max-width: 320px;
-  border: 1px solid rgba(172, 217, 235, 0.34);
-  border-radius: 8px;
-  background: rgba(7, 17, 22, 0.78);
-  color: rgba(232, 246, 250, 0.98);
+  border: 1px solid var(--m8a-v411-alpha-active);
+  border-radius: var(--m8a-v411-radius-md);
+  background: var(--m8a-v411-alpha-panel);
+  color: var(--m8a-v411-ui-text);
   font-size: 14px;
   font-weight: 720;
-  letter-spacing: 0.01em;
+  font-family: var(--m8a-v411-font-data);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0;
   line-height: 1.18;
   text-align: center;
   pointer-events: none;
-  box-shadow: 0 12px 22px rgba(0, 0, 0, 0.28);
+  box-shadow:
+    var(--m8a-v411-shadow-inner),
+    var(--m8a-v411-shadow-callout);
 }
 
 .m8a-v411-product-ux__countdown-surface[data-m8a-v411-countdown-window-id="leo-aging-pressure"] {
-  border-color: rgba(255, 184, 110, 0.6);
-  background: rgba(34, 18, 12, 0.78);
+  border-color: var(--m8a-v411-alpha-active);
+  background:
+    linear-gradient(180deg, var(--m8a-v411-alpha-active-soft), transparent),
+    var(--m8a-v411-alpha-panel);
 }
 
 .m8a-v411-product-ux__countdown-surface[data-m8a-v411-countdown-window-id="meo-continuity-hold"] {
-  border-color: rgba(120, 170, 220, 0.6);
-  background: rgba(15, 22, 36, 0.78);
+  border-color: var(--m8a-v411-alpha-cyan);
+  background:
+    linear-gradient(180deg, var(--m8a-v411-alpha-cyan-soft), transparent),
+    var(--m8a-v411-alpha-panel);
 }
 
 .m8a-v411-product-ux__countdown-surface[data-m8a-v411-countdown-window-id="leo-reentry-candidate"] {
-  border-color: rgba(120, 218, 156, 0.6);
-  background: rgba(13, 26, 22, 0.78);
+  border-color: var(--m8a-v411-alpha-mint);
+  background:
+    linear-gradient(180deg, var(--m8a-v411-alpha-mint-soft), transparent),
+    var(--m8a-v411-alpha-panel);
 }
 
 .m8a-v411-product-ux__countdown-surface[data-m8a-v411-countdown-window-id="geo-continuity-guard"] {
-  border-color: rgba(232, 200, 96, 0.7);
-  background: rgba(28, 23, 12, 0.82);
+  border-color: var(--m8a-v411-alpha-amber);
+  background:
+    linear-gradient(180deg, var(--m8a-v411-alpha-amber-soft), transparent),
+    var(--m8a-v411-alpha-panel);
 }
 
 .m8a-v411-product-ux__countdown-surface[data-m8a-v411-countdown-primary] {
@@ -49,23 +62,25 @@
 }
 
 .m8a-v411-product-ux__countdown-surface > [data-m8a-v411-countdown-primary="true"] {
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 820;
-  color: rgba(255, 247, 224, 0.98);
+  color: var(--m8a-v411-ui-text);
 }
 
 .m8a-v411-product-ux__countdown-surface > [data-m8a-v411-countdown-appendix="true"] {
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 600;
-  color: rgba(196, 232, 244, 0.92);
+  font-family: var(--m8a-v411-font-ui);
+  color: var(--m8a-v411-ui-text-muted);
 }
 
 .m8a-v411-product-ux__countdown-surface > [data-m8a-v411-countdown-footnote="true"] {
-  margin-top: 0.12rem;
-  font-size: 10px;
+  margin-top: var(--m8a-v411-space-1);
+  font-size: 11px;
   font-weight: 500;
-  color: rgba(190, 210, 220, 0.78);
-  letter-spacing: 0.02em;
+  font-family: var(--m8a-v411-font-ui);
+  color: var(--m8a-v411-ui-text-dim);
+  letter-spacing: 0;
 }
 
 .m8a-v411-product-ux__countdown-surface[hidden] {

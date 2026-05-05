@@ -554,12 +554,27 @@ function assertInvariantState(result, label) {
 }
 
 function assertInspectorBudget(result, label) {
+  const legacyMaxWidth = 320;
+  const correctionAMinWidth = 360;
+  const correctionAMaxWidth = 420;
+
+  assert(result.sheet.rect, `${label} missing inspector rect for Slice 5 budget.`);
+  const widthMatchesAcceptedContract =
+    result.sheet.rect.width <= legacyMaxWidth + 1 ||
+    (result.sheet.rect.width >= correctionAMinWidth - 1 &&
+      result.sheet.rect.width <= correctionAMaxWidth + 1);
+
+  // Smoke Softening: Correction A §5.4 supersedes the legacy 320px-only
+  // inspector width with a 360-420px readable desktop range.
   assert(
-    result.sheet.rect.width <= 321 &&
+    widthMatchesAcceptedContract &&
       result.sheet.rect.height <= result.inspectorBudgetHeight + 1,
     `${label} inspector exceeded Slice 5 budget: ` +
       JSON.stringify({
         rect: result.sheet.rect,
+        legacyMaxWidth,
+        correctionAMinWidth,
+        correctionAMaxWidth,
         inspectorBudgetHeight: result.inspectorBudgetHeight
       })
   );

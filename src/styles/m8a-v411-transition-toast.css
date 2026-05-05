@@ -1,8 +1,9 @@
+/* Design tokens adapted from leo-beam-sim/src/constants/uiTokens.ts (ISC, 2026) */
 .m8a-v411-product-ux__toast-stack {
   position: absolute;
   top: calc(var(--hud-frame-gap) + 13rem);
   left: var(--hud-frame-gap);
-  z-index: 4;
+  z-index: var(--m8a-v411-layer-callout);
   display: grid;
   gap: 0.38rem;
   width: min(320px, 22vw);
@@ -21,19 +22,15 @@
   max-width: min(320px, 22vw);
   max-height: 72px;
   padding: 0.52rem 0.62rem 0.56rem;
-  border: 1px solid rgba(126, 226, 184, 0.34);
-  border-left: 3px solid rgba(126, 226, 184, 0.86);
+  border: 1px solid var(--m8a-v411-alpha-active-soft);
+  border-left: 3px solid var(--m8a-v411-alpha-active);
   border-radius: 7px;
-  background:
-    linear-gradient(90deg, rgba(7, 24, 22, 0.92), rgba(8, 21, 25, 0.78)),
-    rgba(6, 17, 18, 0.86);
-  box-shadow:
-    0 0 0 1px rgba(4, 9, 12, 0.52),
-    0 14px 28px rgba(0, 0, 0, 0.22);
-  color: rgba(234, 255, 244, 0.98);
+  background: var(--m8a-v411-toast-bg);
+  box-shadow: var(--m8a-v411-shadow-toast);
+  color: var(--m8a-v411-ui-text);
   opacity: 1;
   overflow: hidden;
-  animation: m8a-v411-toast-lifecycle 2500ms ease-out forwards;
+  animation: m8a-v411-toast-lifecycle var(--m8a-v411-transition-toast-ms) ease-out forwards;
 }
 
 .m8a-v411-product-ux__transition-toast strong,
@@ -52,7 +49,7 @@
 }
 
 .m8a-v411-product-ux__transition-toast small {
-  color: rgba(201, 237, 226, 0.9);
+  color: var(--m8a-v411-ui-text-muted);
   font-size: 0.74rem;
   font-weight: 680;
   line-height: 1.18;
@@ -61,7 +58,7 @@
 .m8a-v411-product-ux__scene-cue-layer {
   position: absolute;
   inset: 0;
-  z-index: 3;
+  z-index: var(--m8a-v411-layer-scene-cues);
   pointer-events: none;
 }
 
@@ -73,26 +70,22 @@
   max-width: 180px;
   height: 24px;
   padding: 0 0.58rem;
-  border: 1px solid rgba(255, 209, 102, 0.38);
-  border-left: 3px solid rgba(255, 209, 102, 0.9);
+  border: 1px solid var(--m8a-v411-alpha-active-soft);
+  border-left: 3px solid var(--m8a-v411-alpha-active);
   border-radius: 6px;
-  background:
-    linear-gradient(90deg, rgba(7, 17, 22, 0.94), rgba(10, 24, 30, 0.78)),
-    rgba(7, 16, 21, 0.82);
-  box-shadow:
-    0 0 0 1px rgba(4, 9, 12, 0.56),
-    0 8px 18px rgba(0, 0, 0, 0.24);
-  color: rgba(255, 246, 223, 0.98);
+  background: var(--m8a-v411-scene-cue-bg);
+  box-shadow: var(--m8a-v411-shadow-scene-cue);
+  color: var(--m8a-v411-ui-text);
   opacity: 1;
   font-size: 0.68rem;
   font-weight: 840;
   line-height: 1;
   letter-spacing: 0;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.58);
+  text-shadow: var(--m8a-v411-text-shadow-scene);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  animation: m8a-v411-scene-cue-lifecycle 2200ms ease-out forwards;
+  animation: m8a-v411-scene-cue-lifecycle var(--m8a-v411-scene-cue-ms) ease-out forwards;
 }
 
 .m8a-v411-product-ux__scene-cue[hidden] {

@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-05-05T01:35:33.469Z",
+  "generatedAt": "2026-05-05T07:36:29.774Z",
   "status": "cleanup-complete",
   "route": "/?scenePreset=regional&m8aV4GroundStationScene=1",
   "outputRoot": "output/m8a-v4.10-slice5",
@@ -93,7 +93,7 @@
       "action": "default",
       "screenshot": {
         "path": "output/m8a-v4.10-slice5/v4.10-slice5-default-1440x900.png",
-        "sizeBytes": 951806,
+        "sizeBytes": 961069,
         "dimensions": {
           "width": 1440,
           "height": 900
@@ -107,9 +107,9 @@
       "boundaryFullTruthDisclosureState": "closed",
       "sceneNarrativeRect": {
         "left": 340,
-        "top": 478.09375,
+        "top": 482.6875,
         "right": 433.1875,
-        "bottom": 502.09375,
+        "bottom": 506.6875,
         "width": 93.1875,
         "height": 24
       },
@@ -157,7 +157,7 @@
       "action": "default",
       "screenshot": {
         "path": "output/m8a-v4.10-slice5/v4.10-slice5-default-1280x720.png",
-        "sizeBytes": 684088,
+        "sizeBytes": 704761,
         "dimensions": {
           "width": 1280,
           "height": 720
@@ -171,9 +171,9 @@
       "boundaryFullTruthDisclosureState": "closed",
       "sceneNarrativeRect": {
         "left": 340,
-        "top": 380.59375,
+        "top": 376.890625,
         "right": 433.1875,
-        "bottom": 404.59375,
+        "bottom": 400.890625,
         "width": 93.1875,
         "height": 24
       },
@@ -221,7 +221,7 @@
       "action": "default",
       "screenshot": {
         "path": "output/m8a-v4.10-slice5/v4.10-slice5-default-390x844.png",
-        "sizeBytes": 357212,
+        "sizeBytes": 347626,
         "dimensions": {
           "width": 390,
           "height": 844
@@ -235,9 +235,9 @@
       "boundaryFullTruthDisclosureState": "closed",
       "sceneNarrativeRect": {
         "left": 14,
-        "top": 399.1875,
+        "top": 399.890625,
         "right": 103.3125,
-        "bottom": 423.1875,
+        "bottom": 423.890625,
         "width": 89.3125,
         "height": 24
       },
@@ -358,7 +358,7 @@
       "action": "details",
       "screenshot": {
         "path": "output/m8a-v4.10-slice5/v4.10-slice5-details-open-1440x900.png",
-        "sizeBytes": 934528,
+        "sizeBytes": 916810,
         "dimensions": {
           "width": 1440,
           "height": 900
@@ -372,9 +372,9 @@
       "boundaryFullTruthDisclosureState": "closed",
       "sceneNarrativeRect": {
         "left": 340,
-        "top": 477.09375,
+        "top": 480,
         "right": 433.1875,
-        "bottom": 501.09375,
+        "bottom": 504,
         "width": 93.1875,
         "height": 24
       },
@@ -395,12 +395,12 @@
         "height": 85.15625
       },
       "sheetRect": {
-        "left": 1097,
-        "top": 23,
-        "right": 1417,
-        "bottom": 771,
-        "width": 320,
-        "height": 748
+        "left": 1016.96875,
+        "top": 48,
+        "right": 1416.96875,
+        "bottom": 724,
+        "width": 400,
+        "height": 676
       },
       "boundarySurfaceRect": {
         "left": 0,
@@ -422,7 +422,7 @@
       "action": "boundary-full-truth",
       "screenshot": {
         "path": "output/m8a-v4.10-slice5/v4.10-slice5-boundary-open-1440x900.png",
-        "sizeBytes": 936797,
+        "sizeBytes": 917229,
         "dimensions": {
           "width": 1440,
           "height": 900
@@ -436,9 +436,9 @@
       "boundaryFullTruthDisclosureState": "open",
       "sceneNarrativeRect": {
         "left": 340,
-        "top": 472.296875,
+        "top": 479.1875,
         "right": 433.1875,
-        "bottom": 496.296875,
+        "bottom": 503.1875,
         "width": 93.1875,
         "height": 24
       },
@@ -459,12 +459,12 @@
         "height": 85.15625
       },
       "sheetRect": {
-        "left": 1097,
-        "top": 23,
-        "right": 1417,
-        "bottom": 771,
-        "width": 320,
-        "height": 748
+        "left": 1016.96875,
+        "top": 48,
+        "right": 1416.96875,
+        "bottom": 724,
+        "width": 400,
+        "height": 676
       },
       "boundarySurfaceRect": {
         "left": 0,
@@ -486,7 +486,7 @@
       "action": "transition",
       "screenshot": {
         "path": "output/m8a-v4.10-slice5/v4.10-slice5-transition-leo-aging-pressure-1440x900.png",
-        "sizeBytes": 977713,
+        "sizeBytes": 981328,
         "dimensions": {
           "width": 1440,
           "height": 900
@@ -556,25 +556,25 @@
   "taskOwnedProcesses": [
     {
       "type": "static-server-started",
-      "at": "2026-05-05T01:33:56.183Z",
-      "pid": 16322,
-      "baseUrl": "http://127.0.0.1:43879"
+      "at": "2026-05-05T07:35:01.142Z",
+      "pid": 22779,
+      "baseUrl": "http://127.0.0.1:41279"
     },
     {
       "type": "headless-browser-started",
-      "at": "2026-05-05T01:33:56.314Z",
-      "pid": 16327,
+      "at": "2026-05-05T07:35:01.385Z",
+      "pid": 22784,
       "browserCommand": "google-chrome"
     },
     {
       "type": "headless-browser-stop-requested",
-      "at": "2026-05-05T01:35:33.404Z",
-      "pid": 16327
+      "at": "2026-05-05T07:36:29.690Z",
+      "pid": 22784
     },
     {
       "type": "static-server-stop-requested",
-      "at": "2026-05-05T01:35:33.466Z",
-      "pid": 16322
+      "at": "2026-05-05T07:36:29.771Z",
+      "pid": 22779
     }
   ]
 }

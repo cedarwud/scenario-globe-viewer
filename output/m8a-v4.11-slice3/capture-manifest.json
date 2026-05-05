@@ -7,12 +7,12 @@
       "screenshot": "output/m8a-v4.11-slice3/v4.11-w1-pinned-1440x900.png",
       "metadata": "output/m8a-v4.11-slice3/v4.11-w1-pinned-1440x900.metadata.json",
       "inspectorRect": {
-        "left": 1097,
-        "top": 23,
-        "right": 1417,
-        "bottom": 771,
-        "width": 320,
-        "height": 748
+        "left": 1016.96875,
+        "top": 48,
+        "right": 1416.96875,
+        "bottom": 724,
+        "width": 400,
+        "height": 676
       }
     }
   ]

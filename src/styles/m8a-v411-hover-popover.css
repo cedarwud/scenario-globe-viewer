@@ -1,6 +1,7 @@
+/* Design tokens adapted from leo-beam-sim/src/constants/uiTokens.ts (ISC, 2026) */
 .m8a-v411-product-ux__hover-popover {
   position: fixed;
-  z-index: 7;
+  z-index: var(--m8a-v411-layer-hover-popover);
   box-sizing: border-box;
   width: max-content;
   max-width: 240px;
@@ -9,21 +10,17 @@
   gap: 0.16rem;
   padding: 0.58rem 0.68rem;
   overflow: hidden;
-  border: 1px solid rgba(172, 217, 235, 0.34);
+  border: 1px solid var(--m8a-v411-alpha-active-soft);
   border-radius: 6px;
-  background:
-    linear-gradient(180deg, rgba(7, 17, 22, 0.94), rgba(4, 12, 16, 0.9)),
-    rgba(5, 13, 17, 0.92);
-  box-shadow:
-    inset 0 1px 0 rgba(241, 248, 255, 0.08),
-    0 14px 30px rgba(0, 0, 0, 0.34);
-  color: rgba(232, 246, 250, 0.96);
+  background: var(--m8a-v411-popover-bg);
+  box-shadow: var(--m8a-v411-shadow-popover);
+  color: var(--m8a-v411-alpha-text);
   opacity: 0;
   pointer-events: none;
   transform: translate3d(0, 4px, 0);
   transition:
-    opacity 160ms ease,
-    transform 160ms ease;
+    opacity var(--m8a-v411-transition-fast),
+    transform var(--m8a-v411-transition-fast);
 }
 
 .m8a-v411-product-ux__hover-popover[data-m8a-v411-hover-state="visible"] {
@@ -43,7 +40,7 @@
 .m8a-v411-hover-popover__line {
   min-width: 0;
   max-width: 100%;
-  color: rgba(231, 244, 248, 0.96);
+  color: var(--m8a-v411-alpha-text);
   font-size: 0.68rem;
   font-weight: 730;
   letter-spacing: 0;
@@ -54,18 +51,18 @@
 }
 
 .m8a-v411-hover-popover__line:first-child {
-  color: rgba(255, 247, 224, 0.98);
+  color: var(--m8a-v411-ui-text);
   font-size: 0.72rem;
   font-weight: 850;
 }
 
 .m8a-v411-hover-popover__line:nth-child(2),
 .m8a-v411-hover-popover__line:nth-child(3) {
-  color: rgba(190, 232, 244, 0.96);
+  color: var(--m8a-v411-ui-text-muted);
 }
 
 .m8a-v411-hover-popover__line:last-child {
-  color: rgba(255, 223, 165, 0.94);
+  color: var(--m8a-v411-ui-amber);
 }
 
 [data-m8a-v411-hover-target="true"] {
@@ -74,7 +71,7 @@
 }
 
 [data-m8a-v411-hover-target="true"]:focus-visible {
-  outline: 2px solid rgba(126, 226, 184, 0.9);
+  outline: 2px solid var(--m8a-v411-ui-active);
   outline-offset: 3px;
 }
 
@@ -90,8 +87,8 @@
 
 .m8a-v410-sequence-rail__mark[data-m8a-v411-hover-target="true"]:focus-visible {
   box-shadow:
-    0 0 0 2px rgba(6, 16, 22, 0.84),
-    0 0 0 4px rgba(126, 226, 184, 0.82);
+    0 0 0 2px var(--m8a-v411-ui-canvas),
+    0 0 0 4px var(--m8a-v411-alpha-focus-shadow);
 }
 
 @media (prefers-reduced-motion: reduce) {

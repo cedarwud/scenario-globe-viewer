@@ -637,17 +637,28 @@ function assertConcurrencyOpen(result) {
 
 function assertInspectorSizeBudget(result) {
   const rect = result.sheet.rect;
-  const maxWidth = 320;
+  const legacyMaxWidth = 320;
+  const correctionAMinWidth = 360;
+  const correctionAMaxWidth = 420;
   const maxHeight = result.viewport.height - 152;
-  const maxCanvasWidth = result.viewport.width * 0.28;
 
   assert(rect, "Missing inspector rect for size budget.");
+  const widthMatchesAcceptedContract =
+    rect.width <= legacyMaxWidth + 1 ||
+    (rect.width >= correctionAMinWidth - 1 &&
+      rect.width <= correctionAMaxWidth + 1);
+  // Smoke Softening: Correction A §5.4 supersedes the legacy 320px-only
+  // inspector width with a 360-420px readable desktop range.
   assert(
-    rect.width <= maxWidth + 1 &&
-      rect.width <= maxCanvasWidth + 1 &&
-      rect.height <= maxHeight + 1,
+    widthMatchesAcceptedContract && rect.height <= maxHeight + 1,
     "Inspector must stay within Slice 3 size budget: " +
-      JSON.stringify({ rect, maxWidth, maxCanvasWidth, maxHeight })
+      JSON.stringify({
+        rect,
+        legacyMaxWidth,
+        correctionAMinWidth,
+        correctionAMaxWidth,
+        maxHeight
+      })
   );
   assert(
     result.rootDataset.maxWidthPx === "320" &&

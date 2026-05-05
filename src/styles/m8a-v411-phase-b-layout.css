@@ -1,21 +1,153 @@
+/* Design tokens adapted from leo-beam-sim/src/constants/uiTokens.ts (ISC, 2026) */
+:root {
+  --m8a-v411-font-ui: "IBM Plex Sans", var(--m8a-v411-cjk-font-family, system-ui, -apple-system, sans-serif);
+  --m8a-v411-font-data: "IBM Plex Mono", "Roboto Mono", ui-monospace, monospace;
+  --m8a-v411-ui-canvas: #020617;
+  --m8a-v411-ui-panel: #0E1223;
+  --m8a-v411-ui-panel-raised: #111827;
+  --m8a-v411-ui-steel: #1E293B;
+  --m8a-v411-ui-border: #334155;
+  --m8a-v411-ui-text: #F8FAFC;
+  --m8a-v411-ui-text-muted: #CBD5E1;
+  --m8a-v411-ui-text-dim: #94A3B8;
+  --m8a-v411-ui-active: #00b8d4;
+  --m8a-v411-ui-amber: #FBBF24;
+  --m8a-v411-ui-amber-strong: #D97706;
+  --m8a-v411-ui-cyan: #38BDF8;
+  --m8a-v411-ui-mint: #5EEAD4;
+  --m8a-v411-ui-danger: #ff5252;
+  --m8a-v411-ui-warning: #ff5252;
+  --m8a-v411-ui-w5-warning: #ff6b3d;
+  --m8a-v411-ui-on-accent: #04111A;
+  --m8a-v411-orbit-leo: var(--m8a-v411-ui-amber);
+  --m8a-v411-orbit-meo: var(--m8a-v411-ui-mint);
+  --m8a-v411-orbit-geo: var(--m8a-v411-ui-cyan);
+  --m8a-v411-space-1: 4px;
+  --m8a-v411-space-2: 8px;
+  --m8a-v411-space-3: 12px;
+  --m8a-v411-space-4: 16px;
+  --m8a-v411-space-5: 20px;
+  --m8a-v411-space-6: 24px;
+  --m8a-v411-radius-xs: 3px;
+  --m8a-v411-radius-sm: 4px;
+  --m8a-v411-radius-md: 6px;
+  --m8a-v411-radius-lg: 8px;
+  --m8a-v411-alpha-panel: rgba(14, 18, 35, 0.96);
+  --m8a-v411-alpha-panel-soft: rgba(14, 18, 35, 0.88);
+  --m8a-v411-alpha-panel-raised: rgba(17, 24, 39, 0.96);
+  --m8a-v411-alpha-steel: rgba(30, 41, 59, 0.92);
+  --m8a-v411-alpha-border: rgba(51, 65, 85, 0.86);
+  --m8a-v411-alpha-border-soft: rgba(51, 65, 85, 0.58);
+  --m8a-v411-alpha-text: rgba(248, 250, 252, 0.98);
+  --m8a-v411-alpha-muted: rgba(203, 213, 225, 0.92);
+  --m8a-v411-alpha-dim: rgba(148, 163, 184, 0.86);
+  --m8a-v411-alpha-active: rgba(0, 184, 212, 0.8);
+  --m8a-v411-alpha-active-soft: rgba(0, 184, 212, 0.22);
+  --m8a-v411-alpha-amber: rgba(251, 191, 36, 0.86);
+  --m8a-v411-alpha-amber-soft: rgba(251, 191, 36, 0.2);
+  --m8a-v411-alpha-cyan: rgba(56, 189, 248, 0.72);
+  --m8a-v411-alpha-cyan-soft: rgba(56, 189, 248, 0.24);
+  --m8a-v411-alpha-mint: rgba(94, 234, 212, 0.72);
+  --m8a-v411-alpha-mint-soft: rgba(94, 234, 212, 0.2);
+  --m8a-v411-alpha-danger: rgba(255, 82, 82, 0.82);
+  --m8a-v411-alpha-danger-soft: rgba(255, 82, 82, 0.22);
+  --m8a-v411-alpha-focus-shadow: rgba(0, 184, 212, 0.28);
+  --m8a-v411-alpha-black-26: rgba(0, 0, 0, 0.26);
+  --m8a-v411-alpha-black-34: rgba(0, 0, 0, 0.34);
+  --m8a-v411-alpha-black-38: rgba(0, 0, 0, 0.38);
+  --m8a-v411-alpha-white-edge: rgba(248, 250, 252, 0.08);
+  --m8a-v411-text-shadow-scene: 0 1px 2px rgba(0, 0, 0, 0.6);
+  --m8a-v411-shadow-panel: 0 18px 44px rgba(0, 0, 0, 0.38);
+  --m8a-v411-shadow-callout: 0 12px 26px rgba(0, 0, 0, 0.34);
+  --m8a-v411-shadow-inner: inset 0 1px 0 rgba(248, 250, 252, 0.08);
+  --m8a-v411-shadow-popover: inset 0 1px 0 rgba(241, 248, 255, 0.08),
+    0 14px 30px rgba(0, 0, 0, 0.34);
+  --m8a-v411-shadow-toast: 0 0 0 1px rgba(4, 9, 12, 0.52),
+    0 14px 28px rgba(0, 0, 0, 0.22);
+  --m8a-v411-shadow-scene-cue: 0 0 0 1px rgba(4, 9, 12, 0.56),
+    0 8px 18px rgba(0, 0, 0, 0.24);
+  --m8a-v411-popover-bg: linear-gradient(
+      180deg,
+      rgba(7, 17, 22, 0.94),
+      rgba(4, 12, 16, 0.9)
+    ),
+    rgba(5, 13, 17, 0.92);
+  --m8a-v411-toast-bg: linear-gradient(
+      90deg,
+      rgba(7, 24, 22, 0.92),
+      rgba(8, 21, 25, 0.78)
+    ),
+    rgba(6, 17, 18, 0.86);
+  --m8a-v411-scene-cue-bg: linear-gradient(
+      90deg,
+      rgba(7, 17, 22, 0.94),
+      rgba(10, 24, 30, 0.78)
+    ),
+    rgba(7, 16, 21, 0.82);
+  --m8a-v411-transition-toast-ms: 2500ms;
+  --m8a-v411-scene-cue-ms: 2400ms;
+  --m8a-v411-transition-fast: 200ms ease-out;
+  --m8a-v411-inspector-desktop-width: 400px;
+  --m8a-v411-layer-scene-labels: 2;
+  --m8a-v411-layer-scene-cues: 3;
+  --m8a-v411-layer-callout: 4;
+  --m8a-v411-layer-footer: 5;
+  --m8a-v411-layer-hover-popover: 7;
+  --m8a-v411-layer-hud-frame: 12;
+  --m8a-v411-layer-rail: 90;
+  --m8a-v411-layer-top-strip: 100;
+  --m8a-v411-layer-inspector: 110;
+}
+
+.m8a-v47-product-ux {
+  font-family: var(--m8a-v411-font-ui);
+  color: var(--m8a-v411-ui-text);
+}
+
+.m8a-v47-product-ux button[data-m8a-v48-info-class="control"] {
+  min-width: 44px;
+  min-height: 44px;
+}
+
 .m8a-v411-top-strip {
   position: absolute;
   top: 0;
   left: 0;
   right: 0;
   min-height: 40px;
-  background-color: var(--m8a-v47-color-bg-base, #111111);
-  border-bottom: 1px solid var(--m8a-v47-color-border-subtle, #333333);
+  background-color: var(--m8a-v411-ui-canvas);
+  border-bottom: 1px solid var(--m8a-v411-alpha-border);
+  box-shadow:
+    var(--m8a-v411-shadow-inner),
+    0 10px 24px var(--m8a-v411-alpha-black-26);
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   align-items: center;
-  gap: 16px;
-  row-gap: 4px;
-  padding: 6px 16px;
-  z-index: 100;
-  color: var(--m8a-v47-color-text-primary, #ffffff);
-  font-family: var(--m8a-v47-font-family-base, sans-serif);
+  gap: var(--m8a-v411-space-4);
+  row-gap: var(--m8a-v411-space-1);
+  padding:
+    6px calc(var(--m8a-v411-inspector-desktop-width) + var(--hud-frame-gap) + var(--m8a-v411-space-5))
+    6px var(--m8a-v411-space-4);
+  z-index: var(--m8a-v411-layer-top-strip);
+  color: var(--m8a-v411-ui-text);
+  font-family: var(--m8a-v411-font-ui);
   font-size: 13px;
+  font-weight: 650;
+  line-height: 1.18;
+  letter-spacing: 0;
+  overflow: hidden;
+}
+
+.m8a-v411-top-strip [data-m8a-v411-top-strip-slot] {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.m8a-v411-top-strip [data-m8a-v411-top-strip-slot="replay"] {
+  font-family: var(--m8a-v411-font-data);
+  font-variant-numeric: tabular-nums;
 }
 
 .m8a-v411-handover-rail {
@@ -24,31 +156,42 @@
   bottom: clamp(7.1rem, 12vh, 7.65rem);
   left: 0;
   width: 320px;
-  background-color: var(--m8a-v47-color-bg-elevated, #1a1a1a);
-  border-right: 1px solid var(--m8a-v47-color-border-subtle, #333333);
-  padding: 16px;
-  z-index: 90;
-  color: var(--m8a-v47-color-text-primary, #ffffff);
+  background-color: var(--m8a-v411-alpha-panel-raised);
+  border-right: 1px solid var(--m8a-v411-alpha-border);
+  box-shadow: var(--m8a-v411-shadow-panel);
+  padding: var(--m8a-v411-space-4);
+  z-index: var(--m8a-v411-layer-rail);
+  color: var(--m8a-v411-ui-text);
   overflow-y: auto;
-  font-family: var(--m8a-v47-font-family-base, sans-serif);
-  font-size: 14px;
+  font-family: var(--m8a-v411-font-ui);
+  font-size: 16px;
+  font-weight: 560;
+  line-height: 1.38;
+  letter-spacing: 0;
 }
 
 .m8a-v411-rail-slot {
-  margin-bottom: 12px;
-  padding: 8px;
-  background: var(--m8a-v47-color-bg-base, #111111);
-  border-radius: 4px;
-  border: 1px solid var(--m8a-v47-color-border-subtle, #333333);
+  margin-bottom: var(--m8a-v411-space-3);
+  padding: var(--m8a-v411-space-3);
+  background: var(--m8a-v411-alpha-panel);
+  border-radius: var(--m8a-v411-radius-sm);
+  border: 1px solid var(--m8a-v411-alpha-border-soft);
+  box-shadow: var(--m8a-v411-shadow-inner);
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
 }
 
-/* Adjust globe position if necessary, or the rail just sits on top */
-/* The globe is likely handled elsewhere, but since it's a shell, giving it dimensions is enough for Phase B */
+.m8a-v411-rail-slot:first-child {
+  border-color: var(--m8a-v411-alpha-active);
+  background:
+    linear-gradient(90deg, var(--m8a-v411-alpha-active-soft), transparent 36%),
+    var(--m8a-v411-alpha-panel);
+}
 
 /* Ensure the top strip label is visible */
 [data-m8a-v411-top-strip-label="true"] {
-  font-weight: 600;
-  color: var(--m8a-v47-color-text-secondary, #aaaaaa);
+  font-weight: 760;
+  color: var(--m8a-v411-ui-text-muted);
 }
 
 /* Push existing left-aligned overlays out of the way of the new left rail */
@@ -75,59 +218,105 @@
 .m8a-v411-inspector__tabs {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
-  padding: 8px 16px;
-  border-bottom: 1px solid var(--m8a-v47-color-border-subtle, #333333);
+  gap: var(--m8a-v411-space-2);
+  padding: var(--m8a-v411-space-2) var(--m8a-v411-space-3);
+  border-bottom: 1px solid var(--m8a-v411-alpha-border-soft);
 }
 
 .m8a-v411-inspector__tabs button {
-  background: none;
-  border: none;
-  color: var(--m8a-v47-color-text-secondary, #aaaaaa);
-  padding: 6px 12px;
+  background: var(--m8a-v411-alpha-panel);
+  border: 1px solid var(--m8a-v411-alpha-border-soft);
+  color: var(--m8a-v411-ui-text-muted);
+  padding: var(--m8a-v411-space-2) var(--m8a-v411-space-3);
   cursor: pointer;
+  font-family: var(--m8a-v411-font-ui);
   font-size: 13px;
-  font-weight: 500;
-  border-radius: 4px;
+  font-weight: 760;
+  border-radius: var(--m8a-v411-radius-md);
+  transition:
+    background-color var(--m8a-v411-transition-fast),
+    border-color var(--m8a-v411-transition-fast),
+    color var(--m8a-v411-transition-fast),
+    box-shadow var(--m8a-v411-transition-fast);
 }
 
 .m8a-v411-inspector__tabs button[aria-selected="true"] {
-  color: var(--m8a-v47-color-text-primary, #ffffff);
-  background-color: var(--m8a-v47-color-bg-active, #333333);
+  color: var(--m8a-v411-ui-text);
+  border-color: var(--m8a-v411-alpha-active);
+  background-color: var(--m8a-v411-ui-steel);
+  box-shadow: inset 0 -2px 0 var(--m8a-v411-ui-active);
+}
+
+.m8a-v411-inspector__tabs button:hover {
+  color: var(--m8a-v411-ui-text);
+  border-color: var(--m8a-v411-alpha-active);
+  background-color: var(--m8a-v411-alpha-steel);
+}
+
+.m8a-v411-inspector__tabs button:focus-visible,
+.m8a-v411-inspector__source-toggle:focus-visible,
+.m8a-v411-rail-slot[data-m8a-v411-hover-target="true"]:focus-visible {
+  outline: 2px solid var(--m8a-v411-ui-active);
+  outline-offset: 3px;
+  box-shadow:
+    0 0 0 4px var(--m8a-v411-alpha-focus-shadow),
+    var(--m8a-v411-shadow-inner);
 }
 
 .m8a-v411-inspector__source-toggle {
-  margin: 8px 16px 0;
-  padding: 6px 10px;
-  border: 1px solid var(--m8a-v47-color-border-subtle, #333333);
-  border-radius: 4px;
-  background: transparent;
-  color: var(--m8a-v47-color-text-primary, #ffffff);
+  margin: var(--m8a-v411-space-2) var(--m8a-v411-space-3) 0;
+  padding: var(--m8a-v411-space-2) var(--m8a-v411-space-3);
+  border: 1px solid var(--m8a-v411-alpha-active);
+  border-radius: var(--m8a-v411-radius-md);
+  background: var(--m8a-v411-alpha-panel);
+  color: var(--m8a-v411-ui-text);
   font-size: 13px;
+  font-weight: 760;
   cursor: pointer;
+  transition:
+    background-color var(--m8a-v411-transition-fast),
+    border-color var(--m8a-v411-transition-fast),
+    color var(--m8a-v411-transition-fast);
+}
+
+.m8a-v411-inspector__source-toggle:hover {
+  background: var(--m8a-v411-alpha-steel);
 }
 
 .m8a-v411-inspector__module-list {
-  margin: 10px 0;
-  padding-left: 10px;
-  border-left: 2px solid var(--m8a-v47-color-border-subtle, #333333);
+  margin: var(--m8a-v411-space-3) 0;
+  padding-left: var(--m8a-v411-space-3);
+  border-left: 2px solid var(--m8a-v411-alpha-mint);
 }
 
 .m8a-v411-inspector__module-list > strong {
   display: block;
-  margin-bottom: 6px;
+  margin-bottom: var(--m8a-v411-space-2);
   font-size: 13px;
-  color: var(--m8a-v47-color-text-secondary, #aaaaaa);
+  color: var(--m8a-v411-ui-mint);
+  font-weight: 800;
 }
 
 .m8a-v411-inspector__module-list p {
-  margin: 0 0 8px;
+  margin: 0 0 var(--m8a-v411-space-2);
   line-height: 1.45;
+  color: var(--m8a-v411-ui-text);
 }
 
 .m8a-v411-inspector__module-list p > strong {
   display: inline-block;
   min-width: 48px;
-  margin-right: 8px;
-  color: var(--m8a-v47-color-text-secondary, #aaaaaa);
+  margin-right: var(--m8a-v411-space-2);
+  color: var(--m8a-v411-ui-text-muted);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .m8a-v47-product-ux *,
+  .m8a-v47-product-ux *::before,
+  .m8a-v47-product-ux *::after {
+    transition-duration: 0ms !important;
+    animation-duration: 0ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+  }
 }

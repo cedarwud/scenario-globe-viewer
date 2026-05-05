@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-05-05T01:32:32.717Z",
+  "generatedAt": "2026-05-05T07:33:45.966Z",
   "status": "cleanup-complete",
   "route": "/?scenePreset=regional&m8aV4GroundStationScene=1",
   "outputRoot": "output/m8a-v4.10-slice3",
@@ -31,9 +31,9 @@
     },
     "currentAnnotation": {
       "left": 340,
-      "top": 484.890625,
+      "top": 483.796875,
       "right": 433.1875,
-      "bottom": 508.890625,
+      "bottom": 507.796875,
       "width": 93.1875,
       "height": 24
     },
@@ -49,7 +49,7 @@
       "viewport": "default-1440x900",
       "screenshot": {
         "path": "output/m8a-v4.10-slice3/v4.10-slice3-default-1440x900.png",
-        "sizeBytes": 949519,
+        "sizeBytes": 960488,
         "dimensions": {
           "width": 1440,
           "height": 900
@@ -63,9 +63,9 @@
       "anchorStatus": "geometry-reliable",
       "sceneNarrativeRect": {
         "left": 340,
-        "top": 484.890625,
+        "top": 483.796875,
         "right": 433.1875,
-        "bottom": 508.890625,
+        "bottom": 507.796875,
         "width": 93.1875,
         "height": 24
       },
@@ -175,7 +175,7 @@
       "viewport": "default-1280x720",
       "screenshot": {
         "path": "output/m8a-v4.10-slice3/v4.10-slice3-default-1280x720.png",
-        "sizeBytes": 682529,
+        "sizeBytes": 703816,
         "dimensions": {
           "width": 1280,
           "height": 720
@@ -189,9 +189,9 @@
       "anchorStatus": "geometry-reliable",
       "sceneNarrativeRect": {
         "left": 340,
-        "top": 383.796875,
+        "top": 380.296875,
         "right": 433.1875,
-        "bottom": 407.796875,
+        "bottom": 404.296875,
         "width": 93.1875,
         "height": 24
       },
@@ -301,7 +301,7 @@
       "viewport": "default-390x844",
       "screenshot": {
         "path": "output/m8a-v4.10-slice3/v4.10-slice3-default-390x844.png",
-        "sizeBytes": 356661,
+        "sizeBytes": 347742,
         "dimensions": {
           "width": 390,
           "height": 844
@@ -315,9 +315,9 @@
       "anchorStatus": "fallback",
       "sceneNarrativeRect": {
         "left": 14,
-        "top": 402.296875,
+        "top": 401,
         "right": 103.3125,
-        "bottom": 426.296875,
+        "bottom": 425,
         "width": 89.3125,
         "height": 24
       },
@@ -427,7 +427,7 @@
       "viewport": "transition-leo-aging-pressure-1440x900",
       "screenshot": {
         "path": "output/m8a-v4.10-slice3/v4.10-slice3-transition-leo-aging-pressure-1440x900.png",
-        "sizeBytes": 976777,
+        "sizeBytes": 976778,
         "dimensions": {
           "width": 1440,
           "height": 900
@@ -553,7 +553,7 @@
       "viewport": "boundary-open-1440x900",
       "screenshot": {
         "path": "output/m8a-v4.10-slice3/v4.10-slice3-boundary-open-1440x900.png",
-        "sizeBytes": 932855,
+        "sizeBytes": 917080,
         "dimensions": {
           "width": 1440,
           "height": 900
@@ -567,9 +567,9 @@
       "anchorStatus": "geometry-reliable",
       "sceneNarrativeRect": {
         "left": 340,
-        "top": 483,
+        "top": 482.296875,
         "right": 433.1875,
-        "bottom": 507,
+        "bottom": 506.296875,
         "width": 93.1875,
         "height": 24
       },
@@ -608,7 +608,7 @@
       "viewport": "details-open-1440x900",
       "screenshot": {
         "path": "output/m8a-v4.10-slice3/v4.10-slice3-details-open-1440x900.png",
-        "sizeBytes": 932139,
+        "sizeBytes": 917128,
         "dimensions": {
           "width": 1440,
           "height": 900
@@ -622,9 +622,9 @@
       "anchorStatus": "geometry-reliable",
       "sceneNarrativeRect": {
         "left": 340,
-        "top": 485.6875,
+        "top": 481.09375,
         "right": 433.1875,
-        "bottom": 509.6875,
+        "bottom": 505.09375,
         "width": 93.1875,
         "height": 24
       },
@@ -646,12 +646,12 @@
       },
       "boundarySurfaceRect": null,
       "sheetRect": {
-        "left": 1097,
-        "top": 23,
-        "right": 1417,
-        "bottom": 771,
-        "width": 320,
-        "height": 748
+        "left": 1016.96875,
+        "top": 48,
+        "right": 1416.96875,
+        "bottom": 724,
+        "width": 400,
+        "height": 676
       },
       "nativeSurfaces": {},
       "detailsDefaultOpen": true,
@@ -700,25 +700,25 @@
   "taskOwnedProcesses": [
     {
       "type": "static-server-started",
-      "at": "2026-05-05T01:31:18.352Z",
-      "pid": 12425,
-      "baseUrl": "http://127.0.0.1:38705"
+      "at": "2026-05-05T07:32:07.974Z",
+      "pid": 19171,
+      "baseUrl": "http://127.0.0.1:34479"
     },
     {
       "type": "headless-browser-started",
-      "at": "2026-05-05T01:31:18.465Z",
-      "pid": 12430,
+      "at": "2026-05-05T07:32:08.144Z",
+      "pid": 19193,
       "browserCommand": "google-chrome"
     },
     {
       "type": "headless-browser-stop-requested",
-      "at": "2026-05-05T01:32:32.679Z",
-      "pid": 12430
+      "at": "2026-05-05T07:33:45.918Z",
+      "pid": 19193
     },
     {
       "type": "static-server-stop-requested",
-      "at": "2026-05-05T01:32:32.715Z",
-      "pid": 12425
+      "at": "2026-05-05T07:33:45.964Z",
+      "pid": 19171
     }
   ]
 }

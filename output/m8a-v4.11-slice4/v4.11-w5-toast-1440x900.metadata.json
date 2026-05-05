@@ -7,7 +7,7 @@
   "route": "/?scenePreset=regional&m8aV4GroundStationScene=1",
   "windowId": "geo-continuity-guard",
   "screenshot": "output/m8a-v4.11-slice4/v4.11-w5-toast-1440x900.png",
-  "elapsedMs": 15,
+  "elapsedMs": 26,
   "result": {
     "label": "transition-geo-continuity-guard",
     "urlPath": "/?scenePreset=regional&m8aV4GroundStationScene=1",
@@ -208,7 +208,7 @@
         "title": "GEO guard context",
         "line": "Restart to review the sequence again.",
         "durationMs": "2500",
-        "elapsedMs": "15.0",
+        "elapsedMs": "26.0",
         "maxWidthPx": "320",
         "maxCanvasWidthRatio": "0.22",
         "stackIndex": "1",
@@ -239,7 +239,7 @@
         "title": "GEO guard context",
         "line": "Restart to review the sequence again.",
         "durationMs": "2500",
-        "elapsedMs": "15.0",
+        "elapsedMs": "26.0",
         "maxWidthPx": "320",
         "maxCanvasWidthRatio": "0.22",
         "stackIndex": "1",
@@ -432,11 +432,11 @@
         "selector": "play-pause",
         "rect": {
           "left": 453.296875,
-          "top": 98.8125,
+          "top": 94.8125,
           "right": 512.484375,
-          "bottom": 134.8125,
+          "bottom": 138.8125,
           "width": 59.1875,
-          "height": 36
+          "height": 44
         },
         "text": "Play"
       },
@@ -444,11 +444,11 @@
         "selector": "restart",
         "rect": {
           "left": 518.234375,
-          "top": 98.8125,
+          "top": 94.8125,
           "right": 588.625,
-          "bottom": 134.8125,
+          "bottom": 138.8125,
           "width": 70.390625,
-          "height": 36
+          "height": 44
         },
         "text": "Restart"
       },
@@ -469,11 +469,11 @@
       {
         "selector": "tw-cht-multi-orbit-ground-infrastructure",
         "rect": {
-          "left": 726.296875,
+          "left": 727.796875,
           "top": 487.296875,
-          "right": 822.296875,
+          "right": 820.796875,
           "bottom": 505.296875,
-          "width": 96,
+          "width": 93,
           "height": 18
         },
         "text": "LEO MEO GEO ✓"
@@ -481,11 +481,11 @@
       {
         "selector": "sg-speedcast-singapore-teleport",
         "rect": {
-          "left": 571.796875,
+          "left": 573.296875,
           "top": 589.796875,
-          "right": 667.796875,
+          "right": 666.296875,
           "bottom": 607.796875,
-          "width": 96,
+          "width": 93,
           "height": 18
         },
         "text": "LEO MEO GEO ✓"
@@ -565,11 +565,11 @@
       {
         "selector": "o3b-mpower-f6-meo-display-context",
         "rect": {
-          "left": 604.21875,
+          "left": 604.6875,
           "top": 255.59375,
-          "right": 641.15625,
+          "right": 640.6875,
           "bottom": 273.59375,
-          "width": 36.9375,
+          "width": 36,
           "height": 18
         },
         "text": "MEO"
@@ -577,11 +577,11 @@
       {
         "selector": "o3b-mpower-f1-meo-display-context",
         "rect": {
-          "left": 829.21875,
+          "left": 829.6875,
           "top": 240.59375,
-          "right": 866.15625,
+          "right": 865.6875,
           "bottom": 258.59375,
-          "width": 36.9375,
+          "width": 36,
           "height": 18
         },
         "text": "MEO"
@@ -589,11 +589,11 @@
       {
         "selector": "o3b-mpower-f2-meo-display-context",
         "rect": {
-          "left": 735.828125,
+          "left": 736.296875,
           "top": 224.1875,
-          "right": 772.765625,
+          "right": 772.296875,
           "bottom": 242.1875,
-          "width": 36.9375,
+          "width": 36,
           "height": 18
         },
         "text": "MEO"
@@ -601,11 +601,11 @@
       {
         "selector": "o3b-mpower-f4-meo-display-context",
         "rect": {
-          "left": 653.828125,
+          "left": 654.296875,
           "top": 406.296875,
-          "right": 690.765625,
+          "right": 690.296875,
           "bottom": 424.296875,
-          "width": 36.9375,
+          "width": 36,
           "height": 18
         },
         "text": "MEO"
@@ -613,11 +613,11 @@
       {
         "selector": "o3b-mpower-f3-meo-display-context",
         "rect": {
-          "left": 610.71875,
+          "left": 611.1875,
           "top": 253.59375,
-          "right": 647.65625,
+          "right": 647.1875,
           "bottom": 271.59375,
-          "width": 36.9375,
+          "width": 36,
           "height": 18
         },
         "text": "MEO"

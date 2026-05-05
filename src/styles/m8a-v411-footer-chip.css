@@ -1,5 +1,6 @@
+/* Design tokens adapted from leo-beam-sim/src/constants/uiTokens.ts (ISC, 2026) */
 .app-shell .viewer-shell .hud-frame {
-  z-index: 12;
+  z-index: var(--m8a-v411-layer-hud-frame);
 }
 
 .m8a-v47-product-ux {
@@ -19,7 +20,7 @@
   left: calc(var(--hud-frame-gap) + 10.25rem);
   right: calc(var(--hud-frame-gap) + 88px);
   bottom: var(--m8a-v411-footer-row-bottom);
-  z-index: 5;
+  z-index: var(--m8a-v411-layer-footer);
   display: flex;
   flex-direction: row;
   align-items: center;
@@ -37,15 +38,32 @@
   pointer-events: auto;
   line-height: 1;
   letter-spacing: 0;
+  font-family: var(--m8a-v411-font-ui);
+  transition:
+    background-color var(--m8a-v411-transition-fast),
+    border-color var(--m8a-v411-transition-fast),
+    color var(--m8a-v411-transition-fast),
+    box-shadow var(--m8a-v411-transition-fast);
 }
 
 .m8a-v411-footer-chip--ambient {
-  background: rgba(216, 224, 228, 0.14);
-  border: 1px solid rgba(216, 224, 228, 0.24);
-  color: rgba(226, 235, 238, 0.82);
+  background: var(--m8a-v411-alpha-panel-soft);
+  border: 1px solid var(--m8a-v411-alpha-border-soft);
+  color: var(--m8a-v411-ui-text-muted);
   font-size: 12px;
-  font-weight: 600;
+  font-weight: 680;
   cursor: default;
+  box-shadow: var(--m8a-v411-shadow-inner);
+}
+
+.m8a-v411-footer-chip--explicit-disclosure {
+  background: var(--m8a-v411-alpha-steel);
+  border: 1px solid var(--m8a-v411-alpha-active);
+  color: var(--m8a-v411-ui-text);
+  font-size: 12px;
+  font-weight: 760;
+  cursor: pointer;
+  box-shadow: var(--m8a-v411-shadow-inner);
 }
 
 .m8a-v411-footer-chip--ambient[data-m8a-v411-footer-chip-boundary-trigger="true"] {
@@ -54,16 +72,35 @@
 
 .m8a-v411-footer-chip--ambient[data-m8a-v411-footer-chip-boundary-trigger="true"]:hover,
 .m8a-v411-footer-chip--ambient[data-m8a-v411-footer-chip-boundary-trigger="true"]:focus-visible {
-  background: rgba(18, 30, 40, 0.88);
-  border-color: rgba(166, 210, 224, 0.44);
-  color: rgba(220, 242, 250, 0.92);
+  background: var(--m8a-v411-alpha-steel);
+  border-color: var(--m8a-v411-alpha-active);
+  color: var(--m8a-v411-ui-text);
   outline: none;
 }
 
+.m8a-v411-footer-chip--explicit-disclosure:hover,
+.m8a-v411-footer-chip--explicit-disclosure:focus-visible {
+  background: var(--m8a-v411-alpha-panel);
+  border-color: var(--m8a-v411-ui-active);
+  color: var(--m8a-v411-ui-text);
+  outline: none;
+}
+
+.m8a-v411-footer-chip:focus-visible,
+.m8a-v47-product-ux [data-m8a-v48-info-class="control"]:focus-visible {
+  outline: 2px solid var(--m8a-v411-ui-active);
+  outline-offset: 3px;
+  box-shadow:
+    0 0 0 4px var(--m8a-v411-alpha-focus-shadow),
+    var(--m8a-v411-shadow-inner);
+}
+
 .m8a-v411-footer-chip--w5-warning {
-  background: rgba(48, 14, 8, 0.82);
-  border: 1.5px solid #ff6b3d;
-  color: #ffb8a0;
+  background:
+    linear-gradient(90deg, var(--m8a-v411-alpha-danger-soft), transparent 58%),
+    var(--m8a-v411-alpha-panel);
+  border: 1.5px solid var(--m8a-v411-ui-w5-warning);
+  color: var(--m8a-v411-ui-w5-warning);
   font-size: 14px;
   font-weight: 700;
   cursor: pointer;
@@ -72,9 +109,11 @@
 
 .m8a-v411-footer-chip--w5-warning:hover,
 .m8a-v411-footer-chip--w5-warning:focus-visible {
-  background: rgba(64, 18, 8, 0.92);
-  border-color: #ff8c64;
-  color: #ffd0bc;
+  background:
+    linear-gradient(90deg, var(--m8a-v411-alpha-danger-soft), transparent 58%),
+    var(--m8a-v411-alpha-panel);
+  border-color: var(--m8a-v411-ui-warning);
+  color: var(--m8a-v411-ui-warning);
   outline: none;
 }
 
@@ -90,6 +129,25 @@
   align-items: center;
   gap: 10px;
   padding: 0 10px;
+  border: 1px solid var(--m8a-v411-alpha-border-soft);
+  background: var(--m8a-v411-alpha-panel-raised);
+  box-shadow:
+    var(--m8a-v411-shadow-inner),
+    var(--m8a-v411-shadow-callout);
+  font-family: var(--m8a-v411-font-ui);
+}
+
+.m8a-v47-product-ux .m8a-v410-sequence-rail__number,
+.m8a-v47-product-ux .m8a-v410-sequence-rail__orbit {
+  font-family: var(--m8a-v411-font-data);
+  font-variant-numeric: tabular-nums;
+}
+
+.m8a-v47-product-ux .m8a-v410-sequence-rail__mark[data-active="true"] {
+  border-color: var(--m8a-v411-alpha-active);
+  box-shadow:
+    inset 0 -2px 0 var(--m8a-v411-ui-active),
+    var(--m8a-v411-shadow-inner);
 }
 
 .m8a-v47-product-ux .m8a-v410-sequence-rail__summary {
@@ -150,7 +208,7 @@
   position: fixed;
   right: var(--hud-frame-gap);
   bottom: var(--m8a-v411-footer-row-bottom);
-  z-index: 5;
+  z-index: var(--m8a-v411-layer-footer);
   width: 72px;
   height: 36px;
   min-height: 36px;

@@ -6,7 +6,7 @@
       "windowId": "leo-aging-pressure",
       "screenshot": "output/m8a-v4.11-slice4/v4.11-w2-toast-1440x900.png",
       "metadata": "output/m8a-v4.11-slice4/v4.11-w2-toast-1440x900.metadata.json",
-      "elapsedMs": 28,
+      "elapsedMs": 30,
       "toastRect": {
         "left": 23.03125,
         "top": 225.03125,
@@ -28,7 +28,7 @@
       "windowId": "meo-continuity-hold",
       "screenshot": "output/m8a-v4.11-slice4/v4.11-w3-toast-1440x900.png",
       "metadata": "output/m8a-v4.11-slice4/v4.11-w3-toast-1440x900.metadata.json",
-      "elapsedMs": 16,
+      "elapsedMs": 18,
       "toastRect": {
         "left": 23.03125,
         "top": 225.03125,
@@ -50,7 +50,7 @@
       "windowId": "leo-reentry-candidate",
       "screenshot": "output/m8a-v4.11-slice4/v4.11-w4-toast-1440x900.png",
       "metadata": "output/m8a-v4.11-slice4/v4.11-w4-toast-1440x900.metadata.json",
-      "elapsedMs": 13,
+      "elapsedMs": 20,
       "toastRect": {
         "left": 23.03125,
         "top": 225.03125,
@@ -72,7 +72,7 @@
       "windowId": "geo-continuity-guard",
       "screenshot": "output/m8a-v4.11-slice4/v4.11-w5-toast-1440x900.png",
       "metadata": "output/m8a-v4.11-slice4/v4.11-w5-toast-1440x900.metadata.json",
-      "elapsedMs": 15,
+      "elapsedMs": 26,
       "toastRect": {
         "left": 23.03125,
         "top": 225.03125,
@@ -92,7 +92,7 @@
     }
   ],
   "reducedMotion": {
-    "elapsedMs": 14,
+    "elapsedMs": 21,
     "toastStyle": {
       "animationName": "none",
       "transform": "none",

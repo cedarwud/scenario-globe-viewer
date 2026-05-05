@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-05-05T01:33:48.659Z",
+  "generatedAt": "2026-05-05T07:34:55.868Z",
   "status": "cleanup-complete",
   "route": "/?scenePreset=regional&m8aV4GroundStationScene=1",
   "outputRoot": "output/m8a-v4.10-slice4",
@@ -9,7 +9,7 @@
       "action": "default",
       "screenshot": {
         "path": "output/m8a-v4.10-slice4/v4.10-slice4-default-1440x900.png",
-        "sizeBytes": 948727,
+        "sizeBytes": 960456,
         "dimensions": {
           "width": 1440,
           "height": 900
@@ -22,9 +22,9 @@
       "boundarySurfaceState": "closed",
       "sceneNarrativeRect": {
         "left": 340,
-        "top": 486.5,
+        "top": 485,
         "right": 433.1875,
-        "bottom": 510.5,
+        "bottom": 509,
         "width": 93.1875,
         "height": 24
       },
@@ -144,7 +144,7 @@
       "action": "default",
       "screenshot": {
         "path": "output/m8a-v4.10-slice4/v4.10-slice4-default-390x844.png",
-        "sizeBytes": 356964,
+        "sizeBytes": 347623,
         "dimensions": {
           "width": 390,
           "height": 844
@@ -157,9 +157,9 @@
       "boundarySurfaceState": "closed",
       "sceneNarrativeRect": {
         "left": 14,
-        "top": 400.59375,
+        "top": 402.1875,
         "right": 103.3125,
-        "bottom": 424.59375,
+        "bottom": 426.1875,
         "width": 89.3125,
         "height": 24
       },
@@ -279,7 +279,7 @@
       "action": "details",
       "screenshot": {
         "path": "output/m8a-v4.10-slice4/v4.10-slice4-details-open-1440x900.png",
-        "sizeBytes": 933003,
+        "sizeBytes": 916948,
         "dimensions": {
           "width": 1440,
           "height": 900
@@ -292,9 +292,9 @@
       "boundarySurfaceState": "closed",
       "sceneNarrativeRect": {
         "left": 340,
-        "top": 482.6875,
+        "top": 482.390625,
         "right": 433.1875,
-        "bottom": 506.6875,
+        "bottom": 506.390625,
         "width": 93.1875,
         "height": 24
       },
@@ -315,12 +315,12 @@
         "height": 85.15625
       },
       "sheetRect": {
-        "left": 1097,
-        "top": 23,
-        "right": 1417,
-        "bottom": 771,
-        "width": 320,
-        "height": 748
+        "left": 1016.96875,
+        "top": 48,
+        "right": 1416.96875,
+        "bottom": 724,
+        "width": 400,
+        "height": 676
       },
       "boundarySurfaceRect": {
         "left": 0,
@@ -414,7 +414,7 @@
       "action": "boundary",
       "screenshot": {
         "path": "output/m8a-v4.10-slice4/v4.10-slice4-boundary-open-1440x900.png",
-        "sizeBytes": 933699,
+        "sizeBytes": 916780,
         "dimensions": {
           "width": 1440,
           "height": 900
@@ -427,9 +427,9 @@
       "boundarySurfaceState": "open",
       "sceneNarrativeRect": {
         "left": 340,
-        "top": 481.09375,
+        "top": 483.5,
         "right": 433.1875,
-        "bottom": 505.09375,
+        "bottom": 507.5,
         "width": 93.1875,
         "height": 24
       },
@@ -450,12 +450,12 @@
         "height": 85.15625
       },
       "sheetRect": {
-        "left": 1097,
-        "top": 23,
-        "right": 1417,
-        "bottom": 771,
-        "width": 320,
-        "height": 748
+        "left": 1016.96875,
+        "top": 48,
+        "right": 1416.96875,
+        "bottom": 724,
+        "width": 400,
+        "height": 676
       },
       "boundarySurfaceRect": {
         "left": 0,
@@ -575,25 +575,25 @@
   "taskOwnedProcesses": [
     {
       "type": "static-server-started",
-      "at": "2026-05-05T01:32:39.746Z",
-      "pid": 14403,
-      "baseUrl": "http://127.0.0.1:42007"
+      "at": "2026-05-05T07:33:49.585Z",
+      "pid": 21314,
+      "baseUrl": "http://127.0.0.1:37869"
     },
     {
       "type": "headless-browser-started",
-      "at": "2026-05-05T01:32:39.850Z",
-      "pid": 14411,
+      "at": "2026-05-05T07:33:49.709Z",
+      "pid": 21319,
       "browserCommand": "google-chrome"
     },
     {
       "type": "headless-browser-stop-requested",
-      "at": "2026-05-05T01:33:48.607Z",
-      "pid": 14411
+      "at": "2026-05-05T07:34:55.795Z",
+      "pid": 21319
     },
     {
       "type": "static-server-stop-requested",
-      "at": "2026-05-05T01:33:48.657Z",
-      "pid": 14403
+      "at": "2026-05-05T07:34:55.866Z",
+      "pid": 21314
     }
   ]
 }

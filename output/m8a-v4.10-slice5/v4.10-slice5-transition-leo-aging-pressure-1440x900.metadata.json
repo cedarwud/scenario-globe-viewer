@@ -1,5 +1,5 @@
 {
-  "capturedAt": "2026-05-05T01:35:33.400Z",
+  "capturedAt": "2026-05-05T07:36:29.684Z",
   "route": "/?scenePreset=regional&m8aV4GroundStationScene=1",
   "capture": {
     "name": "transition-leo-aging-pressure-1440x900",
@@ -17,7 +17,7 @@
   },
   "screenshot": {
     "path": "output/m8a-v4.10-slice5/v4.10-slice5-transition-leo-aging-pressure-1440x900.png",
-    "sizeBytes": 977713,
+    "sizeBytes": 981328,
     "dimensions": {
       "width": 1440,
       "height": 900
@@ -754,11 +754,11 @@
         "ariaPressed": null,
         "rect": {
           "left": 453.296875,
-          "top": 98.8125,
+          "top": 94.8125,
           "right": 512.484375,
-          "bottom": 134.8125,
+          "bottom": 138.8125,
           "width": 59.1875,
-          "height": 36
+          "height": 44
         }
       },
       {
@@ -769,11 +769,11 @@
         "ariaPressed": null,
         "rect": {
           "left": 518.234375,
-          "top": 98.8125,
+          "top": 94.8125,
           "right": 588.625,
-          "bottom": 134.8125,
+          "bottom": 138.8125,
           "width": 70.390625,
-          "height": 36
+          "height": 44
         }
       },
       {
@@ -784,11 +784,11 @@
         "ariaPressed": "false",
         "rect": {
           "left": 594.375,
-          "top": 98.8125,
-          "right": 633.84375,
-          "bottom": 134.8125,
-          "width": 39.46875,
-          "height": 36
+          "top": 94.8125,
+          "right": 638.375,
+          "bottom": 138.8125,
+          "width": 44,
+          "height": 44
         }
       },
       {
@@ -799,11 +799,11 @@
         "ariaPressed": "true",
         "rect": {
           "left": 638.640625,
-          "top": 98.8125,
-          "right": 678.109375,
-          "bottom": 134.8125,
-          "width": 39.46875,
-          "height": 36
+          "top": 94.8125,
+          "right": 682.640625,
+          "bottom": 138.8125,
+          "width": 44,
+          "height": 44
         }
       },
       {
@@ -814,11 +814,11 @@
         "ariaPressed": "false",
         "rect": {
           "left": 682.90625,
-          "top": 98.8125,
-          "right": 722.375,
-          "bottom": 134.8125,
-          "width": 39.46875,
-          "height": 36
+          "top": 94.8125,
+          "right": 726.90625,
+          "bottom": 138.8125,
+          "width": 44,
+          "height": 44
         }
       },
       {

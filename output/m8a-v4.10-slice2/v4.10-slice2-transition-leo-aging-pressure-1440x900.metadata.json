@@ -1,5 +1,5 @@
 {
-  "capturedAt": "2026-05-05T01:31:00.826Z",
+  "capturedAt": "2026-05-05T07:31:52.169Z",
   "route": "/?scenePreset=regional&m8aV4GroundStationScene=1",
   "viewport": {
     "name": "transition-leo-aging-pressure-1440x900",
@@ -16,7 +16,7 @@
   },
   "screenshot": {
     "path": "output/m8a-v4.10-slice2/v4.10-slice2-transition-leo-aging-pressure-1440x900.png",
-    "sizeBytes": 977830,
+    "sizeBytes": 976946,
     "dimensions": {
       "width": 1440,
       "height": 900
@@ -614,16 +614,16 @@
         "ariaPressed": null,
         "rect": {
           "left": 453.296875,
-          "top": 98.8125,
+          "top": 94.8125,
           "right": 512.484375,
-          "bottom": 134.8125,
+          "bottom": 138.8125,
           "width": 59.1875,
-          "height": 36
+          "height": 44
         },
         "clientWidth": 57,
-        "clientHeight": 34,
+        "clientHeight": 42,
         "scrollWidth": 57,
-        "scrollHeight": 34,
+        "scrollHeight": 42,
         "receivesCenterPoint": true,
         "topText": "Play"
       },
@@ -636,16 +636,16 @@
         "ariaPressed": null,
         "rect": {
           "left": 518.234375,
-          "top": 98.8125,
+          "top": 94.8125,
           "right": 588.625,
-          "bottom": 134.8125,
+          "bottom": 138.8125,
           "width": 70.390625,
-          "height": 36
+          "height": 44
         },
         "clientWidth": 68,
-        "clientHeight": 34,
+        "clientHeight": 42,
         "scrollWidth": 68,
-        "scrollHeight": 34,
+        "scrollHeight": 42,
         "receivesCenterPoint": true,
         "topText": "Restart"
       },
@@ -658,16 +658,16 @@
         "ariaPressed": "false",
         "rect": {
           "left": 594.375,
-          "top": 98.8125,
-          "right": 633.84375,
-          "bottom": 134.8125,
-          "width": 39.46875,
-          "height": 36
+          "top": 94.8125,
+          "right": 638.375,
+          "bottom": 138.8125,
+          "width": 44,
+          "height": 44
         },
-        "clientWidth": 37,
-        "clientHeight": 34,
-        "scrollWidth": 37,
-        "scrollHeight": 34,
+        "clientWidth": 42,
+        "clientHeight": 42,
+        "scrollWidth": 42,
+        "scrollHeight": 42,
         "receivesCenterPoint": true,
         "topText": "30x"
       },
@@ -680,16 +680,16 @@
         "ariaPressed": "true",
         "rect": {
           "left": 638.640625,
-          "top": 98.8125,
-          "right": 678.109375,
-          "bottom": 134.8125,
-          "width": 39.46875,
-          "height": 36
+          "top": 94.8125,
+          "right": 682.640625,
+          "bottom": 138.8125,
+          "width": 44,
+          "height": 44
         },
-        "clientWidth": 37,
-        "clientHeight": 34,
-        "scrollWidth": 37,
-        "scrollHeight": 34,
+        "clientWidth": 42,
+        "clientHeight": 42,
+        "scrollWidth": 42,
+        "scrollHeight": 42,
         "receivesCenterPoint": true,
         "topText": "60x"
       },
@@ -702,16 +702,16 @@
         "ariaPressed": "false",
         "rect": {
           "left": 682.90625,
-          "top": 98.8125,
-          "right": 722.375,
-          "bottom": 134.8125,
-          "width": 39.46875,
-          "height": 36
+          "top": 94.8125,
+          "right": 726.90625,
+          "bottom": 138.8125,
+          "width": 44,
+          "height": 44
         },
-        "clientWidth": 37,
-        "clientHeight": 34,
-        "scrollWidth": 37,
-        "scrollHeight": 34,
+        "clientWidth": 42,
+        "clientHeight": 42,
+        "scrollWidth": 42,
+        "scrollHeight": 42,
         "receivesCenterPoint": true,
         "topText": "120x"
       },

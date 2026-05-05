@@ -1,25 +1,30 @@
+/* Design tokens adapted from leo-beam-sim/src/constants/uiTokens.ts (ISC, 2026) */
 .m8a-v411-product-ux__scene-context-chip {
   position: absolute;
   top: 16px;
   left: 50%;
   transform: translateX(-50%);
-  z-index: 4;
+  z-index: var(--m8a-v411-layer-callout);
   display: inline-flex;
   align-items: center;
   justify-content: center;
   max-width: 380px;
   height: 28px;
   padding: 0 12px;
-  border: 1px solid #d0d0d0;
-  border-radius: 6px;
-  background: #f5f5f5;
-  color: #2d3742;
+  border: 1px solid var(--m8a-v411-alpha-active);
+  border-radius: var(--m8a-v411-radius-md);
+  background: var(--m8a-v411-alpha-panel);
+  color: var(--m8a-v411-ui-text);
   font-size: 14px;
-  font-weight: 540;
+  font-family: var(--m8a-v411-font-ui);
+  font-weight: 720;
   line-height: 1;
   letter-spacing: 0;
   white-space: nowrap;
   pointer-events: none;
+  box-shadow:
+    var(--m8a-v411-shadow-inner),
+    var(--m8a-v411-shadow-callout);
 }
 
 .m8a-v411-product-ux__scene-context-chip[hidden] {

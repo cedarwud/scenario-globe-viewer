@@ -309,11 +309,11 @@
         "visible": true,
         "hidden": false,
         "rect": {
-          "left": 726.296875,
+          "left": 727.796875,
           "top": 487.296875,
-          "right": 822.296875,
+          "right": 820.796875,
           "bottom": 505.296875,
-          "width": 96,
+          "width": 93,
           "height": 18
         },
         "text": "LEO MEO GEO ✓",
@@ -336,11 +336,11 @@
         "visible": true,
         "hidden": false,
         "rect": {
-          "left": 571.796875,
+          "left": 573.296875,
           "top": 589.796875,
-          "right": 667.796875,
+          "right": 666.296875,
           "bottom": 607.796875,
-          "width": 96,
+          "width": 93,
           "height": 18
         },
         "text": "LEO MEO GEO ✓",
@@ -525,11 +525,11 @@
         "visible": true,
         "hidden": false,
         "rect": {
-          "left": 347.125,
+          "left": 347.59375,
           "top": 397.1875,
-          "right": 384.0625,
+          "right": 383.59375,
           "bottom": 415.1875,
-          "width": 36.9375,
+          "width": 36,
           "height": 18
         },
         "text": "MEO",
@@ -552,11 +552,11 @@
         "visible": true,
         "hidden": false,
         "rect": {
-          "left": 606.921875,
+          "left": 607.390625,
           "top": 262,
-          "right": 643.859375,
+          "right": 643.390625,
           "bottom": 280,
-          "width": 36.9375,
+          "width": 36,
           "height": 18
         },
         "text": "MEO",
@@ -579,11 +579,11 @@
         "visible": true,
         "hidden": false,
         "rect": {
-          "left": 578.328125,
+          "left": 578.796875,
           "top": 250,
-          "right": 615.265625,
+          "right": 614.796875,
           "bottom": 268,
-          "width": 36.9375,
+          "width": 36,
           "height": 18
         },
         "text": "MEO",
@@ -606,11 +606,11 @@
         "visible": true,
         "hidden": false,
         "rect": {
-          "left": 964.71875,
+          "left": 965.1875,
           "top": 273.796875,
-          "right": 1001.65625,
+          "right": 1001.1875,
           "bottom": 291.796875,
-          "width": 36.9375,
+          "width": 36,
           "height": 18
         },
         "text": "MEO",
@@ -633,11 +633,11 @@
         "visible": true,
         "hidden": false,
         "rect": {
-          "left": 910.03125,
+          "left": 910.5,
           "top": 270.6875,
-          "right": 946.96875,
+          "right": 946.5,
           "bottom": 288.6875,
-          "width": 36.9375,
+          "width": 36,
           "height": 18
         },
         "text": "MEO",

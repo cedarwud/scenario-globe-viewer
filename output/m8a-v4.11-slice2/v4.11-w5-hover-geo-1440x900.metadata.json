@@ -309,11 +309,11 @@
         "visible": true,
         "hidden": false,
         "rect": {
-          "left": 726.296875,
+          "left": 727.796875,
           "top": 487.296875,
-          "right": 822.296875,
+          "right": 820.796875,
           "bottom": 505.296875,
-          "width": 96,
+          "width": 93,
           "height": 18
         },
         "text": "LEO MEO GEO ✓",
@@ -336,11 +336,11 @@
         "visible": true,
         "hidden": false,
         "rect": {
-          "left": 571.796875,
+          "left": 573.296875,
           "top": 589.796875,
-          "right": 667.796875,
+          "right": 666.296875,
           "bottom": 607.796875,
-          "width": 96,
+          "width": 93,
           "height": 18
         },
         "text": "LEO MEO GEO ✓",
@@ -525,11 +525,11 @@
         "visible": true,
         "hidden": false,
         "rect": {
-          "left": 604.21875,
+          "left": 604.6875,
           "top": 255.59375,
-          "right": 641.15625,
+          "right": 640.6875,
           "bottom": 273.59375,
-          "width": 36.9375,
+          "width": 36,
           "height": 18
         },
         "text": "MEO",
@@ -552,11 +552,11 @@
         "visible": true,
         "hidden": false,
         "rect": {
-          "left": 829.21875,
+          "left": 829.6875,
           "top": 240.59375,
-          "right": 866.15625,
+          "right": 865.6875,
           "bottom": 258.59375,
-          "width": 36.9375,
+          "width": 36,
           "height": 18
         },
         "text": "MEO",
@@ -579,11 +579,11 @@
         "visible": true,
         "hidden": false,
         "rect": {
-          "left": 735.828125,
+          "left": 736.296875,
           "top": 224.1875,
-          "right": 772.765625,
+          "right": 772.296875,
           "bottom": 242.1875,
-          "width": 36.9375,
+          "width": 36,
           "height": 18
         },
         "text": "MEO",
@@ -606,11 +606,11 @@
         "visible": true,
         "hidden": false,
         "rect": {
-          "left": 653.828125,
+          "left": 654.296875,
           "top": 406.296875,
-          "right": 690.765625,
+          "right": 690.296875,
           "bottom": 424.296875,
-          "width": 36.9375,
+          "width": 36,
           "height": 18
         },
         "text": "MEO",
@@ -633,11 +633,11 @@
         "visible": true,
         "hidden": false,
         "rect": {
-          "left": 610.71875,
+          "left": 611.1875,
           "top": 253.59375,
-          "right": 647.65625,
+          "right": 647.1875,
           "bottom": 271.59375,
-          "width": 36.9375,
+          "width": 36,
           "height": 18
         },
         "text": "MEO",
@@ -715,9 +715,9 @@
         "hidden": false,
         "rect": {
           "left": 518.9375,
-          "top": 716.140625,
+          "top": 713,
           "right": 635.796875,
-          "bottom": 754.140625,
+          "bottom": 751,
           "width": 116.859375,
           "height": 38
         },
@@ -742,9 +742,9 @@
         "hidden": false,
         "rect": {
           "left": 641.234375,
-          "top": 716.140625,
+          "top": 713,
           "right": 758.09375,
-          "bottom": 754.140625,
+          "bottom": 751,
           "width": 116.859375,
           "height": 38
         },
@@ -769,9 +769,9 @@
         "hidden": false,
         "rect": {
           "left": 763.53125,
-          "top": 716.140625,
+          "top": 713,
           "right": 880.390625,
-          "bottom": 754.140625,
+          "bottom": 751,
           "width": 116.859375,
           "height": 38
         },
@@ -796,9 +796,9 @@
         "hidden": false,
         "rect": {
           "left": 885.828125,
-          "top": 716.140625,
+          "top": 713,
           "right": 1002.6875,
-          "bottom": 754.140625,
+          "bottom": 751,
           "width": 116.859375,
           "height": 38
         },
@@ -823,9 +823,9 @@
         "hidden": false,
         "rect": {
           "left": 1008.125,
-          "top": 716.140625,
+          "top": 713,
           "right": 1125,
-          "bottom": 754.140625,
+          "bottom": 751,
           "width": 116.875,
           "height": 38
         },

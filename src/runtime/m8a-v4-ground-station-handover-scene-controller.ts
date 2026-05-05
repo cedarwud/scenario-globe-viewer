@@ -2710,11 +2710,11 @@ function ensureProductUxStructure(root: HTMLElement): void {
         </div>
         <button type="button" data-m8a-v47-action="close-disclosure" data-m8a-v47-control-id="details-close" data-m8a-v48-info-class="control">Close</button>
       </div>
-      <div class="m8a-v411-inspector__tabs" data-m8a-v411-inspector-tabs="true">
-        <button type="button" data-m8a-v47-action="switch-inspector-tab" data-m8a-v411-inspector-tab="decision" aria-selected="true" data-m8a-v48-info-class="control">Decision</button>
-        <button type="button" data-m8a-v47-action="switch-inspector-tab" data-m8a-v411-inspector-tab="metrics" aria-selected="false" data-m8a-v48-info-class="control">Metrics</button>
-        <button type="button" data-m8a-v47-action="switch-inspector-tab" data-m8a-v411-inspector-tab="boundary" aria-selected="false" data-m8a-v48-info-class="control">Boundary</button>
-        <button type="button" data-m8a-v47-action="switch-inspector-tab" data-m8a-v411-inspector-tab="evidence" aria-selected="false" data-m8a-v48-info-class="control">Evidence</button>
+      <div class="m8a-v411-inspector__tabs" data-m8a-v411-inspector-tabs="true" role="tablist" aria-label="Details inspector sections">
+        <button type="button" id="m8a-v411-inspector-tab-decision" role="tab" data-m8a-v47-action="switch-inspector-tab" data-m8a-v411-inspector-tab="decision" aria-selected="true" aria-controls="m8a-v411-inspector-panel-decision" data-m8a-v48-info-class="control">Decision</button>
+        <button type="button" id="m8a-v411-inspector-tab-metrics" role="tab" data-m8a-v47-action="switch-inspector-tab" data-m8a-v411-inspector-tab="metrics" aria-selected="false" aria-controls="m8a-v411-inspector-panel-metrics" data-m8a-v48-info-class="control">Metrics</button>
+        <button type="button" id="m8a-v411-inspector-tab-boundary" role="tab" data-m8a-v47-action="switch-inspector-tab" data-m8a-v411-inspector-tab="boundary" aria-selected="false" aria-controls="m8a-v411-inspector-panel-boundary" data-m8a-v48-info-class="control">Boundary</button>
+        <button type="button" id="m8a-v411-inspector-tab-evidence" role="tab" data-m8a-v47-action="switch-inspector-tab" data-m8a-v411-inspector-tab="evidence" aria-selected="false" aria-controls="m8a-v411-inspector-panel-evidence" data-m8a-v48-info-class="control">Evidence</button>
       </div>
       <div class="m8a-v47-product-ux__sheet-state">
         <span data-m8a-v48-info-class="fixed">Selected replay window</span>
@@ -2727,7 +2727,7 @@ function ensureProductUxStructure(root: HTMLElement): void {
       <div class="m8a-v47-product-ux__inspector" data-m8a-v48-inspector-body="true">
         <p class="m8a-v410-inspector__lead" data-m8a-v410-inspector-lead="true" data-m8a-v48-info-class="fixed">Evidence for the selected replay window. The scene narrative and sequence rail remain primary.</p>
         <div class="m8a-v47-product-ux__inspector-primary m8a-v410-inspector__evidence-structure" data-m8a-v49-inspector-primary-body="true" data-m8a-v410-inspector-evidence-structure="true">
-          <section class="m8a-v411-inspector__role m8a-v411-inspector__role--state" data-m8a-v411-inspector-role="state-evidence" data-m8a-v411-role-state="closed" data-m8a-v411-inspector-panel="decision" data-m8a-v49-inspector-primary="current-state">
+          <section id="m8a-v411-inspector-panel-decision" role="tabpanel" aria-labelledby="m8a-v411-inspector-tab-decision" class="m8a-v411-inspector__role m8a-v411-inspector__role--state" data-m8a-v411-inspector-role="state-evidence" data-m8a-v411-role-state="closed" data-m8a-v411-inspector-panel="decision" data-m8a-v49-inspector-primary="current-state">
             <span class="m8a-v410-inspector__group-label" data-m8a-v48-info-class="fixed">Decision · State Evidence</span>
             <strong data-m8a-v411-state-evidence-title="true" data-m8a-v48-info-class="dynamic"></strong>
             <p data-m8a-v49-inspector-current="true" data-m8a-v411-state-evidence-copy="true" data-m8a-v48-info-class="dynamic"></p>
@@ -2740,7 +2740,7 @@ function ensureProductUxStructure(root: HTMLElement): void {
             <p class="m8a-v411-inspector__state-evidence-detail" data-m8a-v411-state-evidence-detail="true" data-m8a-v48-info-class="disclosure"></p>
           </section>
 
-          <section class="m8a-v411-inspector__role" data-m8a-v411-inspector-panel="metrics" hidden>
+          <section id="m8a-v411-inspector-panel-metrics" role="tabpanel" aria-labelledby="m8a-v411-inspector-tab-metrics" class="m8a-v411-inspector__role" data-m8a-v411-inspector-panel="metrics" hidden>
             <span class="m8a-v410-inspector__group-label" data-m8a-v48-info-class="fixed">Metrics</span>
             <div class="m8a-v411-inspector__module-list" data-m8a-v411-metrics-modeled="true">
               <strong data-m8a-v48-info-class="fixed">Modeled classes</strong>
@@ -2754,7 +2754,7 @@ function ensureProductUxStructure(root: HTMLElement): void {
             </div>
           </section>
 
-          <section class="m8a-v411-inspector__role m8a-v411-inspector__role--truth" data-m8a-v411-inspector-role="truth-boundary" data-m8a-v411-role-state="closed" data-m8a-v411-inspector-panel="boundary" data-m8a-v411-state-evidence-truth-tail="true" data-m8a-v49-truth-boundary-details="true" data-m8a-v49-inspector-primary="boundary" data-m8a-v411-inspector-conv2-tail-of-state-evidence="true" hidden>
+          <section id="m8a-v411-inspector-panel-boundary" role="tabpanel" aria-labelledby="m8a-v411-inspector-tab-boundary" class="m8a-v411-inspector__role m8a-v411-inspector__role--truth" data-m8a-v411-inspector-role="truth-boundary" data-m8a-v411-role-state="closed" data-m8a-v411-inspector-panel="boundary" data-m8a-v411-state-evidence-truth-tail="true" data-m8a-v49-truth-boundary-details="true" data-m8a-v49-inspector-primary="boundary" data-m8a-v411-inspector-conv2-tail-of-state-evidence="true" hidden>
             <span class="m8a-v410-inspector__group-label" data-m8a-v48-info-class="fixed">Boundary · Truth Boundary</span>
             <strong data-m8a-v411-truth-boundary-title="true" data-m8a-v48-info-class="fixed">Truth boundary</strong>
             <div class="m8a-v411-inspector__module-list" data-m8a-v411-boundary-modules="true">
@@ -2771,7 +2771,7 @@ function ensureProductUxStructure(root: HTMLElement): void {
             </ul>
           </section>
 
-          <section class="m8a-v411-inspector__role m8a-v411-inspector__role--sources" data-m8a-v411-inspector-role="sources" data-m8a-v411-role-state="closed" data-m8a-v411-inspector-panel="evidence" data-m8a-v411-sources-role="true" data-m8a-v49-inspector-primary="sources" tabindex="-1" hidden>
+          <section id="m8a-v411-inspector-panel-evidence" role="tabpanel" aria-labelledby="m8a-v411-inspector-tab-evidence" class="m8a-v411-inspector__role m8a-v411-inspector__role--sources" data-m8a-v411-inspector-role="sources" data-m8a-v411-role-state="closed" data-m8a-v411-inspector-panel="evidence" data-m8a-v411-sources-role="true" data-m8a-v49-inspector-primary="sources" tabindex="-1" hidden>
             <span class="m8a-v410-inspector__group-label" data-m8a-v48-info-class="fixed">Evidence</span>
             <strong data-m8a-v411-sources-title="true" data-m8a-v48-info-class="fixed">Source provenance</strong>
             <p data-m8a-v411-sources-filter-summary="true" data-m8a-v48-info-class="dynamic"></p>

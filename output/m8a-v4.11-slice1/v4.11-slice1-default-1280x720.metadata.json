@@ -274,11 +274,11 @@
       "visible": true,
       "hidden": false,
       "rect": {
-        "left": 450.859375,
+        "left": 423.71875,
         "top": 605.40625,
-        "right": 725.15625,
+        "right": 665.59375,
         "bottom": 623.40625,
-        "width": 274.296875,
+        "width": 241.875,
         "height": 18
       },
       "text": "TLE: CelesTrak NORAD GP · 2026-04-26",
@@ -290,11 +290,11 @@
       "visible": true,
       "hidden": false,
       "rect": {
-        "left": 731.15625,
+        "left": 671.59375,
         "top": 605.40625,
-        "right": 810.828125,
+        "right": 742.078125,
         "bottom": 623.40625,
-        "width": 79.671875,
+        "width": 70.484375,
         "height": 18
       },
       "text": "13 actors",
@@ -507,11 +507,11 @@
         "visible": true,
         "hidden": false,
         "rect": {
-          "left": 281.828125,
+          "left": 282.296875,
           "top": 333.890625,
-          "right": 318.765625,
+          "right": 318.296875,
           "bottom": 351.890625,
-          "width": 36.9375,
+          "width": 36,
           "height": 18
         },
         "text": "MEO",
@@ -525,11 +525,11 @@
         "visible": true,
         "hidden": false,
         "rect": {
-          "left": 513.921875,
+          "left": 514.390625,
           "top": 197,
-          "right": 550.859375,
+          "right": 550.390625,
           "bottom": 215,
-          "width": 36.9375,
+          "width": 36,
           "height": 18
         },
         "text": "MEO",
@@ -543,11 +543,11 @@
         "visible": true,
         "hidden": false,
         "rect": {
-          "left": 495.421875,
+          "left": 495.890625,
           "top": 184,
-          "right": 532.359375,
+          "right": 531.890625,
           "bottom": 202,
-          "width": 36.9375,
+          "width": 36,
           "height": 18
         },
         "text": "MEO",
@@ -561,11 +561,11 @@
         "visible": true,
         "hidden": false,
         "rect": {
-          "left": 847.03125,
+          "left": 847.5,
           "top": 201.6875,
-          "right": 883.96875,
+          "right": 883.5,
           "bottom": 219.6875,
-          "width": 36.9375,
+          "width": 36,
           "height": 18
         },
         "text": "MEO",
@@ -579,11 +579,11 @@
         "visible": true,
         "hidden": false,
         "rect": {
-          "left": 787.625,
+          "left": 788.09375,
           "top": 192.890625,
-          "right": 824.5625,
+          "right": 824.09375,
           "bottom": 210.890625,
-          "width": 36.9375,
+          "width": 36,
           "height": 18
         },
         "text": "MEO",
@@ -635,11 +635,11 @@
         "visible": true,
         "hidden": false,
         "rect": {
-          "left": 640.296875,
+          "left": 641.796875,
           "top": 389.09375,
-          "right": 736.296875,
+          "right": 734.796875,
           "bottom": 407.09375,
-          "width": 96,
+          "width": 93,
           "height": 18
         },
         "text": "LEO MEO GEO ✓",
@@ -683,11 +683,11 @@
         "visible": true,
         "hidden": false,
         "rect": {
-          "left": 503,
+          "left": 504.5,
           "top": 480.09375,
-          "right": 599,
+          "right": 597.5,
           "bottom": 498.09375,
-          "width": 96,
+          "width": 93,
           "height": 18
         },
         "text": "LEO MEO GEO ✓",
