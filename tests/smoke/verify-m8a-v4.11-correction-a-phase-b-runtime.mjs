@@ -101,7 +101,8 @@ async function inspectLayout(client) {
         return {
           exists: true,
           visible: !el.hidden && el.style.display !== 'none',
-          selected: el.getAttribute('aria-selected')
+          selected: el.getAttribute('aria-selected'),
+          text: el.textContent?.trim() ?? ""
         };
       };
 
@@ -111,6 +112,12 @@ async function inspectLayout(client) {
         topStrip: qs('div[data-m8a-v411-top-strip="true"]'),
         footerDisclosure: qs('button[data-m8a-v411-footer-chip="explicit-disclosure"]'),
         inspectorSheet: qs('aside[data-m8a-v48-inspector="true"]'),
+        boundaryStrip: qs('[data-m8a-v411-inspector-boundary-strip="true"]'),
+        validationBadge: qs('[data-m8a-v411-inspector-validation-badge="true"]'),
+        tabs: Array.from(document.querySelectorAll('[data-m8a-v411-inspector-tab]')).map((tab) => ({
+          id: tab.dataset.m8aV411InspectorTab,
+          text: tab.textContent?.trim() ?? ""
+        })),
         tabDecision: qs('button[data-m8a-v411-inspector-tab="decision"]'),
         tabMetrics: qs('button[data-m8a-v411-inspector-tab="metrics"]'),
         tabBoundary: qs('button[data-m8a-v411-inspector-tab="boundary"]'),
@@ -196,10 +203,33 @@ async function main() {
     
     layout = await inspectLayout(client);
     assert(layout.inspectorSheet?.visible, "Inspector sheet must be visible after click");
+    // Smoke Softening Disclosure: spec v2 §4.1 / §4.4 supersedes the
+    // legacy four-tab inspector. Boundary is now owned by the persistent
+    // inspector boundary strip plus footer disclosure, not a standalone tab.
+    manifest.checks.push("smoke-softening-v2-4.1-4.4-three-tab-inspector-phase-b");
+    assert(
+      JSON.stringify(layout.tabs.map((tab) => tab.text)) ===
+        JSON.stringify(["Decision", "Metrics", "Evidence"]),
+      "Inspector tab order must be Decision / Metrics / Evidence after v2 §4.1 / §4.4: " +
+        JSON.stringify(layout.tabs)
+    );
     assert(layout.tabDecision?.exists, "Decision tab must exist");
     assert(layout.tabMetrics?.exists, "Metrics tab must exist");
-    assert(layout.tabBoundary?.exists, "Boundary tab must exist");
+    assert(!layout.tabBoundary?.exists, "Boundary tab must not exist after v2 §4.1 / §4.4");
     assert(layout.tabEvidence?.exists, "Evidence tab must exist");
+    assert(
+      layout.boundaryStrip?.visible &&
+        layout.boundaryStrip.text.includes("13-actor demo") &&
+        layout.boundaryStrip.text.includes("operator-family precision"),
+      "Inspector boundary strip must replace Boundary tab scale/endpoint ownership: " +
+        JSON.stringify(layout.boundaryStrip)
+    );
+    assert(
+      layout.validationBadge?.visible &&
+        layout.validationBadge.text.includes("驗證狀態：待補"),
+      "Inspector validation badge must be visible in sheet header: " +
+        JSON.stringify(layout.validationBadge)
+    );
     assert(layout.tabDecision?.selected === 'true', "Decision tab must be selected by default");
 
     const tabsClipCheckDesktop = await evaluateRuntimeValue(client, `(() => {

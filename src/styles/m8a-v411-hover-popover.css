@@ -10,7 +10,7 @@
   gap: 0.16rem;
   padding: 0.58rem 0.68rem;
   overflow: hidden;
-  border: 1px solid var(--m8a-v411-alpha-active-soft);
+  border: 1px solid color-mix(in srgb, var(--m8a-v411-state-active) 22%, transparent);
   border-radius: 6px;
   background: var(--m8a-v411-popover-bg);
   box-shadow: var(--m8a-v411-shadow-popover);
@@ -71,7 +71,7 @@
 }
 
 [data-m8a-v411-hover-target="true"]:focus-visible {
-  outline: 2px solid var(--m8a-v411-ui-active);
+  outline: 2px solid var(--m8a-v411-state-active);
   outline-offset: 3px;
 }
 
@@ -88,7 +88,7 @@
 .m8a-v410-sequence-rail__mark[data-m8a-v411-hover-target="true"]:focus-visible {
   box-shadow:
     0 0 0 2px var(--m8a-v411-ui-canvas),
-    0 0 0 4px var(--m8a-v411-alpha-focus-shadow);
+    0 0 0 4px color-mix(in srgb, var(--m8a-v411-state-active) 28%, transparent);
 }
 
 @media (prefers-reduced-motion: reduce) {

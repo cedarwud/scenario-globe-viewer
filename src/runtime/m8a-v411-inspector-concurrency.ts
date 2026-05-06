@@ -183,52 +183,84 @@ export function resolveM8aV411PhaseCRailCopy(
 }
 
 export interface M8aV411PhaseCMetricsCopy {
-  quality: string;
-  timing: string;
-  measurement: string;
-  physical: string;
+  latencyClassValue: string;
+  latencyClassUnit: string;
+  latencyClassDetail: string;
+  continuityClassValue: string;
+  continuityClassUnit: string;
+  continuityClassDetail: string;
+  handoverStateValue: string;
+  handoverStateUnit: string;
+  handoverStateDetail: string;
+  replayTimingUnit: string;
+  replayTimingDetail: string;
 }
 
 const M8A_V411_PHASE_C_METRICS_COPY = {
   "leo-acquisition-context": {
-    quality: "Modeled link quality: strong LEO class from V4.6D projection.",
-    timing: "Communication time: approximate simulated remaining window time.",
-    measurement:
-      "Unavailable measured data: no ping, iperf, ESTNeT/INET, DUT, latency, jitter, throughput, or packet-loss feed is connected to this route.",
-    physical:
-      "Unavailable physical factors: rain, antenna, ITU/V group, and rain attenuation models are not connected in this scene."
+    latencyClassValue: "strong LEO",
+    latencyClassUnit: "modeled class",
+    latencyClassDetail: "V4.6D projection class; no latency number is shown.",
+    continuityClassValue: "usable",
+    continuityClassUnit: "modeled continuity",
+    continuityClassDetail: "LEO is the review focus; MEO/GEO stay contextual.",
+    handoverStateValue: "LEO primary",
+    handoverStateUnit: "modeled state",
+    handoverStateDetail: "Fixed repo-owned replay policy, not a strategy selector.",
+    replayTimingUnit: "simulated countdown",
+    replayTimingDetail: "Countdown to W2 signal-aging pressure."
   },
   "leo-aging-pressure": {
-    quality: "Modeled link quality: LEO class drops as geometry degrades.",
-    timing: "Communication time: derived remaining replay-window time.",
-    measurement:
-      "Unavailable measured data: no ping, iperf, ESTNeT/INET, DUT, latency, jitter, throughput, or packet-loss feed is connected to this route.",
-    physical:
-      "Unavailable physical factors: rain, antenna, ITU/V group, and rain attenuation models are not connected in this scene."
+    latencyClassValue: "dropping LEO",
+    latencyClassUnit: "modeled class",
+    latencyClassDetail: "Pressure trend is simulated from the replay window.",
+    continuityClassValue: "under pressure",
+    continuityClassUnit: "modeled continuity",
+    continuityClassDetail: "Continuity is still held, but the MEO window is next.",
+    handoverStateValue: "prepare MEO",
+    handoverStateUnit: "modeled state",
+    handoverStateDetail: "Handover pressure is a proxy state, not live RF action.",
+    replayTimingUnit: "simulated countdown",
+    replayTimingDetail: "Countdown to W3 MEO continuity hold."
   },
   "meo-continuity-hold": {
-    quality: "Modeled link quality: MEO hold class with higher-latency wording only.",
-    timing: "Communication time: derived remaining MEO hold window time.",
-    measurement:
-      "Unavailable measured data: no ping, iperf, ESTNeT/INET, DUT, latency, jitter, throughput, or packet-loss feed is connected to this route.",
-    physical:
-      "Unavailable physical factors: rain, antenna, ITU/V group, and rain attenuation models are not connected in this scene."
+    latencyClassValue: "higher MEO",
+    latencyClassUnit: "modeled class",
+    latencyClassDetail: "Wider coverage is represented as a class label only.",
+    continuityClassValue: "hold",
+    continuityClassUnit: "modeled continuity",
+    continuityClassDetail: "MEO carries the middle window until LEO returns.",
+    handoverStateValue: "MEO hold",
+    handoverStateUnit: "modeled state",
+    handoverStateDetail: "LEO ETA is represented by replay timing, not by a feed.",
+    replayTimingUnit: "simulated countdown",
+    replayTimingDetail: "Countdown to W4 LEO re-entry candidate."
   },
   "leo-reentry-candidate": {
-    quality: "Modeled link quality: LEO candidate class, not primary service proof.",
-    timing: "Communication time: approximate remaining evaluation time.",
-    measurement:
-      "Unavailable measured data: no ping, iperf, ESTNeT/INET, DUT, latency, jitter, throughput, or packet-loss feed is connected to this route.",
-    physical:
-      "Unavailable physical factors: rain, antenna, ITU/V group, and rain attenuation models are not connected in this scene."
+    latencyClassValue: "candidate LEO",
+    latencyClassUnit: "modeled class",
+    latencyClassDetail: "Candidate quality is a projection, not service proof.",
+    continuityClassValue: "MEO still holds",
+    continuityClassUnit: "modeled continuity",
+    continuityClassDetail: "The candidate can be evaluated without urgent switch pressure.",
+    handoverStateValue: "evaluate return",
+    handoverStateUnit: "modeled state",
+    handoverStateDetail: "The scene shows candidate review, not an operator command.",
+    replayTimingUnit: "simulated countdown",
+    replayTimingDetail: "Countdown to W5 GEO guard context."
   },
   "geo-continuity-guard": {
-    quality: "Modeled link quality: GEO guard boundary class only.",
-    timing: "Communication time: replay sequence ends in this window.",
-    measurement:
-      "Unavailable measured data: no ping, iperf, ESTNeT/INET, DUT, latency, jitter, throughput, or packet-loss feed is connected to this route.",
-    physical:
-      "Unavailable physical factors: rain, antenna, ITU/V group, and rain attenuation models are not connected in this scene."
+    latencyClassValue: "GEO guard",
+    latencyClassUnit: "modeled class",
+    latencyClassDetail: "Guard role is boundary context, not performance proof.",
+    continuityClassValue: "guard only",
+    continuityClassUnit: "modeled continuity",
+    continuityClassDetail: "GEO closes the sequence as fallback context.",
+    handoverStateValue: "final hold",
+    handoverStateUnit: "modeled state",
+    handoverStateDetail: "Restart returns to W1; no failover proof is asserted.",
+    replayTimingUnit: "simulated countdown",
+    replayTimingDetail: "Sequence-end timing before restart."
   }
 } satisfies Record<M8aV46dSimulationHandoverWindowId, M8aV411PhaseCMetricsCopy>;
 
@@ -237,3 +269,116 @@ export function resolveM8aV411PhaseCMetricsCopy(
 ): M8aV411PhaseCMetricsCopy {
   return M8A_V411_PHASE_C_METRICS_COPY[windowId];
 }
+
+export type M8aV411MetricReachability =
+  | "Phase 6 acceptance route, separate"
+  | "not reachable from this scene";
+
+export interface M8aV411DisabledMetricTileCopy {
+  id: string;
+  gap: string;
+  hookpoint: string;
+  reachability: M8aV411MetricReachability;
+  placeholder: string;
+}
+
+export const M8A_V411_DISABLED_METRIC_TILES = [
+  {
+    id: "communication-time-detail",
+    gap: "Numeric communication time and availability detail",
+    hookpoint: "Communication Time panel",
+    reachability: "Phase 6 acceptance route, separate",
+    placeholder: "未連接"
+  },
+  {
+    id: "handover-decision-proxy-inputs",
+    gap: "Handover decision proxy inputs over latency/jitter/network-speed dimensions",
+    hookpoint: "Handover Decision panel",
+    reachability: "Phase 6 acceptance route, separate",
+    placeholder: "未連接"
+  },
+  {
+    id: "communication-rate-visualization",
+    gap: "Dedicated communication-rate visualization",
+    hookpoint: "No dedicated communication-rate surface yet; F-09 remains 待完成",
+    reachability: "not reachable from this scene",
+    placeholder: "未連接"
+  },
+  {
+    id: "physical-factor-projection",
+    gap: "Rain / antenna / ITU / V 組 physical factor projection",
+    hookpoint: "Physical Inputs panel",
+    reachability: "Phase 6 acceptance route, separate",
+    placeholder: "未連接"
+  },
+  {
+    id: "validation-environment-state",
+    gap: "Bounded validation environment / DUT / transport state",
+    hookpoint: "Validation State panel",
+    reachability: "Phase 6 acceptance route, separate",
+    placeholder: "未連接"
+  },
+  {
+    id: "external-network-truth",
+    gap: "ESTNeT / INET end-to-end network truth",
+    hookpoint:
+      "External validation gap: ESTNeT/INET, ping/iPerf, NAT/tunnel, traffic generator are not owned by this repo scene",
+    reachability: "not reachable from this scene",
+    placeholder: "external validation"
+  },
+  {
+    id: "wsl-tunnel-bridge-nat",
+    gap: "WSL tunnel / bridging / NAT routing",
+    hookpoint:
+      "Validation State shows bounded modes; real tunnel/bridge/NAT remains external",
+    reachability: "Phase 6 acceptance route, separate",
+    placeholder: "未連接"
+  },
+  {
+    id: "dut-traffic-generator",
+    gap: "Virtual / physical DUT and NE-ONE traffic generator",
+    hookpoint:
+      "Validation State names bounded DUT modes; real DUT/traffic generator chain remains external",
+    reachability: "Phase 6 acceptance route, separate",
+    placeholder: "未連接"
+  },
+  {
+    id: "leo-scale",
+    gap: ">=500 LEO scale",
+    hookpoint: "Phase 7.1 open gate; this scene remains 13-actor demo",
+    reachability: "not reachable from this scene",
+    placeholder: "Phase 7.1 gate"
+  },
+  {
+    id: "handover-strategy-selector",
+    gap: "Operator-switchable handover strategy",
+    hookpoint:
+      "Fixed repo-owned bootstrap policy only; no runtime strategy selector here",
+    reachability: "not reachable from this scene",
+    placeholder: "未連接"
+  },
+  {
+    id: "handover-rule-editor",
+    gap: "Configurable handover rules / dynamic parameters beyond scenario/replay controls",
+    hookpoint:
+      "Bounded replay/scenario controls exist; no user rule editor in this scene",
+    reachability: "not reachable from this scene",
+    placeholder: "未連接"
+  },
+  {
+    id: "report-export-action",
+    gap: "Report export action",
+    hookpoint:
+      "Export-ready report structures exist; no completed end-user export button here",
+    reachability: "not reachable from this scene",
+    placeholder: "未連接"
+  },
+  {
+    id: "tle-scenario-switching",
+    gap: "Real-time vs prerecorded TLE full scenario-space switching",
+    hookpoint:
+      "Existing replay mode is bounded; full multi-source TLE scenario switching closes downstream",
+    reachability: "not reachable from this scene",
+    placeholder: "未連接"
+  }
+] as const satisfies readonly M8aV411DisabledMetricTileCopy[];

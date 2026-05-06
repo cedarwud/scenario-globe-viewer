@@ -6,6 +6,7 @@
     "/home/u24/papers/scenario-globe-viewer/output/m8a-v4.11-correction-a-phase-b/v4.11-phase-b-details-open-1280x720.png"
   ],
   "checks": [
+    "smoke-softening-v2-4.1-4.4-three-tab-inspector-phase-b",
     "phase-b-layout-verified"
   ]
 }

@@ -200,10 +200,25 @@ async function inspectRuntime(client, label) {
         ariaExpanded:
           chip instanceof HTMLElement ? chip.getAttribute("aria-expanded") : null
       });
+      const resolveCssColor = (value) => {
+        if (!(productRoot instanceof HTMLElement)) {
+          return "";
+        }
+        const probe = document.createElement("span");
+        probe.style.color = value;
+        productRoot.append(probe);
+        const resolved = getComputedStyle(probe).color;
+        probe.remove();
+        return resolved;
+      };
 
       const capture = window.__SCENARIO_GLOBE_VIEWER_CAPTURE__;
       const state = capture?.m8aV4GroundStationScene?.getState?.();
       const productRoot = document.querySelector("[data-m8a-v47-product-ux='true']");
+      const rootStyle = getComputedStyle(document.documentElement);
+      const stateWarningToken = rootStyle
+        .getPropertyValue("--m8a-v411-state-warning")
+        .trim();
       const footerRow = productRoot?.querySelector("[data-m8a-v411-footer-chip-row='true']");
       const ambientChips = Array.from(
         productRoot?.querySelectorAll(".m8a-v411-footer-chip--ambient") ?? []
@@ -284,6 +299,11 @@ async function inspectRuntime(client, label) {
             productRoot?.dataset.m8aV411FooterChipTruthButtonRemoved ?? null,
           footerBoundaryBehavior:
             productRoot?.dataset.m8aV411FooterChipBoundaryBehavior ?? null
+        },
+        stateTokens: {
+          warningName: "--m8a-v411-state-warning",
+          warning: stateWarningToken,
+          warningResolved: resolveCssColor("var(--m8a-v411-state-warning)")
         },
         footerRow: {
           ...elementRecord(footerRow),
@@ -525,14 +545,18 @@ function assertW5OnlyWarning(defaultResult, w5Result) {
       })
   );
   assert(
-    w5Result.w5Warning.visible &&
+      w5Result.w5Warning.visible &&
       w5Result.w5Warning.text === "⚠ 不是實際備援切換證據" &&
       w5Result.w5Warning.warningFontSize === "14" &&
-      w5Result.w5Warning.warningColor === "#ff6b3d" &&
+      w5Result.stateTokens.warningName === "--m8a-v411-state-warning" &&
+      w5Result.stateTokens.warning.length > 0 &&
       w5Result.w5Warning.style?.fontSize === "14px" &&
-      /255, 107, 61/.test(w5Result.w5Warning.style?.borderColor ?? ""),
-    "W5 warning chip must render only on W5 with #ff6b3d outline and 14px font: " +
-      JSON.stringify(w5Result.w5Warning)
+      w5Result.w5Warning.style?.borderColor === w5Result.stateTokens.warningResolved,
+    "W5 warning chip must render only on W5 with state-warning outline and 14px font: " +
+      JSON.stringify({
+        warning: w5Result.w5Warning,
+        stateTokens: w5Result.stateTokens
+      })
   );
 }
 
@@ -648,7 +672,10 @@ async function main() {
   const manifest = {
     viewport: VIEWPORT,
     screenshots: [],
-    checks: []
+    checks: [],
+    softening: [
+      "Conv 3: spec v2 §6.5 migrates W5 warning assertions from a raw hex literal to --m8a-v411-state-warning; orbit identity colors are preserved."
+    ]
   };
 
   await withStaticSmokeBrowser(async ({ client, baseUrl }) => {
@@ -717,7 +744,8 @@ async function main() {
         screenshots: manifest.screenshots.map((screenshotPath) =>
           path.relative(repoRoot, screenshotPath)
         ),
-        checks: manifest.checks
+        checks: manifest.checks,
+        softening: manifest.softening
       })
   );
 }

@@ -4,13 +4,12 @@
     "/home/u24/papers/scenario-globe-viewer/output/m8a-v4.11-correction-a-phase-e/w2-metrics-tab-1440x900.png",
     "/home/u24/papers/scenario-globe-viewer/output/m8a-v4.11-correction-a-phase-e/w3-decision-tab-1440x900.png",
     "/home/u24/papers/scenario-globe-viewer/output/m8a-v4.11-correction-a-phase-e/w4-steady-candidate-halo-1440x900.png",
-    "/home/u24/papers/scenario-globe-viewer/output/m8a-v4.11-correction-a-phase-e/w5-boundary-tab-1440x900.png",
-    "/home/u24/papers/scenario-globe-viewer/output/m8a-v4.11-correction-a-phase-e/evidence-tab-1440x900.png",
+    "/home/u24/papers/scenario-globe-viewer/output/m8a-v4.11-correction-a-phase-e/w5-evidence-archive-expanded-1440x900.png",
     "/home/u24/papers/scenario-globe-viewer/output/m8a-v4.11-correction-a-phase-e/overlap-check-1280x720.png",
     "/home/u24/papers/scenario-globe-viewer/output/m8a-v4.11-correction-a-phase-e/narrow-fallback-390x844.png"
   ],
   "checks": [
-    "footer-disclosure-opens-boundary",
+    "footer-disclosure-opens-inspector-without-boundary-tab",
     "details-button-opens-decision",
     "w1-w5-holistic-visual-acceptance",
     "bottom-domrects-clear-of-cesium-timeline-animation-credits",
@@ -19,5 +18,7 @@
     "w4-entry-cue-then-steady-candidate-halo",
     "source-boundary-and-runtime-forbidden-claim-boundaries"
   ],
-  "softening": []
+  "softening": [
+    "Correction A Phase E: spec v2 §4.1 / §4.4 supersedes Boundary tab; footer disclosure keeps Decision selected and boundary ownership moves to strip/footer."
+  ]
 }

@@ -349,6 +349,9 @@ async function inspectRuntime(client, label = "inspection") {
       // Conv 3: footer chip system replaces corner badge content
       const footerChipRow = productRoot?.querySelector("[data-m8a-v411-footer-chip-row='true']");
       const footerTleChip = footerChipRow?.querySelector("[data-m8a-v411-footer-chip='tle-source']");
+      const boundaryStrip = productRoot?.querySelector("[data-m8a-v411-inspector-boundary-strip='true']");
+      const validationBadge = productRoot?.querySelector("[data-m8a-v411-inspector-validation-badge='true']");
+      const evidenceArchive = productRoot?.querySelector("[data-m8a-v411-evidence-archive='true']");
       const sourceFilter = parseFilter(sourcesRole?.dataset.m8aV411SourcesFilter);
       const tleRows = Array.from(
         sourcesRole?.querySelectorAll("[data-m8a-v411-sources-tle-row='true']") ?? []
@@ -455,6 +458,22 @@ async function inspectRuntime(client, label = "inspection") {
           disclosure: state?.productUx?.disclosure ?? null
         },
         sheet: elementRecord(sheet),
+        tabs: Array.from(
+          productRoot?.querySelectorAll("[data-m8a-v411-inspector-tab]") ?? []
+        ).map((tab) => ({
+          id: tab.dataset.m8aV411InspectorTab ?? "",
+          text: normalize(tab.textContent)
+        })),
+        boundaryStrip: elementRecord(boundaryStrip),
+        validationBadge: elementRecord(validationBadge),
+        evidenceArchive: evidenceArchive instanceof HTMLDetailsElement
+          ? {
+              exists: true,
+              open: evidenceArchive.open,
+              defaultOpen: evidenceArchive.dataset.m8aV411EvidenceArchiveDefaultOpen ?? "",
+              text: normalize(evidenceArchive.innerText)
+            }
+          : { exists: false, open: false, defaultOpen: "", text: "" },
         stateRole: elementRecord(stateRole),
         truthRole: elementRecord(truthRole),
         advancedSourcesToggle: {
@@ -657,6 +676,34 @@ function assertSourcesFullOpen(result, projectionUrls) {
         sourcesRole: result.sourcesRole,
         disclosure: result.stateFacts.disclosure
       })
+  );
+  // Smoke Softening Disclosure: spec v2 §4.1 / §4.4 supersedes the
+  // legacy four-tab inspector. Sources now live under the Evidence tab,
+  // while Boundary scale/endpoint ownership moves to the header strip.
+  assert(
+    JSON.stringify(result.tabs.map((tab) => tab.text)) ===
+      JSON.stringify(["Decision", "Metrics", "Evidence"]) &&
+      !result.tabs.some((tab) => tab.id === "boundary" || tab.text === "Boundary"),
+    "Slice 5 Sources inspector must follow v2 §4.1 / §4.4 three-tab structure: " +
+      JSON.stringify(result.tabs)
+  );
+  assert(
+    result.boundaryStrip.visible &&
+      result.boundaryStrip.text.includes("13-actor demo") &&
+      result.boundaryStrip.text.includes("operator-family precision"),
+    "Slice 5 boundary strip must own scale/endpoint chips per v2 §4.4: " +
+      JSON.stringify(result.boundaryStrip)
+  );
+  assert(
+    result.validationBadge.visible &&
+      result.validationBadge.text.includes("驗證狀態：待補"),
+    "Slice 5 validation badge must be visible in inspector header per v2 §4.5: " +
+      JSON.stringify(result.validationBadge)
+  );
+  assert(
+    result.evidenceArchive.open === true,
+    "Advanced source-provenance must reveal the Evidence Archive full tables: " +
+      JSON.stringify(result.evidenceArchive)
   );
   assertInspectorBudget(result, "advanced source-provenance Sources open");
   assert(

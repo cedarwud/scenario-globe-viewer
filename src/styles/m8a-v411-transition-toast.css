@@ -22,8 +22,8 @@
   max-width: min(320px, 22vw);
   max-height: 72px;
   padding: 0.52rem 0.62rem 0.56rem;
-  border: 1px solid var(--m8a-v411-alpha-active-soft);
-  border-left: 3px solid var(--m8a-v411-alpha-active);
+  border: 1px solid color-mix(in srgb, var(--m8a-v411-state-active) 22%, transparent);
+  border-left: 3px solid var(--m8a-v411-state-active);
   border-radius: 7px;
   background: var(--m8a-v411-toast-bg);
   box-shadow: var(--m8a-v411-shadow-toast);
@@ -70,8 +70,8 @@
   max-width: 180px;
   height: 24px;
   padding: 0 0.58rem;
-  border: 1px solid var(--m8a-v411-alpha-active-soft);
-  border-left: 3px solid var(--m8a-v411-alpha-active);
+  border: 1px solid color-mix(in srgb, var(--m8a-v411-state-active) 22%, transparent);
+  border-left: 3px solid var(--m8a-v411-state-active);
   border-radius: 6px;
   background: var(--m8a-v411-scene-cue-bg);
   box-shadow: var(--m8a-v411-shadow-scene-cue);

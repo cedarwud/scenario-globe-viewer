@@ -342,6 +342,18 @@ async function inspectRuntime(client, label) {
           maxCanvasWidthRatio:
             productRoot?.dataset.m8aV411InspectorMaxCanvasWidthRatio ?? null
         },
+        tabs: Array.from(
+          productRoot?.querySelectorAll("[data-m8a-v411-inspector-tab]") ?? []
+        ).map((tab) => ({
+          id: tab.dataset.m8aV411InspectorTab ?? "",
+          text: normalize(tab.textContent)
+        })),
+        boundaryStrip: elementRecord(
+          productRoot?.querySelector("[data-m8a-v411-inspector-boundary-strip='true']")
+        ),
+        validationBadge: elementRecord(
+          productRoot?.querySelector("[data-m8a-v411-inspector-validation-badge='true']")
+        ),
         sheet: {
           ...elementRecord(sheet),
           dataset: {
@@ -584,6 +596,29 @@ function assertConcurrencyOpen(result) {
         stateRole: result.stateRole,
         truthRole: result.truthRole
       })
+  );
+  // Smoke Softening Disclosure: spec v2 §4.1 / §4.4 supersedes the
+  // legacy four-tab inspector. Boundary remains as footer-owned truth-tail
+  // compatibility, but it is no longer a standalone tab.
+  assert(
+    JSON.stringify(result.tabs.map((tab) => tab.text)) ===
+      JSON.stringify(["Decision", "Metrics", "Evidence"]) &&
+      !result.tabs.some((tab) => tab.id === "boundary" || tab.text === "Boundary"),
+    "Slice 3 inspector tabs must follow v2 §4.1 / §4.4 three-tab structure: " +
+      JSON.stringify(result.tabs)
+  );
+  assert(
+    result.boundaryStrip.visible &&
+      result.boundaryStrip.text.includes("13-actor demo") &&
+      result.boundaryStrip.text.includes("operator-family precision"),
+    "Slice 3 boundary strip must own scale/endpoint chips per v2 §4.4: " +
+      JSON.stringify(result.boundaryStrip)
+  );
+  assert(
+    result.validationBadge.visible &&
+      result.validationBadge.text.includes("驗證狀態：待補"),
+    "Slice 3 validation badge must be visible in inspector header per v2 §4.5: " +
+      JSON.stringify(result.validationBadge)
   );
   assert(
     result.boundarySurface.visible === false &&

@@ -58,7 +58,7 @@
 
 .m8a-v411-footer-chip--explicit-disclosure {
   background: var(--m8a-v411-alpha-steel);
-  border: 1px solid var(--m8a-v411-alpha-active);
+  border: 1px solid var(--m8a-v411-state-active);
   color: var(--m8a-v411-ui-text);
   font-size: 12px;
   font-weight: 760;
@@ -73,34 +73,38 @@
 .m8a-v411-footer-chip--ambient[data-m8a-v411-footer-chip-boundary-trigger="true"]:hover,
 .m8a-v411-footer-chip--ambient[data-m8a-v411-footer-chip-boundary-trigger="true"]:focus-visible {
   background: var(--m8a-v411-alpha-steel);
-  border-color: var(--m8a-v411-alpha-active);
+  border-color: var(--m8a-v411-state-active);
   color: var(--m8a-v411-ui-text);
   outline: none;
 }
 
 .m8a-v411-footer-chip--explicit-disclosure:hover,
 .m8a-v411-footer-chip--explicit-disclosure:focus-visible {
-  background: var(--m8a-v411-alpha-panel);
-  border-color: var(--m8a-v411-ui-active);
+  background: var(--m8a-v411-state-neutral);
+  border-color: var(--m8a-v411-state-active);
   color: var(--m8a-v411-ui-text);
   outline: none;
 }
 
 .m8a-v411-footer-chip:focus-visible,
 .m8a-v47-product-ux [data-m8a-v48-info-class="control"]:focus-visible {
-  outline: 2px solid var(--m8a-v411-ui-active);
+  outline: 2px solid var(--m8a-v411-state-active);
   outline-offset: 3px;
   box-shadow:
-    0 0 0 4px var(--m8a-v411-alpha-focus-shadow),
+    0 0 0 4px color-mix(in srgb, var(--m8a-v411-state-active) 28%, transparent),
     var(--m8a-v411-shadow-inner);
 }
 
 .m8a-v411-footer-chip--w5-warning {
   background:
-    linear-gradient(90deg, var(--m8a-v411-alpha-danger-soft), transparent 58%),
-    var(--m8a-v411-alpha-panel);
-  border: 1.5px solid var(--m8a-v411-ui-w5-warning);
-  color: var(--m8a-v411-ui-w5-warning);
+    linear-gradient(
+      90deg,
+      color-mix(in srgb, var(--m8a-v411-state-warning) 22%, transparent),
+      transparent 58%
+    ),
+    var(--m8a-v411-state-neutral);
+  border: 1.5px solid var(--m8a-v411-state-warning);
+  color: var(--m8a-v411-state-warning);
   font-size: 14px;
   font-weight: 700;
   cursor: pointer;
@@ -110,10 +114,14 @@
 .m8a-v411-footer-chip--w5-warning:hover,
 .m8a-v411-footer-chip--w5-warning:focus-visible {
   background:
-    linear-gradient(90deg, var(--m8a-v411-alpha-danger-soft), transparent 58%),
-    var(--m8a-v411-alpha-panel);
-  border-color: var(--m8a-v411-ui-warning);
-  color: var(--m8a-v411-ui-warning);
+    linear-gradient(
+      90deg,
+      color-mix(in srgb, var(--m8a-v411-state-warning) 22%, transparent),
+      transparent 58%
+    ),
+    var(--m8a-v411-state-neutral);
+  border-color: var(--m8a-v411-state-warning);
+  color: var(--m8a-v411-state-warning);
   outline: none;
 }
 
@@ -144,9 +152,9 @@
 }
 
 .m8a-v47-product-ux .m8a-v410-sequence-rail__mark[data-active="true"] {
-  border-color: var(--m8a-v411-alpha-active);
+  border-color: var(--m8a-v411-state-active);
   box-shadow:
-    inset 0 -2px 0 var(--m8a-v411-ui-active),
+    inset 0 -2px 0 var(--m8a-v411-state-active),
     var(--m8a-v411-shadow-inner);
 }
 

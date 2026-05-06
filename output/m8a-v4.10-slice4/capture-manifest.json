@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-05-05T07:34:55.868Z",
+  "generatedAt": "2026-05-06T13:52:10.560Z",
   "status": "cleanup-complete",
   "route": "/?scenePreset=regional&m8aV4GroundStationScene=1",
   "outputRoot": "output/m8a-v4.10-slice4",
@@ -9,7 +9,7 @@
       "action": "default",
       "screenshot": {
         "path": "output/m8a-v4.10-slice4/v4.10-slice4-default-1440x900.png",
-        "sizeBytes": 960456,
+        "sizeBytes": 960757,
         "dimensions": {
           "width": 1440,
           "height": 900
@@ -22,9 +22,9 @@
       "boundarySurfaceState": "closed",
       "sceneNarrativeRect": {
         "left": 340,
-        "top": 485,
+        "top": 484.6875,
         "right": 433.1875,
-        "bottom": 509,
+        "bottom": 508.6875,
         "width": 93.1875,
         "height": 24
       },
@@ -144,7 +144,7 @@
       "action": "default",
       "screenshot": {
         "path": "output/m8a-v4.10-slice4/v4.10-slice4-default-390x844.png",
-        "sizeBytes": 347623,
+        "sizeBytes": 346148,
         "dimensions": {
           "width": 390,
           "height": 844
@@ -157,9 +157,9 @@
       "boundarySurfaceState": "closed",
       "sceneNarrativeRect": {
         "left": 14,
-        "top": 402.1875,
+        "top": 401.796875,
         "right": 103.3125,
-        "bottom": 426.1875,
+        "bottom": 425.796875,
         "width": 89.3125,
         "height": 24
       },
@@ -279,7 +279,7 @@
       "action": "details",
       "screenshot": {
         "path": "output/m8a-v4.10-slice4/v4.10-slice4-details-open-1440x900.png",
-        "sizeBytes": 916948,
+        "sizeBytes": 917076,
         "dimensions": {
           "width": 1440,
           "height": 900
@@ -292,9 +292,9 @@
       "boundarySurfaceState": "closed",
       "sceneNarrativeRect": {
         "left": 340,
-        "top": 482.390625,
+        "top": 484.5,
         "right": 433.1875,
-        "bottom": 506.390625,
+        "bottom": 508.5,
         "width": 93.1875,
         "height": 24
       },
@@ -414,7 +414,7 @@
       "action": "boundary",
       "screenshot": {
         "path": "output/m8a-v4.10-slice4/v4.10-slice4-boundary-open-1440x900.png",
-        "sizeBytes": 916780,
+        "sizeBytes": 916516,
         "dimensions": {
           "width": 1440,
           "height": 900
@@ -427,9 +427,9 @@
       "boundarySurfaceState": "open",
       "sceneNarrativeRect": {
         "left": 340,
-        "top": 483.5,
+        "top": 484.390625,
         "right": 433.1875,
-        "bottom": 507.5,
+        "bottom": 508.390625,
         "width": 93.1875,
         "height": 24
       },
@@ -575,25 +575,25 @@
   "taskOwnedProcesses": [
     {
       "type": "static-server-started",
-      "at": "2026-05-05T07:33:49.585Z",
-      "pid": 21314,
-      "baseUrl": "http://127.0.0.1:37869"
+      "at": "2026-05-06T13:51:15.392Z",
+      "pid": 289154,
+      "baseUrl": "http://127.0.0.1:46595"
     },
     {
       "type": "headless-browser-started",
-      "at": "2026-05-05T07:33:49.709Z",
-      "pid": 21319,
+      "at": "2026-05-06T13:51:15.504Z",
+      "pid": 289159,
       "browserCommand": "google-chrome"
     },
     {
       "type": "headless-browser-stop-requested",
-      "at": "2026-05-05T07:34:55.795Z",
-      "pid": 21319
+      "at": "2026-05-06T13:52:10.508Z",
+      "pid": 289159
     },
     {
       "type": "static-server-stop-requested",
-      "at": "2026-05-05T07:34:55.866Z",
-      "pid": 21314
+      "at": "2026-05-06T13:52:10.558Z",
+      "pid": 289154
     }
   ]
 }

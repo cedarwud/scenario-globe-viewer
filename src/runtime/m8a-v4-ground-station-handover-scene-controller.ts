@@ -102,6 +102,7 @@ import {
   M8A_V411_INSPECTOR_MAX_HEIGHT_CSS,
   M8A_V411_INSPECTOR_MAX_WIDTH_PX,
   M8A_V411_INSPECTOR_PRIMARY_ROLE,
+  M8A_V411_DISABLED_METRIC_TILES,
   resolveM8aV411StateEvidenceCopy,
   resolveM8aV411TruthBoundaryLines,
   resolveM8aV411PhaseCRailCopy,
@@ -714,7 +715,6 @@ type M8aV47DisclosureState = "closed" | "open";
 const M8A_V411_INSPECTOR_TABS = [
   "decision",
   "metrics",
-  "boundary",
   "evidence"
 ] as const;
 type M8aV411InspectorTab = (typeof M8A_V411_INSPECTOR_TABS)[number];
@@ -2508,6 +2508,37 @@ function renderTruthBadges(): string {
   ).join("");
 }
 
+function escapeM8aV411MetricText(value: string): string {
+  return value
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;");
+}
+
+function renderM8aV411DisabledMetricTiles(): string {
+  return M8A_V411_DISABLED_METRIC_TILES.map((tile) => {
+    const gap = escapeM8aV411MetricText(tile.gap);
+    const hookpoint = escapeM8aV411MetricText(tile.hookpoint);
+    const placeholder = escapeM8aV411MetricText(tile.placeholder);
+    const reachability = escapeM8aV411MetricText(tile.reachability);
+
+    return [
+      `<li class="m8a-v411-metrics__tile m8a-v411-metrics__tile--disabled"`,
+      ` data-m8a-v411-disabled-metric-tile="true"`,
+      ` data-m8a-v411-disabled-metric-id="${tile.id}"`,
+      ` data-m8a-v411-disabled-metric-reachability="${reachability}"`,
+      ` aria-disabled="true">`,
+      `<span class="m8a-v411-metrics__status" data-m8a-v48-info-class="fixed">Unavailable</span>`,
+      `<strong class="m8a-v411-metrics__label" data-m8a-v48-info-class="fixed">${gap}</strong>`,
+      `<span class="m8a-v411-metrics__value" data-m8a-v48-info-class="dynamic">${placeholder}</span>`,
+      `<p class="m8a-v411-metrics__meta" data-m8a-v48-info-class="disclosure"><span>Hookpoint</span><span>${hookpoint}</span></p>`,
+      `<p class="m8a-v411-metrics__meta" data-m8a-v48-info-class="disclosure"><span>Reachability</span><span>${reachability}</span></p>`,
+      `</li>`
+    ].join("");
+  }).join("");
+}
+
 // Conv 3: renderCompactTruthAffordance removed — Truth button no longer exists.
 // Boundary toggle is now triggered by footer chip with data-m8a-v47-action="toggle-boundary".
 
@@ -2708,12 +2739,16 @@ function ensureProductUxStructure(root: HTMLElement): void {
           <span data-m8a-v48-info-class="fixed">Details</span>
           <strong data-m8a-v410-inspector-title="true" data-m8a-v48-info-class="fixed">Evidence inspector</strong>
         </div>
+        <span class="m8a-v411-inspector__validation-badge" data-m8a-v411-inspector-validation-badge="true" data-m8a-v411-validation-status-badge="true" data-m8a-v48-info-class="fixed">驗證狀態：待補</span>
         <button type="button" data-m8a-v47-action="close-disclosure" data-m8a-v47-control-id="details-close" data-m8a-v48-info-class="control">Close</button>
+      </div>
+      <div class="m8a-v411-inspector__boundary-strip" data-m8a-v411-inspector-boundary-strip="true" data-m8a-v48-info-class="fixed" aria-label="Inspector boundary scope">
+        <span data-m8a-v411-inspector-boundary-chip="scale">13-actor demo</span>
+        <span data-m8a-v411-inspector-boundary-chip="endpoint">operator-family precision</span>
       </div>
       <div class="m8a-v411-inspector__tabs" data-m8a-v411-inspector-tabs="true" role="tablist" aria-label="Details inspector sections">
         <button type="button" id="m8a-v411-inspector-tab-decision" role="tab" data-m8a-v47-action="switch-inspector-tab" data-m8a-v411-inspector-tab="decision" aria-selected="true" aria-controls="m8a-v411-inspector-panel-decision" data-m8a-v48-info-class="control">Decision</button>
         <button type="button" id="m8a-v411-inspector-tab-metrics" role="tab" data-m8a-v47-action="switch-inspector-tab" data-m8a-v411-inspector-tab="metrics" aria-selected="false" aria-controls="m8a-v411-inspector-panel-metrics" data-m8a-v48-info-class="control">Metrics</button>
-        <button type="button" id="m8a-v411-inspector-tab-boundary" role="tab" data-m8a-v47-action="switch-inspector-tab" data-m8a-v411-inspector-tab="boundary" aria-selected="false" aria-controls="m8a-v411-inspector-panel-boundary" data-m8a-v48-info-class="control">Boundary</button>
         <button type="button" id="m8a-v411-inspector-tab-evidence" role="tab" data-m8a-v47-action="switch-inspector-tab" data-m8a-v411-inspector-tab="evidence" aria-selected="false" aria-controls="m8a-v411-inspector-panel-evidence" data-m8a-v48-info-class="control">Evidence</button>
       </div>
       <div class="m8a-v47-product-ux__sheet-state">
@@ -2742,19 +2777,46 @@ function ensureProductUxStructure(root: HTMLElement): void {
 
           <section id="m8a-v411-inspector-panel-metrics" role="tabpanel" aria-labelledby="m8a-v411-inspector-tab-metrics" class="m8a-v411-inspector__role" data-m8a-v411-inspector-panel="metrics" hidden>
             <span class="m8a-v410-inspector__group-label" data-m8a-v48-info-class="fixed">Metrics</span>
-            <div class="m8a-v411-inspector__module-list" data-m8a-v411-metrics-modeled="true">
-              <strong data-m8a-v48-info-class="fixed">Modeled classes</strong>
-              <p data-m8a-v411-metrics-quality="true" data-m8a-v48-info-class="dynamic"></p>
-              <p data-m8a-v411-metrics-timing="true" data-m8a-v48-info-class="dynamic"></p>
-            </div>
-            <div class="m8a-v411-inspector__module-list" data-m8a-v411-metrics-unavailable="true">
-              <strong data-m8a-v48-info-class="fixed">Unavailable measured data</strong>
-              <p data-m8a-v411-metrics-measurement="true" data-m8a-v48-info-class="dynamic"></p>
-              <p data-m8a-v411-metrics-physical="true" data-m8a-v48-info-class="dynamic"></p>
+            <div class="m8a-v411-metrics" data-m8a-v411-metrics-structure="available-and-not-connected">
+              <section class="m8a-v411-metrics__group" data-m8a-v411-metrics-available="true" aria-labelledby="m8a-v411-metrics-available-heading">
+                <h3 id="m8a-v411-metrics-available-heading" data-m8a-v48-info-class="fixed">Available in this scene</h3>
+                <div class="m8a-v411-metrics__grid">
+                  <article class="m8a-v411-metrics__tile" data-m8a-v411-available-metric-tile="latency-class">
+                    <strong class="m8a-v411-metrics__label" data-m8a-v48-info-class="fixed">Modeled latency class</strong>
+                    <span class="m8a-v411-metrics__value" data-m8a-v411-metrics-available-value="latency-class" data-m8a-v48-info-class="dynamic"></span>
+                    <span class="m8a-v411-metrics__unit" data-m8a-v411-metrics-available-unit="latency-class" data-m8a-v48-info-class="fixed"></span>
+                    <p class="m8a-v411-metrics__detail" data-m8a-v411-metrics-available-detail="latency-class" data-m8a-v48-info-class="dynamic"></p>
+                  </article>
+                  <article class="m8a-v411-metrics__tile" data-m8a-v411-available-metric-tile="continuity-class">
+                    <strong class="m8a-v411-metrics__label" data-m8a-v48-info-class="fixed">Modeled continuity class</strong>
+                    <span class="m8a-v411-metrics__value" data-m8a-v411-metrics-available-value="continuity-class" data-m8a-v48-info-class="dynamic"></span>
+                    <span class="m8a-v411-metrics__unit" data-m8a-v411-metrics-available-unit="continuity-class" data-m8a-v48-info-class="fixed"></span>
+                    <p class="m8a-v411-metrics__detail" data-m8a-v411-metrics-available-detail="continuity-class" data-m8a-v48-info-class="dynamic"></p>
+                  </article>
+                  <article class="m8a-v411-metrics__tile" data-m8a-v411-available-metric-tile="handover-state">
+                    <strong class="m8a-v411-metrics__label" data-m8a-v48-info-class="fixed">Modeled handover state</strong>
+                    <span class="m8a-v411-metrics__value" data-m8a-v411-metrics-available-value="handover-state" data-m8a-v48-info-class="dynamic"></span>
+                    <span class="m8a-v411-metrics__unit" data-m8a-v411-metrics-available-unit="handover-state" data-m8a-v48-info-class="fixed"></span>
+                    <p class="m8a-v411-metrics__detail" data-m8a-v411-metrics-available-detail="handover-state" data-m8a-v48-info-class="dynamic"></p>
+                  </article>
+                  <article class="m8a-v411-metrics__tile" data-m8a-v411-available-metric-tile="replay-timing">
+                    <strong class="m8a-v411-metrics__label" data-m8a-v48-info-class="fixed">Replay timing / countdown</strong>
+                    <span class="m8a-v411-metrics__value" data-m8a-v411-metrics-available-value="replay-timing" data-m8a-v48-info-class="dynamic"></span>
+                    <span class="m8a-v411-metrics__unit" data-m8a-v411-metrics-available-unit="replay-timing" data-m8a-v48-info-class="fixed"></span>
+                    <p class="m8a-v411-metrics__detail" data-m8a-v411-metrics-available-detail="replay-timing" data-m8a-v48-info-class="dynamic"></p>
+                  </article>
+                </div>
+              </section>
+              <section class="m8a-v411-metrics__group" data-m8a-v411-metrics-not-connected="true" aria-labelledby="m8a-v411-metrics-not-connected-heading">
+                <h3 id="m8a-v411-metrics-not-connected-heading" data-m8a-v48-info-class="fixed">Not connected in this scene</h3>
+                <ol class="m8a-v411-metrics__grid m8a-v411-metrics__grid--disabled" data-m8a-v411-disabled-metric-list="true">
+                  ${renderM8aV411DisabledMetricTiles()}
+                </ol>
+              </section>
             </div>
           </section>
 
-          <section id="m8a-v411-inspector-panel-boundary" role="tabpanel" aria-labelledby="m8a-v411-inspector-tab-boundary" class="m8a-v411-inspector__role m8a-v411-inspector__role--truth" data-m8a-v411-inspector-role="truth-boundary" data-m8a-v411-role-state="closed" data-m8a-v411-inspector-panel="boundary" data-m8a-v411-state-evidence-truth-tail="true" data-m8a-v49-truth-boundary-details="true" data-m8a-v49-inspector-primary="boundary" data-m8a-v411-inspector-conv2-tail-of-state-evidence="true" hidden>
+          <section class="m8a-v411-inspector__role m8a-v411-inspector__role--truth" data-m8a-v411-inspector-role="truth-boundary" data-m8a-v411-role-state="closed" data-m8a-v411-state-evidence-truth-tail="true" data-m8a-v49-truth-boundary-details="true" data-m8a-v49-inspector-primary="boundary" data-m8a-v411-inspector-conv2-tail-of-state-evidence="true" aria-label="Truth boundary tail" hidden>
             <span class="m8a-v410-inspector__group-label" data-m8a-v48-info-class="fixed">Boundary · Truth Boundary</span>
             <strong data-m8a-v411-truth-boundary-title="true" data-m8a-v48-info-class="fixed">Truth boundary</strong>
             <div class="m8a-v411-inspector__module-list" data-m8a-v411-boundary-modules="true">
@@ -2773,23 +2835,27 @@ function ensureProductUxStructure(root: HTMLElement): void {
 
           <section id="m8a-v411-inspector-panel-evidence" role="tabpanel" aria-labelledby="m8a-v411-inspector-tab-evidence" class="m8a-v411-inspector__role m8a-v411-inspector__role--sources" data-m8a-v411-inspector-role="sources" data-m8a-v411-role-state="closed" data-m8a-v411-inspector-panel="evidence" data-m8a-v411-sources-role="true" data-m8a-v49-inspector-primary="sources" tabindex="-1" hidden>
             <span class="m8a-v410-inspector__group-label" data-m8a-v48-info-class="fixed">Evidence</span>
-            <strong data-m8a-v411-sources-title="true" data-m8a-v48-info-class="fixed">Source provenance</strong>
-            <p data-m8a-v411-sources-filter-summary="true" data-m8a-v48-info-class="dynamic"></p>
-            <p data-m8a-v411-evidence-tle-summary="true" data-m8a-v48-info-class="dynamic">TLE source summary: CelesTrak NORAD GP records are retained through the repo-owned projection.</p>
-            <p data-m8a-v411-evidence-endpoint-summary="true" data-m8a-v48-info-class="dynamic">Endpoint evidence: Taiwan / CHT and Singapore / Speedcast are operator-family evidence only.</p>
-            <p data-m8a-v411-evidence-r2-summary="true" data-m8a-v48-info-class="dynamic">R2 archive: read-only provenance, not a precision mode or runtime selector.</p>
-            <div class="m8a-v411-sources__section" data-m8a-v411-sources-tle-section="true">
-              <span class="m8a-v411-sources__label" data-m8a-v48-info-class="fixed">Satellite TLE provenance</span>
-              <div class="m8a-v411-sources__rows" data-m8a-v411-sources-tle-rows="true"></div>
+            <strong data-m8a-v411-sources-title="true" data-m8a-v48-info-class="fixed">Evidence summary</strong>
+            <div class="m8a-v411-evidence-summary" data-m8a-v411-evidence-summary="true">
+              <p data-m8a-v411-evidence-summary-line="tle" data-m8a-v411-evidence-tle-summary="true" data-m8a-v48-info-class="dynamic">TLE: CelesTrak NORAD GP · 13 actors · fetched 2026-04-26</p>
+              <p data-m8a-v411-evidence-summary-line="r2" data-m8a-v411-evidence-r2-summary="true" data-m8a-v48-info-class="dynamic">R2: 5 candidate endpoints (read-only catalog)</p>
             </div>
-            <div class="m8a-v411-sources__section" data-m8a-v411-sources-ground-section="true">
-              <span class="m8a-v411-sources__label" data-m8a-v48-info-class="fixed">Ground-station evidence URLs</span>
-              <div data-m8a-v411-sources-ground-rows="true"></div>
-            </div>
-            <div class="m8a-v411-sources__section" data-m8a-v411-sources-r2-section="true">
-              <span class="m8a-v411-sources__label" data-m8a-v48-info-class="fixed">R2 read-only candidate catalog</span>
-              <div class="m8a-v411-sources__rows" data-m8a-v411-sources-r2-rows="true"></div>
-            </div>
+            <details class="m8a-v411-evidence-archive" data-m8a-v411-evidence-archive="true">
+              <summary data-m8a-v48-info-class="disclosure">Archive</summary>
+              <p data-m8a-v411-sources-filter-summary="true" data-m8a-v48-info-class="dynamic"></p>
+              <div class="m8a-v411-sources__section" data-m8a-v411-sources-tle-section="true">
+                <span class="m8a-v411-sources__label" data-m8a-v48-info-class="fixed">Satellite TLE provenance</span>
+                <div class="m8a-v411-sources__rows" data-m8a-v411-sources-tle-rows="true"></div>
+              </div>
+              <div class="m8a-v411-sources__section" data-m8a-v411-sources-ground-section="true">
+                <span class="m8a-v411-sources__label" data-m8a-v48-info-class="fixed">Ground-station evidence URLs</span>
+                <div data-m8a-v411-sources-ground-rows="true"></div>
+              </div>
+              <div class="m8a-v411-sources__section" data-m8a-v411-sources-r2-section="true">
+                <span class="m8a-v411-sources__label" data-m8a-v48-info-class="fixed">R2 read-only candidate catalog</span>
+                <div class="m8a-v411-sources__rows" data-m8a-v411-sources-r2-rows="true"></div>
+              </div>
+            </details>
           </section>
         </div>
         <details class="m8a-v47-product-ux__evidence" data-m8a-v49-debug-evidence="true">
@@ -3685,25 +3751,26 @@ function renderProductUx(
   );
   const railCopy = resolveM8aV411PhaseCRailCopy(productUx.activeWindowId);
   const metricsCopy = resolveM8aV411PhaseCMetricsCopy(productUx.activeWindowId);
+  const countdownDerivation = deriveM8aV411CountdownRemaining({
+    window: state.simulationHandoverModel.window,
+    replayRatio: state.simulationHandoverModel.replayRatio,
+    fullReplaySimulatedSeconds:
+      M8A_V4_FULL_LEO_ORBIT_REPLAY_PROFILE.replayDurationMs / 1000
+  });
   const truthBoundaryLines = resolveM8aV411TruthBoundaryLines(
     productUx.activeWindowId,
     productUx.disclosure.lines
   );
-  const selectedInspectorTab: M8aV411InspectorTab = truthBoundaryOpen
-    ? "boundary"
-    : sourcesRoleOpen
-      ? "evidence"
-      : productUx.disclosure.activeInspectorTab;
+  const selectedInspectorTab: M8aV411InspectorTab = sourcesRoleOpen
+    ? "evidence"
+    : productUx.disclosure.activeInspectorTab;
   const decisionPanelOpen =
     sheetOpen &&
     (truthBoundaryOpen ||
       (stateEvidenceOpen && selectedInspectorTab === "decision"));
   const metricsPanelOpen =
     sheetOpen && stateEvidenceOpen && selectedInspectorTab === "metrics";
-  const boundaryPanelOpen =
-    sheetOpen &&
-    (truthBoundaryOpen ||
-      (stateEvidenceOpen && selectedInspectorTab === "boundary"));
+  const boundaryPanelOpen = sheetOpen && truthBoundaryOpen;
   const evidencePanelOpen =
     sheetOpen &&
     (sourcesRoleOpen ||
@@ -4212,23 +4279,63 @@ function renderProductUx(
   );
   updateProductUxText(
     root,
-    "[data-m8a-v411-metrics-quality='true']",
-    metricsCopy.quality
+    "[data-m8a-v411-metrics-available-value='latency-class']",
+    metricsCopy.latencyClassValue
   );
   updateProductUxText(
     root,
-    "[data-m8a-v411-metrics-timing='true']",
-    metricsCopy.timing
+    "[data-m8a-v411-metrics-available-unit='latency-class']",
+    metricsCopy.latencyClassUnit
   );
   updateProductUxText(
     root,
-    "[data-m8a-v411-metrics-measurement='true']",
-    metricsCopy.measurement
+    "[data-m8a-v411-metrics-available-detail='latency-class']",
+    metricsCopy.latencyClassDetail
   );
   updateProductUxText(
     root,
-    "[data-m8a-v411-metrics-physical='true']",
-    metricsCopy.physical
+    "[data-m8a-v411-metrics-available-value='continuity-class']",
+    metricsCopy.continuityClassValue
+  );
+  updateProductUxText(
+    root,
+    "[data-m8a-v411-metrics-available-unit='continuity-class']",
+    metricsCopy.continuityClassUnit
+  );
+  updateProductUxText(
+    root,
+    "[data-m8a-v411-metrics-available-detail='continuity-class']",
+    metricsCopy.continuityClassDetail
+  );
+  updateProductUxText(
+    root,
+    "[data-m8a-v411-metrics-available-value='handover-state']",
+    metricsCopy.handoverStateValue
+  );
+  updateProductUxText(
+    root,
+    "[data-m8a-v411-metrics-available-unit='handover-state']",
+    metricsCopy.handoverStateUnit
+  );
+  updateProductUxText(
+    root,
+    "[data-m8a-v411-metrics-available-detail='handover-state']",
+    metricsCopy.handoverStateDetail
+  );
+  updateProductUxText(
+    root,
+    "[data-m8a-v411-metrics-available-value='replay-timing']",
+    countdownDerivation.approximateDisplay
+  );
+  updateProductUxText(
+    root,
+    "[data-m8a-v411-metrics-available-unit='replay-timing']",
+    metricsCopy.replayTimingUnit
+  );
+  updateProductUxText(
+    root,
+    "[data-m8a-v411-metrics-available-detail='replay-timing']",
+    metricsCopy.replayTimingDetail
   );
   updateProductUxText(
     root,
@@ -4557,12 +4664,6 @@ function renderProductUx(
     timeline: state.simulationHandoverModel.timeline
   });
 
-  const countdownDerivation = deriveM8aV411CountdownRemaining({
-    window: state.simulationHandoverModel.window,
-    replayRatio: state.simulationHandoverModel.replayRatio,
-    fullReplaySimulatedSeconds:
-      M8A_V4_FULL_LEO_ORBIT_REPLAY_PROFILE.replayDurationMs / 1000
-  });
   const microCueRectForCountdown = (() => {
     try {
       return root
@@ -4900,6 +5001,12 @@ function renderProductUx(
   );
   metricsRole.dataset.m8aV411RoleState = metricsPanelOpen ? "open" : "closed";
   metricsRole.dataset.m8aV411MetricsWindowId = productUx.activeWindowId;
+  metricsRole.dataset.m8aV411MetricsStructure =
+    "available-and-not-connected";
+  metricsRole.dataset.m8aV411DisabledMetricTileCount = String(
+    M8A_V411_DISABLED_METRIC_TILES.length
+  );
+  metricsRole.dataset.m8aV411AvailableMetricTileCount = "4";
   setProductUxHidden(metricsRole, !metricsPanelOpen);
 
   const stateEvidenceDetailEl = getProductUxElement(
@@ -4934,6 +5041,22 @@ function renderProductUx(
     productUx.disclosure.sourcesFilter
   );
   setProductUxHidden(sourcesRole, !evidencePanelOpen);
+
+  const evidenceArchive = getProductUxElement(
+    root,
+    "[data-m8a-v411-evidence-archive='true']"
+  ) as HTMLDetailsElement;
+  const evidenceArchiveDefaultOpen =
+    productUx.activeWindowId === "geo-continuity-guard";
+  evidenceArchive.open = sourcesRoleOpen || evidenceArchiveDefaultOpen;
+  evidenceArchive.dataset.m8aV411EvidenceArchiveDefaultOpen = String(
+    evidenceArchiveDefaultOpen
+  );
+  evidenceArchive.dataset.m8aV411EvidenceArchiveOpen = String(
+    evidenceArchive.open
+  );
+  evidenceArchive.dataset.m8aV411EvidenceArchiveWindowId =
+    productUx.activeWindowId;
 
   for (const tabButton of root.querySelectorAll<HTMLButtonElement>(
     "[data-m8a-v411-inspector-tab]"
@@ -6413,7 +6536,7 @@ export function createM8aV4GroundStationSceneController({
   const toggleBoundaryDisclosure = (): void => {
     boundaryDisclosureOpen = true;
     boundaryFullTruthDisclosureOpen = false;
-    activeInspectorTab = "boundary";
+    activeInspectorTab = "decision";
     // Conv 3: toggle-boundary is now triggered by footer chip (Truth button removed)
     productUxRoot.dataset.m8aV411FooterChipBoundaryBehavior =
       "footer-chip-opens-state-evidence-with-truth-tail-visible";

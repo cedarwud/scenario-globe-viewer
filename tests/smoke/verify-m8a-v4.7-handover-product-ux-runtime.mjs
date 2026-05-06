@@ -1390,15 +1390,15 @@ async function verifyFinalHold(client) {
 }
 
 async function verifyDisclosure(client, viewport) {
+  // Smoke Softening Disclosure: spec v2 §4.1 / §4.4 removes the standalone
+  // Boundary tab. Use the footer disclosure owner to reveal the same accepted
+  // truth-boundary lines for this V4.7.1 regression.
   const openTarget = await pointerClick(
     client,
-    "[data-m8a-v47-control-id='details-toggle']"
-  );
-  const boundaryTabTarget = await pointerClick(
-    client,
-    "[data-m8a-v411-inspector-tab='boundary']",
+    "button[data-m8a-v411-footer-chip='explicit-disclosure']",
     { scrollIntoView: true }
   );
+  const boundaryDisclosureTarget = openTarget;
   const result = await evaluateRuntimeValue(
     client,
     `((config) => {
@@ -1545,7 +1545,7 @@ async function verifyDisclosure(client, viewport) {
       JSON.stringify({ closeTarget, closed })
   );
   await sleep(120);
-  return { ...result, openTarget, boundaryTabTarget, closeTarget };
+  return { ...result, openTarget, boundaryDisclosureTarget, closeTarget };
 }
 
 async function main() {

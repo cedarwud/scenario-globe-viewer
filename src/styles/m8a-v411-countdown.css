@@ -12,7 +12,7 @@
   gap: var(--m8a-v411-space-1);
   padding: var(--m8a-v411-space-2) var(--m8a-v411-space-3);
   max-width: 320px;
-  border: 1px solid var(--m8a-v411-alpha-active);
+  border: 1px solid var(--m8a-v411-state-active);
   border-radius: var(--m8a-v411-radius-md);
   background: var(--m8a-v411-alpha-panel);
   color: var(--m8a-v411-ui-text);
@@ -30,30 +30,46 @@
 }
 
 .m8a-v411-product-ux__countdown-surface[data-m8a-v411-countdown-window-id="leo-aging-pressure"] {
-  border-color: var(--m8a-v411-alpha-active);
+  border-color: var(--m8a-v411-state-warning);
   background:
-    linear-gradient(180deg, var(--m8a-v411-alpha-active-soft), transparent),
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--m8a-v411-state-warning) 22%, transparent),
+      transparent
+    ),
     var(--m8a-v411-alpha-panel);
 }
 
 .m8a-v411-product-ux__countdown-surface[data-m8a-v411-countdown-window-id="meo-continuity-hold"] {
-  border-color: var(--m8a-v411-alpha-cyan);
+  border-color: var(--m8a-v411-state-active);
   background:
-    linear-gradient(180deg, var(--m8a-v411-alpha-cyan-soft), transparent),
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--m8a-v411-state-active) 18%, transparent),
+      transparent
+    ),
     var(--m8a-v411-alpha-panel);
 }
 
 .m8a-v411-product-ux__countdown-surface[data-m8a-v411-countdown-window-id="leo-reentry-candidate"] {
-  border-color: var(--m8a-v411-alpha-mint);
+  border-color: var(--m8a-v411-state-active);
   background:
-    linear-gradient(180deg, var(--m8a-v411-alpha-mint-soft), transparent),
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--m8a-v411-state-active) 20%, transparent),
+      transparent
+    ),
     var(--m8a-v411-alpha-panel);
 }
 
 .m8a-v411-product-ux__countdown-surface[data-m8a-v411-countdown-window-id="geo-continuity-guard"] {
-  border-color: var(--m8a-v411-alpha-amber);
+  border-color: var(--m8a-v411-state-warning);
   background:
-    linear-gradient(180deg, var(--m8a-v411-alpha-amber-soft), transparent),
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--m8a-v411-state-warning) 22%, transparent),
+      transparent
+    ),
     var(--m8a-v411-alpha-panel);
 }
 

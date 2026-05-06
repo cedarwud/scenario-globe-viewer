@@ -378,6 +378,34 @@ async function inspectLayout(client) {
         text: normalize(tab.innerText),
         rect: rectToPlain(tab.getBoundingClientRect())
       }));
+      const disabledMetricTiles = Array.from(
+        document.querySelectorAll("[data-m8a-v411-disabled-metric-tile='true']")
+      ).map((tile) => {
+        const style = tile instanceof HTMLElement ? getComputedStyle(tile) : null;
+        return {
+          id: tile.dataset.m8aV411DisabledMetricId ?? "",
+          ariaDisabled: tile.getAttribute("aria-disabled"),
+          tabIndex: tile instanceof HTMLElement ? tile.tabIndex : null,
+          cursor: style?.cursor ?? "",
+          focusableDescendantCount: tile.querySelectorAll(
+            "a[href], button, input, select, textarea, [tabindex]:not([tabindex='-1'])"
+          ).length,
+          text: normalize(tile.textContent)
+        };
+      });
+      const availableMetricTiles = Array.from(
+        document.querySelectorAll("[data-m8a-v411-available-metric-tile]")
+      ).map((tile) => {
+        const value = tile.querySelector(".m8a-v411-metrics__value");
+        const valueStyle = value instanceof HTMLElement ? getComputedStyle(value) : null;
+        return {
+          id: tile.dataset.m8aV411AvailableMetricTile ?? "",
+          text: normalize(tile.textContent),
+          fontFamily: valueStyle?.fontFamily ?? "",
+          fontVariantNumeric: valueStyle?.fontVariantNumeric ?? "",
+          minWidth: valueStyle?.minWidth ?? ""
+        };
+      });
 
       const topStrip = document.querySelector("[data-m8a-v411-top-strip='true']");
       const leftRail = document.querySelector("[data-m8a-v411-handover-rail='true']");
@@ -387,6 +415,7 @@ async function inspectLayout(client) {
       const sheet = document.querySelector("[data-m8a-v48-inspector='true']");
       const controlStrip = document.querySelector("[data-m8a-v47-control-strip='true']");
       const tabsContainer = document.querySelector("[data-m8a-v411-inspector-tabs='true']");
+      const evidenceArchive = document.querySelector("[data-m8a-v411-evidence-archive='true']");
       const creditWrappers = Array.from(
         document.querySelectorAll(".cesium-widget-credits .cesium-credit-wrapper")
       );
@@ -424,6 +453,8 @@ async function inspectLayout(client) {
         footerExplicit: qs("[data-m8a-v411-footer-chip='explicit-disclosure']"),
         detailsBtn: qs("[data-m8a-v47-control-id='details-toggle']"),
         sheet: qs("[data-m8a-v48-inspector='true']"),
+        boundaryStrip: qs("[data-m8a-v411-inspector-boundary-strip='true']"),
+        validationBadge: qs("[data-m8a-v411-inspector-validation-badge='true']"),
         controlStrip: qs("[data-m8a-v47-control-strip='true']"),
         sequenceRail: qs("[data-m8a-v410-sequence-rail='true']"),
         nativeSurfaces: {
@@ -452,6 +483,16 @@ async function inspectLayout(client) {
         activePanel: qs("[data-m8a-v411-inspector-panel]:not([hidden])"),
         panels,
         tabs,
+        evidenceArchive: evidenceArchive instanceof HTMLDetailsElement
+          ? {
+              exists: true,
+              open: evidenceArchive.open,
+              defaultOpen: evidenceArchive.dataset.m8aV411EvidenceArchiveDefaultOpen ?? "",
+              text: normalize(evidenceArchive.innerText)
+            }
+          : { exists: false, open: false, defaultOpen: "", text: "" },
+        disabledMetricTiles,
+        availableMetricTiles,
         pointHits: {
           footerExplicit: pointVisible(footerExplicit),
           detailsBtn: pointVisible(detailsBtn),
@@ -633,6 +674,30 @@ function assertCoreDesktopLayout(layout, label) {
 
 function assertInspectorTabsFit(layout, label) {
   assertVisible(layout.tabsContainer, `${label} inspector tabs`, 250, 28);
+  assert(
+    JSON.stringify(layout.tabs.map((tab) => tab.text)) ===
+      JSON.stringify(["Decision", "Metrics", "Evidence"]),
+    `${label} inspector tabs must follow spec v2 §4.1 / §4.4 three-tab order: ` +
+      JSON.stringify(layout.tabs)
+  );
+  assert(
+    !layout.tabs.some((tab) => tab.id === "boundary" || tab.text === "Boundary"),
+    `${label} must not expose a Boundary tab after spec v2 §4.1 / §4.4: ` +
+      JSON.stringify(layout.tabs)
+  );
+  assert(
+    layout.boundaryStrip.visible &&
+      layout.boundaryStrip.text.includes("13-actor demo") &&
+      layout.boundaryStrip.text.includes("operator-family precision"),
+    `${label} boundary strip must own scale and endpoint chips after spec v2 §4.4: ` +
+      JSON.stringify(layout.boundaryStrip)
+  );
+  assert(
+    layout.validationBadge.visible &&
+      layout.validationBadge.text.includes("驗證狀態：待補"),
+    `${label} validation badge must be visible in inspector header: ` +
+      JSON.stringify(layout.validationBadge)
+  );
   for (const tab of layout.tabs) {
     assert(tab.text.length > 0, `${label} inspector tab text missing`);
     assert(
@@ -778,10 +843,15 @@ async function main() {
     await clickSelector(client, 'button[data-m8a-v411-footer-chip="explicit-disclosure"]');
     layout = await inspectLayout(client);
     assertVisible(layout.sheet, "footer disclosure inspector", 300, 220);
-    assert(layout.activeTab === "boundary", "Footer disclosure must open Boundary tab");
-    assert(findPanel(layout, "boundary")?.visible, "Footer disclosure must show Boundary panel");
+    // Smoke Softening Disclosure: spec v2 §4.1 / §4.4 supersedes the
+    // legacy footer-disclosure -> Boundary-tab expectation. Footer
+    // disclosure may open the inspector, but Boundary is no longer a tab.
+    manifest.softening.push("Correction A Phase E: spec v2 §4.1 / §4.4 supersedes Boundary tab; footer disclosure keeps Decision selected and boundary ownership moves to strip/footer.");
+    assert(layout.activeTab === "decision", "Footer disclosure must keep Decision selected after Boundary tab removal");
+    assert(findPanel(layout, "decision")?.visible, "Footer disclosure must show Decision panel after Boundary tab removal");
+    assert(!layout.tabs.some((tab) => tab.id === "boundary" || tab.text === "Boundary"), "Footer disclosure must not expose Boundary tab");
     assertHitVisible(layout, "sheet", "footer disclosure inspector");
-    manifest.checks.push("footer-disclosure-opens-boundary");
+    manifest.checks.push("footer-disclosure-opens-inspector-without-boundary-tab");
 
     await closeDisclosureSurfaces(client);
     await clickSelector(client, 'button[data-m8a-v47-control-id="details-toggle"]');
@@ -800,12 +870,30 @@ async function main() {
     assertInspectorTabsFit(layout, "W2 Metrics");
     const metricsPanel = findPanel(layout, "metrics");
     assert(metricsPanel?.visible, "W2 Metrics panel must be visible");
-    assert(metricsPanel.text.includes("Modeled classes"), "Metrics must separate modeled classes");
-    assert(metricsPanel.text.includes("Unavailable measured data"), "Metrics must separate unavailable measured data");
-    assert(metricsPanel.text.includes("no ping"), "Metrics must disclose no ping");
-    assert(metricsPanel.text.includes("iperf"), "Metrics must disclose iperf absence");
+    assert(metricsPanel.text.includes("Available in this scene"), "Metrics must show Available group");
+    assert(metricsPanel.text.includes("Not connected in this scene"), "Metrics must show Not connected group");
+    assert(!metricsPanel.text.includes("Unavailable measured data"), "Metrics must not keep old unavailable measured-data heading");
+    assert(metricsPanel.text.includes("Communication Time"), "Metrics must name Communication Time hookpoint");
+    assert(metricsPanel.text.includes("Handover Decision"), "Metrics must name Handover Decision hookpoint");
+    assert(metricsPanel.text.includes("Physical Inputs"), "Metrics must name Physical Inputs hookpoint");
+    assert(metricsPanel.text.includes("Validation State"), "Metrics must name Validation State hookpoint");
+    assert(metricsPanel.text.includes("ping/iPerf"), "Metrics must disclose ping/iPerf absence");
     assert(metricsPanel.text.includes("ESTNeT/INET"), "Metrics must disclose ESTNeT/INET absence");
     assert(metricsPanel.text.includes("DUT"), "Metrics must disclose DUT absence");
+    assert(layout.availableMetricTiles.length === 4, "Metrics must render four available tiles");
+    assert(layout.availableMetricTiles.every((tile) => tile.fontFamily.includes("IBM Plex Mono") || tile.fontFamily.includes("monospace")), "Available tile values must use data typography");
+    assert(layout.availableMetricTiles.every((tile) => tile.fontVariantNumeric.includes("tabular-nums")), "Available tile values must use tabular figures");
+    assert(layout.disabledMetricTiles.length === 13, "Metrics must render 13 disabled tiles");
+    assert(
+      layout.disabledMetricTiles.every(
+        (tile) =>
+          tile.ariaDisabled === "true" &&
+          tile.tabIndex < 0 &&
+          tile.cursor === "not-allowed" &&
+          tile.focusableDescendantCount === 0
+      ),
+      `Disabled metric tiles must be aria-disabled, non-focusable, not-allowed, and contain no focusable children: ${JSON.stringify(layout.disabledMetricTiles)}`
+    );
     assertNoFakeMeasuredValues(metricsPanel.text, "W2 Metrics panel");
     assertNoTofuOnSurfaces(layout, "W2 Metrics");
     await captureAndRecord(client, manifest, "w2-metrics-tab-1440x900.png");
@@ -842,33 +930,22 @@ async function main() {
     await captureAndRecord(client, manifest, "w4-steady-candidate-halo-1440x900.png");
 
     await seekReplayRatio(client, WINDOW_CHECKS[4].ratio);
-    await clickSelector(client, 'button[data-m8a-v411-footer-chip="explicit-disclosure"]');
-    layout = await inspectLayout(client);
-    assert(layout.stateSummary.activeWindowId === WINDOW_CHECKS[4].windowId, "W5 must be active for Boundary screenshot");
-    assertCoreDesktopLayout(layout, "W5 Boundary");
-    assertInspectorTabsFit(layout, "W5 Boundary");
-    const boundaryPanel = findPanel(layout, "boundary");
-    assert(boundaryPanel?.visible, "W5 Boundary panel must be visible");
-    assert(boundaryPanel.text.includes("13-actor demo"), "Boundary must state 13-actor demo");
-    assert(boundaryPanel.text.includes("repo-owned projection"), "Boundary must state repo-owned projection");
-    assert(boundaryPanel.text.includes("not measured truth"), "Boundary must state not measured truth");
-    assert(boundaryPanel.text.includes("not native RF handover"), "Boundary must state not native RF handover");
-    assert(boundaryPanel.text.includes("not >=500 LEO validation"), "Boundary must not imply >=500 LEO validation");
-    assertNoTofuOnSurfaces(layout, "W5 Boundary");
-    await captureAndRecord(client, manifest, "w5-boundary-tab-1440x900.png");
-
+    await clickSelector(client, 'button[data-m8a-v47-control-id="details-toggle"]');
     await clickSelector(client, 'button[data-m8a-v411-inspector-tab="evidence"]');
     layout = await inspectLayout(client);
+    assert(layout.stateSummary.activeWindowId === WINDOW_CHECKS[4].windowId, "W5 must be active for Evidence Archive screenshot");
+    assertCoreDesktopLayout(layout, "W5 Evidence Archive");
+    assertInspectorTabsFit(layout, "W5 Evidence Archive");
     assertInspectorTabsFit(layout, "Evidence");
     const evidencePanel = findPanel(layout, "evidence");
     assert(evidencePanel?.visible, "Evidence panel must be visible");
-    assert(evidencePanel.text.includes("TLE"), "Evidence must show TLE source summary");
-    assert(evidencePanel.text.includes("CelesTrak"), "Evidence must show CelesTrak provenance");
-    assert(evidencePanel.text.includes("Endpoint evidence"), "Evidence must show endpoint evidence");
-    assert(evidencePanel.text.includes("R2"), "Evidence must show R2 provenance");
-    assert(evidencePanel.text.includes("read-only"), "Evidence must show R2 read-only provenance");
+    assert(evidencePanel.text.includes("TLE: CelesTrak NORAD GP · 13 actors · fetched 2026-04-26"), "Evidence must show v2 §4.6 TLE summary line");
+    assert(evidencePanel.text.includes("R2: 5 candidate endpoints (read-only catalog)"), "Evidence must show v2 §4.6 R2 summary line");
+    assert(layout.evidenceArchive.open === true && layout.evidenceArchive.defaultOpen === "true", "W5 Evidence Archive must be expanded by default");
+    assert(layout.evidenceArchive.text.includes("Satellite TLE provenance"), "Evidence Archive must reveal TLE table");
+    assert(layout.evidenceArchive.text.includes("R2 read-only candidate catalog"), "Evidence Archive must reveal R2 table");
     assertNoTofuOnSurfaces(layout, "Evidence");
-    await captureAndRecord(client, manifest, "evidence-tab-1440x900.png");
+    await captureAndRecord(client, manifest, "w5-evidence-archive-expanded-1440x900.png");
 
     await setViewport(client, VIEWPORT_LAPTOP);
     await sleep(280);

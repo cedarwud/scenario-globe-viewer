@@ -17,5 +17,8 @@
     "truth-button-dom-removed",
     "footer-chip-click-opens-boundary-state",
     "bottom-layout-legacy-or-correction-a-successor"
+  ],
+  "softening": [
+    "Conv 3: spec v2 §6.5 migrates W5 warning assertions from a raw hex literal to --m8a-v411-state-warning; orbit identity colors are preserved."
   ]
 }

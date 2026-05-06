@@ -11,9 +11,9 @@
   max-width: 380px;
   height: 28px;
   padding: 0 12px;
-  border: 1px solid var(--m8a-v411-alpha-active);
+  border: 1px solid var(--m8a-v411-state-active);
   border-radius: var(--m8a-v411-radius-md);
-  background: var(--m8a-v411-alpha-panel);
+  background: var(--m8a-v411-state-neutral);
   color: var(--m8a-v411-ui-text);
   font-size: 14px;
   font-family: var(--m8a-v411-font-ui);

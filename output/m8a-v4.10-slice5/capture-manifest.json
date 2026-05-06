@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-05-05T07:36:29.774Z",
+  "generatedAt": "2026-05-06T13:53:21.016Z",
   "status": "cleanup-complete",
   "route": "/?scenePreset=regional&m8aV4GroundStationScene=1",
   "outputRoot": "output/m8a-v4.10-slice5",
@@ -93,7 +93,7 @@
       "action": "default",
       "screenshot": {
         "path": "output/m8a-v4.10-slice5/v4.10-slice5-default-1440x900.png",
-        "sizeBytes": 961069,
+        "sizeBytes": 960673,
         "dimensions": {
           "width": 1440,
           "height": 900
@@ -107,9 +107,9 @@
       "boundaryFullTruthDisclosureState": "closed",
       "sceneNarrativeRect": {
         "left": 340,
-        "top": 482.6875,
+        "top": 484.390625,
         "right": 433.1875,
-        "bottom": 506.6875,
+        "bottom": 508.390625,
         "width": 93.1875,
         "height": 24
       },
@@ -157,7 +157,7 @@
       "action": "default",
       "screenshot": {
         "path": "output/m8a-v4.10-slice5/v4.10-slice5-default-1280x720.png",
-        "sizeBytes": 704761,
+        "sizeBytes": 702770,
         "dimensions": {
           "width": 1280,
           "height": 720
@@ -171,9 +171,9 @@
       "boundaryFullTruthDisclosureState": "closed",
       "sceneNarrativeRect": {
         "left": 340,
-        "top": 376.890625,
+        "top": 383,
         "right": 433.1875,
-        "bottom": 400.890625,
+        "bottom": 407,
         "width": 93.1875,
         "height": 24
       },
@@ -221,7 +221,7 @@
       "action": "default",
       "screenshot": {
         "path": "output/m8a-v4.10-slice5/v4.10-slice5-default-390x844.png",
-        "sizeBytes": 347626,
+        "sizeBytes": 346534,
         "dimensions": {
           "width": 390,
           "height": 844
@@ -235,9 +235,9 @@
       "boundaryFullTruthDisclosureState": "closed",
       "sceneNarrativeRect": {
         "left": 14,
-        "top": 399.890625,
+        "top": 401.796875,
         "right": 103.3125,
-        "bottom": 423.890625,
+        "bottom": 425.796875,
         "width": 89.3125,
         "height": 24
       },
@@ -358,7 +358,7 @@
       "action": "details",
       "screenshot": {
         "path": "output/m8a-v4.10-slice5/v4.10-slice5-details-open-1440x900.png",
-        "sizeBytes": 916810,
+        "sizeBytes": 916272,
         "dimensions": {
           "width": 1440,
           "height": 900
@@ -372,9 +372,9 @@
       "boundaryFullTruthDisclosureState": "closed",
       "sceneNarrativeRect": {
         "left": 340,
-        "top": 480,
+        "top": 485.296875,
         "right": 433.1875,
-        "bottom": 504,
+        "bottom": 509.296875,
         "width": 93.1875,
         "height": 24
       },
@@ -422,7 +422,7 @@
       "action": "boundary-full-truth",
       "screenshot": {
         "path": "output/m8a-v4.10-slice5/v4.10-slice5-boundary-open-1440x900.png",
-        "sizeBytes": 917229,
+        "sizeBytes": 916244,
         "dimensions": {
           "width": 1440,
           "height": 900
@@ -436,9 +436,9 @@
       "boundaryFullTruthDisclosureState": "open",
       "sceneNarrativeRect": {
         "left": 340,
-        "top": 479.1875,
+        "top": 484.09375,
         "right": 433.1875,
-        "bottom": 503.1875,
+        "bottom": 508.09375,
         "width": 93.1875,
         "height": 24
       },
@@ -486,7 +486,7 @@
       "action": "transition",
       "screenshot": {
         "path": "output/m8a-v4.10-slice5/v4.10-slice5-transition-leo-aging-pressure-1440x900.png",
-        "sizeBytes": 981328,
+        "sizeBytes": 981505,
         "dimensions": {
           "width": 1440,
           "height": 900
@@ -556,25 +556,25 @@
   "taskOwnedProcesses": [
     {
       "type": "static-server-started",
-      "at": "2026-05-05T07:35:01.142Z",
-      "pid": 22779,
-      "baseUrl": "http://127.0.0.1:41279"
+      "at": "2026-05-06T13:52:20.041Z",
+      "pid": 290278,
+      "baseUrl": "http://127.0.0.1:37339"
     },
     {
       "type": "headless-browser-started",
-      "at": "2026-05-05T07:35:01.385Z",
-      "pid": 22784,
+      "at": "2026-05-06T13:52:20.160Z",
+      "pid": 290283,
       "browserCommand": "google-chrome"
     },
     {
       "type": "headless-browser-stop-requested",
-      "at": "2026-05-05T07:36:29.690Z",
-      "pid": 22784
+      "at": "2026-05-06T13:53:20.964Z",
+      "pid": 290283
     },
     {
       "type": "static-server-stop-requested",
-      "at": "2026-05-05T07:36:29.771Z",
-      "pid": 22779
+      "at": "2026-05-06T13:53:21.013Z",
+      "pid": 290278
     }
   ]
 }
