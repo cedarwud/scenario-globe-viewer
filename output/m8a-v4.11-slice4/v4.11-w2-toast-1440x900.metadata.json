@@ -7,7 +7,7 @@
   "route": "/?scenePreset=regional&m8aV4GroundStationScene=1",
   "windowId": "leo-aging-pressure",
   "screenshot": "output/m8a-v4.11-slice4/v4.11-w2-toast-1440x900.png",
-  "elapsedMs": 25,
+  "elapsedMs": 17,
   "result": {
     "label": "transition-leo-aging-pressure",
     "urlPath": "/?scenePreset=regional&m8aV4GroundStationScene=1",
@@ -208,7 +208,7 @@
         "title": "LEO pressure",
         "line": "Continuity will shift to the MEO hold next.",
         "durationMs": "2500",
-        "elapsedMs": "25.0",
+        "elapsedMs": "17.0",
         "maxWidthPx": "320",
         "maxCanvasWidthRatio": "0.22",
         "stackIndex": "1",
@@ -239,7 +239,7 @@
         "title": "LEO pressure",
         "line": "Continuity will shift to the MEO hold next.",
         "durationMs": "2500",
-        "elapsedMs": "25.0",
+        "elapsedMs": "17.0",
         "maxWidthPx": "320",
         "maxCanvasWidthRatio": "0.22",
         "stackIndex": "1",
@@ -254,9 +254,9 @@
         "rect": {
           "left": 872.5,
           "top": 505,
-          "right": 981.640625,
+          "right": 979.703125,
           "bottom": 529,
-          "width": 109.140625,
+          "width": 107.203125,
           "height": 24
         },
         "text": "pressure · LEO",
@@ -284,9 +284,9 @@
         "rect": {
           "left": 872.5,
           "top": 505,
-          "right": 981.640625,
+          "right": 979.703125,
           "bottom": 529,
-          "width": 109.140625,
+          "width": 107.203125,
           "height": 24
         },
         "text": "pressure · LEO",
@@ -337,9 +337,9 @@
       "hidden": false,
       "rect": {
         "left": 1084,
-        "top": 167.390625,
+        "top": 156.890625,
         "right": 1424,
-        "bottom": 225.609375,
+        "bottom": 215.109375,
         "width": 340,
         "height": 58.21875
       },
@@ -422,19 +422,19 @@
           "left": 340,
           "top": 74.234375,
           "right": 924,
-          "bottom": 159.390625,
+          "bottom": 148.921875,
           "width": 584,
-          "height": 85.15625
+          "height": 74.6875
         },
-        "text": "Current state LEO pressure State 2 of 5 Play Restart 30x 60x 120x Details"
+        "text": "Current state LEO pressure State 2 of 5 Play Restart 30x 60x 120x Review mode · on Details"
       },
       {
         "selector": "play-pause",
         "rect": {
           "left": 453.296875,
-          "top": 94.8125,
+          "top": 89.578125,
           "right": 512.484375,
-          "bottom": 138.8125,
+          "bottom": 133.578125,
           "width": 59.1875,
           "height": 44
         },
@@ -444,9 +444,9 @@
         "selector": "restart",
         "rect": {
           "left": 518.234375,
-          "top": 94.8125,
+          "top": 89.578125,
           "right": 588.625,
-          "bottom": 138.8125,
+          "bottom": 133.578125,
           "width": 70.390625,
           "height": 44
         },
@@ -647,7 +647,7 @@
         "text": "GEO"
       }
     ],
-    "visibleProductText": "pressure · LEO LEO pressure Continuity will shift to the MEO hold next. 13 顆衛星模擬展示 · 完整 ≥500 LEO 多軌道驗證見後續階段 LEO MEO GEO ✓ LEO MEO GEO ✓ LEO LEO LEO LEO LEO LEO MEO MEO MEO MEO MEO GEO GEO Scenario Scope Scope: 13-actor demo · LEO/MEO/GEO (6/5/2) Time: Sim replay 00:28 / 01:54 · replay · 60x Precision: operator-family precision Boundary: repo-owned projection · not measured truth Current: W2 LEO primary under pressure Candidate: MEO continuity hold queued Fallback: GEO guard coverage available Decision: position condition is worsening; prepare switch Time/Quality: simulated countdown; modeled quality drops LEO review -> LEO pressure Review context shifts to LEO focus pressure · LEO Handover sequence State 2 of 5: LEO pressure Next: State 3 of 5 MEO continuity hold 1 LEO review LEO 2 LEO pressure LEO 3 MEO hold MEO 4 LEO re-entry LEO 5 GEO guard GEO Current state LEO pressure State 2 of 5 Play Restart 30x 60x 120x Details 模擬展示 operator-family precision TLE: CelesTrak NORAD GP · 2026-04-26 13 actors Boundary & Sources LEO pressure. Continuity will shift to the MEO hold next. 切換到 MEO：~17 分鐘 位置條件變差 ~ 為模擬推演值",
+    "visibleProductText": "pressure · LEO LEO pressure Continuity will shift to the MEO hold next. 13 顆衛星模擬展示 · 完整 ≥500 LEO 多軌道驗證見後續階段 LEO MEO GEO ✓ LEO MEO GEO ✓ LEO LEO LEO LEO LEO LEO MEO MEO MEO MEO MEO GEO GEO Scenario Scope Scope: 13-actor demo · LEO/MEO/GEO (6/5/2) Time: Sim replay 00:28 / 01:54 · replay · 60x Precision: operator-family precision Boundary: repo-owned projection · not measured truth Current: W2 LEO primary under pressure Candidate: MEO continuity hold queued Fallback: GEO guard coverage available Decision: position condition is worsening; prepare switch Time/Quality: simulated countdown; modeled quality drops LEO review -> LEO pressure Review context shifts to LEO focus pressure · LEO Handover sequence State 2 of 5: LEO pressure Next: State 3 of 5 MEO continuity hold 1 LEO review LEO 2 LEO pressure LEO 3 MEO hold MEO 4 LEO re-entry LEO 5 GEO guard GEO Current state LEO pressure State 2 of 5 Play Restart 30x 60x 120x Review mode · on Details Paused by user 模擬展示 operator-family precision TLE: CelesTrak NORAD GP · 2026-04-26 13 actors Boundary & Sources LEO pressure. Continuity will shift to the MEO hold next. 切換到 MEO：~17 分鐘 位置條件變差 ~ 為模擬推演值",
     "forbiddenScopeLeak": {
       "sourcesRole": true,
       "r2Listing": false

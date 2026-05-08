@@ -427,23 +427,10 @@
   font-weight: 760;
 }
 
-@media (max-width: 720px) {
-  .m8a-v47-product-ux
-    .m8a-v47-product-ux__sheet[data-m8a-v411-inspector-concurrency] {
-    left: 0 !important;
-    right: 0 !important;
-    top: auto !important;
-    bottom: 0 !important;
-    width: 100% !important;
-    max-width: 100%;
-    max-height: 28vh;
-    border-right: 0;
-    border-left: 0;
-    border-bottom: 0;
-  }
-}
-
-@media (min-width: 721px) and (max-height: 760px) {
+/* Phase 4 (spec v2 §8): the prior <=720px bottom-sheet rule was superseded
+ * by the designed narrow + tablet modal contract in m8a-v411-narrow.css.
+ * The constrained-height laptop adjustment remains. */
+@media (min-width: 1024px) and (max-height: 760px) {
   .m8a-v47-product-ux
     .m8a-v47-product-ux__sheet[data-m8a-v411-inspector-concurrency] {
     top: 170px !important;

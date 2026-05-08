@@ -7,7 +7,7 @@
   "route": "/?scenePreset=regional&m8aV4GroundStationScene=1",
   "windowId": "geo-continuity-guard",
   "screenshot": "output/m8a-v4.11-slice4/v4.11-w5-toast-1440x900.png",
-  "elapsedMs": 18,
+  "elapsedMs": 32,
   "result": {
     "label": "transition-geo-continuity-guard",
     "urlPath": "/?scenePreset=regional&m8aV4GroundStationScene=1",
@@ -208,7 +208,7 @@
         "title": "GEO guard context",
         "line": "Restart to review the sequence again.",
         "durationMs": "2500",
-        "elapsedMs": "18.0",
+        "elapsedMs": "32.0",
         "maxWidthPx": "320",
         "maxCanvasWidthRatio": "0.22",
         "stackIndex": "1",
@@ -239,7 +239,7 @@
         "title": "GEO guard context",
         "line": "Restart to review the sequence again.",
         "durationMs": "2500",
-        "elapsedMs": "18.0",
+        "elapsedMs": "32.0",
         "maxWidthPx": "320",
         "maxCanvasWidthRatio": "0.22",
         "stackIndex": "1",
@@ -254,9 +254,9 @@
         "rect": {
           "left": 123,
           "top": 183.390625,
-          "right": 216.203125,
+          "right": 216.40625,
           "bottom": 207.390625,
-          "width": 93.203125,
+          "width": 93.40625,
           "height": 24
         },
         "text": "guard · GEO",
@@ -284,9 +284,9 @@
         "rect": {
           "left": 123,
           "top": 183.390625,
-          "right": 216.203125,
+          "right": 216.40625,
           "bottom": 207.390625,
-          "width": 93.203125,
+          "width": 93.40625,
           "height": 24
         },
         "text": "guard · GEO",
@@ -426,7 +426,7 @@
           "width": 584,
           "height": 85.15625
         },
-        "text": "Current state GEO guard context State 5 of 5 Play Restart 30x 60x 120x Details"
+        "text": "Current state GEO guard context State 5 of 5 Play Restart 30x 60x 120x Review mode · on Details"
       },
       {
         "selector": "play-pause",
@@ -647,7 +647,7 @@
         "text": "GEO"
       }
     ],
-    "visibleProductText": "guard · GEO GEO guard context Restart to review the sequence again. 13 顆衛星模擬展示 · 完整 ≥500 LEO 多軌道驗證見後續階段 LEO MEO GEO ✓ LEO MEO GEO ✓ LEO LEO LEO LEO LEO LEO MEO MEO MEO MEO MEO GEO GEO Scenario Scope Scope: 13-actor demo · LEO/MEO/GEO (6/5/2) Time: Sim replay 01:43 / 01:54 · replay · 60x Precision: operator-family precision Boundary: repo-owned projection · not measured truth Current: W5 GEO guard context Candidate: no next candidate in final window Fallback: GEO is the modeled guard role Decision: GEO is fallback/guard coverage Time/Quality: sequence ending; boundary-only quality LEO re-entry -> GEO guard Continuity guard shifts to GEO guard context guard · GEO Handover sequence State 5 of 5: GEO guard context Restart: State 1 of 5 LEO review focus 1 LEO review LEO 2 LEO pressure LEO 3 MEO hold MEO 4 LEO re-entry LEO 5 GEO guard GEO Current state GEO guard context State 5 of 5 Play Restart 30x 60x 120x Details 模擬展示 operator-family precision TLE: CelesTrak NORAD GP · 2026-04-26 13 actors ⚠ 不是實際備援切換證據 Boundary & Sources GEO guard context. Restart to review the sequence again. 序列結束：~11 分鐘 重新開始可以再看一次 ~ 為模擬推演值",
+    "visibleProductText": "guard · GEO GEO guard context Restart to review the sequence again. 13 顆衛星模擬展示 · 完整 ≥500 LEO 多軌道驗證見後續階段 LEO MEO GEO ✓ LEO MEO GEO ✓ LEO LEO LEO LEO LEO LEO MEO MEO MEO MEO MEO GEO GEO Scenario Scope Scope: 13-actor demo · LEO/MEO/GEO (6/5/2) Time: Sim replay 01:43 / 01:54 · replay · 60x Precision: operator-family precision Boundary: repo-owned projection · not measured truth Current: W5 GEO guard context Candidate: no next candidate in final window Fallback: GEO is the modeled guard role Decision: GEO is fallback/guard coverage Time/Quality: sequence ending; boundary-only quality LEO re-entry -> GEO guard Continuity guard shifts to GEO guard context guard · GEO Handover sequence State 5 of 5: GEO guard context Restart: State 1 of 5 LEO review focus 1 LEO review LEO 2 LEO pressure LEO 3 MEO hold MEO 4 LEO re-entry LEO 5 GEO guard GEO Current state GEO guard context State 5 of 5 Play Restart 30x 60x 120x Review mode · on Details Paused by user 模擬展示 operator-family precision TLE: CelesTrak NORAD GP · 2026-04-26 13 actors ⚠ 不是實際備援切換證據 Boundary & Sources GEO guard context. Restart to review the sequence again. 序列結束：~11 分鐘 重新開始可以再看一次 ~ 為模擬推演值",
     "forbiddenScopeLeak": {
       "sourcesRole": true,
       "r2Listing": false

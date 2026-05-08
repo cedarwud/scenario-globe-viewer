@@ -1,0 +1,49 @@
+{
+  "spec": "M8A V4.11 Impl Phase 4 reviewer mode + narrow/tablet designed surfaces",
+  "softening": [
+    "Phase 4 (spec v2 §7, §8): reviewer mode state machine + designed narrow/tablet surfaces. Existing <=720px graceful-degradation rules in m8a-v411-inspector-concurrency.css and m8a-v411-phase-b-layout.css are superseded by m8a-v411-narrow.css. Existing V4.7.1 / V4.9 narrow non-overlap assertions are softened in their respective smokes (cite spec v2 §8.2). Existing V4.11 Correction A Phase E narrow-fallback-hide-strip-and-rail assertion is softened (cite spec v2 §8.1, §8.3). Toast queue/suppress/discard logic is per spec v2 §7.3."
+  ],
+  "captures": [
+    {
+      "viewport": "desktop-1440x900",
+      "filename": "reviewer-mode-pinned-1440x900.png",
+      "path": "/home/u24/papers/scenario-globe-viewer/output/m8a-v4.11-impl-phase4/reviewer-mode-pinned-1440x900.png"
+    },
+    {
+      "viewport": "desktop-1440x900",
+      "filename": "reviewer-mode-auto-pause-1440x900.png",
+      "path": "/home/u24/papers/scenario-globe-viewer/output/m8a-v4.11-impl-phase4/reviewer-mode-auto-pause-1440x900.png"
+    },
+    {
+      "viewport": "narrow-390x844",
+      "filename": "narrow-modal-390x844.png",
+      "path": "/home/u24/papers/scenario-globe-viewer/output/m8a-v4.11-impl-phase4/narrow-modal-390x844.png"
+    },
+    {
+      "viewport": "narrow-390x844",
+      "filename": "narrow-drawer-390x844.png",
+      "path": "/home/u24/papers/scenario-globe-viewer/output/m8a-v4.11-impl-phase4/narrow-drawer-390x844.png"
+    },
+    {
+      "viewport": "tablet-portrait-768x1024",
+      "filename": "tablet-portrait-768x1024.png",
+      "path": "/home/u24/papers/scenario-globe-viewer/output/m8a-v4.11-impl-phase4/tablet-portrait-768x1024.png"
+    },
+    {
+      "viewport": "tablet-landscape-1024x768",
+      "filename": "tablet-landscape-1024x768.png",
+      "path": "/home/u24/papers/scenario-globe-viewer/output/m8a-v4.11-impl-phase4/tablet-landscape-1024x768.png"
+    }
+  ],
+  "checks": [
+    "desktop-state-machine-fields-exposed",
+    "desktop-inspector-open-pins-replay-and-suppresses-toast",
+    "desktop-inspector-close-clears-suppression-and-resumes",
+    "desktop-review-auto-pause-on-natural-transition",
+    "narrow-inspector-is-full-screen-modal-100dvh",
+    "narrow-drawer-rail-open-via-trigger",
+    "tablet-portrait-inspector-near-full-screen",
+    "tablet-landscape-constrained-desktop-rail-visible",
+    "phase-4-skill-queries-not-runnable-skills-directory-empty"
+  ]
+}

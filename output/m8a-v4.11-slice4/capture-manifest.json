@@ -6,7 +6,7 @@
       "windowId": "leo-aging-pressure",
       "screenshot": "output/m8a-v4.11-slice4/v4.11-w2-toast-1440x900.png",
       "metadata": "output/m8a-v4.11-slice4/v4.11-w2-toast-1440x900.metadata.json",
-      "elapsedMs": 25,
+      "elapsedMs": 17,
       "toastRect": {
         "left": 23.03125,
         "top": 225.03125,
@@ -18,9 +18,9 @@
       "sceneCueRect": {
         "left": 872.5,
         "top": 505,
-        "right": 981.640625,
+        "right": 979.703125,
         "bottom": 529,
-        "width": 109.140625,
+        "width": 107.203125,
         "height": 24
       }
     },
@@ -28,7 +28,7 @@
       "windowId": "meo-continuity-hold",
       "screenshot": "output/m8a-v4.11-slice4/v4.11-w3-toast-1440x900.png",
       "metadata": "output/m8a-v4.11-slice4/v4.11-w3-toast-1440x900.metadata.json",
-      "elapsedMs": 16,
+      "elapsedMs": 13,
       "toastRect": {
         "left": 23.03125,
         "top": 225.03125,
@@ -40,9 +40,9 @@
       "sceneCueRect": {
         "left": 505.5,
         "top": 297.1875,
-        "right": 591.3125,
+        "right": 593.03125,
         "bottom": 321.1875,
-        "width": 85.8125,
+        "width": 87.53125,
         "height": 24
       }
     },
@@ -50,7 +50,7 @@
       "windowId": "leo-reentry-candidate",
       "screenshot": "output/m8a-v4.11-slice4/v4.11-w4-toast-1440x900.png",
       "metadata": "output/m8a-v4.11-slice4/v4.11-w4-toast-1440x900.metadata.json",
-      "elapsedMs": 17,
+      "elapsedMs": 16,
       "toastRect": {
         "left": 23.03125,
         "top": 225.03125,
@@ -62,9 +62,9 @@
       "sceneCueRect": {
         "left": 815.796875,
         "top": 477.296875,
-        "right": 921,
+        "right": 920.546875,
         "bottom": 501.296875,
-        "width": 105.203125,
+        "width": 104.75,
         "height": 24
       }
     },
@@ -72,7 +72,7 @@
       "windowId": "geo-continuity-guard",
       "screenshot": "output/m8a-v4.11-slice4/v4.11-w5-toast-1440x900.png",
       "metadata": "output/m8a-v4.11-slice4/v4.11-w5-toast-1440x900.metadata.json",
-      "elapsedMs": 18,
+      "elapsedMs": 32,
       "toastRect": {
         "left": 23.03125,
         "top": 225.03125,
@@ -84,9 +84,9 @@
       "sceneCueRect": {
         "left": 123,
         "top": 183.390625,
-        "right": 216.203125,
+        "right": 216.40625,
         "bottom": 207.390625,
-        "width": 93.203125,
+        "width": 93.40625,
         "height": 24
       }
     }

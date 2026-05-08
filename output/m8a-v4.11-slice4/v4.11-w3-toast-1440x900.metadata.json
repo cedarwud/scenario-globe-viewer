@@ -7,7 +7,7 @@
   "route": "/?scenePreset=regional&m8aV4GroundStationScene=1",
   "windowId": "meo-continuity-hold",
   "screenshot": "output/m8a-v4.11-slice4/v4.11-w3-toast-1440x900.png",
-  "elapsedMs": 16,
+  "elapsedMs": 13,
   "result": {
     "label": "transition-meo-continuity-hold",
     "urlPath": "/?scenePreset=regional&m8aV4GroundStationScene=1",
@@ -208,7 +208,7 @@
         "title": "MEO continuity hold",
         "line": "MEO holds continuity in this simulation window.",
         "durationMs": "2500",
-        "elapsedMs": "16.0",
+        "elapsedMs": "13.0",
         "maxWidthPx": "320",
         "maxCanvasWidthRatio": "0.22",
         "stackIndex": "1",
@@ -239,7 +239,7 @@
         "title": "MEO continuity hold",
         "line": "MEO holds continuity in this simulation window.",
         "durationMs": "2500",
-        "elapsedMs": "16.0",
+        "elapsedMs": "13.0",
         "maxWidthPx": "320",
         "maxCanvasWidthRatio": "0.22",
         "stackIndex": "1",
@@ -254,9 +254,9 @@
         "rect": {
           "left": 505.5,
           "top": 297.1875,
-          "right": 591.3125,
+          "right": 593.03125,
           "bottom": 321.1875,
-          "width": 85.8125,
+          "width": 87.53125,
           "height": 24
         },
         "text": "hold · MEO",
@@ -284,9 +284,9 @@
         "rect": {
           "left": 505.5,
           "top": 297.1875,
-          "right": 591.3125,
+          "right": 593.03125,
           "bottom": 321.1875,
-          "width": 85.8125,
+          "width": 87.53125,
           "height": 24
         },
         "text": "hold · MEO",
@@ -426,7 +426,7 @@
           "width": 584,
           "height": 101.640625
         },
-        "text": "Current state MEO continuity hold State 3 of 5 Play Restart 30x 60x 120x Details"
+        "text": "Current state MEO continuity hold State 3 of 5 Play Restart 30x 60x 120x Review mode · on Details"
       },
       {
         "selector": "play-pause",
@@ -647,7 +647,7 @@
         "text": "GEO"
       }
     ],
-    "visibleProductText": "hold · MEO MEO continuity hold MEO holds continuity in this simulation window. 13 顆衛星模擬展示 · 完整 ≥500 LEO 多軌道驗證見後續階段 LEO MEO GEO ✓ LEO MEO GEO ✓ LEO LEO LEO LEO LEO LEO MEO MEO MEO MEO MEO GEO GEO Scenario Scope Scope: 13-actor demo · LEO/MEO/GEO (6/5/2) Time: Sim replay 00:57 / 01:54 · replay · 60x Precision: operator-family precision Boundary: repo-owned projection · not measured truth Current: W3 MEO primary hold Candidate: LEO re-entry expected next Fallback: GEO guard coverage available Decision: MEO temporarily carries continuity Time/Quality: derived hold time; higher-latency class LEO pressure -> MEO hold Continuity shifts to MEO review context hold · MEO Handover sequence State 3 of 5: MEO continuity hold Next: State 4 of 5 LEO re-entry 1 LEO review LEO 2 LEO pressure LEO 3 MEO hold MEO 4 LEO re-entry LEO 5 GEO guard GEO Current state MEO continuity hold State 3 of 5 Play Restart 30x 60x 120x Details 模擬展示 operator-family precision TLE: CelesTrak NORAD GP · 2026-04-26 13 actors Boundary & Sources MEO continuity hold. MEO holds continuity in this simulation window. 暫時接住：~11 分鐘 新 LEO 即將回來 ~ 為模擬推演值",
+    "visibleProductText": "hold · MEO MEO continuity hold MEO holds continuity in this simulation window. 13 顆衛星模擬展示 · 完整 ≥500 LEO 多軌道驗證見後續階段 LEO MEO GEO ✓ LEO MEO GEO ✓ LEO LEO LEO LEO LEO LEO MEO MEO MEO MEO MEO GEO GEO Scenario Scope Scope: 13-actor demo · LEO/MEO/GEO (6/5/2) Time: Sim replay 00:57 / 01:54 · replay · 60x Precision: operator-family precision Boundary: repo-owned projection · not measured truth Current: W3 MEO primary hold Candidate: LEO re-entry expected next Fallback: GEO guard coverage available Decision: MEO temporarily carries continuity Time/Quality: derived hold time; higher-latency class LEO pressure -> MEO hold Continuity shifts to MEO review context hold · MEO Handover sequence State 3 of 5: MEO continuity hold Next: State 4 of 5 LEO re-entry 1 LEO review LEO 2 LEO pressure LEO 3 MEO hold MEO 4 LEO re-entry LEO 5 GEO guard GEO Current state MEO continuity hold State 3 of 5 Play Restart 30x 60x 120x Review mode · on Details Paused by user 模擬展示 operator-family precision TLE: CelesTrak NORAD GP · 2026-04-26 13 actors Boundary & Sources MEO continuity hold. MEO holds continuity in this simulation window. 暫時接住：~11 分鐘 新 LEO 即將回來 ~ 為模擬推演值",
     "forbiddenScopeLeak": {
       "sourcesRole": true,
       "r2Listing": false

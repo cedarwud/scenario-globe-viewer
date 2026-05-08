@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-05-06T13:48:32.904Z",
+  "generatedAt": "2026-05-07T07:39:50.216Z",
   "status": "cleanup-complete",
   "route": "/?scenePreset=regional&m8aV4GroundStationScene=1",
   "outputRoot": "output/m8a-v4.10-slice1",
@@ -31,9 +31,9 @@
     },
     "currentAnnotation": {
       "left": 340,
-      "top": 484.6875,
+      "top": 454.6875,
       "right": 433.1875,
-      "bottom": 508.6875,
+      "bottom": 478.6875,
       "width": 93.1875,
       "height": 24
     },
@@ -49,7 +49,7 @@
       "viewport": "default-1440x900",
       "screenshot": {
         "path": "output/m8a-v4.10-slice1/v4.10-slice1-default-1440x900.png",
-        "sizeBytes": 960272,
+        "sizeBytes": 978769,
         "dimensions": {
           "width": 1440,
           "height": 900
@@ -60,9 +60,9 @@
       "anchorStatus": "geometry-reliable",
       "sceneNarrativeRect": {
         "left": 340,
-        "top": 484.6875,
+        "top": 454.6875,
         "right": 433.1875,
-        "bottom": 508.6875,
+        "bottom": 478.6875,
         "width": 93.1875,
         "height": 24
       },
@@ -80,7 +80,7 @@
       "viewport": "default-1280x720",
       "screenshot": {
         "path": "output/m8a-v4.10-slice1/v4.10-slice1-default-1280x720.png",
-        "sizeBytes": 702304,
+        "sizeBytes": 709488,
         "dimensions": {
           "width": 1280,
           "height": 720
@@ -91,9 +91,9 @@
       "anchorStatus": "geometry-reliable",
       "sceneNarrativeRect": {
         "left": 340,
-        "top": 383.09375,
+        "top": 365.6875,
         "right": 433.1875,
-        "bottom": 407.09375,
+        "bottom": 389.6875,
         "width": 93.1875,
         "height": 24
       },
@@ -111,7 +111,7 @@
       "viewport": "default-390x844",
       "screenshot": {
         "path": "output/m8a-v4.10-slice1/v4.10-slice1-default-390x844.png",
-        "sizeBytes": 346279,
+        "sizeBytes": 339899,
         "dimensions": {
           "width": 390,
           "height": 844
@@ -122,9 +122,9 @@
       "anchorStatus": "fallback",
       "sceneNarrativeRect": {
         "left": 14,
-        "top": 401.796875,
+        "top": 395.09375,
         "right": 103.3125,
-        "bottom": 425.796875,
+        "bottom": 419.09375,
         "width": 89.3125,
         "height": 24
       },
@@ -132,9 +132,9 @@
         "left": 12,
         "top": 46,
         "right": 378,
-        "bottom": 207.90625,
+        "bottom": 209.1875,
         "width": 366,
-        "height": 161.90625
+        "height": 163.1875
       },
       "detailsDefaultOpen": false
     },
@@ -142,7 +142,7 @@
       "viewport": "active-meo-continuity-hold-1440x900",
       "screenshot": {
         "path": "output/m8a-v4.10-slice1/v4.10-slice1-active-meo-continuity-hold-1440x900.png",
-        "sizeBytes": 994385,
+        "sizeBytes": 994354,
         "dimensions": {
           "width": 1440,
           "height": 900
@@ -173,25 +173,25 @@
   "taskOwnedProcesses": [
     {
       "type": "static-server-started",
-      "at": "2026-05-06T13:47:53.700Z",
-      "pid": 285713,
-      "baseUrl": "http://127.0.0.1:41559"
+      "at": "2026-05-07T07:38:04.594Z",
+      "pid": 408370,
+      "baseUrl": "http://127.0.0.1:37595"
     },
     {
       "type": "headless-browser-started",
-      "at": "2026-05-06T13:47:53.818Z",
-      "pid": 285718,
+      "at": "2026-05-07T07:38:04.810Z",
+      "pid": 408381,
       "browserCommand": "google-chrome"
     },
     {
       "type": "headless-browser-stop-requested",
-      "at": "2026-05-06T13:48:32.841Z",
-      "pid": 285718
+      "at": "2026-05-07T07:39:50.127Z",
+      "pid": 408381
     },
     {
       "type": "static-server-stop-requested",
-      "at": "2026-05-06T13:48:32.902Z",
-      "pid": 285713
+      "at": "2026-05-07T07:39:50.213Z",
+      "pid": 408370
     }
   ]
 }

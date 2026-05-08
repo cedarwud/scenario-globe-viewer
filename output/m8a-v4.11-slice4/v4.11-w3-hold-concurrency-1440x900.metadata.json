@@ -163,108 +163,48 @@
     },
     "toastStack": {
       "exists": true,
-      "visible": true,
-      "hidden": false,
+      "visible": false,
+      "hidden": true,
       "rect": {
-        "left": 23.03125,
-        "top": 231.03125,
-        "right": 339.828125,
-        "bottom": 283.296875,
-        "width": 316.796875,
-        "height": 52.265625
+        "left": 0,
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "width": 0,
+        "height": 0
       },
-      "text": "MEO continuity hold MEO holds continuity in this simulation window.",
+      "text": "",
       "style": {
         "animationName": "none",
         "transform": "none",
         "opacity": "1"
       },
-      "count": 1,
+      "count": 0,
       "maxCount": 2
     },
-    "toasts": [
-      {
-        "exists": true,
-        "visible": true,
-        "hidden": false,
-        "rect": {
-          "left": 23.03125,
-          "top": 225.03125,
-          "right": 339.828125,
-          "bottom": 277.296875,
-          "width": 316.796875,
-          "height": 52.265625
-        },
-        "text": "MEO continuity hold MEO holds continuity in this simulation window.",
-        "style": {
-          "animationName": "m8a-v411-toast-lifecycle",
-          "transform": "matrix(1, 0, 0, 1, 0, -6)",
-          "opacity": "0.14"
-        },
-        "windowId": "meo-continuity-hold",
-        "fromWindowId": "leo-reentry-candidate",
-        "title": "MEO continuity hold",
-        "line": "MEO holds continuity in this simulation window.",
-        "durationMs": "2500",
-        "elapsedMs": "362.0",
-        "maxWidthPx": "320",
-        "maxCanvasWidthRatio": "0.22",
-        "stackIndex": "1",
-        "stackSize": "1"
-      }
-    ],
-    "visibleToasts": [
-      {
-        "exists": true,
-        "visible": true,
-        "hidden": false,
-        "rect": {
-          "left": 23.03125,
-          "top": 225.03125,
-          "right": 339.828125,
-          "bottom": 277.296875,
-          "width": 316.796875,
-          "height": 52.265625
-        },
-        "text": "MEO continuity hold MEO holds continuity in this simulation window.",
-        "style": {
-          "animationName": "m8a-v411-toast-lifecycle",
-          "transform": "matrix(1, 0, 0, 1, 0, -6)",
-          "opacity": "0.14"
-        },
-        "windowId": "meo-continuity-hold",
-        "fromWindowId": "leo-reentry-candidate",
-        "title": "MEO continuity hold",
-        "line": "MEO holds continuity in this simulation window.",
-        "durationMs": "2500",
-        "elapsedMs": "362.0",
-        "maxWidthPx": "320",
-        "maxCanvasWidthRatio": "0.22",
-        "stackIndex": "1",
-        "stackSize": "1"
-      }
-    ],
+    "toasts": [],
+    "visibleToasts": [],
     "sceneCues": [
       {
         "exists": true,
-        "visible": true,
-        "hidden": false,
+        "visible": false,
+        "hidden": true,
         "rect": {
-          "left": 505.5,
-          "top": 297.1875,
-          "right": 591.3125,
-          "bottom": 321.1875,
-          "width": 85.8125,
-          "height": 24
+          "left": 0,
+          "top": 0,
+          "right": 0,
+          "bottom": 0,
+          "width": 0,
+          "height": 0
         },
-        "text": "hold · MEO",
+        "text": "",
         "style": {
           "animationName": "m8a-v411-scene-cue-lifecycle",
-          "transform": "matrix(1, 0, 0, 1, 0, 3)",
-          "opacity": "0.14"
+          "transform": "none",
+          "opacity": "1"
         },
-        "windowId": "meo-continuity-hold",
-        "cueText": "hold · MEO",
+        "windowId": "",
+        "cueText": "",
         "maxWidthPx": "180",
         "maxHeightPx": "24",
         "fadeInMs": "200",
@@ -274,36 +214,7 @@
         "anchorStatus": "geometry-reliable"
       }
     ],
-    "visibleSceneCues": [
-      {
-        "exists": true,
-        "visible": true,
-        "hidden": false,
-        "rect": {
-          "left": 505.5,
-          "top": 297.1875,
-          "right": 591.3125,
-          "bottom": 321.1875,
-          "width": 85.8125,
-          "height": 24
-        },
-        "text": "hold · MEO",
-        "style": {
-          "animationName": "m8a-v411-scene-cue-lifecycle",
-          "transform": "matrix(1, 0, 0, 1, 0, 3)",
-          "opacity": "0.14"
-        },
-        "windowId": "meo-continuity-hold",
-        "cueText": "hold · MEO",
-        "maxWidthPx": "180",
-        "maxHeightPx": "24",
-        "fadeInMs": "200",
-        "persistMs": "2000",
-        "actorId": "o3b-mpower-f6-meo-display-context",
-        "projected": "true",
-        "anchorStatus": "geometry-reliable"
-      }
-    ],
+    "visibleSceneCues": [],
     "status": {
       "exists": true,
       "visible": true,
@@ -316,7 +227,7 @@
         "width": 1,
         "height": 1
       },
-      "text": "MEO continuity hold. MEO holds continuity in this simulation window.",
+      "text": "",
       "style": {
         "animationName": "none",
         "transform": "none",
@@ -325,9 +236,9 @@
       "role": "status",
       "ariaLive": "polite",
       "ariaAtomic": "true",
-      "ariaWindowId": "meo-continuity-hold",
-      "ariaText": "MEO continuity hold. MEO holds continuity in this simulation window.",
-      "ariaTriggered": "true"
+      "ariaWindowId": null,
+      "ariaText": null,
+      "ariaTriggered": "false"
     },
     "transitionEvent": {
       "exists": true,
@@ -424,7 +335,7 @@
           "width": 584,
           "height": 101.640625
         },
-        "text": "Current state MEO continuity hold State 3 of 5 Play Restart 30x 60x 120x Details"
+        "text": "Current state MEO continuity hold State 3 of 5 Play Restart 30x 60x 120x Review mode · on Details"
       },
       {
         "selector": "play-pause",
@@ -465,11 +376,11 @@
       {
         "selector": "details-close",
         "rect": {
-          "left": 1338.734375,
-          "top": -68,
-          "right": 1388.96875,
-          "bottom": -24,
-          "width": 50.234375,
+          "left": 1029.96875,
+          "top": -68.859375,
+          "right": 1196.46875,
+          "bottom": -24.859375,
+          "width": 166.5,
           "height": 44
         },
         "text": "Close"
@@ -657,7 +568,7 @@
         "text": "GEO"
       }
     ],
-    "visibleProductText": "hold · MEO MEO continuity hold MEO holds continuity in this simulation window. 13 顆衛星模擬展示 · 完整 ≥500 LEO 多軌道驗證見後續階段 LEO MEO GEO ✓ LEO MEO GEO ✓ LEO LEO LEO LEO LEO LEO MEO MEO MEO MEO MEO GEO GEO Scenario Scope Scope: 13-actor demo · LEO/MEO/GEO (6/5/2) Time: Sim replay 00:57 / 01:54 · replay · 60x Precision: operator-family precision Boundary: repo-owned projection · not measured truth Current: W3 MEO primary hold Candidate: LEO re-entry expected next Fallback: GEO guard coverage available Decision: MEO temporarily carries continuity Time/Quality: derived hold time; higher-latency class LEO re-entry -> MEO hold Continuity shifts to MEO review context hold · MEO Handover sequence State 3 of 5: MEO continuity hold Next: State 4 of 5 LEO re-entry 1 LEO review LEO 2 LEO pressure LEO 3 MEO hold MEO 4 LEO re-entry LEO 5 GEO guard GEO Current state MEO continuity hold State 3 of 5 Play Restart 30x 60x 120x Details Details Inspector 驗證狀態：待補 Close 13-actor demo operator-family precision Decision Metrics Evidence Selected replay window MEO continuity hold State 3 of 5 Replay UTC 2026-04-28T09:48:43.766Z Sim replay 00:57 / 01:54 Source provenance Decision · State Evidence MEO 暫時接住 · MEO continuity hold 目前由 MEO 暫時接住，覆蓋面廣但延遲略高。模擬預期約 14 分鐘後會有新的候選 LEO 出現。 Now Now: MEO is the modeled primary hold state. Why Why: wider coverage carries continuity while LEO is not primary. Next Next: a LEO re-entry candidate appears in the following window. Watch Watch: higher-latency modeled class without measured latency values. The simulation holds continuity on the SES O3b mPOWER MEO context in window 3 of 5. This is wider-area continuity by model, not a measured failover. LEO returns as a candidate focus in the next window. Endpoint precision remains operator-family only. Boundary · Truth Boundary Truth boundary Simulation boundary: 13-actor demo, repo-owned projection, not measured truth. Service-layer boundary: modeled service handover, not native RF handover. Endpoint boundary: operator-family precision, not site-level gateway claim. Scale boundary: not >=500 LEO validation and not 24h hardware-GPU closeout. simulation output operator-family precision display-context actors Simulated display-context state, not an operator handover log. Source-lineaged display-context actors, not active serving satellites. Endpoint precision stays operator-family only. No active gateway assignment is claimed. No pair-specific teleport path is claimed. No measured latency, jitter, throughput, or continuity values are shown. No native RF handover is claimed. Implementation evidence 模擬展示 operator-family precision TLE: CelesTrak NORAD GP · 2026-04-26 13 actors Boundary & Sources MEO continuity hold. MEO holds continuity in this simulation window. 暫時接住：~11 分鐘 新 LEO 即將回來 ~ 為模擬推演值",
+    "visibleProductText": "13 顆衛星模擬展示 · 完整 ≥500 LEO 多軌道驗證見後續階段 LEO MEO GEO ✓ LEO MEO GEO ✓ LEO LEO LEO LEO LEO LEO MEO MEO MEO MEO MEO GEO GEO Scenario Scope Scope: 13-actor demo · LEO/MEO/GEO (6/5/2) Time: Sim replay 00:57 / 01:54 · replay · 60x Precision: operator-family precision Boundary: repo-owned projection · not measured truth Current: W3 MEO primary hold Candidate: LEO re-entry expected next Fallback: GEO guard coverage available Decision: MEO temporarily carries continuity Time/Quality: derived hold time; higher-latency class LEO re-entry -> MEO hold Continuity shifts to MEO review context hold · MEO Handover sequence State 3 of 5: MEO continuity hold Next: State 4 of 5 LEO re-entry 1 LEO review LEO 2 LEO pressure LEO 3 MEO hold MEO 4 LEO re-entry LEO 5 GEO guard GEO Current state MEO continuity hold State 3 of 5 Play Restart 30x 60x 120x Review mode · on Details Reviewer pinned to W3 Details Inspector Pinned to W3 驗證狀態：待補 Close 13-actor demo operator-family precision Decision Metrics Evidence Selected replay window MEO continuity hold State 3 of 5 Replay UTC 2026-04-28T09:48:43.766Z Sim replay 00:57 / 01:54 Source provenance Decision · State Evidence MEO 暫時接住 · MEO continuity hold 目前由 MEO 暫時接住，覆蓋面廣但延遲略高。模擬預期約 14 分鐘後會有新的候選 LEO 出現。 Now Now: MEO is the modeled primary hold state. Why Why: wider coverage carries continuity while LEO is not primary. Next Next: a LEO re-entry candidate appears in the following window. Watch Watch: higher-latency modeled class without measured latency values. The simulation holds continuity on the SES O3b mPOWER MEO context in window 3 of 5. This is wider-area continuity by model, not a measured failover. LEO returns as a candidate focus in the next window. Endpoint precision remains operator-family only. Boundary · Truth Boundary Truth boundary Simulation boundary: 13-actor demo, repo-owned projection, not measured truth. Service-layer boundary: modeled service handover, not native RF handover. Endpoint boundary: operator-family precision, not site-level gateway claim. Scale boundary: not >=500 LEO validation and not 24h hardware-GPU closeout. simulation output operator-family precision display-context actors Simulated display-context state, not an operator handover log. Source-lineaged display-context actors, not active serving satellites. Endpoint precision stays operator-family only. No active gateway assignment is claimed. No pair-specific teleport path is claimed. No measured latency, jitter, throughput, or continuity values are shown. No native RF handover is claimed. Implementation evidence 模擬展示 operator-family precision TLE: CelesTrak NORAD GP · 2026-04-26 13 actors Boundary & Sources 暫時接住：~11 分鐘 新 LEO 即將回來 ~ 為模擬推演值",
     "forbiddenScopeLeak": {
       "sourcesRole": true,
       "r2Listing": false

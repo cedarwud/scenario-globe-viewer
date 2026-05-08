@@ -1,5 +1,5 @@
 {
-  "capturedAt": "2026-05-06T13:53:20.961Z",
+  "capturedAt": "2026-05-07T07:43:41.494Z",
   "route": "/?scenePreset=regional&m8aV4GroundStationScene=1",
   "capture": {
     "name": "transition-leo-aging-pressure-1440x900",
@@ -17,7 +17,7 @@
   },
   "screenshot": {
     "path": "output/m8a-v4.10-slice5/v4.10-slice5-transition-leo-aging-pressure-1440x900.png",
-    "sizeBytes": 981505,
+    "sizeBytes": 984223,
     "dimensions": {
       "width": 1440,
       "height": 900
@@ -45,7 +45,7 @@
       "height": 900
     },
     "viewportClass": "desktop",
-    "visibleProductText": "pressure · LEO LEO pressure Continuity will shift to the MEO hold next. 13 顆衛星模擬展示 · 完整 ≥500 LEO 多軌道驗證見後續階段 LEO MEO GEO ✓ LEO MEO GEO ✓ LEO LEO LEO LEO LEO LEO MEO MEO MEO MEO MEO GEO GEO Scenario Scope Scope: 13-actor demo · LEO/MEO/GEO (6/5/2) Time: Sim replay 00:28 / 01:54 · replay · 60x Precision: operator-family precision Boundary: repo-owned projection · not measured truth Current: W2 LEO primary under pressure Candidate: MEO continuity hold queued Fallback: GEO guard coverage available Decision: position condition is worsening; prepare switch Time/Quality: simulated countdown; modeled quality drops LEO review -> LEO pressure Review context shifts to LEO focus pressure · LEO Handover sequence State 2 of 5: LEO pressure Next: State 3 of 5 MEO continuity hold 1 LEO review LEO 2 LEO pressure LEO 3 MEO hold MEO 4 LEO re-entry LEO 5 GEO guard GEO Current state LEO pressure State 2 of 5 Play Restart 30x 60x 120x Details 模擬展示 operator-family precision TLE: CelesTrak NORAD GP · 2026-04-26 13 actors Boundary & Sources LEO pressure. Continuity will shift to the MEO hold next. 切換到 MEO：~17 分鐘 位置條件變差 ~ 為模擬推演值",
+    "visibleProductText": "pressure · LEO LEO pressure Continuity will shift to the MEO hold next. 13 顆衛星模擬展示 · 完整 ≥500 LEO 多軌道驗證見後續階段 LEO MEO GEO ✓ LEO MEO GEO ✓ LEO LEO LEO LEO LEO LEO MEO MEO MEO MEO MEO GEO GEO Scenario Scope Scope: 13-actor demo · LEO/MEO/GEO (6/5/2) Time: Sim replay 00:28 / 01:54 · replay · 60x Precision: operator-family precision Boundary: repo-owned projection · not measured truth Current: W2 LEO primary under pressure Candidate: MEO continuity hold queued Fallback: GEO guard coverage available Decision: position condition is worsening; prepare switch Time/Quality: simulated countdown; modeled quality drops LEO review -> LEO pressure Review context shifts to LEO focus pressure · LEO Handover sequence State 2 of 5: LEO pressure Next: State 3 of 5 MEO continuity hold 1 LEO review LEO 2 LEO pressure LEO 3 MEO hold MEO 4 LEO re-entry LEO 5 GEO guard GEO Current state LEO pressure State 2 of 5 Play Restart 30x 60x 120x Review mode · on Details Paused by user 模擬展示 operator-family precision TLE: CelesTrak NORAD GP · 2026-04-26 13 actors Boundary & Sources LEO pressure. Continuity will shift to the MEO hold next. 切換到 MEO：~17 分鐘 位置條件變差 ~ 為模擬推演值",
     "stateFacts": {
       "route": "/?scenePreset=regional&m8aV4GroundStationScene=1",
       "endpointPairId": "taiwan-cht-speedcast-singapore-operator-family-2026-04-26",
@@ -418,8 +418,8 @@
         "width": 584,
         "height": 85.15625
       },
-      "text": "Current state LEO pressure State 2 of 5 Play Restart 30x 60x 120x Details",
-      "visibleText": "Current state LEO pressure State 2 of 5 Play Restart 30x 60x 120x Details",
+      "text": "Current state LEO pressure State 2 of 5 Play Restart 30x 60x 120x Review mode · on Details",
+      "visibleText": "Current state LEO pressure State 2 of 5 Play Restart 30x 60x 120x Review mode · on Details",
       "controlsPriority": "secondary"
     },
     "sequenceRail": {
@@ -819,6 +819,21 @@
           "bottom": 138.8125,
           "width": 44,
           "height": 44
+        }
+      },
+      {
+        "text": "Review mode · on",
+        "controlId": null,
+        "action": "toggle-review-mode",
+        "ariaExpanded": null,
+        "ariaPressed": "true",
+        "rect": {
+          "left": 728.125,
+          "top": 87.828125,
+          "right": 795.3125,
+          "bottom": 145.796875,
+          "width": 67.1875,
+          "height": 57.96875
         }
       },
       {

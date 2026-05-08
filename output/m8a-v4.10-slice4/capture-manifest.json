@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-05-06T13:52:10.560Z",
+  "generatedAt": "2026-05-07T07:47:59.912Z",
   "status": "cleanup-complete",
   "route": "/?scenePreset=regional&m8aV4GroundStationScene=1",
   "outputRoot": "output/m8a-v4.10-slice4",
@@ -9,7 +9,7 @@
       "action": "default",
       "screenshot": {
         "path": "output/m8a-v4.10-slice4/v4.10-slice4-default-1440x900.png",
-        "sizeBytes": 960757,
+        "sizeBytes": 961178,
         "dimensions": {
           "width": 1440,
           "height": 900
@@ -22,9 +22,9 @@
       "boundarySurfaceState": "closed",
       "sceneNarrativeRect": {
         "left": 340,
-        "top": 484.6875,
+        "top": 485.1875,
         "right": 433.1875,
-        "bottom": 508.6875,
+        "bottom": 509.1875,
         "width": 93.1875,
         "height": 24
       },
@@ -144,7 +144,7 @@
       "action": "default",
       "screenshot": {
         "path": "output/m8a-v4.10-slice4/v4.10-slice4-default-390x844.png",
-        "sizeBytes": 346148,
+        "sizeBytes": 339615,
         "dimensions": {
           "width": 390,
           "height": 844
@@ -157,9 +157,9 @@
       "boundarySurfaceState": "closed",
       "sceneNarrativeRect": {
         "left": 14,
-        "top": 401.796875,
+        "top": 401.6875,
         "right": 103.3125,
-        "bottom": 425.796875,
+        "bottom": 425.6875,
         "width": 89.3125,
         "height": 24
       },
@@ -175,9 +175,9 @@
         "left": 12,
         "top": 46,
         "right": 378,
-        "bottom": 207.90625,
+        "bottom": 209.1875,
         "width": 366,
-        "height": 161.90625
+        "height": 163.1875
       },
       "sheetRect": {
         "left": 0,
@@ -279,7 +279,7 @@
       "action": "details",
       "screenshot": {
         "path": "output/m8a-v4.10-slice4/v4.10-slice4-details-open-1440x900.png",
-        "sizeBytes": 917076,
+        "sizeBytes": 917640,
         "dimensions": {
           "width": 1440,
           "height": 900
@@ -292,9 +292,9 @@
       "boundarySurfaceState": "closed",
       "sceneNarrativeRect": {
         "left": 340,
-        "top": 484.5,
+        "top": 487,
         "right": 433.1875,
-        "bottom": 508.5,
+        "bottom": 511,
         "width": 93.1875,
         "height": 24
       },
@@ -414,7 +414,7 @@
       "action": "boundary",
       "screenshot": {
         "path": "output/m8a-v4.10-slice4/v4.10-slice4-boundary-open-1440x900.png",
-        "sizeBytes": 916516,
+        "sizeBytes": 916756,
         "dimensions": {
           "width": 1440,
           "height": 900
@@ -427,9 +427,9 @@
       "boundarySurfaceState": "open",
       "sceneNarrativeRect": {
         "left": 340,
-        "top": 484.390625,
+        "top": 484.5,
         "right": 433.1875,
-        "bottom": 508.390625,
+        "bottom": 508.5,
         "width": 93.1875,
         "height": 24
       },
@@ -575,25 +575,25 @@
   "taskOwnedProcesses": [
     {
       "type": "static-server-started",
-      "at": "2026-05-06T13:51:15.392Z",
-      "pid": 289154,
-      "baseUrl": "http://127.0.0.1:46595"
+      "at": "2026-05-07T07:47:08.960Z",
+      "pid": 416411,
+      "baseUrl": "http://127.0.0.1:35091"
     },
     {
       "type": "headless-browser-started",
-      "at": "2026-05-06T13:51:15.504Z",
-      "pid": 289159,
+      "at": "2026-05-07T07:47:09.071Z",
+      "pid": 416416,
       "browserCommand": "google-chrome"
     },
     {
       "type": "headless-browser-stop-requested",
-      "at": "2026-05-06T13:52:10.508Z",
-      "pid": 289159
+      "at": "2026-05-07T07:47:59.873Z",
+      "pid": 416416
     },
     {
       "type": "static-server-stop-requested",
-      "at": "2026-05-06T13:52:10.558Z",
-      "pid": 289154
+      "at": "2026-05-07T07:47:59.910Z",
+      "pid": 416411
     }
   ]
 }

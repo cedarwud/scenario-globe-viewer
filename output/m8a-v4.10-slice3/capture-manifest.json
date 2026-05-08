@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-05-06T13:51:04.405Z",
+  "generatedAt": "2026-05-07T07:55:33.846Z",
   "status": "cleanup-complete",
   "route": "/?scenePreset=regional&m8aV4GroundStationScene=1",
   "outputRoot": "output/m8a-v4.10-slice3",
@@ -31,9 +31,9 @@
     },
     "currentAnnotation": {
       "left": 340,
-      "top": 484.796875,
+      "top": 484.296875,
       "right": 433.1875,
-      "bottom": 508.796875,
+      "bottom": 508.296875,
       "width": 93.1875,
       "height": 24
     },
@@ -49,7 +49,7 @@
       "viewport": "default-1440x900",
       "screenshot": {
         "path": "output/m8a-v4.10-slice3/v4.10-slice3-default-1440x900.png",
-        "sizeBytes": 960687,
+        "sizeBytes": 962082,
         "dimensions": {
           "width": 1440,
           "height": 900
@@ -63,9 +63,9 @@
       "anchorStatus": "geometry-reliable",
       "sceneNarrativeRect": {
         "left": 340,
-        "top": 484.796875,
+        "top": 484.296875,
         "right": 433.1875,
-        "bottom": 508.796875,
+        "bottom": 508.296875,
         "width": 93.1875,
         "height": 24
       },
@@ -175,7 +175,7 @@
       "viewport": "default-1280x720",
       "screenshot": {
         "path": "output/m8a-v4.10-slice3/v4.10-slice3-default-1280x720.png",
-        "sizeBytes": 703041,
+        "sizeBytes": 703885,
         "dimensions": {
           "width": 1280,
           "height": 720
@@ -189,9 +189,9 @@
       "anchorStatus": "geometry-reliable",
       "sceneNarrativeRect": {
         "left": 340,
-        "top": 382.5,
+        "top": 381.390625,
         "right": 433.1875,
-        "bottom": 406.5,
+        "bottom": 405.390625,
         "width": 93.1875,
         "height": 24
       },
@@ -301,7 +301,7 @@
       "viewport": "default-390x844",
       "screenshot": {
         "path": "output/m8a-v4.10-slice3/v4.10-slice3-default-390x844.png",
-        "sizeBytes": 346172,
+        "sizeBytes": 339613,
         "dimensions": {
           "width": 390,
           "height": 844
@@ -333,9 +333,9 @@
         "left": 12,
         "top": 46,
         "right": 378,
-        "bottom": 207.90625,
+        "bottom": 209.1875,
         "width": 366,
-        "height": 161.90625
+        "height": 163.1875
       },
       "boundarySurfaceRect": {
         "left": 0,
@@ -427,7 +427,7 @@
       "viewport": "transition-leo-aging-pressure-1440x900",
       "screenshot": {
         "path": "output/m8a-v4.10-slice3/v4.10-slice3-transition-leo-aging-pressure-1440x900.png",
-        "sizeBytes": 981442,
+        "sizeBytes": 982979,
         "dimensions": {
           "width": 1440,
           "height": 900
@@ -553,7 +553,7 @@
       "viewport": "boundary-open-1440x900",
       "screenshot": {
         "path": "output/m8a-v4.10-slice3/v4.10-slice3-boundary-open-1440x900.png",
-        "sizeBytes": 916682,
+        "sizeBytes": 917097,
         "dimensions": {
           "width": 1440,
           "height": 900
@@ -567,9 +567,9 @@
       "anchorStatus": "geometry-reliable",
       "sceneNarrativeRect": {
         "left": 340,
-        "top": 481.5,
+        "top": 482.296875,
         "right": 433.1875,
-        "bottom": 505.5,
+        "bottom": 506.296875,
         "width": 93.1875,
         "height": 24
       },
@@ -608,7 +608,7 @@
       "viewport": "details-open-1440x900",
       "screenshot": {
         "path": "output/m8a-v4.10-slice3/v4.10-slice3-details-open-1440x900.png",
-        "sizeBytes": 916740,
+        "sizeBytes": 916535,
         "dimensions": {
           "width": 1440,
           "height": 900
@@ -622,9 +622,9 @@
       "anchorStatus": "geometry-reliable",
       "sceneNarrativeRect": {
         "left": 340,
-        "top": 483.6875,
+        "top": 484.390625,
         "right": 433.1875,
-        "bottom": 507.6875,
+        "bottom": 508.390625,
         "width": 93.1875,
         "height": 24
       },
@@ -700,25 +700,25 @@
   "taskOwnedProcesses": [
     {
       "type": "static-server-started",
-      "at": "2026-05-06T13:49:45.158Z",
-      "pid": 287797,
-      "baseUrl": "http://127.0.0.1:35039"
+      "at": "2026-05-07T07:54:18.022Z",
+      "pid": 420929,
+      "baseUrl": "http://127.0.0.1:33553"
     },
     {
       "type": "headless-browser-started",
-      "at": "2026-05-06T13:49:45.279Z",
-      "pid": 287802,
+      "at": "2026-05-07T07:54:18.140Z",
+      "pid": 420934,
       "browserCommand": "google-chrome"
     },
     {
       "type": "headless-browser-stop-requested",
-      "at": "2026-05-06T13:51:04.351Z",
-      "pid": 287802
+      "at": "2026-05-07T07:55:33.804Z",
+      "pid": 420934
     },
     {
       "type": "static-server-stop-requested",
-      "at": "2026-05-06T13:51:04.404Z",
-      "pid": 287797
+      "at": "2026-05-07T07:55:33.844Z",
+      "pid": 420929
     }
   ]
 }

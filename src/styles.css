@@ -7,6 +7,7 @@
 @import "./styles/m8a-v411-countdown.css";
 @import "./styles/m8a-v411-footer-chip.css";
 @import "./styles/m8a-v411-phase-b-layout.css";
+@import "./styles/m8a-v411-narrow.css";
 
 @font-face {
   font-family: "Noto Sans TC M8A V411 Subset";

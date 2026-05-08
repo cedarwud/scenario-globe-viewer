@@ -213,14 +213,9 @@
   }
 }
 
-@media (max-width: 720px) {
-  .m8a-v411-handover-rail {
-    display: none;
-  }
-  .m8a-v411-top-strip {
-    display: none;
-  }
-}
+/* Phase 4 (spec v2 §8): the prior `display: none` graceful-degradation for
+ * narrow viewports is replaced by the designed compact-strip + drawer rail
+ * contract in m8a-v411-narrow.css. */
 
 /* Add basic tab styles for the Details inspector */
 .m8a-v411-inspector__tabs {

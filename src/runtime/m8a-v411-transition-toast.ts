@@ -48,6 +48,8 @@ interface M8aV411TransientSurfaceState {
   toasts: M8aV411TransitionToastRecord[];
   timeoutId: number | undefined;
   lastSceneCuePoint: M8aV411SceneCuePoint | null;
+  toastSuppressed: boolean;
+  suppressedQueueLength: number;
 }
 
 const M8A_V411_TOAST_COPY = {
@@ -91,7 +93,9 @@ function getRootState(root: HTMLElement): M8aV411TransientSurfaceState {
     lastAnnouncedEventKey: null,
     toasts: [],
     timeoutId: undefined,
-    lastSceneCuePoint: null
+    lastSceneCuePoint: null,
+    toastSuppressed: false,
+    suppressedQueueLength: 0
   };
 
   rootStates.set(root, state);
@@ -390,11 +394,13 @@ export function ensureM8aV411TransientSurfaceStructure(root: HTMLElement): void 
 export function renderM8aV411TransientSurfaces({
   root,
   activeTransitionEvent,
-  sceneCuePoint
+  sceneCuePoint,
+  toastSuppressed = false
 }: {
   root: HTMLElement;
   activeTransitionEvent: M8aV411TransitionEventInput | null;
   sceneCuePoint: M8aV411SceneCuePoint | null;
+  toastSuppressed?: boolean;
 }): void {
   ensureM8aV411TransientSurfaceStructure(root);
 
@@ -407,6 +413,25 @@ export function renderM8aV411TransientSurfaces({
 
   state.lastSceneCuePoint = sceneCuePoint;
 
+  const transitionFromSuppressed = state.toastSuppressed && !toastSuppressed;
+  const transitionToSuppressed = !state.toastSuppressed && toastSuppressed;
+  state.toastSuppressed = toastSuppressed;
+
+  if (transitionToSuppressed) {
+    state.toasts = [];
+    state.suppressedQueueLength = 0;
+    status.textContent = "";
+    delete status.dataset.m8aV411TransitionToastAriaWindowId;
+    delete status.dataset.m8aV411TransitionToastAriaText;
+    status.dataset.m8aV411TransitionToastAriaTriggered = "false";
+  }
+
+  if (transitionFromSuppressed) {
+    state.toasts = [];
+    state.suppressedQueueLength = 0;
+    state.lastAnnouncedEventKey = state.lastEventKey;
+  }
+
   if (activeTransitionEvent) {
     const key = eventKey(activeTransitionEvent);
     const suppressInitialMountEvent = !state.hasRenderedOnce;
@@ -415,33 +440,38 @@ export function renderM8aV411TransientSurfaces({
       state.lastEventKey = key;
       state.lastAnnouncedEventKey = key;
     } else if (state.lastEventKey !== key) {
-      const toast = createToastRecord(activeTransitionEvent);
-
       state.lastEventKey = key;
-      state.toasts.push(toast);
 
-      if (state.toasts.length > 1) {
-        const olderToast = state.toasts[state.toasts.length - 2];
+      if (toastSuppressed) {
+        state.suppressedQueueLength += 1;
+      } else {
+        const toast = createToastRecord(activeTransitionEvent);
 
-        if (olderToast) {
-          olderToast.expiresAtEpochMs = Math.min(
-            olderToast.expiresAtEpochMs,
-            now + 180
-          );
+        state.toasts.push(toast);
+
+        if (state.toasts.length > 1) {
+          const olderToast = state.toasts[state.toasts.length - 2];
+
+          if (olderToast) {
+            olderToast.expiresAtEpochMs = Math.min(
+              olderToast.expiresAtEpochMs,
+              now + 180
+            );
+          }
         }
-      }
 
-      state.toasts = state.toasts
-        .filter((candidate) => isVisibleToast(candidate, now))
-        .slice(-M8A_V411_TRANSITION_TOAST_MAX_COUNT);
+        state.toasts = state.toasts
+          .filter((candidate) => isVisibleToast(candidate, now))
+          .slice(-M8A_V411_TRANSITION_TOAST_MAX_COUNT);
 
-      if (state.lastAnnouncedEventKey !== key) {
-        status.textContent = `${toast.title}. ${toast.line}`;
-        status.dataset.m8aV411TransitionToastAriaWindowId = toast.toWindowId;
-        status.dataset.m8aV411TransitionToastAriaText =
-          status.textContent;
-        status.dataset.m8aV411TransitionToastAriaTriggered = "true";
-        state.lastAnnouncedEventKey = key;
+        if (state.lastAnnouncedEventKey !== key) {
+          status.textContent = `${toast.title}. ${toast.line}`;
+          status.dataset.m8aV411TransitionToastAriaWindowId = toast.toWindowId;
+          status.dataset.m8aV411TransitionToastAriaText =
+            status.textContent;
+          status.dataset.m8aV411TransitionToastAriaTriggered = "true";
+          state.lastAnnouncedEventKey = key;
+        }
       }
     }
   }
@@ -449,6 +479,10 @@ export function renderM8aV411TransientSurfaces({
   root.dataset.m8aV411TransientSurface =
     M8A_V411_TRANSIENT_SURFACE_VERSION;
   root.dataset.m8aV411TransientSurfaceScope = "slice4-transition-toast";
+  root.dataset.m8aV411TransitionToastSuppressed = String(toastSuppressed);
+  root.dataset.m8aV411TransitionToastSuppressedQueueLength = String(
+    state.suppressedQueueLength
+  );
   root.dataset.m8aV411TransitionToastDurationMs = String(
     M8A_V411_TRANSITION_TOAST_DURATION_MS
   );

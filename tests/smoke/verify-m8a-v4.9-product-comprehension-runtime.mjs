@@ -2007,16 +2007,24 @@ function assertInspectorVisualEvidence(result, expected, viewport) {
     windowId: result.activeWindowId,
     viewport: viewport.name
   });
-  assert(
-    !rectsOverlap(result.stripRect, result.sheetRect),
-    "V4.9 inspector sheet must not cover the persistent current-state strip: " +
-      JSON.stringify({
-        viewport: viewport.name,
-        windowId: result.activeWindowId,
-        stripRect: result.stripRect,
-        sheetRect: result.sheetRect
-      })
-  );
+  if (viewport.expectedViewportClass === "narrow") {
+    // Phase 4 (spec v2 §8.2) supersedes the V4.9 narrow non-overlap rule:
+    // narrow Details now opens as a full-screen modal (min-height: 100dvh,
+    // safe-area, focus trap) and is intentionally above the strip when open.
+    // The desktop class still requires the persistent-strip / sheet
+    // non-overlap contract.
+  } else {
+    assert(
+      !rectsOverlap(result.stripRect, result.sheetRect),
+      "V4.9 inspector sheet must not cover the persistent current-state strip: " +
+        JSON.stringify({
+          viewport: viewport.name,
+          windowId: result.activeWindowId,
+          stripRect: result.stripRect,
+          sheetRect: result.sheetRect
+        })
+    );
+  }
   assert(
     result.stripText.includes(expected.productLabel) &&
       result.stripText.includes(expected.stateOrdinalLabel),
@@ -2027,18 +2035,23 @@ function assertInspectorVisualEvidence(result, expected, viewport) {
         expected
       })
   );
-  assert(
-    result.sheetRect.height <
-      viewport.height * (viewport.expectedViewportClass === "narrow" ? 0.34 : 0.64) ||
-      (viewport.expectedViewportClass === "desktop" &&
-        result.sheetRect.left > viewport.width * 0.7 &&
-        result.sheetRect.bottom <= viewport.height - 24),
-    "V4.9 inspector sheet must remain secondary or use the Correction A right-docked inspector geometry: " +
-      JSON.stringify({
-        viewport: viewport.name,
-        sheetRect: result.sheetRect
-      })
-  );
+  if (viewport.expectedViewportClass === "narrow") {
+    // Phase 4 (spec v2 §8.2) supersedes the V4.9 narrow secondary-sheet height
+    // rule: narrow Details now opens as a full-screen modal (100dvh, safe-area,
+    // focus trap), so the sheet intentionally fills the viewport.
+  } else {
+    assert(
+      result.sheetRect.height < viewport.height * 0.64 ||
+        (viewport.expectedViewportClass === "desktop" &&
+          result.sheetRect.left > viewport.width * 0.7 &&
+          result.sheetRect.bottom <= viewport.height - 24),
+      "V4.9 inspector sheet must remain secondary or use the Correction A right-docked inspector geometry: " +
+        JSON.stringify({
+          viewport: viewport.name,
+          sheetRect: result.sheetRect
+        })
+    );
+  }
   assert(
     result.visibleTextClassificationFailures.length === 0,
     "V4.9 inspector-open visible product text must keep valid info classifications: " +

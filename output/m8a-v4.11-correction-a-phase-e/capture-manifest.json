@@ -19,6 +19,7 @@
     "source-boundary-and-runtime-forbidden-claim-boundaries"
   ],
   "softening": [
-    "Correction A Phase E: spec v2 §4.1 / §4.4 supersedes Boundary tab; footer disclosure keeps Decision selected and boundary ownership moves to strip/footer."
+    "Correction A Phase E: spec v2 §4.1 / §4.4 supersedes Boundary tab; footer disclosure keeps Decision selected and boundary ownership moves to strip/footer.",
+    "Phase 4: spec v2 §8.1 / §8.3 supersedes the prior `narrow fallback intentionally hides desktop top strip / left rail` assertions; narrow now shows a designed compact scope strip plus a handover-rail drawer rather than hidden surfaces."
   ]
 }

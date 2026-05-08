@@ -146,6 +146,27 @@ import {
   M8A_V411_FOOTER_CHIP_SYSTEM_VERSION,
   syncM8aV411FooterChipRow
 } from "./m8a-v411-footer-chip-system";
+import {
+  createM8aV411ReviewerModeInitialState,
+  isM8aV411ReviewAutoPauseElapsed,
+  M8A_V411_REVIEW_AUTO_PAUSE_DURATION_MS,
+  M8A_V411_REVIEWER_MODE_VERSION,
+  readM8aV411ReviewerModePersistedToggle,
+  resolveM8aV411ControlAvailability,
+  resolveM8aV411ModeAnnouncement,
+  resolveM8aV411WindowOrdinalLabel,
+  transitionForFinalHoldEnter,
+  transitionForInspectorClose,
+  transitionForInspectorOpen,
+  transitionForReviewAutoPauseElapsed,
+  transitionForReviewAutoPauseStart,
+  transitionForReviewModeToggle,
+  transitionForUserPause,
+  transitionForUserPlay,
+  writeM8aV411ReviewerModePersistedToggle,
+  type M8aV411ReplayClockMode,
+  type M8aV411ReviewerModeState
+} from "./m8a-v411-reviewer-mode";
 
 export const M8A_V4_GROUND_STATION_DATA_SOURCE_NAME =
   "m8a-v4-ground-station-multi-orbit-handover-scene";
@@ -177,7 +198,7 @@ const M8A_V410_BOUNDARY_AFFORDANCE_VERSION =
 const M8A_V410_INSPECTOR_EVIDENCE_VERSION =
   "m8a-v4.10-inspector-evidence-redesign-slice4-runtime.v1";
 const M8A_V410_PRODUCT_UX_STRUCTURE_VERSION =
-  "m8a-v4.11-product-ux-structure-conv3-footer-runtime.v1";
+  "m8a-v4.11-product-ux-structure-impl-phase4-reviewer-mode-runtime.v1";
 const M8A_V47_GUIDED_REVIEW_MULTIPLIER = 30;
 const M8A_V47_PRODUCT_DEFAULT_MULTIPLIER = 60;
 const M8A_V47_QUICK_SCAN_MULTIPLIER = 120;
@@ -1218,6 +1239,22 @@ export interface M8aV4GroundStationSceneState {
       sourcesRoleState: M8aV47DisclosureState;
       protectedZonePolicy:
         "endpoint-corridor-geo-guard-and-required-labels-non-obstruction";
+      narrowRailDrawerState: M8aV47DisclosureState;
+    };
+    reviewerMode: {
+      version: typeof M8A_V411_REVIEWER_MODE_VERSION;
+      replayClockMode: M8aV411ReplayClockMode;
+      pauseSource: M8aV411ReviewerModeState["pauseSource"];
+      pinnedWindowId: M8aV411ReviewerModeState["pinnedWindowId"];
+      pinnedWindowOrdinalLabel: string | null;
+      pinnedReplayRatio: number | null;
+      previousPlaybackState: M8aV411ReviewerModeState["previousPlaybackState"];
+      toastSuppressed: boolean;
+      reviewModeOn: boolean;
+      manualPauseSpeedDeferred: boolean;
+      announcement: ReturnType<typeof resolveM8aV411ModeAnnouncement>;
+      controls: ReturnType<typeof resolveM8aV411ControlAvailability>;
+      autoPauseDurationMs: typeof M8A_V411_REVIEW_AUTO_PAUSE_DURATION_MS;
     };
   };
   relationCues: {
@@ -2648,6 +2685,13 @@ function ensureProductUxStructure(root: HTMLElement): void {
     root.querySelector("[data-m8a-v410-boundary-surface='true']") &&
       root.querySelector("[data-m8a-v410-boundary-full-truth-disclosure='true']")
   );
+  // Phase 4: reviewer mode state machine + narrow rail trigger + ARIA live region
+  const hasPhase4ReviewerModeStructure = Boolean(
+    root.querySelector("[data-m8a-v411-reviewer-mode-toggle='true']") &&
+      root.querySelector("[data-m8a-v411-reviewer-mode-status='true']") &&
+      root.querySelector("[data-m8a-v411-inspector-mode-label='true']") &&
+      root.querySelector("[data-m8a-v411-narrow-rail-trigger='true']")
+  );
 
   if (
     root.dataset.m8aV471StableControls === "true" &&
@@ -2657,7 +2701,8 @@ function ensureProductUxStructure(root: HTMLElement): void {
     hasSlice4InspectorStructure &&
     hasSlice1V410SceneNarrative &&
     hasSlice2V410SequenceRail &&
-    hasSlice3V410BoundarySurface
+    hasSlice3V410BoundarySurface &&
+    hasPhase4ReviewerModeStructure
   ) {
     return;
   }
@@ -2670,7 +2715,12 @@ function ensureProductUxStructure(root: HTMLElement): void {
       <span data-m8a-v411-top-strip-slot="precision" data-m8a-v48-info-class="dynamic">Precision: operator-family precision</span>
       <span data-m8a-v411-top-strip-slot="boundary" data-m8a-v48-info-class="dynamic">Boundary: repo-owned projection · not measured truth</span>
     </div>
-    <aside class="m8a-v411-handover-rail" data-m8a-v411-handover-rail="true" data-m8a-v47-ui-surface="left-handover-rail">
+    <button type="button" class="m8a-v411-handover-rail-scrim" data-m8a-v411-handover-rail-scrim="true" data-m8a-v47-action="close-handover-rail" data-m8a-v48-info-class="control" tabindex="-1" aria-label="Close handover rail" hidden></button>
+    <aside id="m8a-v411-handover-rail-drawer" class="m8a-v411-handover-rail" data-m8a-v411-handover-rail="true" data-m8a-v47-ui-surface="left-handover-rail" aria-label="Handover rail">
+      <div class="m8a-v411-handover-rail-header" data-m8a-v411-handover-rail-header="true">
+        <strong data-m8a-v48-info-class="fixed">Handover rail</strong>
+        <button type="button" class="m8a-v411-handover-rail-close" data-m8a-v47-action="close-handover-rail" data-m8a-v411-handover-rail-close="true" data-m8a-v48-info-class="control" aria-label="Close handover rail">Close</button>
+      </div>
       <div data-m8a-v411-handover-rail-content="true">
         <div class="m8a-v411-rail-slot" data-m8a-v411-rail-slot="current" data-m8a-v48-info-class="dynamic">Current: --</div>
         <div class="m8a-v411-rail-slot" data-m8a-v411-rail-slot="candidate" data-m8a-v48-info-class="dynamic">Candidate: --</div>
@@ -2708,14 +2758,17 @@ function ensureProductUxStructure(root: HTMLElement): void {
         <strong data-m8a-v47-active-label="strip" data-m8a-v48-info-class="dynamic"></strong>
         <small data-m8a-v48-state-ordinal="strip" data-m8a-v48-info-class="dynamic">State 1 of 5</small>
       </div>
+      <button type="button" class="m8a-v411-narrow-rail-trigger" data-m8a-v47-action="open-handover-rail" data-m8a-v411-narrow-rail-trigger="true" data-m8a-v48-info-class="control" aria-expanded="false" aria-controls="m8a-v411-handover-rail-drawer">Handover rail</button>
       <button type="button" class="m8a-v47-product-ux__play-toggle" data-m8a-v47-action="pause" data-m8a-v47-control-id="play-pause" data-m8a-v48-info-class="control">Pause</button>
       <button type="button" data-m8a-v47-action="restart" data-m8a-v47-control-id="restart" data-m8a-v48-info-class="control">Restart</button>
       <div class="m8a-v47-product-ux__strip-speeds" data-m8a-v47-control-group="speed">
         ${renderSpeedButtons(M8A_V47_PRODUCT_DEFAULT_MULTIPLIER)}
       </div>
+      <button type="button" class="m8a-v411-reviewer-mode-toggle" data-m8a-v47-action="toggle-review-mode" data-m8a-v411-reviewer-mode-toggle="true" data-m8a-v411-reviewer-mode-on="true" data-m8a-v48-info-class="control" aria-pressed="true" title="Auto-pause replay at each window transition for review">Review mode</button>
       <progress class="m8a-v47-product-ux__progress" max="1" value="0" data-m8a-v47-progress="true" data-m8a-v48-info-class="dynamic" hidden aria-hidden="true"></progress>
       <button type="button" data-m8a-v47-action="toggle-disclosure" data-m8a-v47-control-id="details-toggle" data-m8a-v48-info-class="control" aria-expanded="false">Details</button>
     </div>
+    <div class="m8a-v411-reviewer-mode-status" data-m8a-v411-reviewer-mode-status="true" data-m8a-v411-reviewer-mode-version="${M8A_V411_REVIEWER_MODE_VERSION}" role="status" aria-live="polite" aria-atomic="true" data-m8a-v48-info-class="dynamic"></div>
     <aside id="m8a-v410-boundary-surface" class="m8a-v410-product-ux__boundary-surface" data-m8a-v410-boundary-surface="true" data-m8a-v47-ui-surface="boundary-surface" data-m8a-v48-info-class="disclosure" hidden>
       <div class="m8a-v410-boundary-surface__header">
         <strong data-m8a-v48-info-class="fixed">Truth boundary</strong>
@@ -2739,6 +2792,7 @@ function ensureProductUxStructure(root: HTMLElement): void {
           <span data-m8a-v48-info-class="fixed">Details</span>
           <strong data-m8a-v410-inspector-title="true" data-m8a-v48-info-class="fixed">Evidence inspector</strong>
         </div>
+        <span class="m8a-v411-inspector__mode-label" data-m8a-v411-inspector-mode-label="true" data-m8a-v411-replay-clock-mode="running" data-m8a-v48-info-class="dynamic" hidden></span>
         <span class="m8a-v411-inspector__validation-badge" data-m8a-v411-inspector-validation-badge="true" data-m8a-v411-validation-status-badge="true" data-m8a-v48-info-class="fixed">驗證狀態：待補</span>
         <button type="button" data-m8a-v47-action="close-disclosure" data-m8a-v47-control-id="details-close" data-m8a-v48-info-class="control">Close</button>
       </div>
@@ -4562,7 +4616,8 @@ function renderProductUx(
       projected: placement.projected,
       anchorStatus: placement.anchorStatus,
       actorId: placement.anchorActorId
-    }
+    },
+    toastSuppressed: productUx.reviewerMode.toastSuppressed
   });
 
   const transitionElement = getProductUxElement(
@@ -5126,6 +5181,150 @@ function renderProductUx(
     stage.dataset.active = String(
       stage.dataset.m8aV47WindowId === productUx.activeWindowId
     );
+  }
+
+  renderM8aV411ReviewerMode(root, productUx);
+}
+
+function renderM8aV411ReviewerMode(
+  root: HTMLElement,
+  productUx: M8aV4GroundStationSceneState["productUx"]
+): void {
+  const reviewer = productUx.reviewerMode;
+  if (!reviewer) {
+    return;
+  }
+
+  const toggle = root.querySelector<HTMLElement>(
+    "[data-m8a-v411-reviewer-mode-toggle='true']"
+  );
+  if (toggle) {
+    toggle.dataset.m8aV411ReviewerModeOn = String(reviewer.reviewModeOn);
+    toggle.setAttribute("aria-pressed", String(reviewer.reviewModeOn));
+    toggle.textContent = reviewer.reviewModeOn
+      ? "Review mode · on"
+      : "Review mode · off";
+    toggle.dataset.m8aV411ReviewerModeReplayClockMode =
+      reviewer.replayClockMode;
+    toggle.dataset.m8aV411ReviewerModeAutoPauseMs = String(
+      reviewer.autoPauseDurationMs
+    );
+  }
+
+  const modeLabel = root.querySelector<HTMLElement>(
+    "[data-m8a-v411-inspector-mode-label='true']"
+  );
+  const inspectorOpen = productUx.disclosure.detailsSheetState === "open";
+  const showLabel =
+    inspectorOpen &&
+    (reviewer.replayClockMode === "inspector-pinned" ||
+      reviewer.replayClockMode === "review-auto-paused" ||
+      reviewer.replayClockMode === "manual-paused" ||
+      reviewer.replayClockMode === "final-hold");
+
+  if (modeLabel) {
+    modeLabel.dataset.m8aV411ReplayClockMode = reviewer.replayClockMode;
+    modeLabel.dataset.m8aV411InspectorModeLabelOrdinal =
+      reviewer.pinnedWindowOrdinalLabel ?? "";
+    if (showLabel) {
+      modeLabel.hidden = false;
+      modeLabel.textContent = reviewer.announcement.modeLabel;
+    } else {
+      modeLabel.hidden = true;
+      modeLabel.textContent = "";
+    }
+  }
+
+  const status = root.querySelector<HTMLElement>(
+    "[data-m8a-v411-reviewer-mode-status='true']"
+  );
+  if (status) {
+    const previousMode = status.dataset.m8aV411ReviewerModeAnnouncedMode;
+    const previousOrdinal =
+      status.dataset.m8aV411ReviewerModeAnnouncedOrdinal ?? "";
+    const currentOrdinal = reviewer.pinnedWindowOrdinalLabel ?? "";
+    const announcementChanged =
+      previousMode !== reviewer.replayClockMode ||
+      previousOrdinal !== currentOrdinal;
+    status.dataset.m8aV411ReplayClockMode = reviewer.replayClockMode;
+    status.dataset.m8aV411ReviewerModeOn = String(reviewer.reviewModeOn);
+    if (announcementChanged) {
+      status.textContent = reviewer.announcement.ariaText;
+      status.dataset.m8aV411ReviewerModeAnnouncedMode =
+        reviewer.replayClockMode;
+      status.dataset.m8aV411ReviewerModeAnnouncedOrdinal = currentOrdinal;
+      status.dataset.m8aV411ReviewerModeAnnouncedAriaText =
+        reviewer.announcement.ariaText;
+    }
+  }
+
+  const pauseButton = root.querySelector<HTMLElement>(
+    "button[data-m8a-v47-control-id='play-pause']"
+  );
+  if (pauseButton) {
+    if (!reviewer.controls.pauseEnabled && reviewer.controls.playEnabled) {
+      pauseButton.setAttribute("aria-disabled", "false");
+    } else {
+      pauseButton.removeAttribute("aria-disabled");
+    }
+  }
+
+  for (const speedButton of root.querySelectorAll<HTMLElement>(
+    "[data-m8a-v47-control-group='speed'] button[data-m8a-v47-action='speed']"
+  )) {
+    if (!reviewer.controls.speedEnabled) {
+      speedButton.setAttribute("aria-disabled", "true");
+      speedButton.dataset.m8aV411ReviewerSpeedDeferred = "false";
+    } else if (reviewer.controls.speedAppliesAfterResume) {
+      speedButton.removeAttribute("aria-disabled");
+      speedButton.dataset.m8aV411ReviewerSpeedDeferred = "true";
+      speedButton.title = "Applies after resume";
+    } else {
+      speedButton.removeAttribute("aria-disabled");
+      speedButton.dataset.m8aV411ReviewerSpeedDeferred = "false";
+      speedButton.removeAttribute("title");
+    }
+  }
+
+  root.dataset.m8aV411ReplayClockMode = reviewer.replayClockMode;
+  root.dataset.m8aV411ReviewerModeOn = String(reviewer.reviewModeOn);
+  root.dataset.m8aV411ReviewerModeToastSuppressed = String(
+    reviewer.toastSuppressed
+  );
+  root.dataset.m8aV411InspectorOpen = String(inspectorOpen);
+  root.dataset.m8aV411HandoverRailDrawerState =
+    productUx.layout.narrowRailDrawerState;
+
+  const railTrigger = root.querySelector<HTMLElement>(
+    "[data-m8a-v411-narrow-rail-trigger='true']"
+  );
+  if (railTrigger) {
+    railTrigger.setAttribute(
+      "aria-expanded",
+      String(productUx.layout.narrowRailDrawerState === "open")
+    );
+  }
+
+  const railDrawer = root.querySelector<HTMLElement>(
+    "[data-m8a-v411-handover-rail='true']"
+  );
+  if (railDrawer) {
+    railDrawer.dataset.m8aV411HandoverRailDrawerState =
+      productUx.layout.narrowRailDrawerState;
+    railDrawer.setAttribute(
+      "aria-hidden",
+      productUx.layout.narrowRailDrawerState === "closed" &&
+        productUx.layout.viewportClass === "narrow"
+        ? "true"
+        : "false"
+    );
+  }
+
+  const railScrim = root.querySelector<HTMLElement>(
+    "[data-m8a-v411-handover-rail-scrim='true']"
+  );
+  if (railScrim) {
+    railScrim.hidden = productUx.layout.narrowRailDrawerState !== "open";
   }
 }
 
@@ -5911,7 +6110,9 @@ function buildProductUxState({
   sourcesFilter,
   boundaryFullTruthDisclosureOpen,
   activeInspectorTab,
-  activeTransitionEvent
+  activeTransitionEvent,
+  reviewerModeState,
+  narrowRailDrawerOpen
 }: {
   replayState: ReplayClockState;
   simulationHandoverModel: M8aV4GroundStationSceneState["simulationHandoverModel"];
@@ -5927,6 +6128,8 @@ function buildProductUxState({
   boundaryFullTruthDisclosureOpen: boolean;
   activeInspectorTab: M8aV411InspectorTab;
   activeTransitionEvent: M8aV49TransitionEventRuntime | null;
+  reviewerModeState: M8aV411ReviewerModeState;
+  narrowRailDrawerOpen: boolean;
 }): M8aV4GroundStationSceneState["productUx"] {
   const replayRatio = resolveReplayWindowRatio(replayState);
   const multiplier = coercePlaybackMultiplier(replayState.multiplier);
@@ -6027,7 +6230,25 @@ function buildProductUxState({
       boundarySurfaceState: boundaryDisclosureState,
       sourcesRoleState: sourcesDisclosureState,
       protectedZonePolicy:
-        "endpoint-corridor-geo-guard-and-required-labels-non-obstruction"
+        "endpoint-corridor-geo-guard-and-required-labels-non-obstruction",
+      narrowRailDrawerState: narrowRailDrawerOpen ? "open" : "closed"
+    },
+    reviewerMode: {
+      version: M8A_V411_REVIEWER_MODE_VERSION,
+      replayClockMode: reviewerModeState.replayClockMode,
+      pauseSource: reviewerModeState.pauseSource,
+      pinnedWindowId: reviewerModeState.pinnedWindowId,
+      pinnedWindowOrdinalLabel: resolveM8aV411WindowOrdinalLabel(
+        reviewerModeState.pinnedWindowId
+      ),
+      pinnedReplayRatio: reviewerModeState.pinnedReplayRatio,
+      previousPlaybackState: reviewerModeState.previousPlaybackState,
+      toastSuppressed: reviewerModeState.toastSuppressed,
+      reviewModeOn: reviewerModeState.reviewModeOn,
+      manualPauseSpeedDeferred: reviewerModeState.manualPauseSpeedDeferred,
+      announcement: resolveM8aV411ModeAnnouncement(reviewerModeState),
+      controls: resolveM8aV411ControlAvailability(reviewerModeState),
+      autoPauseDurationMs: M8A_V411_REVIEW_AUTO_PAUSE_DURATION_MS
     }
   };
 }
@@ -6096,6 +6317,21 @@ export function createM8aV4GroundStationSceneController({
   let refreshAfterTransitionTimeout: (() => void) | null = null;
   let lastPointerActivatedControl: HTMLElement | null = null;
   let lastPointerActivatedAt = 0;
+  let narrowRailDrawerOpen = false;
+  let lastDetailsTriggerElement: HTMLElement | null = null;
+  let lastRailTriggerElement: HTMLElement | null = null;
+  let lastSyncReplayRatio = resolveReplayWindowRatio(replayClock.getState());
+
+  const reviewerModeStorage: Pick<Storage, "getItem" | "setItem"> | null =
+    typeof window !== "undefined" && typeof window.localStorage === "object"
+      ? window.localStorage
+      : null;
+  let reviewerModeState: M8aV411ReviewerModeState =
+    createM8aV411ReviewerModeInitialState({
+      reviewModeOn: readM8aV411ReviewerModePersistedToggle(reviewerModeStorage),
+      nowEpochMs: Date.now()
+    });
+  let reviewAutoPauseTimeoutId: number | undefined;
 
   configureReplayClock(viewer, replayClock);
   applyV4Camera(viewer);
@@ -6397,6 +6633,9 @@ export function createM8aV4GroundStationSceneController({
 
     if (shouldResume) {
       productLoopArmed = true;
+      reviewerModeState = transitionForUserPlay(reviewerModeState, {
+        nowEpochMs: Date.now()
+      });
       replayClock.play();
     } else {
       productLoopArmed = false;
@@ -6429,6 +6668,10 @@ export function createM8aV4GroundStationSceneController({
     finalHoldCompletedAtEpochMs = null;
     resumeAfterFinalHold = true;
     productLoopArmed = true;
+    clearReviewAutoPauseTimer();
+    reviewerModeState = transitionForFinalHoldEnter(reviewerModeState, {
+      nowEpochMs: Date.now()
+    });
     replayClock.seek(replayClock.getState().stopTime);
     replayClock.pause();
     syncState();
@@ -6474,7 +6717,38 @@ export function createM8aV4GroundStationSceneController({
     syncState();
   };
 
+  const clearReviewAutoPauseTimer = (): void => {
+    if (typeof reviewAutoPauseTimeoutId === "number") {
+      window.clearTimeout(reviewAutoPauseTimeoutId);
+      reviewAutoPauseTimeoutId = undefined;
+    }
+  };
+
+  const scheduleReviewAutoPauseElapsed = (): void => {
+    clearReviewAutoPauseTimer();
+    reviewAutoPauseTimeoutId = window.setTimeout(() => {
+      reviewAutoPauseTimeoutId = undefined;
+      if (
+        reviewerModeState.replayClockMode === "review-auto-paused" &&
+        isM8aV411ReviewAutoPauseElapsed(reviewerModeState, Date.now())
+      ) {
+        reviewerModeState = transitionForReviewAutoPauseElapsed(
+          reviewerModeState,
+          { nowEpochMs: Date.now() }
+        );
+        productLoopArmed = true;
+        replayClock.play();
+        syncState();
+      }
+    }, M8A_V411_REVIEW_AUTO_PAUSE_DURATION_MS + 60);
+  };
+
   const playProductReplay = (): void => {
+    clearReviewAutoPauseTimer();
+    reviewerModeState = transitionForUserPlay(reviewerModeState, {
+      nowEpochMs: Date.now()
+    });
+
     if (finalHoldActive) {
       resumeAfterFinalHold = true;
       productLoopArmed = true;
@@ -6493,6 +6767,10 @@ export function createM8aV4GroundStationSceneController({
 
   const pauseProductReplay = (): void => {
     cancelFinalHold();
+    clearReviewAutoPauseTimer();
+    reviewerModeState = transitionForUserPause(reviewerModeState, {
+      nowEpochMs: Date.now()
+    });
     productLoopArmed = false;
     replayClock.pause();
     syncState();
@@ -6502,6 +6780,10 @@ export function createM8aV4GroundStationSceneController({
     const replayState = replayClock.getState();
     const shouldPlayAfterRestart = finalHoldActive || replayState.isPlaying;
     cancelFinalHold();
+    clearReviewAutoPauseTimer();
+    reviewerModeState = transitionForUserPlay(reviewerModeState, {
+      nowEpochMs: Date.now()
+    });
     replayClock.seek(replayState.startTime);
 
     if (shouldPlayAfterRestart) {
@@ -6518,6 +6800,17 @@ export function createM8aV4GroundStationSceneController({
   const toggleDetailsDisclosure = (): void => {
     detailsDisclosureOpen = true;
     activeInspectorTab = "decision";
+    clearReviewAutoPauseTimer();
+    const replayState = replayClock.getState();
+    const pinnedRatio = resolveReplayWindowRatio(replayState);
+    const pinnedWindow = resolveSimulationHandoverWindow(replayState);
+    reviewerModeState = transitionForInspectorOpen(reviewerModeState, {
+      pinnedWindowId: pinnedWindow.windowId,
+      pinnedReplayRatio: pinnedRatio,
+      nowEpochMs: Date.now()
+    });
+    productLoopArmed = false;
+    replayClock.pause();
     syncState();
     productUxRoot
       .querySelector<HTMLElement>("[data-m8a-v411-inspector-role='state-evidence']")
@@ -6530,7 +6823,73 @@ export function createM8aV4GroundStationSceneController({
     sourcesDisclosureOpen = false;
     boundaryFullTruthDisclosureOpen = false;
     activeInspectorTab = "decision";
+
+    const wasPinned =
+      reviewerModeState.replayClockMode === "inspector-pinned";
+    const pinnedRatio = reviewerModeState.pinnedReplayRatio;
+    reviewerModeState = transitionForInspectorClose(reviewerModeState, {
+      nowEpochMs: Date.now()
+    });
+
+    if (wasPinned && typeof pinnedRatio === "number") {
+      const replayState = replayClock.getState();
+      const startMs = toEpochMilliseconds(replayState.startTime);
+      const stopMs = toEpochMilliseconds(replayState.stopTime);
+      const targetMs = startMs + (stopMs - startMs) * pinnedRatio;
+      replayClock.seek(new Date(targetMs).toISOString());
+    }
+
+    if (
+      reviewerModeState.replayClockMode === "running" &&
+      !finalHoldActive
+    ) {
+      productLoopArmed = true;
+      replayClock.play();
+    }
+
     syncState();
+  };
+
+  const toggleReviewerMode = (): void => {
+    const next = !reviewerModeState.reviewModeOn;
+    reviewerModeState = transitionForReviewModeToggle(reviewerModeState, {
+      reviewModeOn: next,
+      nowEpochMs: Date.now()
+    });
+    writeM8aV411ReviewerModePersistedToggle(reviewerModeStorage, next);
+
+    if (
+      !next &&
+      reviewerModeState.replayClockMode === "running" &&
+      !finalHoldActive &&
+      !replayClock.getState().isPlaying
+    ) {
+      productLoopArmed = true;
+      replayClock.play();
+    }
+
+    clearReviewAutoPauseTimer();
+    syncState();
+  };
+
+  const enterReviewAutoPauseIfApplicable = (): void => {
+    if (
+      !reviewerModeState.reviewModeOn ||
+      reviewerModeState.replayClockMode !== "running" ||
+      finalHoldActive
+    ) {
+      return;
+    }
+
+    reviewerModeState = transitionForReviewAutoPauseStart(reviewerModeState, {
+      nowEpochMs: Date.now()
+    });
+
+    if (reviewerModeState.replayClockMode === "review-auto-paused") {
+      productLoopArmed = false;
+      replayClock.pause();
+      scheduleReviewAutoPauseElapsed();
+    }
   };
 
   const toggleBoundaryDisclosure = (): void => {
@@ -6696,7 +7055,9 @@ export function createM8aV4GroundStationSceneController({
       sourcesFilter,
       boundaryFullTruthDisclosureOpen,
       activeInspectorTab,
-      activeTransitionEvent: resolveVisibleTransitionEvent()
+      activeTransitionEvent: resolveVisibleTransitionEvent(),
+      reviewerModeState,
+      narrowRailDrawerOpen
     });
     const actorEmphasis =
       M8A_V4_GROUND_STATION_RUNTIME_PROJECTION.orbitActors.map((actor) =>
@@ -6872,9 +7233,18 @@ export function createM8aV4GroundStationSceneController({
     const nextWindowId = nextState.simulationHandoverModel.window.windowId;
 
     if (previousWindowId !== nextWindowId) {
+      const nextRatio = nextState.productUx.playback.replayRatio;
+      const ratioJump = Math.abs(nextRatio - lastSyncReplayRatio);
+      // Only auto-pause for natural replay progression. A large jump (e.g.
+      // user seek, controller.play after seek) is not a natural transition.
+      const isNaturalProgression = ratioJump < 0.05;
       startTransitionEvent(previousWindowId, nextWindowId);
+      if (isNaturalProgression) {
+        enterReviewAutoPauseIfApplicable();
+      }
       nextState = createState();
     }
+    lastSyncReplayRatio = nextState.productUx.playback.replayRatio;
 
     latestSimulationWindow = nextState.simulationHandoverModel.window;
     const emphasisById = new Map(
@@ -6950,10 +7320,21 @@ export function createM8aV4GroundStationSceneController({
         break;
       }
       case "toggle-disclosure":
+        if (control instanceof HTMLElement) {
+          lastDetailsTriggerElement = control;
+        }
         toggleDetailsDisclosure();
         break;
       case "close-disclosure":
         closeDetailsDisclosure();
+        if (lastDetailsTriggerElement) {
+          window.setTimeout(() => {
+            if (lastDetailsTriggerElement) {
+              lastDetailsTriggerElement.focus({ preventScroll: true });
+              lastDetailsTriggerElement = null;
+            }
+          }, 0);
+        }
         break;
       case "toggle-boundary":
         toggleBoundaryDisclosure();
@@ -6984,6 +7365,42 @@ export function createM8aV4GroundStationSceneController({
           sourcesDisclosureOpen = false;
           boundaryFullTruthDisclosureOpen = false;
           syncState();
+        }
+        break;
+      }
+      case "toggle-review-mode": {
+        toggleReviewerMode();
+        break;
+      }
+      case "open-handover-rail": {
+        if (control instanceof HTMLElement) {
+          lastRailTriggerElement = control;
+        }
+        narrowRailDrawerOpen = true;
+        syncState();
+        const drawer = productUxRoot.querySelector<HTMLElement>(
+          "[data-m8a-v411-handover-rail='true']"
+        );
+        if (drawer) {
+          window.setTimeout(() => {
+            const focusTarget =
+              drawer.querySelector<HTMLElement>(
+                "[data-m8a-v411-rail-slot='current']"
+              ) ?? drawer;
+            if (focusTarget instanceof HTMLElement) {
+              focusTarget.setAttribute("tabindex", "-1");
+              focusTarget.focus({ preventScroll: true });
+            }
+          }, 0);
+        }
+        break;
+      }
+      case "close-handover-rail": {
+        narrowRailDrawerOpen = false;
+        syncState();
+        if (lastRailTriggerElement) {
+          lastRailTriggerElement.focus({ preventScroll: true });
+          lastRailTriggerElement = null;
         }
         break;
       }
@@ -7047,7 +7464,117 @@ export function createM8aV4GroundStationSceneController({
     activateProductUxControl(control, event);
   };
 
+  const matchMediaSafe = (query: string): boolean => {
+    if (
+      typeof window === "undefined" ||
+      typeof window.matchMedia !== "function"
+    ) {
+      return false;
+    }
+    try {
+      return window.matchMedia(query).matches;
+    } catch {
+      return false;
+    }
+  };
+
+  const isNarrowModalActive = (): boolean => {
+    if (!detailsDisclosureOpen) {
+      return false;
+    }
+    return matchMediaSafe("(max-width: 1023px)");
+  };
+
+  const collectFocusableModalTargets = (
+    container: HTMLElement
+  ): HTMLElement[] => {
+    const candidates = container.querySelectorAll<HTMLElement>(
+      [
+        "a[href]",
+        "button:not([disabled])",
+        "input:not([disabled])",
+        "select:not([disabled])",
+        "textarea:not([disabled])",
+        "[tabindex]:not([tabindex='-1'])",
+        "details > summary"
+      ].join(", ")
+    );
+    return Array.from(candidates).filter((element) => {
+      if (element.hasAttribute("disabled")) {
+        return false;
+      }
+      if (element.getAttribute("aria-hidden") === "true") {
+        return false;
+      }
+      if (element.hidden) {
+        return false;
+      }
+      const rect = element.getBoundingClientRect();
+      if (rect.width === 0 && rect.height === 0) {
+        return false;
+      }
+      return true;
+    });
+  };
+
   const handleProductUxKeyDown = (event: KeyboardEvent): void => {
+    if (event.key === "Escape") {
+      if (detailsDisclosureOpen) {
+        event.preventDefault();
+        closeDetailsDisclosure();
+        if (lastDetailsTriggerElement) {
+          window.setTimeout(() => {
+            if (lastDetailsTriggerElement) {
+              lastDetailsTriggerElement.focus({ preventScroll: true });
+              lastDetailsTriggerElement = null;
+            }
+          }, 0);
+        }
+        return;
+      }
+      if (narrowRailDrawerOpen) {
+        event.preventDefault();
+        narrowRailDrawerOpen = false;
+        syncState();
+        if (lastRailTriggerElement) {
+          lastRailTriggerElement.focus({ preventScroll: true });
+          lastRailTriggerElement = null;
+        }
+        return;
+      }
+    }
+
+    if (event.key === "Tab" && isNarrowModalActive()) {
+      const sheet = productUxRoot.querySelector<HTMLElement>(
+        "aside[data-m8a-v411-inspector-concurrency]"
+      );
+      if (sheet) {
+        const focusables = collectFocusableModalTargets(sheet);
+        if (focusables.length === 0) {
+          event.preventDefault();
+          return;
+        }
+        const first = focusables[0];
+        const last = focusables[focusables.length - 1];
+        const active = document.activeElement;
+        if (event.shiftKey && active === first) {
+          event.preventDefault();
+          last.focus({ preventScroll: true });
+          return;
+        }
+        if (!event.shiftKey && active === last) {
+          event.preventDefault();
+          first.focus({ preventScroll: true });
+          return;
+        }
+        if (active && !sheet.contains(active)) {
+          event.preventDefault();
+          first.focus({ preventScroll: true });
+          return;
+        }
+      }
+    }
+
     if (event.key !== "Enter" && event.key !== " ") {
       return;
     }
@@ -7147,6 +7674,7 @@ export function createM8aV4GroundStationSceneController({
       disposed = true;
       clearFinalHoldTimer();
       clearTransitionTimer();
+      clearReviewAutoPauseTimer();
       activeTransitionEvent = null;
       refreshAfterTransitionTimeout = null;
       removeFinalHoldClockListener();

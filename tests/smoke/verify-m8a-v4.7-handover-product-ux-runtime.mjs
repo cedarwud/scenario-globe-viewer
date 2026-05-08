@@ -1456,19 +1456,28 @@ async function verifyDisclosure(client, viewport) {
       const annotationRect = rectToPlain(annotation.getBoundingClientRect());
 
       assert(isVisible(sheet), "V4.7.1 disclosure sheet must be inspectable.");
-      assert(
-        isVisible(annotation),
-        "V4.7.1 scene-near annotation must remain visible while details are open."
-      );
-      assert(
-        !intersects(sheetRect, annotationRect),
-        "V4.7.1 details sheet must not cover the primary scene-near annotation: " +
-          JSON.stringify({
-            viewport: config.viewport,
-            sheetRect,
-            annotationRect
-          })
-      );
+      // Phase 4 (spec v2 §8.2) supersedes the V4.7.1 narrow non-overlap and
+      // annotation-visibility assertions: narrow Details now opens as a
+      // full-screen modal that intentionally covers the scene background. On
+      // desktop / portrait-tablet-with-rail the original contract still
+      // applies.
+      const isNarrowFullScreenModal =
+        config.viewport.expectedViewportClass === "narrow";
+      if (!isNarrowFullScreenModal) {
+        assert(
+          isVisible(annotation),
+          "V4.7.1 scene-near annotation must remain visible while details are open."
+        );
+        assert(
+          !intersects(sheetRect, annotationRect),
+          "V4.7.1 details sheet must not cover the primary scene-near annotation: " +
+            JSON.stringify({
+              viewport: config.viewport,
+              sheetRect,
+              annotationRect
+            })
+        );
+      }
       assert(
         config.requiredBadges.every((badge) => badgeTexts.includes(badge)),
         "V4.7.1 disclosure state must retain truth-boundary badges: " +

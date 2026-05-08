@@ -847,6 +847,7 @@ async function main() {
     // legacy footer-disclosure -> Boundary-tab expectation. Footer
     // disclosure may open the inspector, but Boundary is no longer a tab.
     manifest.softening.push("Correction A Phase E: spec v2 §4.1 / §4.4 supersedes Boundary tab; footer disclosure keeps Decision selected and boundary ownership moves to strip/footer.");
+    manifest.softening.push("Phase 4: spec v2 §8.1 / §8.3 supersedes the prior `narrow fallback intentionally hides desktop top strip / left rail` assertions; narrow now shows a designed compact scope strip plus a handover-rail drawer rather than hidden surfaces.");
     assert(layout.activeTab === "decision", "Footer disclosure must keep Decision selected after Boundary tab removal");
     assert(findPanel(layout, "decision")?.visible, "Footer disclosure must show Decision panel after Boundary tab removal");
     assert(!layout.tabs.some((tab) => tab.id === "boundary" || tab.text === "Boundary"), "Footer disclosure must not expose Boundary tab");
@@ -968,8 +969,13 @@ async function main() {
     layout = await inspectLayout(client);
     assertVisible(layout.footerRow, "narrow footer", 180, 18);
     assertVisible(layout.detailsBtn, "narrow Details button", 56, 38);
-    assert(layout.topStrip?.visible === false, "narrow fallback intentionally hides desktop top strip");
-    assert(layout.leftRail?.visible === false, "narrow fallback intentionally hides desktop left rail");
+    // Phase 4 (spec v2 §8.1): narrow keeps a compact horizontal scope strip
+    // (no longer display:none) and the handover rail becomes a drawer
+    // (default closed; off-canvas when closed). The previous
+    // "narrow fallback intentionally hides desktop top strip / left rail"
+    // assertions are superseded by the designed surface contract.
+    assert(layout.topStrip?.exists === true, "narrow compact scope strip must exist (spec v2 §8.1)");
+    assert(layout.leftRail?.exists === true, "narrow handover rail must exist as drawer (spec v2 §8.1, §8.3)");
     assertHitVisible(layout, "detailsBtn", "narrow Details button");
     assertHitVisible(layout, "footerExplicit", "narrow footer disclosure");
     assertNoBottomOverlap(layout, "narrow fallback");

@@ -1,5 +1,5 @@
 {
-  "capturedAt": "2026-05-06T13:51:46.079Z",
+  "capturedAt": "2026-05-07T07:47:37.848Z",
   "route": "/?scenePreset=regional&m8aV4GroundStationScene=1",
   "viewport": {
     "name": "details-open-1440x900",
@@ -12,7 +12,7 @@
   },
   "screenshot": {
     "path": "output/m8a-v4.10-slice4/v4.10-slice4-details-open-1440x900.png",
-    "sizeBytes": 917076,
+    "sizeBytes": 917640,
     "dimensions": {
       "width": 1440,
       "height": 900
@@ -369,9 +369,9 @@
       "hidden": false,
       "rect": {
         "left": 340,
-        "top": 484.5,
+        "top": 487,
         "right": 433.1875,
-        "bottom": 508.5,
+        "bottom": 511,
         "width": 93.1875,
         "height": 24
       },
@@ -390,8 +390,8 @@
         "width": 584,
         "height": 85.15625
       },
-      "text": "Current state LEO review focus State 1 of 5 Pause Restart 30x 60x 120x Details",
-      "visibleText": "Current state LEO review focus State 1 of 5 Pause Restart 30x 60x 120x Details"
+      "text": "Current state LEO review focus State 1 of 5 Play Restart 30x 60x 120x Review mode · on Details",
+      "visibleText": "Current state LEO review focus State 1 of 5 Play Restart 30x 60x 120x Review mode · on Details"
     },
     "sequenceRail": {
       "exists": true,
@@ -554,8 +554,8 @@
         "width": 400,
         "height": 676
       },
-      "text": "Details Inspector 驗證狀態：待補 Close 13-actor demo operator-family precision Decision Metrics Evidence Selected replay window LEO review focus State 1 of 5 Replay UTC 2026-04-28T08:56:46.208Z Sim replay 00:05 / 01:54 Source provenance Decision · State Evidence 剛接上 OneWeb LEO · LEO review focus 剛接上 OneWeb LEO，連線品質強。約 22 分鐘後，因為位置條件變化會進入訊號減弱階段。 NowNow: LEO is the modeled primary service state for this window. WhyWhy: position conditions support low-latency LEO review focus. NextNext: watch for LEO aging pressure before the MEO hold window. WatchWatch: simulated service time and modeled quality class only. The simulation review is currently anchored on the OneWeb LEO context marked as the focus role. The five-state V4.6D model is in window 1 of 5. Watch the LEO actor for the early pressure signal — the next modeled state is LEO pressure. Endpoint precision remains operator-family only and no active gateway is being claimed. Implementation evidence",
-      "visibleText": "Details Inspector 驗證狀態：待補 Close 13-actor demo operator-family precision Decision Metrics Evidence Selected replay window LEO review focus State 1 of 5 Replay UTC 2026-04-28T08:56:46.208Z Sim replay 00:05 / 01:54 Source provenance Decision · State Evidence 剛接上 OneWeb LEO · LEO review focus 剛接上 OneWeb LEO，連線品質強。約 22 分鐘後，因為位置條件變化會進入訊號減弱階段。 Now Now: LEO is the modeled primary service state for this window. Why Why: position conditions support low-latency LEO review focus. Next Next: watch for LEO aging pressure before the MEO hold window. Watch Watch: simulated service time and modeled quality class only. The simulation review is currently anchored on the OneWeb LEO context marked as the focus role. The five-state V4.6D model is in window 1 of 5. Watch the LEO actor for the early pressure signal — the next modeled state is LEO pressure. Endpoint precision remains operator-family only and no active gateway is being claimed. Implementation evidence",
+      "text": "Details Inspector Pinned to W1 驗證狀態：待補 Close 13-actor demo operator-family precision Decision Metrics Evidence Selected replay window LEO review focus State 1 of 5 Replay UTC 2026-04-28T08:55:35.366Z Sim replay 00:04 / 01:54 Source provenance Decision · State Evidence 剛接上 OneWeb LEO · LEO review focus 剛接上 OneWeb LEO，連線品質強。約 22 分鐘後，因為位置條件變化會進入訊號減弱階段。 NowNow: LEO is the modeled primary service state for this window. WhyWhy: position conditions support low-latency LEO review focus. NextNext: watch for LEO aging pressure before the MEO hold window. WatchWatch: simulated service time and modeled quality class only. The simulation review is currently anchored on the OneWeb LEO context marked as the focus role. The five-state V4.6D model is in window 1 of 5. Watch the LEO actor for the early pressure signal — the next modeled state is LEO pressure. Endpoint precision remains operator-family only and no active gateway is being claimed. Implementation evidence",
+      "visibleText": "Details Inspector Pinned to W1 驗證狀態：待補 Close 13-actor demo operator-family precision Decision Metrics Evidence Selected replay window LEO review focus State 1 of 5 Replay UTC 2026-04-28T08:55:35.366Z Sim replay 00:04 / 01:54 Source provenance Decision · State Evidence 剛接上 OneWeb LEO · LEO review focus 剛接上 OneWeb LEO，連線品質強。約 22 分鐘後，因為位置條件變化會進入訊號減弱階段。 Now Now: LEO is the modeled primary service state for this window. Why Why: position conditions support low-latency LEO review focus. Next Next: watch for LEO aging pressure before the MEO hold window. Watch Watch: simulated service time and modeled quality class only. The simulation review is currently anchored on the OneWeb LEO context marked as the focus role. The five-state V4.6D model is in window 1 of 5. Watch the LEO actor for the early pressure signal — the next modeled state is LEO pressure. Endpoint precision remains operator-family only and no active gateway is being claimed. Implementation evidence",
       "title": "Inspector",
       "lead": "Evidence for the selected replay window. The scene narrative and sequence rail remain primary.",
       "dataset": {
@@ -576,9 +576,9 @@
       "hidden": false,
       "rect": {
         "left": 1029.96875,
-        "top": 225.015625,
+        "top": 224.15625,
         "right": 1388.96875,
-        "bottom": 723.46875,
+        "bottom": 722.609375,
         "width": 359,
         "height": 498.453125
       },
@@ -721,9 +721,9 @@
     },
     "visibleButtons": [
       {
-        "text": "Pause",
+        "text": "Play",
         "controlId": "play-pause",
-        "action": "pause",
+        "action": "play",
         "ariaExpanded": null,
         "ariaPressed": null,
         "rect": {
@@ -793,6 +793,21 @@
           "bottom": 138.8125,
           "width": 44,
           "height": 44
+        }
+      },
+      {
+        "text": "Review mode · on",
+        "controlId": null,
+        "action": "toggle-review-mode",
+        "ariaExpanded": null,
+        "ariaPressed": "true",
+        "rect": {
+          "left": 728.125,
+          "top": 87.828125,
+          "right": 795.3125,
+          "bottom": 145.796875,
+          "width": 67.1875,
+          "height": 57.96875
         }
       },
       {
