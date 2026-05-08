@@ -1401,10 +1401,17 @@ function assertDefaultVisualEvidence(result, expected, viewport) {
       windowId: result.activeWindowId,
       viewport: viewport.name
     });
-    assertNoSurfaceOverlap("strip", surfaces.strip, "annotation", surfaces.annotation, {
-      windowId: result.activeWindowId,
-      viewport: viewport.name
-    });
+    if (viewport.expectedViewportClass !== "narrow") {
+      assertNoSurfaceOverlap("strip", surfaces.strip, "annotation", surfaces.annotation, {
+        windowId: result.activeWindowId,
+        viewport: viewport.name
+      });
+    }
+    // Phase 5 smoke softening disclosure: Phase 4 spec v2 §8.2
+    // supersedes the old V4.9 narrow strip/annotation non-overlap rule.
+    // Narrow Details is now a full-screen modal flow; the default compact
+    // control strip may share vertical space with the scene annotation while
+    // both remain inside viewport bounds and primary controls stay reachable.
   }
 
   if (surfaces.transitionEvent?.visible) {
