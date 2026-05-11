@@ -25,6 +25,15 @@ though the original recommended pick text remains F-16.
 F-16 statistics report export is deferred, not abandoned. It remains the next
 candidate after F-09 closes.
 
+Route-local demo delta, 2026-05-11:
+
+`docs/sdd/itri-demo-route-requirement-closure-sdd.md` Phase 3 approved a small
+V4 demo-route mirror of F-09. That mirror is limited to a modeled
+network-speed class/proxy surface on
+`/?scenePreset=regional&m8aV4GroundStationScene=1`; it does not supersede the
+Phase 6 / Operator HUD F-09 plan below and does not close live `iperf` /
+`ping`, measured throughput, ESTNeT/INET, or external validation truth.
+
 ## 1. ITRI Requirement Reference
 
 Acceptance-report quote:

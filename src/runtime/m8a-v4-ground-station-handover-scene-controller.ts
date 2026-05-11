@@ -6,6 +6,7 @@ import {
   Cartesian2,
   Cartesian3,
   Color,
+  ColorMaterialProperty,
   ConstantProperty,
   CustomDataSource,
   DistanceDisplayCondition,
@@ -18,8 +19,10 @@ import {
   Math as CesiumMath,
   ModelGraphics,
   PointGraphics,
+  PolylineArrowMaterialProperty,
   PolylineDashMaterialProperty,
   PolylineGraphics,
+  SceneTransforms,
   VerticalOrigin,
   type Viewer
 } from "cesium";
@@ -54,7 +57,8 @@ import {
   type M8aV4ServiceStateWindow,
   type M8aV46dActorId,
   type M8aV46dSimulationHandoverWindow,
-  type M8aV46dSimulationHandoverWindowId
+  type M8aV46dSimulationHandoverWindowId,
+  type M8aV46dWindowMetricClasses
 } from "./m8a-v4-ground-station-projection";
 import {
   ensureM8aV411GlanceRankStructure,
@@ -198,7 +202,7 @@ const M8A_V410_BOUNDARY_AFFORDANCE_VERSION =
 const M8A_V410_INSPECTOR_EVIDENCE_VERSION =
   "m8a-v4.10-inspector-evidence-redesign-slice4-runtime.v1";
 const M8A_V410_PRODUCT_UX_STRUCTURE_VERSION =
-  "m8a-v4.11-product-ux-structure-impl-phase4-reviewer-mode-runtime.v1";
+  "m8a-v4.11-product-ux-structure-policy-rule-controls-runtime.v1";
 const M8A_V47_GUIDED_REVIEW_MULTIPLIER = 30;
 const M8A_V47_PRODUCT_DEFAULT_MULTIPLIER = 60;
 const M8A_V47_QUICK_SCAN_MULTIPLIER = 120;
@@ -513,6 +517,439 @@ const M8A_V46E_RELATION_ROLE_LABELS = {
   candidateContext: "candidate context ribbon",
   fallbackContext: "GEO guard cue"
 } satisfies Record<M8aV4RelationRole, string>;
+const M8A_V4_LINK_FLOW_CUE_VERSION =
+  "m8a-v4-link-flow-direction-cue-runtime.v1";
+const M8A_V4_LINK_FLOW_CUE_MODE =
+  "uplink-downlink-arrow-segments-with-moving-packet-trails";
+const M8A_V4_LINK_FLOW_TRUTH_BOUNDARY =
+  "modeled-direction-cue-not-packet-capture-or-measured-throughput";
+const M8A_V4_LINK_FLOW_RELATION_ROLES = [
+  "displayRepresentative",
+  "candidateContext"
+] as const;
+const M8A_V4_LINK_FLOW_DIRECTIONS = ["uplink", "downlink"] as const;
+const M8A_V4_LINK_FLOW_PULSE_OFFSETS = [0, 0.34, 0.68] as const;
+const M8A_V4_LINK_FLOW_REPLAY_CYCLES = 11;
+const M8A_V4_ITRI_REQUIREMENT_GAP_SURFACE_VERSION =
+  "itri-demo-route-requirement-gap-surface-runtime.v1";
+const M8A_V4_ITRI_F09_RATE_SURFACE_VERSION =
+  "itri-demo-route-f09-rate-disposition-runtime.v1";
+const M8A_V4_ITRI_F09_RATE_DISPOSITION =
+  "bounded-route-representation";
+const M8A_V4_ITRI_F09_EXTERNAL_TRUTH_DISPOSITION =
+  "external-validation-required";
+const M8A_V4_ITRI_F09_PROVENANCE = "modeled bounded proxy";
+const M8A_V4_ITRI_F09_METRIC_TRUTH =
+  "modeled-bounded-class-not-measured";
+const M8A_V4_ITRI_F09_MEASURED_THROUGHPUT_CLAIMED = false;
+const M8A_V4_ITRI_F16_EXPORT_SURFACE_VERSION =
+  "itri-demo-route-f16-export-disposition-runtime.v1";
+const M8A_V4_ITRI_F16_EXPORT_SCHEMA_VERSION =
+  "itri-demo-route-bounded-export.v1";
+const M8A_V4_ITRI_F16_EXPORT_DISPOSITION =
+  "bounded-route-representation";
+const M8A_V4_ITRI_F16_EXTERNAL_TRUTH_DISPOSITION =
+  "external-validation-required";
+const M8A_V4_ITRI_F16_EXPORT_ARTIFACT_TRUTH =
+  "bounded-proxy-report-export";
+const M8A_V4_ITRI_F16_EXPORT_FORMAT = "json";
+const M8A_V4_ITRI_F16_EXPORT_PROVENANCE =
+  "route-owned bounded state from V4 demo controller";
+const M8A_V4_ITRI_F16_ROUTE_OWNED_STATE_ONLY = true;
+const M8A_V4_ITRI_F16_MEASURED_VALUES_INCLUDED = false;
+const M8A_V4_ITRI_F16_EXTERNAL_REPORT_TRUTH_CLAIMED = false;
+const M8A_V4_ITRI_F16_EXPLICIT_NON_CLAIMS = [
+  "No external measurement report truth is claimed.",
+  "No live iperf or ping truth is claimed.",
+  "No active gateway, active serving satellite, or pair-specific teleport path is claimed.",
+  "No native RF handover or >=500 LEO validation is claimed.",
+  "F-09 rate fields are modeled classes only; no Mbps or Gbps values are exported.",
+  "Latency and jitter are not exported as measured ms values."
+] as const;
+const M8A_V4_ITRI_POLICY_RULE_CONTROLS_VERSION =
+  "itri-demo-route-policy-rule-controls-runtime.v1";
+const M8A_V4_ITRI_POLICY_RULE_DISPOSITION =
+  "bounded-route-representation";
+const M8A_V4_ITRI_POLICY_RULE_EXTERNAL_TRUTH_DISPOSITION =
+  "external-validation-required";
+const M8A_V4_ITRI_POLICY_RULE_TRUTH_BOUNDARY =
+  "modeled-policy-demo-not-live-control";
+const M8A_V4_ITRI_POLICY_RULE_EXPORT_ADJACENT_TRUTH =
+  "modeled-replay-preset-state-not-live-control";
+const M8A_V4_ITRI_F10_POLICY_PRESET_MODE =
+  "modeled-replay-policy-preset-not-live-control";
+const M8A_V4_ITRI_F11_RULE_PRESET_MODE =
+  "bounded-replay-rule-parameter-preset-not-live-control";
+const M8A_V4_ITRI_POLICY_RULE_ROUTE_OWNED_STATE_ONLY = true;
+const M8A_V4_ITRI_POLICY_RULE_LIVE_CONTROL_CLAIMED = false;
+const M8A_V4_ITRI_POLICY_RULE_BACKEND_CONTROL_CLAIMED = false;
+const M8A_V4_ITRI_POLICY_RULE_NETWORK_CONTROL_CLAIMED = false;
+const M8A_V4_ITRI_POLICY_RULE_ARBITRARY_EDITOR_CLAIMED = false;
+const M8A_V4_ITRI_POLICY_RULE_MEASURED_DECISION_TRUTH_CLAIMED = false;
+const M8A_V4_ITRI_F10_POLICY_DEFAULT_PRESET_ID =
+  "balanced-continuity-review";
+const M8A_V4_ITRI_F11_RULE_DEFAULT_PRESET_ID =
+  "standard-window-thresholds";
+const M8A_V4_ITRI_F10_POLICY_PRESETS = [
+  {
+    presetId: "balanced-continuity-review",
+    label: "Balanced continuity review",
+    summary:
+      "Default modeled replay preset balancing candidate review and continuity guard; not live control.",
+    preview:
+      "Modeled replay preview keeps candidate and continuity review balanced. Preset only; not live control."
+  },
+  {
+    presetId: "candidate-first-review",
+    label: "Candidate-first review",
+    summary:
+      "Modeled replay preset that foregrounds candidate review copy; not live control.",
+    preview:
+      "Modeled replay preview foregrounds candidate review. Preset only; not live control."
+  },
+  {
+    presetId: "continuity-guard-review",
+    label: "Continuity guard review",
+    summary:
+      "Modeled replay preset that foregrounds continuity guard copy; not live control.",
+    preview:
+      "Modeled replay preview foregrounds continuity guard. Preset only; not live control."
+  }
+] as const;
+const M8A_V4_ITRI_F11_RULE_PRESETS = [
+  {
+    presetId: "standard-window-thresholds",
+    label: "Standard window thresholds",
+    summary:
+      "Default bounded replay rule preset for standard review windows; not live control.",
+    parameterChips: [
+      "candidate review preset: standard",
+      "continuity guard preset: standard",
+      "replay hold preset: standard"
+    ],
+    preview:
+      "Bounded replay rule preset keeps standard review windows. Preset only; not live control."
+  },
+  {
+    presetId: "early-candidate-review",
+    label: "Early candidate review",
+    summary:
+      "Bounded replay rule preset that reviews candidate context earlier; not live control.",
+    parameterChips: [
+      "candidate review preset: early",
+      "continuity guard preset: standard",
+      "replay hold preset: standard"
+    ],
+    preview:
+      "Bounded replay rule preset previews earlier candidate review. Preset only; not live control."
+  },
+  {
+    presetId: "guard-hold-review",
+    label: "Guard hold review",
+    summary:
+      "Bounded replay rule preset that holds guard review emphasis; not live control.",
+    parameterChips: [
+      "candidate review preset: standard",
+      "continuity guard preset: hold",
+      "replay hold preset: guard"
+    ],
+    preview:
+      "Bounded replay rule preset previews guard-hold review. Preset only; not live control."
+  }
+] as const;
+const M8A_V4_ITRI_REQUIREMENT_GAP_TRUTH_LABELS = [
+  "bounded-route-representation",
+  "bounded-repo-owned-seam",
+  "external-validation-required"
+] as const;
+const M8A_V4_ITRI_DEMO_POLISH_DISPOSITION =
+  "demo-polish-no-requirement-closure";
+const M8A_V4_ITRI_ROUTE_NATIVE_MEASURED_TRUTH_CLAIMED = false;
+
+type M8aV4ItriRequirementDisposition =
+  | "true-route-closure"
+  | "bounded-route-representation"
+  | "bounded-repo-owned-seam"
+  | "external-validation-required"
+  | "demo-polish-no-requirement-closure"
+  | "not-in-this-route";
+
+type M8aV4ItriRequirementGroupId =
+  | "route-owned-visual-baseline"
+  | "bounded-route-representation"
+  | "bounded-repo-owned-seam"
+  | "not-mounted-route-gap"
+  | "external-validation-gap";
+type M8aV4F09NetworkSpeedClass =
+  M8aV46dWindowMetricClasses["networkSpeedClass"];
+type M8aV4ItriF10PolicyPreset =
+  (typeof M8A_V4_ITRI_F10_POLICY_PRESETS)[number];
+type M8aV4ItriF10PolicyPresetId = M8aV4ItriF10PolicyPreset["presetId"];
+type M8aV4ItriF11RulePreset =
+  (typeof M8A_V4_ITRI_F11_RULE_PRESETS)[number];
+type M8aV4ItriF11RulePresetId = M8aV4ItriF11RulePreset["presetId"];
+
+interface M8aV4F09RateClassCopy {
+  classLabel: string;
+  bucketLabel: string;
+  reviewLabel: string;
+}
+
+interface M8aV4F09RateWindowRow {
+  windowId: M8aV46dSimulationHandoverWindowId;
+  ordinalLabel: string;
+  windowLabel: string;
+  orbitClass: M8aV4OrbitClass;
+  networkSpeedClass: M8aV4F09NetworkSpeedClass;
+  classLabel: string;
+  bucketLabel: string;
+  provenance: typeof M8A_V4_ITRI_F09_PROVENANCE;
+  metricTruth: typeof M8A_V4_ITRI_F09_METRIC_TRUTH;
+}
+
+interface M8aV4ItriRequirementStatusGroup {
+  groupId: M8aV4ItriRequirementGroupId;
+  label: string;
+  disposition: M8aV4ItriRequirementDisposition;
+  status: "closed" | "bounded" | "open";
+  requirementIds: readonly string[];
+  routeClaim: string;
+}
+
+interface M8aV4ItriF16ExportRecord {
+  generatedAtUtc: string;
+  filename: string;
+  status: "exported" | "failed";
+  errorMessage: string;
+}
+
+interface M8aV4ItriF16BoundedRateDisposition {
+  requirementId: "F-09";
+  disposition: typeof M8A_V4_ITRI_F09_RATE_DISPOSITION;
+  externalTruthDisposition:
+    typeof M8A_V4_ITRI_F09_EXTERNAL_TRUTH_DISPOSITION;
+  currentWindowId: M8aV46dSimulationHandoverWindowId;
+  currentNetworkSpeedClass: M8aV4F09NetworkSpeedClass;
+  currentClassLabel: string;
+  currentBucketLabel: string;
+  provenance: typeof M8A_V4_ITRI_F09_PROVENANCE;
+  metricTruth: typeof M8A_V4_ITRI_F09_METRIC_TRUTH;
+  measuredThroughputClaimed:
+    typeof M8A_V4_ITRI_F09_MEASURED_THROUGHPUT_CLAIMED;
+  rows: ReadonlyArray<M8aV4F09RateWindowRow>;
+}
+
+interface M8aV4ItriF16RouteExportBundle {
+  schemaVersion: typeof M8A_V4_ITRI_F16_EXPORT_SCHEMA_VERSION;
+  version: typeof M8A_V4_ITRI_F16_EXPORT_SURFACE_VERSION;
+  generatedAtUtc: string;
+  routeId: string;
+  scenarioId: typeof M8A_V4_GROUND_STATION_SCENARIO_ID;
+  endpointPair: {
+    endpointPairId: string;
+    precision: "operator-family-only";
+    endpoints: ReadonlyArray<{
+      endpointId: M8aV4EndpointId;
+      label: string;
+      precisionBadge: string;
+      renderPrecision: "bounded-operator-family-display-anchor";
+      displayPositionIsSourceTruth: false;
+      rawSourceCoordinatesRenderable: false;
+      orbitEvidenceChips: ReadonlyArray<string>;
+    }>;
+  };
+  precision: "operator-family-only";
+  actorCounts: Record<M8aV4OrbitClass | "total", number>;
+  activeModeledWindow: {
+    windowId: M8aV46dSimulationHandoverWindowId;
+    windowLabel: string;
+    currentPrimaryOrbitClass: M8aV4OrbitClass;
+    nextCandidateOrbitClass: M8aV4OrbitClass | null;
+    continuityFallbackOrbitClass: M8aV4OrbitClass;
+    displayRepresentativeOrbitClass: M8aV4OrbitClass;
+    boundedMetricClasses: M8aV46dWindowMetricClasses;
+    modelTruth: "simulation-output-not-operator-log";
+  };
+  requirementStatusGroups: ReadonlyArray<M8aV4ItriRequirementStatusGroup>;
+  f09BoundedRateDisposition: M8aV4ItriF16BoundedRateDisposition;
+  policyRuleControls: {
+    version: typeof M8A_V4_ITRI_POLICY_RULE_CONTROLS_VERSION;
+    disposition: typeof M8A_V4_ITRI_POLICY_RULE_DISPOSITION;
+    externalTruthDisposition:
+      typeof M8A_V4_ITRI_POLICY_RULE_EXTERNAL_TRUTH_DISPOSITION;
+    truthBoundary: typeof M8A_V4_ITRI_POLICY_RULE_TRUTH_BOUNDARY;
+    exportAdjacentTruth:
+      typeof M8A_V4_ITRI_POLICY_RULE_EXPORT_ADJACENT_TRUTH;
+    activePolicyPresetId: M8aV4ItriF10PolicyPresetId;
+    activeRulePresetId: M8aV4ItriF11RulePresetId;
+    policyPresetMode: typeof M8A_V4_ITRI_F10_POLICY_PRESET_MODE;
+    rulePresetMode: typeof M8A_V4_ITRI_F11_RULE_PRESET_MODE;
+    routeOwnedStateOnly:
+      typeof M8A_V4_ITRI_POLICY_RULE_ROUTE_OWNED_STATE_ONLY;
+    liveControlClaimed:
+      typeof M8A_V4_ITRI_POLICY_RULE_LIVE_CONTROL_CLAIMED;
+    backendControlClaimed:
+      typeof M8A_V4_ITRI_POLICY_RULE_BACKEND_CONTROL_CLAIMED;
+    networkControlClaimed:
+      typeof M8A_V4_ITRI_POLICY_RULE_NETWORK_CONTROL_CLAIMED;
+    arbitraryRuleEditorClaimed:
+      typeof M8A_V4_ITRI_POLICY_RULE_ARBITRARY_EDITOR_CLAIMED;
+    measuredDecisionTruthClaimed:
+      typeof M8A_V4_ITRI_POLICY_RULE_MEASURED_DECISION_TRUTH_CLAIMED;
+  };
+  linkFlowCueMetadata: {
+    version: typeof M8A_V4_LINK_FLOW_CUE_VERSION;
+    mode: typeof M8A_V4_LINK_FLOW_CUE_MODE;
+    directions: typeof M8A_V4_LINK_FLOW_DIRECTIONS;
+    pulseCount: number;
+    truthBoundary: typeof M8A_V4_LINK_FLOW_TRUTH_BOUNDARY;
+  };
+  provenance: {
+    exportProvenance: typeof M8A_V4_ITRI_F16_EXPORT_PROVENANCE;
+    generatedFromArtifactId:
+      typeof M8A_V4_GROUND_STATION_RUNTIME_PROJECTION.generatedFromArtifactId;
+    projectionId: typeof M8A_V4_GROUND_STATION_RUNTIME_PROJECTION_ID;
+    projectionRead: "M8A_V4_GROUND_STATION_RUNTIME_PROJECTION";
+    serviceStateRead: "M8A_V4_GROUND_STATION_RUNTIME_PROJECTION.serviceStateModel.timeline";
+    simulationHandoverRead: "M8A_V4_GROUND_STATION_RUNTIME_PROJECTION.simulationHandoverModel.timeline";
+    rawPackageSideReadOwnership: "forbidden";
+    rawSourcePathsIncluded: false;
+  };
+  nonClaims: {
+    explicitNonClaims: typeof M8A_V4_ITRI_F16_EXPLICIT_NON_CLAIMS;
+    routeNarrativeNonClaims: M8aV4RuntimeNarrativeNonClaims;
+    measuredValuesIncluded:
+      typeof M8A_V4_ITRI_F16_MEASURED_VALUES_INCLUDED;
+    externalReportSystemTruthClaimed:
+      typeof M8A_V4_ITRI_F16_EXTERNAL_REPORT_TRUTH_CLAIMED;
+  };
+  exportFile: {
+    format: typeof M8A_V4_ITRI_F16_EXPORT_FORMAT;
+    filename: string;
+  };
+}
+
+const M8A_V4_ITRI_F09_RATE_CLASS_COPY = {
+  "candidate-capacity-context-class": {
+    classLabel: "Candidate capacity context",
+    bucketLabel: "Candidate class",
+    reviewLabel: "LEO candidate capacity proxy"
+  },
+  "continuity-context-class": {
+    classLabel: "Continuity context",
+    bucketLabel: "Continuity class",
+    reviewLabel: "MEO continuity speed proxy"
+  },
+  "guard-context-class": {
+    classLabel: "Guard context",
+    bucketLabel: "Guard class",
+    reviewLabel: "GEO guard speed proxy"
+  }
+} as const satisfies Record<M8aV4F09NetworkSpeedClass, M8aV4F09RateClassCopy>;
+
+function isM8aV4ItriF10PolicyPresetId(
+  value: string
+): value is M8aV4ItriF10PolicyPresetId {
+  return M8A_V4_ITRI_F10_POLICY_PRESETS.some(
+    (preset) => preset.presetId === value
+  );
+}
+
+function isM8aV4ItriF11RulePresetId(
+  value: string
+): value is M8aV4ItriF11RulePresetId {
+  return M8A_V4_ITRI_F11_RULE_PRESETS.some(
+    (preset) => preset.presetId === value
+  );
+}
+
+function resolveItriF10PolicyPreset(
+  presetId: M8aV4ItriF10PolicyPresetId
+): M8aV4ItriF10PolicyPreset {
+  return M8A_V4_ITRI_F10_POLICY_PRESETS.find(
+    (preset) => preset.presetId === presetId
+  ) ?? M8A_V4_ITRI_F10_POLICY_PRESETS[0];
+}
+
+function resolveItriF11RulePreset(
+  presetId: M8aV4ItriF11RulePresetId
+): M8aV4ItriF11RulePreset {
+  return M8A_V4_ITRI_F11_RULE_PRESETS.find(
+    (preset) => preset.presetId === presetId
+  ) ?? M8A_V4_ITRI_F11_RULE_PRESETS[0];
+}
+
+const M8A_V4_ITRI_REQUIREMENT_STATUS_GROUPS = [
+  {
+    groupId: "route-owned-visual-baseline",
+    label: "Route baseline",
+    disposition: "true-route-closure",
+    status: "closed",
+    requirementIds: ["F-04", "F-05", "F-14", "V-01", "D-01"],
+    routeClaim: "scene UI and replay baseline only"
+  },
+  {
+    groupId: "bounded-route-representation",
+    label: "Bounded route",
+    disposition: "bounded-route-representation",
+    status: "bounded",
+    requirementIds: [
+      "F-02",
+      "F-03",
+      "F-06",
+      "F-09",
+      "F-10",
+      "F-11",
+      "F-12",
+      "F-15",
+      "F-16",
+      "D-02",
+      "D-03"
+    ],
+    routeClaim:
+      "modeled route context, F-09 class, F-10/F-11 replay presets, and F-16 JSON export; no route-native measurement or live control"
+  },
+  {
+    groupId: "bounded-repo-owned-seam",
+    label: "Repo seam",
+    disposition: "bounded-repo-owned-seam",
+    status: "open",
+    requirementIds: ["F-07", "F-08", "F-17", "F-18", "P-01", "P-02", "P-03"],
+    routeClaim: "named gap, not mounted here"
+  },
+  {
+    groupId: "not-mounted-route-gap",
+    label: "Not mounted",
+    disposition: "not-in-this-route",
+    status: "open",
+    requirementIds: [],
+    routeClaim: "no F-10/F-11 route gap after Phase 5; live control remains out of scope"
+  },
+  {
+    groupId: "external-validation-gap",
+    label: "External validation",
+    disposition: "external-validation-required",
+    status: "open",
+    requirementIds: [
+      "F-01",
+      "F-09",
+      "F-10",
+      "F-11",
+      "F-13",
+      "F-16",
+      "V-02",
+      "V-03",
+      "V-04",
+      "V-05",
+      "V-06"
+    ],
+    routeClaim: "outside this scene or external/live truth not claimed"
+  }
+] as const satisfies readonly M8aV4ItriRequirementStatusGroup[];
+const M8A_V4_ITRI_REQUIREMENT_OPEN_IDS =
+  M8A_V4_ITRI_REQUIREMENT_STATUS_GROUPS.filter(
+    (group) => group.status === "open"
+  ).flatMap((group) => group.requirementIds);
 
 const M8A_V4_TELEMETRY_KEYS = [
   "m8aV4GroundStationRuntimeState",
@@ -533,6 +970,11 @@ const M8A_V4_TELEMETRY_KEYS = [
   "m8aV46eActiveStateLabel",
   "m8aV46eVisibleContextRibbonCount",
   "m8aV46eFallbackGuardCueMode",
+  "m8aV4LinkFlowCue",
+  "m8aV4LinkFlowCueMode",
+  "m8aV4LinkFlowDirections",
+  "m8aV4LinkFlowPulseCount",
+  "m8aV4LinkFlowTruthBoundary",
   "m8aV46eVisibleActorLabelCount",
   "m8aV46eVisibleActorLabelIds",
   "m8aV4GroundStationAlwaysVisibleActorLabelCount",
@@ -718,7 +1160,62 @@ const M8A_V4_TELEMETRY_KEYS = [
   "m8aV4GroundStationRawItriSideReadOwnership",
   "m8aV4GroundStationRuntimeConsumptionRule",
   "m8aV4GroundStationProofSeam",
-  "m8aV4GroundStationNonClaims"
+  "m8aV4GroundStationNonClaims",
+  "m8aV4ItriRequirementGapSurface",
+  "m8aV4ItriRequirementGapTruthLabels",
+  "m8aV4ItriRequirementGapGroupIds",
+  "m8aV4ItriRequirementGapGroupStatuses",
+  "m8aV4ItriRequirementGapGroupDispositions",
+  "m8aV4ItriRequirementGapOpenIds",
+  "m8aV4ItriRequirementGapNotMountedIds",
+  "m8aV4ItriRequirementGapExternalValidationIds",
+  "m8aV4ItriRequirementGapRepoSeamIds",
+  "m8aV4ItriRequirementGapBoundedRouteIds",
+  "m8aV4ItriRequirementGapRouteBaselineIds",
+  "m8aV4ItriDemoPolishDisposition",
+  "m8aV4ItriRouteNativeMeasuredTruthClaimed",
+  "m8aV4ItriF09RateSurface",
+  "m8aV4ItriF09RateDisposition",
+  "m8aV4ItriF09ExternalTruthDisposition",
+  "m8aV4ItriF09CurrentWindowId",
+  "m8aV4ItriF09CurrentClass",
+  "m8aV4ItriF09CurrentBucket",
+  "m8aV4ItriF09Provenance",
+  "m8aV4ItriF09MetricTruth",
+  "m8aV4ItriF09MeasuredThroughputClaimed",
+  "m8aV4ItriF09WindowClasses",
+  "m8aV4ItriF16ExportSurface",
+  "m8aV4ItriF16ExportSchemaVersion",
+  "m8aV4ItriF16ExportDisposition",
+  "m8aV4ItriF16ExternalTruthDisposition",
+  "m8aV4ItriF16ExportArtifactTruth",
+  "m8aV4ItriF16ExportFormat",
+  "m8aV4ItriF16RouteOwnedStateOnly",
+  "m8aV4ItriF16MeasuredValuesIncluded",
+  "m8aV4ItriF16ExternalReportTruthClaimed",
+  "m8aV4ItriF16LastStatus",
+  "m8aV4ItriF16LastGeneratedAtUtc",
+  "m8aV4ItriF16LastFilename",
+  "m8aV4ItriPolicyRuleControlsSurface",
+  "m8aV4ItriPolicyRuleControlsDisposition",
+  "m8aV4ItriPolicyRuleExternalTruthDisposition",
+  "m8aV4ItriPolicyRuleTruthBoundary",
+  "m8aV4ItriPolicyRuleExportAdjacentTruth",
+  "m8aV4ItriF10PolicyPresetId",
+  "m8aV4ItriF10PolicyPresetLabel",
+  "m8aV4ItriF10PolicyPresetMode",
+  "m8aV4ItriF10PolicyPresetIds",
+  "m8aV4ItriF11RulePresetId",
+  "m8aV4ItriF11RulePresetLabel",
+  "m8aV4ItriF11RulePresetMode",
+  "m8aV4ItriF11RulePresetIds",
+  "m8aV4ItriF11RuleParameterChips",
+  "m8aV4ItriPolicyRuleRouteOwnedStateOnly",
+  "m8aV4ItriPolicyRuleLiveControlClaimed",
+  "m8aV4ItriPolicyRuleBackendControlClaimed",
+  "m8aV4ItriPolicyRuleNetworkControlClaimed",
+  "m8aV4ItriPolicyRuleArbitraryRuleEditorClaimed",
+  "m8aV4ItriPolicyRuleMeasuredDecisionTruthClaimed"
 ] as const;
 
 type M8aV47ProductPlaybackMultiplier =
@@ -744,6 +1241,10 @@ type M8aV4RelationRole =
   | "displayRepresentative"
   | "candidateContext"
   | "fallbackContext";
+type M8aV4LinkFlowRelationRole =
+  (typeof M8A_V4_LINK_FLOW_RELATION_ROLES)[number];
+type M8aV4LinkFlowDirection =
+  (typeof M8A_V4_LINK_FLOW_DIRECTIONS)[number];
 
 interface M8aV4ActorEmphasis {
   actorId: string;
@@ -1264,6 +1765,11 @@ export interface M8aV4GroundStationSceneState {
     fallbackContextActorId: M8aV46dActorId;
     visibleContextRibbonCount: 2;
     visibleContextRibbonRoles: readonly ["displayRepresentative", "candidateContext"];
+    dataFlowCueVersion: typeof M8A_V4_LINK_FLOW_CUE_VERSION;
+    dataFlowCueMode: typeof M8A_V4_LINK_FLOW_CUE_MODE;
+    dataFlowDirections: typeof M8A_V4_LINK_FLOW_DIRECTIONS;
+    dataFlowPulseCount: number;
+    dataFlowTruthBoundary: typeof M8A_V4_LINK_FLOW_TRUTH_BOUNDARY;
     fallbackGuardCueMode:
       | "low-opacity-geo-guard-cue"
       | "representative-context-ribbon-in-geo-continuity-guard";
@@ -1272,6 +1778,89 @@ export interface M8aV4GroundStationSceneState {
     activeGatewayTruth: "not-claimed";
     pairSpecificTeleportPathTruth: "not-claimed";
     nativeRfHandoverTruth: "not-claimed";
+  };
+  requirementGapSurface: {
+    version: typeof M8A_V4_ITRI_REQUIREMENT_GAP_SURFACE_VERSION;
+    route:
+      typeof M8A_V4_GROUND_STATION_RUNTIME_PROJECTION.simulationHandoverModel.route;
+    endpointPairId:
+      typeof M8A_V4_GROUND_STATION_RUNTIME_PROJECTION.simulationHandoverModel.endpointPairId;
+    acceptedPairPrecision: "operator-family-only";
+    truthBoundaryLabels: typeof M8A_V4_ITRI_REQUIREMENT_GAP_TRUTH_LABELS;
+    demoPolishDisposition: typeof M8A_V4_ITRI_DEMO_POLISH_DISPOSITION;
+    routeNativeMeasuredTruthClaimed:
+      typeof M8A_V4_ITRI_ROUTE_NATIVE_MEASURED_TRUTH_CLAIMED;
+    groups: ReadonlyArray<M8aV4ItriRequirementStatusGroup>;
+    openRequirementIds: ReadonlyArray<string>;
+  };
+  f09RateSurface: {
+    version: typeof M8A_V4_ITRI_F09_RATE_SURFACE_VERSION;
+    disposition: typeof M8A_V4_ITRI_F09_RATE_DISPOSITION;
+    externalTruthDisposition:
+      typeof M8A_V4_ITRI_F09_EXTERNAL_TRUTH_DISPOSITION;
+    currentWindowId: M8aV46dSimulationHandoverWindowId;
+    currentOrbitClass: M8aV4OrbitClass;
+    currentNetworkSpeedClass: M8aV4F09NetworkSpeedClass;
+    currentClassLabel: string;
+    currentBucketLabel: string;
+    currentReviewLabel: string;
+    provenance: typeof M8A_V4_ITRI_F09_PROVENANCE;
+    metricTruth: typeof M8A_V4_ITRI_F09_METRIC_TRUTH;
+    measuredThroughputClaimed:
+      typeof M8A_V4_ITRI_F09_MEASURED_THROUGHPUT_CLAIMED;
+    rows: ReadonlyArray<M8aV4F09RateWindowRow>;
+  };
+  f16ExportSurface: {
+    version: typeof M8A_V4_ITRI_F16_EXPORT_SURFACE_VERSION;
+    schemaVersion: typeof M8A_V4_ITRI_F16_EXPORT_SCHEMA_VERSION;
+    disposition: typeof M8A_V4_ITRI_F16_EXPORT_DISPOSITION;
+    externalTruthDisposition:
+      typeof M8A_V4_ITRI_F16_EXTERNAL_TRUTH_DISPOSITION;
+    artifactTruth: typeof M8A_V4_ITRI_F16_EXPORT_ARTIFACT_TRUTH;
+    exportFormat: typeof M8A_V4_ITRI_F16_EXPORT_FORMAT;
+    provenance: typeof M8A_V4_ITRI_F16_EXPORT_PROVENANCE;
+    routeOwnedStateOnly:
+      typeof M8A_V4_ITRI_F16_ROUTE_OWNED_STATE_ONLY;
+    measuredValuesIncluded:
+      typeof M8A_V4_ITRI_F16_MEASURED_VALUES_INCLUDED;
+    externalReportSystemTruthClaimed:
+      typeof M8A_V4_ITRI_F16_EXTERNAL_REPORT_TRUTH_CLAIMED;
+    explicitNonClaims: typeof M8A_V4_ITRI_F16_EXPLICIT_NON_CLAIMS;
+    lastStatus: "ready" | M8aV4ItriF16ExportRecord["status"];
+    lastGeneratedAtUtc: string;
+    lastFilename: string;
+    lastErrorMessage: string;
+  };
+  policyRuleControls: {
+    version: typeof M8A_V4_ITRI_POLICY_RULE_CONTROLS_VERSION;
+    disposition: typeof M8A_V4_ITRI_POLICY_RULE_DISPOSITION;
+    externalTruthDisposition:
+      typeof M8A_V4_ITRI_POLICY_RULE_EXTERNAL_TRUTH_DISPOSITION;
+    truthBoundary: typeof M8A_V4_ITRI_POLICY_RULE_TRUTH_BOUNDARY;
+    exportAdjacentTruth:
+      typeof M8A_V4_ITRI_POLICY_RULE_EXPORT_ADJACENT_TRUTH;
+    f10RequirementId: "F-10";
+    f11RequirementId: "F-11";
+    policyPresetMode: typeof M8A_V4_ITRI_F10_POLICY_PRESET_MODE;
+    rulePresetMode: typeof M8A_V4_ITRI_F11_RULE_PRESET_MODE;
+    defaultPolicyPresetId: typeof M8A_V4_ITRI_F10_POLICY_DEFAULT_PRESET_ID;
+    defaultRulePresetId: typeof M8A_V4_ITRI_F11_RULE_DEFAULT_PRESET_ID;
+    activePolicyPreset: M8aV4ItriF10PolicyPreset;
+    activeRulePreset: M8aV4ItriF11RulePreset;
+    policyPresets: typeof M8A_V4_ITRI_F10_POLICY_PRESETS;
+    rulePresets: typeof M8A_V4_ITRI_F11_RULE_PRESETS;
+    routeOwnedStateOnly:
+      typeof M8A_V4_ITRI_POLICY_RULE_ROUTE_OWNED_STATE_ONLY;
+    liveControlClaimed:
+      typeof M8A_V4_ITRI_POLICY_RULE_LIVE_CONTROL_CLAIMED;
+    backendControlClaimed:
+      typeof M8A_V4_ITRI_POLICY_RULE_BACKEND_CONTROL_CLAIMED;
+    networkControlClaimed:
+      typeof M8A_V4_ITRI_POLICY_RULE_NETWORK_CONTROL_CLAIMED;
+    arbitraryRuleEditorClaimed:
+      typeof M8A_V4_ITRI_POLICY_RULE_ARBITRARY_EDITOR_CLAIMED;
+    measuredDecisionTruthClaimed:
+      typeof M8A_V4_ITRI_POLICY_RULE_MEASURED_DECISION_TRUTH_CLAIMED;
   };
   nonClaims: M8aV4RuntimeNarrativeNonClaims;
   proofSeam: typeof M8A_V4_GROUND_STATION_PROOF_SEAM;
@@ -1289,6 +1878,8 @@ export interface M8aV4GroundStationSceneState {
 
 export interface M8aV4GroundStationSceneController {
   getState(): M8aV4GroundStationSceneState;
+  getLastF16RouteExport(): M8aV4ItriF16RouteExportBundle | null;
+  exportF16RouteState(): M8aV4ItriF16RouteExportBundle;
   subscribe(listener: (state: M8aV4GroundStationSceneState) => void): () => void;
   play(): void;
   pause(): void;
@@ -1313,6 +1904,19 @@ interface ActorRenderHandle {
 
 interface RelationRenderHandle {
   role: M8aV4RelationRole;
+  entity: Entity;
+}
+
+interface LinkFlowSegmentRenderHandle {
+  role: M8aV4LinkFlowRelationRole;
+  direction: M8aV4LinkFlowDirection;
+  entity: Entity;
+}
+
+interface LinkFlowPulseRenderHandle {
+  role: M8aV4LinkFlowRelationRole;
+  direction: M8aV4LinkFlowDirection;
+  pulseIndex: number;
   entity: Entity;
 }
 
@@ -2389,6 +2993,91 @@ function resolveRelationWidth(role: M8aV4RelationRole): number {
   }
 }
 
+function resolveLinkFlowColor(
+  direction: M8aV4LinkFlowDirection,
+  role: M8aV4LinkFlowRelationRole
+): Color {
+  const base = Color.fromCssColorString(resolveLinkFlowHex(direction));
+  const alpha =
+    role === "displayRepresentative"
+      ? direction === "uplink"
+        ? 0.94
+        : 0.88
+      : direction === "uplink"
+        ? 0.48
+        : 0.42;
+
+  return base.withAlpha(alpha);
+}
+
+function resolveLinkFlowHex(direction: M8aV4LinkFlowDirection): string {
+  return direction === "uplink" ? "#f7d46a" : "#60d8ff";
+}
+
+function resolveLinkFlowWidth(
+  role: M8aV4LinkFlowRelationRole,
+  direction: M8aV4LinkFlowDirection
+): number {
+  if (role === "displayRepresentative") {
+    return direction === "uplink" ? 3.6 : 3.25;
+  }
+
+  return direction === "uplink" ? 2.25 : 2.05;
+}
+
+function resolveLinkFlowPacketDimensions(
+  role: M8aV4LinkFlowRelationRole,
+  pulseIndex: number
+): { width: number; height: number } {
+  if (role === "displayRepresentative") {
+    return pulseIndex === 0
+      ? { width: 52, height: 24 }
+      : { width: 42, height: 19 };
+  }
+
+  return pulseIndex === 0
+    ? { width: 34, height: 16 }
+    : { width: 28, height: 13 };
+}
+
+function createLinkFlowPacketImageUri(
+  direction: M8aV4LinkFlowDirection,
+  role: M8aV4LinkFlowRelationRole,
+  pulseIndex: number
+): string {
+  const packetColor = resolveLinkFlowHex(direction);
+  const opacity =
+    role === "displayRepresentative" ? (pulseIndex === 0 ? 1 : 0.82) : 0.62;
+  const text = direction === "uplink" ? "UP" : "DN";
+  const svg = [
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 42">',
+    "<defs>",
+    '<filter id="glow" x="-35%" y="-45%" width="170%" height="190%">',
+    `<feDropShadow dx="0" dy="0" stdDeviation="3.2" flood-color="${packetColor}" flood-opacity="0.5"/>`,
+    "</filter>",
+    '<linearGradient id="body" x1="0%" x2="100%" y1="50%" y2="50%">',
+    `<stop offset="0" stop-color="${packetColor}" stop-opacity="0.44"/>`,
+    `<stop offset="0.55" stop-color="${packetColor}" stop-opacity="0.9"/>`,
+    `<stop offset="1" stop-color="#ffffff" stop-opacity="0.96"/>`,
+    "</linearGradient>",
+    "</defs>",
+    `<g opacity="${opacity}">`,
+    `<circle cx="10" cy="21" r="2.7" fill="${packetColor}" opacity="0.22"/>`,
+    `<circle cx="21" cy="21" r="3.3" fill="${packetColor}" opacity="0.38"/>`,
+    `<circle cx="33" cy="21" r="4.1" fill="${packetColor}" opacity="0.58"/>`,
+    '<g filter="url(#glow)">',
+    '<path d="M38 10 H66 L86 21 L66 32 H38 L48 21 Z" fill="url(#body)" stroke="#06121a" stroke-opacity="0.7" stroke-width="2"/>',
+    `<path d="M61 15 L75 21 L61 27" fill="none" stroke="${packetColor}" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>`,
+    '<path d="M66 15 L80 21 L66 27" fill="none" stroke="#ffffff" stroke-opacity="0.86" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>',
+    `<text x="53" y="25" font-family="Arial, sans-serif" font-size="10" font-weight="700" fill="#06121a" fill-opacity="0.82">${text}</text>`,
+    "</g>",
+    "</g>",
+    "</svg>"
+  ].join("");
+
+  return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
+}
+
 function createRelationStyle(
   positions: CallbackProperty,
   role: M8aV4RelationRole
@@ -2396,15 +3085,74 @@ function createRelationStyle(
   return new PolylineGraphics({
     positions,
     width: new ConstantProperty(resolveRelationWidth(role)),
-    material: new PolylineDashMaterialProperty({
-      color: new ConstantProperty(resolveRelationColor(role)),
-      gapColor: new ConstantProperty(
-        Color.fromCssColorString("#06121a").withAlpha(0.04)
-      ),
-      dashLength: role === "displayRepresentative" ? 18 : 24
-    }),
+    material: new ColorMaterialProperty(resolveRelationColor(role).withAlpha(0.22)),
     arcType: ArcType.NONE,
     clampToGround: false
+  });
+}
+
+function createLinkFlowSegmentStyle(
+  positions: CallbackProperty,
+  direction: M8aV4LinkFlowDirection,
+  role: M8aV4LinkFlowRelationRole
+): PolylineGraphics {
+  return new PolylineGraphics({
+    positions,
+    width: new ConstantProperty(resolveLinkFlowWidth(role, direction)),
+    material: new PolylineArrowMaterialProperty(
+      resolveLinkFlowColor(direction, role)
+    ),
+    arcType: ArcType.NONE,
+    clampToGround: false
+  });
+}
+
+function createLinkFlowPulseStyle(
+  direction: M8aV4LinkFlowDirection,
+  role: M8aV4LinkFlowRelationRole,
+  pulseIndex: number,
+  rotation: CallbackProperty
+): BillboardGraphics {
+  const dimensions = resolveLinkFlowPacketDimensions(role, pulseIndex);
+
+  return new BillboardGraphics({
+    image: new ConstantProperty(
+      createLinkFlowPacketImageUri(direction, role, pulseIndex)
+    ),
+    width: new ConstantProperty(dimensions.width),
+    height: new ConstantProperty(dimensions.height),
+    rotation,
+    alignedAxis: new ConstantProperty(Cartesian3.ZERO),
+    disableDepthTestDistance: Number.POSITIVE_INFINITY,
+    distanceDisplayCondition: new DistanceDisplayCondition(0, 100_000_000)
+  });
+}
+
+function createLinkFlowLabelStyle(
+  direction: M8aV4LinkFlowDirection
+): LabelGraphics {
+  return new LabelGraphics({
+    text: new ConstantProperty(direction === "uplink" ? "UPLINK" : "DOWNLINK"),
+    font: "600 12px sans-serif",
+    scale: 0.92,
+    style: LabelStyle.FILL_AND_OUTLINE,
+    fillColor: new ConstantProperty(resolveLinkFlowColor(direction, "displayRepresentative")),
+    outlineColor: new ConstantProperty(
+      Color.fromCssColorString("#06121a").withAlpha(0.98)
+    ),
+    outlineWidth: 2,
+    showBackground: true,
+    backgroundColor: new ConstantProperty(
+      Color.fromCssColorString("#07131b").withAlpha(0.78)
+    ),
+    backgroundPadding: new Cartesian2(8, 4),
+    pixelOffset:
+      direction === "uplink" ? new Cartesian2(0, -26) : new Cartesian2(0, 26),
+    horizontalOrigin: HorizontalOrigin.CENTER,
+    verticalOrigin:
+      direction === "uplink" ? VerticalOrigin.BOTTOM : VerticalOrigin.TOP,
+    disableDepthTestDistance: Number.POSITIVE_INFINITY,
+    distanceDisplayCondition: new DistanceDisplayCondition(0, 100_000_000)
   });
 }
 
@@ -2455,13 +3203,42 @@ function updateRelationStyle(handle: RelationRenderHandle): void {
   handle.entity.polyline.width = new ConstantProperty(
     resolveRelationWidth(handle.role)
   );
-  handle.entity.polyline.material = new PolylineDashMaterialProperty({
-    color: new ConstantProperty(resolveRelationColor(handle.role)),
-    gapColor: new ConstantProperty(
-      Color.fromCssColorString("#06121a").withAlpha(0.04)
-    ),
-    dashLength: handle.role === "displayRepresentative" ? 18 : 24
-  });
+  handle.entity.polyline.material = new ColorMaterialProperty(
+    resolveRelationColor(handle.role).withAlpha(0.22)
+  );
+}
+
+function updateLinkFlowSegmentStyle(handle: LinkFlowSegmentRenderHandle): void {
+  if (!handle.entity.polyline) {
+    return;
+  }
+
+  handle.entity.polyline.width = new ConstantProperty(
+    resolveLinkFlowWidth(handle.role, handle.direction)
+  );
+  handle.entity.polyline.material = new PolylineArrowMaterialProperty(
+    resolveLinkFlowColor(handle.direction, handle.role)
+  );
+}
+
+function updateLinkFlowPulseStyle(handle: LinkFlowPulseRenderHandle): void {
+  if (!handle.entity.billboard) {
+    return;
+  }
+
+  const dimensions = resolveLinkFlowPacketDimensions(
+    handle.role,
+    handle.pulseIndex
+  );
+  handle.entity.billboard.image = new ConstantProperty(
+    createLinkFlowPacketImageUri(
+      handle.direction,
+      handle.role,
+      handle.pulseIndex
+    )
+  );
+  handle.entity.billboard.width = new ConstantProperty(dimensions.width);
+  handle.entity.billboard.height = new ConstantProperty(dimensions.height);
 }
 
 function createHudRoot(): HTMLElement {
@@ -2506,6 +3283,61 @@ function renderHud(root: HTMLElement, state: M8aV4GroundStationSceneState): void
   root.dataset.precisionBadge = M8A_V4_GROUND_STATION_REQUIRED_PRECISION_BADGE;
   root.dataset.visibleContextRibbonCount = String(
     state.relationCues.visibleContextRibbonCount
+  );
+  root.dataset.linkFlowCue = state.relationCues.dataFlowCueVersion;
+  root.dataset.linkFlowCueMode = state.relationCues.dataFlowCueMode;
+  root.dataset.linkFlowDirections = serializeList([
+    ...state.relationCues.dataFlowDirections
+  ]);
+  root.dataset.linkFlowPulseCount = String(state.relationCues.dataFlowPulseCount);
+  root.dataset.linkFlowTruthBoundary =
+    state.relationCues.dataFlowTruthBoundary;
+  root.dataset.itriRequirementGapSurface =
+    state.requirementGapSurface.version;
+  root.dataset.itriRequirementGapOpenIds = serializeList(
+    state.requirementGapSurface.openRequirementIds
+  );
+  root.dataset.itriF09RateSurface = state.f09RateSurface.version;
+  root.dataset.itriF09RateDisposition = state.f09RateSurface.disposition;
+  root.dataset.itriF09ExternalTruthDisposition =
+    state.f09RateSurface.externalTruthDisposition;
+  root.dataset.itriF09CurrentClass =
+    state.f09RateSurface.currentNetworkSpeedClass;
+  root.dataset.itriF09MetricTruth = state.f09RateSurface.metricTruth;
+  root.dataset.itriF09MeasuredThroughputClaimed = String(
+    state.f09RateSurface.measuredThroughputClaimed
+  );
+  root.dataset.itriF16ExportSurface = state.f16ExportSurface.version;
+  root.dataset.itriF16ExportSchemaVersion =
+    state.f16ExportSurface.schemaVersion;
+  root.dataset.itriF16ExportDisposition =
+    state.f16ExportSurface.disposition;
+  root.dataset.itriF16ExternalTruthDisposition =
+    state.f16ExportSurface.externalTruthDisposition;
+  root.dataset.itriF16ExportArtifactTruth =
+    state.f16ExportSurface.artifactTruth;
+  root.dataset.itriF16MeasuredValuesIncluded = String(
+    state.f16ExportSurface.measuredValuesIncluded
+  );
+  root.dataset.itriF16ExternalReportTruthClaimed = String(
+    state.f16ExportSurface.externalReportSystemTruthClaimed
+  );
+  root.dataset.itriPolicyRuleControlsSurface =
+    state.policyRuleControls.version;
+  root.dataset.itriPolicyRuleControlsDisposition =
+    state.policyRuleControls.disposition;
+  root.dataset.itriPolicyRuleTruthBoundary =
+    state.policyRuleControls.truthBoundary;
+  root.dataset.itriF10PolicyPresetId =
+    state.policyRuleControls.activePolicyPreset.presetId;
+  root.dataset.itriF10PolicyPresetMode =
+    state.policyRuleControls.policyPresetMode;
+  root.dataset.itriF11RulePresetId =
+    state.policyRuleControls.activeRulePreset.presetId;
+  root.dataset.itriF11RulePresetMode =
+    state.policyRuleControls.rulePresetMode;
+  root.dataset.itriPolicyRuleLiveControlClaimed = String(
+    state.policyRuleControls.liveControlClaimed
   );
   root.dataset.fallbackGuardCueMode = state.relationCues.fallbackGuardCueMode;
   root.dataset.visibleActorLabelCount = String(
@@ -2574,6 +3406,144 @@ function renderM8aV411DisabledMetricTiles(): string {
       `</li>`
     ].join("");
   }).join("");
+}
+
+function renderItriRequirementGapGroups(): string {
+  return M8A_V4_ITRI_REQUIREMENT_STATUS_GROUPS.map((group) => {
+    const groupId = escapeM8aV411MetricText(group.groupId);
+    const label = escapeM8aV411MetricText(group.label);
+    const disposition = escapeM8aV411MetricText(group.disposition);
+    const status = escapeM8aV411MetricText(group.status);
+    const requirementIds = escapeM8aV411MetricText(
+      group.requirementIds.join("|")
+    );
+    const visibleRequirementIds = escapeM8aV411MetricText(
+      group.requirementIds.length > 0 ? group.requirementIds.join(" ") : "none"
+    );
+    const routeClaim = escapeM8aV411MetricText(group.routeClaim);
+
+    return [
+      `<li class="m8a-v411-requirement-gap__item"`,
+      ` data-itri-requirement-gap-group="true"`,
+      ` data-itri-requirement-gap-group-id="${groupId}"`,
+      ` data-itri-requirement-gap-status="${status}"`,
+      ` data-itri-requirement-gap-disposition="${disposition}"`,
+      ` data-itri-requirement-gap-requirement-ids="${requirementIds}">`,
+      `<div class="m8a-v411-requirement-gap__item-header">`,
+      `<strong>${label}</strong>`,
+      `<span class="m8a-v411-requirement-gap__status">${status}</span>`,
+      `</div>`,
+      `<span class="m8a-v411-requirement-gap__ids">${visibleRequirementIds}</span>`,
+      `<small>${routeClaim}</small>`,
+      `</li>`
+    ].join("");
+  }).join("");
+}
+
+function renderF16ExplicitNonClaimChips(): string {
+  return M8A_V4_ITRI_F16_EXPLICIT_NON_CLAIMS.map((claim) => {
+    return `<span data-itri-f16-export-non-claim="true">${escapeM8aV411MetricText(claim)}</span>`;
+  }).join("");
+}
+
+function renderItriF10PolicyPresetOptions(): string {
+  return M8A_V4_ITRI_F10_POLICY_PRESETS.map((preset) => {
+    const presetId = escapeM8aV411MetricText(preset.presetId);
+    const label = escapeM8aV411MetricText(preset.label);
+    const summary = escapeM8aV411MetricText(preset.summary);
+    const selected =
+      preset.presetId === M8A_V4_ITRI_F10_POLICY_DEFAULT_PRESET_ID
+        ? " selected"
+        : "";
+
+    return `<option value="${presetId}" title="${summary}"${selected}>${label}</option>`;
+  }).join("");
+}
+
+function renderItriF11RulePresetOptions(): string {
+  return M8A_V4_ITRI_F11_RULE_PRESETS.map((preset) => {
+    const presetId = escapeM8aV411MetricText(preset.presetId);
+    const label = escapeM8aV411MetricText(preset.label);
+    const summary = escapeM8aV411MetricText(preset.summary);
+    const selected =
+      preset.presetId === M8A_V4_ITRI_F11_RULE_DEFAULT_PRESET_ID
+        ? " selected"
+        : "";
+
+    return `<option value="${presetId}" title="${summary}"${selected}>${label}</option>`;
+  }).join("");
+}
+
+function renderItriF11RuleParameterChips(
+  preset: M8aV4ItriF11RulePreset
+): string {
+  return preset.parameterChips.map((chip) => {
+    return `<li data-itri-f11-rule-parameter-chip="true">${escapeM8aV411MetricText(chip)}</li>`;
+  }).join("");
+}
+
+function resolveF09RateClassCopy(
+  networkSpeedClass: M8aV4F09NetworkSpeedClass
+): M8aV4F09RateClassCopy {
+  return M8A_V4_ITRI_F09_RATE_CLASS_COPY[networkSpeedClass];
+}
+
+function buildF09RateWindowRows(): ReadonlyArray<M8aV4F09RateWindowRow> {
+  const timeline =
+    M8A_V4_GROUND_STATION_RUNTIME_PROJECTION.simulationHandoverModel.timeline;
+
+  return timeline.map((windowDefinition) => {
+    const ordinal = resolveV48StateOrdinalLabel(
+      timeline,
+      windowDefinition.windowId
+    );
+    const classCopy = resolveF09RateClassCopy(
+      windowDefinition.boundedMetricClasses.networkSpeedClass
+    );
+
+    return {
+      windowId: windowDefinition.windowId,
+      ordinalLabel: ordinal.stateOrdinalLabel,
+      windowLabel: resolveTimelineLabel(windowDefinition.windowId),
+      orbitClass: windowDefinition.displayRepresentativeOrbitClass,
+      networkSpeedClass: windowDefinition.boundedMetricClasses.networkSpeedClass,
+      classLabel: classCopy.classLabel,
+      bucketLabel: classCopy.bucketLabel,
+      provenance: M8A_V4_ITRI_F09_PROVENANCE,
+      metricTruth: M8A_V4_ITRI_F09_METRIC_TRUTH
+    };
+  });
+}
+
+function renderF09RateWindowRows(): string {
+  return buildF09RateWindowRows()
+    .map((row) => {
+      const windowId = escapeM8aV411MetricText(row.windowId);
+      const ordinalLabel = escapeM8aV411MetricText(row.ordinalLabel);
+      const windowLabel = escapeM8aV411MetricText(row.windowLabel);
+      const orbitClass = escapeM8aV411MetricText(row.orbitClass.toUpperCase());
+      const networkSpeedClass = escapeM8aV411MetricText(row.networkSpeedClass);
+      const classLabel = escapeM8aV411MetricText(row.classLabel);
+      const bucketLabel = escapeM8aV411MetricText(row.bucketLabel);
+      const provenance = escapeM8aV411MetricText(row.provenance);
+      const metricTruth = escapeM8aV411MetricText(row.metricTruth);
+
+      return [
+        `<tr data-itri-f09-rate-row="true"`,
+        ` data-itri-f09-rate-window-id="${windowId}"`,
+        ` data-itri-f09-rate-class="${networkSpeedClass}"`,
+        ` data-itri-f09-rate-orbit="${row.orbitClass}">`,
+        `<td>${ordinalLabel}</td>`,
+        `<td>${windowLabel}</td>`,
+        `<td>${orbitClass}</td>`,
+        `<td>${classLabel}</td>`,
+        `<td>${bucketLabel}</td>`,
+        `<td>${provenance}</td>`,
+        `<td>${metricTruth}</td>`,
+        `</tr>`
+      ].join("");
+    })
+    .join("");
 }
 
 // Conv 3: renderCompactTruthAffordance removed — Truth button no longer exists.
@@ -2665,7 +3635,11 @@ function ensureProductUxStructure(root: HTMLElement): void {
       root.querySelector("[data-m8a-v410-inspector-evidence-structure='true']") &&
       root.querySelector("[data-m8a-v411-inspector-role='state-evidence']") &&
       root.querySelector("[data-m8a-v411-inspector-role='truth-boundary']") &&
-      root.querySelector("[data-m8a-v411-state-evidence-truth-tail='true']")
+      root.querySelector("[data-m8a-v411-state-evidence-truth-tail='true']") &&
+      root.querySelector("[data-itri-requirement-gap-surface='true']") &&
+      root.querySelector("[data-itri-policy-rule-controls-surface='true']") &&
+      root.querySelector("[data-itri-f09-rate-surface='true']") &&
+      root.querySelector("[data-itri-f16-export-surface='true']")
   );
   const hasSlice1V410SceneNarrative = Boolean(
     root.querySelector("[data-m8a-v410-scene-narrative='true']") &&
@@ -2811,6 +3785,93 @@ function ensureProductUxStructure(root: HTMLElement): void {
         <span data-m8a-v411-inspector-boundary-chip="scale">13-actor demo</span>
         <span data-m8a-v411-inspector-boundary-chip="endpoint">operator-family precision</span>
       </div>
+      <section class="m8a-v411-requirement-gap" data-itri-requirement-gap-surface="true" data-itri-requirement-gap-version="${M8A_V4_ITRI_REQUIREMENT_GAP_SURFACE_VERSION}" aria-label="ITRI requirement route status">
+        <div class="m8a-v411-requirement-gap__header">
+          <strong data-m8a-v48-info-class="fixed">ITRI status</strong>
+          <span data-itri-requirement-gap-demo-polish="${M8A_V4_ITRI_DEMO_POLISH_DISPOSITION}" data-m8a-v48-info-class="fixed">Demo polish: no closure claim</span>
+        </div>
+        <ol class="m8a-v411-requirement-gap__list">
+          ${renderItriRequirementGapGroups()}
+        </ol>
+        <section class="m8a-v411-f16-export" data-itri-f16-export-surface="true" data-itri-f16-export-version="${M8A_V4_ITRI_F16_EXPORT_SURFACE_VERSION}" data-itri-f16-export-schema-version="${M8A_V4_ITRI_F16_EXPORT_SCHEMA_VERSION}" data-itri-f16-export-disposition="${M8A_V4_ITRI_F16_EXPORT_DISPOSITION}" aria-labelledby="m8a-v411-f16-export-heading">
+          <div class="m8a-v411-f16-export__header">
+            <span data-m8a-v48-info-class="fixed">F-16</span>
+            <strong id="m8a-v411-f16-export-heading" data-m8a-v48-info-class="fixed">Bounded Route Export</strong>
+            <small data-itri-f16-export-truth-label="true" data-m8a-v48-info-class="fixed">JSON only · not external measurement/report truth</small>
+          </div>
+          <p class="m8a-v411-f16-export__copy" data-itri-f16-export-label="true" data-m8a-v48-info-class="disclosure">Exports route-owned bounded state only: scenario, endpoint pair, actor counts, modeled window, requirement groups, F-09 class disposition, link-flow cue metadata, provenance, and non-claims.</p>
+          <div class="m8a-v411-f16-export__actions">
+            <button type="button" class="m8a-v411-f16-export__button" data-m8a-v47-action="export-f16-bounded-route-json" data-itri-f16-export-action="true" data-m8a-v48-info-class="control">Export bounded JSON</button>
+            <span class="m8a-v411-f16-export__status" data-itri-f16-export-status="true" data-m8a-v48-info-class="dynamic" role="status" aria-live="polite">Ready: bounded route export only.</span>
+          </div>
+          <div data-itri-f16-export-non-claims="true" hidden>
+            ${renderF16ExplicitNonClaimChips()}
+          </div>
+        </section>
+      </section>
+      <section class="m8a-v411-policy-rule" data-itri-policy-rule-controls-surface="true" data-itri-policy-rule-controls-version="${M8A_V4_ITRI_POLICY_RULE_CONTROLS_VERSION}" data-itri-policy-rule-controls-disposition="${M8A_V4_ITRI_POLICY_RULE_DISPOSITION}" data-itri-policy-rule-truth-boundary="${M8A_V4_ITRI_POLICY_RULE_TRUTH_BOUNDARY}" aria-labelledby="m8a-v411-policy-rule-heading">
+        <div class="m8a-v411-policy-rule__header">
+          <span data-m8a-v48-info-class="fixed">F-10/F-11</span>
+          <strong id="m8a-v411-policy-rule-heading" data-m8a-v48-info-class="fixed">Modeled Replay Presets</strong>
+          <small data-itri-policy-rule-truth-label="true" data-m8a-v48-info-class="fixed">Preset-only · not live control</small>
+        </div>
+        <p class="m8a-v411-policy-rule__copy" data-itri-policy-rule-copy="true" data-m8a-v48-info-class="disclosure">Route-local modeled replay preset controls. They update preview state and telemetry only; no backend side effect, rule engine, or measured decision truth.</p>
+        <div class="m8a-v411-policy-rule__controls">
+          <label class="m8a-v411-policy-rule__field" for="m8a-v411-f10-policy-preset">
+            <span data-m8a-v48-info-class="fixed">F-10 policy preset</span>
+            <select id="m8a-v411-f10-policy-preset" data-itri-f10-policy-selector="true" data-itri-f10-policy-preset-mode="${M8A_V4_ITRI_F10_POLICY_PRESET_MODE}" data-m8a-v48-info-class="control" aria-label="F-10 modeled replay policy preset selector. Preset only; not live control.">
+              ${renderItriF10PolicyPresetOptions()}
+            </select>
+          </label>
+          <label class="m8a-v411-policy-rule__field" for="m8a-v411-f11-rule-preset">
+            <span data-m8a-v48-info-class="fixed">F-11 rule preset</span>
+            <select id="m8a-v411-f11-rule-preset" data-itri-f11-rule-preset="true" data-itri-f11-rule-preset-mode="${M8A_V4_ITRI_F11_RULE_PRESET_MODE}" data-m8a-v48-info-class="control" aria-label="F-11 bounded replay rule and parameter preset. Preset only; not live control.">
+              ${renderItriF11RulePresetOptions()}
+            </select>
+          </label>
+        </div>
+        <div class="m8a-v411-policy-rule__preview" data-itri-policy-rule-preview="true">
+          <p data-itri-f10-policy-preview="true" data-m8a-v48-info-class="dynamic"></p>
+          <p data-itri-f11-rule-preview="true" data-m8a-v48-info-class="dynamic"></p>
+          <ul data-itri-f11-rule-parameter-list="true">
+            ${renderItriF11RuleParameterChips(resolveItriF11RulePreset(M8A_V4_ITRI_F11_RULE_DEFAULT_PRESET_ID))}
+          </ul>
+        </div>
+        <span class="m8a-v411-policy-rule__status" data-itri-policy-rule-status="true" data-m8a-v48-info-class="dynamic" role="status" aria-live="polite">Modeled replay presets ready; preset-only, not live control.</span>
+      </section>
+      <section class="m8a-v411-f09-rate" data-itri-f09-rate-surface="true" data-itri-f09-rate-version="${M8A_V4_ITRI_F09_RATE_SURFACE_VERSION}" aria-labelledby="m8a-v411-f09-rate-heading">
+        <div class="m8a-v411-f09-rate__header">
+          <span data-m8a-v48-info-class="fixed">F-09</span>
+          <strong id="m8a-v411-f09-rate-heading" data-m8a-v48-info-class="fixed">Communication Rate</strong>
+          <small data-itri-f09-rate-truth-label="true" data-m8a-v48-info-class="fixed">Modeled, not measured.</small>
+        </div>
+        <div class="m8a-v411-f09-rate__current" data-itri-f09-rate-current="true" tabindex="0" aria-describedby="m8a-v411-f09-rate-description">
+          <span data-m8a-v48-info-class="fixed">Modeled network-speed class</span>
+          <strong data-itri-f09-rate-current-class="true" data-m8a-v48-info-class="dynamic"></strong>
+          <em data-itri-f09-rate-current-bucket="true" data-m8a-v48-info-class="dynamic"></em>
+          <small id="m8a-v411-f09-rate-description" data-itri-f09-rate-description="true" data-m8a-v48-info-class="disclosure"></small>
+        </div>
+        <details class="m8a-v411-f09-rate__fallback" data-itri-f09-rate-fallback="true">
+          <summary data-m8a-v48-info-class="disclosure">Class table fallback</summary>
+          <table data-itri-f09-rate-table="true">
+            <caption>Route-local F-09 modeled communication-rate class fallback</caption>
+            <thead>
+              <tr>
+                <th scope="col">Window</th>
+                <th scope="col">State</th>
+                <th scope="col">Orbit</th>
+                <th scope="col">Class</th>
+                <th scope="col">Bucket</th>
+                <th scope="col">Source</th>
+                <th scope="col">Truth</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${renderF09RateWindowRows()}
+            </tbody>
+          </table>
+        </details>
+      </section>
       <div class="m8a-v411-inspector__tabs" data-m8a-v411-inspector-tabs="true" role="tablist" aria-label="Details inspector sections">
         <button type="button" id="m8a-v411-inspector-tab-decision" role="tab" data-m8a-v47-action="switch-inspector-tab" data-m8a-v411-inspector-tab="decision" aria-selected="true" aria-controls="m8a-v411-inspector-panel-decision" data-m8a-v48-info-class="control">Decision</button>
         <button type="button" id="m8a-v411-inspector-tab-metrics" role="tab" data-m8a-v47-action="switch-inspector-tab" data-m8a-v411-inspector-tab="metrics" aria-selected="false" aria-controls="m8a-v411-inspector-panel-metrics" data-m8a-v48-info-class="control">Metrics</button>
@@ -3211,7 +4272,11 @@ function ensureV410ProductUxStructureReady(root: HTMLElement): void {
       root.querySelector("[data-m8a-v410-sequence-active-summary='true']") &&
       root.querySelector("[data-m8a-v410-sequence-next-summary='true']") &&
       root.querySelector("[data-m8a-v410-boundary-surface='true']") &&
-      root.querySelector("[data-m8a-v410-inspector-evidence-structure='true']")
+      root.querySelector("[data-m8a-v410-inspector-evidence-structure='true']") &&
+      root.querySelector("[data-itri-requirement-gap-surface='true']") &&
+      root.querySelector("[data-itri-policy-rule-controls-surface='true']") &&
+      root.querySelector("[data-itri-f09-rate-surface='true']") &&
+      root.querySelector("[data-itri-f16-export-surface='true']")
   );
 
   if (hasRequiredStructure) {
@@ -3840,6 +4905,15 @@ function renderProductUx(
     sheetOpen &&
     (sourcesRoleOpen ||
       (stateEvidenceOpen && selectedInspectorTab === "evidence"));
+  const requirementGapSurface = state.requirementGapSurface;
+  const f09RateSurface = state.f09RateSurface;
+  const f16ExportSurface = state.f16ExportSurface;
+  const policyRuleControls = state.policyRuleControls;
+  const requirementIdsForGroup = (
+    groupId: M8aV4ItriRequirementGroupId
+  ): readonly string[] =>
+    requirementGapSurface.groups.find((group) => group.groupId === groupId)
+      ?.requirementIds ?? [];
 
   ensureProductUxStructure(root);
   ensureV410ProductUxStructureReady(root);
@@ -4203,6 +5277,136 @@ function renderProductUx(
   root.dataset.m8aV48SelectedCorridorId = placement.selectedCorridorId;
   root.dataset.m8aV48AnchorStatus = placement.anchorStatus;
   root.dataset.m8aV48FallbackReason = placement.fallbackReason;
+  root.dataset.m8aV4ItriRequirementGapSurface =
+    requirementGapSurface.version;
+  root.dataset.m8aV4ItriRequirementGapTruthLabels = serializeList([
+    ...requirementGapSurface.truthBoundaryLabels
+  ]);
+  root.dataset.m8aV4ItriRequirementGapGroupIds = serializeList(
+    requirementGapSurface.groups.map((group) => group.groupId)
+  );
+  root.dataset.m8aV4ItriRequirementGapGroupStatuses = serializeList(
+    requirementGapSurface.groups.map((group) => `${group.groupId}:${group.status}`)
+  );
+  root.dataset.m8aV4ItriRequirementGapGroupDispositions = serializeList(
+    requirementGapSurface.groups.map(
+      (group) => `${group.groupId}:${group.disposition}`
+    )
+  );
+  root.dataset.m8aV4ItriRequirementGapOpenIds = serializeList(
+    requirementGapSurface.openRequirementIds
+  );
+  root.dataset.m8aV4ItriRequirementGapNotMountedIds = serializeList([
+    ...requirementIdsForGroup("not-mounted-route-gap")
+  ]);
+  root.dataset.m8aV4ItriRequirementGapExternalValidationIds = serializeList([
+    ...requirementIdsForGroup("external-validation-gap")
+  ]);
+  root.dataset.m8aV4ItriRequirementGapRepoSeamIds = serializeList([
+    ...requirementIdsForGroup("bounded-repo-owned-seam")
+  ]);
+  root.dataset.m8aV4ItriRequirementGapBoundedRouteIds = serializeList([
+    ...requirementIdsForGroup("bounded-route-representation")
+  ]);
+  root.dataset.m8aV4ItriRequirementGapRouteBaselineIds = serializeList([
+    ...requirementIdsForGroup("route-owned-visual-baseline")
+  ]);
+  root.dataset.m8aV4ItriDemoPolishDisposition =
+    requirementGapSurface.demoPolishDisposition;
+  root.dataset.m8aV4ItriRouteNativeMeasuredTruthClaimed = String(
+    requirementGapSurface.routeNativeMeasuredTruthClaimed
+  );
+  root.dataset.m8aV4ItriF09RateSurface = f09RateSurface.version;
+  root.dataset.m8aV4ItriF09RateDisposition = f09RateSurface.disposition;
+  root.dataset.m8aV4ItriF09ExternalTruthDisposition =
+    f09RateSurface.externalTruthDisposition;
+  root.dataset.m8aV4ItriF09CurrentWindowId = f09RateSurface.currentWindowId;
+  root.dataset.m8aV4ItriF09CurrentClass =
+    f09RateSurface.currentNetworkSpeedClass;
+  root.dataset.m8aV4ItriF09CurrentBucket =
+    f09RateSurface.currentBucketLabel;
+  root.dataset.m8aV4ItriF09Provenance = f09RateSurface.provenance;
+  root.dataset.m8aV4ItriF09MetricTruth = f09RateSurface.metricTruth;
+  root.dataset.m8aV4ItriF09MeasuredThroughputClaimed = String(
+    f09RateSurface.measuredThroughputClaimed
+  );
+  root.dataset.m8aV4ItriF09WindowClasses = serializeList(
+    f09RateSurface.rows.map(
+      (row) => `${row.windowId}:${row.networkSpeedClass}`
+    )
+  );
+  root.dataset.m8aV4ItriF16ExportSurface = f16ExportSurface.version;
+  root.dataset.m8aV4ItriF16ExportSchemaVersion =
+    f16ExportSurface.schemaVersion;
+  root.dataset.m8aV4ItriF16ExportDisposition =
+    f16ExportSurface.disposition;
+  root.dataset.m8aV4ItriF16ExternalTruthDisposition =
+    f16ExportSurface.externalTruthDisposition;
+  root.dataset.m8aV4ItriF16ExportArtifactTruth =
+    f16ExportSurface.artifactTruth;
+  root.dataset.m8aV4ItriF16ExportFormat = f16ExportSurface.exportFormat;
+  root.dataset.m8aV4ItriF16RouteOwnedStateOnly = String(
+    f16ExportSurface.routeOwnedStateOnly
+  );
+  root.dataset.m8aV4ItriF16MeasuredValuesIncluded = String(
+    f16ExportSurface.measuredValuesIncluded
+  );
+  root.dataset.m8aV4ItriF16ExternalReportTruthClaimed = String(
+    f16ExportSurface.externalReportSystemTruthClaimed
+  );
+  root.dataset.m8aV4ItriF16LastStatus = f16ExportSurface.lastStatus;
+  root.dataset.m8aV4ItriF16LastGeneratedAtUtc =
+    f16ExportSurface.lastGeneratedAtUtc;
+  root.dataset.m8aV4ItriF16LastFilename = f16ExportSurface.lastFilename;
+  root.dataset.m8aV4ItriPolicyRuleControlsSurface =
+    policyRuleControls.version;
+  root.dataset.m8aV4ItriPolicyRuleControlsDisposition =
+    policyRuleControls.disposition;
+  root.dataset.m8aV4ItriPolicyRuleExternalTruthDisposition =
+    policyRuleControls.externalTruthDisposition;
+  root.dataset.m8aV4ItriPolicyRuleTruthBoundary =
+    policyRuleControls.truthBoundary;
+  root.dataset.m8aV4ItriPolicyRuleExportAdjacentTruth =
+    policyRuleControls.exportAdjacentTruth;
+  root.dataset.m8aV4ItriF10PolicyPresetId =
+    policyRuleControls.activePolicyPreset.presetId;
+  root.dataset.m8aV4ItriF10PolicyPresetLabel =
+    policyRuleControls.activePolicyPreset.label;
+  root.dataset.m8aV4ItriF10PolicyPresetMode =
+    policyRuleControls.policyPresetMode;
+  root.dataset.m8aV4ItriF10PolicyPresetIds = serializeList(
+    policyRuleControls.policyPresets.map((preset) => preset.presetId)
+  );
+  root.dataset.m8aV4ItriF11RulePresetId =
+    policyRuleControls.activeRulePreset.presetId;
+  root.dataset.m8aV4ItriF11RulePresetLabel =
+    policyRuleControls.activeRulePreset.label;
+  root.dataset.m8aV4ItriF11RulePresetMode =
+    policyRuleControls.rulePresetMode;
+  root.dataset.m8aV4ItriF11RulePresetIds = serializeList(
+    policyRuleControls.rulePresets.map((preset) => preset.presetId)
+  );
+  root.dataset.m8aV4ItriF11RuleParameterChips = serializeList([
+    ...policyRuleControls.activeRulePreset.parameterChips
+  ]);
+  root.dataset.m8aV4ItriPolicyRuleRouteOwnedStateOnly = String(
+    policyRuleControls.routeOwnedStateOnly
+  );
+  root.dataset.m8aV4ItriPolicyRuleLiveControlClaimed = String(
+    policyRuleControls.liveControlClaimed
+  );
+  root.dataset.m8aV4ItriPolicyRuleBackendControlClaimed = String(
+    policyRuleControls.backendControlClaimed
+  );
+  root.dataset.m8aV4ItriPolicyRuleNetworkControlClaimed = String(
+    policyRuleControls.networkControlClaimed
+  );
+  root.dataset.m8aV4ItriPolicyRuleArbitraryRuleEditorClaimed = String(
+    policyRuleControls.arbitraryRuleEditorClaimed
+  );
+  root.dataset.m8aV4ItriPolicyRuleMeasuredDecisionTruthClaimed = String(
+    policyRuleControls.measuredDecisionTruthClaimed
+  );
 
   updateProductUxText(
     root,
@@ -4443,6 +5647,189 @@ function renderProductUx(
     "[data-m8a-v411-metrics-available-detail='replay-timing']",
     metricsCopy.replayTimingDetail
   );
+  const f16Surface = getProductUxElement(
+    root,
+    "[data-itri-f16-export-surface='true']"
+  );
+  f16Surface.dataset.itriF16ExportVersion = f16ExportSurface.version;
+  f16Surface.dataset.itriF16ExportSchemaVersion =
+    f16ExportSurface.schemaVersion;
+  f16Surface.dataset.itriF16ExportDisposition =
+    f16ExportSurface.disposition;
+  f16Surface.dataset.itriF16ExternalTruthDisposition =
+    f16ExportSurface.externalTruthDisposition;
+  f16Surface.dataset.itriF16ExportArtifactTruth =
+    f16ExportSurface.artifactTruth;
+  f16Surface.dataset.itriF16ExportFormat = f16ExportSurface.exportFormat;
+  f16Surface.dataset.itriF16RouteOwnedStateOnly = String(
+    f16ExportSurface.routeOwnedStateOnly
+  );
+  f16Surface.dataset.itriF16MeasuredValuesIncluded = String(
+    f16ExportSurface.measuredValuesIncluded
+  );
+  f16Surface.dataset.itriF16ExternalReportTruthClaimed = String(
+    f16ExportSurface.externalReportSystemTruthClaimed
+  );
+  f16Surface.dataset.itriF16LastStatus = f16ExportSurface.lastStatus;
+  f16Surface.dataset.itriF16LastGeneratedAtUtc =
+    f16ExportSurface.lastGeneratedAtUtc;
+  f16Surface.dataset.itriF16LastFilename = f16ExportSurface.lastFilename;
+  const f16Button = getProductUxElement(
+    root,
+    "[data-itri-f16-export-action='true']"
+  );
+  f16Button.setAttribute(
+    "aria-label",
+    "Export bounded route JSON. Not external measurement/report truth."
+  );
+  const f16Status = getProductUxElement(
+    root,
+    "[data-itri-f16-export-status='true']"
+  );
+  f16Status.textContent =
+    f16ExportSurface.lastStatus === "exported"
+      ? `Exported bounded JSON: ${f16ExportSurface.lastGeneratedAtUtc}`
+      : f16ExportSurface.lastStatus === "failed"
+        ? `Export failed: ${f16ExportSurface.lastErrorMessage}`
+        : "Ready: bounded route export only.";
+  const policyRuleSurface = getProductUxElement(
+    root,
+    "[data-itri-policy-rule-controls-surface='true']"
+  );
+  policyRuleSurface.dataset.itriPolicyRuleControlsVersion =
+    policyRuleControls.version;
+  policyRuleSurface.dataset.itriPolicyRuleControlsDisposition =
+    policyRuleControls.disposition;
+  policyRuleSurface.dataset.itriPolicyRuleExternalTruthDisposition =
+    policyRuleControls.externalTruthDisposition;
+  policyRuleSurface.dataset.itriPolicyRuleTruthBoundary =
+    policyRuleControls.truthBoundary;
+  policyRuleSurface.dataset.itriPolicyRuleExportAdjacentTruth =
+    policyRuleControls.exportAdjacentTruth;
+  policyRuleSurface.dataset.itriF10PolicyPresetId =
+    policyRuleControls.activePolicyPreset.presetId;
+  policyRuleSurface.dataset.itriF10PolicyPresetMode =
+    policyRuleControls.policyPresetMode;
+  policyRuleSurface.dataset.itriF11RulePresetId =
+    policyRuleControls.activeRulePreset.presetId;
+  policyRuleSurface.dataset.itriF11RulePresetMode =
+    policyRuleControls.rulePresetMode;
+  policyRuleSurface.dataset.itriPolicyRuleRouteOwnedStateOnly = String(
+    policyRuleControls.routeOwnedStateOnly
+  );
+  policyRuleSurface.dataset.itriPolicyRuleLiveControlClaimed = String(
+    policyRuleControls.liveControlClaimed
+  );
+  policyRuleSurface.dataset.itriPolicyRuleArbitraryRuleEditorClaimed = String(
+    policyRuleControls.arbitraryRuleEditorClaimed
+  );
+  policyRuleSurface.dataset.itriPolicyRuleMeasuredDecisionTruthClaimed = String(
+    policyRuleControls.measuredDecisionTruthClaimed
+  );
+  const policySelect = getProductUxElement(
+    root,
+    "[data-itri-f10-policy-selector='true']"
+  );
+  if (policySelect instanceof HTMLSelectElement) {
+    policySelect.value = policyRuleControls.activePolicyPreset.presetId;
+    policySelect.dataset.itriF10PolicyPresetId =
+      policyRuleControls.activePolicyPreset.presetId;
+    policySelect.dataset.itriF10PolicyPresetMode =
+      policyRuleControls.policyPresetMode;
+    policySelect.setAttribute(
+      "aria-label",
+      `F-10 modeled replay policy preset selector. Active preset: ${policyRuleControls.activePolicyPreset.label}. Preset only; not live control.`
+    );
+  }
+  const ruleSelect = getProductUxElement(
+    root,
+    "[data-itri-f11-rule-preset='true']"
+  );
+  if (ruleSelect instanceof HTMLSelectElement) {
+    ruleSelect.value = policyRuleControls.activeRulePreset.presetId;
+    ruleSelect.dataset.itriF11RulePresetId =
+      policyRuleControls.activeRulePreset.presetId;
+    ruleSelect.dataset.itriF11RulePresetMode =
+      policyRuleControls.rulePresetMode;
+    ruleSelect.setAttribute(
+      "aria-label",
+      `F-11 bounded replay rule and parameter preset. Active preset: ${policyRuleControls.activeRulePreset.label}. Preset only; not live control.`
+    );
+  }
+  updateProductUxText(
+    root,
+    "[data-itri-f10-policy-preview='true']",
+    policyRuleControls.activePolicyPreset.preview
+  );
+  updateProductUxText(
+    root,
+    "[data-itri-f11-rule-preview='true']",
+    policyRuleControls.activeRulePreset.preview
+  );
+  const ruleParameterList = getProductUxElement(
+    root,
+    "[data-itri-f11-rule-parameter-list='true']"
+  );
+  ruleParameterList.innerHTML = renderItriF11RuleParameterChips(
+    policyRuleControls.activeRulePreset
+  );
+  const policyRuleStatus = getProductUxElement(
+    root,
+    "[data-itri-policy-rule-status='true']"
+  );
+  policyRuleStatus.textContent =
+    `Modeled replay presets: F-10 ${policyRuleControls.activePolicyPreset.label}; F-11 ${policyRuleControls.activeRulePreset.label}. Preset-only, not live control.`;
+  const f09Surface = getProductUxElement(
+    root,
+    "[data-itri-f09-rate-surface='true']"
+  );
+  f09Surface.dataset.itriF09RateSurfaceVersion = f09RateSurface.version;
+  f09Surface.dataset.itriF09RateDisposition = f09RateSurface.disposition;
+  f09Surface.dataset.itriF09ExternalTruthDisposition =
+    f09RateSurface.externalTruthDisposition;
+  f09Surface.dataset.itriF09RateCurrentWindowId =
+    f09RateSurface.currentWindowId;
+  f09Surface.dataset.itriF09RateCurrentClass =
+    f09RateSurface.currentNetworkSpeedClass;
+  f09Surface.dataset.itriF09RateCurrentBucket =
+    f09RateSurface.currentBucketLabel;
+  f09Surface.dataset.itriF09RateProvenance = f09RateSurface.provenance;
+  f09Surface.dataset.itriF09RateMetricTruth = f09RateSurface.metricTruth;
+  f09Surface.dataset.itriF09MeasuredThroughputClaimed = String(
+    f09RateSurface.measuredThroughputClaimed
+  );
+  updateProductUxText(
+    root,
+    "[data-itri-f09-rate-current-class='true']",
+    f09RateSurface.currentClassLabel
+  );
+  updateProductUxText(
+    root,
+    "[data-itri-f09-rate-current-bucket='true']",
+    f09RateSurface.currentBucketLabel
+  );
+  updateProductUxText(
+    root,
+    "[data-itri-f09-rate-description='true']",
+    `${f09RateSurface.currentReviewLabel}. Source: ${f09RateSurface.provenance}. Truth: ${f09RateSurface.metricTruth}.`
+  );
+  const f09Current = getProductUxElement(
+    root,
+    "[data-itri-f09-rate-current='true']"
+  );
+  f09Current.setAttribute(
+    "aria-label",
+    `Communication rate. Modeled network-speed class: ${f09RateSurface.currentClassLabel}. Source: ${f09RateSurface.provenance}. Window: ${resolveTimelineLabel(
+      f09RateSurface.currentWindowId
+    )}. Modeled, not measured.`
+  );
+  for (const row of root.querySelectorAll<HTMLElement>(
+    "[data-itri-f09-rate-row='true']"
+  )) {
+    const isActive =
+      row.dataset.itriF09RateWindowId === f09RateSurface.currentWindowId;
+    row.dataset.itriF09RateActive = String(isActive);
+  }
   updateProductUxText(
     root,
     "[data-m8a-v48-review-purpose]",
@@ -5676,6 +7063,33 @@ function cloneState(
     relationCues: {
       ...state.relationCues
     },
+    requirementGapSurface: {
+      ...state.requirementGapSurface,
+      truthBoundaryLabels: [
+        ...state.requirementGapSurface.truthBoundaryLabels
+      ] as typeof M8A_V4_ITRI_REQUIREMENT_GAP_TRUTH_LABELS,
+      groups: state.requirementGapSurface.groups.map((group) => ({
+        ...group,
+        requirementIds: [...group.requirementIds]
+      })),
+      openRequirementIds: [
+        ...state.requirementGapSurface.openRequirementIds
+      ]
+    },
+    f09RateSurface: {
+      ...state.f09RateSurface,
+      rows: state.f09RateSurface.rows.map((row) => ({ ...row }))
+    },
+    f16ExportSurface: {
+      ...state.f16ExportSurface,
+      explicitNonClaims: [
+        ...state.f16ExportSurface.explicitNonClaims
+      ] as typeof M8A_V4_ITRI_F16_EXPLICIT_NON_CLAIMS
+    },
+    policyRuleControls: buildPolicyRuleControlsState(
+      state.policyRuleControls.activePolicyPreset.presetId,
+      state.policyRuleControls.activeRulePreset.presetId
+    ),
     nonClaims: {
       ...state.nonClaims
     },
@@ -5705,6 +7119,15 @@ function syncTelemetry(state: M8aV4GroundStationSceneState): void {
     state.productUx.productComprehension.handoverSequenceRail;
   const boundaryAffordance =
     state.productUx.productComprehension.boundaryAffordance;
+  const requirementGapSurface = state.requirementGapSurface;
+  const f09RateSurface = state.f09RateSurface;
+  const f16ExportSurface = state.f16ExportSurface;
+  const policyRuleControls = state.policyRuleControls;
+  const requirementIdsForGroup = (
+    groupId: M8aV4ItriRequirementGroupId
+  ): readonly string[] =>
+    requirementGapSurface.groups.find((group) => group.groupId === groupId)
+      ?.requirementIds ?? [];
 
   syncDocumentTelemetry({
     m8aV4GroundStationRuntimeState: state.runtimeState,
@@ -5736,6 +7159,14 @@ function syncTelemetry(state: M8aV4GroundStationSceneState): void {
       state.relationCues.visibleContextRibbonCount
     ),
     m8aV46eFallbackGuardCueMode: state.relationCues.fallbackGuardCueMode,
+    m8aV4LinkFlowCue: state.relationCues.dataFlowCueVersion,
+    m8aV4LinkFlowCueMode: state.relationCues.dataFlowCueMode,
+    m8aV4LinkFlowDirections: serializeList([
+      ...state.relationCues.dataFlowDirections
+    ]),
+    m8aV4LinkFlowPulseCount: String(state.relationCues.dataFlowPulseCount),
+    m8aV4LinkFlowTruthBoundary:
+      state.relationCues.dataFlowTruthBoundary,
     m8aV46eVisibleActorLabelCount: String(
       state.actorLabelDensity.visibleActorLabelCount
     ),
@@ -6081,7 +7512,129 @@ function syncTelemetry(state: M8aV4GroundStationSceneState): void {
     m8aV4GroundStationRuntimeConsumptionRule:
       M8A_V4_GROUND_STATION_RUNTIME_PROJECTION.runtimeConsumptionRule,
     m8aV4GroundStationProofSeam: state.proofSeam,
-    m8aV4GroundStationNonClaims: serializeJson(state.nonClaims)
+    m8aV4GroundStationNonClaims: serializeJson(state.nonClaims),
+    m8aV4ItriRequirementGapSurface: requirementGapSurface.version,
+    m8aV4ItriRequirementGapTruthLabels: serializeList([
+      ...requirementGapSurface.truthBoundaryLabels
+    ]),
+    m8aV4ItriRequirementGapGroupIds: serializeList(
+      requirementGapSurface.groups.map((group) => group.groupId)
+    ),
+    m8aV4ItriRequirementGapGroupStatuses: serializeList(
+      requirementGapSurface.groups.map((group) => `${group.groupId}:${group.status}`)
+    ),
+    m8aV4ItriRequirementGapGroupDispositions: serializeList(
+      requirementGapSurface.groups.map(
+        (group) => `${group.groupId}:${group.disposition}`
+      )
+    ),
+    m8aV4ItriRequirementGapOpenIds: serializeList(
+      requirementGapSurface.openRequirementIds
+    ),
+    m8aV4ItriRequirementGapNotMountedIds: serializeList([
+      ...requirementIdsForGroup("not-mounted-route-gap")
+    ]),
+    m8aV4ItriRequirementGapExternalValidationIds: serializeList([
+      ...requirementIdsForGroup("external-validation-gap")
+    ]),
+    m8aV4ItriRequirementGapRepoSeamIds: serializeList([
+      ...requirementIdsForGroup("bounded-repo-owned-seam")
+    ]),
+    m8aV4ItriRequirementGapBoundedRouteIds: serializeList([
+      ...requirementIdsForGroup("bounded-route-representation")
+    ]),
+    m8aV4ItriRequirementGapRouteBaselineIds: serializeList([
+      ...requirementIdsForGroup("route-owned-visual-baseline")
+    ]),
+    m8aV4ItriDemoPolishDisposition:
+      requirementGapSurface.demoPolishDisposition,
+    m8aV4ItriRouteNativeMeasuredTruthClaimed: String(
+      requirementGapSurface.routeNativeMeasuredTruthClaimed
+    ),
+    m8aV4ItriF09RateSurface: f09RateSurface.version,
+    m8aV4ItriF09RateDisposition: f09RateSurface.disposition,
+    m8aV4ItriF09ExternalTruthDisposition:
+      f09RateSurface.externalTruthDisposition,
+    m8aV4ItriF09CurrentWindowId: f09RateSurface.currentWindowId,
+    m8aV4ItriF09CurrentClass: f09RateSurface.currentNetworkSpeedClass,
+    m8aV4ItriF09CurrentBucket: f09RateSurface.currentBucketLabel,
+    m8aV4ItriF09Provenance: f09RateSurface.provenance,
+    m8aV4ItriF09MetricTruth: f09RateSurface.metricTruth,
+    m8aV4ItriF09MeasuredThroughputClaimed: String(
+      f09RateSurface.measuredThroughputClaimed
+    ),
+    m8aV4ItriF09WindowClasses: serializeList(
+      f09RateSurface.rows.map(
+        (row) => `${row.windowId}:${row.networkSpeedClass}`
+      )
+    ),
+    m8aV4ItriF16ExportSurface: f16ExportSurface.version,
+    m8aV4ItriF16ExportSchemaVersion: f16ExportSurface.schemaVersion,
+    m8aV4ItriF16ExportDisposition: f16ExportSurface.disposition,
+    m8aV4ItriF16ExternalTruthDisposition:
+      f16ExportSurface.externalTruthDisposition,
+    m8aV4ItriF16ExportArtifactTruth: f16ExportSurface.artifactTruth,
+    m8aV4ItriF16ExportFormat: f16ExportSurface.exportFormat,
+    m8aV4ItriF16RouteOwnedStateOnly: String(
+      f16ExportSurface.routeOwnedStateOnly
+    ),
+    m8aV4ItriF16MeasuredValuesIncluded: String(
+      f16ExportSurface.measuredValuesIncluded
+    ),
+    m8aV4ItriF16ExternalReportTruthClaimed: String(
+      f16ExportSurface.externalReportSystemTruthClaimed
+    ),
+    m8aV4ItriF16LastStatus: f16ExportSurface.lastStatus,
+    m8aV4ItriF16LastGeneratedAtUtc: f16ExportSurface.lastGeneratedAtUtc,
+    m8aV4ItriF16LastFilename: f16ExportSurface.lastFilename,
+    m8aV4ItriPolicyRuleControlsSurface: policyRuleControls.version,
+    m8aV4ItriPolicyRuleControlsDisposition:
+      policyRuleControls.disposition,
+    m8aV4ItriPolicyRuleExternalTruthDisposition:
+      policyRuleControls.externalTruthDisposition,
+    m8aV4ItriPolicyRuleTruthBoundary:
+      policyRuleControls.truthBoundary,
+    m8aV4ItriPolicyRuleExportAdjacentTruth:
+      policyRuleControls.exportAdjacentTruth,
+    m8aV4ItriF10PolicyPresetId:
+      policyRuleControls.activePolicyPreset.presetId,
+    m8aV4ItriF10PolicyPresetLabel:
+      policyRuleControls.activePolicyPreset.label,
+    m8aV4ItriF10PolicyPresetMode:
+      policyRuleControls.policyPresetMode,
+    m8aV4ItriF10PolicyPresetIds: serializeList(
+      policyRuleControls.policyPresets.map((preset) => preset.presetId)
+    ),
+    m8aV4ItriF11RulePresetId:
+      policyRuleControls.activeRulePreset.presetId,
+    m8aV4ItriF11RulePresetLabel:
+      policyRuleControls.activeRulePreset.label,
+    m8aV4ItriF11RulePresetMode:
+      policyRuleControls.rulePresetMode,
+    m8aV4ItriF11RulePresetIds: serializeList(
+      policyRuleControls.rulePresets.map((preset) => preset.presetId)
+    ),
+    m8aV4ItriF11RuleParameterChips: serializeList([
+      ...policyRuleControls.activeRulePreset.parameterChips
+    ]),
+    m8aV4ItriPolicyRuleRouteOwnedStateOnly: String(
+      policyRuleControls.routeOwnedStateOnly
+    ),
+    m8aV4ItriPolicyRuleLiveControlClaimed: String(
+      policyRuleControls.liveControlClaimed
+    ),
+    m8aV4ItriPolicyRuleBackendControlClaimed: String(
+      policyRuleControls.backendControlClaimed
+    ),
+    m8aV4ItriPolicyRuleNetworkControlClaimed: String(
+      policyRuleControls.networkControlClaimed
+    ),
+    m8aV4ItriPolicyRuleArbitraryRuleEditorClaimed: String(
+      policyRuleControls.arbitraryRuleEditorClaimed
+    ),
+    m8aV4ItriPolicyRuleMeasuredDecisionTruthClaimed: String(
+      policyRuleControls.measuredDecisionTruthClaimed
+    )
   });
 }
 
@@ -6146,6 +7699,254 @@ function buildSimulationHandoverState(
     validationExpectations: model.validationExpectations,
     forbiddenClaimScan: model.forbiddenClaimScan
   };
+}
+
+function buildRequirementGapSurfaceState(): M8aV4GroundStationSceneState["requirementGapSurface"] {
+  const model = M8A_V4_GROUND_STATION_RUNTIME_PROJECTION.simulationHandoverModel;
+
+  return {
+    version: M8A_V4_ITRI_REQUIREMENT_GAP_SURFACE_VERSION,
+    route: model.route,
+    endpointPairId: model.endpointPairId,
+    acceptedPairPrecision: model.acceptedPairPrecision,
+    truthBoundaryLabels: M8A_V4_ITRI_REQUIREMENT_GAP_TRUTH_LABELS,
+    demoPolishDisposition: M8A_V4_ITRI_DEMO_POLISH_DISPOSITION,
+    routeNativeMeasuredTruthClaimed:
+      M8A_V4_ITRI_ROUTE_NATIVE_MEASURED_TRUTH_CLAIMED,
+    groups: M8A_V4_ITRI_REQUIREMENT_STATUS_GROUPS,
+    openRequirementIds: M8A_V4_ITRI_REQUIREMENT_OPEN_IDS
+  };
+}
+
+function buildF09RateSurfaceState(
+  simulationHandoverModel: M8aV4GroundStationSceneState["simulationHandoverModel"]
+): M8aV4GroundStationSceneState["f09RateSurface"] {
+  const currentWindow = simulationHandoverModel.window;
+  const currentClass = currentWindow.boundedMetricClasses.networkSpeedClass;
+  const classCopy = resolveF09RateClassCopy(currentClass);
+
+  return {
+    version: M8A_V4_ITRI_F09_RATE_SURFACE_VERSION,
+    disposition: M8A_V4_ITRI_F09_RATE_DISPOSITION,
+    externalTruthDisposition: M8A_V4_ITRI_F09_EXTERNAL_TRUTH_DISPOSITION,
+    currentWindowId: currentWindow.windowId,
+    currentOrbitClass: currentWindow.displayRepresentativeOrbitClass,
+    currentNetworkSpeedClass: currentClass,
+    currentClassLabel: classCopy.classLabel,
+    currentBucketLabel: classCopy.bucketLabel,
+    currentReviewLabel: classCopy.reviewLabel,
+    provenance: M8A_V4_ITRI_F09_PROVENANCE,
+    metricTruth: M8A_V4_ITRI_F09_METRIC_TRUTH,
+    measuredThroughputClaimed:
+      M8A_V4_ITRI_F09_MEASURED_THROUGHPUT_CLAIMED,
+    rows: buildF09RateWindowRows()
+  };
+}
+
+function buildF16ExportSurfaceState(
+  latestExportRecord: M8aV4ItriF16ExportRecord | null
+): M8aV4GroundStationSceneState["f16ExportSurface"] {
+  return {
+    version: M8A_V4_ITRI_F16_EXPORT_SURFACE_VERSION,
+    schemaVersion: M8A_V4_ITRI_F16_EXPORT_SCHEMA_VERSION,
+    disposition: M8A_V4_ITRI_F16_EXPORT_DISPOSITION,
+    externalTruthDisposition: M8A_V4_ITRI_F16_EXTERNAL_TRUTH_DISPOSITION,
+    artifactTruth: M8A_V4_ITRI_F16_EXPORT_ARTIFACT_TRUTH,
+    exportFormat: M8A_V4_ITRI_F16_EXPORT_FORMAT,
+    provenance: M8A_V4_ITRI_F16_EXPORT_PROVENANCE,
+    routeOwnedStateOnly: M8A_V4_ITRI_F16_ROUTE_OWNED_STATE_ONLY,
+    measuredValuesIncluded: M8A_V4_ITRI_F16_MEASURED_VALUES_INCLUDED,
+    externalReportSystemTruthClaimed:
+      M8A_V4_ITRI_F16_EXTERNAL_REPORT_TRUTH_CLAIMED,
+    explicitNonClaims: M8A_V4_ITRI_F16_EXPLICIT_NON_CLAIMS,
+    lastStatus: latestExportRecord?.status ?? "ready",
+    lastGeneratedAtUtc: latestExportRecord?.generatedAtUtc ?? "",
+    lastFilename: latestExportRecord?.filename ?? "",
+    lastErrorMessage: latestExportRecord?.errorMessage ?? ""
+  };
+}
+
+function buildPolicyRuleControlsState(
+  activePolicyPresetId: M8aV4ItriF10PolicyPresetId,
+  activeRulePresetId: M8aV4ItriF11RulePresetId
+): M8aV4GroundStationSceneState["policyRuleControls"] {
+  return {
+    version: M8A_V4_ITRI_POLICY_RULE_CONTROLS_VERSION,
+    disposition: M8A_V4_ITRI_POLICY_RULE_DISPOSITION,
+    externalTruthDisposition:
+      M8A_V4_ITRI_POLICY_RULE_EXTERNAL_TRUTH_DISPOSITION,
+    truthBoundary: M8A_V4_ITRI_POLICY_RULE_TRUTH_BOUNDARY,
+    exportAdjacentTruth: M8A_V4_ITRI_POLICY_RULE_EXPORT_ADJACENT_TRUTH,
+    f10RequirementId: "F-10",
+    f11RequirementId: "F-11",
+    policyPresetMode: M8A_V4_ITRI_F10_POLICY_PRESET_MODE,
+    rulePresetMode: M8A_V4_ITRI_F11_RULE_PRESET_MODE,
+    defaultPolicyPresetId: M8A_V4_ITRI_F10_POLICY_DEFAULT_PRESET_ID,
+    defaultRulePresetId: M8A_V4_ITRI_F11_RULE_DEFAULT_PRESET_ID,
+    activePolicyPreset: resolveItriF10PolicyPreset(activePolicyPresetId),
+    activeRulePreset: resolveItriF11RulePreset(activeRulePresetId),
+    policyPresets: M8A_V4_ITRI_F10_POLICY_PRESETS,
+    rulePresets: M8A_V4_ITRI_F11_RULE_PRESETS,
+    routeOwnedStateOnly: M8A_V4_ITRI_POLICY_RULE_ROUTE_OWNED_STATE_ONLY,
+    liveControlClaimed: M8A_V4_ITRI_POLICY_RULE_LIVE_CONTROL_CLAIMED,
+    backendControlClaimed: M8A_V4_ITRI_POLICY_RULE_BACKEND_CONTROL_CLAIMED,
+    networkControlClaimed: M8A_V4_ITRI_POLICY_RULE_NETWORK_CONTROL_CLAIMED,
+    arbitraryRuleEditorClaimed:
+      M8A_V4_ITRI_POLICY_RULE_ARBITRARY_EDITOR_CLAIMED,
+    measuredDecisionTruthClaimed:
+      M8A_V4_ITRI_POLICY_RULE_MEASURED_DECISION_TRUTH_CLAIMED
+  };
+}
+
+function createF16ExportFilename(
+  state: M8aV4GroundStationSceneState,
+  generatedAtUtc: string
+): string {
+  const timestamp = generatedAtUtc.replaceAll(":", "-").replaceAll(".", "-");
+
+  return `itri-demo-route-f16-bounded-${state.simulationHandoverModel.endpointPairId}-${timestamp}.json`;
+}
+
+function buildF16RouteExportBundle(
+  state: M8aV4GroundStationSceneState,
+  generatedAtUtc: string
+): M8aV4ItriF16RouteExportBundle {
+  const activeWindow = state.simulationHandoverModel.window;
+  const filename = createF16ExportFilename(state, generatedAtUtc);
+
+  return {
+    schemaVersion: M8A_V4_ITRI_F16_EXPORT_SCHEMA_VERSION,
+    version: M8A_V4_ITRI_F16_EXPORT_SURFACE_VERSION,
+    generatedAtUtc,
+    routeId: state.simulationHandoverModel.route,
+    scenarioId: state.scenarioId,
+    endpointPair: {
+      endpointPairId: state.simulationHandoverModel.endpointPairId,
+      precision: state.simulationHandoverModel.acceptedPairPrecision,
+      endpoints: state.endpoints.map((endpoint) => ({
+        endpointId: endpoint.endpointId,
+        label: endpoint.label,
+        precisionBadge: endpoint.precisionBadge,
+        renderPrecision: endpoint.renderPrecision,
+        displayPositionIsSourceTruth: endpoint.displayPositionIsSourceTruth,
+        rawSourceCoordinatesRenderable: endpoint.rawSourceCoordinatesRenderable,
+        orbitEvidenceChips: [...endpoint.orbitEvidenceChips]
+      }))
+    },
+    precision: state.simulationHandoverModel.acceptedPairPrecision,
+    actorCounts: {
+      leo: state.orbitActorCounts.leo,
+      meo: state.orbitActorCounts.meo,
+      geo: state.orbitActorCounts.geo,
+      total: state.actorCount
+    },
+    activeModeledWindow: {
+      windowId: activeWindow.windowId,
+      windowLabel: resolveTimelineLabel(activeWindow.windowId),
+      currentPrimaryOrbitClass: state.serviceState.window.currentPrimaryOrbitClass,
+      nextCandidateOrbitClass: state.serviceState.window.nextCandidateOrbitClass,
+      continuityFallbackOrbitClass:
+        state.serviceState.window.continuityFallbackOrbitClass,
+      displayRepresentativeOrbitClass:
+        activeWindow.displayRepresentativeOrbitClass,
+      boundedMetricClasses: { ...activeWindow.boundedMetricClasses },
+      modelTruth: state.simulationHandoverModel.modelTruth
+    },
+    requirementStatusGroups: state.requirementGapSurface.groups.map((group) => ({
+      ...group,
+      requirementIds: [...group.requirementIds]
+    })),
+    f09BoundedRateDisposition: {
+      requirementId: "F-09",
+      disposition: state.f09RateSurface.disposition,
+      externalTruthDisposition: state.f09RateSurface.externalTruthDisposition,
+      currentWindowId: state.f09RateSurface.currentWindowId,
+      currentNetworkSpeedClass:
+        state.f09RateSurface.currentNetworkSpeedClass,
+      currentClassLabel: state.f09RateSurface.currentClassLabel,
+      currentBucketLabel: state.f09RateSurface.currentBucketLabel,
+      provenance: state.f09RateSurface.provenance,
+      metricTruth: state.f09RateSurface.metricTruth,
+      measuredThroughputClaimed:
+        state.f09RateSurface.measuredThroughputClaimed,
+      rows: state.f09RateSurface.rows.map((row) => ({ ...row }))
+    },
+    policyRuleControls: {
+      version: state.policyRuleControls.version,
+      disposition: state.policyRuleControls.disposition,
+      externalTruthDisposition:
+        state.policyRuleControls.externalTruthDisposition,
+      truthBoundary: state.policyRuleControls.truthBoundary,
+      exportAdjacentTruth: state.policyRuleControls.exportAdjacentTruth,
+      activePolicyPresetId:
+        state.policyRuleControls.activePolicyPreset.presetId,
+      activeRulePresetId: state.policyRuleControls.activeRulePreset.presetId,
+      policyPresetMode: state.policyRuleControls.policyPresetMode,
+      rulePresetMode: state.policyRuleControls.rulePresetMode,
+      routeOwnedStateOnly: state.policyRuleControls.routeOwnedStateOnly,
+      liveControlClaimed: state.policyRuleControls.liveControlClaimed,
+      backendControlClaimed: state.policyRuleControls.backendControlClaimed,
+      networkControlClaimed: state.policyRuleControls.networkControlClaimed,
+      arbitraryRuleEditorClaimed:
+        state.policyRuleControls.arbitraryRuleEditorClaimed,
+      measuredDecisionTruthClaimed:
+        state.policyRuleControls.measuredDecisionTruthClaimed
+    },
+    linkFlowCueMetadata: {
+      version: state.relationCues.dataFlowCueVersion,
+      mode: state.relationCues.dataFlowCueMode,
+      directions: [...state.relationCues.dataFlowDirections],
+      pulseCount: state.relationCues.dataFlowPulseCount,
+      truthBoundary: state.relationCues.dataFlowTruthBoundary
+    },
+    provenance: {
+      exportProvenance: M8A_V4_ITRI_F16_EXPORT_PROVENANCE,
+      generatedFromArtifactId: state.generatedFromArtifactId,
+      projectionId: state.projectionId,
+      projectionRead: state.sourceLineage.projectionRead,
+      serviceStateRead: state.sourceLineage.serviceStateRead,
+      simulationHandoverRead: state.sourceLineage.simulationHandoverRead,
+      rawPackageSideReadOwnership: state.sourceLineage.rawPackageSideReadOwnership,
+      rawSourcePathsIncluded: state.sourceLineage.rawSourcePathsIncluded
+    },
+    nonClaims: {
+      explicitNonClaims: M8A_V4_ITRI_F16_EXPLICIT_NON_CLAIMS,
+      routeNarrativeNonClaims: state.nonClaims,
+      measuredValuesIncluded: M8A_V4_ITRI_F16_MEASURED_VALUES_INCLUDED,
+      externalReportSystemTruthClaimed:
+        M8A_V4_ITRI_F16_EXTERNAL_REPORT_TRUTH_CLAIMED
+    },
+    exportFile: {
+      format: M8A_V4_ITRI_F16_EXPORT_FORMAT,
+      filename
+    }
+  };
+}
+
+function downloadF16RouteExportBundle(
+  bundle: M8aV4ItriF16RouteExportBundle
+): void {
+  const blob = new Blob([`${JSON.stringify(bundle, null, 2)}\n`], {
+    type: "application/json"
+  });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+
+  link.href = url;
+  link.download = bundle.exportFile.filename;
+  link.rel = "noopener";
+  link.dataset.itriF16DownloadLink = "true";
+  link.style.display = "none";
+  document.body.append(link);
+
+  try {
+    link.click();
+  } finally {
+    link.remove();
+    window.setTimeout(() => {
+      URL.revokeObjectURL(url);
+    }, 0);
+  }
 }
 
 function buildProductUxState({
@@ -6373,6 +8174,12 @@ export function createM8aV4GroundStationSceneController({
   let lastDetailsTriggerElement: HTMLElement | null = null;
   let lastRailTriggerElement: HTMLElement | null = null;
   let lastSyncReplayRatio = resolveReplayWindowRatio(replayClock.getState());
+  let latestF16ExportRecord: M8aV4ItriF16ExportRecord | null = null;
+  let latestF16ExportBundle: M8aV4ItriF16RouteExportBundle | null = null;
+  let activePolicyPresetId: M8aV4ItriF10PolicyPresetId =
+    M8A_V4_ITRI_F10_POLICY_DEFAULT_PRESET_ID;
+  let activeRulePresetId: M8aV4ItriF11RulePresetId =
+    M8A_V4_ITRI_F11_RULE_DEFAULT_PRESET_ID;
 
   const reviewerModeStorage: Pick<Storage, "getItem" | "setItem"> | null =
     typeof window !== "undefined" && typeof window.localStorage === "object"
@@ -6621,6 +8428,119 @@ export function createM8aV4GroundStationSceneController({
       ];
     }, false);
   };
+  const endpointALinkPosition = positionToCartesian(
+    endpointA.renderMarker.displayPosition
+  );
+  const endpointBLinkPosition = positionToCartesian(
+    endpointB.renderMarker.displayPosition
+  );
+  const resolveLinkFlowActor = (
+    role: M8aV4LinkFlowRelationRole,
+    replayState: ReplayClockState
+  ): M8aV4OrbitActorProjection => {
+    return resolveActorById(
+      M8A_V4_GROUND_STATION_RUNTIME_PROJECTION.orbitActors,
+      resolveRelationActorId(role, replayState)
+    );
+  };
+  const createLinkFlowSegmentPositions = (
+    role: M8aV4LinkFlowRelationRole,
+    direction: M8aV4LinkFlowDirection
+  ): CallbackProperty => {
+    return new CallbackProperty((time) => {
+      const actor = resolveLinkFlowActor(role, replayClock.getState());
+      const actorPosition = resolveActorRenderPosition(
+        actor,
+        time,
+        new Cartesian3()
+      ).cartesian;
+
+      return direction === "uplink"
+        ? [endpointALinkPosition, actorPosition]
+        : [actorPosition, endpointBLinkPosition];
+    }, false);
+  };
+  const resolveLinkFlowSegmentEndpoints = (
+    role: M8aV4LinkFlowRelationRole,
+    direction: M8aV4LinkFlowDirection,
+    time?: JulianDate
+  ): { start: Cartesian3; stop: Cartesian3 } => {
+    const actor = resolveLinkFlowActor(role, replayClock.getState());
+    const actorPosition = resolveActorRenderPosition(
+      actor,
+      time,
+      new Cartesian3()
+    ).cartesian;
+
+    return direction === "uplink"
+      ? { start: endpointALinkPosition, stop: actorPosition }
+      : { start: actorPosition, stop: endpointBLinkPosition };
+  };
+  const createLinkFlowPulseRotation = (
+    role: M8aV4LinkFlowRelationRole,
+    direction: M8aV4LinkFlowDirection
+  ): CallbackProperty => {
+    return new CallbackProperty((time) => {
+      const { start, stop } = resolveLinkFlowSegmentEndpoints(
+        role,
+        direction,
+        time
+      );
+      const startWindow = SceneTransforms.worldToWindowCoordinates(
+        viewer.scene,
+        start,
+        new Cartesian2()
+      );
+      const stopWindow = SceneTransforms.worldToWindowCoordinates(
+        viewer.scene,
+        stop,
+        new Cartesian2()
+      );
+
+      if (!startWindow || !stopWindow) {
+        return 0;
+      }
+
+      const dx = stopWindow.x - startWindow.x;
+      const dy = stopWindow.y - startWindow.y;
+
+      if (Math.abs(dx) < 0.001 && Math.abs(dy) < 0.001) {
+        return 0;
+      }
+
+      return Math.atan2(-dy, dx);
+    }, false);
+  };
+  const createLinkFlowPulsePosition = (
+    role: M8aV4LinkFlowRelationRole,
+    direction: M8aV4LinkFlowDirection,
+    pulseOffset: number
+  ): CallbackPositionProperty => {
+    return new CallbackPositionProperty((time, result) => {
+      const replayState = replayClock.getState();
+      const replayRatio = time
+        ? resolveReplayWindowRatio({
+            ...replayState,
+            currentTime: JulianDate.toDate(time).toISOString()
+          })
+        : resolveReplayWindowRatio(replayState);
+      const { start, stop } = resolveLinkFlowSegmentEndpoints(
+        role,
+        direction,
+        time,
+      );
+      const roleOffset = role === "displayRepresentative" ? 0 : 0.18;
+      const directionOffset = direction === "uplink" ? 0 : 0.11;
+      const phase = normalizeUnit(
+        replayRatio * M8A_V4_LINK_FLOW_REPLAY_CYCLES +
+          pulseOffset +
+          roleOffset +
+          directionOffset
+      );
+
+      return Cartesian3.lerp(start, stop, phase, result ?? new Cartesian3());
+    }, false);
+  };
   const createGeoGuardCuePosition = (): CallbackPositionProperty => {
     return new CallbackPositionProperty((time, result) => {
       const actor = resolveActorById(
@@ -6653,6 +8573,61 @@ export function createM8aV4GroundStationSceneController({
       entity
     };
   });
+  const linkFlowSegmentHandles: ReadonlyArray<LinkFlowSegmentRenderHandle> =
+    M8A_V4_LINK_FLOW_RELATION_ROLES.flatMap((role) =>
+      M8A_V4_LINK_FLOW_DIRECTIONS.map((direction) => {
+        const entity = dataSource.entities.add({
+          id: `m8a-v4-link-flow-${role}-${direction}-segment`,
+          name: `V4 link flow ${role} ${direction} segment`,
+          polyline: createLinkFlowSegmentStyle(
+            createLinkFlowSegmentPositions(role, direction),
+            direction,
+            role
+          ),
+          description: new ConstantProperty(
+            `Modeled ${direction} data-flow cue; not packet capture, not measured throughput, not active gateway truth.`
+          )
+        });
+
+        return {
+          role,
+          direction,
+          entity
+        };
+      })
+    );
+  const linkFlowPulseHandles: ReadonlyArray<LinkFlowPulseRenderHandle> =
+    M8A_V4_LINK_FLOW_RELATION_ROLES.flatMap((role) =>
+      M8A_V4_LINK_FLOW_DIRECTIONS.flatMap((direction) =>
+        M8A_V4_LINK_FLOW_PULSE_OFFSETS.map((pulseOffset, pulseIndex) => {
+          const entity = dataSource.entities.add({
+            id: `m8a-v4-link-flow-${role}-${direction}-pulse-${pulseIndex}`,
+            name: `V4 link flow ${role} ${direction} pulse ${pulseIndex + 1}`,
+            position: createLinkFlowPulsePosition(role, direction, pulseOffset),
+            billboard: createLinkFlowPulseStyle(
+              direction,
+              role,
+              pulseIndex,
+              createLinkFlowPulseRotation(role, direction)
+            ),
+            label:
+              role === "displayRepresentative" && pulseIndex === 0
+                ? createLinkFlowLabelStyle(direction)
+                : undefined,
+            description: new ConstantProperty(
+              `Moving ${direction} pulse along a modeled ground-station/satellite link; ${M8A_V4_LINK_FLOW_TRUTH_BOUNDARY}.`
+            )
+          });
+
+          return {
+            role,
+            direction,
+            pulseIndex,
+            entity
+          };
+        })
+      )
+    );
   const geoGuardCueEntity = dataSource.entities.add({
     id: "m8a-v46e-simulation-geo-guard-cue",
     name: "V4.6E GEO guard cue",
@@ -6864,9 +8839,12 @@ export function createM8aV4GroundStationSceneController({
     productLoopArmed = false;
     replayClock.pause();
     syncState();
-    productUxRoot
-      .querySelector<HTMLElement>("[data-m8a-v411-inspector-role='state-evidence']")
-      ?.scrollIntoView({ block: "nearest" });
+    const inspectorSheet = productUxRoot.querySelector<HTMLElement>(
+      "[data-m8a-v48-inspector='true']"
+    );
+    if (inspectorSheet) {
+      inspectorSheet.scrollTop = 0;
+    }
   };
 
   const closeDetailsDisclosure = (): void => {
@@ -7252,6 +9230,14 @@ export function createM8aV4GroundStationSceneController({
           "displayRepresentative",
           "candidateContext"
         ] as const,
+        dataFlowCueVersion: M8A_V4_LINK_FLOW_CUE_VERSION,
+        dataFlowCueMode: M8A_V4_LINK_FLOW_CUE_MODE,
+        dataFlowDirections: M8A_V4_LINK_FLOW_DIRECTIONS,
+        dataFlowPulseCount:
+          M8A_V4_LINK_FLOW_RELATION_ROLES.length *
+          M8A_V4_LINK_FLOW_DIRECTIONS.length *
+          M8A_V4_LINK_FLOW_PULSE_OFFSETS.length,
+        dataFlowTruthBoundary: M8A_V4_LINK_FLOW_TRUTH_BOUNDARY,
         fallbackGuardCueMode: resolveFallbackGuardCueMode(simulationWindow),
         fallbackFullRibbonVisible: false,
         activeSatelliteTruth: "not-claimed",
@@ -7259,6 +9245,13 @@ export function createM8aV4GroundStationSceneController({
         pairSpecificTeleportPathTruth: "not-claimed",
         nativeRfHandoverTruth: "not-claimed"
       },
+      requirementGapSurface: buildRequirementGapSurfaceState(),
+      f09RateSurface: buildF09RateSurfaceState(simulationHandoverModel),
+      f16ExportSurface: buildF16ExportSurfaceState(latestF16ExportRecord),
+      policyRuleControls: buildPolicyRuleControlsState(
+        activePolicyPresetId,
+        activeRulePresetId
+      ),
       nonClaims:
         M8A_V4_GROUND_STATION_RUNTIME_PROJECTION.runtimeNarrativeNonClaims,
       proofSeam: M8A_V4_GROUND_STATION_PROOF_SEAM,
@@ -7323,6 +9316,14 @@ export function createM8aV4GroundStationSceneController({
       updateRelationStyle(handle);
     }
 
+    for (const handle of linkFlowSegmentHandles) {
+      updateLinkFlowSegmentStyle(handle);
+    }
+
+    for (const handle of linkFlowPulseHandles) {
+      updateLinkFlowPulseStyle(handle);
+    }
+
     geoGuardCueEntity.show = shouldShowGeoGuardCue(latestSimulationWindow);
 
     renderHud(hudRoot, nextState);
@@ -7335,6 +9336,46 @@ export function createM8aV4GroundStationSceneController({
     }
 
     return nextState;
+  };
+  const exportF16BoundedRouteJson = (): M8aV4ItriF16RouteExportBundle => {
+    const stateForExport = syncState();
+    const generatedAtUtc = new Date().toISOString();
+    const bundle = buildF16RouteExportBundle(stateForExport, generatedAtUtc);
+
+    try {
+      downloadF16RouteExportBundle(bundle);
+      latestF16ExportRecord = {
+        generatedAtUtc,
+        filename: bundle.exportFile.filename,
+        status: "exported",
+        errorMessage: ""
+      };
+      latestF16ExportBundle = bundle;
+    } catch (error) {
+      latestF16ExportRecord = {
+        generatedAtUtc,
+        filename: bundle.exportFile.filename,
+        status: "failed",
+        errorMessage:
+          error instanceof Error ? error.message : "unknown export error"
+      };
+      latestF16ExportBundle = bundle;
+    }
+
+    syncState();
+    return bundle;
+  };
+  const setItriF10PolicyPreset = (
+    presetId: M8aV4ItriF10PolicyPresetId
+  ): void => {
+    activePolicyPresetId = presetId;
+    syncState();
+  };
+  const setItriF11RulePreset = (
+    presetId: M8aV4ItriF11RulePresetId
+  ): void => {
+    activeRulePresetId = presetId;
+    syncState();
   };
   refreshAfterTransitionTimeout = () => {
     if (!disposed) {
@@ -7422,6 +9463,11 @@ export function createM8aV4GroundStationSceneController({
       }
       case "toggle-review-mode": {
         toggleReviewerMode();
+        break;
+      }
+      case "export-f16-bounded-route-json": {
+        event.preventDefault();
+        exportF16BoundedRouteJson();
         break;
       }
       case "open-handover-rail": {
@@ -7516,6 +9562,27 @@ export function createM8aV4GroundStationSceneController({
     }
 
     activateProductUxControl(control, event);
+  };
+
+  const handleProductUxChange = (event: Event): void => {
+    const target = event.target;
+
+    if (!(target instanceof HTMLSelectElement) || !productUxRoot.contains(target)) {
+      return;
+    }
+
+    if (target.matches("[data-itri-f10-policy-selector='true']")) {
+      if (isM8aV4ItriF10PolicyPresetId(target.value)) {
+        setItriF10PolicyPreset(target.value);
+      }
+      return;
+    }
+
+    if (target.matches("[data-itri-f11-rule-preset='true']")) {
+      if (isM8aV4ItriF11RulePresetId(target.value)) {
+        setItriF11RulePreset(target.value);
+      }
+    }
   };
 
   const matchMediaSafe = (query: string): boolean => {
@@ -7655,6 +9722,7 @@ export function createM8aV4GroundStationSceneController({
 
   productUxRoot.addEventListener("mouseup", handleProductUxMouseUp);
   productUxRoot.addEventListener("click", handleProductUxClick);
+  productUxRoot.addEventListener("change", handleProductUxChange);
   productUxRoot.addEventListener("keydown", handleProductUxKeyDown);
   const removeFinalHoldClockListener = viewer.clock.onTick.addEventListener(
     () => {
@@ -7701,6 +9769,14 @@ export function createM8aV4GroundStationSceneController({
       completeFinalHoldIfElapsed();
       return cloneState(createState());
     },
+    getLastF16RouteExport(): M8aV4ItriF16RouteExportBundle | null {
+      return latestF16ExportBundle
+        ? JSON.parse(JSON.stringify(latestF16ExportBundle))
+        : null;
+    },
+    exportF16RouteState(): M8aV4ItriF16RouteExportBundle {
+      return exportF16BoundedRouteJson();
+    },
     subscribe(listener: (state: M8aV4GroundStationSceneState) => void): () => void {
       listeners.add(listener);
       return () => {
@@ -7739,6 +9815,7 @@ export function createM8aV4GroundStationSceneController({
       disposeM8aV411TransientSurfaces(productUxRoot);
       productUxRoot.removeEventListener("mouseup", handleProductUxMouseUp);
       productUxRoot.removeEventListener("click", handleProductUxClick);
+      productUxRoot.removeEventListener("change", handleProductUxChange);
       productUxRoot.removeEventListener("keydown", handleProductUxKeyDown);
       hudRoot.remove();
       productUxRoot.remove();

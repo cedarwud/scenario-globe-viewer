@@ -543,6 +543,13 @@ scope/scale signals.
 - Live LEO scale expansion landed via `28fdcb8` (`feat(phase7.1): expand live leo runtime scope`)
 - Multi-orbit live runtime gate closure landed via `d6b0d85` (`feat(phase7.1): close multi-orbit live runtime gate`)
 - `node scripts/run-phase7.1-viewer-validation.mjs --profile first-slice --enforce-pass` passed with retained artifact under `output/validation/phase7.1/2026-04-21T05-43-35.639Z-phase7-1-first-slice/summary.json`
+- Fresh reconciliation evidence on `2026-05-12`: the same command passed with
+  retained artifact
+  `output/validation/phase7.1/2026-05-11T16-43-23.879Z-phase7-1-first-slice/summary.json`.
+  It observed `540` LEO, `6` MEO, `3` GEO, `549` total overlay points,
+  `requirementGatePassed=true`, and `knownGaps=[]`. This remains separate from
+  the V4 13-actor demo route and does not close external NAT / `iperf` / DUT
+  truth.
 - Next active entry: `Phase 8.0`
 
 ## Phase 8.0

@@ -236,7 +236,8 @@ const M8A_V411_PHASE_C_METRICS_COPY = {
     continuityClassDetail: "LEO is the review focus; MEO/GEO stay contextual.",
     handoverStateValue: "LEO primary",
     handoverStateUnit: "modeled state",
-    handoverStateDetail: "Fixed repo-owned replay policy, not a strategy selector.",
+    handoverStateDetail:
+      "Modeled replay state; F-10/F-11 presets change preview telemetry only, not live control.",
     replayTimingUnit: "simulated countdown",
     replayTimingDetail: "Countdown to W2 signal-aging pressure."
   },
@@ -329,10 +330,11 @@ export const M8A_V411_DISABLED_METRIC_TILES = [
   },
   {
     id: "communication-rate-visualization",
-    gap: "Dedicated communication-rate visualization",
-    hookpoint: "No dedicated communication-rate surface yet; F-09 remains 待完成",
+    gap: "Measured communication-rate visualization beyond route F-09 class",
+    hookpoint:
+      "F-09 modeled class is mounted; Mbps/Gbps measurement truth remains external",
     reachability: "not reachable from this scene",
-    placeholder: "未連接"
+    placeholder: "external validation"
   },
   {
     id: "physical-factor-projection",
@@ -381,27 +383,27 @@ export const M8A_V411_DISABLED_METRIC_TILES = [
   },
   {
     id: "handover-strategy-selector",
-    gap: "Operator-switchable handover strategy",
+    gap: "Live/operator handover strategy beyond F-10 modeled replay preset",
     hookpoint:
-      "Fixed repo-owned bootstrap policy only; no runtime strategy selector here",
+      "F-10 route control is a modeled replay preset selector only; not live control",
     reachability: "not reachable from this scene",
-    placeholder: "未連接"
+    placeholder: "preset only"
   },
   {
     id: "handover-rule-editor",
-    gap: "Configurable handover rules / dynamic parameters beyond scenario/replay controls",
+    gap: "Arbitrary handover rule editor beyond F-11 bounded replay preset",
     hookpoint:
-      "Bounded replay/scenario controls exist; no user rule editor in this scene",
+      "F-11 route control is a bounded replay rule/parameter preset only; not live control",
     reachability: "not reachable from this scene",
-    placeholder: "未連接"
+    placeholder: "preset only"
   },
   {
     id: "report-export-action",
-    gap: "Report export action",
+    gap: "External report-system export beyond route JSON",
     hookpoint:
-      "Export-ready report structures exist; no completed end-user export button here",
+      "F-16 route JSON exists in ITRI status; backend/PDF/email report truth remains external",
     reachability: "not reachable from this scene",
-    placeholder: "未連接"
+    placeholder: "external report"
   },
   {
     id: "tle-scenario-switching",
