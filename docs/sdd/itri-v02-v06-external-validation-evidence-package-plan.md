@@ -2,7 +2,8 @@
 
 ## Status
 
-Planning boundary. No route UI or runtime ownership is changed by this plan.
+Planning boundary with one retained negative-evidence package. No route UI or
+runtime ownership is changed by this plan.
 
 ## Purpose
 
@@ -11,6 +12,30 @@ V4 demo route.
 
 The V4 route `/?scenePreset=regional&m8aV4GroundStationScene=1` may name these
 requirements as external gaps, but it must not claim live validation truth.
+
+## Retained Evidence Checkpoint
+
+Checkpoint, 2026-05-12:
+
+- Package path:
+  `output/validation/external-v02-v06/2026-05-11T16-59-27.404Z-external-validation/`.
+- Machine-readable verdict:
+  `output/validation/external-v02-v06/2026-05-11T16-59-27.404Z-external-validation/summary.json`.
+- Human review:
+  `output/validation/external-v02-v06/2026-05-11T16-59-27.404Z-external-validation/review.md`.
+- Covered IDs: V-02, V-03, V-04, V-05, V-06.
+- Result: all five IDs fail external validation in this package.
+- Evidence retained: Windows 11 + WSL2 environment context, local interface and
+  route inventory, NAT inventory statement, command transcript, topology note,
+  redaction note, and explicit placeholders for missing tunnel/bridge logs,
+  traffic results, DUT results, and NE-ONE evidence.
+- Non-claim boundary: the package does not claim live ESTNeT/INET, NAT,
+  tunnel, bridge, DUT, NE-ONE, `ping`, or `iperf` truth, and does not modify or
+  validate the V4 demo route UI/runtime.
+- Next required external action: run the actual Windows+WSL + ESTNeT/INET
+  validation testbed and retain topology, tunnel/bridge config/logs, NAT rules,
+  route/interface inventories, successful traffic transcripts, virtual DUT logs,
+  and physical DUT or NE-ONE measured outputs.
 
 ## Requirement Scope
 

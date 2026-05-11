@@ -563,6 +563,18 @@ Final closure checkpoint, 2026-05-12:
 - Stale or partial download artifacts, including F-16 `.crdownload` files, are
   not accepted evidence.
 
+External validation checkpoint, 2026-05-12:
+
+- Retained package:
+  `output/validation/external-v02-v06/2026-05-11T16-59-27.404Z-external-validation/summary.json`.
+- Covered IDs: V-02, V-03, V-04, V-05, V-06.
+- Result: all five IDs fail in the retained package. V-02 has partial
+  Windows 11 + WSL2 environment evidence only; V-03 through V-06 lack retained
+  tunnel/bridge, NAT/ESTNeT/INET, virtual DUT, physical DUT, NE-ONE, `ping`, or
+  `iperf` proof.
+- Route boundary remains unchanged: this package does not modify or validate the
+  V4 demo route UI/runtime.
+
 ## Cross-Phase Validation Rules
 
 Every implementation phase that touches route UI must run:
