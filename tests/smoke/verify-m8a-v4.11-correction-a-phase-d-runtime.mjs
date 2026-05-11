@@ -301,10 +301,11 @@ async function inspectCjkGlyphRendering(client) {
     `(async () => {
       const fontFace = ${JSON.stringify(CJK_FONT_FACE)};
       const candidateText = ${JSON.stringify(W4_LABEL)};
-      const railDecisionText = "Decision: 位置條件恢復，正在評估切回 LEO";
+      const railNextText = "下一步：GEO 收尾為 guard";
+      const railEvidenceText = "candidate quality strong; 若切回：~22 分鐘";
       const fontStack = '"' + fontFace + '", "Noto Sans TC", sans-serif';
       const loadFont = document.fonts?.load
-        ? await document.fonts.load("600 24px " + fontStack, candidateText + railDecisionText)
+        ? await document.fonts.load("600 24px " + fontStack, candidateText + railNextText + railEvidenceText)
         : [];
       await document.fonts?.ready;
 
@@ -351,7 +352,8 @@ async function inspectCjkGlyphRendering(client) {
       delete target.alphas;
       delete tofu.alphas;
       const productRoot = document.querySelector("[data-m8a-v47-product-ux='true']");
-      const railDecision = document.querySelector("[data-m8a-v411-rail-slot='decision']");
+      const railNext = document.querySelector("[data-m8a-v411-rail-slot='next']");
+      const railEvidence = document.querySelector("[data-m8a-v411-rail-slot='evidence']");
       const capture = window.__SCENARIO_GLOBE_VIEWER_CAPTURE__;
       const viewer = capture?.viewer;
       const evalTime = viewer?.clock?.currentTime;
@@ -374,11 +376,13 @@ async function inspectCjkGlyphRendering(client) {
           status: face.status
         })),
         fontCheck: document.fonts?.check
-          ? document.fonts.check("600 24px " + fontStack, candidateText + railDecisionText)
+          ? document.fonts.check("600 24px " + fontStack, candidateText + railNextText + railEvidenceText)
           : false,
         productFontFamily: productRoot ? getComputedStyle(productRoot).fontFamily : "",
-        railDecisionFontFamily: railDecision ? getComputedStyle(railDecision).fontFamily : "",
-        railDecisionText: railDecision?.textContent ?? "",
+        railNextFontFamily: railNext ? getComputedStyle(railNext).fontFamily : "",
+        railEvidenceFontFamily: railEvidence ? getComputedStyle(railEvidence).fontFamily : "",
+        railNextText: railNext?.textContent ?? "",
+        railEvidenceText: railEvidence?.textContent ?? "",
         labelFont,
         target,
         tofu,
@@ -399,13 +403,14 @@ function assertCjkGlyphRendering(result, label) {
   );
   assert(
     result.productFontFamily.includes(CJK_FONT_FACE) &&
-      result.railDecisionFontFamily.includes(CJK_FONT_FACE),
+      result.railNextFontFamily.includes(CJK_FONT_FACE) &&
+      result.railEvidenceFontFamily.includes(CJK_FONT_FACE),
     `${label}: Phase C/D DOM surfaces must use CJK-capable font stack: ${JSON.stringify(result)}`
   );
   assert(
-    result.railDecisionText.includes("位置條件恢復") &&
-      result.railDecisionText.includes("切回 LEO"),
-    `${label}: W4 rail decision copy must remain Chinese-primary: ${JSON.stringify(result)}`
+    result.railNextText.includes("下一步") &&
+      result.railEvidenceText.includes("若切回"),
+    `${label}: W4 rail decision-first layers must remain Chinese-primary per spec v2 §5: ${JSON.stringify(result)}`
   );
   assert(
     typeof result.labelFont === "string" && result.labelFont.includes(CJK_FONT_FACE),
@@ -622,6 +627,10 @@ async function main() {
     assertScreenshot(overlapScreenshot);
     manifest.screenshots.push(overlapScreenshot);
     manifest.checks.push("normal-motion-entry-and-steady-w4-candidate-token");
+    // Smoke Softening Disclosure: spec v2 §5 supersedes the old W4
+    // `Decision:` rail prose assertion. Phase D now probes the W4 next/evidence
+    // layers that replaced it in the decision-first rail.
+    manifest.checks.push("smoke-softening-v2-5-w4-rail-next-evidence-cjk-probe");
   });
 
   await withStaticSmokeBrowser(async ({ client, baseUrl }) => {

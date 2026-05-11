@@ -2722,11 +2722,22 @@ function ensureProductUxStructure(root: HTMLElement): void {
         <button type="button" class="m8a-v411-handover-rail-close" data-m8a-v47-action="close-handover-rail" data-m8a-v411-handover-rail-close="true" data-m8a-v48-info-class="control" aria-label="Close handover rail">Close</button>
       </div>
       <div data-m8a-v411-handover-rail-content="true">
-        <div class="m8a-v411-rail-slot" data-m8a-v411-rail-slot="current" data-m8a-v48-info-class="dynamic">Current: --</div>
-        <div class="m8a-v411-rail-slot" data-m8a-v411-rail-slot="candidate" data-m8a-v48-info-class="dynamic">Candidate: --</div>
-        <div class="m8a-v411-rail-slot" data-m8a-v411-rail-slot="fallback" data-m8a-v48-info-class="dynamic">Fallback: --</div>
-        <div class="m8a-v411-rail-slot" data-m8a-v411-rail-slot="decision" data-m8a-v48-info-class="dynamic">Decision: --</div>
-        <div class="m8a-v411-rail-slot" data-m8a-v411-rail-slot="quality" data-m8a-v48-info-class="dynamic">Time/Quality: --</div>
+        <div class="m8a-v411-rail-panel" data-m8a-v411-rail-panel="true" data-m8a-v411-rail-current="true" data-m8a-v48-info-class="dynamic" aria-label="Active handover rail state">
+          <div class="m8a-v411-rail-layer m8a-v411-rail-layer--judgment" data-m8a-v411-rail-layer="judgment">
+            <span class="m8a-v411-rail-main-chip" data-m8a-v411-rail-main-chip="true" role="group" tabindex="0" aria-label="Active handover judgment">
+              <span class="m8a-v411-rail-role-glyph" data-m8a-v411-rail-role-glyph="true" aria-hidden="true">F</span>
+              <span class="m8a-v411-rail-orbit-swatch" data-m8a-v411-rail-orbit-swatch="true" aria-hidden="true"></span>
+              <span data-m8a-v411-rail-main-chip-text="true">LEO · focus</span>
+            </span>
+            <div class="m8a-v411-rail-token-row" data-m8a-v411-rail-token-row="true" aria-label="Current candidate fallback context">
+              <span class="m8a-v411-rail-subtoken" data-m8a-v411-rail-slot="current" data-m8a-v411-rail-token="current" data-m8a-v48-info-class="dynamic">Current: --</span>
+              <span class="m8a-v411-rail-subtoken" data-m8a-v411-rail-slot="candidate" data-m8a-v411-rail-token="candidate" data-m8a-v48-info-class="dynamic">Candidate: --</span>
+              <span class="m8a-v411-rail-subtoken" data-m8a-v411-rail-slot="fallback" data-m8a-v411-rail-token="fallback" data-m8a-v48-info-class="dynamic">Fallback: --</span>
+            </div>
+          </div>
+          <p class="m8a-v411-rail-next" data-m8a-v411-rail-layer="next" data-m8a-v411-rail-slot="next" data-m8a-v48-info-class="dynamic">下一步：--</p>
+          <p class="m8a-v411-rail-evidence" data-m8a-v411-rail-layer="evidence" data-m8a-v411-rail-slot="evidence" data-m8a-v48-info-class="dynamic">modeled quality --</p>
+        </div>
       </div>
     </aside>
     <div class="m8a-v47-product-ux__scene-connector" data-m8a-v48-scene-connector="true" aria-hidden="true" hidden></div>
@@ -4286,30 +4297,71 @@ function renderProductUx(
     "[data-m8a-v411-top-strip-slot='boundary']",
     "Boundary: repo-owned projection · not measured truth"
   );
+  const railPanel = root.querySelector<HTMLElement>(
+    "[data-m8a-v411-rail-panel='true']"
+  );
+  if (railPanel) {
+    railPanel.dataset.m8aV411RailOrbit = railCopy.orbit;
+    railPanel.dataset.m8aV411RailRole = railCopy.role;
+    railPanel.dataset.m8aV411RailWindow = productUx.activeWindowId;
+    railPanel.dataset.m8aV411RailCurrent = "true";
+    railPanel.setAttribute(
+      "aria-label",
+      `${railCopy.ordinalLabel} ${railCopy.mainChip}; ${railCopy.nextPreview}; ${railCopy.evidenceHook}`
+    );
+  }
+  updateProductUxText(
+    root,
+    "[data-m8a-v411-rail-role-glyph='true']",
+    railCopy.roleGlyph
+  );
+  updateProductUxText(
+    root,
+    "[data-m8a-v411-rail-main-chip-text='true']",
+    railCopy.mainChip
+  );
+  const railMainChip = root.querySelector<HTMLElement>(
+    "[data-m8a-v411-rail-main-chip='true']"
+  );
+  if (railMainChip) {
+    if (!railMainChip.dataset.m8aV411RailFocusBound) {
+      railMainChip.dataset.m8aV411RailFocusBound = "true";
+      railMainChip.addEventListener("focus", () => {
+        railMainChip.dataset.m8aV411RailFocused = "true";
+      });
+      railMainChip.addEventListener("blur", () => {
+        delete railMainChip.dataset.m8aV411RailFocused;
+      });
+    }
+    railMainChip.setAttribute(
+      "aria-label",
+      `${railCopy.ordinalLabel} ${railCopy.mainChip}; ${railCopy.currentToken}; ${railCopy.candidateToken}; ${railCopy.fallbackToken}`
+    );
+  }
   updateProductUxText(
     root,
     "[data-m8a-v411-rail-slot='current']",
-    railCopy.current
+    railCopy.currentToken
   );
   updateProductUxText(
     root,
     "[data-m8a-v411-rail-slot='candidate']",
-    railCopy.candidate
+    railCopy.candidateToken
   );
   updateProductUxText(
     root,
     "[data-m8a-v411-rail-slot='fallback']",
-    railCopy.fallback
+    railCopy.fallbackToken
   );
   updateProductUxText(
     root,
-    "[data-m8a-v411-rail-slot='decision']",
-    railCopy.decision
+    "[data-m8a-v411-rail-slot='next']",
+    railCopy.nextPreview
   );
   updateProductUxText(
     root,
-    "[data-m8a-v411-rail-slot='quality']",
-    railCopy.quality
+    "[data-m8a-v411-rail-slot='evidence']",
+    railCopy.evidenceHook
   );
   updateProductUxText(
     root,
@@ -7385,10 +7437,12 @@ export function createM8aV4GroundStationSceneController({
           window.setTimeout(() => {
             const focusTarget =
               drawer.querySelector<HTMLElement>(
-                "[data-m8a-v411-rail-slot='current']"
+                "[data-m8a-v411-rail-main-chip='true']"
               ) ?? drawer;
             if (focusTarget instanceof HTMLElement) {
-              focusTarget.setAttribute("tabindex", "-1");
+              if (!focusTarget.hasAttribute("tabindex")) {
+                focusTarget.setAttribute("tabindex", "-1");
+              }
               focusTarget.focus({ preventScroll: true });
             }
           }, 0);

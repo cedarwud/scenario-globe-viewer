@@ -37,31 +37,66 @@ const WINDOW_CHECKS = [
     label: "W1",
     ratio: 0.1,
     windowId: "leo-acquisition-context",
-    railCurrent: "W1 LEO"
+    railOrbit: "leo",
+    railRole: "focus",
+    railMainChip: "LEO · focus",
+    railCurrent: "Current: LEO",
+    railCandidate: "Candidate: none",
+    railFallback: "Fallback: MEO/GEO",
+    railNext: "下一步：進入品質下降階段",
+    railEvidence: "modeled quality strong"
   },
   {
     label: "W2",
     ratio: 0.3,
     windowId: "leo-aging-pressure",
-    railCurrent: "W2 LEO"
+    railOrbit: "leo",
+    railRole: "pressure",
+    railMainChip: "LEO · pressure",
+    railCurrent: "Current: LEO",
+    railCandidate: "Candidate: MEO",
+    railFallback: "Fallback: GEO",
+    railNext: "下一步：MEO 暫時接住連續性",
+    railEvidence: "modeled quality dropping"
   },
   {
     label: "W3",
     ratio: 0.5,
     windowId: "meo-continuity-hold",
-    railCurrent: "W3 MEO"
+    railOrbit: "meo",
+    railRole: "continuity-hold",
+    railMainChip: "MEO · continuity-hold",
+    railCurrent: "Current: MEO",
+    railCandidate: "Candidate: LEO",
+    railFallback: "Fallback: GEO",
+    railNext: "下一步：新 LEO 候選回到",
+    railEvidence: "modeled continuity hold"
   },
   {
     label: "W4",
     ratio: 0.7,
     windowId: "leo-reentry-candidate",
-    railCurrent: "W4 MEO"
+    railOrbit: "leo",
+    railRole: "candidate",
+    railMainChip: "LEO · candidate",
+    railCurrent: "Current: MEO",
+    railCandidate: "Candidate: LEO",
+    railFallback: "Fallback: GEO",
+    railNext: "下一步：GEO 收尾為 guard",
+    railEvidence: "candidate quality strong"
   },
   {
     label: "W5",
     ratio: 0.9,
     windowId: "geo-continuity-guard",
-    railCurrent: "W5 GEO"
+    railOrbit: "geo",
+    railRole: "guard",
+    railMainChip: "GEO · guard",
+    railCurrent: "Current: GEO",
+    railCandidate: "Candidate: none",
+    railFallback: "Fallback: GEO guard",
+    railNext: "下一步：重新開始（回到 W1）",
+    railEvidence: "guard context only"
   }
 ];
 
@@ -262,11 +297,29 @@ async function inspectLayout(client) {
         topStripReplay: qs('[data-m8a-v411-top-strip-slot="replay"]'),
         topStripPrecision: qs('[data-m8a-v411-top-strip-slot="precision"]'),
         topStripBoundary: qs('[data-m8a-v411-top-strip-slot="boundary"]'),
+        railPanel: (() => {
+          const panel = document.querySelector('[data-m8a-v411-rail-panel="true"]');
+          const base = qs('[data-m8a-v411-rail-panel="true"]');
+          const style = panel instanceof HTMLElement ? getComputedStyle(panel) : null;
+          return {
+            ...(base ?? { exists: false, visible: false, text: "", rect: null }),
+            orbit: panel?.dataset?.m8aV411RailOrbit ?? "",
+            role: panel?.dataset?.m8aV411RailRole ?? "",
+            borderLeftWidth: style?.borderLeftWidth ?? "",
+            borderLeftColor: style?.borderLeftColor ?? ""
+          };
+        })(),
+        railMainChip: qs('[data-m8a-v411-rail-main-chip="true"]'),
         railCurrent: qs('[data-m8a-v411-rail-slot="current"]'),
         railCandidate: qs('[data-m8a-v411-rail-slot="candidate"]'),
         railFallback: qs('[data-m8a-v411-rail-slot="fallback"]'),
-        railDecision: qs('[data-m8a-v411-rail-slot="decision"]'),
-        railQuality: qs('[data-m8a-v411-rail-slot="quality"]'),
+        railNext: qs('[data-m8a-v411-rail-slot="next"]'),
+        railEvidence: qs('[data-m8a-v411-rail-slot="evidence"]'),
+        railSlots: Array.from(document.querySelectorAll("[data-m8a-v411-rail-slot]")).map((slot) => ({
+          slot: slot.getAttribute("data-m8a-v411-rail-slot"),
+          text: normalize(slot.textContent),
+          infoClass: slot.getAttribute("data-m8a-v48-info-class")
+        })),
         tabDecision: qs('button[data-m8a-v411-inspector-tab="decision"]'),
         tabMetrics: qs('button[data-m8a-v411-inspector-tab="metrics"]'),
         tabBoundary: qs('button[data-m8a-v411-inspector-tab="boundary"]'),
@@ -337,13 +390,39 @@ async function main() {
         layout.activeWindowId === check.windowId,
         `${check.label} seek mismatch: ${JSON.stringify(layout.activeWindowId)}`
       );
+      assert(
+        layout.railPanel.visible &&
+          layout.railPanel.orbit === check.railOrbit &&
+          layout.railPanel.role === check.railRole &&
+          layout.railPanel.borderLeftWidth === "3px",
+        `${check.label} decision-first rail panel mismatch after spec v2 §5: ${JSON.stringify(layout.railPanel)}`
+      );
+      assert(
+        layout.railMainChip.text.includes(check.railMainChip),
+        `${check.label} main rail chip mismatch: ${layout.railMainChip.text}`
+      );
       assert(layout.railCurrent.text.includes(check.railCurrent), `${check.label} current rail mismatch: ${layout.railCurrent.text}`);
+      assert(layout.railCandidate.text.includes(check.railCandidate), `${check.label} candidate rail mismatch: ${layout.railCandidate.text}`);
+      assert(layout.railFallback.text.includes(check.railFallback), `${check.label} fallback rail mismatch: ${layout.railFallback.text}`);
+      assert(layout.railNext.text.includes(check.railNext), `${check.label} next rail mismatch: ${layout.railNext.text}`);
+      assert(layout.railEvidence.text.includes(check.railEvidence), `${check.label} evidence rail mismatch: ${layout.railEvidence.text}`);
+      assert(
+        JSON.stringify(layout.railSlots.map((entry) => entry.slot)) ===
+          JSON.stringify(["current", "candidate", "fallback", "next", "evidence"]) &&
+          layout.railSlots.every((entry) => entry.infoClass === "dynamic"),
+        `Rail slots must follow spec v2 §5 compact-token + next/evidence structure: ${JSON.stringify(layout.railSlots)}`
+      );
       assertRailSlot(layout.railCurrent, `${check.label} current`);
       assertRailSlot(layout.railCandidate, `${check.label} candidate`);
       assertRailSlot(layout.railFallback, `${check.label} fallback`);
-      assertRailSlot(layout.railDecision, `${check.label} decision`);
-      assertRailSlot(layout.railQuality, `${check.label} quality`);
+      assertRailSlot(layout.railNext, `${check.label} next`);
+      assertRailSlot(layout.railEvidence, `${check.label} evidence`);
     }
+    // Smoke Softening Disclosure: spec v2 §5 supersedes the previous
+    // five-equal-row rail prose contract. Current/Candidate/Fallback are now
+    // compact tokens under the primary judgment chip, with next/evidence as
+    // lower-weight layers.
+    manifest.checks.push("smoke-softening-v2-5-left-rail-decision-first-correction-a-phase-c");
 
     await seekReplayRatio(client, WINDOW_CHECKS[0].ratio);
     layout = await inspectLayout(client);

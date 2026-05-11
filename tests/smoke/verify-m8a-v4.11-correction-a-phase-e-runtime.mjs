@@ -448,7 +448,10 @@ async function inspectLayout(client) {
         topStripPrecision: qs("[data-m8a-v411-top-strip-slot='precision']"),
         topStripBoundary: qs("[data-m8a-v411-top-strip-slot='boundary']"),
         leftRail: qs("[data-m8a-v411-handover-rail='true']"),
-        railDecision: qs("[data-m8a-v411-rail-slot='decision']"),
+        railPanel: qs("[data-m8a-v411-rail-panel='true']"),
+        railMainChip: qs("[data-m8a-v411-rail-main-chip='true']"),
+        railNext: qs("[data-m8a-v411-rail-slot='next']"),
+        railEvidence: qs("[data-m8a-v411-rail-slot='evidence']"),
         footerRow: qs("[data-m8a-v411-footer-chip-row='true']"),
         footerExplicit: qs("[data-m8a-v411-footer-chip='explicit-disclosure']"),
         detailsBtn: qs("[data-m8a-v47-control-id='details-toggle']"),
@@ -667,6 +670,10 @@ function assertCoreDesktopLayout(layout, label) {
   assert(layout.topStripBoundary.text.includes("repo-owned projection"), `${label} top strip must keep repo-owned boundary`);
   assert(layout.topStripBoundary.text.includes("not measured truth"), `${label} top strip must keep non-measured boundary`);
   assert(layout.leftRail.text.length > 90, `${label} left rail must remain readable`);
+  assertVisible(layout.railPanel, `${label} left rail decision-first panel`, 220, 120);
+  assert(layout.railMainChip.text.includes("·"), `${label} left rail must expose orbit-role chip`);
+  assert(layout.railNext.text.includes("下一步："), `${label} left rail must expose next-state layer`);
+  assert(layout.railEvidence.text.length > 20, `${label} left rail must expose evidence/gap layer`);
   assert(layout.footerRow.text.includes("模擬展示"), `${label} footer must keep simulation disclosure`);
   assert(layout.footerRow.text.includes("CelesTrak"), `${label} footer must keep TLE disclosure`);
   assert(layout.footerRow.text.includes("13 actors"), `${label} footer must keep actor count`);
@@ -847,6 +854,7 @@ async function main() {
     // legacy footer-disclosure -> Boundary-tab expectation. Footer
     // disclosure may open the inspector, but Boundary is no longer a tab.
     manifest.softening.push("Correction A Phase E: spec v2 §4.1 / §4.4 supersedes Boundary tab; footer disclosure keeps Decision selected and boundary ownership moves to strip/footer.");
+    manifest.softening.push("Correction A Phase E: spec v2 §5 supersedes the previous five-equal-row left rail prose; rail assertions now verify the orbit-role chip, next-state layer, and evidence/gap layer.");
     manifest.softening.push("Phase 4: spec v2 §8.1 / §8.3 supersedes the prior `narrow fallback intentionally hides desktop top strip / left rail` assertions; narrow now shows a designed compact scope strip plus a handover-rail drawer rather than hidden surfaces.");
     assert(layout.activeTab === "decision", "Footer disclosure must keep Decision selected after Boundary tab removal");
     assert(findPanel(layout, "decision")?.visible, "Footer disclosure must show Decision panel after Boundary tab removal");

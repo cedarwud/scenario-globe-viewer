@@ -131,48 +131,78 @@ export function resolveM8aV411TruthBoundaryLines(
 }
 
 export interface M8aV411PhaseCRailCopy {
-  current: string;
-  candidate: string;
-  fallback: string;
-  decision: string;
-  quality: string;
+  ordinalLabel: string;
+  orbit: "leo" | "meo" | "geo";
+  role: "focus" | "pressure" | "continuity-hold" | "candidate" | "guard";
+  roleGlyph: string;
+  mainChip: string;
+  currentToken: string;
+  candidateToken: string;
+  fallbackToken: string;
+  nextPreview: string;
+  evidenceHook: string;
 }
 
 const M8A_V411_PHASE_C_RAIL_COPY = {
   "leo-acquisition-context": {
-    current: "Current: W1 LEO primary review",
-    candidate: "Candidate: none promoted in W1",
-    fallback: "Fallback: MEO/GEO observed only",
-    decision: "Decision: LEO is usable now; watch service time",
-    quality: "Time/Quality: simulated remaining time; modeled quality strong"
+    ordinalLabel: "W1",
+    orbit: "leo",
+    role: "focus",
+    roleGlyph: "F",
+    mainChip: "LEO · focus",
+    currentToken: "Current: LEO",
+    candidateToken: "Candidate: none",
+    fallbackToken: "Fallback: MEO/GEO",
+    nextPreview: "下一步：進入品質下降階段",
+    evidenceHook: "modeled quality strong; 服務時長：~22 分鐘"
   },
   "leo-aging-pressure": {
-    current: "Current: W2 LEO primary under pressure",
-    candidate: "Candidate: MEO continuity hold queued",
-    fallback: "Fallback: GEO guard coverage available",
-    decision: "Decision: position condition is worsening; prepare switch",
-    quality: "Time/Quality: simulated countdown; modeled quality drops"
+    ordinalLabel: "W2",
+    orbit: "leo",
+    role: "pressure",
+    roleGlyph: "P",
+    mainChip: "LEO · pressure",
+    currentToken: "Current: LEO",
+    candidateToken: "Candidate: MEO",
+    fallbackToken: "Fallback: GEO",
+    nextPreview: "下一步：MEO 暫時接住連續性",
+    evidenceHook: "modeled quality dropping; 切換倒數：~10 分鐘"
   },
   "meo-continuity-hold": {
-    current: "Current: W3 MEO primary hold",
-    candidate: "Candidate: LEO re-entry expected next",
-    fallback: "Fallback: GEO guard coverage available",
-    decision: "Decision: MEO temporarily carries continuity",
-    quality: "Time/Quality: derived hold time; higher-latency class"
+    ordinalLabel: "W3",
+    orbit: "meo",
+    role: "continuity-hold",
+    roleGlyph: "H",
+    mainChip: "MEO · continuity-hold",
+    currentToken: "Current: MEO",
+    candidateToken: "Candidate: LEO",
+    fallbackToken: "Fallback: GEO",
+    nextPreview: "下一步：新 LEO 候選回到",
+    evidenceHook: "modeled continuity hold; LEO ETA：~14 分鐘"
   },
   "leo-reentry-candidate": {
-    current: "Current: W4 MEO primary hold",
-    candidate: "Candidate: LEO under modeled evaluation",
-    fallback: "Fallback: GEO guard coverage available",
-    decision: "Decision: 位置條件恢復，正在評估切回 LEO",
-    quality: "Time/Quality: evaluation time; candidate quality class"
+    ordinalLabel: "W4",
+    orbit: "leo",
+    role: "candidate",
+    roleGlyph: "C",
+    mainChip: "LEO · candidate",
+    currentToken: "Current: MEO",
+    candidateToken: "Candidate: LEO",
+    fallbackToken: "Fallback: GEO",
+    nextPreview: "下一步：GEO 收尾為 guard",
+    evidenceHook: "candidate quality strong; 若切回：~22 分鐘"
   },
   "geo-continuity-guard": {
-    current: "Current: W5 GEO guard context",
-    candidate: "Candidate: no next candidate in final window",
-    fallback: "Fallback: GEO is the modeled guard role",
-    decision: "Decision: GEO is fallback/guard coverage",
-    quality: "Time/Quality: sequence ending; boundary-only quality"
+    ordinalLabel: "W5",
+    orbit: "geo",
+    role: "guard",
+    roleGlyph: "G",
+    mainChip: "GEO · guard",
+    currentToken: "Current: GEO",
+    candidateToken: "Candidate: none",
+    fallbackToken: "Fallback: GEO guard",
+    nextPreview: "下一步：重新開始（回到 W1）",
+    evidenceHook: "guard context only; 序列結束：~5 分鐘"
   }
 } satisfies Record<M8aV46dSimulationHandoverWindowId, M8aV411PhaseCRailCopy>;
 
