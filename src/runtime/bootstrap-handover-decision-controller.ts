@@ -68,7 +68,8 @@ function resolveState(
       stop: toIsoTimestamp(operatorState.stopTime)
     },
     currentServingCandidateId: servingCandidateIds.get(operatorState.scenarioId),
-    policyId: operatorState.handoverPolicyId ?? DEFAULT_HANDOVER_POLICY_ID
+    policyId: operatorState.handoverPolicyId ?? DEFAULT_HANDOVER_POLICY_ID,
+    appliedRuleConfig: operatorState.handoverRuleConfig
   });
   const state = evaluateHandoverDecisionSnapshot(snapshot);
 

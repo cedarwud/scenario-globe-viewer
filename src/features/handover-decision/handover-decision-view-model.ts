@@ -15,6 +15,8 @@ export interface HandoverDecisionPanelViewModel {
   reasons: string;
   policy: string;
   policyDetail: string;
+  ruleConfig: string;
+  ruleConfigDetail: string;
   provenance: string;
   provenanceDetail: string;
 }
@@ -58,6 +60,22 @@ function formatReasonSignals(state: HandoverDecisionState): string {
     .join(", ");
 }
 
+function formatRuleConfig(state: HandoverDecisionState): string {
+  const config = state.report.appliedRuleConfig;
+
+  return `L ${config.weights.latencyMs} / J ${config.weights.jitterMs} / S ${config.weights.networkSpeedMbps}`;
+}
+
+function formatRuleConfigDetail(state: HandoverDecisionState): string {
+  const config = state.report.appliedRuleConfig;
+
+  return [
+    `Dwell ${config.minDwellTicks} ticks`,
+    `Hysteresis ${config.hysteresisMargin} modeled units`,
+    `Tie-break ${config.tieBreakOrder.join(", ")}`
+  ].join("; ");
+}
+
 export function createHandoverDecisionPanelViewModel(
   state: HandoverDecisionState
 ): HandoverDecisionPanelViewModel {
@@ -71,6 +89,8 @@ export function createHandoverDecisionPanelViewModel(
     reasons: formatReasonSignals(state),
     policy: state.report.policyLabel,
     policyDetail: state.report.policySummary,
+    ruleConfig: formatRuleConfig(state),
+    ruleConfigDetail: formatRuleConfigDetail(state),
     provenance: state.provenance.label,
     provenanceDetail: state.provenance.detail
   };

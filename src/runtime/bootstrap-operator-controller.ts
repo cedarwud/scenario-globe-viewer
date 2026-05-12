@@ -2,9 +2,14 @@ import type { ScenePresetKey } from "../features/globe/scene-preset";
 import {
   DEFAULT_HANDOVER_POLICY_ID,
   HANDOVER_POLICY_DESCRIPTORS,
+  assertHandoverRuleConfig,
+  cloneHandoverRuleConfig,
   isSelectableHandoverPolicyId,
+  listDefaultHandoverRuleConfigs,
+  resolveDefaultHandoverRuleConfig,
   resolveHandoverPolicyDescriptor,
   type HandoverPolicyDescriptor,
+  type HandoverRuleConfig,
   type SelectableHandoverPolicyId
 } from "../features/handover-decision";
 import type { ScenarioSession } from "../features/scenario";
@@ -43,6 +48,7 @@ export interface BootstrapOperatorControllerState {
   handoverPolicyId: SelectableHandoverPolicyId;
   handoverPolicyLabel: string;
   handoverPolicySummary: string;
+  handoverRuleConfig: HandoverRuleConfig;
 }
 
 export interface BootstrapOperatorController {
@@ -62,6 +68,10 @@ export interface BootstrapOperatorController {
   selectHandoverPolicy(
     policyId: SelectableHandoverPolicyId
   ): BootstrapOperatorControllerState;
+  applyHandoverRuleConfig(
+    config: HandoverRuleConfig
+  ): BootstrapOperatorControllerState;
+  resetHandoverRuleConfig(): BootstrapOperatorControllerState;
   subscribe(
     listener: (state: BootstrapOperatorControllerState) => void
   ): () => void;
@@ -107,7 +117,8 @@ function readState(
   replayClock: ReplayClock,
   scenarioSession: ScenarioSession,
   scenarioCatalog: BootstrapScenarioCatalog,
-  handoverPolicyId: SelectableHandoverPolicyId
+  handoverPolicyId: SelectableHandoverPolicyId,
+  handoverRuleConfig: HandoverRuleConfig
 ): BootstrapOperatorControllerState {
   const currentScenario =
     scenarioSession.getCurrentScenario() ??
@@ -130,7 +141,8 @@ function readState(
     isPlaying: clockState.isPlaying,
     handoverPolicyId,
     handoverPolicyLabel: policy.label,
-    handoverPolicySummary: policy.summary
+    handoverPolicySummary: policy.summary,
+    handoverRuleConfig: cloneHandoverRuleConfig(handoverRuleConfig)
   };
 }
 
@@ -144,11 +156,26 @@ export function createBootstrapOperatorController({
   >();
   let selectedHandoverPolicyId: SelectableHandoverPolicyId =
     DEFAULT_HANDOVER_POLICY_ID;
+  const handoverRuleConfigsByPolicyId = new Map<
+    SelectableHandoverPolicyId,
+    HandoverRuleConfig
+  >(
+    listDefaultHandoverRuleConfigs()
+      .filter((config) => isSelectableHandoverPolicyId(config.policyId))
+      .map((config) => [
+        config.policyId as SelectableHandoverPolicyId,
+        cloneHandoverRuleConfig(config)
+      ])
+  );
+  const resolveActiveRuleConfig = (): HandoverRuleConfig =>
+    handoverRuleConfigsByPolicyId.get(selectedHandoverPolicyId) ??
+    resolveDefaultHandoverRuleConfig(selectedHandoverPolicyId);
   let lastState = readState(
     replayClock,
     scenarioSession,
     scenarioCatalog,
-    selectedHandoverPolicyId
+    selectedHandoverPolicyId,
+    resolveActiveRuleConfig()
   );
   let selectionQueue = Promise.resolve(lastState);
 
@@ -157,7 +184,8 @@ export function createBootstrapOperatorController({
       replayClock,
       scenarioSession,
       scenarioCatalog,
-      selectedHandoverPolicyId
+      selectedHandoverPolicyId,
+      resolveActiveRuleConfig()
     );
 
     for (const listener of listeners) {
@@ -242,6 +270,37 @@ export function createBootstrapOperatorController({
       }
 
       selectedHandoverPolicyId = policyId;
+      return notify();
+    },
+    applyHandoverRuleConfig(
+      config: HandoverRuleConfig
+    ): BootstrapOperatorControllerState {
+      assertHandoverRuleConfig(config);
+
+      if (!isSelectableHandoverPolicyId(config.policyId)) {
+        throw new Error(`Bootstrap handover rule policy is not selectable: ${config.policyId}`);
+      }
+
+      if (config.policyId !== selectedHandoverPolicyId) {
+        throw new Error(
+          "Bootstrap handover rule config can only edit the active policy variant."
+        );
+      }
+
+      handoverRuleConfigsByPolicyId.set(
+        config.policyId,
+        cloneHandoverRuleConfig(config)
+      );
+      return notify();
+    },
+    resetHandoverRuleConfig(): BootstrapOperatorControllerState {
+      handoverRuleConfigsByPolicyId.set(
+        selectedHandoverPolicyId,
+        resolveDefaultHandoverRuleConfig(
+          selectedHandoverPolicyId,
+          new Date().toISOString()
+        )
+      );
       return notify();
     },
     subscribe(

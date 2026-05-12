@@ -215,7 +215,11 @@ The current document-level telemetry surface includes these groups:
   `handoverScenarioId`, `handoverEvaluatedAt`, `handoverDecisionKind`,
   `handoverServingCandidateId`, `handoverTruthState`,
   `handoverPolicyId`, `handoverProvenance`, `handoverReasonSignals`,
-  `handoverSchemaVersion`, `handoverProvenanceDetail`
+  `handoverSchemaVersion`, `handoverPolicyLabel`, `handoverPolicySummary`,
+  `handoverPolicyTieBreak`, `handoverRulePolicyId`,
+  `handoverRuleAppliedAt`, `handoverRuleWeights`,
+  `handoverRuleTieBreakOrder`, `handoverRuleMinDwellTicks`,
+  `handoverRuleHysteresisMargin`, `handoverProvenanceDetail`
 - physical-input state
   `physicalScenarioId`, `physicalEvaluatedAt`, `physicalContextLabel`,
   `physicalFamilies`, `physicalSchemaVersion`,

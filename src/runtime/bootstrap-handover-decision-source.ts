@@ -4,7 +4,8 @@ import {
   HANDOVER_UNSUPPORTED_POLICY_ID,
   type HandoverCandidateMetrics,
   type HandoverDecisionSnapshot,
-  type HandoverPolicyId
+  type HandoverPolicyId,
+  type HandoverRuleConfig
 } from "../features/handover-decision/handover-decision";
 import {
   createBootstrapPhysicalInputSourceCatalog,
@@ -137,6 +138,7 @@ export function resolveBootstrapProxyHandoverDecisionSnapshot(
     };
     currentServingCandidateId?: string;
     policyId?: HandoverPolicyId;
+    appliedRuleConfig?: HandoverRuleConfig;
   }
 ): HandoverDecisionSnapshot {
   const entry = findBootstrapProxyHandoverDecisionSourceEntry(
@@ -175,6 +177,9 @@ export function resolveBootstrapProxyHandoverDecisionSnapshot(
         }
       : {}),
     policyId: options.policyId ?? entry.policyId,
+    ...(options.appliedRuleConfig
+      ? { appliedRuleConfig: options.appliedRuleConfig }
+      : {}),
     candidates: toHandoverCandidateMetrics(projectedMetrics)
   };
 }

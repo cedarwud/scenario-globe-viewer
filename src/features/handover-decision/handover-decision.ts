@@ -48,6 +48,47 @@ export interface HandoverPolicyDescriptor {
   tieBreak: ReadonlyArray<HandoverPolicyTieBreak>;
 }
 
+export interface HandoverRuleConfig {
+  policyId: HandoverPolicyId;
+  weights: HandoverPolicyWeights;
+  tieBreakOrder: ReadonlyArray<HandoverPolicyTieBreak>;
+  minDwellTicks: number;
+  hysteresisMargin: number;
+  appliedAt: string;
+  provenanceKind: DecisionInputProvenance;
+}
+
+export interface HandoverRuleConfigValidationIssue {
+  field: string;
+  message: string;
+}
+
+export const HANDOVER_RULE_CONFIG_SCHEMA_VERSION =
+  "m8a-v4.12-f11-handover-rule-config.v1";
+export const HANDOVER_RULE_CONFIG_DEFAULT_APPLIED_AT =
+  "2026-05-12T00:00:00.000Z";
+export const HANDOVER_RULE_CONFIG_WEIGHT_RANGE = {
+  min: 0,
+  max: 10,
+  step: 0.1
+} as const;
+export const HANDOVER_RULE_CONFIG_MIN_DWELL_TICK_RANGE = {
+  min: 0,
+  max: 60,
+  step: 1
+} as const;
+export const HANDOVER_RULE_CONFIG_HYSTERESIS_RANGE = {
+  min: 0,
+  max: 10,
+  step: 0.1
+} as const;
+export const HANDOVER_RULE_CONFIG_TIE_BREAK_ORDER: ReadonlyArray<HandoverPolicyTieBreak> = [
+  "latency",
+  "jitter",
+  "speed",
+  "stable-serving"
+];
+
 export const SELECTABLE_HANDOVER_POLICY_IDS = [
   "bootstrap-balanced-v1",
   "bootstrap-latency-priority-v1",
@@ -117,6 +158,38 @@ const HANDOVER_POLICY_DESCRIPTOR_BY_ID = new Map<string, HandoverPolicyDescripto
   ].map((descriptor) => [descriptor.id, descriptor])
 );
 
+function createDefaultRuleConfig(
+  policy: HandoverPolicyDescriptor,
+  appliedAt: string = HANDOVER_RULE_CONFIG_DEFAULT_APPLIED_AT
+): HandoverRuleConfig {
+  return {
+    policyId: policy.id,
+    weights: {
+      latencyMs: policy.weights.latencyMs,
+      jitterMs: policy.weights.jitterMs,
+      networkSpeedMbps: policy.weights.networkSpeedMbps
+    },
+    tieBreakOrder:
+      policy.tieBreak.length > 0
+        ? [...policy.tieBreak]
+        : [...HANDOVER_RULE_CONFIG_TIE_BREAK_ORDER],
+    minDwellTicks: 0,
+    hysteresisMargin: 0,
+    appliedAt,
+    provenanceKind: HANDOVER_DECISION_PROXY_PROVENANCE
+  };
+}
+
+export const DEFAULT_HANDOVER_RULE_CONFIGS: ReadonlyArray<HandoverRuleConfig> =
+  HANDOVER_POLICY_DESCRIPTORS.map((policy) => createDefaultRuleConfig(policy));
+
+const DEFAULT_HANDOVER_RULE_CONFIG_BY_ID = new Map<string, HandoverRuleConfig>(
+  [
+    ...DEFAULT_HANDOVER_RULE_CONFIGS,
+    createDefaultRuleConfig(HANDOVER_UNSUPPORTED_POLICY_DESCRIPTOR)
+  ].map((config) => [config.policyId, config])
+);
+
 export interface HandoverCandidateMetrics {
   candidateId: string;
   orbitClass: OrbitClass;
@@ -138,6 +211,7 @@ export interface HandoverDecisionSnapshot {
   policyLabel?: string;
   policySummary?: string;
   policyTieBreak?: ReadonlyArray<HandoverPolicyTieBreak>;
+  appliedRuleConfig?: HandoverRuleConfig;
   decisionModel?: HandoverDecisionModel;
   isNativeRfHandover?: boolean;
   candidates: ReadonlyArray<HandoverCandidateMetrics>;
@@ -172,6 +246,7 @@ export interface HandoverDecisionReport {
   policyLabel: string;
   policySummary: string;
   policyTieBreak: ReadonlyArray<HandoverPolicyTieBreak>;
+  appliedRuleConfig: HandoverRuleConfig;
   provenance: HandoverDecisionProvenance;
   snapshot: HandoverDecisionSnapshot;
   result: HandoverDecisionResult;
@@ -223,6 +298,196 @@ export function listHandoverPolicyDescriptors(): ReadonlyArray<HandoverPolicyDes
   return HANDOVER_POLICY_DESCRIPTORS;
 }
 
+export function resolveDefaultHandoverRuleConfig(
+  policyId: string,
+  appliedAt: string = HANDOVER_RULE_CONFIG_DEFAULT_APPLIED_AT
+): HandoverRuleConfig {
+  const defaultConfig = DEFAULT_HANDOVER_RULE_CONFIG_BY_ID.get(policyId);
+
+  if (!defaultConfig) {
+    throw new Error(`Unsupported handover rule config policy id: ${policyId}`);
+  }
+
+  return {
+    ...cloneHandoverRuleConfig(defaultConfig),
+    appliedAt
+  };
+}
+
+export function listDefaultHandoverRuleConfigs(): ReadonlyArray<HandoverRuleConfig> {
+  return DEFAULT_HANDOVER_RULE_CONFIGS.map((config) =>
+    cloneHandoverRuleConfig(config)
+  );
+}
+
+function hasAtMostOneDecimalPlace(value: number): boolean {
+  return Math.abs(value * 10 - Math.round(value * 10)) < Number.EPSILON;
+}
+
+function validateBoundedNumber(options: {
+  value: number;
+  field: string;
+  label: string;
+  min: number;
+  max: number;
+  decimal: boolean;
+}): HandoverRuleConfigValidationIssue[] {
+  const issues: HandoverRuleConfigValidationIssue[] = [];
+
+  if (!Number.isFinite(options.value)) {
+    return [
+      {
+        field: options.field,
+        message: `${options.label} must be a finite number.`
+      }
+    ];
+  }
+
+  if (options.value < options.min || options.value > options.max) {
+    issues.push({
+      field: options.field,
+      message: `${options.label} must be between ${options.min} and ${options.max}.`
+    });
+  }
+
+  if (options.decimal) {
+    if (!hasAtMostOneDecimalPlace(options.value)) {
+      issues.push({
+        field: options.field,
+        message: `${options.label} supports one decimal place.`
+      });
+    }
+  } else if (!Number.isInteger(options.value)) {
+    issues.push({
+      field: options.field,
+      message: `${options.label} must be an integer.`
+    });
+  }
+
+  return issues;
+}
+
+function validateTieBreakOrder(
+  tieBreakOrder: ReadonlyArray<HandoverPolicyTieBreak>
+): HandoverRuleConfigValidationIssue[] {
+  const expected = [...HANDOVER_RULE_CONFIG_TIE_BREAK_ORDER].sort();
+  const actual = [...tieBreakOrder].sort();
+
+  if (
+    tieBreakOrder.length !== HANDOVER_RULE_CONFIG_TIE_BREAK_ORDER.length ||
+    actual.some((value, index) => value !== expected[index])
+  ) {
+    return [
+      {
+        field: "tieBreakOrder",
+        message:
+          "Tie-break order must use latency, jitter, speed, and stable-serving exactly once."
+      }
+    ];
+  }
+
+  return [];
+}
+
+export function validateHandoverRuleConfig(
+  config: HandoverRuleConfig
+): ReadonlyArray<HandoverRuleConfigValidationIssue> {
+  const issues: HandoverRuleConfigValidationIssue[] = [];
+
+  try {
+    resolveHandoverPolicyDescriptor(config.policyId);
+  } catch {
+    issues.push({
+      field: "policyId",
+      message: `Unsupported handover rule policy id: ${config.policyId}`
+    });
+  }
+
+  if (config.provenanceKind !== HANDOVER_DECISION_PROXY_PROVENANCE) {
+    issues.push({
+      field: "provenanceKind",
+      message: "Rule config provenance must stay bounded-proxy."
+    });
+  }
+
+  issues.push(
+    ...validateBoundedNumber({
+      value: config.weights.latencyMs,
+      field: "weights.latencyMs",
+      label: "Latency weight",
+      min: HANDOVER_RULE_CONFIG_WEIGHT_RANGE.min,
+      max: HANDOVER_RULE_CONFIG_WEIGHT_RANGE.max,
+      decimal: true
+    }),
+    ...validateBoundedNumber({
+      value: config.weights.jitterMs,
+      field: "weights.jitterMs",
+      label: "Jitter weight",
+      min: HANDOVER_RULE_CONFIG_WEIGHT_RANGE.min,
+      max: HANDOVER_RULE_CONFIG_WEIGHT_RANGE.max,
+      decimal: true
+    }),
+    ...validateBoundedNumber({
+      value: config.weights.networkSpeedMbps,
+      field: "weights.networkSpeedMbps",
+      label: "Modeled speed weight",
+      min: HANDOVER_RULE_CONFIG_WEIGHT_RANGE.min,
+      max: HANDOVER_RULE_CONFIG_WEIGHT_RANGE.max,
+      decimal: true
+    }),
+    ...validateBoundedNumber({
+      value: config.minDwellTicks,
+      field: "minDwellTicks",
+      label: "Minimum dwell ticks",
+      min: HANDOVER_RULE_CONFIG_MIN_DWELL_TICK_RANGE.min,
+      max: HANDOVER_RULE_CONFIG_MIN_DWELL_TICK_RANGE.max,
+      decimal: false
+    }),
+    ...validateBoundedNumber({
+      value: config.hysteresisMargin,
+      field: "hysteresisMargin",
+      label: "Hysteresis margin",
+      min: HANDOVER_RULE_CONFIG_HYSTERESIS_RANGE.min,
+      max: HANDOVER_RULE_CONFIG_HYSTERESIS_RANGE.max,
+      decimal: true
+    }),
+    ...validateTieBreakOrder(config.tieBreakOrder)
+  );
+
+  if (
+    config.weights.latencyMs === 0 &&
+    config.weights.jitterMs === 0 &&
+    config.weights.networkSpeedMbps === 0 &&
+    config.policyId !== HANDOVER_UNSUPPORTED_POLICY_ID
+  ) {
+    issues.push({
+      field: "weights",
+      message: "At least one rule weight must be greater than zero."
+    });
+  }
+
+  if (!config.appliedAt.trim()) {
+    issues.push({
+      field: "appliedAt",
+      message: "Applied timestamp is required."
+    });
+  }
+
+  return issues;
+}
+
+export function assertHandoverRuleConfig(config: HandoverRuleConfig): void {
+  const issues = validateHandoverRuleConfig(config);
+
+  if (issues.length > 0) {
+    throw new Error(
+      `Invalid handover rule config: ${issues
+        .map((issue) => `${issue.field}: ${issue.message}`)
+        .join("; ")}`
+    );
+  }
+}
+
 function toEpochMilliseconds(value: string): number {
   const epochMs = Date.parse(value);
 
@@ -246,6 +511,24 @@ function cloneCandidateMetrics(
   };
 }
 
+export function cloneHandoverRuleConfig(
+  config: HandoverRuleConfig
+): HandoverRuleConfig {
+  return {
+    policyId: config.policyId,
+    weights: {
+      latencyMs: config.weights.latencyMs,
+      jitterMs: config.weights.jitterMs,
+      networkSpeedMbps: config.weights.networkSpeedMbps
+    },
+    tieBreakOrder: [...config.tieBreakOrder],
+    minDwellTicks: config.minDwellTicks,
+    hysteresisMargin: config.hysteresisMargin,
+    appliedAt: config.appliedAt,
+    provenanceKind: config.provenanceKind
+  };
+}
+
 function cloneSnapshot(
   snapshot: HandoverDecisionSnapshot
 ): HandoverDecisionSnapshot {
@@ -265,6 +548,9 @@ function cloneSnapshot(
     ...(snapshot.policyTieBreak
       ? { policyTieBreak: [...snapshot.policyTieBreak] }
       : {}),
+    ...(snapshot.appliedRuleConfig
+      ? { appliedRuleConfig: cloneHandoverRuleConfig(snapshot.appliedRuleConfig) }
+      : {}),
     ...(snapshot.decisionModel
       ? { decisionModel: snapshot.decisionModel }
       : {}),
@@ -277,13 +563,15 @@ function cloneSnapshot(
 
 function attachPolicyDescriptorToSnapshot(
   snapshot: HandoverDecisionSnapshot,
-  policy: HandoverPolicyDescriptor
+  policy: HandoverPolicyDescriptor,
+  ruleConfig: HandoverRuleConfig
 ): HandoverDecisionSnapshot {
   return {
     ...snapshot,
     policyLabel: policy.label,
     policySummary: policy.summary,
-    policyTieBreak: [...policy.tieBreak]
+    policyTieBreak: [...policy.tieBreak],
+    appliedRuleConfig: cloneHandoverRuleConfig(ruleConfig)
   };
 }
 
@@ -329,6 +617,16 @@ function assertSnapshot(snapshot: HandoverDecisionSnapshot): void {
   }
 
   resolveHandoverPolicyDescriptor(snapshot.policyId);
+
+  if (snapshot.appliedRuleConfig) {
+    assertHandoverRuleConfig(snapshot.appliedRuleConfig);
+
+    if (snapshot.appliedRuleConfig.policyId !== snapshot.policyId) {
+      throw new Error(
+        "Handover decision applied rule config policyId must match snapshot policyId."
+      );
+    }
+  }
 
   if (
     snapshot.decisionModel !== undefined &&
@@ -393,7 +691,7 @@ function assertSnapshot(snapshot: HandoverDecisionSnapshot): void {
 
 function rankCandidates(
   candidates: ReadonlyArray<HandoverCandidateMetrics>,
-  policy: HandoverPolicyDescriptor
+  ruleConfig: HandoverRuleConfig
 ): RankedCandidate[] {
   const lowestLatency = Math.min(...candidates.map((candidate) => candidate.latencyMs));
   const lowestJitter = Math.min(...candidates.map((candidate) => candidate.jitterMs));
@@ -404,24 +702,25 @@ function rankCandidates(
   return candidates.map((candidate) => ({
     candidate,
     weightedScore:
-      Number(candidate.latencyMs === lowestLatency) * policy.weights.latencyMs +
-      Number(candidate.jitterMs === lowestJitter) * policy.weights.jitterMs +
+      Number(candidate.latencyMs === lowestLatency) *
+        ruleConfig.weights.latencyMs +
+      Number(candidate.jitterMs === lowestJitter) * ruleConfig.weights.jitterMs +
       Number(candidate.networkSpeedMbps === highestNetworkSpeed) *
-        policy.weights.networkSpeedMbps
+        ruleConfig.weights.networkSpeedMbps
   }));
 }
 
 function compareRankedCandidates(
   left: RankedCandidate,
   right: RankedCandidate,
-  policy: HandoverPolicyDescriptor,
+  ruleConfig: HandoverRuleConfig,
   currentServingCandidateId: string | undefined
 ): number {
   if (left.weightedScore !== right.weightedScore) {
     return right.weightedScore - left.weightedScore;
   }
 
-  for (const tieBreak of policy.tieBreak) {
+  for (const tieBreak of ruleConfig.tieBreakOrder) {
     switch (tieBreak) {
       case "latency":
         if (left.candidate.latencyMs !== right.candidate.latencyMs) {
@@ -459,20 +758,30 @@ function compareRankedCandidates(
 
 function resolveBestCandidate(
   candidates: ReadonlyArray<HandoverCandidateMetrics>,
-  policy: HandoverPolicyDescriptor,
+  ruleConfig: HandoverRuleConfig,
   currentServingCandidateId: string | undefined
 ): {
   bestCandidate: HandoverCandidateMetrics;
+  bestWeightedScore: number;
+  currentWeightedScore?: number;
   tieBreakUsed: boolean;
 } {
-  const rankedCandidates = rankCandidates(candidates, policy).sort((left, right) =>
-    compareRankedCandidates(left, right, policy, currentServingCandidateId)
+  const rankedCandidates = rankCandidates(candidates, ruleConfig).sort((left, right) =>
+    compareRankedCandidates(left, right, ruleConfig, currentServingCandidateId)
   );
   const bestCandidate = rankedCandidates[0];
   const runnerUp = rankedCandidates[1];
+  const currentRankedCandidate = rankedCandidates.find(
+    (rankedCandidate) =>
+      rankedCandidate.candidate.candidateId === currentServingCandidateId
+  );
 
   return {
     bestCandidate: cloneCandidateMetrics(bestCandidate.candidate),
+    bestWeightedScore: bestCandidate.weightedScore,
+    ...(currentRankedCandidate
+      ? { currentWeightedScore: currentRankedCandidate.weightedScore }
+      : {}),
     tieBreakUsed:
       runnerUp !== undefined &&
       runnerUp.weightedScore === bestCandidate.weightedScore
@@ -522,8 +831,64 @@ function createUnavailableResult(
   };
 }
 
+function resolveRuleConfigForSnapshot(
+  snapshot: HandoverDecisionSnapshot
+): HandoverRuleConfig {
+  return snapshot.appliedRuleConfig
+    ? cloneHandoverRuleConfig(snapshot.appliedRuleConfig)
+    : resolveDefaultHandoverRuleConfig(snapshot.policyId);
+}
+
+function resolveModeledDwellTicks(snapshot: HandoverDecisionSnapshot): number {
+  const startMs = toEpochMilliseconds(snapshot.activeRange.start);
+  const stopMs = toEpochMilliseconds(snapshot.activeRange.stop);
+  const evaluatedAtMs = toEpochMilliseconds(snapshot.evaluatedAt);
+  const activeRangeMs = Math.max(1, stopMs - startMs);
+  const elapsedRatio = Math.max(
+    0,
+    Math.min(1, (evaluatedAtMs - startMs) / activeRangeMs)
+  );
+
+  return Math.floor(elapsedRatio * HANDOVER_RULE_CONFIG_MIN_DWELL_TICK_RANGE.max);
+}
+
+function shouldHoldForRuleWindow(options: {
+  snapshot: HandoverDecisionSnapshot;
+  ruleConfig: HandoverRuleConfig;
+  currentCandidate: HandoverCandidateMetrics | undefined;
+  bestCandidate: HandoverCandidateMetrics;
+  bestWeightedScore: number;
+  currentWeightedScore?: number;
+}): boolean {
+  if (
+    !options.currentCandidate ||
+    options.currentCandidate.candidateId === options.bestCandidate.candidateId
+  ) {
+    return false;
+  }
+
+  if (
+    options.ruleConfig.minDwellTicks > 0 &&
+    resolveModeledDwellTicks(options.snapshot) < options.ruleConfig.minDwellTicks
+  ) {
+    return true;
+  }
+
+  if (
+    options.ruleConfig.hysteresisMargin > 0 &&
+    options.currentWeightedScore !== undefined &&
+    options.bestWeightedScore - options.currentWeightedScore <=
+      options.ruleConfig.hysteresisMargin
+  ) {
+    return true;
+  }
+
+  return false;
+}
+
 function createHandoverDecisionReport(
   policy: HandoverPolicyDescriptor,
+  ruleConfig: HandoverRuleConfig,
   provenance: HandoverDecisionProvenance,
   snapshot: HandoverDecisionSnapshot,
   result: HandoverDecisionResult
@@ -534,6 +899,7 @@ function createHandoverDecisionReport(
     policyLabel: policy.label,
     policySummary: policy.summary,
     policyTieBreak: [...policy.tieBreak],
+    appliedRuleConfig: cloneHandoverRuleConfig(ruleConfig),
     provenance,
     snapshot: cloneSnapshot(snapshot),
     result: cloneResult(result)
@@ -546,9 +912,11 @@ export function evaluateHandoverDecisionSnapshot(
   assertSnapshot(snapshot);
 
   const policy = resolveHandoverPolicyDescriptor(snapshot.policyId);
+  const ruleConfig = resolveRuleConfigForSnapshot(snapshot);
   const clonedSnapshot = attachPolicyDescriptorToSnapshot(
     cloneSnapshot(snapshot),
-    policy
+    policy,
+    ruleConfig
   );
 
   if (clonedSnapshot.candidates.length === 0) {
@@ -566,6 +934,7 @@ export function evaluateHandoverDecisionSnapshot(
       provenance,
       report: createHandoverDecisionReport(
         policy,
+        ruleConfig,
         provenance,
         clonedSnapshot,
         result
@@ -574,23 +943,42 @@ export function evaluateHandoverDecisionSnapshot(
   }
 
   const currentCandidate = resolveCurrentCandidate(clonedSnapshot);
-  const { bestCandidate, tieBreakUsed } = resolveBestCandidate(
+  const {
+    bestCandidate,
+    bestWeightedScore,
+    currentWeightedScore,
+    tieBreakUsed
+  } = resolveBestCandidate(
     clonedSnapshot.candidates,
-    policy,
+    ruleConfig,
     clonedSnapshot.currentServingCandidateId
   );
   const balancedPolicy = resolveHandoverPolicyDescriptor(DEFAULT_HANDOVER_POLICY_ID);
+  const balancedRuleConfig = resolveDefaultHandoverRuleConfig(balancedPolicy.id);
   const balancedBestCandidate =
-    policy.id === DEFAULT_HANDOVER_POLICY_ID
+    ruleConfig.policyId === DEFAULT_HANDOVER_POLICY_ID &&
+    ruleConfig.weights.latencyMs === balancedRuleConfig.weights.latencyMs &&
+    ruleConfig.weights.jitterMs === balancedRuleConfig.weights.jitterMs &&
+    ruleConfig.weights.networkSpeedMbps ===
+      balancedRuleConfig.weights.networkSpeedMbps &&
+    ruleConfig.tieBreakOrder.join(",") ===
+      balancedRuleConfig.tieBreakOrder.join(",")
       ? bestCandidate
       : resolveBestCandidate(
           clonedSnapshot.candidates,
-          balancedPolicy,
+          balancedRuleConfig,
           clonedSnapshot.currentServingCandidateId
         ).bestCandidate;
   const policyWeightedOverrideUsed =
-    policy.id !== DEFAULT_HANDOVER_POLICY_ID &&
     balancedBestCandidate.candidateId !== bestCandidate.candidateId;
+  const ruleWindowHold = shouldHoldForRuleWindow({
+    snapshot: clonedSnapshot,
+    ruleConfig,
+    currentCandidate,
+    bestCandidate,
+    bestWeightedScore,
+    currentWeightedScore
+  });
   const reasonCodes = new Set<HandoverReasonSignalCode>();
 
   let result: HandoverDecisionResult;
@@ -634,7 +1022,10 @@ export function evaluateHandoverDecisionSnapshot(
         }
       };
     }
-  } else if (currentCandidate.candidateId === bestCandidate.candidateId) {
+  } else if (
+    currentCandidate.candidateId === bestCandidate.candidateId ||
+    ruleWindowHold
+  ) {
     reasonCodes.add("policy-hold");
     if (policyWeightedOverrideUsed) {
       reasonCodes.add("policy-weighted-override");
@@ -692,6 +1083,12 @@ export function evaluateHandoverDecisionSnapshot(
     snapshot: clonedSnapshot,
     result,
     provenance,
-    report: createHandoverDecisionReport(policy, provenance, clonedSnapshot, result)
+    report: createHandoverDecisionReport(
+      policy,
+      ruleConfig,
+      provenance,
+      clonedSnapshot,
+      result
+    )
   };
 }

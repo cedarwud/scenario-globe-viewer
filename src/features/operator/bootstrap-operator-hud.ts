@@ -395,7 +395,8 @@ export function mountBootstrapOperatorHud({
   });
   const unmountHandoverDecisionPanel = mountBootstrapHandoverDecisionPanel({
     container: elements.decisionSlot,
-    controller: handoverDecisionController
+    controller: handoverDecisionController,
+    ruleConfigController: controller
   });
   const unmountSceneStarterPanel = mountBootstrapSceneStarterPanel({
     container: elements.starterSlot,
