@@ -11,6 +11,7 @@ import { mountBootstrapHandoverDecisionPanel } from "../handover-decision";
 import { mountBootstrapPhysicalInputPanel } from "../physical-input";
 import { mountBootstrapSceneStarterPanel } from "../scene-starter/bootstrap-scene-starter-panel";
 import { mountBootstrapValidationStatePanel } from "../validation-state";
+import { mountBootstrapReportExportAction } from "../report-export/bootstrap-report-export-action";
 import type {
   BootstrapOperatorController,
   BootstrapOperatorControllerState,
@@ -42,6 +43,7 @@ interface BootstrapOperatorHudElements {
   policyStatus: HTMLSpanElement;
   modeButtons: Record<BootstrapScenarioMode, HTMLButtonElement>;
   speedButtons: ReadonlyArray<HTMLButtonElement>;
+  reportExportSlot: HTMLDivElement;
   timeSlot: HTMLDivElement;
   communicationSlot: HTMLDivElement;
   physicalSlot: HTMLDivElement;
@@ -182,6 +184,10 @@ function createElements(
           aria-atomic="true"
         ></span>
       </div>
+      <div
+        class="operator-status-hud__report-export"
+        data-operator-report-export-slot="true"
+      ></div>
       <div class="operator-status-hud__telemetry">
         <div class="operator-status-hud__timeline" data-operator-time-slot="true"></div>
         <div
@@ -237,6 +243,9 @@ function createElements(
   const timeSlot = statusPanel.querySelector<HTMLDivElement>(
     "[data-operator-time-slot='true']"
   );
+  const reportExportSlot = statusPanel.querySelector<HTMLDivElement>(
+    "[data-operator-report-export-slot='true']"
+  );
   const communicationSlot = statusPanel.querySelector<HTMLDivElement>(
     "[data-operator-communication-slot='true']"
   );
@@ -262,6 +271,7 @@ function createElements(
     !realTimeButton ||
     !prerecordedButton ||
     speedButtons.length === 0 ||
+    !reportExportSlot ||
     !timeSlot ||
     !communicationSlot ||
     !physicalSlot ||
@@ -283,6 +293,7 @@ function createElements(
       prerecorded: prerecordedButton
     },
     speedButtons,
+    reportExportSlot,
     timeSlot,
     communicationSlot,
     physicalSlot,
@@ -383,6 +394,10 @@ export function mountBootstrapOperatorHud({
   const unmountTimelineHudPlaceholder = mountTimelineHudPlaceholder({
     container: elements.timeSlot,
     replayClock: operatorTimelineClock
+  });
+  const unmountReportExportAction = mountBootstrapReportExportAction({
+    container: elements.reportExportSlot,
+    operatorController: controller
   });
   const unmountCommunicationTimePanel = mountBootstrapCommunicationTimePanel({
     container: elements.communicationSlot,
@@ -522,6 +537,7 @@ export function mountBootstrapOperatorHud({
     unmountHandoverDecisionPanel();
     unmountPhysicalInputPanel();
     unmountCommunicationTimePanel();
+    unmountReportExportAction();
     unmountTimelineHudPlaceholder();
     elements.scenarioSelect.removeEventListener("change", handleScenarioChange);
     elements.policySelect.removeEventListener("change", handlePolicyChange);
