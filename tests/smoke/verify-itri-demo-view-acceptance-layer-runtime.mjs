@@ -24,6 +24,17 @@ const EXPECTED_LAYER = "L2-acceptance-evidence";
 const EXPECTED_F13_ARTIFACT =
   "output/validation/phase7.1/2026-05-11T16-43-23.879Z-phase7-1-first-slice/summary.json";
 const EXPECTED_F13_FRESH_UNTIL = "2026-05-25T16:43:23.879Z";
+const EXPECTED_F13_READINESS_VERSION =
+  "itri-demo-route-f13-scale-readiness-runtime.v1";
+const EXPECTED_F13_READINESS_SOURCE_TYPE = "fixture/model-backed";
+const EXPECTED_F13_READINESS_SOURCE_URL = "not-applicable-repo-local-fixture";
+const EXPECTED_F13_READINESS_BUILT_AT_UTC = "2026-05-12T09:53:20Z";
+const EXPECTED_F13_READINESS_COUNTS = {
+  currentRouteActorCount: 13,
+  actorCount: 549,
+  leoCount: 540,
+  targetLeoCount: 500
+};
 const EXPECTED_EXTERNAL_VALIDATION_ARTIFACT =
   "output/validation/external-v02-v06/2026-05-11T16-59-27.404Z-external-validation/summary.json";
 const EXPECTED_EXTERNAL_VALIDATION_STATUS = "explicit-fail-no-retained-pass";
@@ -196,6 +207,7 @@ async function inspectAcceptanceLayer(client) {
       const evidence = productRoot?.querySelector("[data-m8a-v47-control-id='evidence-toggle']");
       const sheet = productRoot?.querySelector("[data-m8a-v48-inspector='true']");
       const layer = productRoot?.querySelector("[data-itri-demo-l2-acceptance-layer='true']");
+      const f13Readiness = productRoot?.querySelector("[data-itri-f13-scale-readiness-surface='true']");
       const coverageItems = Array.from(
         layer?.querySelectorAll("[data-itri-acceptance-requirement='true']") ?? []
       ).map((item) => ({
@@ -234,6 +246,30 @@ async function inspectAcceptanceLayer(client) {
           f13FreshUntilUtc: layer?.dataset.itriDemoL2F13FreshUntilUtc ?? null,
           f13RouteNativeScaleClaimed:
             layer?.dataset.itriDemoL2F13RouteNativeScaleClaimed ?? null,
+          f13ScaleReadinessVersion:
+            layer?.dataset.itriDemoL2F13ScaleReadinessVersion ?? null,
+          f13ScaleReadinessTargetReached:
+            layer?.dataset.itriDemoL2F13ScaleReadinessTargetReached ?? null,
+          f13ScaleReadinessCurrentRouteActorCount:
+            layer?.dataset.itriDemoL2F13ScaleReadinessCurrentRouteActorCount ?? null,
+          f13ScaleReadinessActorCount:
+            layer?.dataset.itriDemoL2F13ScaleReadinessActorCount ?? null,
+          f13ScaleReadinessLeoCount:
+            layer?.dataset.itriDemoL2F13ScaleReadinessLeoCount ?? null,
+          f13ScaleReadinessTargetLeoCount:
+            layer?.dataset.itriDemoL2F13ScaleReadinessTargetLeoCount ?? null,
+          f13ScaleReadinessSourceType:
+            layer?.dataset.itriDemoL2F13ScaleReadinessSourceType ?? null,
+          f13ScaleReadinessSourceUrl:
+            layer?.dataset.itriDemoL2F13ScaleReadinessSourceUrl ?? null,
+          f13ScaleReadinessPublicSourceUsed:
+            layer?.dataset.itriDemoL2F13ScaleReadinessPublicSourceUsed ?? null,
+          f13ScaleReadinessBuiltAtUtc:
+            layer?.dataset.itriDemoL2F13ScaleReadinessBuiltAtUtc ?? null,
+          f13ScaleReadinessFreshnessTimestampUtc:
+            layer?.dataset.itriDemoL2F13ScaleReadinessFreshnessTimestampUtc ?? null,
+          f13ScaleReadinessClosureClaimed:
+            layer?.dataset.itriDemoL2F13ScaleReadinessClosureClaimed ?? null,
           externalValidationArtifact:
             layer?.dataset.itriDemoL2ExternalValidationArtifact ?? null,
           externalValidationStatus:
@@ -273,6 +309,41 @@ async function inspectAcceptanceLayer(client) {
           f13RouteNativeScaleClaimed:
             document.documentElement.dataset
               .m8aV4ItriDemoViewAcceptanceF13RouteNativeScaleClaimed ?? null,
+          f13ScaleReadinessVersion:
+            document.documentElement.dataset.m8aV4ItriF13ScaleReadinessSurface ?? null,
+          f13ScaleReadinessTargetReached:
+            document.documentElement.dataset
+              .m8aV4ItriF13ScaleReadinessTargetReached ?? null,
+          f13ScaleReadinessCurrentRouteActorCount:
+            document.documentElement.dataset
+              .m8aV4ItriF13ScaleReadinessCurrentRouteActorCount ?? null,
+          f13ScaleReadinessActorCount:
+            document.documentElement.dataset
+              .m8aV4ItriF13ScaleReadinessActorCount ?? null,
+          f13ScaleReadinessLeoCount:
+            document.documentElement.dataset
+              .m8aV4ItriF13ScaleReadinessLeoCount ?? null,
+          f13ScaleReadinessTargetLeoCount:
+            document.documentElement.dataset
+              .m8aV4ItriF13ScaleReadinessTargetLeoCount ?? null,
+          f13ScaleReadinessSourceType:
+            document.documentElement.dataset
+              .m8aV4ItriF13ScaleReadinessSourceType ?? null,
+          f13ScaleReadinessSourceUrl:
+            document.documentElement.dataset
+              .m8aV4ItriF13ScaleReadinessSourceUrl ?? null,
+          f13ScaleReadinessPublicSourceUsed:
+            document.documentElement.dataset
+              .m8aV4ItriF13ScaleReadinessPublicSourceUsed ?? null,
+          f13ScaleReadinessBuiltAtUtc:
+            document.documentElement.dataset
+              .m8aV4ItriF13ScaleReadinessBuiltAtUtc ?? null,
+          f13ScaleReadinessFreshnessTimestampUtc:
+            document.documentElement.dataset
+              .m8aV4ItriF13ScaleReadinessFreshnessTimestampUtc ?? null,
+          f13ScaleReadinessClosureClaimed:
+            document.documentElement.dataset
+              .m8aV4ItriF13ScaleReadinessClosureClaimed ?? null,
           externalValidationArtifact:
             document.documentElement.dataset
               .m8aV4ItriDemoViewAcceptanceExternalValidationArtifact ?? null,
@@ -292,6 +363,37 @@ async function inspectAcceptanceLayer(client) {
             productRoot?.dataset.m8aV4ItriDemoViewAcceptanceRequirementIds ?? null,
           defaultRequirementMatrixVisible:
             productRoot?.dataset.m8aV4ItriDemoViewDefaultRequirementMatrixVisible ?? null
+        },
+        f13ScaleReadiness: {
+          visible: isVisible(f13Readiness),
+          text: normalize(f13Readiness?.textContent),
+          version: f13Readiness?.dataset.itriF13ScaleReadinessVersion ?? null,
+          targetReached:
+            f13Readiness?.dataset.itriF13ScaleReadinessTargetReached ?? null,
+          currentRouteActorCount:
+            f13Readiness?.dataset.itriF13ScaleReadinessCurrentRouteActorCount ?? null,
+          actorCount:
+            f13Readiness?.dataset.itriF13ScaleReadinessActorCount ?? null,
+          leoCount:
+            f13Readiness?.dataset.itriF13ScaleReadinessLeoCount ?? null,
+          targetLeoCount:
+            f13Readiness?.dataset.itriF13ScaleReadinessTargetLeoCount ?? null,
+          sourceType:
+            f13Readiness?.dataset.itriF13ScaleReadinessSourceType ?? null,
+          sourceUrl:
+            f13Readiness?.dataset.itriF13ScaleReadinessSourceUrl ?? null,
+          publicSourceUsed:
+            f13Readiness?.dataset.itriF13ScaleReadinessPublicSourceUsed ?? null,
+          builtAtUtc:
+            f13Readiness?.dataset.itriF13ScaleReadinessBuiltAtUtc ?? null,
+          freshnessTimestampUtc:
+            f13Readiness?.dataset.itriF13ScaleReadinessFreshnessTimestampUtc ?? null,
+          closureClaimed:
+            f13Readiness?.dataset.itriF13ScaleReadinessClosureClaimed ?? null,
+          knownGapCount:
+            f13Readiness?.querySelectorAll(
+              "[data-itri-f13-scale-readiness-known-gap='true']"
+            ).length ?? 0
         },
         parsed: {
           layerRequirementIds: toList(layer?.dataset.itriDemoL2RequirementIds),
@@ -391,11 +493,13 @@ function assertCoverage(inspection) {
 
   const f13Item = inspection.coverageItems.find((entry) => entry.id === "F-13");
   assert(
-    statuses["F-13"] === "external-evidence" &&
-      f13Item?.disposition === "external-phase7-1-evidence" &&
+    statuses["F-13"] === "readiness" &&
+      f13Item?.status === "readiness" &&
+      f13Item?.disposition === "route-native-scale-readiness" &&
+      f13Item?.surface === "f13-scale-readiness" &&
       f13Item?.text.includes("540 LEO / 549 total") &&
-      f13Item?.text.includes("does not natively close >=500 LEO"),
-    `F-13 must remain separate Phase 7.1 evidence, not route-native scale closure: ${JSON.stringify(f13Item)}`
+      f13Item?.text.includes("not route-native >=500 LEO closure/proof"),
+    `F-13 must expose route-native scale readiness without closure/proof language: ${JSON.stringify(f13Item)}`
   );
   assert(
     inspection.layerDataset.f13Artifact === EXPECTED_F13_ARTIFACT &&
@@ -410,6 +514,184 @@ function assertCoverage(inspection) {
       document: inspection.documentTelemetry,
       state: inspection.stateAcceptanceLayer?.f13Phase71Evidence
     })}`
+  );
+  assert(
+    inspection.layerDataset.f13ScaleReadinessVersion ===
+      EXPECTED_F13_READINESS_VERSION &&
+      inspection.documentTelemetry.f13ScaleReadinessVersion ===
+        EXPECTED_F13_READINESS_VERSION &&
+      inspection.f13ScaleReadiness.version === EXPECTED_F13_READINESS_VERSION &&
+      inspection.stateAcceptanceLayer?.f13RouteNativeScaleReadiness?.version ===
+        EXPECTED_F13_READINESS_VERSION,
+    `F-13 readiness version missing: ${JSON.stringify({
+      layer: inspection.layerDataset,
+      document: inspection.documentTelemetry,
+      surface: inspection.f13ScaleReadiness,
+      state: inspection.stateAcceptanceLayer?.f13RouteNativeScaleReadiness
+    })}`
+  );
+  assert(
+    inspection.layerDataset.f13ScaleReadinessTargetReached === "true" &&
+      inspection.documentTelemetry.f13ScaleReadinessTargetReached === "true" &&
+      inspection.f13ScaleReadiness.targetReached === "true" &&
+      inspection.stateAcceptanceLayer?.f13RouteNativeScaleReadiness?.targetReached === true,
+    `F-13 readiness target must be reached in route runtime: ${JSON.stringify({
+      layer: inspection.layerDataset,
+      document: inspection.documentTelemetry,
+      surface: inspection.f13ScaleReadiness,
+      state: inspection.stateAcceptanceLayer?.f13RouteNativeScaleReadiness
+    })}`
+  );
+  assert(
+    inspection.layerDataset.f13ScaleReadinessCurrentRouteActorCount ===
+      String(EXPECTED_F13_READINESS_COUNTS.currentRouteActorCount) &&
+      inspection.documentTelemetry.f13ScaleReadinessCurrentRouteActorCount ===
+        String(EXPECTED_F13_READINESS_COUNTS.currentRouteActorCount) &&
+      inspection.f13ScaleReadiness.currentRouteActorCount ===
+        String(EXPECTED_F13_READINESS_COUNTS.currentRouteActorCount) &&
+      inspection.stateAcceptanceLayer?.f13RouteNativeScaleReadiness
+        ?.currentRouteActorCount ===
+        EXPECTED_F13_READINESS_COUNTS.currentRouteActorCount,
+    `F-13 current route actor count changed: ${JSON.stringify({
+      layer: inspection.layerDataset,
+      document: inspection.documentTelemetry,
+      surface: inspection.f13ScaleReadiness,
+      state: inspection.stateAcceptanceLayer?.f13RouteNativeScaleReadiness
+    })}`
+  );
+  assert(
+    inspection.layerDataset.f13ScaleReadinessActorCount ===
+      String(EXPECTED_F13_READINESS_COUNTS.actorCount) &&
+      inspection.documentTelemetry.f13ScaleReadinessActorCount ===
+        String(EXPECTED_F13_READINESS_COUNTS.actorCount) &&
+      inspection.f13ScaleReadiness.actorCount ===
+        String(EXPECTED_F13_READINESS_COUNTS.actorCount) &&
+      inspection.stateAcceptanceLayer?.f13RouteNativeScaleReadiness
+        ?.readinessActorCount === EXPECTED_F13_READINESS_COUNTS.actorCount,
+    `F-13 readiness actor count changed: ${JSON.stringify({
+      layer: inspection.layerDataset,
+      document: inspection.documentTelemetry,
+      surface: inspection.f13ScaleReadiness,
+      state: inspection.stateAcceptanceLayer?.f13RouteNativeScaleReadiness
+    })}`
+  );
+  assert(
+    inspection.layerDataset.f13ScaleReadinessLeoCount ===
+      String(EXPECTED_F13_READINESS_COUNTS.leoCount) &&
+      inspection.documentTelemetry.f13ScaleReadinessLeoCount ===
+        String(EXPECTED_F13_READINESS_COUNTS.leoCount) &&
+      inspection.f13ScaleReadiness.leoCount ===
+        String(EXPECTED_F13_READINESS_COUNTS.leoCount) &&
+      inspection.stateAcceptanceLayer?.f13RouteNativeScaleReadiness
+        ?.readinessLeoActorCount === EXPECTED_F13_READINESS_COUNTS.leoCount,
+    `F-13 readiness LEO count changed: ${JSON.stringify({
+      layer: inspection.layerDataset,
+      document: inspection.documentTelemetry,
+      surface: inspection.f13ScaleReadiness,
+      state: inspection.stateAcceptanceLayer?.f13RouteNativeScaleReadiness
+    })}`
+  );
+  assert(
+    inspection.layerDataset.f13ScaleReadinessTargetLeoCount ===
+      String(EXPECTED_F13_READINESS_COUNTS.targetLeoCount) &&
+      inspection.documentTelemetry.f13ScaleReadinessTargetLeoCount ===
+        String(EXPECTED_F13_READINESS_COUNTS.targetLeoCount) &&
+      inspection.f13ScaleReadiness.targetLeoCount ===
+        String(EXPECTED_F13_READINESS_COUNTS.targetLeoCount) &&
+      inspection.stateAcceptanceLayer?.f13RouteNativeScaleReadiness
+        ?.targetLeoCount === EXPECTED_F13_READINESS_COUNTS.targetLeoCount,
+    `F-13 readiness target LEO count changed: ${JSON.stringify({
+      layer: inspection.layerDataset,
+      document: inspection.documentTelemetry,
+      surface: inspection.f13ScaleReadiness,
+      state: inspection.stateAcceptanceLayer?.f13RouteNativeScaleReadiness
+    })}`
+  );
+  assert(
+    inspection.layerDataset.f13ScaleReadinessSourceType ===
+      EXPECTED_F13_READINESS_SOURCE_TYPE &&
+      inspection.documentTelemetry.f13ScaleReadinessSourceType ===
+        EXPECTED_F13_READINESS_SOURCE_TYPE &&
+      inspection.f13ScaleReadiness.sourceType ===
+        EXPECTED_F13_READINESS_SOURCE_TYPE &&
+      inspection.stateAcceptanceLayer?.f13RouteNativeScaleReadiness?.sourceType ===
+        EXPECTED_F13_READINESS_SOURCE_TYPE &&
+      inspection.layerDataset.f13ScaleReadinessSourceUrl ===
+        EXPECTED_F13_READINESS_SOURCE_URL &&
+      inspection.documentTelemetry.f13ScaleReadinessSourceUrl ===
+        EXPECTED_F13_READINESS_SOURCE_URL &&
+      inspection.f13ScaleReadiness.sourceUrl === EXPECTED_F13_READINESS_SOURCE_URL &&
+      inspection.stateAcceptanceLayer?.f13RouteNativeScaleReadiness?.sourceUrl ===
+        EXPECTED_F13_READINESS_SOURCE_URL,
+    `F-13 readiness source metadata changed: ${JSON.stringify({
+      layer: inspection.layerDataset,
+      document: inspection.documentTelemetry,
+      surface: inspection.f13ScaleReadiness,
+      state: inspection.stateAcceptanceLayer?.f13RouteNativeScaleReadiness
+    })}`
+  );
+  assert(
+    inspection.layerDataset.f13ScaleReadinessPublicSourceUsed === "false" &&
+      inspection.documentTelemetry.f13ScaleReadinessPublicSourceUsed === "false" &&
+      inspection.f13ScaleReadiness.publicSourceUsed === "false" &&
+      inspection.stateAcceptanceLayer?.f13RouteNativeScaleReadiness
+        ?.publicSourceUsed === false,
+    `F-13 readiness must remain fixture/model-backed with no public retrieval: ${JSON.stringify({
+      layer: inspection.layerDataset,
+      document: inspection.documentTelemetry,
+      surface: inspection.f13ScaleReadiness,
+      state: inspection.stateAcceptanceLayer?.f13RouteNativeScaleReadiness
+    })}`
+  );
+  assert(
+    inspection.layerDataset.f13ScaleReadinessBuiltAtUtc ===
+      EXPECTED_F13_READINESS_BUILT_AT_UTC &&
+      inspection.documentTelemetry.f13ScaleReadinessBuiltAtUtc ===
+        EXPECTED_F13_READINESS_BUILT_AT_UTC &&
+      inspection.f13ScaleReadiness.builtAtUtc ===
+        EXPECTED_F13_READINESS_BUILT_AT_UTC &&
+      inspection.layerDataset.f13ScaleReadinessFreshnessTimestampUtc ===
+        EXPECTED_F13_READINESS_BUILT_AT_UTC &&
+      inspection.documentTelemetry.f13ScaleReadinessFreshnessTimestampUtc ===
+        EXPECTED_F13_READINESS_BUILT_AT_UTC &&
+      inspection.f13ScaleReadiness.freshnessTimestampUtc ===
+        EXPECTED_F13_READINESS_BUILT_AT_UTC &&
+      inspection.stateAcceptanceLayer?.f13RouteNativeScaleReadiness?.builtAtUtc ===
+        EXPECTED_F13_READINESS_BUILT_AT_UTC &&
+      inspection.stateAcceptanceLayer?.f13RouteNativeScaleReadiness
+        ?.freshnessTimestampUtc === EXPECTED_F13_READINESS_BUILT_AT_UTC,
+    `F-13 readiness timestamp metadata changed: ${JSON.stringify({
+      layer: inspection.layerDataset,
+      document: inspection.documentTelemetry,
+      surface: inspection.f13ScaleReadiness,
+      state: inspection.stateAcceptanceLayer?.f13RouteNativeScaleReadiness
+    })}`
+  );
+  assert(
+    inspection.layerDataset.f13ScaleReadinessClosureClaimed === "false" &&
+      inspection.documentTelemetry.f13ScaleReadinessClosureClaimed === "false" &&
+      inspection.f13ScaleReadiness.closureClaimed === "false" &&
+      inspection.stateAcceptanceLayer?.f13RouteNativeScaleReadiness
+        ?.routeNativeScaleClosureClaimed === false &&
+      inspection.stateAcceptanceLayer?.f13RouteNativeScaleReadiness
+        ?.externalValidationClosureClaimed === false &&
+      inspection.stateAcceptanceLayer?.f13RouteNativeScaleReadiness
+        ?.itriAuthorityClaimed === false,
+    `F-13 readiness closure/authority claims changed: ${JSON.stringify({
+      layer: inspection.layerDataset,
+      document: inspection.documentTelemetry,
+      surface: inspection.f13ScaleReadiness,
+      state: inspection.stateAcceptanceLayer?.f13RouteNativeScaleReadiness
+    })}`
+  );
+  assert(
+    inspection.f13ScaleReadiness.visible === true &&
+      inspection.f13ScaleReadiness.knownGapCount >= 4 &&
+      inspection.f13ScaleReadiness.text.includes("fixture/model-backed") &&
+      inspection.f13ScaleReadiness.text.includes("not external validation closure") &&
+      inspection.f13ScaleReadiness.text.includes("not ITRI authority") &&
+      inspection.f13ScaleReadiness.text.includes("not measured network truth"),
+    `F-13 readiness surface must visibly expose source, boundary, and known gaps: ${JSON.stringify(inspection.f13ScaleReadiness)}`
   );
 
   assertExactSet(

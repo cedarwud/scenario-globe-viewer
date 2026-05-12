@@ -99,6 +99,20 @@ import {
   M8A_V4_ITRI_F16_EXPLICIT_NON_CLAIMS,
   M8A_V4_ITRI_F16_MEASURED_VALUES_INCLUDED,
   M8A_V4_ITRI_F16_ROUTE_OWNED_STATE_ONLY,
+  M8A_V4_ITRI_F13_ROUTE_NATIVE_SCALE_BUILT_AT_UTC,
+  M8A_V4_ITRI_F13_ROUTE_NATIVE_SCALE_DATA_SOURCE_LABEL,
+  M8A_V4_ITRI_F13_ROUTE_NATIVE_SCALE_FRESHNESS_NOTES,
+  M8A_V4_ITRI_F13_ROUTE_NATIVE_SCALE_FRESHNESS_TIMESTAMP_UTC,
+  M8A_V4_ITRI_F13_ROUTE_NATIVE_SCALE_LICENSE_NOTES,
+  M8A_V4_ITRI_F13_ROUTE_NATIVE_SCALE_PUBLIC_SOURCE_USED,
+  M8A_V4_ITRI_F13_ROUTE_NATIVE_SCALE_READINESS_COUNTS,
+  M8A_V4_ITRI_F13_ROUTE_NATIVE_SCALE_READINESS_KNOWN_GAPS,
+  M8A_V4_ITRI_F13_ROUTE_NATIVE_SCALE_READINESS_NON_CLAIMS,
+  M8A_V4_ITRI_F13_ROUTE_NATIVE_SCALE_READINESS_VERSION,
+  M8A_V4_ITRI_F13_ROUTE_NATIVE_SCALE_SOURCE_MODE,
+  M8A_V4_ITRI_F13_ROUTE_NATIVE_SCALE_SOURCE_TYPE,
+  M8A_V4_ITRI_F13_ROUTE_NATIVE_SCALE_SOURCE_URL,
+  M8A_V4_ITRI_F13_ROUTE_NATIVE_SCALE_TARGET_LEO_COUNT,
   M8A_V4_ITRI_PHASE7_1_F13_EVIDENCE_ARTIFACT,
   M8A_V4_ITRI_PHASE7_1_F13_EVIDENCE_GENERATED_AT_UTC,
   M8A_V4_ITRI_PHASE7_1_F13_EVIDENCE_STALE_AFTER_UTC,
@@ -669,6 +683,40 @@ export interface M8aV4GroundStationSceneState {
       leoCount: typeof M8A_V4_ITRI_PHASE7_1_F13_LEO_COUNT;
       totalCount: typeof M8A_V4_ITRI_PHASE7_1_F13_TOTAL_COUNT;
       routeNativeScaleClaimed: false;
+    };
+    f13RouteNativeScaleReadiness: {
+      version: typeof M8A_V4_ITRI_F13_ROUTE_NATIVE_SCALE_READINESS_VERSION;
+      currentRouteActorCount: number;
+      currentRouteLeoActorCount: number;
+      currentRouteMeoActorCount: number;
+      currentRouteGeoActorCount: number;
+      readinessActorCount: number;
+      readinessLeoActorCount: number;
+      readinessMeoActorCount: number;
+      readinessGeoActorCount: number;
+      targetLeoCount:
+        typeof M8A_V4_ITRI_F13_ROUTE_NATIVE_SCALE_TARGET_LEO_COUNT;
+      targetReached: boolean;
+      sourceType: typeof M8A_V4_ITRI_F13_ROUTE_NATIVE_SCALE_SOURCE_TYPE;
+      sourceMode: typeof M8A_V4_ITRI_F13_ROUTE_NATIVE_SCALE_SOURCE_MODE;
+      sourceUrl: typeof M8A_V4_ITRI_F13_ROUTE_NATIVE_SCALE_SOURCE_URL;
+      dataSourceLabel:
+        typeof M8A_V4_ITRI_F13_ROUTE_NATIVE_SCALE_DATA_SOURCE_LABEL;
+      publicSourceUsed:
+        typeof M8A_V4_ITRI_F13_ROUTE_NATIVE_SCALE_PUBLIC_SOURCE_USED;
+      builtAtUtc: typeof M8A_V4_ITRI_F13_ROUTE_NATIVE_SCALE_BUILT_AT_UTC;
+      freshnessTimestampUtc:
+        typeof M8A_V4_ITRI_F13_ROUTE_NATIVE_SCALE_FRESHNESS_TIMESTAMP_UTC;
+      freshnessNotes:
+        typeof M8A_V4_ITRI_F13_ROUTE_NATIVE_SCALE_FRESHNESS_NOTES;
+      licenseNotes: typeof M8A_V4_ITRI_F13_ROUTE_NATIVE_SCALE_LICENSE_NOTES;
+      knownGaps:
+        typeof M8A_V4_ITRI_F13_ROUTE_NATIVE_SCALE_READINESS_KNOWN_GAPS;
+      nonClaims:
+        typeof M8A_V4_ITRI_F13_ROUTE_NATIVE_SCALE_READINESS_NON_CLAIMS;
+      routeNativeScaleClosureClaimed: false;
+      externalValidationClosureClaimed: false;
+      itriAuthorityClaimed: false;
     };
     externalValidationPackage: {
       artifact: typeof M8A_V4_ITRI_EXTERNAL_V02_V06_VALIDATION_ARTIFACT;
@@ -1697,6 +1745,31 @@ function renderHud(root: HTMLElement, state: M8aV4GroundStationSceneState): void
   root.dataset.itriAcceptanceExternalFailIds = serializeList([
     ...state.acceptanceLayer.externalFailIds
   ]);
+  root.dataset.itriF13ScaleReadinessSurface =
+    state.acceptanceLayer.f13RouteNativeScaleReadiness.version;
+  root.dataset.itriF13ScaleReadinessCurrentRouteActorCount = String(
+    state.acceptanceLayer.f13RouteNativeScaleReadiness.currentRouteActorCount
+  );
+  root.dataset.itriF13ScaleReadinessActorCount = String(
+    state.acceptanceLayer.f13RouteNativeScaleReadiness.readinessActorCount
+  );
+  root.dataset.itriF13ScaleReadinessLeoCount = String(
+    state.acceptanceLayer.f13RouteNativeScaleReadiness.readinessLeoActorCount
+  );
+  root.dataset.itriF13ScaleReadinessTargetLeoCount = String(
+    state.acceptanceLayer.f13RouteNativeScaleReadiness.targetLeoCount
+  );
+  root.dataset.itriF13ScaleReadinessTargetReached = String(
+    state.acceptanceLayer.f13RouteNativeScaleReadiness.targetReached
+  );
+  root.dataset.itriF13ScaleReadinessSourceType =
+    state.acceptanceLayer.f13RouteNativeScaleReadiness.sourceType;
+  root.dataset.itriF13ScaleReadinessBuiltAtUtc =
+    state.acceptanceLayer.f13RouteNativeScaleReadiness.builtAtUtc;
+  root.dataset.itriF13ScaleReadinessClosureClaimed = String(
+    state.acceptanceLayer.f13RouteNativeScaleReadiness
+      .routeNativeScaleClosureClaimed
+  );
   root.dataset.itriF09RateSurface = state.f09RateSurface.version;
   root.dataset.itriF09RateDisposition = state.f09RateSurface.disposition;
   root.dataset.itriF09ExternalTruthDisposition =
@@ -1897,6 +1970,7 @@ function ensureProductUxStructure(root: HTMLElement): void {
       root.querySelector("[data-m8a-v411-inspector-role='truth-boundary']") &&
       root.querySelector("[data-m8a-v411-state-evidence-truth-tail='true']") &&
       root.querySelector("[data-itri-demo-l2-acceptance-layer='true']") &&
+      root.querySelector("[data-itri-f13-scale-readiness-surface='true']") &&
       root.querySelector("[data-itri-requirement-gap-surface='true']") &&
       root.querySelector("[data-itri-policy-rule-controls-surface='true']") &&
       root.querySelector("[data-itri-f09-rate-surface='true']") &&
@@ -3308,6 +3382,38 @@ function renderProductUx(
     acceptanceLayer.f13Phase71Evidence.staleAfterUtc;
   root.dataset.m8aV4ItriDemoViewAcceptanceF13RouteNativeScaleClaimed =
     String(acceptanceLayer.f13Phase71Evidence.routeNativeScaleClaimed);
+  root.dataset.m8aV4ItriF13ScaleReadinessSurface =
+    acceptanceLayer.f13RouteNativeScaleReadiness.version;
+  root.dataset.m8aV4ItriF13ScaleReadinessTargetReached = String(
+    acceptanceLayer.f13RouteNativeScaleReadiness.targetReached
+  );
+  root.dataset.m8aV4ItriF13ScaleReadinessCurrentRouteActorCount = String(
+    acceptanceLayer.f13RouteNativeScaleReadiness.currentRouteActorCount
+  );
+  root.dataset.m8aV4ItriF13ScaleReadinessActorCount = String(
+    acceptanceLayer.f13RouteNativeScaleReadiness.readinessActorCount
+  );
+  root.dataset.m8aV4ItriF13ScaleReadinessLeoCount = String(
+    acceptanceLayer.f13RouteNativeScaleReadiness.readinessLeoActorCount
+  );
+  root.dataset.m8aV4ItriF13ScaleReadinessTargetLeoCount = String(
+    acceptanceLayer.f13RouteNativeScaleReadiness.targetLeoCount
+  );
+  root.dataset.m8aV4ItriF13ScaleReadinessSourceType =
+    acceptanceLayer.f13RouteNativeScaleReadiness.sourceType;
+  root.dataset.m8aV4ItriF13ScaleReadinessSourceUrl =
+    acceptanceLayer.f13RouteNativeScaleReadiness.sourceUrl;
+  root.dataset.m8aV4ItriF13ScaleReadinessPublicSourceUsed = String(
+    acceptanceLayer.f13RouteNativeScaleReadiness.publicSourceUsed
+  );
+  root.dataset.m8aV4ItriF13ScaleReadinessBuiltAtUtc =
+    acceptanceLayer.f13RouteNativeScaleReadiness.builtAtUtc;
+  root.dataset.m8aV4ItriF13ScaleReadinessFreshnessTimestampUtc =
+    acceptanceLayer.f13RouteNativeScaleReadiness.freshnessTimestampUtc;
+  root.dataset.m8aV4ItriF13ScaleReadinessClosureClaimed = String(
+    acceptanceLayer.f13RouteNativeScaleReadiness
+      .routeNativeScaleClosureClaimed
+  );
   root.dataset.m8aV4ItriDemoViewAcceptanceExternalValidationArtifact =
     acceptanceLayer.externalValidationPackage.artifact;
   root.dataset.m8aV4ItriDemoViewAcceptanceExternalValidationStatus =
@@ -5031,8 +5137,76 @@ function renderProductUx(
   acceptanceLayerEl.dataset.itriDemoL2F13RouteNativeScaleClaimed = String(
     acceptanceLayer.f13Phase71Evidence.routeNativeScaleClaimed
   );
+  acceptanceLayerEl.dataset.itriDemoL2F13ScaleReadinessVersion =
+    acceptanceLayer.f13RouteNativeScaleReadiness.version;
+  acceptanceLayerEl.dataset.itriDemoL2F13ScaleReadinessTargetReached = String(
+    acceptanceLayer.f13RouteNativeScaleReadiness.targetReached
+  );
+  acceptanceLayerEl.dataset.itriDemoL2F13ScaleReadinessCurrentRouteActorCount =
+    String(
+      acceptanceLayer.f13RouteNativeScaleReadiness.currentRouteActorCount
+    );
+  acceptanceLayerEl.dataset.itriDemoL2F13ScaleReadinessActorCount = String(
+    acceptanceLayer.f13RouteNativeScaleReadiness.readinessActorCount
+  );
+  acceptanceLayerEl.dataset.itriDemoL2F13ScaleReadinessLeoCount = String(
+    acceptanceLayer.f13RouteNativeScaleReadiness.readinessLeoActorCount
+  );
+  acceptanceLayerEl.dataset.itriDemoL2F13ScaleReadinessTargetLeoCount = String(
+    acceptanceLayer.f13RouteNativeScaleReadiness.targetLeoCount
+  );
+  acceptanceLayerEl.dataset.itriDemoL2F13ScaleReadinessSourceType =
+    acceptanceLayer.f13RouteNativeScaleReadiness.sourceType;
+  acceptanceLayerEl.dataset.itriDemoL2F13ScaleReadinessSourceUrl =
+    acceptanceLayer.f13RouteNativeScaleReadiness.sourceUrl;
+  acceptanceLayerEl.dataset.itriDemoL2F13ScaleReadinessPublicSourceUsed =
+    String(acceptanceLayer.f13RouteNativeScaleReadiness.publicSourceUsed);
+  acceptanceLayerEl.dataset.itriDemoL2F13ScaleReadinessBuiltAtUtc =
+    acceptanceLayer.f13RouteNativeScaleReadiness.builtAtUtc;
+  acceptanceLayerEl.dataset.itriDemoL2F13ScaleReadinessFreshnessTimestampUtc =
+    acceptanceLayer.f13RouteNativeScaleReadiness.freshnessTimestampUtc;
+  acceptanceLayerEl.dataset.itriDemoL2F13ScaleReadinessClosureClaimed = String(
+    acceptanceLayer.f13RouteNativeScaleReadiness
+      .routeNativeScaleClosureClaimed
+  );
   acceptanceLayerEl.dataset.itriDemoL2ExternalValidationStatus =
     acceptanceLayer.externalValidationPackage.status;
+
+  const f13ScaleReadinessEl = getProductUxElement(
+    root,
+    "[data-itri-f13-scale-readiness-surface='true']"
+  );
+  f13ScaleReadinessEl.dataset.itriF13ScaleReadinessVersion =
+    acceptanceLayer.f13RouteNativeScaleReadiness.version;
+  f13ScaleReadinessEl.dataset.itriF13ScaleReadinessTargetReached = String(
+    acceptanceLayer.f13RouteNativeScaleReadiness.targetReached
+  );
+  f13ScaleReadinessEl.dataset.itriF13ScaleReadinessCurrentRouteActorCount =
+    String(
+      acceptanceLayer.f13RouteNativeScaleReadiness.currentRouteActorCount
+    );
+  f13ScaleReadinessEl.dataset.itriF13ScaleReadinessActorCount = String(
+    acceptanceLayer.f13RouteNativeScaleReadiness.readinessActorCount
+  );
+  f13ScaleReadinessEl.dataset.itriF13ScaleReadinessLeoCount = String(
+    acceptanceLayer.f13RouteNativeScaleReadiness.readinessLeoActorCount
+  );
+  f13ScaleReadinessEl.dataset.itriF13ScaleReadinessTargetLeoCount = String(
+    acceptanceLayer.f13RouteNativeScaleReadiness.targetLeoCount
+  );
+  f13ScaleReadinessEl.dataset.itriF13ScaleReadinessSourceType =
+    acceptanceLayer.f13RouteNativeScaleReadiness.sourceType;
+  f13ScaleReadinessEl.dataset.itriF13ScaleReadinessSourceUrl =
+    acceptanceLayer.f13RouteNativeScaleReadiness.sourceUrl;
+  f13ScaleReadinessEl.dataset.itriF13ScaleReadinessPublicSourceUsed = String(
+    acceptanceLayer.f13RouteNativeScaleReadiness.publicSourceUsed
+  );
+  f13ScaleReadinessEl.dataset.itriF13ScaleReadinessBuiltAtUtc =
+    acceptanceLayer.f13RouteNativeScaleReadiness.builtAtUtc;
+  f13ScaleReadinessEl.dataset.itriF13ScaleReadinessClosureClaimed = String(
+    acceptanceLayer.f13RouteNativeScaleReadiness
+      .routeNativeScaleClosureClaimed
+  );
 
   const evidenceArchive = getProductUxElement(
     root,
@@ -5611,6 +5785,15 @@ function cloneState(
       f13Phase71Evidence: {
         ...state.acceptanceLayer.f13Phase71Evidence
       },
+      f13RouteNativeScaleReadiness: {
+        ...state.acceptanceLayer.f13RouteNativeScaleReadiness,
+        knownGaps: [
+          ...state.acceptanceLayer.f13RouteNativeScaleReadiness.knownGaps
+        ] as typeof M8A_V4_ITRI_F13_ROUTE_NATIVE_SCALE_READINESS_KNOWN_GAPS,
+        nonClaims: [
+          ...state.acceptanceLayer.f13RouteNativeScaleReadiness.nonClaims
+        ] as typeof M8A_V4_ITRI_F13_ROUTE_NATIVE_SCALE_READINESS_NON_CLAIMS
+      },
       externalValidationPackage: {
         ...state.acceptanceLayer.externalValidationPackage,
         failIds: [
@@ -5733,7 +5916,14 @@ function buildRequirementGapSurfaceState(): M8aV4GroundStationSceneState["requir
   };
 }
 
-function buildAcceptanceLayerState(): M8aV4GroundStationSceneState["acceptanceLayer"] {
+function buildAcceptanceLayerState(
+  currentRouteActorCount: number,
+  currentRouteOrbitActorCounts: Record<M8aV4OrbitClass, number>
+): M8aV4GroundStationSceneState["acceptanceLayer"] {
+  const readinessCounts = M8A_V4_ITRI_F13_ROUTE_NATIVE_SCALE_READINESS_COUNTS;
+  const readinessTargetReached =
+    readinessCounts.leo >= M8A_V4_ITRI_F13_ROUTE_NATIVE_SCALE_TARGET_LEO_COUNT;
+
   return {
     version: M8A_V4_ITRI_DEMO_VIEW_ACCEPTANCE_LAYER_VERSION,
     layerId: M8A_V4_ITRI_DEMO_VIEW_ACCEPTANCE_LAYER_ID,
@@ -5753,6 +5943,34 @@ function buildAcceptanceLayerState(): M8aV4GroundStationSceneState["acceptanceLa
       leoCount: M8A_V4_ITRI_PHASE7_1_F13_LEO_COUNT,
       totalCount: M8A_V4_ITRI_PHASE7_1_F13_TOTAL_COUNT,
       routeNativeScaleClaimed: false
+    },
+    f13RouteNativeScaleReadiness: {
+      version: M8A_V4_ITRI_F13_ROUTE_NATIVE_SCALE_READINESS_VERSION,
+      currentRouteActorCount,
+      currentRouteLeoActorCount: currentRouteOrbitActorCounts.leo,
+      currentRouteMeoActorCount: currentRouteOrbitActorCounts.meo,
+      currentRouteGeoActorCount: currentRouteOrbitActorCounts.geo,
+      readinessActorCount: readinessCounts.total,
+      readinessLeoActorCount: readinessCounts.leo,
+      readinessMeoActorCount: readinessCounts.meo,
+      readinessGeoActorCount: readinessCounts.geo,
+      targetLeoCount: M8A_V4_ITRI_F13_ROUTE_NATIVE_SCALE_TARGET_LEO_COUNT,
+      targetReached: readinessTargetReached,
+      sourceType: M8A_V4_ITRI_F13_ROUTE_NATIVE_SCALE_SOURCE_TYPE,
+      sourceMode: M8A_V4_ITRI_F13_ROUTE_NATIVE_SCALE_SOURCE_MODE,
+      sourceUrl: M8A_V4_ITRI_F13_ROUTE_NATIVE_SCALE_SOURCE_URL,
+      dataSourceLabel: M8A_V4_ITRI_F13_ROUTE_NATIVE_SCALE_DATA_SOURCE_LABEL,
+      publicSourceUsed: M8A_V4_ITRI_F13_ROUTE_NATIVE_SCALE_PUBLIC_SOURCE_USED,
+      builtAtUtc: M8A_V4_ITRI_F13_ROUTE_NATIVE_SCALE_BUILT_AT_UTC,
+      freshnessTimestampUtc:
+        M8A_V4_ITRI_F13_ROUTE_NATIVE_SCALE_FRESHNESS_TIMESTAMP_UTC,
+      freshnessNotes: M8A_V4_ITRI_F13_ROUTE_NATIVE_SCALE_FRESHNESS_NOTES,
+      licenseNotes: M8A_V4_ITRI_F13_ROUTE_NATIVE_SCALE_LICENSE_NOTES,
+      knownGaps: M8A_V4_ITRI_F13_ROUTE_NATIVE_SCALE_READINESS_KNOWN_GAPS,
+      nonClaims: M8A_V4_ITRI_F13_ROUTE_NATIVE_SCALE_READINESS_NON_CLAIMS,
+      routeNativeScaleClosureClaimed: false,
+      externalValidationClosureClaimed: false,
+      itriAuthorityClaimed: false
     },
     externalValidationPackage: {
       artifact: M8A_V4_ITRI_EXTERNAL_V02_V06_VALIDATION_ARTIFACT,
@@ -5900,6 +6118,54 @@ function buildF16RouteExportBundle(
       ...group,
       requirementIds: [...group.requirementIds]
     })),
+    f13ScaleReadiness: {
+      version: state.acceptanceLayer.f13RouteNativeScaleReadiness.version,
+      currentRouteActorCount:
+        state.acceptanceLayer.f13RouteNativeScaleReadiness
+          .currentRouteActorCount,
+      currentRouteLeoActorCount:
+        state.acceptanceLayer.f13RouteNativeScaleReadiness
+          .currentRouteLeoActorCount,
+      readinessActorCount:
+        state.acceptanceLayer.f13RouteNativeScaleReadiness.readinessActorCount,
+      readinessLeoActorCount:
+        state.acceptanceLayer.f13RouteNativeScaleReadiness
+          .readinessLeoActorCount,
+      readinessMeoActorCount:
+        state.acceptanceLayer.f13RouteNativeScaleReadiness
+          .readinessMeoActorCount,
+      readinessGeoActorCount:
+        state.acceptanceLayer.f13RouteNativeScaleReadiness
+          .readinessGeoActorCount,
+      targetLeoCount:
+        state.acceptanceLayer.f13RouteNativeScaleReadiness.targetLeoCount,
+      targetReached:
+        state.acceptanceLayer.f13RouteNativeScaleReadiness.targetReached,
+      sourceType: state.acceptanceLayer.f13RouteNativeScaleReadiness.sourceType,
+      sourceMode: state.acceptanceLayer.f13RouteNativeScaleReadiness.sourceMode,
+      sourceUrl: state.acceptanceLayer.f13RouteNativeScaleReadiness.sourceUrl,
+      publicSourceUsed:
+        state.acceptanceLayer.f13RouteNativeScaleReadiness.publicSourceUsed,
+      builtAtUtc: state.acceptanceLayer.f13RouteNativeScaleReadiness.builtAtUtc,
+      freshnessTimestampUtc:
+        state.acceptanceLayer.f13RouteNativeScaleReadiness
+          .freshnessTimestampUtc,
+      licenseNotes:
+        state.acceptanceLayer.f13RouteNativeScaleReadiness.licenseNotes,
+      freshnessNotes:
+        state.acceptanceLayer.f13RouteNativeScaleReadiness.freshnessNotes,
+      knownGaps: [
+        ...state.acceptanceLayer.f13RouteNativeScaleReadiness.knownGaps
+      ],
+      routeNativeScaleClosureClaimed:
+        state.acceptanceLayer.f13RouteNativeScaleReadiness
+          .routeNativeScaleClosureClaimed,
+      externalValidationClosureClaimed:
+        state.acceptanceLayer.f13RouteNativeScaleReadiness
+          .externalValidationClosureClaimed,
+      itriAuthorityClaimed:
+        state.acceptanceLayer.f13RouteNativeScaleReadiness.itriAuthorityClaimed
+    },
     f09BoundedRateDisposition: {
       requirementId: "F-09",
       disposition: state.f09RateSurface.disposition,
@@ -7297,7 +7563,7 @@ export function createM8aV4GroundStationSceneController({
         nativeRfHandoverTruth: "not-claimed"
       },
       requirementGapSurface: buildRequirementGapSurfaceState(),
-      acceptanceLayer: buildAcceptanceLayerState(),
+      acceptanceLayer: buildAcceptanceLayerState(actors.length, orbitActorCounts),
       f09RateSurface: buildF09RateSurfaceState(simulationHandoverModel),
       f16ExportSurface: buildF16ExportSurfaceState(latestF16ExportRecord),
       policyRuleControls: buildPolicyRuleControlsState(

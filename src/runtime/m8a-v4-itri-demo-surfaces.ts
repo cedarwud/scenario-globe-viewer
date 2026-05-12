@@ -5,6 +5,10 @@ import type {
   M8aV46dSimulationHandoverWindowId,
   M8aV46dWindowMetricClasses
 } from "./m8a-v4-ground-station-projection";
+import {
+  MULTI_ORBIT_SCALE_OVERLAY_COUNTS,
+  MULTI_ORBIT_SCALE_OVERLAY_MODE
+} from "./leo-scale-overlay-fixture";
 
 export const M8A_V4_ITRI_DEMO_VIEW_DEFAULT_FOCUS_VERSION =
   "itri-demo-view-default-focus-runtime.v1";
@@ -253,6 +257,33 @@ export interface M8aV4ItriF16RouteExportBundle {
     modelTruth: "simulation-output-not-operator-log";
   };
   requirementStatusGroups: ReadonlyArray<M8aV4ItriRequirementStatusGroup>;
+  f13ScaleReadiness: {
+    version: typeof M8A_V4_ITRI_F13_ROUTE_NATIVE_SCALE_READINESS_VERSION;
+    currentRouteActorCount: number;
+    currentRouteLeoActorCount: number;
+    readinessActorCount: number;
+    readinessLeoActorCount: number;
+    readinessMeoActorCount: number;
+    readinessGeoActorCount: number;
+    targetLeoCount:
+      typeof M8A_V4_ITRI_F13_ROUTE_NATIVE_SCALE_TARGET_LEO_COUNT;
+    targetReached: boolean;
+    sourceType: typeof M8A_V4_ITRI_F13_ROUTE_NATIVE_SCALE_SOURCE_TYPE;
+    sourceMode: typeof M8A_V4_ITRI_F13_ROUTE_NATIVE_SCALE_SOURCE_MODE;
+    sourceUrl: typeof M8A_V4_ITRI_F13_ROUTE_NATIVE_SCALE_SOURCE_URL;
+    publicSourceUsed:
+      typeof M8A_V4_ITRI_F13_ROUTE_NATIVE_SCALE_PUBLIC_SOURCE_USED;
+    builtAtUtc: typeof M8A_V4_ITRI_F13_ROUTE_NATIVE_SCALE_BUILT_AT_UTC;
+    freshnessTimestampUtc:
+      typeof M8A_V4_ITRI_F13_ROUTE_NATIVE_SCALE_FRESHNESS_TIMESTAMP_UTC;
+    licenseNotes: typeof M8A_V4_ITRI_F13_ROUTE_NATIVE_SCALE_LICENSE_NOTES;
+    freshnessNotes:
+      typeof M8A_V4_ITRI_F13_ROUTE_NATIVE_SCALE_FRESHNESS_NOTES;
+    knownGaps: ReadonlyArray<string>;
+    routeNativeScaleClosureClaimed: false;
+    externalValidationClosureClaimed: false;
+    itriAuthorityClaimed: false;
+  };
   f09BoundedRateDisposition: M8aV4ItriF16BoundedRateDisposition;
   policyRuleControls: {
     version: typeof M8A_V4_ITRI_POLICY_RULE_CONTROLS_VERSION;
@@ -453,6 +484,49 @@ export const M8A_V4_ITRI_PHASE7_1_F13_EVIDENCE_STALE_AFTER_UTC =
   "2026-05-25T16:43:23.879Z";
 export const M8A_V4_ITRI_PHASE7_1_F13_LEO_COUNT = 540;
 export const M8A_V4_ITRI_PHASE7_1_F13_TOTAL_COUNT = 549;
+export const M8A_V4_ITRI_F13_ROUTE_NATIVE_SCALE_READINESS_VERSION =
+  "itri-demo-route-f13-scale-readiness-runtime.v1";
+export const M8A_V4_ITRI_F13_ROUTE_NATIVE_SCALE_TARGET_LEO_COUNT = 500;
+export const M8A_V4_ITRI_F13_ROUTE_NATIVE_SCALE_SOURCE_MODE =
+  MULTI_ORBIT_SCALE_OVERLAY_MODE;
+export const M8A_V4_ITRI_F13_ROUTE_NATIVE_SCALE_SOURCE_TYPE =
+  "fixture/model-backed";
+export const M8A_V4_ITRI_F13_ROUTE_NATIVE_SCALE_SOURCE_URL =
+  "not-applicable-repo-local-fixture";
+export const M8A_V4_ITRI_F13_ROUTE_NATIVE_SCALE_PUBLIC_SOURCE_USED = false;
+export const M8A_V4_ITRI_F13_ROUTE_NATIVE_SCALE_BUILT_AT_UTC =
+  "2026-05-12T09:53:20Z";
+export const M8A_V4_ITRI_F13_ROUTE_NATIVE_SCALE_FRESHNESS_TIMESTAMP_UTC =
+  M8A_V4_ITRI_F13_ROUTE_NATIVE_SCALE_BUILT_AT_UTC;
+export const M8A_V4_ITRI_F13_ROUTE_NATIVE_SCALE_DATA_SOURCE_LABEL =
+  "repo-local walker-derived multi-orbit scale fixture";
+export const M8A_V4_ITRI_F13_ROUTE_NATIVE_SCALE_FRESHNESS_NOTES =
+  "Static fixture/model-backed demo input; no public-source retrieval was used for this implementation.";
+export const M8A_V4_ITRI_F13_ROUTE_NATIVE_SCALE_LICENSE_NOTES =
+  "Uses the repo-local bundled walker TLE fixture as model input; not ITRI authority and not public-source authority.";
+export const M8A_V4_ITRI_F13_ROUTE_NATIVE_SCALE_READINESS_KNOWN_GAPS = [
+  "Readiness surface only; not route-native >=500 LEO closure/proof.",
+  "The handover scene remains the 13-actor service demonstration.",
+  "No ITRI orbit-model integration or external validation closure.",
+  "No live network truth, active satellite, active gateway, pair-specific path, or network performance samples.",
+  "If ITRI requires authority-backed constellation input, controlled ITRI/testbed artifacts are still required."
+] as const;
+export const M8A_V4_ITRI_F13_ROUTE_NATIVE_SCALE_READINESS_NON_CLAIMS = [
+  "not external validation closure",
+  "not ITRI orbit-model integration",
+  "not live network truth",
+  "not active satellite/gateway/path",
+  "not measured network-performance samples"
+] as const;
+export const M8A_V4_ITRI_F13_ROUTE_NATIVE_SCALE_READINESS_COUNTS = {
+  leo: MULTI_ORBIT_SCALE_OVERLAY_COUNTS.leo,
+  meo: MULTI_ORBIT_SCALE_OVERLAY_COUNTS.meo,
+  geo: MULTI_ORBIT_SCALE_OVERLAY_COUNTS.geo,
+  total:
+    MULTI_ORBIT_SCALE_OVERLAY_COUNTS.leo +
+    MULTI_ORBIT_SCALE_OVERLAY_COUNTS.meo +
+    MULTI_ORBIT_SCALE_OVERLAY_COUNTS.geo
+} as const;
 export const M8A_V4_ITRI_EXTERNAL_V02_V06_VALIDATION_ARTIFACT =
   "output/validation/external-v02-v06/2026-05-11T16-59-27.404Z-external-validation/summary.json";
 export const M8A_V4_ITRI_EXTERNAL_V02_V06_STATUS =
@@ -513,6 +587,7 @@ export type M8aV4ItriAcceptanceLayerId =
 export type M8aV4ItriAcceptanceStatus =
   | "closed"
   | "bounded"
+  | "readiness"
   | "seam-open"
   | "external-gap"
   | "external-fail"
@@ -520,6 +595,7 @@ export type M8aV4ItriAcceptanceStatus =
 export type M8aV4ItriAcceptanceDisposition =
   | "route-local-closed"
   | "bounded-route-representation"
+  | "route-native-scale-readiness"
   | "bounded-repo-owned-seam"
   | "external-integration-gap"
   | "external-validation-fail"
@@ -647,11 +723,13 @@ export const M8A_V4_ITRI_ACCEPTANCE_COVERAGE_RECORDS = [
   {
     requirementId: "F-13",
     primaryLayer: M8A_V4_ITRI_DEMO_VIEW_ACCEPTANCE_LAYER_ID,
-    status: "external-evidence",
-    disposition: "external-phase7-1-evidence",
-    surface: "phase7.1-artifact",
-    routeReality: "Separate Phase 7.1 artifact records 540 LEO / 549 total.",
-    evidenceBoundary: "This 13-actor route does not natively close >=500 LEO."
+    status: "readiness",
+    disposition: "route-native-scale-readiness",
+    surface: "f13-scale-readiness",
+    routeReality:
+      "Route-native readiness surface reports 540 LEO / 549 total fixture/model-backed scale points.",
+    evidenceBoundary:
+      "Readiness only; not route-native >=500 LEO closure/proof or external validation closure."
   },
   {
     requirementId: "F-14",

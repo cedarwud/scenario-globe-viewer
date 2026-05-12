@@ -11,6 +11,20 @@ import {
   M8A_V4_ITRI_DEMO_VIEW_ACCEPTANCE_LAYER_VERSION,
   M8A_V4_ITRI_EXTERNAL_V02_V06_STATUS,
   M8A_V4_ITRI_EXTERNAL_V02_V06_VALIDATION_ARTIFACT,
+  M8A_V4_ITRI_F13_ROUTE_NATIVE_SCALE_BUILT_AT_UTC,
+  M8A_V4_ITRI_F13_ROUTE_NATIVE_SCALE_DATA_SOURCE_LABEL,
+  M8A_V4_ITRI_F13_ROUTE_NATIVE_SCALE_FRESHNESS_NOTES,
+  M8A_V4_ITRI_F13_ROUTE_NATIVE_SCALE_FRESHNESS_TIMESTAMP_UTC,
+  M8A_V4_ITRI_F13_ROUTE_NATIVE_SCALE_LICENSE_NOTES,
+  M8A_V4_ITRI_F13_ROUTE_NATIVE_SCALE_PUBLIC_SOURCE_USED,
+  M8A_V4_ITRI_F13_ROUTE_NATIVE_SCALE_READINESS_COUNTS,
+  M8A_V4_ITRI_F13_ROUTE_NATIVE_SCALE_READINESS_KNOWN_GAPS,
+  M8A_V4_ITRI_F13_ROUTE_NATIVE_SCALE_READINESS_NON_CLAIMS,
+  M8A_V4_ITRI_F13_ROUTE_NATIVE_SCALE_READINESS_VERSION,
+  M8A_V4_ITRI_F13_ROUTE_NATIVE_SCALE_SOURCE_MODE,
+  M8A_V4_ITRI_F13_ROUTE_NATIVE_SCALE_SOURCE_TYPE,
+  M8A_V4_ITRI_F13_ROUTE_NATIVE_SCALE_SOURCE_URL,
+  M8A_V4_ITRI_F13_ROUTE_NATIVE_SCALE_TARGET_LEO_COUNT,
   M8A_V4_ITRI_F09_METRIC_TRUTH,
   M8A_V4_ITRI_F09_PROVENANCE,
   M8A_V4_ITRI_F10_POLICY_DEFAULT_PRESET_ID,
@@ -20,8 +34,6 @@ import {
   M8A_V4_ITRI_F16_EXPLICIT_NON_CLAIMS,
   M8A_V4_ITRI_PHASE7_1_F13_EVIDENCE_ARTIFACT,
   M8A_V4_ITRI_PHASE7_1_F13_EVIDENCE_STALE_AFTER_UTC,
-  M8A_V4_ITRI_PHASE7_1_F13_LEO_COUNT,
-  M8A_V4_ITRI_PHASE7_1_F13_TOTAL_COUNT,
   M8A_V4_ITRI_REQUIREMENT_STATUS_GROUPS,
   resolveF09RateClassCopy,
   type M8aV4F09RateWindowRow,
@@ -97,6 +109,69 @@ export function renderItriAcceptanceCoverageItems(): string {
   }).join("");
 }
 
+function countRouteOrbitActors(): Record<"leo" | "meo" | "geo" | "total", number> {
+  const counts = M8A_V4_GROUND_STATION_RUNTIME_PROJECTION.orbitActors.reduce(
+    (nextCounts, actor) => ({
+      ...nextCounts,
+      [actor.orbitClass]: nextCounts[actor.orbitClass] + 1,
+      total: nextCounts.total + 1
+    }),
+    { leo: 0, meo: 0, geo: 0, total: 0 }
+  );
+
+  return counts;
+}
+
+function renderItriF13ScaleReadinessKnownGaps(): string {
+  return M8A_V4_ITRI_F13_ROUTE_NATIVE_SCALE_READINESS_KNOWN_GAPS.map((gap) => {
+    return `<li data-itri-f13-scale-readiness-known-gap="true">${escapeM8aV411MetricText(gap)}</li>`;
+  }).join("");
+}
+
+function renderItriF13ScaleReadinessNonClaims(): string {
+  return M8A_V4_ITRI_F13_ROUTE_NATIVE_SCALE_READINESS_NON_CLAIMS.map((claim) => {
+    return `<span data-itri-f13-scale-readiness-non-claim="true">${escapeM8aV411MetricText(claim)}</span>`;
+  }).join("");
+}
+
+export function renderItriF13ScaleReadinessSurface(): string {
+  const routeCounts = countRouteOrbitActors();
+  const readinessCounts = M8A_V4_ITRI_F13_ROUTE_NATIVE_SCALE_READINESS_COUNTS;
+  const targetReached =
+    readinessCounts.leo >=
+    M8A_V4_ITRI_F13_ROUTE_NATIVE_SCALE_TARGET_LEO_COUNT;
+
+  return `
+              <section class="m8a-v411-f13-scale-readiness" data-itri-f13-scale-readiness-surface="true" data-itri-f13-scale-readiness-version="${M8A_V4_ITRI_F13_ROUTE_NATIVE_SCALE_READINESS_VERSION}" data-itri-f13-scale-readiness-target-leo-count="${M8A_V4_ITRI_F13_ROUTE_NATIVE_SCALE_TARGET_LEO_COUNT}" data-itri-f13-scale-readiness-target-reached="${String(targetReached)}" data-itri-f13-scale-readiness-current-route-actor-count="${routeCounts.total}" data-itri-f13-scale-readiness-current-route-leo-count="${routeCounts.leo}" data-itri-f13-scale-readiness-actor-count="${readinessCounts.total}" data-itri-f13-scale-readiness-leo-count="${readinessCounts.leo}" data-itri-f13-scale-readiness-meo-count="${readinessCounts.meo}" data-itri-f13-scale-readiness-geo-count="${readinessCounts.geo}" data-itri-f13-scale-readiness-source-type="${M8A_V4_ITRI_F13_ROUTE_NATIVE_SCALE_SOURCE_TYPE}" data-itri-f13-scale-readiness-source-mode="${M8A_V4_ITRI_F13_ROUTE_NATIVE_SCALE_SOURCE_MODE}" data-itri-f13-scale-readiness-source-url="${M8A_V4_ITRI_F13_ROUTE_NATIVE_SCALE_SOURCE_URL}" data-itri-f13-scale-readiness-public-source-used="${String(M8A_V4_ITRI_F13_ROUTE_NATIVE_SCALE_PUBLIC_SOURCE_USED)}" data-itri-f13-scale-readiness-built-at-utc="${M8A_V4_ITRI_F13_ROUTE_NATIVE_SCALE_BUILT_AT_UTC}" data-itri-f13-scale-readiness-freshness-timestamp-utc="${M8A_V4_ITRI_F13_ROUTE_NATIVE_SCALE_FRESHNESS_TIMESTAMP_UTC}" data-itri-f13-scale-readiness-closure-claimed="false" aria-labelledby="m8a-v411-f13-scale-readiness-heading">
+                <div class="m8a-v411-f13-scale-readiness__header">
+                  <span data-m8a-v48-info-class="fixed">F-13</span>
+                  <strong id="m8a-v411-f13-scale-readiness-heading" data-m8a-v48-info-class="fixed">Scale Readiness</strong>
+                  <small data-m8a-v48-info-class="fixed">fixture/model-backed · not external validation closure</small>
+                </div>
+                <div class="m8a-v411-f13-scale-readiness__stats" aria-label="F-13 scale readiness counts">
+                  <p data-itri-f13-scale-readiness-stat="route-actors"><span>Current route actors</span><strong>${routeCounts.total}</strong><small>${routeCounts.leo} LEO / ${routeCounts.meo} MEO / ${routeCounts.geo} GEO</small></p>
+                  <p data-itri-f13-scale-readiness-stat="readiness-actors"><span>Readiness fixture actors</span><strong>${readinessCounts.total}</strong><small>${readinessCounts.leo} LEO / ${readinessCounts.meo} MEO / ${readinessCounts.geo} GEO</small></p>
+                  <p data-itri-f13-scale-readiness-stat="target"><span>&gt;=500 LEO readiness target</span><strong>${targetReached ? "reached" : "not reached"}</strong><small>${readinessCounts.leo} / ${M8A_V4_ITRI_F13_ROUTE_NATIVE_SCALE_TARGET_LEO_COUNT} LEO</small></p>
+                </div>
+                <dl class="m8a-v411-f13-scale-readiness__meta">
+                  <div><dt>Data/source type</dt><dd>${M8A_V4_ITRI_F13_ROUTE_NATIVE_SCALE_SOURCE_TYPE}</dd></div>
+                  <div><dt>Source mode</dt><dd>${M8A_V4_ITRI_F13_ROUTE_NATIVE_SCALE_SOURCE_MODE}</dd></div>
+                  <div><dt>Source URL</dt><dd>${M8A_V4_ITRI_F13_ROUTE_NATIVE_SCALE_SOURCE_URL}</dd></div>
+                  <div><dt>Source input</dt><dd>${M8A_V4_ITRI_F13_ROUTE_NATIVE_SCALE_DATA_SOURCE_LABEL}</dd></div>
+                  <div><dt>Built at</dt><dd>${M8A_V4_ITRI_F13_ROUTE_NATIVE_SCALE_BUILT_AT_UTC}</dd></div>
+                  <div><dt>Freshness timestamp</dt><dd>${M8A_V4_ITRI_F13_ROUTE_NATIVE_SCALE_FRESHNESS_TIMESTAMP_UTC}</dd></div>
+                  <div><dt>License/freshness notes</dt><dd>${M8A_V4_ITRI_F13_ROUTE_NATIVE_SCALE_LICENSE_NOTES} ${M8A_V4_ITRI_F13_ROUTE_NATIVE_SCALE_FRESHNESS_NOTES}</dd></div>
+                </dl>
+                <p class="m8a-v411-f13-scale-readiness__boundary" data-itri-f13-scale-readiness-boundary="true" data-m8a-v48-info-class="disclosure">This is a route-native readiness/demo surface. It is not external validation closure, not ITRI authority, not an active satellite/gateway/path claim, and not measured network truth.</p>
+                <ul class="m8a-v411-f13-scale-readiness__known-gaps">
+                  ${renderItriF13ScaleReadinessKnownGaps()}
+                </ul>
+                <div class="m8a-v411-f13-scale-readiness__non-claims" data-itri-f13-scale-readiness-non-claims="true" hidden>
+                  ${renderItriF13ScaleReadinessNonClaims()}
+                </div>
+              </section>`;
+}
+
 export function renderItriAcceptanceLayer(): string {
   const requirementIds = escapeM8aV411MetricText(
     M8A_V4_ITRI_ACCEPTANCE_REQUIREMENT_IDS.join("|")
@@ -114,8 +189,14 @@ export function renderItriAcceptanceLayer(): string {
     M8A_V4_ITRI_ACCEPTANCE_BOUNDED_ROUTE_REPRESENTATION_IDS.join("|")
   );
 
+  const routeCounts = countRouteOrbitActors();
+  const readinessCounts = M8A_V4_ITRI_F13_ROUTE_NATIVE_SCALE_READINESS_COUNTS;
+  const f13TargetReached =
+    readinessCounts.leo >=
+    M8A_V4_ITRI_F13_ROUTE_NATIVE_SCALE_TARGET_LEO_COUNT;
+
   return `
-            <section class="m8a-v411-acceptance-layer" data-itri-demo-l2-acceptance-layer="true" data-itri-demo-l2-version="${M8A_V4_ITRI_DEMO_VIEW_ACCEPTANCE_LAYER_VERSION}" data-itri-demo-l2-layer-id="${M8A_V4_ITRI_DEMO_VIEW_ACCEPTANCE_LAYER_ID}" data-itri-demo-l2-requirement-ids="${requirementIds}" data-itri-demo-l2-requirement-statuses="${requirementStatuses}" data-itri-demo-l2-requirement-layers="${requirementLayers}" data-itri-demo-l2-external-fail-ids="${externalFailIds}" data-itri-demo-l2-bounded-route-ids="${boundedRouteIds}" data-itri-demo-l2-f13-artifact="${M8A_V4_ITRI_PHASE7_1_F13_EVIDENCE_ARTIFACT}" data-itri-demo-l2-f13-fresh-until-utc="${M8A_V4_ITRI_PHASE7_1_F13_EVIDENCE_STALE_AFTER_UTC}" data-itri-demo-l2-f13-route-native-scale-claimed="false" data-itri-demo-l2-external-validation-artifact="${M8A_V4_ITRI_EXTERNAL_V02_V06_VALIDATION_ARTIFACT}" data-itri-demo-l2-external-validation-status="${M8A_V4_ITRI_EXTERNAL_V02_V06_STATUS}" aria-labelledby="m8a-v411-acceptance-layer-heading">
+            <section class="m8a-v411-acceptance-layer" data-itri-demo-l2-acceptance-layer="true" data-itri-demo-l2-version="${M8A_V4_ITRI_DEMO_VIEW_ACCEPTANCE_LAYER_VERSION}" data-itri-demo-l2-layer-id="${M8A_V4_ITRI_DEMO_VIEW_ACCEPTANCE_LAYER_ID}" data-itri-demo-l2-requirement-ids="${requirementIds}" data-itri-demo-l2-requirement-statuses="${requirementStatuses}" data-itri-demo-l2-requirement-layers="${requirementLayers}" data-itri-demo-l2-external-fail-ids="${externalFailIds}" data-itri-demo-l2-bounded-route-ids="${boundedRouteIds}" data-itri-demo-l2-f13-artifact="${M8A_V4_ITRI_PHASE7_1_F13_EVIDENCE_ARTIFACT}" data-itri-demo-l2-f13-fresh-until-utc="${M8A_V4_ITRI_PHASE7_1_F13_EVIDENCE_STALE_AFTER_UTC}" data-itri-demo-l2-f13-route-native-scale-claimed="false" data-itri-demo-l2-f13-scale-readiness-version="${M8A_V4_ITRI_F13_ROUTE_NATIVE_SCALE_READINESS_VERSION}" data-itri-demo-l2-f13-scale-readiness-target-reached="${String(f13TargetReached)}" data-itri-demo-l2-f13-scale-readiness-current-route-actor-count="${routeCounts.total}" data-itri-demo-l2-f13-scale-readiness-actor-count="${readinessCounts.total}" data-itri-demo-l2-f13-scale-readiness-leo-count="${readinessCounts.leo}" data-itri-demo-l2-f13-scale-readiness-target-leo-count="${M8A_V4_ITRI_F13_ROUTE_NATIVE_SCALE_TARGET_LEO_COUNT}" data-itri-demo-l2-f13-scale-readiness-source-type="${M8A_V4_ITRI_F13_ROUTE_NATIVE_SCALE_SOURCE_TYPE}" data-itri-demo-l2-f13-scale-readiness-source-url="${M8A_V4_ITRI_F13_ROUTE_NATIVE_SCALE_SOURCE_URL}" data-itri-demo-l2-f13-scale-readiness-public-source-used="${String(M8A_V4_ITRI_F13_ROUTE_NATIVE_SCALE_PUBLIC_SOURCE_USED)}" data-itri-demo-l2-f13-scale-readiness-built-at-utc="${M8A_V4_ITRI_F13_ROUTE_NATIVE_SCALE_BUILT_AT_UTC}" data-itri-demo-l2-f13-scale-readiness-freshness-timestamp-utc="${M8A_V4_ITRI_F13_ROUTE_NATIVE_SCALE_FRESHNESS_TIMESTAMP_UTC}" data-itri-demo-l2-f13-scale-readiness-closure-claimed="false" data-itri-demo-l2-external-validation-artifact="${M8A_V4_ITRI_EXTERNAL_V02_V06_VALIDATION_ARTIFACT}" data-itri-demo-l2-external-validation-status="${M8A_V4_ITRI_EXTERNAL_V02_V06_STATUS}" aria-labelledby="m8a-v411-acceptance-layer-heading">
               <div class="m8a-v411-acceptance-layer__header">
                 <span data-m8a-v48-info-class="fixed">L2</span>
                 <strong id="m8a-v411-acceptance-layer-heading" data-m8a-v48-info-class="fixed">Acceptance Evidence</strong>
@@ -125,9 +206,9 @@ export function renderItriAcceptanceLayer(): string {
               <div class="m8a-v411-acceptance-layer__boundary" aria-label="Critical acceptance boundaries">
                 <article data-itri-demo-l2-boundary-card="f13">
                   <span data-m8a-v48-info-class="fixed">F-13</span>
-                  <strong data-m8a-v48-info-class="fixed">Separate Phase 7.1 evidence</strong>
-                  <p data-m8a-v48-info-class="disclosure">${M8A_V4_ITRI_PHASE7_1_F13_LEO_COUNT} LEO / ${M8A_V4_ITRI_PHASE7_1_F13_TOTAL_COUNT} total in retained artifact; this 13-actor route does not natively close &gt;=500 LEO.</p>
-                  <small data-m8a-v48-info-class="fixed">fresh until ${M8A_V4_ITRI_PHASE7_1_F13_EVIDENCE_STALE_AFTER_UTC}</small>
+                  <strong data-m8a-v48-info-class="fixed">Route-native readiness surface</strong>
+                  <p data-m8a-v48-info-class="disclosure">${readinessCounts.leo} LEO / ${readinessCounts.total} total fixture/model-backed scale points; &gt;=500 LEO readiness target reached in route runtime. Not external validation closure.</p>
+                  <small data-m8a-v48-info-class="fixed">built ${M8A_V4_ITRI_F13_ROUTE_NATIVE_SCALE_BUILT_AT_UTC}</small>
                 </article>
                 <article data-itri-demo-l2-boundary-card="v02-v06">
                   <span data-m8a-v48-info-class="fixed">V-02..V-06</span>
@@ -142,6 +223,7 @@ export function renderItriAcceptanceLayer(): string {
                   <small data-m8a-v48-info-class="fixed">bounded-route-representation</small>
                 </article>
               </div>
+              ${renderItriF13ScaleReadinessSurface()}
               <ol class="m8a-v411-acceptance-layer__coverage" data-itri-demo-l2-coverage-list="true">
                 ${renderItriAcceptanceCoverageItems()}
               </ol>

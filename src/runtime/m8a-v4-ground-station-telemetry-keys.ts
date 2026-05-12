@@ -300,6 +300,18 @@ export const M8A_V4_TELEMETRY_KEYS = [
   "m8aV4ItriDemoViewAcceptanceF13Artifact",
   "m8aV4ItriDemoViewAcceptanceF13FreshUntilUtc",
   "m8aV4ItriDemoViewAcceptanceF13RouteNativeScaleClaimed",
+  "m8aV4ItriF13ScaleReadinessSurface",
+  "m8aV4ItriF13ScaleReadinessTargetReached",
+  "m8aV4ItriF13ScaleReadinessCurrentRouteActorCount",
+  "m8aV4ItriF13ScaleReadinessActorCount",
+  "m8aV4ItriF13ScaleReadinessLeoCount",
+  "m8aV4ItriF13ScaleReadinessTargetLeoCount",
+  "m8aV4ItriF13ScaleReadinessSourceType",
+  "m8aV4ItriF13ScaleReadinessSourceUrl",
+  "m8aV4ItriF13ScaleReadinessPublicSourceUsed",
+  "m8aV4ItriF13ScaleReadinessBuiltAtUtc",
+  "m8aV4ItriF13ScaleReadinessFreshnessTimestampUtc",
+  "m8aV4ItriF13ScaleReadinessClosureClaimed",
   "m8aV4ItriDemoViewAcceptanceExternalValidationArtifact",
   "m8aV4ItriDemoViewAcceptanceExternalValidationStatus"
 ] as const;

@@ -213,7 +213,7 @@ async function resolveOverlayFixture(
 
   if (mode === LEO_SCALE_OVERLAY_MODE) {
     return {
-      detail: `Generated ${LEO_SCALE_OVERLAY_SAT_COUNT} live LEO satellites across ${LEO_SCALE_OVERLAY_PLANE_COUNT} planes x ${LEO_SCALE_OVERLAY_SATS_PER_PLANE} slots from walker-derived TLE templates.`,
+      detail: `Generated ${LEO_SCALE_OVERLAY_SAT_COUNT} model-backed LEO scale points across ${LEO_SCALE_OVERLAY_PLANE_COUNT} planes x ${LEO_SCALE_OVERLAY_SATS_PER_PLANE} slots from walker-derived TLE templates.`,
       fixture: {
         kind: "tle",
         tleText: createLeoScaleWalkerFixtureText(walkerFixtureText)
@@ -228,7 +228,7 @@ async function resolveOverlayFixture(
   }
 
   return {
-    detail: `Generated ${MULTI_ORBIT_SCALE_OVERLAY_COUNTS.leo} LEO plus ${MULTI_ORBIT_SCALE_OVERLAY_COUNTS.meo} MEO and ${MULTI_ORBIT_SCALE_OVERLAY_COUNTS.geo} GEO live satellites from walker-derived TLE templates.`,
+    detail: `Generated ${MULTI_ORBIT_SCALE_OVERLAY_COUNTS.leo} LEO plus ${MULTI_ORBIT_SCALE_OVERLAY_COUNTS.meo} MEO and ${MULTI_ORBIT_SCALE_OVERLAY_COUNTS.geo} GEO model-backed scale points from walker-derived TLE templates.`,
     fixture: {
       kind: "tle",
       tleText: createMultiOrbitScaleFixtureText(walkerFixtureText)

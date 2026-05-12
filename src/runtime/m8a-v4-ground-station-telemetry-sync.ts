@@ -316,6 +316,38 @@ export function syncTelemetry(state: M8aV4GroundStationSceneState): void {
       acceptanceLayer.f13Phase71Evidence.staleAfterUtc,
     m8aV4ItriDemoViewAcceptanceF13RouteNativeScaleClaimed:
       String(acceptanceLayer.f13Phase71Evidence.routeNativeScaleClaimed),
+    m8aV4ItriF13ScaleReadinessSurface:
+      acceptanceLayer.f13RouteNativeScaleReadiness.version,
+    m8aV4ItriF13ScaleReadinessTargetReached: String(
+      acceptanceLayer.f13RouteNativeScaleReadiness.targetReached
+    ),
+    m8aV4ItriF13ScaleReadinessCurrentRouteActorCount: String(
+      acceptanceLayer.f13RouteNativeScaleReadiness.currentRouteActorCount
+    ),
+    m8aV4ItriF13ScaleReadinessActorCount: String(
+      acceptanceLayer.f13RouteNativeScaleReadiness.readinessActorCount
+    ),
+    m8aV4ItriF13ScaleReadinessLeoCount: String(
+      acceptanceLayer.f13RouteNativeScaleReadiness.readinessLeoActorCount
+    ),
+    m8aV4ItriF13ScaleReadinessTargetLeoCount: String(
+      acceptanceLayer.f13RouteNativeScaleReadiness.targetLeoCount
+    ),
+    m8aV4ItriF13ScaleReadinessSourceType:
+      acceptanceLayer.f13RouteNativeScaleReadiness.sourceType,
+    m8aV4ItriF13ScaleReadinessSourceUrl:
+      acceptanceLayer.f13RouteNativeScaleReadiness.sourceUrl,
+    m8aV4ItriF13ScaleReadinessPublicSourceUsed: String(
+      acceptanceLayer.f13RouteNativeScaleReadiness.publicSourceUsed
+    ),
+    m8aV4ItriF13ScaleReadinessBuiltAtUtc:
+      acceptanceLayer.f13RouteNativeScaleReadiness.builtAtUtc,
+    m8aV4ItriF13ScaleReadinessFreshnessTimestampUtc:
+      acceptanceLayer.f13RouteNativeScaleReadiness.freshnessTimestampUtc,
+    m8aV4ItriF13ScaleReadinessClosureClaimed: String(
+      acceptanceLayer.f13RouteNativeScaleReadiness
+        .routeNativeScaleClosureClaimed
+    ),
     m8aV4ItriDemoViewAcceptanceExternalValidationArtifact:
       acceptanceLayer.externalValidationPackage.artifact,
     m8aV4ItriDemoViewAcceptanceExternalValidationStatus:
