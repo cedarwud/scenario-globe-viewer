@@ -339,7 +339,8 @@ export function mountBootstrapOperatorHud({
   });
   const unmountCommunicationTimePanel = mountBootstrapCommunicationTimePanel({
     container: elements.communicationSlot,
-    controller: communicationTimeController
+    controller: communicationTimeController,
+    physicalInputController
   });
   const unmountPhysicalInputPanel = mountBootstrapPhysicalInputPanel({
     container: elements.physicalSlot,

@@ -7,15 +7,23 @@ import {
   syncDocumentTelemetry
 } from "../telemetry/document-telemetry";
 import type { CommunicationTimeState } from "./communication-time";
+import { mountBootstrapCommunicationRateSection } from "../communication-rate/bootstrap-communication-rate-section";
+import type { PhysicalInputState } from "../physical-input/physical-input";
 
 interface CommunicationTimeReadable {
   getState(): CommunicationTimeState;
   subscribe(listener: (state: CommunicationTimeState) => void): () => void;
 }
 
+interface PhysicalInputReadable {
+  getState(): PhysicalInputState;
+  subscribe(listener: (state: PhysicalInputState) => void): () => void;
+}
+
 interface BootstrapCommunicationTimePanelOptions {
   container: HTMLElement;
   controller: CommunicationTimeReadable;
+  physicalInputController?: PhysicalInputReadable;
 }
 
 interface BootstrapCommunicationTimePanelElements {
@@ -27,6 +35,7 @@ interface BootstrapCommunicationTimePanelElements {
   unavailable: HTMLSpanElement;
   remaining: HTMLSpanElement;
   provenance: HTMLSpanElement;
+  rateSlot: HTMLDivElement;
 }
 
 const COMMUNICATION_TELEMETRY_KEYS = [
@@ -72,6 +81,10 @@ function createElements(
         ${createField("Remaining Available", "remaining")}
         ${createField("Provenance", "provenance")}
       </div>
+      <div
+        class="communication-time-panel__rate-slot"
+        data-communication-rate-slot="true"
+      ></div>
     </div>
   `;
 
@@ -99,6 +112,9 @@ function createElements(
   const provenance = container.querySelector<HTMLSpanElement>(
     "[data-communication-field='provenance']"
   );
+  const rateSlot = container.querySelector<HTMLDivElement>(
+    "[data-communication-rate-slot='true']"
+  );
 
   if (
     !root ||
@@ -108,7 +124,8 @@ function createElements(
     !available ||
     !unavailable ||
     !remaining ||
-    !provenance
+    !provenance ||
+    !rateSlot
   ) {
     throw new Error("Missing bootstrap communication-time panel elements");
   }
@@ -121,7 +138,8 @@ function createElements(
     available,
     unavailable,
     remaining,
-    provenance
+    provenance,
+    rateSlot
   };
 }
 
@@ -165,10 +183,17 @@ function clearDocumentState(): void {
 
 export function mountBootstrapCommunicationTimePanel({
   container,
-  controller
+  controller,
+  physicalInputController
 }: BootstrapCommunicationTimePanelOptions): () => void {
   const elements = createElements(container);
   renderState(elements, controller.getState());
+  const unmountCommunicationRateSection = physicalInputController
+    ? mountBootstrapCommunicationRateSection({
+        container: elements.rateSlot,
+        controller: physicalInputController
+      })
+    : () => {};
 
   const unsubscribe = controller.subscribe((state) => {
     renderState(elements, state);
@@ -176,6 +201,7 @@ export function mountBootstrapCommunicationTimePanel({
 
   return () => {
     unsubscribe();
+    unmountCommunicationRateSection();
     clearDocumentState();
     container.replaceChildren();
   };

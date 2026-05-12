@@ -1215,6 +1215,264 @@ body {
   white-space: nowrap;
 }
 
+.communication-time-panel__rate-slot {
+  grid-column: 1 / -1;
+  min-width: 0;
+}
+
+.communication-rate-section {
+  display: grid;
+  gap: 0.55rem;
+  min-width: 0;
+  padding-top: 0.65rem;
+  border-top: 1px solid rgba(142, 190, 224, 0.18);
+  color: rgba(239, 247, 252, 0.96);
+}
+
+.communication-rate-section__header {
+  display: grid;
+  gap: 0.18rem;
+}
+
+.communication-rate-section__eyebrow,
+.communication-rate-section__label {
+  color: rgba(171, 205, 228, 0.86);
+  font-size: 0.62rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.communication-rate-section__heading {
+  color: #f8fcff;
+  font-size: 0.9rem;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.communication-rate-section__note,
+.communication-rate-section__description {
+  color: rgba(215, 230, 239, 0.9);
+  font-size: 0.72rem;
+  line-height: 1.35;
+}
+
+.communication-rate-section__summary {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.5rem;
+}
+
+.communication-rate-section__summary-item {
+  display: grid;
+  gap: 0.2rem;
+  min-width: 0;
+}
+
+.communication-rate-section__value {
+  min-width: 0;
+  color: #f8fcff;
+  font-size: 0.82rem;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.communication-rate-section__class-key {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  min-width: 0;
+}
+
+.communication-rate-section__series-key {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.35rem;
+  min-width: 0;
+}
+
+.communication-rate-section__class-key span,
+.communication-rate-section__series-key span {
+  border: 1px solid rgba(142, 190, 224, 0.24);
+  border-radius: 0.35rem;
+  padding: 0.22rem 0.38rem;
+  background: rgba(6, 18, 31, 0.5);
+  color: rgba(244, 250, 255, 0.94);
+  font-size: 0.66rem;
+  line-height: 1.15;
+}
+
+.communication-rate-section__chart {
+  min-width: 0;
+  border: 1px solid rgba(142, 190, 224, 0.16);
+  border-radius: 0.45rem;
+  background: rgba(3, 12, 22, 0.48);
+  outline: none;
+  overflow-x: auto;
+}
+
+.communication-rate-section__chart:focus-visible,
+.communication-rate-section__table-toggle:focus-visible {
+  outline: 2px solid #f7d976;
+  outline-offset: 3px;
+}
+
+.communication-rate-chart {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  height: auto;
+}
+
+.communication-rate-chart__frame {
+  fill: rgba(5, 16, 28, 0.74);
+}
+
+.communication-rate-chart__class-row line,
+.communication-rate-chart__axis {
+  stroke: rgba(181, 215, 238, 0.2);
+  stroke-width: 1;
+}
+
+.communication-rate-chart__class-row text,
+.communication-rate-chart__window-label,
+.communication-rate-chart__series-label,
+.communication-rate-chart__point-label {
+  fill: rgba(246, 251, 255, 0.94);
+  font-family: "IBM Plex Sans", system-ui, sans-serif;
+  font-size: 0.62rem;
+  letter-spacing: 0;
+}
+
+.communication-rate-chart__series-label {
+  fill: rgba(230, 241, 248, 0.9);
+}
+
+.communication-rate-chart__point-label {
+  font-weight: 600;
+}
+
+.communication-rate-chart__line {
+  fill: none;
+  stroke-width: 2.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  animation: communication-rate-line-enter 480ms ease-out both;
+}
+
+.communication-rate-chart__marker {
+  fill: #06121f;
+  stroke-width: 2.2;
+}
+
+.communication-rate-chart__marker--leo {
+  stroke: #8bd7ff;
+}
+
+.communication-rate-chart__marker--meo {
+  stroke: #f7d976;
+}
+
+.communication-rate-chart__marker--geo {
+  stroke: #ffb5a8;
+}
+
+.communication-rate-section__empty {
+  padding: 0.7rem;
+  color: rgba(239, 247, 252, 0.92);
+  font-size: 0.76rem;
+}
+
+.communication-rate-section__table-toggle {
+  justify-self: start;
+  min-height: 2rem;
+  border: 1px solid rgba(142, 190, 224, 0.34);
+  border-radius: 0.35rem;
+  padding: 0.35rem 0.55rem;
+  background: rgba(10, 30, 47, 0.78);
+  color: #f8fcff;
+  font: inherit;
+  font-size: 0.72rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.communication-rate-section__table-toggle:hover {
+  border-color: rgba(247, 217, 118, 0.74);
+}
+
+.communication-rate-section__table-region {
+  min-width: 0;
+  overflow-x: auto;
+}
+
+.communication-rate-section__table {
+  width: 100%;
+  min-width: 34rem;
+  border-collapse: collapse;
+  color: rgba(245, 250, 255, 0.94);
+  font-size: 0.7rem;
+}
+
+.communication-rate-section__table caption {
+  padding-bottom: 0.35rem;
+  color: rgba(215, 230, 239, 0.9);
+  text-align: left;
+}
+
+.communication-rate-section__table th,
+.communication-rate-section__table td {
+  border-bottom: 1px solid rgba(142, 190, 224, 0.16);
+  padding: 0.36rem 0.45rem;
+  text-align: left;
+  vertical-align: top;
+  white-space: nowrap;
+}
+
+.communication-rate-section__table th {
+  color: rgba(171, 205, 228, 0.9);
+  font-size: 0.62rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.communication-rate-section__live {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  border: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+@keyframes communication-rate-line-enter {
+  from {
+    stroke-dashoffset: 18;
+    opacity: 0.64;
+  }
+
+  to {
+    stroke-dashoffset: 0;
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .communication-rate-section *,
+  .communication-rate-section *::before,
+  .communication-rate-section *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+
+  .communication-rate-chart__line {
+    stroke-dashoffset: 0 !important;
+  }
+}
+
 .cesium-viewer-toolbar,
 .cesium-viewer-animationContainer,
 .cesium-viewer-timelineContainer,
@@ -1401,6 +1659,14 @@ body {
     gap: 0.45rem 0.95rem;
     min-height: 3.75rem;
     padding-top: 0;
+  }
+
+  .communication-rate-section__summary {
+    grid-template-columns: 1fr;
+  }
+
+  .communication-rate-section__series-key {
+    grid-template-columns: 1fr;
   }
 
   .first-intake-overlay-expression {
