@@ -1,0 +1,395 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:scenario-globe-viewer:itri:external-validation-evidence-summary:v2-draft",
+  "title": "ITRI V-02..V-06 External Validation Evidence Summary",
+  "description": "Parseable schema sketch for retained external validation summary.json packages. It is a readiness contract, not proof that validation has passed.",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "schemaVersion",
+    "run",
+    "authority",
+    "scope",
+    "environment",
+    "topology",
+    "artifacts",
+    "requirementResults",
+    "overallClassification",
+    "knownGaps",
+    "nonClaims",
+    "handoff"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": "itri.external-validation-evidence.v2-draft"
+    },
+    "run": {
+      "type": "object",
+      "required": [
+        "runId",
+        "generatedAt",
+        "timezone",
+        "validationOwner",
+        "packagePath",
+        "executionWindow"
+      ],
+      "properties": {
+        "runId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "generatedAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "timezone": {
+          "type": "string",
+          "minLength": 1
+        },
+        "validationOwner": {
+          "type": "string",
+          "minLength": 1
+        },
+        "packagePath": {
+          "type": "string",
+          "minLength": 1
+        },
+        "executionWindow": {
+          "type": "object",
+          "required": [
+            "startedAt",
+            "endedAt"
+          ],
+          "properties": {
+            "startedAt": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "endedAt": {
+              "type": "string",
+              "format": "date-time"
+            }
+          }
+        }
+      }
+    },
+    "authority": {
+      "type": "object",
+      "required": [
+        "docsRead",
+        "authorityAvailabilityNotes"
+      ],
+      "properties": {
+        "docsRead": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "authorityAvailabilityNotes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "scope": {
+      "type": "object",
+      "required": [
+        "coveredRequirementIds",
+        "canonicalRouteNotModified",
+        "phase5PackagePreserved",
+        "nonClaimBoundary"
+      ],
+      "properties": {
+        "coveredRequirementIds": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "V-02",
+              "V-03",
+              "V-04",
+              "V-05",
+              "V-06"
+            ]
+          },
+          "minItems": 1
+        },
+        "canonicalRouteNotModified": {
+          "type": "string"
+        },
+        "phase5PackagePreserved": {
+          "type": "string"
+        },
+        "nonClaimBoundary": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "environment": {
+      "type": "object",
+      "required": [
+        "windowsHost",
+        "wsl",
+        "estnetInet",
+        "tools"
+      ],
+      "properties": {
+        "windowsHost": {
+          "type": "object"
+        },
+        "wsl": {
+          "type": "object"
+        },
+        "estnetInet": {
+          "type": "object"
+        },
+        "tools": {
+          "type": "object"
+        }
+      }
+    },
+    "topology": {
+      "type": "object",
+      "required": [
+        "topologyRef",
+        "topologyDataRef",
+        "nodes",
+        "interfaces",
+        "links",
+        "routes",
+        "natRules",
+        "bridgeRules",
+        "trafficPaths"
+      ],
+      "properties": {
+        "topologyRef": {
+          "type": "string"
+        },
+        "topologyDataRef": {
+          "type": "string"
+        },
+        "nodes": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        },
+        "interfaces": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        },
+        "links": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        },
+        "routes": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        },
+        "natRules": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        },
+        "bridgeRules": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        },
+        "trafficPaths": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        }
+      }
+    },
+    "artifacts": {
+      "type": "object",
+      "required": [
+        "commandTranscript",
+        "interfaces",
+        "routes",
+        "natRules",
+        "bridgeRules",
+        "trafficResults",
+        "dutResults",
+        "neOneResults",
+        "redactions"
+      ],
+      "properties": {
+        "commandTranscript": {
+          "type": "string"
+        },
+        "interfaces": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "routes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "natRules": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "bridgeRules": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "trafficResults": {
+          "type": "object",
+          "properties": {
+            "ping": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "iperf": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "packetCaptures": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "dutResults": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "neOneResults": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "redactions": {
+          "type": "string"
+        }
+      }
+    },
+    "requirementResults": {
+      "type": "array",
+      "minItems": 5,
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "classification",
+          "evidenceStatus",
+          "retainedArtifacts",
+          "decisionReason",
+          "knownGaps"
+        ],
+        "properties": {
+          "id": {
+            "enum": [
+              "V-02",
+              "V-03",
+              "V-04",
+              "V-05",
+              "V-06"
+            ]
+          },
+          "classification": {
+            "enum": [
+              "pass",
+              "fail",
+              "gap"
+            ]
+          },
+          "evidenceStatus": {
+            "type": "string"
+          },
+          "retainedArtifacts": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "decisionReason": {
+            "type": "string"
+          },
+          "knownGaps": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "overallClassification": {
+      "enum": [
+        "pass",
+        "fail",
+        "gap"
+      ]
+    },
+    "knownGaps": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "nonClaims": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "handoff": {
+      "type": "object",
+      "required": [
+        "externalTestbedOwner",
+        "reviewer",
+        "redactionPolicy",
+        "nextAction"
+      ],
+      "properties": {
+        "externalTestbedOwner": {
+          "type": "string"
+        },
+        "reviewer": {
+          "type": "string"
+        },
+        "redactionPolicy": {
+          "type": "string"
+        },
+        "nextAction": {
+          "type": "string"
+        }
+      }
+    }
+  }
+}

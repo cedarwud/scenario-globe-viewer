@@ -37,6 +37,19 @@ Checkpoint, 2026-05-12:
   route/interface inventories, successful traffic transcripts, virtual DUT logs,
   and physical DUT or NE-ONE measured outputs.
 
+## Readiness Package
+
+The pre-execution handoff package for the external testbed owner is now
+documented in
+`docs/sdd/itri-v02-v06-external-validation-readiness-package.md`.
+
+The parseable `summary.json` schema sketch for the next retained external run is
+`docs/sdd/itri-v02-v06-external-validation-summary.schema.json`.
+
+These readiness artifacts do not change the current negative/gap status of
+V-02 through V-06 and do not grant the V4 demo route permission to claim
+external validation truth.
+
 ## Requirement Scope
 
 | ID | Evidence target | Required proof |
