@@ -1,4 +1,5 @@
 import type { ScenePresetKey } from "../globe/scene-preset";
+import type { SelectableHandoverPolicyId } from "../handover-decision";
 import type { ReplayClock, ReplayClockState } from "../time";
 import {
   clearDocumentTelemetry,
@@ -37,6 +38,8 @@ interface BootstrapOperatorHudElements {
   root: HTMLDivElement;
   scenarioLabel: HTMLSpanElement;
   scenarioSelect: HTMLSelectElement;
+  policySelect: HTMLSelectElement;
+  policyStatus: HTMLSpanElement;
   modeButtons: Record<BootstrapScenarioMode, HTMLButtonElement>;
   speedButtons: ReadonlyArray<HTMLButtonElement>;
   timeSlot: HTMLDivElement;
@@ -52,6 +55,9 @@ const OPERATOR_TELEMETRY_KEYS = [
   "scenePreset",
   "replayMode",
   "replaySpeed",
+  "handoverPolicyId",
+  "handoverPolicyLabel",
+  "handoverPolicySummary",
   "operatorControlError"
 ] as const;
 
@@ -103,6 +109,13 @@ function createElements(
       `
     )
     .join("");
+  const policyOptionsMarkup = controller
+    .getHandoverPolicyOptions()
+    .map(
+      (option) =>
+        `<option value="${option.id}">${option.label}</option>`
+    )
+    .join("");
 
   statusPanel.innerHTML = `
     <div class="operator-status-hud" data-operator-hud="bootstrap">
@@ -151,6 +164,23 @@ function createElements(
             ${speedControlsMarkup}
           </div>
         </div>
+        <label class="operator-control-group">
+          <span class="operator-control-label">Handover Policy</span>
+          <select
+            class="operator-control-select"
+            data-operator-control="handover-policy"
+            aria-label="Handover Policy"
+          >
+            ${policyOptionsMarkup}
+          </select>
+        </label>
+        <span
+          class="operator-control-live-region"
+          data-operator-policy-status="true"
+          role="status"
+          aria-live="polite"
+          aria-atomic="true"
+        ></span>
       </div>
       <div class="operator-status-hud__telemetry">
         <div class="operator-status-hud__timeline" data-operator-time-slot="true"></div>
@@ -187,6 +217,12 @@ function createElements(
   const scenarioSelect = statusPanel.querySelector<HTMLSelectElement>(
     "[data-operator-control='scenario']"
   );
+  const policySelect = statusPanel.querySelector<HTMLSelectElement>(
+    "[data-operator-control='handover-policy']"
+  );
+  const policyStatus = statusPanel.querySelector<HTMLSpanElement>(
+    "[data-operator-policy-status='true']"
+  );
   const realTimeButton = statusPanel.querySelector<HTMLButtonElement>(
     "[data-operator-control='mode'][data-operator-mode='real-time']"
   );
@@ -221,6 +257,8 @@ function createElements(
     !root ||
     !scenarioLabel ||
     !scenarioSelect ||
+    !policySelect ||
+    !policyStatus ||
     !realTimeButton ||
     !prerecordedButton ||
     speedButtons.length === 0 ||
@@ -238,6 +276,8 @@ function createElements(
     root,
     scenarioLabel,
     scenarioSelect,
+    policySelect,
+    policyStatus,
     modeButtons: {
       "real-time": realTimeButton,
       prerecorded: prerecordedButton
@@ -260,10 +300,14 @@ function renderState(
 
   elements.scenarioLabel.textContent = state.scenarioLabel;
   elements.scenarioSelect.value = state.scenePresetKey;
+  elements.policySelect.value = state.handoverPolicyId;
   elements.root.dataset.bootstrapScenarioId = state.scenarioId;
   elements.root.dataset.scenePreset = state.scenePresetKey;
   elements.root.dataset.replayMode = state.replayMode;
   elements.root.dataset.replaySpeed = replaySpeed;
+  elements.root.dataset.handoverPolicyId = state.handoverPolicyId;
+  elements.root.dataset.handoverPolicyLabel = state.handoverPolicyLabel;
+  elements.root.dataset.handoverPolicySummary = state.handoverPolicySummary;
   elements.root.dataset.playbackState = state.isPlaying ? "playing" : "paused";
 
   elements.modeButtons["real-time"].setAttribute(
@@ -284,7 +328,10 @@ function renderState(
     bootstrapScenarioId: state.scenarioId,
     scenePreset: state.scenePresetKey,
     replayMode: state.replayMode,
-    replaySpeed
+    replaySpeed,
+    handoverPolicyId: state.handoverPolicyId,
+    handoverPolicyLabel: state.handoverPolicyLabel,
+    handoverPolicySummary: state.handoverPolicySummary
   });
 }
 
@@ -362,6 +409,7 @@ export function mountBootstrapOperatorHud({
   const updateBusyState = (busy: boolean): void => {
     elements.root.dataset.operatorBusy = busy ? "true" : "false";
     elements.scenarioSelect.disabled = busy;
+    elements.policySelect.disabled = busy;
     elements.modeButtons["real-time"].disabled = busy;
     elements.modeButtons.prerecorded.disabled = busy;
 
@@ -404,6 +452,20 @@ export function mountBootstrapOperatorHud({
     void runSelection(() => controller.selectScenarioPreset(selectedPreset));
   };
 
+  const handlePolicyChange = (): void => {
+    try {
+      clearControlError();
+      const state = controller.selectHandoverPolicy(
+        elements.policySelect.value as SelectableHandoverPolicyId
+      );
+      renderState(elements, state);
+      elements.policyStatus.textContent =
+        `Policy changed to ${state.handoverPolicyLabel}.`;
+    } catch (error) {
+      reportControlError(error);
+    }
+  };
+
   const handleRealTimeClick = (): void => {
     void runSelection(() => controller.selectReplayMode("real-time"));
   };
@@ -441,6 +503,7 @@ export function mountBootstrapOperatorHud({
   });
 
   elements.scenarioSelect.addEventListener("change", handleScenarioChange);
+  elements.policySelect.addEventListener("change", handlePolicyChange);
   elements.modeButtons["real-time"].addEventListener("click", handleRealTimeClick);
   elements.modeButtons.prerecorded.addEventListener(
     "click",
@@ -460,6 +523,7 @@ export function mountBootstrapOperatorHud({
     unmountCommunicationTimePanel();
     unmountTimelineHudPlaceholder();
     elements.scenarioSelect.removeEventListener("change", handleScenarioChange);
+    elements.policySelect.removeEventListener("change", handlePolicyChange);
     elements.modeButtons["real-time"].removeEventListener("click", handleRealTimeClick);
     elements.modeButtons.prerecorded.removeEventListener(
       "click",

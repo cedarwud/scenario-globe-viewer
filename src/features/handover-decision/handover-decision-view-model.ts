@@ -13,6 +13,8 @@ export interface HandoverDecisionPanelViewModel {
   servingOrbitClass: string;
   previousCandidate: string;
   reasons: string;
+  policy: string;
+  policyDetail: string;
   provenance: string;
   provenanceDetail: string;
 }
@@ -22,6 +24,7 @@ const REASON_SIGNAL_LABELS: Record<HandoverReasonSignalCode, string> = {
   "jitter-better": "Jitter better",
   "network-speed-better": "Network speed better",
   "current-link-unavailable": "Current link unavailable",
+  "policy-weighted-override": "Policy weighted override",
   "policy-hold": "Hold",
   "tie-break": "Tie break"
 };
@@ -66,6 +69,8 @@ export function createHandoverDecisionPanelViewModel(
     servingOrbitClass: formatOrbitClassLabel(state.result.servingOrbitClass),
     previousCandidate: state.result.previousCandidateId ?? "None",
     reasons: formatReasonSignals(state),
+    policy: state.report.policyLabel,
+    policyDetail: state.report.policySummary,
     provenance: state.provenance.label,
     provenanceDetail: state.provenance.detail
   };

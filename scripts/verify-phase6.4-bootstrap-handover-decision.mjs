@@ -186,7 +186,10 @@ try {
   assert(
     bootstrapCompositionSource.includes(
       "handoverDecision: controllerGraph.handoverDecisionController"
-    ),
+    ) ||
+      bootstrapCompositionSource.includes(
+        "handoverDecision: activeHandoverDecisionController"
+      ),
     "Bootstrap composition capture seam must expose handover decision state for bounded verification."
   );
 

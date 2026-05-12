@@ -1,7 +1,10 @@
 import {
+  DEFAULT_HANDOVER_POLICY_ID,
   HANDOVER_DECISION_PROXY_PROVENANCE,
+  HANDOVER_UNSUPPORTED_POLICY_ID,
   type HandoverCandidateMetrics,
-  type HandoverDecisionSnapshot
+  type HandoverDecisionSnapshot,
+  type HandoverPolicyId
 } from "../features/handover-decision/handover-decision";
 import {
   createBootstrapPhysicalInputSourceCatalog,
@@ -10,14 +13,14 @@ import {
 } from "./bootstrap-physical-input-source";
 import type { BootstrapScenarioDefinition } from "./scenario-bootstrap-session";
 
-export const BOOTSTRAP_HANDOVER_POLICY_ID = "bootstrap-balanced-v1";
+export const BOOTSTRAP_HANDOVER_POLICY_ID = DEFAULT_HANDOVER_POLICY_ID;
 export const BOOTSTRAP_HANDOVER_UNSUPPORTED_POLICY_ID =
-  "bootstrap-unsupported-scenario-noop-v1";
+  HANDOVER_UNSUPPORTED_POLICY_ID;
 const INTERNAL_PHYSICAL_CATALOG_KEY = "__physicalInputCatalog";
 
 export interface BootstrapProxyHandoverDecisionSourceEntry {
   scenarioId: string;
-  policyId: string;
+  policyId: HandoverPolicyId;
   initialServingCandidateId?: string;
 }
 
@@ -133,6 +136,7 @@ export function resolveBootstrapProxyHandoverDecisionSnapshot(
       stop: string;
     };
     currentServingCandidateId?: string;
+    policyId?: HandoverPolicyId;
   }
 ): HandoverDecisionSnapshot {
   const entry = findBootstrapProxyHandoverDecisionSourceEntry(
@@ -170,7 +174,7 @@ export function resolveBootstrapProxyHandoverDecisionSnapshot(
             options.currentServingCandidateId ?? entry.initialServingCandidateId
         }
       : {}),
-    policyId: entry.policyId,
+    policyId: options.policyId ?? entry.policyId,
     candidates: toHandoverCandidateMetrics(projectedMetrics)
   };
 }

@@ -53,7 +53,7 @@ V4.12 explicitly does **not** close:
 | F-ID | Status | Planning SDD | Phase 1 spec | Implementation start? |
 |---|---|---|---|---|
 | F-09 | 已完成（bounded） | [m8a-v4.12-f09-communication-rate-visualization-plan.md](./m8a-v4.12-f09-communication-rate-visualization-plan.md) | [m8a-v4.12-f09-impl-phase1-visualization-spec.md](./m8a-v4.12-f09-impl-phase1-visualization-spec.md) | closed — [m8a-v4.12-f09-impl-phase5-closeout.md](./m8a-v4.12-f09-impl-phase5-closeout.md) |
-| F-10 | planning | [m8a-v4.12-f10-handover-policy-selector-plan.md](./m8a-v4.12-f10-handover-policy-selector-plan.md) | n/a (lock during Phase 1 of impl) | only after F-09 close-out |
+| F-10 | 已完成（bounded） | [m8a-v4.12-f10-handover-policy-selector-plan.md](./m8a-v4.12-f10-handover-policy-selector-plan.md) | [m8a-v4.12-f10-impl-phase1-policy-spec.md](./m8a-v4.12-f10-impl-phase1-policy-spec.md) | closed — [Phase 5 evidence](./m8a-v4.12-f10-impl-phase5-closeout.md) |
 | F-11 | planning | [m8a-v4.12-f11-handover-rule-config-plan.md](./m8a-v4.12-f11-handover-rule-config-plan.md) | n/a | only after F-10 close-out |
 | F-13 | planning (route-native closure slice; readiness package already shipped 2026-05-12) | [m8a-v4.12-f13-leo-scale-runtime-plan.md](./m8a-v4.12-f13-leo-scale-runtime-plan.md) | n/a | independent of F-09/10/11/16; requires ADR `0005-perf-budget` re-review. Readiness baseline: [../intake/itri-f13-scale-readiness-evidence-addendum-2026-05-12.md](../intake/itri-f13-scale-readiness-evidence-addendum-2026-05-12.md). |
 | F-16 | locked | [m8a-v4.12-f16-statistics-report-export-plan.md](./m8a-v4.12-f16-statistics-report-export-plan.md) | [m8a-v4.12-f16-impl-phase1-export-spec.md](./m8a-v4.12-f16-impl-phase1-export-spec.md) | yes — Phase 2 ready, parallel-safe vs F-09 |

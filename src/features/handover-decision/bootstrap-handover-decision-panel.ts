@@ -27,6 +27,7 @@ interface BootstrapHandoverDecisionPanelElements {
   servingOrbitClass: HTMLSpanElement;
   previousCandidate: HTMLSpanElement;
   reasons: HTMLSpanElement;
+  policy: HTMLSpanElement;
   provenance: HTMLSpanElement;
 }
 
@@ -40,6 +41,9 @@ const HANDOVER_TELEMETRY_KEYS = [
   "handoverProvenance",
   "handoverReasonSignals",
   "handoverSchemaVersion",
+  "handoverPolicyLabel",
+  "handoverPolicySummary",
+  "handoverPolicyTieBreak",
   "handoverProvenanceDetail"
 ] as const;
 
@@ -77,6 +81,7 @@ function createElements(
         ${createField("Orbit", "servingOrbitClass")}
         ${createField("Previous", "previousCandidate")}
         ${createField("Reasons", "reasons")}
+        ${createField("Policy", "policy")}
         ${createField("Provenance", "provenance")}
       </div>
     </div>
@@ -106,6 +111,9 @@ function createElements(
   const reasons = container.querySelector<HTMLSpanElement>(
     "[data-handover-field='reasons']"
   );
+  const policy = container.querySelector<HTMLSpanElement>(
+    "[data-handover-field='policy']"
+  );
   const provenance = container.querySelector<HTMLSpanElement>(
     "[data-handover-field='provenance']"
   );
@@ -119,6 +127,7 @@ function createElements(
     !servingOrbitClass ||
     !previousCandidate ||
     !reasons ||
+    !policy ||
     !provenance
   ) {
     throw new Error("Missing bootstrap handover decision panel elements");
@@ -133,6 +142,7 @@ function createElements(
     servingOrbitClass,
     previousCandidate,
     reasons,
+    policy,
     provenance
   };
 }
@@ -148,6 +158,8 @@ function renderViewModel(
   elements.servingOrbitClass.textContent = viewModel.servingOrbitClass;
   elements.previousCandidate.textContent = viewModel.previousCandidate;
   elements.reasons.textContent = viewModel.reasons;
+  elements.policy.textContent = viewModel.policy;
+  elements.policy.title = viewModel.policyDetail;
   elements.provenance.textContent = viewModel.provenance;
   elements.provenance.title = viewModel.provenanceDetail;
 }
@@ -165,6 +177,10 @@ function renderState(
     state.result.servingCandidateId ?? "";
   elements.root.dataset.handoverTruthState = state.result.semanticsBridge.truthState;
   elements.root.dataset.handoverPolicyId = state.snapshot.policyId;
+  elements.root.dataset.handoverPolicyLabel = state.report.policyLabel;
+  elements.root.dataset.handoverPolicySummary = state.report.policySummary;
+  elements.root.dataset.handoverPolicyTieBreak =
+    state.report.policyTieBreak.join(",");
   elements.root.dataset.handoverProvenance = state.provenance.inputKind;
   elements.root.dataset.handoverReasonSignals = state.result.reasonSignals
     .map((signal) => signal.code)
@@ -179,6 +195,9 @@ function renderState(
     handoverServingCandidateId: state.result.servingCandidateId ?? "",
     handoverTruthState: state.result.semanticsBridge.truthState,
     handoverPolicyId: state.snapshot.policyId,
+    handoverPolicyLabel: state.report.policyLabel,
+    handoverPolicySummary: state.report.policySummary,
+    handoverPolicyTieBreak: state.report.policyTieBreak.join(","),
     handoverProvenance: state.provenance.inputKind,
     handoverReasonSignals: state.result.reasonSignals.map((signal) => signal.code).join(","),
     handoverSchemaVersion: state.report.schemaVersion,

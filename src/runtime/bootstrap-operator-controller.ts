@@ -1,4 +1,12 @@
 import type { ScenePresetKey } from "../features/globe/scene-preset";
+import {
+  DEFAULT_HANDOVER_POLICY_ID,
+  HANDOVER_POLICY_DESCRIPTORS,
+  isSelectableHandoverPolicyId,
+  resolveHandoverPolicyDescriptor,
+  type HandoverPolicyDescriptor,
+  type SelectableHandoverPolicyId
+} from "../features/handover-decision";
 import type { ScenarioSession } from "../features/scenario";
 import type {
   ClockMode,
@@ -32,12 +40,16 @@ export interface BootstrapOperatorControllerState {
   stopTime: ClockTimestamp;
   replayMultiplier: number;
   isPlaying: boolean;
+  handoverPolicyId: SelectableHandoverPolicyId;
+  handoverPolicyLabel: string;
+  handoverPolicySummary: string;
 }
 
 export interface BootstrapOperatorController {
   getState(): BootstrapOperatorControllerState;
   getScenarioOptions(): ReadonlyArray<BootstrapScenarioOption>;
   getReplaySpeedPresets(): ReadonlyArray<BootstrapReplaySpeedPreset>;
+  getHandoverPolicyOptions(): ReadonlyArray<HandoverPolicyDescriptor>;
   selectScenarioPreset(
     presetKey: ScenePresetKey
   ): Promise<BootstrapOperatorControllerState>;
@@ -46,6 +58,9 @@ export interface BootstrapOperatorController {
   ): Promise<BootstrapOperatorControllerState>;
   selectReplaySpeed(
     multiplier: BootstrapReplaySpeedPreset
+  ): BootstrapOperatorControllerState;
+  selectHandoverPolicy(
+    policyId: SelectableHandoverPolicyId
   ): BootstrapOperatorControllerState;
   subscribe(
     listener: (state: BootstrapOperatorControllerState) => void
@@ -91,12 +106,14 @@ function resolveScenarioId(
 function readState(
   replayClock: ReplayClock,
   scenarioSession: ScenarioSession,
-  scenarioCatalog: BootstrapScenarioCatalog
+  scenarioCatalog: BootstrapScenarioCatalog,
+  handoverPolicyId: SelectableHandoverPolicyId
 ): BootstrapOperatorControllerState {
   const currentScenario =
     scenarioSession.getCurrentScenario() ??
     scenarioSession.previewScenario(scenarioCatalog.initialScenarioId);
   const clockState = replayClock.getState();
+  const policy = resolveHandoverPolicyDescriptor(handoverPolicyId);
 
   // `scenario` stays the single plain-data source of truth for active scenario
   // identity and replay mode. The replay-clock only contributes live time and
@@ -110,7 +127,10 @@ function readState(
     startTime: clockState.startTime,
     stopTime: clockState.stopTime,
     replayMultiplier: clockState.multiplier,
-    isPlaying: clockState.isPlaying
+    isPlaying: clockState.isPlaying,
+    handoverPolicyId,
+    handoverPolicyLabel: policy.label,
+    handoverPolicySummary: policy.summary
   };
 }
 
@@ -122,11 +142,23 @@ export function createBootstrapOperatorController({
   const listeners = new Set<
     (state: BootstrapOperatorControllerState) => void
   >();
-  let lastState = readState(replayClock, scenarioSession, scenarioCatalog);
+  let selectedHandoverPolicyId: SelectableHandoverPolicyId =
+    DEFAULT_HANDOVER_POLICY_ID;
+  let lastState = readState(
+    replayClock,
+    scenarioSession,
+    scenarioCatalog,
+    selectedHandoverPolicyId
+  );
   let selectionQueue = Promise.resolve(lastState);
 
   const notify = (): BootstrapOperatorControllerState => {
-    lastState = readState(replayClock, scenarioSession, scenarioCatalog);
+    lastState = readState(
+      replayClock,
+      scenarioSession,
+      scenarioCatalog,
+      selectedHandoverPolicyId
+    );
 
     for (const listener of listeners) {
       listener(lastState);
@@ -158,6 +190,9 @@ export function createBootstrapOperatorController({
     },
     getReplaySpeedPresets(): ReadonlyArray<BootstrapReplaySpeedPreset> {
       return BOOTSTRAP_REPLAY_SPEED_PRESETS;
+    },
+    getHandoverPolicyOptions(): ReadonlyArray<HandoverPolicyDescriptor> {
+      return HANDOVER_POLICY_DESCRIPTORS;
     },
     async selectScenarioPreset(
       presetKey: ScenePresetKey
@@ -197,6 +232,16 @@ export function createBootstrapOperatorController({
       }
 
       replayClock.setMultiplier(multiplier);
+      return notify();
+    },
+    selectHandoverPolicy(
+      policyId: SelectableHandoverPolicyId
+    ): BootstrapOperatorControllerState {
+      if (!isSelectableHandoverPolicyId(policyId)) {
+        throw new Error(`Bootstrap handover policy is not selectable: ${policyId}`);
+      }
+
+      selectedHandoverPolicyId = policyId;
       return notify();
     },
     subscribe(

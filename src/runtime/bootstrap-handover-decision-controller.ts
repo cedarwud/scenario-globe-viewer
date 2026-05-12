@@ -1,4 +1,5 @@
 import {
+  DEFAULT_HANDOVER_POLICY_ID,
   evaluateHandoverDecisionSnapshot,
   type HandoverDecisionState
 } from "../features/handover-decision/handover-decision";
@@ -66,7 +67,8 @@ function resolveState(
       start: toIsoTimestamp(operatorState.startTime),
       stop: toIsoTimestamp(operatorState.stopTime)
     },
-    currentServingCandidateId: servingCandidateIds.get(operatorState.scenarioId)
+    currentServingCandidateId: servingCandidateIds.get(operatorState.scenarioId),
+    policyId: operatorState.handoverPolicyId ?? DEFAULT_HANDOVER_POLICY_ID
   });
   const state = evaluateHandoverDecisionSnapshot(snapshot);
 

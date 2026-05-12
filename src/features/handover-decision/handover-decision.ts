@@ -15,13 +15,107 @@ export type HandoverDecisionModel = "service-layer-switching";
 export type HandoverTruthState = "serving" | "switching" | "unavailable";
 export type HandoverTruthBoundaryLabel =
   "real-pairing-bounded-runtime-projection";
+export type SelectableHandoverPolicyId =
+  (typeof SELECTABLE_HANDOVER_POLICY_IDS)[number];
+export type HandoverPolicyId =
+  | SelectableHandoverPolicyId
+  | typeof HANDOVER_UNSUPPORTED_POLICY_ID;
+export type HandoverPolicyTieBreak =
+  | "latency"
+  | "jitter"
+  | "speed"
+  | "stable-serving";
 export type HandoverReasonSignalCode =
   | "latency-better"
   | "jitter-better"
   | "network-speed-better"
   | "current-link-unavailable"
+  | "policy-weighted-override"
   | "policy-hold"
   | "tie-break";
+
+export interface HandoverPolicyWeights {
+  latencyMs: number;
+  jitterMs: number;
+  networkSpeedMbps: number;
+}
+
+export interface HandoverPolicyDescriptor {
+  id: HandoverPolicyId;
+  label: string;
+  summary: string;
+  weights: HandoverPolicyWeights;
+  tieBreak: ReadonlyArray<HandoverPolicyTieBreak>;
+}
+
+export const SELECTABLE_HANDOVER_POLICY_IDS = [
+  "bootstrap-balanced-v1",
+  "bootstrap-latency-priority-v1",
+  "bootstrap-throughput-priority-v1"
+] as const;
+export const DEFAULT_HANDOVER_POLICY_ID: SelectableHandoverPolicyId =
+  "bootstrap-balanced-v1";
+export const HANDOVER_UNSUPPORTED_POLICY_ID =
+  "bootstrap-unsupported-scenario-noop-v1" as const;
+
+export const HANDOVER_POLICY_DESCRIPTORS: ReadonlyArray<HandoverPolicyDescriptor> = [
+  {
+    id: "bootstrap-balanced-v1",
+    label: "Balanced handover policy",
+    summary:
+      "Weights latency, jitter, and modeled speed evenly for bounded service-layer selection.",
+    weights: {
+      latencyMs: 1,
+      jitterMs: 1,
+      networkSpeedMbps: 1
+    },
+    tieBreak: ["latency", "jitter", "speed", "stable-serving"]
+  },
+  {
+    id: "bootstrap-latency-priority-v1",
+    label: "Latency priority policy",
+    summary:
+      "Prioritizes lower bounded latency while still considering jitter and modeled speed.",
+    weights: {
+      latencyMs: 3,
+      jitterMs: 1,
+      networkSpeedMbps: 1
+    },
+    tieBreak: ["latency", "jitter", "stable-serving", "speed"]
+  },
+  {
+    id: "bootstrap-throughput-priority-v1",
+    label: "Throughput priority policy",
+    summary:
+      "Prioritizes higher modeled network speed while staying inside bounded proxy inputs.",
+    weights: {
+      latencyMs: 1,
+      jitterMs: 1,
+      networkSpeedMbps: 3
+    },
+    tieBreak: ["speed", "latency", "jitter", "stable-serving"]
+  }
+];
+
+const HANDOVER_UNSUPPORTED_POLICY_DESCRIPTOR: HandoverPolicyDescriptor = {
+  id: HANDOVER_UNSUPPORTED_POLICY_ID,
+  label: "Unsupported scenario no-op policy",
+  summary:
+    "No bounded bootstrap handover policy is available for this scenario.",
+  weights: {
+    latencyMs: 0,
+    jitterMs: 0,
+    networkSpeedMbps: 0
+  },
+  tieBreak: []
+};
+
+const HANDOVER_POLICY_DESCRIPTOR_BY_ID = new Map<string, HandoverPolicyDescriptor>(
+  [
+    ...HANDOVER_POLICY_DESCRIPTORS,
+    HANDOVER_UNSUPPORTED_POLICY_DESCRIPTOR
+  ].map((descriptor) => [descriptor.id, descriptor])
+);
 
 export interface HandoverCandidateMetrics {
   candidateId: string;
@@ -41,6 +135,9 @@ export interface HandoverDecisionSnapshot {
   };
   currentServingCandidateId?: string;
   policyId: string;
+  policyLabel?: string;
+  policySummary?: string;
+  policyTieBreak?: ReadonlyArray<HandoverPolicyTieBreak>;
   decisionModel?: HandoverDecisionModel;
   isNativeRfHandover?: boolean;
   candidates: ReadonlyArray<HandoverCandidateMetrics>;
@@ -71,6 +168,10 @@ export interface HandoverDecisionProvenance {
 
 export interface HandoverDecisionReport {
   schemaVersion: typeof HANDOVER_DECISION_REPORT_SCHEMA_VERSION;
+  policyId: string;
+  policyLabel: string;
+  policySummary: string;
+  policyTieBreak: ReadonlyArray<HandoverPolicyTieBreak>;
   provenance: HandoverDecisionProvenance;
   snapshot: HandoverDecisionSnapshot;
   result: HandoverDecisionResult;
@@ -85,7 +186,7 @@ export interface HandoverDecisionState {
 
 interface RankedCandidate {
   candidate: HandoverCandidateMetrics;
-  metricWins: number;
+  weightedScore: number;
 }
 
 const REASON_SIGNAL_ORDER = [
@@ -93,9 +194,34 @@ const REASON_SIGNAL_ORDER = [
   "latency-better",
   "jitter-better",
   "network-speed-better",
+  "policy-weighted-override",
   "policy-hold",
   "tie-break"
 ] as const satisfies ReadonlyArray<HandoverReasonSignalCode>;
+
+export function isSelectableHandoverPolicyId(
+  value: string
+): value is SelectableHandoverPolicyId {
+  return SELECTABLE_HANDOVER_POLICY_IDS.includes(
+    value as SelectableHandoverPolicyId
+  );
+}
+
+export function resolveHandoverPolicyDescriptor(
+  policyId: string
+): HandoverPolicyDescriptor {
+  const descriptor = HANDOVER_POLICY_DESCRIPTOR_BY_ID.get(policyId);
+
+  if (!descriptor) {
+    throw new Error(`Unsupported handover policy id: ${policyId}`);
+  }
+
+  return descriptor;
+}
+
+export function listHandoverPolicyDescriptors(): ReadonlyArray<HandoverPolicyDescriptor> {
+  return HANDOVER_POLICY_DESCRIPTORS;
+}
 
 function toEpochMilliseconds(value: string): number {
   const epochMs = Date.parse(value);
@@ -134,6 +260,11 @@ function cloneSnapshot(
       ? { currentServingCandidateId: snapshot.currentServingCandidateId }
       : {}),
     policyId: snapshot.policyId,
+    ...(snapshot.policyLabel ? { policyLabel: snapshot.policyLabel } : {}),
+    ...(snapshot.policySummary ? { policySummary: snapshot.policySummary } : {}),
+    ...(snapshot.policyTieBreak
+      ? { policyTieBreak: [...snapshot.policyTieBreak] }
+      : {}),
     ...(snapshot.decisionModel
       ? { decisionModel: snapshot.decisionModel }
       : {}),
@@ -141,6 +272,18 @@ function cloneSnapshot(
       ? { isNativeRfHandover: snapshot.isNativeRfHandover }
       : {}),
     candidates: snapshot.candidates.map((candidate) => cloneCandidateMetrics(candidate))
+  };
+}
+
+function attachPolicyDescriptorToSnapshot(
+  snapshot: HandoverDecisionSnapshot,
+  policy: HandoverPolicyDescriptor
+): HandoverDecisionSnapshot {
+  return {
+    ...snapshot,
+    policyLabel: policy.label,
+    policySummary: policy.summary,
+    policyTieBreak: [...policy.tieBreak]
   };
 }
 
@@ -184,6 +327,8 @@ function assertSnapshot(snapshot: HandoverDecisionSnapshot): void {
   if (!snapshot.policyId) {
     throw new Error("Handover decision snapshot must include a policyId.");
   }
+
+  resolveHandoverPolicyDescriptor(snapshot.policyId);
 
   if (
     snapshot.decisionModel !== undefined &&
@@ -247,7 +392,8 @@ function assertSnapshot(snapshot: HandoverDecisionSnapshot): void {
 }
 
 function rankCandidates(
-  candidates: ReadonlyArray<HandoverCandidateMetrics>
+  candidates: ReadonlyArray<HandoverCandidateMetrics>,
+  policy: HandoverPolicyDescriptor
 ): RankedCandidate[] {
   const lowestLatency = Math.min(...candidates.map((candidate) => candidate.latencyMs));
   const lowestJitter = Math.min(...candidates.map((candidate) => candidate.jitterMs));
@@ -257,40 +403,71 @@ function rankCandidates(
 
   return candidates.map((candidate) => ({
     candidate,
-    metricWins:
-      Number(candidate.latencyMs === lowestLatency) +
-      Number(candidate.jitterMs === lowestJitter) +
-      Number(candidate.networkSpeedMbps === highestNetworkSpeed)
+    weightedScore:
+      Number(candidate.latencyMs === lowestLatency) * policy.weights.latencyMs +
+      Number(candidate.jitterMs === lowestJitter) * policy.weights.jitterMs +
+      Number(candidate.networkSpeedMbps === highestNetworkSpeed) *
+        policy.weights.networkSpeedMbps
   }));
 }
 
-function compareRankedCandidates(left: RankedCandidate, right: RankedCandidate): number {
-  if (left.metricWins !== right.metricWins) {
-    return right.metricWins - left.metricWins;
+function compareRankedCandidates(
+  left: RankedCandidate,
+  right: RankedCandidate,
+  policy: HandoverPolicyDescriptor,
+  currentServingCandidateId: string | undefined
+): number {
+  if (left.weightedScore !== right.weightedScore) {
+    return right.weightedScore - left.weightedScore;
   }
 
-  if (left.candidate.latencyMs !== right.candidate.latencyMs) {
-    return left.candidate.latencyMs - right.candidate.latencyMs;
-  }
+  for (const tieBreak of policy.tieBreak) {
+    switch (tieBreak) {
+      case "latency":
+        if (left.candidate.latencyMs !== right.candidate.latencyMs) {
+          return left.candidate.latencyMs - right.candidate.latencyMs;
+        }
+        break;
+      case "jitter":
+        if (left.candidate.jitterMs !== right.candidate.jitterMs) {
+          return left.candidate.jitterMs - right.candidate.jitterMs;
+        }
+        break;
+      case "speed":
+        if (left.candidate.networkSpeedMbps !== right.candidate.networkSpeedMbps) {
+          return (
+            right.candidate.networkSpeedMbps - left.candidate.networkSpeedMbps
+          );
+        }
+        break;
+      case "stable-serving": {
+        const leftStable =
+          left.candidate.candidateId === currentServingCandidateId ? 1 : 0;
+        const rightStable =
+          right.candidate.candidateId === currentServingCandidateId ? 1 : 0;
 
-  if (left.candidate.jitterMs !== right.candidate.jitterMs) {
-    return left.candidate.jitterMs - right.candidate.jitterMs;
-  }
-
-  if (left.candidate.networkSpeedMbps !== right.candidate.networkSpeedMbps) {
-    return right.candidate.networkSpeedMbps - left.candidate.networkSpeedMbps;
+        if (leftStable !== rightStable) {
+          return rightStable - leftStable;
+        }
+        break;
+      }
+    }
   }
 
   return left.candidate.candidateId.localeCompare(right.candidate.candidateId);
 }
 
 function resolveBestCandidate(
-  candidates: ReadonlyArray<HandoverCandidateMetrics>
+  candidates: ReadonlyArray<HandoverCandidateMetrics>,
+  policy: HandoverPolicyDescriptor,
+  currentServingCandidateId: string | undefined
 ): {
   bestCandidate: HandoverCandidateMetrics;
   tieBreakUsed: boolean;
 } {
-  const rankedCandidates = rankCandidates(candidates).sort(compareRankedCandidates);
+  const rankedCandidates = rankCandidates(candidates, policy).sort((left, right) =>
+    compareRankedCandidates(left, right, policy, currentServingCandidateId)
+  );
   const bestCandidate = rankedCandidates[0];
   const runnerUp = rankedCandidates[1];
 
@@ -298,11 +475,7 @@ function resolveBestCandidate(
     bestCandidate: cloneCandidateMetrics(bestCandidate.candidate),
     tieBreakUsed:
       runnerUp !== undefined &&
-      runnerUp.metricWins === bestCandidate.metricWins &&
-      runnerUp.candidate.latencyMs === bestCandidate.candidate.latencyMs &&
-      runnerUp.candidate.jitterMs === bestCandidate.candidate.jitterMs &&
-      runnerUp.candidate.networkSpeedMbps ===
-        bestCandidate.candidate.networkSpeedMbps
+      runnerUp.weightedScore === bestCandidate.weightedScore
   };
 }
 
@@ -349,12 +522,34 @@ function createUnavailableResult(
   };
 }
 
+function createHandoverDecisionReport(
+  policy: HandoverPolicyDescriptor,
+  provenance: HandoverDecisionProvenance,
+  snapshot: HandoverDecisionSnapshot,
+  result: HandoverDecisionResult
+): HandoverDecisionReport {
+  return {
+    schemaVersion: HANDOVER_DECISION_REPORT_SCHEMA_VERSION,
+    policyId: snapshot.policyId,
+    policyLabel: policy.label,
+    policySummary: policy.summary,
+    policyTieBreak: [...policy.tieBreak],
+    provenance,
+    snapshot: cloneSnapshot(snapshot),
+    result: cloneResult(result)
+  };
+}
+
 export function evaluateHandoverDecisionSnapshot(
   snapshot: HandoverDecisionSnapshot
 ): HandoverDecisionState {
   assertSnapshot(snapshot);
 
-  const clonedSnapshot = cloneSnapshot(snapshot);
+  const policy = resolveHandoverPolicyDescriptor(snapshot.policyId);
+  const clonedSnapshot = attachPolicyDescriptorToSnapshot(
+    cloneSnapshot(snapshot),
+    policy
+  );
 
   if (clonedSnapshot.candidates.length === 0) {
     const result = createUnavailableResult(clonedSnapshot);
@@ -369,17 +564,33 @@ export function evaluateHandoverDecisionSnapshot(
       snapshot: clonedSnapshot,
       result,
       provenance,
-      report: {
-        schemaVersion: HANDOVER_DECISION_REPORT_SCHEMA_VERSION,
+      report: createHandoverDecisionReport(
+        policy,
         provenance,
-        snapshot: cloneSnapshot(clonedSnapshot),
-        result: cloneResult(result)
-      }
+        clonedSnapshot,
+        result
+      )
     };
   }
 
   const currentCandidate = resolveCurrentCandidate(clonedSnapshot);
-  const { bestCandidate, tieBreakUsed } = resolveBestCandidate(clonedSnapshot.candidates);
+  const { bestCandidate, tieBreakUsed } = resolveBestCandidate(
+    clonedSnapshot.candidates,
+    policy,
+    clonedSnapshot.currentServingCandidateId
+  );
+  const balancedPolicy = resolveHandoverPolicyDescriptor(DEFAULT_HANDOVER_POLICY_ID);
+  const balancedBestCandidate =
+    policy.id === DEFAULT_HANDOVER_POLICY_ID
+      ? bestCandidate
+      : resolveBestCandidate(
+          clonedSnapshot.candidates,
+          balancedPolicy,
+          clonedSnapshot.currentServingCandidateId
+        ).bestCandidate;
+  const policyWeightedOverrideUsed =
+    policy.id !== DEFAULT_HANDOVER_POLICY_ID &&
+    balancedBestCandidate.candidateId !== bestCandidate.candidateId;
   const reasonCodes = new Set<HandoverReasonSignalCode>();
 
   let result: HandoverDecisionResult;
@@ -387,6 +598,9 @@ export function evaluateHandoverDecisionSnapshot(
   if (!currentCandidate) {
     if (clonedSnapshot.currentServingCandidateId) {
       reasonCodes.add("current-link-unavailable");
+      if (policyWeightedOverrideUsed) {
+        reasonCodes.add("policy-weighted-override");
+      }
       if (tieBreakUsed) {
         reasonCodes.add("tie-break");
       }
@@ -403,6 +617,9 @@ export function evaluateHandoverDecisionSnapshot(
       };
     } else {
       reasonCodes.add("policy-hold");
+      if (policyWeightedOverrideUsed) {
+        reasonCodes.add("policy-weighted-override");
+      }
       if (tieBreakUsed) {
         reasonCodes.add("tie-break");
       }
@@ -419,6 +636,9 @@ export function evaluateHandoverDecisionSnapshot(
     }
   } else if (currentCandidate.candidateId === bestCandidate.candidateId) {
     reasonCodes.add("policy-hold");
+    if (policyWeightedOverrideUsed) {
+      reasonCodes.add("policy-weighted-override");
+    }
     if (tieBreakUsed) {
       reasonCodes.add("tie-break");
     }
@@ -441,6 +661,9 @@ export function evaluateHandoverDecisionSnapshot(
     }
     if (bestCandidate.networkSpeedMbps > currentCandidate.networkSpeedMbps) {
       reasonCodes.add("network-speed-better");
+    }
+    if (policyWeightedOverrideUsed) {
+      reasonCodes.add("policy-weighted-override");
     }
     if (reasonCodes.size === 0 || tieBreakUsed) {
       reasonCodes.add("tie-break");
@@ -469,11 +692,6 @@ export function evaluateHandoverDecisionSnapshot(
     snapshot: clonedSnapshot,
     result,
     provenance,
-    report: {
-      schemaVersion: HANDOVER_DECISION_REPORT_SCHEMA_VERSION,
-      provenance,
-      snapshot: cloneSnapshot(clonedSnapshot),
-      result: cloneResult(result)
-    }
+    report: createHandoverDecisionReport(policy, provenance, clonedSnapshot, result)
   };
 }
