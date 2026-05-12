@@ -318,12 +318,12 @@ async function readHudLayoutState(client) {
       const statusPanel = pickRect(".hud-panel--status");
       const timePlaceholder = document.querySelector('[data-time-placeholder="true"]');
       const homepageEntryCta = document.querySelector(
-        '[data-m8a-v31-homepage-cta="true"]'
+        '[data-m8a-v44-homepage-ground-station-entry-surface="true"]'
       );
       const homepageEntryCtaEnter =
         homepageEntryCta instanceof HTMLElement
           ? homepageEntryCta.querySelector(
-              "a.homepage-entry-cta__button[data-m8a-v31-homepage-cta-enter='true']"
+              "a.homepage-entry-cta__button[data-m8a-v44-homepage-ground-station-entry='true']"
             )
           : null;
       const activeElement = document.activeElement;
@@ -376,6 +376,7 @@ async function readHudLayoutState(client) {
         geocoderSearchButton,
         baseLayerPickerToggle,
         baseLayerDropdown,
+        homeButton: pickRect(".cesium-home-button"),
         leftPanelCenterElement:
           leftPanel && leftPanel.width > 0 && leftPanel.height > 0
             ? describeElementAt(
@@ -415,9 +416,11 @@ async function readHudLayoutState(client) {
                 baseLayerPickerToggle.top + baseLayerPickerToggle.height / 2
               )
             : null,
-        homepageEntryCta: pickRect("[data-m8a-v31-homepage-cta='true']"),
+        homepageEntryCta: pickRect(
+          "[data-m8a-v44-homepage-ground-station-entry-surface='true']"
+        ),
         homepageEntryCtaButton: pickRect(
-          "[data-m8a-v36-homepage-handover-icon='true']"
+          "[data-m8a-v44-homepage-ground-station-entry='true']"
         ),
         homepageEntryCtaHref:
           homepageEntryCtaEnter instanceof HTMLAnchorElement
@@ -549,24 +552,27 @@ function assertHomepageEntryCtaState(layoutState, scenarioLabel) {
       layoutState.homepageEntryCtaButton.height >= 32 &&
       layoutState.homepageEntryCtaButton.height <= 48 &&
       layoutState.homepageEntryCtaButton.top <= 12 &&
-      layoutState.homepageEntryCtaButton.right >= layoutState.viewport.width - 16,
-    `Expected homepage handover entry to be a compact top-right icon button during ${scenarioLabel}: ${JSON.stringify(layoutState.homepageEntryCtaButton)}`
+      layoutState.homeButton &&
+      layoutState.homepageEntryCtaButton.right <= layoutState.homeButton.left,
+    `Expected homepage V4 entry to be a compact top-right icon button before the native home button during ${scenarioLabel}: ${JSON.stringify({
+      homepageEntryCtaButton: layoutState.homepageEntryCtaButton,
+      homeButton: layoutState.homeButton
+    })}`
   );
   assert(
     typeof layoutState.homepageEntryCtaHref === "string" &&
-      layoutState.homepageEntryCtaHref.startsWith(
-        "/?firstIntakeScenarioId=app-oneweb-intelsat-geo-aviation"
-      ) &&
-      layoutState.homepageEntryCtaHref.includes("firstIntakeAutoplay=1"),
-    `Expected homepage entry CTA to link to the addressed first-case route with autoplay during ${scenarioLabel}: ${JSON.stringify(layoutState.homepageEntryCtaHref)}`
+      layoutState.homepageEntryCtaHref.startsWith("/?scenePreset=regional") &&
+      layoutState.homepageEntryCtaHref.includes("m8aV4GroundStationScene=1"),
+    `Expected homepage entry CTA to link to the V4 ground-station route during ${scenarioLabel}: ${JSON.stringify(layoutState.homepageEntryCtaHref)}`
   );
   assert(
     typeof layoutState.homepageEntryCtaAriaLabel === "string" &&
-      /oneweb/i.test(layoutState.homepageEntryCtaAriaLabel) &&
-      /intelsat/i.test(layoutState.homepageEntryCtaAriaLabel) &&
-      /handover/i.test(layoutState.homepageEntryCtaAriaLabel) &&
-      /autoplay/i.test(layoutState.homepageEntryCtaAriaLabel),
-    `Expected homepage entry icon accessible label to name the OneWeb+Intelsat handover autoplay path during ${scenarioLabel}: ${JSON.stringify(layoutState.homepageEntryCtaAriaLabel)}`
+      /v4/i.test(layoutState.homepageEntryCtaAriaLabel) &&
+      /ground.station/i.test(layoutState.homepageEntryCtaAriaLabel) &&
+      /multi.orbit/i.test(layoutState.homepageEntryCtaAriaLabel) &&
+      /taiwan/i.test(layoutState.homepageEntryCtaAriaLabel) &&
+      /singapore/i.test(layoutState.homepageEntryCtaAriaLabel),
+    `Expected homepage entry icon accessible label to name the V4 ground-station route during ${scenarioLabel}: ${JSON.stringify(layoutState.homepageEntryCtaAriaLabel)}`
   );
   assert(
     layoutState.homepageEntryCtaMount === "cesium-toolbar",

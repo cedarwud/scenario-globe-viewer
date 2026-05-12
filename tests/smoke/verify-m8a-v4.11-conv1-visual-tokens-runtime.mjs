@@ -25,7 +25,7 @@ const EXPECTED_VISUAL_TOKEN_DATA_SOURCE =
 const EXPECTED_SCENE_CONTEXT_CHIP_VERSION =
   "m8a-v4.11-scene-context-chip-conv1-runtime.v1";
 const EXPECTED_SCENE_CONTEXT_CHIP_COPY =
-  "13 顆衛星模擬展示 · 完整 ≥500 LEO 多軌道驗證見後續階段";
+  "≥500 LEO 規模證據另見 Phase 7.1；本路由仍為 13-actor bounded demo";
 const EXPECTED_SCENE_CONTEXT_CHIP_MAX_WIDTH = 380;
 const EXPECTED_SCENE_CONTEXT_CHIP_MAX_HEIGHT = 28;
 const EXPECTED_SCENE_CONTEXT_CHIP_FONT_SIZE = 14;

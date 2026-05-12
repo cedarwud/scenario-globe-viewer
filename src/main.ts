@@ -5,6 +5,9 @@ import {
 } from "./features/telemetry/document-telemetry";
 import { startBootstrapComposition } from "./runtime/bootstrap/composition";
 import "./styles.css";
+import "./styles/m8a-v47-product-ux.css";
+import "./styles/itri-demo-view-default-focus.css";
+import "./styles/m8a-v411-narrow.css";
 
 type BootstrapState = "booting" | "ready" | "error";
 

@@ -482,6 +482,7 @@ export function startBootstrapComposition(app: HTMLDivElement): BootstrapComposi
   );
   const adoptFirstIntakeAsActiveOwner =
     shouldAdoptFirstIntakeAsActiveOwner(firstIntakeScenarioSurface);
+  const mountBootstrapOperatorStatusHud = !isM8aV4RuntimeRequest;
   const firstIntakeMobileEndpointTrajectory = adoptFirstIntakeAsActiveOwner
     ? createFirstIntakeMobileEndpointTrajectoryController({
         scenarioSurface: firstIntakeScenarioSurface
@@ -516,7 +517,7 @@ export function startBootstrapComposition(app: HTMLDivElement): BootstrapComposi
     buildingShowcaseKey: buildingShowcase.key,
     hudFrame,
     statusPanel,
-    mountHud: adoptFirstIntakeAsActiveOwner
+    mountHud: mountBootstrapOperatorStatusHud
   });
   const restoreR1vVisualAcceptanceHudCleanup = adoptFirstIntakeAsActiveOwner
     ? applyR1vVisualAcceptanceHudCleanup({

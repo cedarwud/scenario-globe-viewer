@@ -219,7 +219,7 @@ function renderM8aV411OrbitClassChips(
       ? "projected"
       : "not-projected";
     chip.dataset.m8aV411OrbitChipInFront = String(point.inFrontOfCamera);
-    const demoted = actor.emphasis === "context";
+    const demoted = actor.emphasis !== "representative";
     chip.dataset.m8aV411OrbitChipDemoted = String(demoted);
     chip.dataset.m8aV411OrbitChipOpacity = demoted
       ? String(M8A_V411_DEMOTED_ACTOR_OPACITY)

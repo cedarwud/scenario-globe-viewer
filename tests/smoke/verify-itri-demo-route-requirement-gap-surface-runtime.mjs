@@ -226,17 +226,21 @@ async function openInspectorForCapture(client) {
         capture?.m8aV4GroundStationScene?.pause?.();
 
         const productRoot = document.querySelector("[data-m8a-v47-product-ux='true']");
-        const details = productRoot?.querySelector("[data-m8a-v47-control-id='details-toggle']");
+        const evidence = productRoot?.querySelector("[data-m8a-v47-control-id='evidence-toggle']");
         const sheet = productRoot?.querySelector("[data-m8a-v48-inspector='true']");
         const surface = productRoot?.querySelector("[data-itri-requirement-gap-surface='true']");
 
-        if (details instanceof HTMLButtonElement && sheet?.hidden) {
-          details.click();
+        if (
+          evidence instanceof HTMLButtonElement &&
+          (sheet?.hidden || productRoot?.dataset.m8aV411InspectorActiveTab !== "evidence")
+        ) {
+          evidence.click();
         }
 
         return {
           hasProductRoot: Boolean(productRoot),
-          detailsExpanded: details?.getAttribute("aria-expanded") ?? null,
+          evidenceExpanded: evidence?.getAttribute("aria-expanded") ?? null,
+          activeTab: productRoot?.dataset.m8aV411InspectorActiveTab ?? null,
           sheetHidden: sheet instanceof HTMLElement ? sheet.hidden : null,
           sheetRect: sheet instanceof HTMLElement
             ? {
@@ -256,7 +260,8 @@ async function openInspectorForCapture(client) {
 
     if (
       lastState?.hasProductRoot &&
-      lastState?.detailsExpanded === "true" &&
+      lastState?.evidenceExpanded === "true" &&
+      lastState?.activeTab === "evidence" &&
       lastState?.sheetHidden === false &&
       lastState?.sheetRect?.width > 0 &&
       lastState?.sheetRect?.height > 0 &&

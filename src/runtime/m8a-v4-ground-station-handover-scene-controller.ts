@@ -33,10 +33,7 @@ import {
   twoline2satrec
 } from "satellite.js";
 
-import {
-  clearDocumentTelemetry,
-  syncDocumentTelemetry
-} from "../features/telemetry/document-telemetry";
+import { clearDocumentTelemetry } from "../features/telemetry/document-telemetry";
 import type { ReplayClock, ReplayClockState } from "../features/time";
 import {
   M8A_V4_GROUND_STATION_MODEL_PUBLIC_PATH,
@@ -57,9 +54,98 @@ import {
   type M8aV4ServiceStateWindow,
   type M8aV46dActorId,
   type M8aV46dSimulationHandoverWindow,
-  type M8aV46dSimulationHandoverWindowId,
-  type M8aV46dWindowMetricClasses
+  type M8aV46dSimulationHandoverWindowId
 } from "./m8a-v4-ground-station-projection";
+import { M8A_V4_TELEMETRY_KEYS } from "./m8a-v4-ground-station-telemetry-keys";
+import { syncTelemetry } from "./m8a-v4-ground-station-telemetry-sync";
+import {
+  isM8aV4ItriF10PolicyPresetId,
+  isM8aV4ItriF11RulePresetId,
+  M8A_V4_ITRI_ACCEPTANCE_BOUNDED_ROUTE_REPRESENTATION_IDS,
+  M8A_V4_ITRI_ACCEPTANCE_COVERAGE_RECORDS,
+  M8A_V4_ITRI_ACCEPTANCE_EXTERNAL_FAIL_IDS,
+  M8A_V4_ITRI_ACCEPTANCE_REQUIREMENT_IDS,
+  M8A_V4_ITRI_ACCEPTANCE_REQUIREMENT_LAYER_PAIRS,
+  M8A_V4_ITRI_ACCEPTANCE_REQUIREMENT_STATUS_PAIRS,
+  M8A_V4_ITRI_DEMO_POLISH_DISPOSITION,
+  M8A_V4_ITRI_DEMO_VIEW_ACCEPTANCE_LAYER_ID,
+  M8A_V4_ITRI_DEMO_VIEW_ACCEPTANCE_LAYER_VERSION,
+  M8A_V4_ITRI_DEMO_VIEW_ACCEPTANCE_TRUTH_BOUNDARY,
+  M8A_V4_ITRI_DEMO_VIEW_DEFAULT_FOCUS_VERSION,
+  M8A_V4_ITRI_DEMO_VIEW_DEFAULT_TRUTH_COPY,
+  M8A_V4_ITRI_DEMO_VIEW_NARROW_VERSION,
+  M8A_V4_ITRI_EXTERNAL_V02_V06_STATUS,
+  M8A_V4_ITRI_EXTERNAL_V02_V06_VALIDATION_ARTIFACT,
+  M8A_V4_ITRI_F09_EXTERNAL_TRUTH_DISPOSITION,
+  M8A_V4_ITRI_F09_MEASURED_THROUGHPUT_CLAIMED,
+  M8A_V4_ITRI_F09_METRIC_TRUTH,
+  M8A_V4_ITRI_F09_PROVENANCE,
+  M8A_V4_ITRI_F09_RATE_DISPOSITION,
+  M8A_V4_ITRI_F09_RATE_SURFACE_VERSION,
+  M8A_V4_ITRI_F10_POLICY_DEFAULT_PRESET_ID,
+  M8A_V4_ITRI_F10_POLICY_PRESET_MODE,
+  M8A_V4_ITRI_F10_POLICY_PRESETS,
+  M8A_V4_ITRI_F11_RULE_DEFAULT_PRESET_ID,
+  M8A_V4_ITRI_F11_RULE_PRESET_MODE,
+  M8A_V4_ITRI_F11_RULE_PRESETS,
+  M8A_V4_ITRI_F16_EXPORT_ARTIFACT_TRUTH,
+  M8A_V4_ITRI_F16_EXPORT_DISPOSITION,
+  M8A_V4_ITRI_F16_EXPORT_FORMAT,
+  M8A_V4_ITRI_F16_EXPORT_PROVENANCE,
+  M8A_V4_ITRI_F16_EXPORT_SCHEMA_VERSION,
+  M8A_V4_ITRI_F16_EXPORT_SURFACE_VERSION,
+  M8A_V4_ITRI_F16_EXTERNAL_REPORT_TRUTH_CLAIMED,
+  M8A_V4_ITRI_F16_EXTERNAL_TRUTH_DISPOSITION,
+  M8A_V4_ITRI_F16_EXPLICIT_NON_CLAIMS,
+  M8A_V4_ITRI_F16_MEASURED_VALUES_INCLUDED,
+  M8A_V4_ITRI_F16_ROUTE_OWNED_STATE_ONLY,
+  M8A_V4_ITRI_PHASE7_1_F13_EVIDENCE_ARTIFACT,
+  M8A_V4_ITRI_PHASE7_1_F13_EVIDENCE_GENERATED_AT_UTC,
+  M8A_V4_ITRI_PHASE7_1_F13_EVIDENCE_STALE_AFTER_UTC,
+  M8A_V4_ITRI_PHASE7_1_F13_LEO_COUNT,
+  M8A_V4_ITRI_PHASE7_1_F13_TOTAL_COUNT,
+  M8A_V4_ITRI_POLICY_RULE_ARBITRARY_EDITOR_CLAIMED,
+  M8A_V4_ITRI_POLICY_RULE_BACKEND_CONTROL_CLAIMED,
+  M8A_V4_ITRI_POLICY_RULE_CONTROLS_VERSION,
+  M8A_V4_ITRI_POLICY_RULE_DISPOSITION,
+  M8A_V4_ITRI_POLICY_RULE_EXPORT_ADJACENT_TRUTH,
+  M8A_V4_ITRI_POLICY_RULE_EXTERNAL_TRUTH_DISPOSITION,
+  M8A_V4_ITRI_POLICY_RULE_LIVE_CONTROL_CLAIMED,
+  M8A_V4_ITRI_POLICY_RULE_MEASURED_DECISION_TRUTH_CLAIMED,
+  M8A_V4_ITRI_POLICY_RULE_NETWORK_CONTROL_CLAIMED,
+  M8A_V4_ITRI_POLICY_RULE_ROUTE_OWNED_STATE_ONLY,
+  M8A_V4_ITRI_POLICY_RULE_TRUTH_BOUNDARY,
+  M8A_V4_ITRI_REQUIREMENT_GAP_SURFACE_VERSION,
+  M8A_V4_ITRI_REQUIREMENT_GAP_TRUTH_LABELS,
+  M8A_V4_ITRI_REQUIREMENT_OPEN_IDS,
+  M8A_V4_ITRI_REQUIREMENT_STATUS_GROUPS,
+  M8A_V4_ITRI_ROUTE_NATIVE_MEASURED_TRUTH_CLAIMED,
+  resolveF09RateClassCopy,
+  resolveItriF10PolicyPreset,
+  resolveItriF11RulePreset,
+  type M8aV4F09NetworkSpeedClass,
+  type M8aV4F09RateWindowRow,
+  type M8aV4ItriF10PolicyPreset,
+  type M8aV4ItriF10PolicyPresetId,
+  type M8aV4ItriF11RulePreset,
+  type M8aV4ItriF11RulePresetId,
+  type M8aV4ItriF16ExportRecord,
+  type M8aV4ItriF16RouteExportBundle,
+  type M8aV4ItriAcceptanceCoverageRecord,
+  type M8aV4ItriRequirementGroupId,
+  type M8aV4ItriRequirementStatusGroup
+} from "./m8a-v4-itri-demo-surfaces";
+import {
+  buildF09RateWindowRows,
+  escapeM8aV411MetricText,
+  renderF09RateWindowRows,
+  renderF16ExplicitNonClaimChips,
+  renderItriAcceptanceLayer,
+  renderItriF10PolicyPresetOptions,
+  renderItriF11RuleParameterChips,
+  renderItriF11RulePresetOptions,
+  renderItriRequirementGapGroups
+} from "./m8a-v4-itri-demo-renderers";
 import {
   ensureM8aV411GlanceRankStructure,
   M8A_V411_DEMOTED_ACTOR_OPACITY,
@@ -171,6 +257,84 @@ import {
   type M8aV411ReplayClockMode,
   type M8aV411ReviewerModeState
 } from "./m8a-v411-reviewer-mode";
+import {
+  buildSimulatedReplayTimeDisplay,
+  buildV48HandoverReviewViewModel,
+  buildV49ProductComprehensionRuntime,
+  buildV49TransitionEvent,
+  coercePlaybackMultiplier,
+  M8A_V4_ITRI_DEMO_VIEW_FOCUS_CHOREOGRAPHY_VERSION,
+  M8A_V4_ITRI_DEMO_VIEW_FOCUS_VISIBLE_CONTENT,
+  M8A_V4_LINK_FLOW_CUE_MODE,
+  M8A_V4_LINK_FLOW_CUE_VERSION,
+  M8A_V4_LINK_FLOW_DIRECTIONS,
+  M8A_V4_LINK_FLOW_PULSE_OFFSETS,
+  M8A_V4_LINK_FLOW_RELATION_ROLES,
+  M8A_V4_LINK_FLOW_REPLAY_CYCLES,
+  M8A_V4_LINK_FLOW_TRUTH_BOUNDARY,
+  M8A_V410_BOUNDARY_AFFORDANCE_VISIBLE_CONTENT,
+  M8A_V410_BOUNDARY_COMPACT_COPY,
+  M8A_V410_BOUNDARY_SECONDARY_COPY,
+  M8A_V410_FIRST_VIEWPORT_COMPOSITION_VERSION,
+  M8A_V410_INSPECTOR_DENIED_FIRST_READ_ROLES,
+  M8A_V410_INSPECTOR_EVIDENCE_STRUCTURE,
+  M8A_V410_INSPECTOR_NOT_CLAIMED_CONTENT,
+  M8A_V410_SEQUENCE_RAIL_VISIBLE_CONTENT,
+  M8A_V411_INSPECTOR_TABS,
+  M8A_V46E_RELATION_ROLE_LABELS,
+  M8A_V46E_TIMELINE_LABELS,
+  M8A_V47_DEBUG_TEST_MULTIPLIER,
+  M8A_V47_DISCLOSURE_LINES,
+  M8A_V47_FINAL_HOLD_DURATION_MS,
+  M8A_V47_FINAL_HOLD_MAX_MS,
+  M8A_V47_FINAL_HOLD_MIN_MS,
+  M8A_V47_GUIDED_REVIEW_MULTIPLIER,
+  M8A_V47_PRODUCT_DEFAULT_MULTIPLIER,
+  M8A_V47_PRODUCT_PLAYBACK_MULTIPLIERS,
+  M8A_V47_PRODUCT_UX_VERSION,
+  M8A_V47_QUICK_SCAN_MULTIPLIER,
+  M8A_V47_TRUTH_BADGES,
+  M8A_V48_UI_IA_VERSION,
+  M8A_V49_INSPECTOR_DEBUG_EVIDENCE_CONTENT,
+  M8A_V49_INSPECTOR_DENIED_PRIMARY_CONTENT,
+  M8A_V49_INSPECTOR_PRIMARY_VISIBLE_CONTENT,
+  M8A_V49_PERSISTENT_ALLOWED_CONTENT,
+  M8A_V49_PERSISTENT_DENIED_DEFAULT_CONTENT,
+  M8A_V49_PRODUCT_COMPREHENSION_VERSION,
+  M8A_V49_SCENE_NEAR_FALLBACK_VISIBLE_CONTENT,
+  M8A_V49_SCENE_NEAR_RELIABLE_VISIBLE_CONTENT,
+  M8A_V49_TRANSITION_EVENT_DENIED_VISIBLE_CONTENT,
+  M8A_V49_TRANSITION_EVENT_DURATION_MS,
+  M8A_V49_TRANSITION_EVENT_VISIBLE_CONTENT,
+  M8A_V410_PRODUCT_UX_STRUCTURE_VERSION,
+  resolvePlaybackMode,
+  resolvePlaybackStatus,
+  resolveM8aV4ItriDemoFocusChoreography,
+  resolveTimelineLabel,
+  resolveV410TransitionLabel,
+  resolveV48StateOrdinalLabel,
+  resolveV49WindowProductCopy,
+  type M8aV410BoundaryAffordanceRuntime,
+  type M8aV411InspectorTab,
+  type M8aV47DisclosureState,
+  type M8aV47PlaybackMode,
+  type M8aV47PlaybackMultiplier,
+  type M8aV47PlaybackStatus,
+  type M8aV47ProductPlaybackMultiplier,
+  type M8aV48HandoverReviewViewModel,
+  type M8aV48InfoClass,
+  type M8aV48ReviewActorReference,
+  type M8aV48SceneAnchorFallbackReason,
+  type M8aV48SceneAnchorPlacement,
+  type M8aV48SceneAnchorProtectionRect,
+  type M8aV48SceneAnchorRuntimeStatus,
+  type M8aV49ProductComprehensionRuntime,
+  type M8aV49SceneNearRenderState,
+  type M8aV49TransitionEventRuntime,
+  type M8aV4LinkFlowDirection,
+  type M8aV4LinkFlowRelationRole,
+  type M8aV4RelationRole
+} from "./m8a-v4-product-ux-model";
 
 export const M8A_V4_GROUND_STATION_DATA_SOURCE_NAME =
   "m8a-v4-ground-station-multi-orbit-handover-scene";
@@ -187,285 +351,6 @@ const M8A_V4_CAMERA_PITCH_DEGREES = -80;
 const M8A_V4_CAMERA_SCREEN_UP_PAN_METERS = 4_000_000;
 const M8A_V4_MILLISECONDS_PER_DAY = 24 * 60 * 60 * 1000;
 const M8A_V4_FULL_LEO_ORBIT_REPLAY_MARGIN_MS = 5 * 60 * 1000;
-const M8A_V47_PRODUCT_UX_VERSION =
-  "m8a-v4.7.1-handover-product-ux-correction-runtime.v1";
-const M8A_V48_UI_IA_VERSION =
-  "m8a-v4.8-handover-demonstration-ui-ia-phase3-runtime.v1";
-const M8A_V49_PRODUCT_COMPREHENSION_VERSION =
-  "m8a-v4.9-product-comprehension-slice4-runtime.v1";
-const M8A_V410_FIRST_VIEWPORT_COMPOSITION_VERSION =
-  "m8a-v4.10-first-viewport-composition-slice1-runtime.v1";
-const M8A_V410_HANDOVER_SEQUENCE_RAIL_VERSION =
-  "m8a-v4.10-handover-sequence-rail-slice2-runtime.v1";
-const M8A_V410_BOUNDARY_AFFORDANCE_VERSION =
-  "m8a-v4.10-boundary-affordance-separation-slice3-runtime.v1";
-const M8A_V410_INSPECTOR_EVIDENCE_VERSION =
-  "m8a-v4.10-inspector-evidence-redesign-slice4-runtime.v1";
-const M8A_V410_PRODUCT_UX_STRUCTURE_VERSION =
-  "m8a-v4.11-product-ux-structure-policy-rule-controls-runtime.v1";
-const M8A_V47_GUIDED_REVIEW_MULTIPLIER = 30;
-const M8A_V47_PRODUCT_DEFAULT_MULTIPLIER = 60;
-const M8A_V47_QUICK_SCAN_MULTIPLIER = 120;
-const M8A_V47_DEBUG_TEST_MULTIPLIER = 240;
-const M8A_V47_PRODUCT_PLAYBACK_MULTIPLIERS = [
-  M8A_V47_GUIDED_REVIEW_MULTIPLIER,
-  M8A_V47_PRODUCT_DEFAULT_MULTIPLIER,
-  M8A_V47_QUICK_SCAN_MULTIPLIER
-] as const;
-const M8A_V47_FINAL_HOLD_DURATION_MS = 4_000;
-const M8A_V47_FINAL_HOLD_MIN_MS = 3_000;
-const M8A_V47_FINAL_HOLD_MAX_MS = 5_000;
-const M8A_V47_TRUTH_BADGES = [
-  "simulation output",
-  "operator-family precision",
-  "display-context actors"
-] as const;
-const M8A_V47_DISCLOSURE_LINES = [
-  "Simulated display-context state, not an operator handover log.",
-  "Source-lineaged display-context actors, not active serving satellites.",
-  "Endpoint precision stays operator-family only.",
-  "No active gateway assignment is claimed.",
-  "No pair-specific teleport path is claimed.",
-  "No measured latency, jitter, throughput, or continuity values are shown.",
-  "No native RF handover is claimed."
-] as const;
-const M8A_V49_PERSISTENT_ALLOWED_CONTENT = [
-  "current-state",
-  "state-ordinal",
-  "play-pause",
-  "restart",
-  "30x",
-  "60x",
-  "120x",
-  "compact-truth-affordance",
-  "details-trigger"
-] as const;
-const M8A_V49_PERSISTENT_DENIED_DEFAULT_CONTENT = [
-  "actor-ids",
-  "cue-ids",
-  "selected-anchor-ids",
-  "candidate-context-actor-id-arrays",
-  "fallback-context-actor-id-arrays",
-  "long-truth-badge-row",
-  "duplicate-product-progress"
-] as const;
-const M8A_V49_SCENE_NEAR_RELIABLE_VISIBLE_CONTENT = [
-  "orbit-class-token",
-  "product-label",
-  "first-read-line",
-  "watch-cue-label",
-  "next-line"
-] as const;
-const M8A_V49_SCENE_NEAR_FALLBACK_VISIBLE_CONTENT = [
-  "product-label",
-  "state-ordinal",
-  "first-read-line",
-  "no-reliable-scene-attachment"
-] as const;
-const M8A_V410_SCENE_NARRATIVE_VISIBLE_CONTENT = [
-  "active-state-title",
-  "orbit-class-token",
-  "first-read-line",
-  "watch-cue-or-fallback",
-  "next-line"
-] as const;
-const M8A_V410_SEQUENCE_RAIL_VISIBLE_CONTENT = [
-  "five-state-path",
-  "active-state-mark",
-  "next-state-mark",
-  "transition-event-link"
-] as const;
-const M8A_V410_BOUNDARY_AFFORDANCE_VISIBLE_CONTENT = [
-  "compact-boundary-line",
-  "focused-boundary-surface",
-  "full-truth-disclosure",
-  "details-independent-state"
-] as const;
-const M8A_V410_INSPECTOR_EVIDENCE_STRUCTURE = [
-  "current-replay-event-evidence",
-  "sequence-selected-window-context",
-  "source-and-boundary-notes",
-  "not-being-claimed"
-] as const;
-const M8A_V410_INSPECTOR_DENIED_FIRST_READ_ROLES = [
-  "operator-log",
-  "claim-panel",
-  "mission-narrative",
-  "primary-product-narrative"
-] as const;
-const M8A_V410_INSPECTOR_NOT_CLAIMED_CONTENT = [
-  "not-active-satellite",
-  "not-active-gateway-or-path",
-  "not-measured-metric",
-  "not-native-rf",
-  "not-operator-log-truth"
-] as const;
-const M8A_V410_BOUNDARY_COMPACT_COPY =
-  "Simulation review - not operator log";
-const M8A_V410_BOUNDARY_SECONDARY_COPY =
-  "No active satellite, gateway, path, or measured metric claim.";
-const M8A_V49_TRANSITION_EVENT_DURATION_MS = 2_600;
-const M8A_V49_TRANSITION_EVENT_VISIBLE_CONTENT = [
-  "transition-summary",
-  "transition-context"
-] as const;
-const M8A_V49_TRANSITION_EVENT_DENIED_VISIBLE_CONTENT = [
-  "actor-ids",
-  "cue-ids",
-  "selected-anchor-ids",
-  "candidate-context-actor-id-arrays",
-  "fallback-context-actor-id-arrays",
-  "full-truth-boundary-disclosure",
-  "user-action-required"
-] as const;
-const M8A_V49_INSPECTOR_PRIMARY_VISIBLE_CONTENT = [
-  "current-state",
-  "why-this-state-exists",
-  "what-changed-from-previous-state",
-  "what-to-watch-now",
-  "what-happens-next",
-  "boundary-summary"
-] as const;
-const M8A_V49_INSPECTOR_DENIED_PRIMARY_CONTENT = [
-  "raw-actor-ids",
-  "cue-ids",
-  "selected-anchor-ids",
-  "selected-relation-corridor-ids",
-  "anchor-metadata",
-  "full-candidate-context-arrays",
-  "full-fallback-context-arrays"
-] as const;
-const M8A_V49_INSPECTOR_DEBUG_EVIDENCE_CONTENT = [
-  "representative-actor-id",
-  "candidate-context-actor-id-array",
-  "fallback-context-actor-id-array",
-  "selected-anchor-id",
-  "selected-relation-cue-id",
-  "selected-corridor-id",
-  "anchor-runtime-metadata"
-] as const;
-const M8A_V49_PRODUCT_COPY = {
-  "leo-acquisition-context": {
-    productLabel: "LEO review focus",
-    orbitClassToken: "LEO",
-    firstReadMessage: "LEO is the simulated review focus for this corridor.",
-    watchCueLabel: "Watch: representative LEO cue.",
-    nextLine: "Next: watch for pressure before the MEO hold.",
-    transitionRole: "review focus"
-  },
-  "leo-aging-pressure": {
-    productLabel: "LEO pressure",
-    orbitClassToken: "LEO",
-    firstReadMessage: "The LEO review context is under simulated pressure.",
-    watchCueLabel: "Watch: LEO pressure cue.",
-    nextLine: "Next: continuity shifts to MEO context.",
-    transitionRole: "pressure before continuity shift"
-  },
-  "meo-continuity-hold": {
-    productLabel: "MEO continuity hold",
-    orbitClassToken: "MEO",
-    firstReadMessage: "MEO context is holding continuity in this simulation.",
-    watchCueLabel: "Watch: MEO representative cue.",
-    nextLine: "Next: LEO returns as a candidate focus.",
-    transitionRole: "continuity hold"
-  },
-  "leo-reentry-candidate": {
-    productLabel: "LEO re-entry",
-    orbitClassToken: "LEO",
-    firstReadMessage: "LEO returns as a candidate review focus.",
-    watchCueLabel: "Watch: returning LEO cue.",
-    nextLine: "Next: GEO closes the sequence as guard context.",
-    transitionRole: "re-entry candidate"
-  },
-  "geo-continuity-guard": {
-    productLabel: "GEO guard context",
-    orbitClassToken: "GEO",
-    firstReadMessage: "GEO is shown only as guard context, not active failover proof.",
-    watchCueLabel: "Watch: GEO guard cue.",
-    nextLine: "Restart to review the sequence again.",
-    transitionRole: "final guard"
-  }
-} satisfies Record<
-  M8aV46dSimulationHandoverWindowId,
-  {
-    productLabel: string;
-    orbitClassToken: "LEO" | "MEO" | "GEO";
-    firstReadMessage: string;
-    watchCueLabel: string;
-    nextLine: string;
-    transitionRole: string;
-  }
->;
-const M8A_V48_REVIEW_COPY = {
-  "leo-acquisition-context": {
-    reviewPurpose:
-      "Evidence source: the deterministic V4.6D replay selects the initial LEO review window for the accepted corridor.",
-    whatChangedFromPreviousState:
-      "Replay event: the sequence starts with representative LEO context emphasized.",
-    whatToWatch:
-      "Scene evidence context: representative LEO display cue near the endpoint corridor.",
-    nextStateHint:
-      "Sequence context: next window moves into LEO pressure context.",
-    sceneAnchorType: "representative-actor-if-visible"
-  },
-  "leo-aging-pressure": {
-    reviewPurpose:
-      "Evidence source: the deterministic V4.6D replay marks LEO context under simulated pressure.",
-    whatChangedFromPreviousState:
-      "Replay event: the selected window moved from LEO review focus into pressure context.",
-    whatToWatch:
-      "Scene evidence context: LEO candidate relation emphasis without measured metric truth.",
-    nextStateHint:
-      "Sequence context: next window shifts from LEO pressure to MEO continuity hold.",
-    sceneAnchorType: "representative-actor-if-visible"
-  },
-  "meo-continuity-hold": {
-    reviewPurpose:
-      "Evidence source: the deterministic V4.6D replay selects MEO context as continuity hold.",
-    whatChangedFromPreviousState:
-      "Replay event: representative context changed from LEO pressure to MEO hold.",
-    whatToWatch:
-      "Scene evidence context: MEO representative cue while candidate and guard context stay secondary.",
-    nextStateHint:
-      "Sequence context: next window returns LEO as a candidate review focus.",
-    sceneAnchorType: "representative-meo-actor-if-visible"
-  },
-  "leo-reentry-candidate": {
-    reviewPurpose:
-      "Evidence source: the deterministic V4.6D replay selects LEO re-entry as candidate context.",
-    whatChangedFromPreviousState:
-      "Replay event: LEO context reappears after the MEO continuity hold.",
-    whatToWatch:
-      "Scene evidence context: returning LEO cue and its transition relationship.",
-    nextStateHint:
-      "Sequence context: next window enters final GEO guard context.",
-    sceneAnchorType: "representative-leo-actor-if-visible"
-  },
-  "geo-continuity-guard": {
-    reviewPurpose:
-      "Evidence source: the deterministic V4.6D replay selects GEO as final guard context.",
-    whatChangedFromPreviousState:
-      "Replay event: the selected window moved from LEO re-entry into final guard context.",
-    whatToWatch:
-      "Scene evidence context: GEO guard cue and final hold semantics.",
-    nextStateHint:
-      "Sequence context: restart returns the review to LEO review focus.",
-    sceneAnchorType: "geo-guard-cue-or-representative-geo-anchor"
-  }
-} satisfies Record<
-  M8aV46dSimulationHandoverWindowId,
-  {
-    reviewPurpose: string;
-    whatChangedFromPreviousState: string;
-    whatToWatch: string;
-    nextStateHint: string;
-    sceneAnchorType:
-      | "representative-actor-if-visible"
-      | "representative-meo-actor-if-visible"
-      | "representative-leo-actor-if-visible"
-      | "geo-guard-cue-or-representative-geo-anchor";
-  }
->;
 const M8A_V4_DISPLAY_ORBIT_HEIGHT_METERS = {
   leo: {
     start: 280_000,
@@ -498,754 +383,6 @@ const M8A_V46E_NARROW_VIEWPORT_MAX_WIDTH_PX = 560;
 const M8A_V46E_PREFERRED_VISIBLE_ACTOR_LABELS = 1;
 const M8A_V4_DESKTOP_MAX_ALWAYS_VISIBLE_ACTOR_LABELS = 3;
 const M8A_V4_NARROW_MAX_ALWAYS_VISIBLE_ACTOR_LABELS = 1;
-const M8A_V46E_TIMELINE_LABELS = {
-  "leo-acquisition-context": "LEO review focus",
-  "leo-aging-pressure": "LEO pressure",
-  "meo-continuity-hold": "MEO continuity hold",
-  "leo-reentry-candidate": "LEO re-entry",
-  "geo-continuity-guard": "GEO guard context"
-} satisfies Record<M8aV46dSimulationHandoverWindowId, string>;
-const M8A_V410_TRANSITION_LABELS = {
-  "leo-acquisition-context": "LEO review",
-  "leo-aging-pressure": "LEO pressure",
-  "meo-continuity-hold": "MEO hold",
-  "leo-reentry-candidate": "LEO re-entry",
-  "geo-continuity-guard": "GEO guard"
-} satisfies Record<M8aV46dSimulationHandoverWindowId, string>;
-const M8A_V46E_RELATION_ROLE_LABELS = {
-  displayRepresentative: "representative context ribbon",
-  candidateContext: "candidate context ribbon",
-  fallbackContext: "GEO guard cue"
-} satisfies Record<M8aV4RelationRole, string>;
-const M8A_V4_LINK_FLOW_CUE_VERSION =
-  "m8a-v4-link-flow-direction-cue-runtime.v1";
-const M8A_V4_LINK_FLOW_CUE_MODE =
-  "uplink-downlink-arrow-segments-with-moving-packet-trails";
-const M8A_V4_LINK_FLOW_TRUTH_BOUNDARY =
-  "modeled-direction-cue-not-packet-capture-or-measured-throughput";
-const M8A_V4_LINK_FLOW_RELATION_ROLES = [
-  "displayRepresentative",
-  "candidateContext"
-] as const;
-const M8A_V4_LINK_FLOW_DIRECTIONS = ["uplink", "downlink"] as const;
-const M8A_V4_LINK_FLOW_PULSE_OFFSETS = [0, 0.34, 0.68] as const;
-const M8A_V4_LINK_FLOW_REPLAY_CYCLES = 11;
-const M8A_V4_ITRI_REQUIREMENT_GAP_SURFACE_VERSION =
-  "itri-demo-route-requirement-gap-surface-runtime.v1";
-const M8A_V4_ITRI_F09_RATE_SURFACE_VERSION =
-  "itri-demo-route-f09-rate-disposition-runtime.v1";
-const M8A_V4_ITRI_F09_RATE_DISPOSITION =
-  "bounded-route-representation";
-const M8A_V4_ITRI_F09_EXTERNAL_TRUTH_DISPOSITION =
-  "external-validation-required";
-const M8A_V4_ITRI_F09_PROVENANCE = "modeled bounded proxy";
-const M8A_V4_ITRI_F09_METRIC_TRUTH =
-  "modeled-bounded-class-not-measured";
-const M8A_V4_ITRI_F09_MEASURED_THROUGHPUT_CLAIMED = false;
-const M8A_V4_ITRI_F16_EXPORT_SURFACE_VERSION =
-  "itri-demo-route-f16-export-disposition-runtime.v1";
-const M8A_V4_ITRI_F16_EXPORT_SCHEMA_VERSION =
-  "itri-demo-route-bounded-export.v1";
-const M8A_V4_ITRI_F16_EXPORT_DISPOSITION =
-  "bounded-route-representation";
-const M8A_V4_ITRI_F16_EXTERNAL_TRUTH_DISPOSITION =
-  "external-validation-required";
-const M8A_V4_ITRI_F16_EXPORT_ARTIFACT_TRUTH =
-  "bounded-proxy-report-export";
-const M8A_V4_ITRI_F16_EXPORT_FORMAT = "json";
-const M8A_V4_ITRI_F16_EXPORT_PROVENANCE =
-  "route-owned bounded state from V4 demo controller";
-const M8A_V4_ITRI_F16_ROUTE_OWNED_STATE_ONLY = true;
-const M8A_V4_ITRI_F16_MEASURED_VALUES_INCLUDED = false;
-const M8A_V4_ITRI_F16_EXTERNAL_REPORT_TRUTH_CLAIMED = false;
-const M8A_V4_ITRI_F16_EXPLICIT_NON_CLAIMS = [
-  "No external measurement report truth is claimed.",
-  "No live iperf or ping truth is claimed.",
-  "No active gateway, active serving satellite, or pair-specific teleport path is claimed.",
-  "No native RF handover or >=500 LEO validation is claimed.",
-  "F-09 rate fields are modeled classes only; no Mbps or Gbps values are exported.",
-  "Latency and jitter are not exported as measured ms values."
-] as const;
-const M8A_V4_ITRI_POLICY_RULE_CONTROLS_VERSION =
-  "itri-demo-route-policy-rule-controls-runtime.v1";
-const M8A_V4_ITRI_POLICY_RULE_DISPOSITION =
-  "bounded-route-representation";
-const M8A_V4_ITRI_POLICY_RULE_EXTERNAL_TRUTH_DISPOSITION =
-  "external-validation-required";
-const M8A_V4_ITRI_POLICY_RULE_TRUTH_BOUNDARY =
-  "modeled-policy-demo-not-live-control";
-const M8A_V4_ITRI_POLICY_RULE_EXPORT_ADJACENT_TRUTH =
-  "modeled-replay-preset-state-not-live-control";
-const M8A_V4_ITRI_F10_POLICY_PRESET_MODE =
-  "modeled-replay-policy-preset-not-live-control";
-const M8A_V4_ITRI_F11_RULE_PRESET_MODE =
-  "bounded-replay-rule-parameter-preset-not-live-control";
-const M8A_V4_ITRI_POLICY_RULE_ROUTE_OWNED_STATE_ONLY = true;
-const M8A_V4_ITRI_POLICY_RULE_LIVE_CONTROL_CLAIMED = false;
-const M8A_V4_ITRI_POLICY_RULE_BACKEND_CONTROL_CLAIMED = false;
-const M8A_V4_ITRI_POLICY_RULE_NETWORK_CONTROL_CLAIMED = false;
-const M8A_V4_ITRI_POLICY_RULE_ARBITRARY_EDITOR_CLAIMED = false;
-const M8A_V4_ITRI_POLICY_RULE_MEASURED_DECISION_TRUTH_CLAIMED = false;
-const M8A_V4_ITRI_F10_POLICY_DEFAULT_PRESET_ID =
-  "balanced-continuity-review";
-const M8A_V4_ITRI_F11_RULE_DEFAULT_PRESET_ID =
-  "standard-window-thresholds";
-const M8A_V4_ITRI_F10_POLICY_PRESETS = [
-  {
-    presetId: "balanced-continuity-review",
-    label: "Balanced continuity review",
-    summary:
-      "Default modeled replay preset balancing candidate review and continuity guard; not live control.",
-    preview:
-      "Modeled replay preview keeps candidate and continuity review balanced. Preset only; not live control."
-  },
-  {
-    presetId: "candidate-first-review",
-    label: "Candidate-first review",
-    summary:
-      "Modeled replay preset that foregrounds candidate review copy; not live control.",
-    preview:
-      "Modeled replay preview foregrounds candidate review. Preset only; not live control."
-  },
-  {
-    presetId: "continuity-guard-review",
-    label: "Continuity guard review",
-    summary:
-      "Modeled replay preset that foregrounds continuity guard copy; not live control.",
-    preview:
-      "Modeled replay preview foregrounds continuity guard. Preset only; not live control."
-  }
-] as const;
-const M8A_V4_ITRI_F11_RULE_PRESETS = [
-  {
-    presetId: "standard-window-thresholds",
-    label: "Standard window thresholds",
-    summary:
-      "Default bounded replay rule preset for standard review windows; not live control.",
-    parameterChips: [
-      "candidate review preset: standard",
-      "continuity guard preset: standard",
-      "replay hold preset: standard"
-    ],
-    preview:
-      "Bounded replay rule preset keeps standard review windows. Preset only; not live control."
-  },
-  {
-    presetId: "early-candidate-review",
-    label: "Early candidate review",
-    summary:
-      "Bounded replay rule preset that reviews candidate context earlier; not live control.",
-    parameterChips: [
-      "candidate review preset: early",
-      "continuity guard preset: standard",
-      "replay hold preset: standard"
-    ],
-    preview:
-      "Bounded replay rule preset previews earlier candidate review. Preset only; not live control."
-  },
-  {
-    presetId: "guard-hold-review",
-    label: "Guard hold review",
-    summary:
-      "Bounded replay rule preset that holds guard review emphasis; not live control.",
-    parameterChips: [
-      "candidate review preset: standard",
-      "continuity guard preset: hold",
-      "replay hold preset: guard"
-    ],
-    preview:
-      "Bounded replay rule preset previews guard-hold review. Preset only; not live control."
-  }
-] as const;
-const M8A_V4_ITRI_REQUIREMENT_GAP_TRUTH_LABELS = [
-  "bounded-route-representation",
-  "bounded-repo-owned-seam",
-  "external-validation-required"
-] as const;
-const M8A_V4_ITRI_DEMO_POLISH_DISPOSITION =
-  "demo-polish-no-requirement-closure";
-const M8A_V4_ITRI_ROUTE_NATIVE_MEASURED_TRUTH_CLAIMED = false;
-
-type M8aV4ItriRequirementDisposition =
-  | "true-route-closure"
-  | "bounded-route-representation"
-  | "bounded-repo-owned-seam"
-  | "external-validation-required"
-  | "demo-polish-no-requirement-closure"
-  | "not-in-this-route";
-
-type M8aV4ItriRequirementGroupId =
-  | "route-owned-visual-baseline"
-  | "bounded-route-representation"
-  | "bounded-repo-owned-seam"
-  | "not-mounted-route-gap"
-  | "external-validation-gap";
-type M8aV4F09NetworkSpeedClass =
-  M8aV46dWindowMetricClasses["networkSpeedClass"];
-type M8aV4ItriF10PolicyPreset =
-  (typeof M8A_V4_ITRI_F10_POLICY_PRESETS)[number];
-type M8aV4ItriF10PolicyPresetId = M8aV4ItriF10PolicyPreset["presetId"];
-type M8aV4ItriF11RulePreset =
-  (typeof M8A_V4_ITRI_F11_RULE_PRESETS)[number];
-type M8aV4ItriF11RulePresetId = M8aV4ItriF11RulePreset["presetId"];
-
-interface M8aV4F09RateClassCopy {
-  classLabel: string;
-  bucketLabel: string;
-  reviewLabel: string;
-}
-
-interface M8aV4F09RateWindowRow {
-  windowId: M8aV46dSimulationHandoverWindowId;
-  ordinalLabel: string;
-  windowLabel: string;
-  orbitClass: M8aV4OrbitClass;
-  networkSpeedClass: M8aV4F09NetworkSpeedClass;
-  classLabel: string;
-  bucketLabel: string;
-  provenance: typeof M8A_V4_ITRI_F09_PROVENANCE;
-  metricTruth: typeof M8A_V4_ITRI_F09_METRIC_TRUTH;
-}
-
-interface M8aV4ItriRequirementStatusGroup {
-  groupId: M8aV4ItriRequirementGroupId;
-  label: string;
-  disposition: M8aV4ItriRequirementDisposition;
-  status: "closed" | "bounded" | "open";
-  requirementIds: readonly string[];
-  routeClaim: string;
-}
-
-interface M8aV4ItriF16ExportRecord {
-  generatedAtUtc: string;
-  filename: string;
-  status: "exported" | "failed";
-  errorMessage: string;
-}
-
-interface M8aV4ItriF16BoundedRateDisposition {
-  requirementId: "F-09";
-  disposition: typeof M8A_V4_ITRI_F09_RATE_DISPOSITION;
-  externalTruthDisposition:
-    typeof M8A_V4_ITRI_F09_EXTERNAL_TRUTH_DISPOSITION;
-  currentWindowId: M8aV46dSimulationHandoverWindowId;
-  currentNetworkSpeedClass: M8aV4F09NetworkSpeedClass;
-  currentClassLabel: string;
-  currentBucketLabel: string;
-  provenance: typeof M8A_V4_ITRI_F09_PROVENANCE;
-  metricTruth: typeof M8A_V4_ITRI_F09_METRIC_TRUTH;
-  measuredThroughputClaimed:
-    typeof M8A_V4_ITRI_F09_MEASURED_THROUGHPUT_CLAIMED;
-  rows: ReadonlyArray<M8aV4F09RateWindowRow>;
-}
-
-interface M8aV4ItriF16RouteExportBundle {
-  schemaVersion: typeof M8A_V4_ITRI_F16_EXPORT_SCHEMA_VERSION;
-  version: typeof M8A_V4_ITRI_F16_EXPORT_SURFACE_VERSION;
-  generatedAtUtc: string;
-  routeId: string;
-  scenarioId: typeof M8A_V4_GROUND_STATION_SCENARIO_ID;
-  endpointPair: {
-    endpointPairId: string;
-    precision: "operator-family-only";
-    endpoints: ReadonlyArray<{
-      endpointId: M8aV4EndpointId;
-      label: string;
-      precisionBadge: string;
-      renderPrecision: "bounded-operator-family-display-anchor";
-      displayPositionIsSourceTruth: false;
-      rawSourceCoordinatesRenderable: false;
-      orbitEvidenceChips: ReadonlyArray<string>;
-    }>;
-  };
-  precision: "operator-family-only";
-  actorCounts: Record<M8aV4OrbitClass | "total", number>;
-  activeModeledWindow: {
-    windowId: M8aV46dSimulationHandoverWindowId;
-    windowLabel: string;
-    currentPrimaryOrbitClass: M8aV4OrbitClass;
-    nextCandidateOrbitClass: M8aV4OrbitClass | null;
-    continuityFallbackOrbitClass: M8aV4OrbitClass;
-    displayRepresentativeOrbitClass: M8aV4OrbitClass;
-    boundedMetricClasses: M8aV46dWindowMetricClasses;
-    modelTruth: "simulation-output-not-operator-log";
-  };
-  requirementStatusGroups: ReadonlyArray<M8aV4ItriRequirementStatusGroup>;
-  f09BoundedRateDisposition: M8aV4ItriF16BoundedRateDisposition;
-  policyRuleControls: {
-    version: typeof M8A_V4_ITRI_POLICY_RULE_CONTROLS_VERSION;
-    disposition: typeof M8A_V4_ITRI_POLICY_RULE_DISPOSITION;
-    externalTruthDisposition:
-      typeof M8A_V4_ITRI_POLICY_RULE_EXTERNAL_TRUTH_DISPOSITION;
-    truthBoundary: typeof M8A_V4_ITRI_POLICY_RULE_TRUTH_BOUNDARY;
-    exportAdjacentTruth:
-      typeof M8A_V4_ITRI_POLICY_RULE_EXPORT_ADJACENT_TRUTH;
-    activePolicyPresetId: M8aV4ItriF10PolicyPresetId;
-    activeRulePresetId: M8aV4ItriF11RulePresetId;
-    policyPresetMode: typeof M8A_V4_ITRI_F10_POLICY_PRESET_MODE;
-    rulePresetMode: typeof M8A_V4_ITRI_F11_RULE_PRESET_MODE;
-    routeOwnedStateOnly:
-      typeof M8A_V4_ITRI_POLICY_RULE_ROUTE_OWNED_STATE_ONLY;
-    liveControlClaimed:
-      typeof M8A_V4_ITRI_POLICY_RULE_LIVE_CONTROL_CLAIMED;
-    backendControlClaimed:
-      typeof M8A_V4_ITRI_POLICY_RULE_BACKEND_CONTROL_CLAIMED;
-    networkControlClaimed:
-      typeof M8A_V4_ITRI_POLICY_RULE_NETWORK_CONTROL_CLAIMED;
-    arbitraryRuleEditorClaimed:
-      typeof M8A_V4_ITRI_POLICY_RULE_ARBITRARY_EDITOR_CLAIMED;
-    measuredDecisionTruthClaimed:
-      typeof M8A_V4_ITRI_POLICY_RULE_MEASURED_DECISION_TRUTH_CLAIMED;
-  };
-  linkFlowCueMetadata: {
-    version: typeof M8A_V4_LINK_FLOW_CUE_VERSION;
-    mode: typeof M8A_V4_LINK_FLOW_CUE_MODE;
-    directions: typeof M8A_V4_LINK_FLOW_DIRECTIONS;
-    pulseCount: number;
-    truthBoundary: typeof M8A_V4_LINK_FLOW_TRUTH_BOUNDARY;
-  };
-  provenance: {
-    exportProvenance: typeof M8A_V4_ITRI_F16_EXPORT_PROVENANCE;
-    generatedFromArtifactId:
-      typeof M8A_V4_GROUND_STATION_RUNTIME_PROJECTION.generatedFromArtifactId;
-    projectionId: typeof M8A_V4_GROUND_STATION_RUNTIME_PROJECTION_ID;
-    projectionRead: "M8A_V4_GROUND_STATION_RUNTIME_PROJECTION";
-    serviceStateRead: "M8A_V4_GROUND_STATION_RUNTIME_PROJECTION.serviceStateModel.timeline";
-    simulationHandoverRead: "M8A_V4_GROUND_STATION_RUNTIME_PROJECTION.simulationHandoverModel.timeline";
-    rawPackageSideReadOwnership: "forbidden";
-    rawSourcePathsIncluded: false;
-  };
-  nonClaims: {
-    explicitNonClaims: typeof M8A_V4_ITRI_F16_EXPLICIT_NON_CLAIMS;
-    routeNarrativeNonClaims: M8aV4RuntimeNarrativeNonClaims;
-    measuredValuesIncluded:
-      typeof M8A_V4_ITRI_F16_MEASURED_VALUES_INCLUDED;
-    externalReportSystemTruthClaimed:
-      typeof M8A_V4_ITRI_F16_EXTERNAL_REPORT_TRUTH_CLAIMED;
-  };
-  exportFile: {
-    format: typeof M8A_V4_ITRI_F16_EXPORT_FORMAT;
-    filename: string;
-  };
-}
-
-const M8A_V4_ITRI_F09_RATE_CLASS_COPY = {
-  "candidate-capacity-context-class": {
-    classLabel: "Candidate capacity context",
-    bucketLabel: "Candidate class",
-    reviewLabel: "LEO candidate capacity proxy"
-  },
-  "continuity-context-class": {
-    classLabel: "Continuity context",
-    bucketLabel: "Continuity class",
-    reviewLabel: "MEO continuity speed proxy"
-  },
-  "guard-context-class": {
-    classLabel: "Guard context",
-    bucketLabel: "Guard class",
-    reviewLabel: "GEO guard speed proxy"
-  }
-} as const satisfies Record<M8aV4F09NetworkSpeedClass, M8aV4F09RateClassCopy>;
-
-function isM8aV4ItriF10PolicyPresetId(
-  value: string
-): value is M8aV4ItriF10PolicyPresetId {
-  return M8A_V4_ITRI_F10_POLICY_PRESETS.some(
-    (preset) => preset.presetId === value
-  );
-}
-
-function isM8aV4ItriF11RulePresetId(
-  value: string
-): value is M8aV4ItriF11RulePresetId {
-  return M8A_V4_ITRI_F11_RULE_PRESETS.some(
-    (preset) => preset.presetId === value
-  );
-}
-
-function resolveItriF10PolicyPreset(
-  presetId: M8aV4ItriF10PolicyPresetId
-): M8aV4ItriF10PolicyPreset {
-  return M8A_V4_ITRI_F10_POLICY_PRESETS.find(
-    (preset) => preset.presetId === presetId
-  ) ?? M8A_V4_ITRI_F10_POLICY_PRESETS[0];
-}
-
-function resolveItriF11RulePreset(
-  presetId: M8aV4ItriF11RulePresetId
-): M8aV4ItriF11RulePreset {
-  return M8A_V4_ITRI_F11_RULE_PRESETS.find(
-    (preset) => preset.presetId === presetId
-  ) ?? M8A_V4_ITRI_F11_RULE_PRESETS[0];
-}
-
-const M8A_V4_ITRI_REQUIREMENT_STATUS_GROUPS = [
-  {
-    groupId: "route-owned-visual-baseline",
-    label: "Route baseline",
-    disposition: "true-route-closure",
-    status: "closed",
-    requirementIds: ["F-04", "F-05", "F-14", "V-01", "D-01"],
-    routeClaim: "scene UI and replay baseline only"
-  },
-  {
-    groupId: "bounded-route-representation",
-    label: "Bounded route",
-    disposition: "bounded-route-representation",
-    status: "bounded",
-    requirementIds: [
-      "F-02",
-      "F-03",
-      "F-06",
-      "F-09",
-      "F-10",
-      "F-11",
-      "F-12",
-      "F-15",
-      "F-16",
-      "D-02",
-      "D-03"
-    ],
-    routeClaim:
-      "modeled route context, F-09 class, F-10/F-11 replay presets, and F-16 JSON export; no route-native measurement or live control"
-  },
-  {
-    groupId: "bounded-repo-owned-seam",
-    label: "Repo seam",
-    disposition: "bounded-repo-owned-seam",
-    status: "open",
-    requirementIds: ["F-07", "F-08", "F-17", "F-18", "P-01", "P-02", "P-03"],
-    routeClaim: "named gap, not mounted here"
-  },
-  {
-    groupId: "not-mounted-route-gap",
-    label: "Not mounted",
-    disposition: "not-in-this-route",
-    status: "open",
-    requirementIds: [],
-    routeClaim: "no F-10/F-11 route gap after Phase 5; live control remains out of scope"
-  },
-  {
-    groupId: "external-validation-gap",
-    label: "External validation",
-    disposition: "external-validation-required",
-    status: "open",
-    requirementIds: [
-      "F-01",
-      "F-09",
-      "F-10",
-      "F-11",
-      "F-13",
-      "F-16",
-      "V-02",
-      "V-03",
-      "V-04",
-      "V-05",
-      "V-06"
-    ],
-    routeClaim: "outside this scene or external/live truth not claimed"
-  }
-] as const satisfies readonly M8aV4ItriRequirementStatusGroup[];
-const M8A_V4_ITRI_REQUIREMENT_OPEN_IDS =
-  M8A_V4_ITRI_REQUIREMENT_STATUS_GROUPS.filter(
-    (group) => group.status === "open"
-  ).flatMap((group) => group.requirementIds);
-
-const M8A_V4_TELEMETRY_KEYS = [
-  "m8aV4GroundStationRuntimeState",
-  "m8aV4GroundStationScenarioId",
-  "m8aV4GroundStationProjectionId",
-  "m8aV4GroundStationGeneratedFromArtifactId",
-  "m8aV4GroundStationDataSourceName",
-  "m8aV4GroundStationDataSourceAttached",
-  "m8aV4GroundStationEndpointCount",
-  "m8aV4GroundStationEndpointIds",
-  "m8aV4GroundStationEndpointPrecision",
-  "m8aV4GroundStationActorCount",
-  "m8aV4GroundStationLeoActorCount",
-  "m8aV4GroundStationMeoActorCount",
-  "m8aV4GroundStationGeoActorCount",
-  "m8aV4GroundStationActorIds",
-  "m8aV46eVisualLanguage",
-  "m8aV46eActiveStateLabel",
-  "m8aV46eVisibleContextRibbonCount",
-  "m8aV46eFallbackGuardCueMode",
-  "m8aV4LinkFlowCue",
-  "m8aV4LinkFlowCueMode",
-  "m8aV4LinkFlowDirections",
-  "m8aV4LinkFlowPulseCount",
-  "m8aV4LinkFlowTruthBoundary",
-  "m8aV46eVisibleActorLabelCount",
-  "m8aV46eVisibleActorLabelIds",
-  "m8aV4GroundStationAlwaysVisibleActorLabelCount",
-  "m8aV4GroundStationAlwaysVisibleActorLabelIds",
-  "m8aV4GroundStationHiddenContextActorLabelCount",
-  "m8aV4GroundStationReplayDurationMs",
-  "m8aV4GroundStationReplayMultiplier",
-  "m8aV4GroundStationLongestOneWebLeoActorId",
-  "m8aV4GroundStationLongestOneWebLeoPeriodMs",
-  "m8aV4GroundStationReplayMarginMs",
-  "m8aV4GroundStationServiceStateWindowId",
-  "m8aV4GroundStationServiceStateSource",
-  "m8aV4GroundStationCurrentPrimaryOrbit",
-  "m8aV4GroundStationNextCandidateOrbit",
-  "m8aV4GroundStationContinuityFallbackOrbit",
-  "m8aV4GroundStationBoundedMetricsUsed",
-  "m8aV46dSimulationHandoverModelId",
-  "m8aV46dSimulationHandoverSource",
-  "m8aV46dSimulationHandoverWindowId",
-  "m8aV46dSimulationHandoverReplayRatio",
-  "m8aV46dDisplayRepresentativeActorId",
-  "m8aV46dCandidateContextActorIds",
-  "m8aV46dFallbackContextActorIds",
-  "m8aV46dBoundedMetricClasses",
-  "m8aV46dWindowNonClaims",
-  "m8aV47ProductUx",
-  "m8aV47PlaybackDefaultMultiplier",
-  "m8aV47PlaybackProductMultipliers",
-  "m8aV47PlaybackDebugMultiplier",
-  "m8aV47PlaybackMultiplier",
-  "m8aV47PlaybackStatus",
-  "m8aV47FinalHoldActive",
-  "m8aV47ReplayProgressRatio",
-  "m8aV47SimulatedReplayTime",
-  "m8aV47ActiveProductLabel",
-  "m8aV47ActiveWindowId",
-  "m8aV47TruthBadges",
-  "m8aV47LayoutPolicy",
-  "m8aV48UiIaVersion",
-  "m8aV48InfoClassSeam",
-  "m8aV48ReviewWindowId",
-  "m8aV48ReviewStateOrdinal",
-  "m8aV48ReviewRepresentativeActorId",
-  "m8aV48ReviewCandidateContextActorIds",
-  "m8aV48ReviewFallbackContextActorIds",
-  "m8aV48ReviewRelationCueRole",
-  "m8aV48SceneAnchorState",
-  "m8aV49ProductComprehension",
-  "m8aV49SliceScope",
-  "m8aV410FirstViewportComposition",
-  "m8aV410SliceScope",
-  "m8aV410SceneNarrativeVisibleContent",
-  "m8aV410ControlsPriority",
-  "m8aV410FirstReadLine",
-  "m8aV410WatchCueLine",
-  "m8aV410NextLine",
-  "m8aV410HandoverSequenceRail",
-  "m8aV410SequenceRailScope",
-  "m8aV410SequenceRailVisibleContent",
-  "m8aV410SequenceRailWindowIds",
-  "m8aV410SequenceRailActiveWindowId",
-  "m8aV410SequenceRailNextWindowId",
-  "m8aV410SequenceRailActiveLabel",
-  "m8aV410SequenceRailNextLabel",
-  "m8aV410SequenceRailActiveOrdinal",
-  "m8aV410SequenceRailNextOrdinal",
-  "m8aV410SequenceRailTransitionFromWindowId",
-  "m8aV410SequenceRailTransitionToWindowId",
-  "m8aV410SequenceRailViewportPolicy",
-  "m8aV410BoundaryAffordance",
-  "m8aV410BoundaryAffordanceScope",
-  "m8aV410BoundaryVisibleContent",
-  "m8aV410BoundaryCompactCopy",
-  "m8aV410BoundarySecondaryCopy",
-  "m8aV410BoundaryDetailsBehavior",
-  "m8aV410BoundarySurfaceState",
-  "m8aV410DetailsSheetState",
-  "m8aV411GlanceRankSurface",
-  "m8aV411SliceScope",
-  "m8aV411SceneMicroCueCopy",
-  "m8aV411SourceProvenanceBadge",
-  "m8aV411GroundOrbitEvidenceTriplet",
-  "m8aV411GroundShortChipCopy",
-  "m8aV411GroundShortChipMaxWidthPx",
-  "m8aV411GroundShortChipMaxHeightPx",
-  "m8aV411GroundShortChipFontSizePx",
-  "m8aV411DemotedActorOpacity",
-  "m8aV411VisualTokens",
-  "m8aV411VisualTokenScope",
-  "m8aV411VisualTokenDataSourceName",
-  "m8aV411VisualTokenActiveId",
-  "m8aV411VisualTokenW3RadiusMeters",
-  "m8aV411VisualTokenW1MaxDistanceMeters",
-  "m8aV411VisualTokenW2MaxDistanceMeters",
-  "m8aV411VisualTokenW3MaxDistanceMeters",
-  "m8aV411VisualTokenW4MaxDistanceMeters",
-  "m8aV411VisualTokenW5MaxDistanceMeters",
-  "m8aV411VisualTokenW4Behavior",
-  "m8aV411VisualTokenW4CueMode",
-  "m8aV411VisualTokenW4EntryCueActive",
-  "m8aV411VisualTokenW4EntryCueCompleted",
-  "m8aV411VisualTokenW4EntryCueDurationMs",
-  "m8aV411VisualTokenW4EntryCueElapsedMs",
-  "m8aV411VisualTokenW4EntryMaxRadiusPx",
-  "m8aV411VisualTokenW4HaloRadiusPx",
-  "m8aV411VisualTokenW4Label",
-  "m8aV411VisualTokenW4PermanentPulse",
-  "m8aV411VisualTokenW4PulseHz",
-  "m8aV411VisualTokenW4ReducedMotion",
-  "m8aV411VisualTokenW4ServingClaim",
-  "m8aV411VisualTokenW4AlarmColor",
-  "m8aV411SceneContextChip",
-  "m8aV411SceneContextChipCopy",
-  "m8aV411SceneContextChipMaxWidthPx",
-  "m8aV411SceneContextChipMaxHeightPx",
-  "m8aV411SceneContextChipFontSizePx",
-  "m8aV411OrbitClassChipCount",
-  "m8aV411InspectorConcurrency",
-  "m8aV411InspectorSliceScope",
-  "m8aV411InspectorRoles",
-  "m8aV411InspectorStateEvidenceState",
-  "m8aV411InspectorTruthBoundaryState",
-  "m8aV411InspectorCombinedOpen",
-  "m8aV411InspectorImplementationEvidenceDefaultOpen",
-  "m8aV411InspectorMaxWidthPx",
-  "m8aV411InspectorMaxHeightCss",
-  "m8aV411InspectorMaxCanvasWidthRatio",
-  "m8aV411TransientSurface",
-  "m8aV411TransientSurfaceScope",
-  "m8aV411TransitionToastDurationMs",
-  "m8aV411TransitionToastMaxCount",
-  "m8aV411TransitionToastMaxWidthPx",
-  "m8aV411TransitionToastMaxCanvasWidthRatio",
-  "m8aV411SceneCueMaxWidthPx",
-  "m8aV411SceneCueMaxHeightPx",
-  "m8aV411SceneCueFadeInMs",
-  "m8aV411SceneCuePersistMs",
-  "m8aV411SourcesRole",
-  "m8aV411SourcesRoleState",
-  "m8aV411SourcesFilter",
-  "m8aV411SourcesTleRowCount",
-  "m8aV411SourcesGroundStationCount",
-  "m8aV411SourcesR2CandidateCount",
-  "m8aV49PersistentAllowedContent",
-  "m8aV49PersistentDeniedDefaultContent",
-  "m8aV49PersistentTruthAffordance",
-  "m8aV49FirstReadMessage",
-  "m8aV49WatchCueLabel",
-  "m8aV49OrbitClassToken",
-  "m8aV49WindowIds",
-  "m8aV49SceneNearMeaningLayer",
-  "m8aV49SceneNearReliableVisibleContent",
-  "m8aV49SceneNearFallbackVisibleContent",
-  "m8aV49SceneNearReliableAnchorRequired",
-  "m8aV49SceneNearFallbackPolicy",
-  "m8aV49SceneNearConnectorPolicy",
-  "m8aV49SceneNearActiveMeaning",
-  "m8aV49TransitionEventLayer",
-  "m8aV49TransitionEventTrigger",
-  "m8aV49TransitionEventDurationMs",
-  "m8aV49TransitionEventVisibleContent",
-  "m8aV49TransitionEventDeniedVisibleContent",
-  "m8aV49TransitionEventVisible",
-  "m8aV49TransitionEventFromLabel",
-  "m8aV49TransitionEventToLabel",
-  "m8aV49TransitionEventText",
-  "m8aV49TransitionEventContext",
-  "m8aV49TransitionEventStateTruthSource",
-  "m8aV49TransitionEventNonBlocking",
-  "m8aV49InspectorLayer",
-  "m8aV410InspectorEvidenceRedesign",
-  "m8aV410InspectorEvidenceStructure",
-  "m8aV410InspectorFirstReadRole",
-  "m8aV410InspectorDeniedFirstReadRoles",
-  "m8aV410InspectorNotClaimedContent",
-  "m8aV410InspectorSurfaceSeparation",
-  "m8aV49InspectorPrimaryVisibleContent",
-  "m8aV49InspectorDeniedPrimaryContent",
-  "m8aV49InspectorDebugEvidenceContent",
-  "m8aV49InspectorDebugEvidenceDefaultOpen",
-  "m8aV49InspectorTruthBoundaryPlacement",
-  "m8aV49InspectorMetadataPolicy",
-  "m8aV4GroundStationRawItriSideReadOwnership",
-  "m8aV4GroundStationRuntimeConsumptionRule",
-  "m8aV4GroundStationProofSeam",
-  "m8aV4GroundStationNonClaims",
-  "m8aV4ItriRequirementGapSurface",
-  "m8aV4ItriRequirementGapTruthLabels",
-  "m8aV4ItriRequirementGapGroupIds",
-  "m8aV4ItriRequirementGapGroupStatuses",
-  "m8aV4ItriRequirementGapGroupDispositions",
-  "m8aV4ItriRequirementGapOpenIds",
-  "m8aV4ItriRequirementGapNotMountedIds",
-  "m8aV4ItriRequirementGapExternalValidationIds",
-  "m8aV4ItriRequirementGapRepoSeamIds",
-  "m8aV4ItriRequirementGapBoundedRouteIds",
-  "m8aV4ItriRequirementGapRouteBaselineIds",
-  "m8aV4ItriDemoPolishDisposition",
-  "m8aV4ItriRouteNativeMeasuredTruthClaimed",
-  "m8aV4ItriF09RateSurface",
-  "m8aV4ItriF09RateDisposition",
-  "m8aV4ItriF09ExternalTruthDisposition",
-  "m8aV4ItriF09CurrentWindowId",
-  "m8aV4ItriF09CurrentClass",
-  "m8aV4ItriF09CurrentBucket",
-  "m8aV4ItriF09Provenance",
-  "m8aV4ItriF09MetricTruth",
-  "m8aV4ItriF09MeasuredThroughputClaimed",
-  "m8aV4ItriF09WindowClasses",
-  "m8aV4ItriF16ExportSurface",
-  "m8aV4ItriF16ExportSchemaVersion",
-  "m8aV4ItriF16ExportDisposition",
-  "m8aV4ItriF16ExternalTruthDisposition",
-  "m8aV4ItriF16ExportArtifactTruth",
-  "m8aV4ItriF16ExportFormat",
-  "m8aV4ItriF16RouteOwnedStateOnly",
-  "m8aV4ItriF16MeasuredValuesIncluded",
-  "m8aV4ItriF16ExternalReportTruthClaimed",
-  "m8aV4ItriF16LastStatus",
-  "m8aV4ItriF16LastGeneratedAtUtc",
-  "m8aV4ItriF16LastFilename",
-  "m8aV4ItriPolicyRuleControlsSurface",
-  "m8aV4ItriPolicyRuleControlsDisposition",
-  "m8aV4ItriPolicyRuleExternalTruthDisposition",
-  "m8aV4ItriPolicyRuleTruthBoundary",
-  "m8aV4ItriPolicyRuleExportAdjacentTruth",
-  "m8aV4ItriF10PolicyPresetId",
-  "m8aV4ItriF10PolicyPresetLabel",
-  "m8aV4ItriF10PolicyPresetMode",
-  "m8aV4ItriF10PolicyPresetIds",
-  "m8aV4ItriF11RulePresetId",
-  "m8aV4ItriF11RulePresetLabel",
-  "m8aV4ItriF11RulePresetMode",
-  "m8aV4ItriF11RulePresetIds",
-  "m8aV4ItriF11RuleParameterChips",
-  "m8aV4ItriPolicyRuleRouteOwnedStateOnly",
-  "m8aV4ItriPolicyRuleLiveControlClaimed",
-  "m8aV4ItriPolicyRuleBackendControlClaimed",
-  "m8aV4ItriPolicyRuleNetworkControlClaimed",
-  "m8aV4ItriPolicyRuleArbitraryRuleEditorClaimed",
-  "m8aV4ItriPolicyRuleMeasuredDecisionTruthClaimed"
-] as const;
-
-type M8aV47ProductPlaybackMultiplier =
-  (typeof M8A_V47_PRODUCT_PLAYBACK_MULTIPLIERS)[number];
-type M8aV47PlaybackMultiplier =
-  | M8aV47ProductPlaybackMultiplier
-  | typeof M8A_V47_DEBUG_TEST_MULTIPLIER;
-type M8aV47PlaybackMode =
-  | "guided-review"
-  | "product-default"
-  | "quick-scan"
-  | "debug-test";
-type M8aV47PlaybackStatus = "playing" | "paused" | "final-hold";
-type M8aV47DisclosureState = "closed" | "open";
-const M8A_V411_INSPECTOR_TABS = [
-  "decision",
-  "metrics",
-  "evidence"
-] as const;
-type M8aV411InspectorTab = (typeof M8A_V411_INSPECTOR_TABS)[number];
-
-type M8aV4RelationRole =
-  | "displayRepresentative"
-  | "candidateContext"
-  | "fallbackContext";
-type M8aV4LinkFlowRelationRole =
-  (typeof M8A_V4_LINK_FLOW_RELATION_ROLES)[number];
-type M8aV4LinkFlowDirection =
-  (typeof M8A_V4_LINK_FLOW_DIRECTIONS)[number];
-
 interface M8aV4ActorEmphasis {
   actorId: string;
   orbitClass: M8aV4OrbitClass;
@@ -1304,287 +441,6 @@ interface M8aV4ActorDisplayMotionState {
   truthBoundary:
     | "viewer-owned-display-projection-not-source-truth"
     | "near-fixed-geo-display-context-guard-not-service-truth";
-}
-
-type M8aV48InfoClass = "fixed" | "dynamic" | "disclosure" | "control";
-
-interface M8aV48ReviewActorReference {
-  actorId: M8aV46dActorId;
-  label: string;
-  orbitClass: M8aV4OrbitClass;
-}
-
-type M8aV48RelationCueId =
-  | "m8a-v46e-simulation-displayRepresentative-context-ribbon"
-  | "m8a-v46e-simulation-geo-guard-cue";
-
-type M8aV48EndpointCorridorId =
-  "m8a-v4-operator-family-endpoint-context-ribbon";
-
-type M8aV48SelectedSceneAnchorType =
-  | "display-representative-actor"
-  | "display-representative-relation-cue"
-  | "endpoint-corridor-anchor"
-  | "geo-guard-cue";
-
-type M8aV48SceneAnchorStateId =
-  | "representative-actor-anchor"
-  | "representative-meo-actor-anchor"
-  | "representative-leo-actor-anchor"
-  | "geo-guard-cue-anchor";
-
-type M8aV48SceneAnchorRuntimeStatus =
-  | "geometry-reliable"
-  | "fallback";
-
-type M8aV49SceneNearDisplayMode =
-  | "scene-near-meaning"
-  | "persistent-layer-fallback";
-
-type M8aV49SceneNearAttachmentClaim =
-  | "display-context-cue-attachment-only-when-geometry-reliable"
-  | "no-scene-attachment-claimed";
-
-type M8aV48SceneAnchorFallbackReason =
-  | "anchor-not-projected"
-  | "anchor-outside-viewport"
-  | "anchor-behind-camera"
-  | "protection-rect-obstructed";
-
-interface M8aV48SceneAnchorState {
-  state: M8aV48SceneAnchorStateId;
-  selectedAnchorType: M8aV48SelectedSceneAnchorType;
-  selectedActorId: M8aV46dActorId | null;
-  selectedRelationCueId: M8aV48RelationCueId | null;
-  selectedCorridorId: M8aV48EndpointCorridorId | null;
-  anchorStatus: "requires-render-geometry-validation";
-  fallbackReason: null;
-  anchorClaim: "selected-display-context-cue-not-service-truth";
-}
-
-interface M8aV48SceneAnchorProtectionRect {
-  left: number;
-  top: number;
-  right: number;
-  bottom: number;
-  width: number;
-  height: number;
-}
-
-interface M8aV48SceneAnchorPlacement {
-  anchorActorId: M8aV46dActorId | "";
-  anchorX: number;
-  anchorY: number;
-  left: number;
-  top: number;
-  width: number;
-  height: number;
-  projected: boolean;
-  selectedAnchorType: M8aV48SelectedSceneAnchorType | "non-scene-fallback";
-  selectedActorId: M8aV46dActorId | "";
-  selectedRelationCueId: M8aV48RelationCueId | "";
-  selectedCorridorId: M8aV48EndpointCorridorId | "";
-  anchorStatus: M8aV48SceneAnchorRuntimeStatus;
-  fallbackReason: M8aV48SceneAnchorFallbackReason | "";
-  connectorStartX: number;
-  connectorStartY: number;
-  connectorEndX: number;
-  connectorEndY: number;
-  connectorLength: number;
-  connectorAngleDegrees: number;
-  connectorEndpointDistancePx: number;
-  connectorThresholdPx: number;
-  protectionRect: M8aV48SceneAnchorProtectionRect;
-}
-
-interface M8aV48RelationCueRole {
-  primary: "displayRepresentative";
-  secondary: "candidateContext";
-  displayLabel: "displayRepresentative primary; candidateContext secondary";
-}
-
-interface M8aV48HandoverReviewViewModel {
-  version: typeof M8A_V48_UI_IA_VERSION;
-  windowId: M8aV46dSimulationHandoverWindowId;
-  productLabel: string;
-  stateIndex: number;
-  stateCount: number;
-  stateOrdinalLabel: string;
-  representativeActor: M8aV48ReviewActorReference;
-  candidateContextActors: ReadonlyArray<M8aV48ReviewActorReference>;
-  fallbackContextActors: ReadonlyArray<M8aV48ReviewActorReference>;
-  reviewPurpose: string;
-  whatChangedFromPreviousState: string;
-  whatToWatch: string;
-  nextStateHint: string;
-  relationCueRole: M8aV48RelationCueRole;
-  sceneAnchorState: M8aV48SceneAnchorState;
-  truthBoundarySummary:
-    "Simulation review only; no active satellite, gateway, path, measured metric, native RF, or operator-log truth.";
-}
-
-interface M8aV49WindowProductCopy {
-  windowId: M8aV46dSimulationHandoverWindowId;
-  productLabel: string;
-  orbitClassToken: "LEO" | "MEO" | "GEO";
-  firstReadMessage: string;
-  watchCueLabel: string;
-  nextLine: string;
-  transitionRole: string;
-}
-
-interface M8aV410FirstViewportCompositionRuntime {
-  version: typeof M8A_V410_FIRST_VIEWPORT_COMPOSITION_VERSION;
-  scope: "slice1-first-viewport-composition";
-  sceneNarrativeVisibleContent: typeof M8A_V410_SCENE_NARRATIVE_VISIBLE_CONTENT;
-  controlsPriority: "secondary";
-  inspectorDefaultOpen: false;
-  routePreservation: typeof M8A_V4_GROUND_STATION_QUERY_VALUE;
-  endpointPairPreserved:
-    typeof M8A_V4_GROUND_STATION_RUNTIME_PROJECTION.simulationHandoverModel.endpointPairId;
-  sequenceRailScope: "slice2-handover-sequence-rail";
-}
-
-interface M8aV410SequenceRailItem {
-  windowId: M8aV46dSimulationHandoverWindowId;
-  stateIndex: number;
-  stateCount: number;
-  ordinalLabel: string;
-  railLabel: string;
-  productLabel: string;
-  orbitClassToken: M8aV49WindowProductCopy["orbitClassToken"];
-  isActive: boolean;
-  isNext: boolean;
-  isTransitionFrom: boolean;
-  isTransitionTo: boolean;
-}
-
-interface M8aV410HandoverSequenceRailRuntime {
-  version: typeof M8A_V410_HANDOVER_SEQUENCE_RAIL_VERSION;
-  scope: "slice2-handover-sequence-rail";
-  visibleContent: typeof M8A_V410_SEQUENCE_RAIL_VISIBLE_CONTENT;
-  viewportPolicy: "desktop-visible-narrow-compact";
-  windowIds: ReadonlyArray<M8aV46dSimulationHandoverWindowId>;
-  activeWindowId: M8aV46dSimulationHandoverWindowId;
-  nextWindowId: M8aV46dSimulationHandoverWindowId;
-  activeProductLabel: string;
-  nextProductLabel: string;
-  activeOrdinalLabel: string;
-  nextOrdinalLabel: string;
-  items: ReadonlyArray<M8aV410SequenceRailItem>;
-  transitionEvent: {
-    visible: boolean;
-    fromWindowId: M8aV46dSimulationHandoverWindowId | "";
-    toWindowId: M8aV46dSimulationHandoverWindowId | "";
-  };
-}
-
-interface M8aV410BoundaryAffordanceRuntime {
-  version: typeof M8A_V410_BOUNDARY_AFFORDANCE_VERSION;
-  scope: "slice3-boundary-affordance-separation";
-  visibleContent: typeof M8A_V410_BOUNDARY_AFFORDANCE_VISIBLE_CONTENT;
-  compactCopy: typeof M8A_V410_BOUNDARY_COMPACT_COPY;
-  secondaryCopy: typeof M8A_V410_BOUNDARY_SECONDARY_COPY;
-  triggerLabel: "Truth";
-  defaultVisible: true;
-  detailsBehavior:
-    "focused-boundary-surface-not-generic-details-inspector";
-  detailsSheetState: M8aV47DisclosureState;
-  boundarySurfaceState: M8aV47DisclosureState;
-  fullTruthDisclosureState: M8aV47DisclosureState;
-  fullTruthDisclosurePlacement:
-    "boundary-surface-and-details-secondary-disclosure";
-  forbiddenBehavior: readonly [
-    "truth-does-not-open-generic-details-inspector",
-    "truth-and-details-do-not-share-open-state",
-    "truth-and-details-do-not-share-sheet-surface"
-  ];
-}
-
-interface M8aV49TransitionEventRuntime {
-  fromWindowId: M8aV46dSimulationHandoverWindowId;
-  toWindowId: M8aV46dSimulationHandoverWindowId;
-  fromProductLabel: string;
-  toProductLabel: string;
-  summaryText: string;
-  contextText: string;
-  durationMs: typeof M8A_V49_TRANSITION_EVENT_DURATION_MS;
-  startedAtEpochMs: number;
-  expiresAtEpochMs: number;
-  source: "active-v46d-window-id-change";
-  stateTruthSource: "persistent-and-scene-near-layers";
-  blocksControls: false;
-  requiresUserAction: false;
-}
-
-interface M8aV49ProductComprehensionRuntime {
-  version: typeof M8A_V49_PRODUCT_COMPREHENSION_VERSION;
-  scope: "slice4-inspector-details-hierarchy-redesign";
-  firstViewportComposition: M8aV410FirstViewportCompositionRuntime;
-  handoverSequenceRail: M8aV410HandoverSequenceRailRuntime;
-  boundaryAffordance: M8aV410BoundaryAffordanceRuntime;
-  windowIds: ReadonlyArray<M8aV46dSimulationHandoverWindowId>;
-  activeWindowCopy: M8aV49WindowProductCopy;
-  copyInventory: ReadonlyArray<M8aV49WindowProductCopy>;
-  persistentLayer: {
-    defaultVisibleContent: typeof M8A_V49_PERSISTENT_ALLOWED_CONTENT;
-    deniedDefaultVisibleContent: typeof M8A_V49_PERSISTENT_DENIED_DEFAULT_CONTENT;
-    truthAffordanceLabel: "Truth";
-    longTruthBadgesDefaultVisible: false;
-    metadataDefaultVisible: false;
-    compactOnNarrowViewport: true;
-  };
-  sceneNearMeaningLayer: {
-    scope: "slice2-scene-near-meaning-layer-correction";
-    reliableAnchorRequired: true;
-    reliableVisibleContent: typeof M8A_V49_SCENE_NEAR_RELIABLE_VISIBLE_CONTENT;
-    fallbackVisibleContent: typeof M8A_V49_SCENE_NEAR_FALLBACK_VISIBLE_CONTENT;
-    fallbackPolicy: "persistent-layer-wording-without-scene-attachment";
-    connectorPolicy: "visible-only-when-anchor-geometry-reliable";
-    activeMeaning: string;
-    activeWatchCueLabel: string;
-    activeOrbitClassToken: M8aV49WindowProductCopy["orbitClassToken"];
-  };
-  transitionEventLayer: {
-    scope: "slice3-transition-event-layer";
-    trigger: "active-v46d-window-id-change";
-    durationMs: typeof M8A_V49_TRANSITION_EVENT_DURATION_MS;
-    visibleContent: typeof M8A_V49_TRANSITION_EVENT_VISIBLE_CONTENT;
-    deniedVisibleContent: typeof M8A_V49_TRANSITION_EVENT_DENIED_VISIBLE_CONTENT;
-    currentStateTruthSource: "persistent-and-scene-near-layers";
-    blockingPolicy: "non-blocking-no-user-action";
-    placementPolicy: "avoid-reliable-scene-near-cue";
-    activeEvent: M8aV49TransitionEventRuntime | null;
-  };
-  inspectorLayer: {
-    scope: "slice4-inspector-details-hierarchy-redesign";
-    v410EvidenceRedesignVersion: typeof M8A_V410_INSPECTOR_EVIDENCE_VERSION;
-    evidenceStructure: typeof M8A_V410_INSPECTOR_EVIDENCE_STRUCTURE;
-    primaryVisibleContent: typeof M8A_V49_INSPECTOR_PRIMARY_VISIBLE_CONTENT;
-    deniedPrimaryVisibleContent: typeof M8A_V49_INSPECTOR_DENIED_PRIMARY_CONTENT;
-    debugEvidenceContent: typeof M8A_V49_INSPECTOR_DEBUG_EVIDENCE_CONTENT;
-    debugEvidenceDefaultOpen: false;
-    firstReadRole: "secondary-evidence-inspector";
-    deniedFirstReadRoles: typeof M8A_V410_INSPECTOR_DENIED_FIRST_READ_ROLES;
-    truthBoundaryPlacement: "concise-primary-summary-full-secondary-disclosure";
-    metadataPolicy: "raw-ids-and-arrays-collapsed-implementation-evidence";
-    notClaimedContent: typeof M8A_V410_INSPECTOR_NOT_CLAIMED_CONTENT;
-    surfaceSeparation:
-      "details-inspector-and-truth-boundary-are-separate-states-and-surfaces";
-  };
-}
-
-interface M8aV49SceneNearRenderState {
-  mode: M8aV49SceneNearDisplayMode;
-  heading: string;
-  productLabel: string;
-  stateMeaning: string;
-  watchCueLabel: string;
-  fallbackText: string;
-  meaningVisible: boolean;
-  cueVisible: boolean;
-  fallbackVisible: boolean;
-  attachmentClaim: M8aV49SceneNearAttachmentClaim;
 }
 
 export interface M8aV4GroundStationSceneState {
@@ -1792,6 +648,33 @@ export interface M8aV4GroundStationSceneState {
       typeof M8A_V4_ITRI_ROUTE_NATIVE_MEASURED_TRUTH_CLAIMED;
     groups: ReadonlyArray<M8aV4ItriRequirementStatusGroup>;
     openRequirementIds: ReadonlyArray<string>;
+  };
+  acceptanceLayer: {
+    version: typeof M8A_V4_ITRI_DEMO_VIEW_ACCEPTANCE_LAYER_VERSION;
+    layerId: typeof M8A_V4_ITRI_DEMO_VIEW_ACCEPTANCE_LAYER_ID;
+    truthBoundary: typeof M8A_V4_ITRI_DEMO_VIEW_ACCEPTANCE_TRUTH_BOUNDARY;
+    requirementIds: typeof M8A_V4_ITRI_ACCEPTANCE_REQUIREMENT_IDS;
+    coverageRecords: ReadonlyArray<M8aV4ItriAcceptanceCoverageRecord>;
+    requirementStatusPairs: ReadonlyArray<string>;
+    requirementLayerPairs: ReadonlyArray<string>;
+    externalFailIds: typeof M8A_V4_ITRI_ACCEPTANCE_EXTERNAL_FAIL_IDS;
+    boundedRouteRepresentationIds:
+      typeof M8A_V4_ITRI_ACCEPTANCE_BOUNDED_ROUTE_REPRESENTATION_IDS;
+    f13Phase71Evidence: {
+      artifact: typeof M8A_V4_ITRI_PHASE7_1_F13_EVIDENCE_ARTIFACT;
+      generatedAtUtc:
+        typeof M8A_V4_ITRI_PHASE7_1_F13_EVIDENCE_GENERATED_AT_UTC;
+      staleAfterUtc:
+        typeof M8A_V4_ITRI_PHASE7_1_F13_EVIDENCE_STALE_AFTER_UTC;
+      leoCount: typeof M8A_V4_ITRI_PHASE7_1_F13_LEO_COUNT;
+      totalCount: typeof M8A_V4_ITRI_PHASE7_1_F13_TOTAL_COUNT;
+      routeNativeScaleClaimed: false;
+    };
+    externalValidationPackage: {
+      artifact: typeof M8A_V4_ITRI_EXTERNAL_V02_V06_VALIDATION_ARTIFACT;
+      status: typeof M8A_V4_ITRI_EXTERNAL_V02_V06_STATUS;
+      failIds: typeof M8A_V4_ITRI_ACCEPTANCE_EXTERNAL_FAIL_IDS;
+    };
   };
   f09RateSurface: {
     version: typeof M8A_V4_ITRI_F09_RATE_SURFACE_VERSION;
@@ -2295,496 +1178,6 @@ function resolveViewportClass(): "desktop" | "narrow" {
   return window.innerWidth <= M8A_V46E_NARROW_VIEWPORT_MAX_WIDTH_PX
     ? "narrow"
     : "desktop";
-}
-
-function resolveTimelineLabel(
-  windowId: M8aV46dSimulationHandoverWindowId
-): string {
-  return M8A_V46E_TIMELINE_LABELS[windowId];
-}
-
-function resolveReviewActorReference(
-  actorId: M8aV46dActorId
-): M8aV48ReviewActorReference {
-  const actor = M8A_V4_GROUND_STATION_RUNTIME_PROJECTION.orbitActors.find(
-    (candidate) => candidate.actorId === actorId
-  );
-
-  if (!actor) {
-    throw new Error(`Missing V4.8 review actor ${actorId}.`);
-  }
-
-  return {
-    actorId,
-    label: actor.label,
-    orbitClass: actor.orbitClass
-  };
-}
-
-function resolveV48StateOrdinalLabel(
-  timeline: ReadonlyArray<M8aV46dSimulationHandoverWindow>,
-  windowId: M8aV46dSimulationHandoverWindowId
-): {
-  stateIndex: number;
-  stateCount: number;
-  stateOrdinalLabel: string;
-} {
-  const stateCount = timeline.length;
-  const zeroBasedIndex = timeline.findIndex((windowDefinition) => {
-    return windowDefinition.windowId === windowId;
-  });
-  const stateIndex = zeroBasedIndex >= 0 ? zeroBasedIndex + 1 : 1;
-
-  return {
-    stateIndex,
-    stateCount,
-    stateOrdinalLabel: `State ${stateIndex} of ${stateCount}`
-  };
-}
-
-function buildV48SceneAnchorState(
-  windowDefinition: M8aV46dSimulationHandoverWindow
-): M8aV48SceneAnchorState {
-  const selectedRelationCueId =
-    windowDefinition.windowId === "geo-continuity-guard"
-      ? "m8a-v46e-simulation-geo-guard-cue"
-      : "m8a-v46e-simulation-displayRepresentative-context-ribbon";
-  const selectedCorridorId: M8aV48EndpointCorridorId | null =
-    windowDefinition.windowId === "leo-acquisition-context"
-      ? "m8a-v4-operator-family-endpoint-context-ribbon"
-      : null;
-
-  switch (windowDefinition.windowId) {
-    case "meo-continuity-hold":
-      return {
-        state: "representative-meo-actor-anchor",
-        selectedAnchorType: "display-representative-actor",
-        selectedActorId: windowDefinition.displayRepresentativeActorId,
-        selectedRelationCueId,
-        selectedCorridorId,
-        anchorStatus: "requires-render-geometry-validation",
-        fallbackReason: null,
-        anchorClaim: "selected-display-context-cue-not-service-truth"
-      };
-    case "leo-reentry-candidate":
-      return {
-        state: "representative-leo-actor-anchor",
-        selectedAnchorType: "display-representative-actor",
-        selectedActorId: windowDefinition.displayRepresentativeActorId,
-        selectedRelationCueId,
-        selectedCorridorId,
-        anchorStatus: "requires-render-geometry-validation",
-        fallbackReason: null,
-        anchorClaim: "selected-display-context-cue-not-service-truth"
-      };
-    case "geo-continuity-guard":
-      return {
-        state: "geo-guard-cue-anchor",
-        selectedAnchorType: "geo-guard-cue",
-        selectedActorId: windowDefinition.displayRepresentativeActorId,
-        selectedRelationCueId,
-        selectedCorridorId,
-        anchorStatus: "requires-render-geometry-validation",
-        fallbackReason: null,
-        anchorClaim: "selected-display-context-cue-not-service-truth"
-      };
-    case "leo-acquisition-context":
-    case "leo-aging-pressure":
-      return {
-        state: "representative-actor-anchor",
-        selectedAnchorType: "display-representative-actor",
-        selectedActorId: windowDefinition.displayRepresentativeActorId,
-        selectedRelationCueId,
-        selectedCorridorId,
-        anchorStatus: "requires-render-geometry-validation",
-        fallbackReason: null,
-        anchorClaim: "selected-display-context-cue-not-service-truth"
-      };
-  }
-}
-
-function buildV48HandoverReviewViewModel(
-  simulationHandoverModel: M8aV4GroundStationSceneState["simulationHandoverModel"]
-): M8aV48HandoverReviewViewModel {
-  const windowDefinition = simulationHandoverModel.window;
-  const productLabel = resolveTimelineLabel(windowDefinition.windowId);
-  const ordinal = resolveV48StateOrdinalLabel(
-    simulationHandoverModel.timeline,
-    windowDefinition.windowId
-  );
-  const reviewCopy = M8A_V48_REVIEW_COPY[windowDefinition.windowId];
-
-  return {
-    version: M8A_V48_UI_IA_VERSION,
-    windowId: windowDefinition.windowId,
-    productLabel,
-    ...ordinal,
-    representativeActor: resolveReviewActorReference(
-      windowDefinition.displayRepresentativeActorId
-    ),
-    candidateContextActors: windowDefinition.candidateContextActorIds.map(
-      resolveReviewActorReference
-    ),
-    fallbackContextActors: windowDefinition.fallbackContextActorIds.map(
-      resolveReviewActorReference
-    ),
-    reviewPurpose: reviewCopy.reviewPurpose,
-    whatChangedFromPreviousState: reviewCopy.whatChangedFromPreviousState,
-    whatToWatch: reviewCopy.whatToWatch,
-    nextStateHint: reviewCopy.nextStateHint,
-    relationCueRole: {
-      primary: "displayRepresentative",
-      secondary: "candidateContext",
-      displayLabel:
-        "displayRepresentative primary; candidateContext secondary"
-    },
-    sceneAnchorState: {
-      ...buildV48SceneAnchorState(windowDefinition)
-    },
-    truthBoundarySummary:
-      "Simulation review only; no active satellite, gateway, path, measured metric, native RF, or operator-log truth."
-  };
-}
-
-function resolveV49WindowProductCopy(
-  windowId: M8aV46dSimulationHandoverWindowId
-): M8aV49WindowProductCopy {
-  const copy = M8A_V49_PRODUCT_COPY[windowId];
-
-  return {
-    windowId,
-    productLabel: copy.productLabel,
-    orbitClassToken: copy.orbitClassToken,
-    firstReadMessage: copy.firstReadMessage,
-    watchCueLabel: copy.watchCueLabel,
-    nextLine: copy.nextLine,
-    transitionRole: copy.transitionRole
-  };
-}
-
-function resolveV49TransitionContextText(
-  toCopy: M8aV49WindowProductCopy
-): string {
-  switch (toCopy.orbitClassToken) {
-    case "MEO":
-      return "Continuity shifts to MEO review context";
-    case "GEO":
-      return "Continuity guard shifts to GEO guard context";
-    case "LEO":
-      return "Review context shifts to LEO focus";
-  }
-}
-
-function resolveV410TransitionLabel(
-  windowId: M8aV46dSimulationHandoverWindowId
-): string {
-  return M8A_V410_TRANSITION_LABELS[windowId];
-}
-
-function resolveNextV410SequenceWindowId(
-  windowIds: ReadonlyArray<M8aV46dSimulationHandoverWindowId>,
-  activeWindowId: M8aV46dSimulationHandoverWindowId
-): M8aV46dSimulationHandoverWindowId {
-  const activeIndex = windowIds.findIndex((windowId) => {
-    return windowId === activeWindowId;
-  });
-  const nextIndex =
-    activeIndex >= 0 ? (activeIndex + 1) % windowIds.length : 0;
-
-  return windowIds[nextIndex] ?? activeWindowId;
-}
-
-function buildV410HandoverSequenceRailRuntime(
-  simulationHandoverModel: M8aV4GroundStationSceneState["simulationHandoverModel"],
-  activeTransitionEvent: M8aV49TransitionEventRuntime | null
-): M8aV410HandoverSequenceRailRuntime {
-  const windowIds = simulationHandoverModel.timeline.map(
-    (windowDefinition) => windowDefinition.windowId
-  );
-  const activeWindowId = simulationHandoverModel.window.windowId;
-  const nextWindowId = resolveNextV410SequenceWindowId(
-    windowIds,
-    activeWindowId
-  );
-  const activeCopy = resolveV49WindowProductCopy(activeWindowId);
-  const nextCopy = resolveV49WindowProductCopy(nextWindowId);
-  const activeOrdinal = resolveV48StateOrdinalLabel(
-    simulationHandoverModel.timeline,
-    activeWindowId
-  );
-  const nextOrdinal = resolveV48StateOrdinalLabel(
-    simulationHandoverModel.timeline,
-    nextWindowId
-  );
-  const transitionFromWindowId =
-    activeTransitionEvent?.fromWindowId ?? "";
-  const transitionToWindowId = activeTransitionEvent?.toWindowId ?? "";
-
-  return {
-    version: M8A_V410_HANDOVER_SEQUENCE_RAIL_VERSION,
-    scope: "slice2-handover-sequence-rail",
-    visibleContent: M8A_V410_SEQUENCE_RAIL_VISIBLE_CONTENT,
-    viewportPolicy: "desktop-visible-narrow-compact",
-    windowIds,
-    activeWindowId,
-    nextWindowId,
-    activeProductLabel: activeCopy.productLabel,
-    nextProductLabel: nextCopy.productLabel,
-    activeOrdinalLabel: activeOrdinal.stateOrdinalLabel,
-    nextOrdinalLabel: nextOrdinal.stateOrdinalLabel,
-    items: simulationHandoverModel.timeline.map((windowDefinition) => {
-      const ordinal = resolveV48StateOrdinalLabel(
-        simulationHandoverModel.timeline,
-        windowDefinition.windowId
-      );
-      const copy = resolveV49WindowProductCopy(windowDefinition.windowId);
-
-      return {
-        windowId: windowDefinition.windowId,
-        stateIndex: ordinal.stateIndex,
-        stateCount: ordinal.stateCount,
-        ordinalLabel: ordinal.stateOrdinalLabel,
-        railLabel: resolveV410TransitionLabel(windowDefinition.windowId),
-        productLabel: copy.productLabel,
-        orbitClassToken: copy.orbitClassToken,
-        isActive: windowDefinition.windowId === activeWindowId,
-        isNext: windowDefinition.windowId === nextWindowId,
-        isTransitionFrom:
-          windowDefinition.windowId === transitionFromWindowId,
-        isTransitionTo: windowDefinition.windowId === transitionToWindowId
-      };
-    }),
-    transitionEvent: {
-      visible: Boolean(activeTransitionEvent),
-      fromWindowId: transitionFromWindowId,
-      toWindowId: transitionToWindowId
-    }
-  };
-}
-
-function buildV410BoundaryAffordanceRuntime({
-  detailsSheetState,
-  boundarySurfaceState,
-  fullTruthDisclosureState
-}: {
-  detailsSheetState: M8aV47DisclosureState;
-  boundarySurfaceState: M8aV47DisclosureState;
-  fullTruthDisclosureState: M8aV47DisclosureState;
-}): M8aV410BoundaryAffordanceRuntime {
-  return {
-    version: M8A_V410_BOUNDARY_AFFORDANCE_VERSION,
-    scope: "slice3-boundary-affordance-separation",
-    visibleContent: M8A_V410_BOUNDARY_AFFORDANCE_VISIBLE_CONTENT,
-    compactCopy: M8A_V410_BOUNDARY_COMPACT_COPY,
-    secondaryCopy: M8A_V410_BOUNDARY_SECONDARY_COPY,
-    triggerLabel: "Truth",
-    defaultVisible: true,
-    detailsBehavior:
-      "focused-boundary-surface-not-generic-details-inspector",
-    detailsSheetState,
-    boundarySurfaceState,
-    fullTruthDisclosureState,
-    fullTruthDisclosurePlacement:
-      "boundary-surface-and-details-secondary-disclosure",
-    forbiddenBehavior: [
-      "truth-does-not-open-generic-details-inspector",
-      "truth-and-details-do-not-share-open-state",
-      "truth-and-details-do-not-share-sheet-surface"
-    ]
-  };
-}
-
-function buildV49TransitionEvent(
-  fromWindowId: M8aV46dSimulationHandoverWindowId,
-  toWindowId: M8aV46dSimulationHandoverWindowId,
-  startedAtEpochMs: number
-): M8aV49TransitionEventRuntime {
-  const fromCopy = resolveV49WindowProductCopy(fromWindowId);
-  const toCopy = resolveV49WindowProductCopy(toWindowId);
-
-  return {
-    fromWindowId,
-    toWindowId,
-    fromProductLabel: fromCopy.productLabel,
-    toProductLabel: toCopy.productLabel,
-    summaryText: `${resolveV410TransitionLabel(
-      fromWindowId
-    )} -> ${resolveV410TransitionLabel(toWindowId)}`,
-    contextText: resolveV49TransitionContextText(toCopy),
-    durationMs: M8A_V49_TRANSITION_EVENT_DURATION_MS,
-    startedAtEpochMs,
-    expiresAtEpochMs: startedAtEpochMs + M8A_V49_TRANSITION_EVENT_DURATION_MS,
-    source: "active-v46d-window-id-change",
-    stateTruthSource: "persistent-and-scene-near-layers",
-    blocksControls: false,
-    requiresUserAction: false
-  };
-}
-
-function buildV49ProductComprehensionRuntime(
-  simulationHandoverModel: M8aV4GroundStationSceneState["simulationHandoverModel"],
-  activeTransitionEvent: M8aV49TransitionEventRuntime | null,
-  detailsSheetState: M8aV47DisclosureState,
-  boundarySurfaceState: M8aV47DisclosureState,
-  fullTruthDisclosureState: M8aV47DisclosureState
-): M8aV49ProductComprehensionRuntime {
-  const windowIds = simulationHandoverModel.timeline.map(
-    (windowDefinition) => windowDefinition.windowId
-  );
-  const copyInventory = windowIds.map(resolveV49WindowProductCopy);
-  const activeWindowCopy = resolveV49WindowProductCopy(
-    simulationHandoverModel.window.windowId
-  );
-
-  return {
-    version: M8A_V49_PRODUCT_COMPREHENSION_VERSION,
-    scope: "slice4-inspector-details-hierarchy-redesign",
-    firstViewportComposition: {
-      version: M8A_V410_FIRST_VIEWPORT_COMPOSITION_VERSION,
-      scope: "slice1-first-viewport-composition",
-      sceneNarrativeVisibleContent: M8A_V410_SCENE_NARRATIVE_VISIBLE_CONTENT,
-      controlsPriority: "secondary",
-      inspectorDefaultOpen: false,
-      routePreservation: M8A_V4_GROUND_STATION_QUERY_VALUE,
-      endpointPairPreserved:
-        M8A_V4_GROUND_STATION_RUNTIME_PROJECTION.simulationHandoverModel
-          .endpointPairId,
-      sequenceRailScope: "slice2-handover-sequence-rail"
-    },
-    handoverSequenceRail: buildV410HandoverSequenceRailRuntime(
-      simulationHandoverModel,
-      activeTransitionEvent
-    ),
-    boundaryAffordance: buildV410BoundaryAffordanceRuntime({
-      detailsSheetState,
-      boundarySurfaceState,
-      fullTruthDisclosureState
-    }),
-    windowIds,
-    activeWindowCopy,
-    copyInventory,
-    persistentLayer: {
-      defaultVisibleContent: M8A_V49_PERSISTENT_ALLOWED_CONTENT,
-      deniedDefaultVisibleContent: M8A_V49_PERSISTENT_DENIED_DEFAULT_CONTENT,
-      truthAffordanceLabel: "Truth",
-      longTruthBadgesDefaultVisible: false,
-      metadataDefaultVisible: false,
-      compactOnNarrowViewport: true
-    },
-    sceneNearMeaningLayer: {
-      scope: "slice2-scene-near-meaning-layer-correction",
-      reliableAnchorRequired: true,
-      reliableVisibleContent: M8A_V49_SCENE_NEAR_RELIABLE_VISIBLE_CONTENT,
-      fallbackVisibleContent: M8A_V49_SCENE_NEAR_FALLBACK_VISIBLE_CONTENT,
-      fallbackPolicy: "persistent-layer-wording-without-scene-attachment",
-      connectorPolicy: "visible-only-when-anchor-geometry-reliable",
-      activeMeaning: activeWindowCopy.firstReadMessage,
-      activeWatchCueLabel: activeWindowCopy.watchCueLabel,
-      activeOrbitClassToken: activeWindowCopy.orbitClassToken
-    },
-    transitionEventLayer: {
-      scope: "slice3-transition-event-layer",
-      trigger: "active-v46d-window-id-change",
-      durationMs: M8A_V49_TRANSITION_EVENT_DURATION_MS,
-      visibleContent: M8A_V49_TRANSITION_EVENT_VISIBLE_CONTENT,
-      deniedVisibleContent: M8A_V49_TRANSITION_EVENT_DENIED_VISIBLE_CONTENT,
-      currentStateTruthSource: "persistent-and-scene-near-layers",
-      blockingPolicy: "non-blocking-no-user-action",
-      placementPolicy: "avoid-reliable-scene-near-cue",
-      activeEvent: activeTransitionEvent
-    },
-    inspectorLayer: {
-      scope: "slice4-inspector-details-hierarchy-redesign",
-      v410EvidenceRedesignVersion: M8A_V410_INSPECTOR_EVIDENCE_VERSION,
-      evidenceStructure: M8A_V410_INSPECTOR_EVIDENCE_STRUCTURE,
-      primaryVisibleContent: M8A_V49_INSPECTOR_PRIMARY_VISIBLE_CONTENT,
-      deniedPrimaryVisibleContent: M8A_V49_INSPECTOR_DENIED_PRIMARY_CONTENT,
-      debugEvidenceContent: M8A_V49_INSPECTOR_DEBUG_EVIDENCE_CONTENT,
-      debugEvidenceDefaultOpen: false,
-      firstReadRole: "secondary-evidence-inspector",
-      deniedFirstReadRoles: M8A_V410_INSPECTOR_DENIED_FIRST_READ_ROLES,
-      truthBoundaryPlacement: "concise-primary-summary-full-secondary-disclosure",
-      metadataPolicy: "raw-ids-and-arrays-collapsed-implementation-evidence",
-      notClaimedContent: M8A_V410_INSPECTOR_NOT_CLAIMED_CONTENT,
-      surfaceSeparation:
-        "details-inspector-and-truth-boundary-are-separate-states-and-surfaces"
-    }
-  };
-}
-
-function resolvePlaybackMode(
-  multiplier: number
-): M8aV47PlaybackMode {
-  switch (multiplier) {
-    case M8A_V47_GUIDED_REVIEW_MULTIPLIER:
-      return "guided-review";
-    case M8A_V47_PRODUCT_DEFAULT_MULTIPLIER:
-      return "product-default";
-    case M8A_V47_QUICK_SCAN_MULTIPLIER:
-      return "quick-scan";
-    case M8A_V47_DEBUG_TEST_MULTIPLIER:
-      return "debug-test";
-    default:
-      return "product-default";
-  }
-}
-
-function coercePlaybackMultiplier(
-  multiplier: number
-): M8aV47PlaybackMultiplier {
-  return multiplier === M8A_V47_GUIDED_REVIEW_MULTIPLIER ||
-    multiplier === M8A_V47_PRODUCT_DEFAULT_MULTIPLIER ||
-    multiplier === M8A_V47_QUICK_SCAN_MULTIPLIER ||
-    multiplier === M8A_V47_DEBUG_TEST_MULTIPLIER
-    ? multiplier
-    : M8A_V47_PRODUCT_DEFAULT_MULTIPLIER;
-}
-
-function formatReviewClock(totalSeconds: number): string {
-  const safeSeconds = Math.max(0, Math.floor(totalSeconds));
-  const minutes = Math.floor(safeSeconds / 60);
-  const seconds = safeSeconds % 60;
-
-  return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(
-    2,
-    "0"
-  )}`;
-}
-
-function buildSimulatedReplayTimeDisplay(
-  replayRatio: number,
-  replayDurationMs: number,
-  multiplier: number
-): {
-  reviewElapsedDisplay: string;
-  reviewDurationDisplay: string;
-  simulatedReplayTimeDisplay: string;
-} {
-  const safeMultiplier =
-    Number.isFinite(multiplier) && multiplier > 0
-      ? multiplier
-      : M8A_V47_PRODUCT_DEFAULT_MULTIPLIER;
-  const reviewDurationSeconds = replayDurationMs / 1000 / safeMultiplier;
-  const reviewElapsedSeconds = reviewDurationSeconds * replayRatio;
-  const reviewElapsedDisplay = formatReviewClock(reviewElapsedSeconds);
-  const reviewDurationDisplay = formatReviewClock(reviewDurationSeconds);
-
-  return {
-    reviewElapsedDisplay,
-    reviewDurationDisplay,
-    simulatedReplayTimeDisplay: `Sim replay ${reviewElapsedDisplay} / ${reviewDurationDisplay}`
-  };
-}
-
-function resolvePlaybackStatus(
-  replayState: ReplayClockState,
-  finalHoldActive: boolean
-): M8aV47PlaybackStatus {
-  if (finalHoldActive) {
-    return "final-hold";
-  }
-
-  return replayState.isPlaying ? "playing" : "paused";
 }
 
 function resolveFallbackGuardCueMode(
@@ -3297,6 +1690,13 @@ function renderHud(root: HTMLElement, state: M8aV4GroundStationSceneState): void
   root.dataset.itriRequirementGapOpenIds = serializeList(
     state.requirementGapSurface.openRequirementIds
   );
+  root.dataset.itriAcceptanceLayer = state.acceptanceLayer.version;
+  root.dataset.itriAcceptanceRequirementIds = serializeList([
+    ...state.acceptanceLayer.requirementIds
+  ]);
+  root.dataset.itriAcceptanceExternalFailIds = serializeList([
+    ...state.acceptanceLayer.externalFailIds
+  ]);
   root.dataset.itriF09RateSurface = state.f09RateSurface.version;
   root.dataset.itriF09RateDisposition = state.f09RateSurface.disposition;
   root.dataset.itriF09ExternalTruthDisposition =
@@ -3361,6 +1761,12 @@ function createProductUxRoot(): HTMLElement {
     M8A_V49_PRODUCT_COMPREHENSION_VERSION;
   root.dataset.m8aV410FirstViewportComposition =
     M8A_V410_FIRST_VIEWPORT_COMPOSITION_VERSION;
+  root.dataset.m8aV4ItriDemoViewFocusChoreography =
+    M8A_V4_ITRI_DEMO_VIEW_FOCUS_CHOREOGRAPHY_VERSION;
+  root.dataset.m8aV4ItriDemoViewDefaultFocus =
+    M8A_V4_ITRI_DEMO_VIEW_DEFAULT_FOCUS_VERSION;
+  root.dataset.m8aV4ItriDemoViewNarrow =
+    M8A_V4_ITRI_DEMO_VIEW_NARROW_VERSION;
   root.dataset.m8aV411GlanceRankSurface =
     M8A_V411_GLANCE_RANK_SURFACE_VERSION;
   root.dataset.m8aV411HoverPopover = M8A_V411_HOVER_POPOVER_VERSION;
@@ -3375,14 +1781,6 @@ function renderTruthBadges(): string {
     (badge) =>
       `<span data-m8a-v47-truth-badge="${badge}" data-m8a-v48-info-class="fixed">${badge}</span>`
   ).join("");
-}
-
-function escapeM8aV411MetricText(value: string): string {
-  return value
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;");
 }
 
 function renderM8aV411DisabledMetricTiles(): string {
@@ -3406,144 +1804,6 @@ function renderM8aV411DisabledMetricTiles(): string {
       `</li>`
     ].join("");
   }).join("");
-}
-
-function renderItriRequirementGapGroups(): string {
-  return M8A_V4_ITRI_REQUIREMENT_STATUS_GROUPS.map((group) => {
-    const groupId = escapeM8aV411MetricText(group.groupId);
-    const label = escapeM8aV411MetricText(group.label);
-    const disposition = escapeM8aV411MetricText(group.disposition);
-    const status = escapeM8aV411MetricText(group.status);
-    const requirementIds = escapeM8aV411MetricText(
-      group.requirementIds.join("|")
-    );
-    const visibleRequirementIds = escapeM8aV411MetricText(
-      group.requirementIds.length > 0 ? group.requirementIds.join(" ") : "none"
-    );
-    const routeClaim = escapeM8aV411MetricText(group.routeClaim);
-
-    return [
-      `<li class="m8a-v411-requirement-gap__item"`,
-      ` data-itri-requirement-gap-group="true"`,
-      ` data-itri-requirement-gap-group-id="${groupId}"`,
-      ` data-itri-requirement-gap-status="${status}"`,
-      ` data-itri-requirement-gap-disposition="${disposition}"`,
-      ` data-itri-requirement-gap-requirement-ids="${requirementIds}">`,
-      `<div class="m8a-v411-requirement-gap__item-header">`,
-      `<strong>${label}</strong>`,
-      `<span class="m8a-v411-requirement-gap__status">${status}</span>`,
-      `</div>`,
-      `<span class="m8a-v411-requirement-gap__ids">${visibleRequirementIds}</span>`,
-      `<small>${routeClaim}</small>`,
-      `</li>`
-    ].join("");
-  }).join("");
-}
-
-function renderF16ExplicitNonClaimChips(): string {
-  return M8A_V4_ITRI_F16_EXPLICIT_NON_CLAIMS.map((claim) => {
-    return `<span data-itri-f16-export-non-claim="true">${escapeM8aV411MetricText(claim)}</span>`;
-  }).join("");
-}
-
-function renderItriF10PolicyPresetOptions(): string {
-  return M8A_V4_ITRI_F10_POLICY_PRESETS.map((preset) => {
-    const presetId = escapeM8aV411MetricText(preset.presetId);
-    const label = escapeM8aV411MetricText(preset.label);
-    const summary = escapeM8aV411MetricText(preset.summary);
-    const selected =
-      preset.presetId === M8A_V4_ITRI_F10_POLICY_DEFAULT_PRESET_ID
-        ? " selected"
-        : "";
-
-    return `<option value="${presetId}" title="${summary}"${selected}>${label}</option>`;
-  }).join("");
-}
-
-function renderItriF11RulePresetOptions(): string {
-  return M8A_V4_ITRI_F11_RULE_PRESETS.map((preset) => {
-    const presetId = escapeM8aV411MetricText(preset.presetId);
-    const label = escapeM8aV411MetricText(preset.label);
-    const summary = escapeM8aV411MetricText(preset.summary);
-    const selected =
-      preset.presetId === M8A_V4_ITRI_F11_RULE_DEFAULT_PRESET_ID
-        ? " selected"
-        : "";
-
-    return `<option value="${presetId}" title="${summary}"${selected}>${label}</option>`;
-  }).join("");
-}
-
-function renderItriF11RuleParameterChips(
-  preset: M8aV4ItriF11RulePreset
-): string {
-  return preset.parameterChips.map((chip) => {
-    return `<li data-itri-f11-rule-parameter-chip="true">${escapeM8aV411MetricText(chip)}</li>`;
-  }).join("");
-}
-
-function resolveF09RateClassCopy(
-  networkSpeedClass: M8aV4F09NetworkSpeedClass
-): M8aV4F09RateClassCopy {
-  return M8A_V4_ITRI_F09_RATE_CLASS_COPY[networkSpeedClass];
-}
-
-function buildF09RateWindowRows(): ReadonlyArray<M8aV4F09RateWindowRow> {
-  const timeline =
-    M8A_V4_GROUND_STATION_RUNTIME_PROJECTION.simulationHandoverModel.timeline;
-
-  return timeline.map((windowDefinition) => {
-    const ordinal = resolveV48StateOrdinalLabel(
-      timeline,
-      windowDefinition.windowId
-    );
-    const classCopy = resolveF09RateClassCopy(
-      windowDefinition.boundedMetricClasses.networkSpeedClass
-    );
-
-    return {
-      windowId: windowDefinition.windowId,
-      ordinalLabel: ordinal.stateOrdinalLabel,
-      windowLabel: resolveTimelineLabel(windowDefinition.windowId),
-      orbitClass: windowDefinition.displayRepresentativeOrbitClass,
-      networkSpeedClass: windowDefinition.boundedMetricClasses.networkSpeedClass,
-      classLabel: classCopy.classLabel,
-      bucketLabel: classCopy.bucketLabel,
-      provenance: M8A_V4_ITRI_F09_PROVENANCE,
-      metricTruth: M8A_V4_ITRI_F09_METRIC_TRUTH
-    };
-  });
-}
-
-function renderF09RateWindowRows(): string {
-  return buildF09RateWindowRows()
-    .map((row) => {
-      const windowId = escapeM8aV411MetricText(row.windowId);
-      const ordinalLabel = escapeM8aV411MetricText(row.ordinalLabel);
-      const windowLabel = escapeM8aV411MetricText(row.windowLabel);
-      const orbitClass = escapeM8aV411MetricText(row.orbitClass.toUpperCase());
-      const networkSpeedClass = escapeM8aV411MetricText(row.networkSpeedClass);
-      const classLabel = escapeM8aV411MetricText(row.classLabel);
-      const bucketLabel = escapeM8aV411MetricText(row.bucketLabel);
-      const provenance = escapeM8aV411MetricText(row.provenance);
-      const metricTruth = escapeM8aV411MetricText(row.metricTruth);
-
-      return [
-        `<tr data-itri-f09-rate-row="true"`,
-        ` data-itri-f09-rate-window-id="${windowId}"`,
-        ` data-itri-f09-rate-class="${networkSpeedClass}"`,
-        ` data-itri-f09-rate-orbit="${row.orbitClass}">`,
-        `<td>${ordinalLabel}</td>`,
-        `<td>${windowLabel}</td>`,
-        `<td>${orbitClass}</td>`,
-        `<td>${classLabel}</td>`,
-        `<td>${bucketLabel}</td>`,
-        `<td>${provenance}</td>`,
-        `<td>${metricTruth}</td>`,
-        `</tr>`
-      ].join("");
-    })
-    .join("");
 }
 
 // Conv 3: renderCompactTruthAffordance removed — Truth button no longer exists.
@@ -3636,6 +1896,7 @@ function ensureProductUxStructure(root: HTMLElement): void {
       root.querySelector("[data-m8a-v411-inspector-role='state-evidence']") &&
       root.querySelector("[data-m8a-v411-inspector-role='truth-boundary']") &&
       root.querySelector("[data-m8a-v411-state-evidence-truth-tail='true']") &&
+      root.querySelector("[data-itri-demo-l2-acceptance-layer='true']") &&
       root.querySelector("[data-itri-requirement-gap-surface='true']") &&
       root.querySelector("[data-itri-policy-rule-controls-surface='true']") &&
       root.querySelector("[data-itri-f09-rate-surface='true']") &&
@@ -3690,13 +1951,19 @@ function ensureProductUxStructure(root: HTMLElement): void {
       <span data-m8a-v411-top-strip-slot="boundary" data-m8a-v48-info-class="dynamic">Boundary: repo-owned projection · not measured truth</span>
     </div>
     <button type="button" class="m8a-v411-handover-rail-scrim" data-m8a-v411-handover-rail-scrim="true" data-m8a-v47-action="close-handover-rail" data-m8a-v48-info-class="control" tabindex="-1" aria-label="Close handover rail" hidden></button>
-    <aside id="m8a-v411-handover-rail-drawer" class="m8a-v411-handover-rail" data-m8a-v411-handover-rail="true" data-m8a-v47-ui-surface="left-handover-rail" aria-label="Handover rail">
+    <aside id="m8a-v411-handover-rail-drawer" class="m8a-v411-handover-rail" data-m8a-v411-handover-rail="true" data-itri-demo-l0-briefing-card="true" data-itri-demo-l0-layer="L0-first-read-demo-stage" data-itri-demo-l0-version="${M8A_V4_ITRI_DEMO_VIEW_DEFAULT_FOCUS_VERSION}" data-m8a-v47-ui-surface="left-handover-rail" aria-label="Handover briefing">
       <div class="m8a-v411-handover-rail-header" data-m8a-v411-handover-rail-header="true">
-        <strong data-m8a-v48-info-class="fixed">Handover rail</strong>
-        <button type="button" class="m8a-v411-handover-rail-close" data-m8a-v47-action="close-handover-rail" data-m8a-v411-handover-rail-close="true" data-m8a-v48-info-class="control" aria-label="Close handover rail">Close</button>
+        <span data-itri-demo-l0-eyebrow="true" data-m8a-v48-info-class="fixed">ITRI V4 demo</span>
+        <strong data-itri-demo-l0-heading="true" data-m8a-v48-info-class="fixed">Handover briefing</strong>
+        <button type="button" class="m8a-v411-handover-rail-close" data-m8a-v47-action="close-handover-rail" data-m8a-v411-handover-rail-close="true" data-m8a-v48-info-class="control" aria-label="Collapse briefing sheet">Close</button>
       </div>
       <div data-m8a-v411-handover-rail-content="true">
-        <div class="m8a-v411-rail-panel" data-m8a-v411-rail-panel="true" data-m8a-v411-rail-current="true" data-m8a-v48-info-class="dynamic" aria-label="Active handover rail state">
+        <div class="m8a-v411-rail-panel" data-m8a-v411-rail-panel="true" data-m8a-v411-rail-current="true" data-itri-demo-l0-primary-surface="true" data-m8a-v48-info-class="dynamic" aria-label="Active handover briefing state">
+          <div class="m8a-v411-briefing-now" data-itri-demo-l0-section="now">
+            <span data-m8a-v48-info-class="fixed">Now</span>
+            <strong data-itri-demo-l0-current-state="true" data-m8a-v48-info-class="dynamic"></strong>
+            <p data-itri-demo-l0-current-reason="true" data-m8a-v48-info-class="dynamic"></p>
+          </div>
           <div class="m8a-v411-rail-layer m8a-v411-rail-layer--judgment" data-m8a-v411-rail-layer="judgment">
             <span class="m8a-v411-rail-main-chip" data-m8a-v411-rail-main-chip="true" role="group" tabindex="0" aria-label="Active handover judgment">
               <span class="m8a-v411-rail-role-glyph" data-m8a-v411-rail-role-glyph="true" aria-hidden="true">F</span>
@@ -3709,8 +1976,13 @@ function ensureProductUxStructure(root: HTMLElement): void {
               <span class="m8a-v411-rail-subtoken" data-m8a-v411-rail-slot="fallback" data-m8a-v411-rail-token="fallback" data-m8a-v48-info-class="dynamic">Fallback: --</span>
             </div>
           </div>
-          <p class="m8a-v411-rail-next" data-m8a-v411-rail-layer="next" data-m8a-v411-rail-slot="next" data-m8a-v48-info-class="dynamic">下一步：--</p>
+          <div class="m8a-v411-briefing-grid" data-itri-demo-l0-section="quick-facts">
+            <p data-itri-demo-l0-active-orbit="true" data-m8a-v48-info-class="dynamic"></p>
+            <p data-itri-demo-l0-rate-class="true" data-m8a-v48-info-class="dynamic"></p>
+          </div>
+          <p class="m8a-v411-rail-next" data-m8a-v411-rail-layer="next" data-m8a-v411-rail-slot="next" data-itri-demo-l0-next-state="true" data-m8a-v48-info-class="dynamic">Next: --</p>
           <p class="m8a-v411-rail-evidence" data-m8a-v411-rail-layer="evidence" data-m8a-v411-rail-slot="evidence" data-m8a-v48-info-class="dynamic">modeled quality --</p>
+          <p class="m8a-v411-briefing-truth" data-itri-demo-l0-truth-boundary="true" data-m8a-v48-info-class="fixed">${M8A_V4_ITRI_DEMO_VIEW_DEFAULT_TRUTH_COPY}</p>
         </div>
       </div>
     </aside>
@@ -3743,7 +2015,7 @@ function ensureProductUxStructure(root: HTMLElement): void {
         <strong data-m8a-v47-active-label="strip" data-m8a-v48-info-class="dynamic"></strong>
         <small data-m8a-v48-state-ordinal="strip" data-m8a-v48-info-class="dynamic">State 1 of 5</small>
       </div>
-      <button type="button" class="m8a-v411-narrow-rail-trigger" data-m8a-v47-action="open-handover-rail" data-m8a-v411-narrow-rail-trigger="true" data-m8a-v48-info-class="control" aria-expanded="false" aria-controls="m8a-v411-handover-rail-drawer">Handover rail</button>
+      <button type="button" class="m8a-v411-narrow-rail-trigger" data-m8a-v47-action="open-handover-rail" data-m8a-v411-narrow-rail-trigger="true" data-m8a-v48-info-class="control" aria-label="Expand briefing sheet" aria-expanded="false" aria-controls="m8a-v411-handover-rail-drawer">Briefing</button>
       <button type="button" class="m8a-v47-product-ux__play-toggle" data-m8a-v47-action="pause" data-m8a-v47-control-id="play-pause" data-m8a-v48-info-class="control">Pause</button>
       <button type="button" data-m8a-v47-action="restart" data-m8a-v47-control-id="restart" data-m8a-v48-info-class="control">Restart</button>
       <div class="m8a-v47-product-ux__strip-speeds" data-m8a-v47-control-group="speed">
@@ -3752,6 +2024,7 @@ function ensureProductUxStructure(root: HTMLElement): void {
       <button type="button" class="m8a-v411-reviewer-mode-toggle" data-m8a-v47-action="toggle-review-mode" data-m8a-v411-reviewer-mode-toggle="true" data-m8a-v411-reviewer-mode-on="true" data-m8a-v48-info-class="control" aria-pressed="true" title="Auto-pause replay at each window transition for review">Review mode</button>
       <progress class="m8a-v47-product-ux__progress" max="1" value="0" data-m8a-v47-progress="true" data-m8a-v48-info-class="dynamic" hidden aria-hidden="true"></progress>
       <button type="button" data-m8a-v47-action="toggle-disclosure" data-m8a-v47-control-id="details-toggle" data-m8a-v48-info-class="control" aria-expanded="false">Details</button>
+      <button type="button" class="m8a-v411-evidence-toggle" data-m8a-v47-action="open-evidence" data-m8a-v47-control-id="evidence-toggle" data-m8a-v48-info-class="control" aria-expanded="false" aria-controls="m8a-v48-inspector-sheet">Evidence</button>
     </div>
     <div class="m8a-v411-reviewer-mode-status" data-m8a-v411-reviewer-mode-status="true" data-m8a-v411-reviewer-mode-version="${M8A_V411_REVIEWER_MODE_VERSION}" role="status" aria-live="polite" aria-atomic="true" data-m8a-v48-info-class="dynamic"></div>
     <aside id="m8a-v410-boundary-surface" class="m8a-v410-product-ux__boundary-surface" data-m8a-v410-boundary-surface="true" data-m8a-v47-ui-surface="boundary-surface" data-m8a-v48-info-class="disclosure" hidden>
@@ -3785,93 +2058,6 @@ function ensureProductUxStructure(root: HTMLElement): void {
         <span data-m8a-v411-inspector-boundary-chip="scale">13-actor demo</span>
         <span data-m8a-v411-inspector-boundary-chip="endpoint">operator-family precision</span>
       </div>
-      <section class="m8a-v411-requirement-gap" data-itri-requirement-gap-surface="true" data-itri-requirement-gap-version="${M8A_V4_ITRI_REQUIREMENT_GAP_SURFACE_VERSION}" aria-label="ITRI requirement route status">
-        <div class="m8a-v411-requirement-gap__header">
-          <strong data-m8a-v48-info-class="fixed">ITRI status</strong>
-          <span data-itri-requirement-gap-demo-polish="${M8A_V4_ITRI_DEMO_POLISH_DISPOSITION}" data-m8a-v48-info-class="fixed">Demo polish: no closure claim</span>
-        </div>
-        <ol class="m8a-v411-requirement-gap__list">
-          ${renderItriRequirementGapGroups()}
-        </ol>
-        <section class="m8a-v411-f16-export" data-itri-f16-export-surface="true" data-itri-f16-export-version="${M8A_V4_ITRI_F16_EXPORT_SURFACE_VERSION}" data-itri-f16-export-schema-version="${M8A_V4_ITRI_F16_EXPORT_SCHEMA_VERSION}" data-itri-f16-export-disposition="${M8A_V4_ITRI_F16_EXPORT_DISPOSITION}" aria-labelledby="m8a-v411-f16-export-heading">
-          <div class="m8a-v411-f16-export__header">
-            <span data-m8a-v48-info-class="fixed">F-16</span>
-            <strong id="m8a-v411-f16-export-heading" data-m8a-v48-info-class="fixed">Bounded Route Export</strong>
-            <small data-itri-f16-export-truth-label="true" data-m8a-v48-info-class="fixed">JSON only · not external measurement/report truth</small>
-          </div>
-          <p class="m8a-v411-f16-export__copy" data-itri-f16-export-label="true" data-m8a-v48-info-class="disclosure">Exports route-owned bounded state only: scenario, endpoint pair, actor counts, modeled window, requirement groups, F-09 class disposition, link-flow cue metadata, provenance, and non-claims.</p>
-          <div class="m8a-v411-f16-export__actions">
-            <button type="button" class="m8a-v411-f16-export__button" data-m8a-v47-action="export-f16-bounded-route-json" data-itri-f16-export-action="true" data-m8a-v48-info-class="control">Export bounded JSON</button>
-            <span class="m8a-v411-f16-export__status" data-itri-f16-export-status="true" data-m8a-v48-info-class="dynamic" role="status" aria-live="polite">Ready: bounded route export only.</span>
-          </div>
-          <div data-itri-f16-export-non-claims="true" hidden>
-            ${renderF16ExplicitNonClaimChips()}
-          </div>
-        </section>
-      </section>
-      <section class="m8a-v411-policy-rule" data-itri-policy-rule-controls-surface="true" data-itri-policy-rule-controls-version="${M8A_V4_ITRI_POLICY_RULE_CONTROLS_VERSION}" data-itri-policy-rule-controls-disposition="${M8A_V4_ITRI_POLICY_RULE_DISPOSITION}" data-itri-policy-rule-truth-boundary="${M8A_V4_ITRI_POLICY_RULE_TRUTH_BOUNDARY}" aria-labelledby="m8a-v411-policy-rule-heading">
-        <div class="m8a-v411-policy-rule__header">
-          <span data-m8a-v48-info-class="fixed">F-10/F-11</span>
-          <strong id="m8a-v411-policy-rule-heading" data-m8a-v48-info-class="fixed">Modeled Replay Presets</strong>
-          <small data-itri-policy-rule-truth-label="true" data-m8a-v48-info-class="fixed">Preset-only · not live control</small>
-        </div>
-        <p class="m8a-v411-policy-rule__copy" data-itri-policy-rule-copy="true" data-m8a-v48-info-class="disclosure">Route-local modeled replay preset controls. They update preview state and telemetry only; no backend side effect, rule engine, or measured decision truth.</p>
-        <div class="m8a-v411-policy-rule__controls">
-          <label class="m8a-v411-policy-rule__field" for="m8a-v411-f10-policy-preset">
-            <span data-m8a-v48-info-class="fixed">F-10 policy preset</span>
-            <select id="m8a-v411-f10-policy-preset" data-itri-f10-policy-selector="true" data-itri-f10-policy-preset-mode="${M8A_V4_ITRI_F10_POLICY_PRESET_MODE}" data-m8a-v48-info-class="control" aria-label="F-10 modeled replay policy preset selector. Preset only; not live control.">
-              ${renderItriF10PolicyPresetOptions()}
-            </select>
-          </label>
-          <label class="m8a-v411-policy-rule__field" for="m8a-v411-f11-rule-preset">
-            <span data-m8a-v48-info-class="fixed">F-11 rule preset</span>
-            <select id="m8a-v411-f11-rule-preset" data-itri-f11-rule-preset="true" data-itri-f11-rule-preset-mode="${M8A_V4_ITRI_F11_RULE_PRESET_MODE}" data-m8a-v48-info-class="control" aria-label="F-11 bounded replay rule and parameter preset. Preset only; not live control.">
-              ${renderItriF11RulePresetOptions()}
-            </select>
-          </label>
-        </div>
-        <div class="m8a-v411-policy-rule__preview" data-itri-policy-rule-preview="true">
-          <p data-itri-f10-policy-preview="true" data-m8a-v48-info-class="dynamic"></p>
-          <p data-itri-f11-rule-preview="true" data-m8a-v48-info-class="dynamic"></p>
-          <ul data-itri-f11-rule-parameter-list="true">
-            ${renderItriF11RuleParameterChips(resolveItriF11RulePreset(M8A_V4_ITRI_F11_RULE_DEFAULT_PRESET_ID))}
-          </ul>
-        </div>
-        <span class="m8a-v411-policy-rule__status" data-itri-policy-rule-status="true" data-m8a-v48-info-class="dynamic" role="status" aria-live="polite">Modeled replay presets ready; preset-only, not live control.</span>
-      </section>
-      <section class="m8a-v411-f09-rate" data-itri-f09-rate-surface="true" data-itri-f09-rate-version="${M8A_V4_ITRI_F09_RATE_SURFACE_VERSION}" aria-labelledby="m8a-v411-f09-rate-heading">
-        <div class="m8a-v411-f09-rate__header">
-          <span data-m8a-v48-info-class="fixed">F-09</span>
-          <strong id="m8a-v411-f09-rate-heading" data-m8a-v48-info-class="fixed">Communication Rate</strong>
-          <small data-itri-f09-rate-truth-label="true" data-m8a-v48-info-class="fixed">Modeled, not measured.</small>
-        </div>
-        <div class="m8a-v411-f09-rate__current" data-itri-f09-rate-current="true" tabindex="0" aria-describedby="m8a-v411-f09-rate-description">
-          <span data-m8a-v48-info-class="fixed">Modeled network-speed class</span>
-          <strong data-itri-f09-rate-current-class="true" data-m8a-v48-info-class="dynamic"></strong>
-          <em data-itri-f09-rate-current-bucket="true" data-m8a-v48-info-class="dynamic"></em>
-          <small id="m8a-v411-f09-rate-description" data-itri-f09-rate-description="true" data-m8a-v48-info-class="disclosure"></small>
-        </div>
-        <details class="m8a-v411-f09-rate__fallback" data-itri-f09-rate-fallback="true">
-          <summary data-m8a-v48-info-class="disclosure">Class table fallback</summary>
-          <table data-itri-f09-rate-table="true">
-            <caption>Route-local F-09 modeled communication-rate class fallback</caption>
-            <thead>
-              <tr>
-                <th scope="col">Window</th>
-                <th scope="col">State</th>
-                <th scope="col">Orbit</th>
-                <th scope="col">Class</th>
-                <th scope="col">Bucket</th>
-                <th scope="col">Source</th>
-                <th scope="col">Truth</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${renderF09RateWindowRows()}
-            </tbody>
-          </table>
-        </details>
-      </section>
       <div class="m8a-v411-inspector__tabs" data-m8a-v411-inspector-tabs="true" role="tablist" aria-label="Details inspector sections">
         <button type="button" id="m8a-v411-inspector-tab-decision" role="tab" data-m8a-v47-action="switch-inspector-tab" data-m8a-v411-inspector-tab="decision" aria-selected="true" aria-controls="m8a-v411-inspector-panel-decision" data-m8a-v48-info-class="control">Decision</button>
         <button type="button" id="m8a-v411-inspector-tab-metrics" role="tab" data-m8a-v47-action="switch-inspector-tab" data-m8a-v411-inspector-tab="metrics" aria-selected="false" aria-controls="m8a-v411-inspector-panel-metrics" data-m8a-v48-info-class="control">Metrics</button>
@@ -3962,6 +2148,94 @@ function ensureProductUxStructure(root: HTMLElement): void {
           <section id="m8a-v411-inspector-panel-evidence" role="tabpanel" aria-labelledby="m8a-v411-inspector-tab-evidence" class="m8a-v411-inspector__role m8a-v411-inspector__role--sources" data-m8a-v411-inspector-role="sources" data-m8a-v411-role-state="closed" data-m8a-v411-inspector-panel="evidence" data-m8a-v411-sources-role="true" data-m8a-v49-inspector-primary="sources" tabindex="-1" hidden>
             <span class="m8a-v410-inspector__group-label" data-m8a-v48-info-class="fixed">Evidence</span>
             <strong data-m8a-v411-sources-title="true" data-m8a-v48-info-class="fixed">Evidence summary</strong>
+            ${renderItriAcceptanceLayer()}
+            <section class="m8a-v411-requirement-gap" data-itri-requirement-gap-surface="true" data-itri-requirement-gap-version="${M8A_V4_ITRI_REQUIREMENT_GAP_SURFACE_VERSION}" aria-label="ITRI requirement route status">
+              <div class="m8a-v411-requirement-gap__header">
+                <strong data-m8a-v48-info-class="fixed">ITRI status groups</strong>
+                <span data-itri-requirement-gap-demo-polish="${M8A_V4_ITRI_DEMO_POLISH_DISPOSITION}" data-m8a-v48-info-class="fixed">Demo polish: no closure claim</span>
+              </div>
+              <ol class="m8a-v411-requirement-gap__list">
+                ${renderItriRequirementGapGroups()}
+              </ol>
+              <section class="m8a-v411-f16-export" data-itri-f16-export-surface="true" data-itri-f16-export-version="${M8A_V4_ITRI_F16_EXPORT_SURFACE_VERSION}" data-itri-f16-export-schema-version="${M8A_V4_ITRI_F16_EXPORT_SCHEMA_VERSION}" data-itri-f16-export-disposition="${M8A_V4_ITRI_F16_EXPORT_DISPOSITION}" aria-labelledby="m8a-v411-f16-export-heading">
+                <div class="m8a-v411-f16-export__header">
+                  <span data-m8a-v48-info-class="fixed">F-16</span>
+                  <strong id="m8a-v411-f16-export-heading" data-m8a-v48-info-class="fixed">Bounded Route Export</strong>
+                  <small data-itri-f16-export-truth-label="true" data-m8a-v48-info-class="fixed">JSON only · not external measurement/report truth</small>
+                </div>
+                <p class="m8a-v411-f16-export__copy" data-itri-f16-export-label="true" data-m8a-v48-info-class="disclosure">Exports route-owned bounded state only: scenario, endpoint pair, actor counts, modeled window, requirement groups, F-09 class disposition, link-flow cue metadata, provenance, and non-claims.</p>
+                <div class="m8a-v411-f16-export__actions">
+                  <button type="button" class="m8a-v411-f16-export__button" data-m8a-v47-action="export-f16-bounded-route-json" data-itri-f16-export-action="true" data-m8a-v48-info-class="control">Export bounded JSON</button>
+                  <span class="m8a-v411-f16-export__status" data-itri-f16-export-status="true" data-m8a-v48-info-class="dynamic" role="status" aria-live="polite">Ready: bounded route export only.</span>
+                </div>
+                <div data-itri-f16-export-non-claims="true" hidden>
+                  ${renderF16ExplicitNonClaimChips()}
+                </div>
+              </section>
+            </section>
+            <section class="m8a-v411-policy-rule" data-itri-policy-rule-controls-surface="true" data-itri-policy-rule-controls-version="${M8A_V4_ITRI_POLICY_RULE_CONTROLS_VERSION}" data-itri-policy-rule-controls-disposition="${M8A_V4_ITRI_POLICY_RULE_DISPOSITION}" data-itri-policy-rule-truth-boundary="${M8A_V4_ITRI_POLICY_RULE_TRUTH_BOUNDARY}" aria-labelledby="m8a-v411-policy-rule-heading">
+              <div class="m8a-v411-policy-rule__header">
+                <span data-m8a-v48-info-class="fixed">F-10/F-11</span>
+                <strong id="m8a-v411-policy-rule-heading" data-m8a-v48-info-class="fixed">Modeled Replay Presets</strong>
+                <small data-itri-policy-rule-truth-label="true" data-m8a-v48-info-class="fixed">Preset-only · not live control</small>
+              </div>
+              <p class="m8a-v411-policy-rule__copy" data-itri-policy-rule-copy="true" data-m8a-v48-info-class="disclosure">Route-local modeled replay preset controls. They update preview state and telemetry only; no backend side effect, rule engine, or measured decision truth.</p>
+              <div class="m8a-v411-policy-rule__controls">
+                <label class="m8a-v411-policy-rule__field" for="m8a-v411-f10-policy-preset">
+                  <span data-m8a-v48-info-class="fixed">F-10 policy preset</span>
+                  <select id="m8a-v411-f10-policy-preset" data-itri-f10-policy-selector="true" data-itri-f10-policy-preset-mode="${M8A_V4_ITRI_F10_POLICY_PRESET_MODE}" data-m8a-v48-info-class="control" aria-label="F-10 modeled replay policy preset selector. Preset only; not live control.">
+                    ${renderItriF10PolicyPresetOptions()}
+                  </select>
+                </label>
+                <label class="m8a-v411-policy-rule__field" for="m8a-v411-f11-rule-preset">
+                  <span data-m8a-v48-info-class="fixed">F-11 rule preset</span>
+                  <select id="m8a-v411-f11-rule-preset" data-itri-f11-rule-preset="true" data-itri-f11-rule-preset-mode="${M8A_V4_ITRI_F11_RULE_PRESET_MODE}" data-m8a-v48-info-class="control" aria-label="F-11 bounded replay rule and parameter preset. Preset only; not live control.">
+                    ${renderItriF11RulePresetOptions()}
+                  </select>
+                </label>
+              </div>
+              <div class="m8a-v411-policy-rule__preview" data-itri-policy-rule-preview="true">
+                <p data-itri-f10-policy-preview="true" data-m8a-v48-info-class="dynamic"></p>
+                <p data-itri-f11-rule-preview="true" data-m8a-v48-info-class="dynamic"></p>
+                <ul data-itri-f11-rule-parameter-list="true">
+                  ${renderItriF11RuleParameterChips(resolveItriF11RulePreset(M8A_V4_ITRI_F11_RULE_DEFAULT_PRESET_ID))}
+                </ul>
+              </div>
+              <span class="m8a-v411-policy-rule__status" data-itri-policy-rule-status="true" data-m8a-v48-info-class="dynamic" role="status" aria-live="polite">Modeled replay presets ready; preset-only, not live control.</span>
+            </section>
+            <section class="m8a-v411-f09-rate" data-itri-f09-rate-surface="true" data-itri-f09-rate-version="${M8A_V4_ITRI_F09_RATE_SURFACE_VERSION}" aria-labelledby="m8a-v411-f09-rate-heading">
+              <div class="m8a-v411-f09-rate__header">
+                <span data-m8a-v48-info-class="fixed">F-09</span>
+                <strong id="m8a-v411-f09-rate-heading" data-m8a-v48-info-class="fixed">Communication Rate</strong>
+                <small data-itri-f09-rate-truth-label="true" data-m8a-v48-info-class="fixed">Modeled, not measured.</small>
+              </div>
+              <div class="m8a-v411-f09-rate__current" data-itri-f09-rate-current="true" tabindex="0" aria-describedby="m8a-v411-f09-rate-description">
+                <span data-m8a-v48-info-class="fixed">Modeled network-speed class</span>
+                <strong data-itri-f09-rate-current-class="true" data-m8a-v48-info-class="dynamic"></strong>
+                <em data-itri-f09-rate-current-bucket="true" data-m8a-v48-info-class="dynamic"></em>
+                <small id="m8a-v411-f09-rate-description" data-itri-f09-rate-description="true" data-m8a-v48-info-class="disclosure"></small>
+              </div>
+              <details class="m8a-v411-f09-rate__fallback" data-itri-f09-rate-fallback="true">
+                <summary data-m8a-v48-info-class="disclosure">Class table fallback</summary>
+                <table data-itri-f09-rate-table="true">
+                  <caption>Route-local F-09 modeled communication-rate class fallback</caption>
+                  <thead>
+                    <tr>
+                      <th scope="col">Window</th>
+                      <th scope="col">State</th>
+                      <th scope="col">Orbit</th>
+                      <th scope="col">Class</th>
+                      <th scope="col">Bucket</th>
+                      <th scope="col">Source</th>
+                      <th scope="col">Truth</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    ${renderF09RateWindowRows()}
+                  </tbody>
+                </table>
+              </details>
+            </section>
             <div class="m8a-v411-evidence-summary" data-m8a-v411-evidence-summary="true">
               <p data-m8a-v411-evidence-summary-line="tle" data-m8a-v411-evidence-tle-summary="true" data-m8a-v48-info-class="dynamic">TLE: CelesTrak NORAD GP · 13 actors · fetched 2026-04-26</p>
               <p data-m8a-v411-evidence-summary-line="r2" data-m8a-v411-evidence-r2-summary="true" data-m8a-v48-info-class="dynamic">R2: 5 candidate endpoints (read-only catalog)</p>
@@ -4273,6 +2547,7 @@ function ensureV410ProductUxStructureReady(root: HTMLElement): void {
       root.querySelector("[data-m8a-v410-sequence-next-summary='true']") &&
       root.querySelector("[data-m8a-v410-boundary-surface='true']") &&
       root.querySelector("[data-m8a-v410-inspector-evidence-structure='true']") &&
+      root.querySelector("[data-itri-demo-l2-acceptance-layer='true']") &&
       root.querySelector("[data-itri-requirement-gap-surface='true']") &&
       root.querySelector("[data-itri-policy-rule-controls-surface='true']") &&
       root.querySelector("[data-itri-f09-rate-surface='true']") &&
@@ -4851,6 +3126,7 @@ function renderProductUx(
     productUx.playback.status === "playing" ? "Pause" : "Play";
   const review = productUx.reviewViewModel;
   const comprehension = productUx.productComprehension;
+  const focusChoreography = comprehension.focusChoreography;
   const sequenceRail = comprehension.handoverSequenceRail;
   const boundaryAffordance = comprehension.boundaryAffordance;
   const candidateActorIds = review.candidateContextActors.map(
@@ -4906,6 +3182,7 @@ function renderProductUx(
     (sourcesRoleOpen ||
       (stateEvidenceOpen && selectedInspectorTab === "evidence"));
   const requirementGapSurface = state.requirementGapSurface;
+  const acceptanceLayer = state.acceptanceLayer;
   const f09RateSurface = state.f09RateSurface;
   const f16ExportSurface = state.f16ExportSurface;
   const policyRuleControls = state.policyRuleControls;
@@ -4952,6 +3229,89 @@ function renderProductUx(
   root.dataset.m8aV49SliceScope = comprehension.scope;
   root.dataset.m8aV410FirstViewportComposition =
     comprehension.firstViewportComposition.version;
+  root.dataset.m8aV4ItriDemoViewFocusChoreography =
+    focusChoreography.version;
+  root.dataset.m8aV4ItriDemoViewFocusScope = focusChoreography.scope;
+  root.dataset.m8aV4ItriDemoViewFocusVisibleContent = serializeList([
+    ...focusChoreography.visibleContent
+  ]);
+  root.dataset.m8aV4ItriDemoViewFocusWindowId =
+    focusChoreography.windowId;
+  root.dataset.m8aV4ItriDemoViewFocusId = focusChoreography.focusId;
+  root.dataset.m8aV4ItriDemoViewFocusPrimaryLabel =
+    focusChoreography.primaryFocusLabel;
+  root.dataset.m8aV4ItriDemoViewFocusOrbitClass =
+    focusChoreography.focusOrbitClassToken;
+  root.dataset.m8aV4ItriDemoViewFocusRole =
+    focusChoreography.focusRole;
+  root.dataset.m8aV4ItriDemoViewFocusBriefing =
+    focusChoreography.briefingLine;
+  root.dataset.m8aV4ItriDemoViewFocusWatch =
+    focusChoreography.decisionWatch;
+  root.dataset.m8aV4ItriDemoViewFocusNext =
+    focusChoreography.nextFocusHint;
+  root.dataset.m8aV4ItriDemoViewFocusVisualCue =
+    focusChoreography.visualCue;
+  root.dataset.m8aV4ItriDemoViewFocusSceneCue =
+    focusChoreography.sceneCueLabel;
+  root.dataset.m8aV4ItriDemoViewFocusSecondaryActorPolicy =
+    focusChoreography.secondaryActorPolicy;
+  root.dataset.m8aV4ItriDemoViewFocusSecondaryActorRoles = serializeList([
+    ...focusChoreography.secondaryActorEmphasisRoles
+  ]);
+  root.dataset.m8aV4ItriDemoViewFocusNextContextVisible = String(
+    focusChoreography.nextContextVisible
+  );
+  root.dataset.m8aV4ItriDemoViewFocusTruthBoundary =
+    focusChoreography.truthBoundary;
+  root.dataset.m8aV4ItriDemoViewDefaultFocus =
+    M8A_V4_ITRI_DEMO_VIEW_DEFAULT_FOCUS_VERSION;
+  root.dataset.m8aV4ItriDemoViewNarrow =
+    M8A_V4_ITRI_DEMO_VIEW_NARROW_VERSION;
+  root.dataset.m8aV4ItriDemoViewDefaultLayer =
+    "L0-first-read-demo-stage";
+  root.dataset.m8aV4ItriDemoViewDefaultInspectorOpen = String(sheetOpen);
+  root.dataset.m8aV4ItriDemoViewDefaultRequirementMatrixVisible =
+    String(evidencePanelOpen);
+  root.dataset.m8aV4ItriDemoViewDefaultCurrentState =
+    focusChoreography.primaryFocusLabel;
+  root.dataset.m8aV4ItriDemoViewDefaultNextState =
+    focusChoreography.nextFocusHint;
+  root.dataset.m8aV4ItriDemoViewDefaultOrbitClass =
+    focusChoreography.focusOrbitClassToken;
+  root.dataset.m8aV4ItriDemoViewDefaultRateClass =
+    f09RateSurface.currentClassLabel;
+  root.dataset.m8aV4ItriDemoViewDefaultTruthBoundary =
+    M8A_V4_ITRI_DEMO_VIEW_DEFAULT_TRUTH_COPY;
+  root.dataset.m8aV4ItriDemoViewAcceptanceLayer =
+    acceptanceLayer.version;
+  root.dataset.m8aV4ItriDemoViewAcceptanceLayerId =
+    acceptanceLayer.layerId;
+  root.dataset.m8aV4ItriDemoViewAcceptanceVisible =
+    String(evidencePanelOpen);
+  root.dataset.m8aV4ItriDemoViewAcceptanceRequirementIds = serializeList([
+    ...acceptanceLayer.requirementIds
+  ]);
+  root.dataset.m8aV4ItriDemoViewAcceptanceRequirementStatuses =
+    serializeList([...acceptanceLayer.requirementStatusPairs]);
+  root.dataset.m8aV4ItriDemoViewAcceptanceRequirementLayers =
+    serializeList([...acceptanceLayer.requirementLayerPairs]);
+  root.dataset.m8aV4ItriDemoViewAcceptanceExternalFailIds = serializeList([
+    ...acceptanceLayer.externalFailIds
+  ]);
+  root.dataset.m8aV4ItriDemoViewAcceptanceBoundedRouteIds = serializeList([
+    ...acceptanceLayer.boundedRouteRepresentationIds
+  ]);
+  root.dataset.m8aV4ItriDemoViewAcceptanceF13Artifact =
+    acceptanceLayer.f13Phase71Evidence.artifact;
+  root.dataset.m8aV4ItriDemoViewAcceptanceF13FreshUntilUtc =
+    acceptanceLayer.f13Phase71Evidence.staleAfterUtc;
+  root.dataset.m8aV4ItriDemoViewAcceptanceF13RouteNativeScaleClaimed =
+    String(acceptanceLayer.f13Phase71Evidence.routeNativeScaleClaimed);
+  root.dataset.m8aV4ItriDemoViewAcceptanceExternalValidationArtifact =
+    acceptanceLayer.externalValidationPackage.artifact;
+  root.dataset.m8aV4ItriDemoViewAcceptanceExternalValidationStatus =
+    acceptanceLayer.externalValidationPackage.status;
   root.dataset.m8aV410SliceScope =
     comprehension.firstViewportComposition.scope;
   root.dataset.m8aV410SceneNarrativeVisibleContent = serializeList([
@@ -5509,9 +3869,18 @@ function renderProductUx(
     railPanel.dataset.m8aV411RailRole = railCopy.role;
     railPanel.dataset.m8aV411RailWindow = productUx.activeWindowId;
     railPanel.dataset.m8aV411RailCurrent = "true";
+    railPanel.dataset.itriDemoFocusChoreographyVersion =
+      focusChoreography.version;
+    railPanel.dataset.itriDemoFocusWindowId = focusChoreography.windowId;
+    railPanel.dataset.itriDemoFocusId = focusChoreography.focusId;
+    railPanel.dataset.itriDemoFocusPrimaryLabel =
+      focusChoreography.primaryFocusLabel;
+    railPanel.dataset.itriDemoFocusVisualCue = focusChoreography.visualCue;
+    railPanel.dataset.itriDemoFocusSecondaryActorPolicy =
+      focusChoreography.secondaryActorPolicy;
     railPanel.setAttribute(
       "aria-label",
-      `${railCopy.ordinalLabel} ${railCopy.mainChip}; ${railCopy.nextPreview}; ${railCopy.evidenceHook}`
+      `${focusChoreography.primaryFocusLabel}; ${focusChoreography.briefingLine}; ${focusChoreography.nextFocusHint}; ${railCopy.evidenceHook}`
     );
   }
   updateProductUxText(
@@ -5559,7 +3928,32 @@ function renderProductUx(
   );
   updateProductUxText(
     root,
+    "[data-itri-demo-l0-current-state='true']",
+    focusChoreography.primaryFocusLabel
+  );
+  updateProductUxText(
+    root,
+    "[data-itri-demo-l0-current-reason='true']",
+    focusChoreography.briefingLine
+  );
+  updateProductUxText(
+    root,
+    "[data-itri-demo-l0-active-orbit='true']",
+    `Active orbit: ${focusChoreography.focusOrbitClassToken} focus`
+  );
+  updateProductUxText(
+    root,
+    "[data-itri-demo-l0-rate-class='true']",
+    `Modeled rate: ${f09RateSurface.currentClassLabel}`
+  );
+  updateProductUxText(
+    root,
     "[data-m8a-v411-rail-slot='next']",
+    railCopy.nextPreview
+  );
+  updateProductUxText(
+    root,
+    "[data-itri-demo-l0-next-state='true']",
     railCopy.nextPreview
   );
   updateProductUxText(
@@ -5569,23 +3963,56 @@ function renderProductUx(
   );
   updateProductUxText(
     root,
+    "[data-itri-demo-l0-truth-boundary='true']",
+    M8A_V4_ITRI_DEMO_VIEW_DEFAULT_TRUTH_COPY
+  );
+  const l0BriefingCard = root.querySelector<HTMLElement>(
+    "[data-itri-demo-l0-briefing-card='true']"
+  );
+  if (l0BriefingCard) {
+    l0BriefingCard.dataset.itriDemoL0CurrentState =
+      focusChoreography.primaryFocusLabel;
+    l0BriefingCard.dataset.itriDemoL0NextState =
+      focusChoreography.nextFocusHint;
+    l0BriefingCard.dataset.itriDemoL0OrbitClass =
+      focusChoreography.focusOrbitClassToken;
+    l0BriefingCard.dataset.itriDemoL0RateClass =
+      f09RateSurface.currentClassLabel;
+    l0BriefingCard.dataset.itriDemoL0TruthBoundary =
+      M8A_V4_ITRI_DEMO_VIEW_DEFAULT_TRUTH_COPY;
+    l0BriefingCard.dataset.itriDemoFocusChoreographyVersion =
+      focusChoreography.version;
+    l0BriefingCard.dataset.itriDemoFocusWindowId =
+      focusChoreography.windowId;
+    l0BriefingCard.dataset.itriDemoFocusId = focusChoreography.focusId;
+    l0BriefingCard.dataset.itriDemoFocusVisualCue =
+      focusChoreography.visualCue;
+    l0BriefingCard.dataset.itriDemoFocusSecondaryActorPolicy =
+      focusChoreography.secondaryActorPolicy;
+    l0BriefingCard.setAttribute(
+      "aria-label",
+      `Handover briefing. Now: ${focusChoreography.primaryFocusLabel}. ${focusChoreography.briefingLine}. ${focusChoreography.nextFocusHint}. Modeled rate: ${f09RateSurface.currentClassLabel}. ${M8A_V4_ITRI_DEMO_VIEW_DEFAULT_TRUTH_COPY}`
+    );
+  }
+  updateProductUxText(
+    root,
     "[data-m8a-v411-decision-now='true']",
-    stateEvidenceCopy.now
+    focusChoreography.decisionNow
   );
   updateProductUxText(
     root,
     "[data-m8a-v411-decision-why='true']",
-    stateEvidenceCopy.why
+    focusChoreography.decisionWhy
   );
   updateProductUxText(
     root,
     "[data-m8a-v411-decision-next='true']",
-    stateEvidenceCopy.next
+    focusChoreography.nextFocusHint
   );
   updateProductUxText(
     root,
     "[data-m8a-v411-decision-watch='true']",
-    stateEvidenceCopy.watch
+    focusChoreography.decisionWatch
   );
   updateProductUxText(
     root,
@@ -6129,12 +4556,23 @@ function renderProductUx(
   );
   sequenceRailElement.dataset.m8aV410SequenceRailViewportPolicy =
     sequenceRail.viewportPolicy;
+  sequenceRailElement.dataset.itriDemoFocusChoreographyVersion =
+    focusChoreography.version;
+  sequenceRailElement.dataset.itriDemoFocusActiveWindowId =
+    focusChoreography.windowId;
+  sequenceRailElement.dataset.itriDemoFocusActiveId =
+    focusChoreography.focusId;
+  sequenceRailElement.dataset.itriDemoFocusActivePrimaryLabel =
+    focusChoreography.primaryFocusLabel;
+  sequenceRailElement.dataset.itriDemoFocusNextHint =
+    focusChoreography.nextFocusHint;
 
   for (const item of sequenceRail.items) {
     const mark = getProductUxElement(
       root,
       `[data-m8a-v410-sequence-window-id="${item.windowId}"]`
     );
+    const itemFocus = resolveM8aV4ItriDemoFocusChoreography(item.windowId);
 
     mark.dataset.active = String(item.isActive);
     mark.dataset.next = String(item.isNext);
@@ -6143,6 +4581,15 @@ function renderProductUx(
     mark.dataset.m8aV410SequenceProductLabel = item.productLabel;
     mark.dataset.m8aV410SequenceRailLabel = item.railLabel;
     mark.dataset.m8aV410SequenceOrdinal = item.ordinalLabel;
+    mark.dataset.itriDemoFocusId = itemFocus.focusId;
+    mark.dataset.itriDemoFocusRole = itemFocus.focusRole;
+    mark.dataset.itriDemoFocusPrimaryLabel = itemFocus.primaryFocusLabel;
+    mark.dataset.itriDemoFocusVisualCue = itemFocus.visualCue;
+    mark.dataset.itriDemoFocusSecondary = item.isActive
+      ? "primary"
+      : item.isNext
+        ? "next-visible"
+        : "dimmed-context";
     mark.setAttribute("aria-current", item.isActive ? "step" : "false");
     mark.setAttribute(
       "aria-label",
@@ -6220,6 +4667,15 @@ function renderProductUx(
     "[data-m8a-v47-action='toggle-disclosure']"
   )) {
     toggle.setAttribute("aria-expanded", String(stateEvidenceOpen));
+  }
+
+  for (const toggle of root.querySelectorAll<HTMLButtonElement>(
+    "[data-m8a-v47-control-id='evidence-toggle']"
+  )) {
+    toggle.setAttribute(
+      "aria-expanded",
+      String(stateEvidenceOpen && selectedInspectorTab === "evidence")
+    );
   }
 
   for (const toggle of root.querySelectorAll<HTMLButtonElement>(
@@ -6380,6 +4836,20 @@ function renderProductUx(
   sheet.dataset.m8aV48SelectedCorridorId = placement.selectedCorridorId;
   sheet.dataset.m8aV48AnchorStatus = placement.anchorStatus;
   sheet.dataset.m8aV48FallbackReason = placement.fallbackReason;
+  sheet.dataset.m8aV4ItriDemoViewNarrow =
+    M8A_V4_ITRI_DEMO_VIEW_NARROW_VERSION;
+  sheet.dataset.m8aV4ItriDemoViewNarrowPresentation =
+    productUx.layout.viewportClass === "narrow" ? "modal-sheet" : "side-sheet";
+  sheet.setAttribute(
+    "role",
+    productUx.layout.viewportClass === "narrow" && sheetOpen
+      ? "dialog"
+      : "complementary"
+  );
+  sheet.setAttribute(
+    "aria-modal",
+    String(productUx.layout.viewportClass === "narrow" && sheetOpen)
+  );
   setProductUxHidden(sheet, !sheetOpen);
   placeInspectorSheetAwayFromSelectedCue(sheet, placement, sheetOpen);
 
@@ -6535,6 +5005,34 @@ function renderProductUx(
     productUx.disclosure.sourcesFilter
   );
   setProductUxHidden(sourcesRole, !evidencePanelOpen);
+
+  const acceptanceLayerEl = getProductUxElement(
+    root,
+    "[data-itri-demo-l2-acceptance-layer='true']"
+  );
+  acceptanceLayerEl.dataset.itriDemoL2Open = String(evidencePanelOpen);
+  acceptanceLayerEl.dataset.itriDemoL2TruthBoundary =
+    acceptanceLayer.truthBoundary;
+  acceptanceLayerEl.dataset.itriDemoL2RequirementIds = serializeList([
+    ...acceptanceLayer.requirementIds
+  ]);
+  acceptanceLayerEl.dataset.itriDemoL2RequirementStatuses = serializeList([
+    ...acceptanceLayer.requirementStatusPairs
+  ]);
+  acceptanceLayerEl.dataset.itriDemoL2RequirementLayers = serializeList([
+    ...acceptanceLayer.requirementLayerPairs
+  ]);
+  acceptanceLayerEl.dataset.itriDemoL2ExternalFailIds = serializeList([
+    ...acceptanceLayer.externalFailIds
+  ]);
+  acceptanceLayerEl.dataset.itriDemoL2BoundedRouteIds = serializeList([
+    ...acceptanceLayer.boundedRouteRepresentationIds
+  ]);
+  acceptanceLayerEl.dataset.itriDemoL2F13RouteNativeScaleClaimed = String(
+    acceptanceLayer.f13Phase71Evidence.routeNativeScaleClaimed
+  );
+  acceptanceLayerEl.dataset.itriDemoL2ExternalValidationStatus =
+    acceptanceLayer.externalValidationPackage.status;
 
   const evidenceArchive = getProductUxElement(
     root,
@@ -6750,12 +5248,15 @@ function renderM8aV411ReviewerMode(
   if (railDrawer) {
     railDrawer.dataset.m8aV411HandoverRailDrawerState =
       productUx.layout.narrowRailDrawerState;
+    railDrawer.dataset.m8aV4ItriDemoViewNarrow =
+      M8A_V4_ITRI_DEMO_VIEW_NARROW_VERSION;
+    railDrawer.dataset.m8aV4ItriDemoViewNarrowPresentation =
+      productUx.layout.viewportClass === "narrow"
+        ? "bottom-sheet-briefing"
+        : "left-briefing";
     railDrawer.setAttribute(
       "aria-hidden",
-      productUx.layout.narrowRailDrawerState === "closed" &&
-        productUx.layout.viewportClass === "narrow"
-        ? "true"
-        : "false"
+      "false"
     );
   }
 
@@ -6971,6 +5472,17 @@ function cloneState(
               .forbiddenBehavior
           ] as M8aV410BoundaryAffordanceRuntime["forbiddenBehavior"]
         },
+        focusChoreography: {
+          ...state.productUx.productComprehension.focusChoreography,
+          visibleContent: [
+            ...state.productUx.productComprehension.focusChoreography
+              .visibleContent
+          ] as typeof M8A_V4_ITRI_DEMO_VIEW_FOCUS_VISIBLE_CONTENT,
+          secondaryActorEmphasisRoles: [
+            ...state.productUx.productComprehension.focusChoreography
+              .secondaryActorEmphasisRoles
+          ] as readonly ["candidate", "fallback", "context"]
+        },
         windowIds: [...state.productUx.productComprehension.windowIds],
         activeWindowCopy: {
           ...state.productUx.productComprehension.activeWindowCopy
@@ -7076,6 +5588,36 @@ function cloneState(
         ...state.requirementGapSurface.openRequirementIds
       ]
     },
+    acceptanceLayer: {
+      ...state.acceptanceLayer,
+      requirementIds: [
+        ...state.acceptanceLayer.requirementIds
+      ] as typeof M8A_V4_ITRI_ACCEPTANCE_REQUIREMENT_IDS,
+      coverageRecords: state.acceptanceLayer.coverageRecords.map((record) => ({
+        ...record
+      })),
+      requirementStatusPairs: [
+        ...state.acceptanceLayer.requirementStatusPairs
+      ],
+      requirementLayerPairs: [
+        ...state.acceptanceLayer.requirementLayerPairs
+      ],
+      externalFailIds: [
+        ...state.acceptanceLayer.externalFailIds
+      ] as typeof M8A_V4_ITRI_ACCEPTANCE_EXTERNAL_FAIL_IDS,
+      boundedRouteRepresentationIds: [
+        ...state.acceptanceLayer.boundedRouteRepresentationIds
+      ] as typeof M8A_V4_ITRI_ACCEPTANCE_BOUNDED_ROUTE_REPRESENTATION_IDS,
+      f13Phase71Evidence: {
+        ...state.acceptanceLayer.f13Phase71Evidence
+      },
+      externalValidationPackage: {
+        ...state.acceptanceLayer.externalValidationPackage,
+        failIds: [
+          ...state.acceptanceLayer.externalValidationPackage.failIds
+        ] as typeof M8A_V4_ITRI_ACCEPTANCE_EXTERNAL_FAIL_IDS
+      }
+    },
     f09RateSurface: {
       ...state.f09RateSurface,
       rows: state.f09RateSurface.rows.map((row) => ({ ...row }))
@@ -7109,533 +5651,6 @@ function notifyListeners(
   for (const listener of listeners) {
     listener(cloneState(state));
   }
-}
-
-function syncTelemetry(state: M8aV4GroundStationSceneState): void {
-  const transitionEventLayer =
-    state.productUx.productComprehension.transitionEventLayer;
-  const activeTransitionEvent = transitionEventLayer.activeEvent;
-  const sequenceRail =
-    state.productUx.productComprehension.handoverSequenceRail;
-  const boundaryAffordance =
-    state.productUx.productComprehension.boundaryAffordance;
-  const requirementGapSurface = state.requirementGapSurface;
-  const f09RateSurface = state.f09RateSurface;
-  const f16ExportSurface = state.f16ExportSurface;
-  const policyRuleControls = state.policyRuleControls;
-  const requirementIdsForGroup = (
-    groupId: M8aV4ItriRequirementGroupId
-  ): readonly string[] =>
-    requirementGapSurface.groups.find((group) => group.groupId === groupId)
-      ?.requirementIds ?? [];
-
-  syncDocumentTelemetry({
-    m8aV4GroundStationRuntimeState: state.runtimeState,
-    m8aV4GroundStationScenarioId: state.scenarioId,
-    m8aV4GroundStationProjectionId: state.projectionId,
-    m8aV4GroundStationGeneratedFromArtifactId: state.generatedFromArtifactId,
-    m8aV4GroundStationDataSourceName: state.dataSourceName,
-    m8aV4GroundStationDataSourceAttached: state.dataSourceAttached
-      ? "true"
-      : "false",
-    m8aV4GroundStationEndpointCount: String(state.endpointCount),
-    m8aV4GroundStationEndpointIds: serializeList(
-      state.endpoints.map((endpoint) => endpoint.endpointId)
-    ),
-    m8aV4GroundStationEndpointPrecision:
-      M8A_V4_GROUND_STATION_REQUIRED_PRECISION_BADGE,
-    m8aV4GroundStationActorCount: String(state.actorCount),
-    m8aV4GroundStationLeoActorCount: String(state.orbitActorCounts.leo),
-    m8aV4GroundStationMeoActorCount: String(state.orbitActorCounts.meo),
-    m8aV4GroundStationGeoActorCount: String(state.orbitActorCounts.geo),
-    m8aV4GroundStationActorIds: serializeList(
-      state.actors.map((actor) => actor.actorId)
-    ),
-    m8aV46eVisualLanguage: "true",
-    m8aV46eActiveStateLabel: resolveTimelineLabel(
-      state.simulationHandoverModel.window.windowId
-    ),
-    m8aV46eVisibleContextRibbonCount: String(
-      state.relationCues.visibleContextRibbonCount
-    ),
-    m8aV46eFallbackGuardCueMode: state.relationCues.fallbackGuardCueMode,
-    m8aV4LinkFlowCue: state.relationCues.dataFlowCueVersion,
-    m8aV4LinkFlowCueMode: state.relationCues.dataFlowCueMode,
-    m8aV4LinkFlowDirections: serializeList([
-      ...state.relationCues.dataFlowDirections
-    ]),
-    m8aV4LinkFlowPulseCount: String(state.relationCues.dataFlowPulseCount),
-    m8aV4LinkFlowTruthBoundary:
-      state.relationCues.dataFlowTruthBoundary,
-    m8aV46eVisibleActorLabelCount: String(
-      state.actorLabelDensity.visibleActorLabelCount
-    ),
-    m8aV46eVisibleActorLabelIds: serializeList(
-      state.actorLabelDensity.visibleActorLabelIds
-    ),
-    m8aV4GroundStationAlwaysVisibleActorLabelCount: String(
-      state.actorLabelDensity.alwaysVisibleActorLabelCount
-    ),
-    m8aV4GroundStationAlwaysVisibleActorLabelIds: serializeList(
-      state.actorLabelDensity.alwaysVisibleActorLabelIds
-    ),
-    m8aV4GroundStationHiddenContextActorLabelCount: String(
-      state.actorLabelDensity.hiddenContextActorLabelCount
-    ),
-    m8aV4GroundStationReplayDurationMs: String(state.replayWindow.durationMs),
-    m8aV4GroundStationReplayMultiplier: String(
-      state.replayWindow.playbackMultiplier
-    ),
-    m8aV4GroundStationLongestOneWebLeoActorId:
-      state.replayWindow.longestCurrentOneWebLeoActorId,
-    m8aV4GroundStationLongestOneWebLeoPeriodMs: String(
-      state.replayWindow.longestCurrentOneWebLeoPeriodMs
-    ),
-    m8aV4GroundStationReplayMarginMs: String(
-      state.replayWindow.replayMarginMs
-    ),
-    m8aV4GroundStationServiceStateWindowId:
-      state.serviceState.window.windowId,
-    m8aV4GroundStationServiceStateSource:
-      state.sourceLineage.serviceStateRead,
-    m8aV4GroundStationCurrentPrimaryOrbit:
-      state.serviceState.window.currentPrimaryOrbitClass,
-    m8aV4GroundStationNextCandidateOrbit:
-      state.serviceState.window.nextCandidateOrbitClass,
-    m8aV4GroundStationContinuityFallbackOrbit:
-      state.serviceState.window.continuityFallbackOrbitClass,
-    m8aV4GroundStationBoundedMetricsUsed: serializeList(
-      state.serviceState.window.boundedMetricsUsed
-    ),
-    m8aV46dSimulationHandoverModelId:
-      state.simulationHandoverModel.modelId,
-    m8aV46dSimulationHandoverSource:
-      state.simulationHandoverModel.sourceRead,
-    m8aV46dSimulationHandoverWindowId:
-      state.simulationHandoverModel.window.windowId,
-    m8aV46dSimulationHandoverReplayRatio: String(
-      state.simulationHandoverModel.replayRatio
-    ),
-    m8aV46dDisplayRepresentativeActorId:
-      state.simulationHandoverModel.window.displayRepresentativeActorId,
-    m8aV46dCandidateContextActorIds: serializeList(
-      state.simulationHandoverModel.window.candidateContextActorIds
-    ),
-    m8aV46dFallbackContextActorIds: serializeList(
-      state.simulationHandoverModel.window.fallbackContextActorIds
-    ),
-    m8aV46dBoundedMetricClasses: serializeJson(
-      state.simulationHandoverModel.window.boundedMetricClasses
-    ),
-    m8aV46dWindowNonClaims: serializeJson(
-      state.simulationHandoverModel.window.nonClaims
-    ),
-    m8aV47ProductUx: state.productUx.version,
-    m8aV47PlaybackDefaultMultiplier: String(
-      state.productUx.playbackPolicy.defaultMultiplier
-    ),
-    m8aV47PlaybackProductMultipliers: serializeList(
-      state.productUx.playbackPolicy.productMultipliers.map(String)
-    ),
-    m8aV47PlaybackDebugMultiplier: String(
-      state.productUx.playbackPolicy.debugTestMultiplier
-    ),
-    m8aV47PlaybackMultiplier: String(state.productUx.playback.multiplier),
-    m8aV47PlaybackStatus: state.productUx.playback.status,
-    m8aV47FinalHoldActive: String(
-      state.productUx.playback.finalHoldActive
-    ),
-    m8aV47ReplayProgressRatio: String(
-      state.productUx.playback.replayRatio
-    ),
-    m8aV47SimulatedReplayTime:
-      state.productUx.playback.simulatedReplayTimeDisplay,
-    m8aV47ActiveProductLabel: state.productUx.activeProductLabel,
-    m8aV47ActiveWindowId: state.productUx.activeWindowId,
-    m8aV47TruthBadges: serializeList([...state.productUx.truthBadges]),
-    m8aV47LayoutPolicy: `${state.productUx.layout.desktopPolicy}|${state.productUx.layout.narrowPolicy}`,
-    m8aV48UiIaVersion: state.productUx.uiIaVersion,
-    m8aV48InfoClassSeam: state.productUx.infoClassSeam,
-    m8aV48ReviewWindowId: state.productUx.reviewViewModel.windowId,
-    m8aV48ReviewStateOrdinal:
-      state.productUx.reviewViewModel.stateOrdinalLabel,
-    m8aV48ReviewRepresentativeActorId:
-      state.productUx.reviewViewModel.representativeActor.actorId,
-    m8aV48ReviewCandidateContextActorIds: serializeList(
-      state.productUx.reviewViewModel.candidateContextActors.map(
-        (actor) => actor.actorId
-      )
-    ),
-    m8aV48ReviewFallbackContextActorIds: serializeList(
-      state.productUx.reviewViewModel.fallbackContextActors.map(
-        (actor) => actor.actorId
-      )
-    ),
-    m8aV48ReviewRelationCueRole:
-      state.productUx.reviewViewModel.relationCueRole.displayLabel,
-    m8aV48SceneAnchorState: serializeJson(
-      state.productUx.reviewViewModel.sceneAnchorState
-    ),
-    m8aV49ProductComprehension:
-      state.productUx.productComprehension.version,
-    m8aV49SliceScope:
-      state.productUx.productComprehension.scope,
-    m8aV410FirstViewportComposition:
-      state.productUx.productComprehension.firstViewportComposition.version,
-    m8aV410SliceScope:
-      state.productUx.productComprehension.firstViewportComposition.scope,
-    m8aV410SceneNarrativeVisibleContent: serializeList([
-      ...state.productUx.productComprehension.firstViewportComposition
-        .sceneNarrativeVisibleContent
-    ]),
-    m8aV410ControlsPriority:
-      state.productUx.productComprehension.firstViewportComposition
-        .controlsPriority,
-    m8aV410FirstReadLine:
-      state.productUx.productComprehension.activeWindowCopy.firstReadMessage,
-    m8aV410WatchCueLine:
-      state.productUx.productComprehension.activeWindowCopy.watchCueLabel,
-    m8aV410NextLine:
-      state.productUx.productComprehension.activeWindowCopy.nextLine,
-    m8aV410HandoverSequenceRail: sequenceRail.version,
-    m8aV410SequenceRailScope: sequenceRail.scope,
-    m8aV410SequenceRailVisibleContent: serializeList([
-      ...sequenceRail.visibleContent
-    ]),
-    m8aV410SequenceRailWindowIds: serializeList([
-      ...sequenceRail.windowIds
-    ]),
-    m8aV410SequenceRailActiveWindowId: sequenceRail.activeWindowId,
-    m8aV410SequenceRailNextWindowId: sequenceRail.nextWindowId,
-    m8aV410SequenceRailActiveLabel: sequenceRail.activeProductLabel,
-    m8aV410SequenceRailNextLabel: sequenceRail.nextProductLabel,
-    m8aV410SequenceRailActiveOrdinal: sequenceRail.activeOrdinalLabel,
-    m8aV410SequenceRailNextOrdinal: sequenceRail.nextOrdinalLabel,
-    m8aV410SequenceRailTransitionFromWindowId:
-      sequenceRail.transitionEvent.fromWindowId,
-    m8aV410SequenceRailTransitionToWindowId:
-      sequenceRail.transitionEvent.toWindowId,
-    m8aV410SequenceRailViewportPolicy: sequenceRail.viewportPolicy,
-    m8aV410BoundaryAffordance: boundaryAffordance.version,
-    m8aV410BoundaryAffordanceScope: boundaryAffordance.scope,
-    m8aV410BoundaryVisibleContent: serializeList([
-      ...boundaryAffordance.visibleContent
-    ]),
-    m8aV410BoundaryCompactCopy: boundaryAffordance.compactCopy,
-    m8aV410BoundarySecondaryCopy: boundaryAffordance.secondaryCopy,
-    m8aV410BoundaryDetailsBehavior:
-      boundaryAffordance.detailsBehavior,
-    m8aV410BoundarySurfaceState:
-      boundaryAffordance.boundarySurfaceState,
-    m8aV410DetailsSheetState: boundaryAffordance.detailsSheetState,
-    m8aV411GlanceRankSurface: M8A_V411_GLANCE_RANK_SURFACE_VERSION,
-    m8aV411SliceScope: "slice1-glance-rank-surface",
-    m8aV411SceneMicroCueCopy: resolveM8aV411MicroCueCopy(
-      state.productUx.activeWindowId
-    ),
-    m8aV411SourceProvenanceBadge: M8A_V411_SOURCE_PROVENANCE_BADGE,
-    m8aV411GroundOrbitEvidenceTriplet:
-      M8A_V411_GROUND_ORBIT_EVIDENCE_TRIPLET,
-    m8aV411GroundShortChipCopy: M8A_V411_GROUND_STATION_SHORT_CHIP_COPY,
-    m8aV411GroundShortChipMaxWidthPx: String(
-      M8A_V411_GROUND_STATION_SHORT_CHIP_MAX_WIDTH_PX
-    ),
-    m8aV411GroundShortChipMaxHeightPx: String(
-      M8A_V411_GROUND_STATION_SHORT_CHIP_MAX_HEIGHT_PX
-    ),
-    m8aV411GroundShortChipFontSizePx: String(
-      M8A_V411_GROUND_STATION_SHORT_CHIP_FONT_SIZE_PX
-    ),
-    m8aV411DemotedActorOpacity: String(M8A_V411_DEMOTED_ACTOR_OPACITY),
-    m8aV411VisualTokens: M8A_V411_VISUAL_TOKENS_VERSION,
-    m8aV411VisualTokenScope: "conv1-window-active-token",
-    m8aV411VisualTokenDataSourceName:
-      M8A_V411_VISUAL_TOKEN_DATA_SOURCE_NAME,
-    m8aV411VisualTokenW3RadiusMeters: String(
-      M8A_V411_W3_DISK_RADIUS_METERS
-    ),
-    m8aV411VisualTokenW1MaxDistanceMeters: String(
-      M8A_V411_VISUAL_TOKEN_DEPTH_DISTANCES.w1MaxMeters
-    ),
-    m8aV411VisualTokenW2MaxDistanceMeters: String(
-      M8A_V411_VISUAL_TOKEN_DEPTH_DISTANCES.w2MaxMeters
-    ),
-    m8aV411VisualTokenW3MaxDistanceMeters: String(
-      M8A_V411_VISUAL_TOKEN_DEPTH_DISTANCES.w3MaxMeters
-    ),
-    m8aV411VisualTokenW4MaxDistanceMeters: String(
-      M8A_V411_VISUAL_TOKEN_DEPTH_DISTANCES.w4MaxMeters
-    ),
-    m8aV411VisualTokenW5MaxDistanceMeters: String(
-      M8A_V411_VISUAL_TOKEN_DEPTH_DISTANCES.w5MaxMeters
-    ),
-    m8aV411SceneContextChip: M8A_V411_SCENE_CONTEXT_CHIP_VERSION,
-    m8aV411SceneContextChipCopy: M8A_V411_SCENE_CONTEXT_CHIP_COPY,
-    m8aV411SceneContextChipMaxWidthPx: String(
-      M8A_V411_SCENE_CONTEXT_CHIP_MAX_WIDTH_PX
-    ),
-    m8aV411SceneContextChipMaxHeightPx: String(
-      M8A_V411_SCENE_CONTEXT_CHIP_MAX_HEIGHT_PX
-    ),
-    m8aV411SceneContextChipFontSizePx: String(
-      M8A_V411_SCENE_CONTEXT_CHIP_FONT_SIZE_PX
-    ),
-    m8aV411OrbitClassChipCount: String(state.actors.length),
-    m8aV411TransientSurface: M8A_V411_TRANSIENT_SURFACE_VERSION,
-    m8aV411TransientSurfaceScope: "slice4-transition-toast",
-    m8aV411TransitionToastDurationMs: String(
-      M8A_V411_TRANSITION_TOAST_DURATION_MS
-    ),
-    m8aV411TransitionToastMaxCount: String(
-      M8A_V411_TRANSITION_TOAST_MAX_COUNT
-    ),
-    m8aV411TransitionToastMaxWidthPx: String(
-      M8A_V411_TRANSITION_TOAST_MAX_WIDTH_PX
-    ),
-    m8aV411TransitionToastMaxCanvasWidthRatio: String(
-      M8A_V411_TRANSITION_TOAST_MAX_CANVAS_WIDTH_RATIO
-    ),
-    m8aV411SceneCueMaxWidthPx: String(M8A_V411_SCENE_CUE_MAX_WIDTH_PX),
-    m8aV411SceneCueMaxHeightPx: String(M8A_V411_SCENE_CUE_MAX_HEIGHT_PX),
-    m8aV411SceneCueFadeInMs: String(M8A_V411_SCENE_CUE_FADE_IN_MS),
-    m8aV411SceneCuePersistMs: String(M8A_V411_SCENE_CUE_PERSIST_MS),
-    m8aV411SourcesRole: M8A_V411_SOURCES_ROLE_VERSION,
-    m8aV411SourcesRoleState: state.productUx.disclosure.sourcesRoleState,
-    m8aV411SourcesFilter: serializeJson(
-      state.productUx.disclosure.sourcesFilter
-    ),
-    m8aV411SourcesTleRowCount: String(state.actorCount),
-    m8aV411SourcesGroundStationCount: String(state.endpointCount),
-    m8aV411SourcesR2CandidateCount: String(
-      M8A_V411_R2_READ_ONLY_CANDIDATES.length
-    ),
-    m8aV49PersistentAllowedContent: serializeList([
-      ...state.productUx.productComprehension.persistentLayer
-        .defaultVisibleContent
-    ]),
-    m8aV49PersistentDeniedDefaultContent: serializeList([
-      ...state.productUx.productComprehension.persistentLayer
-        .deniedDefaultVisibleContent
-    ]),
-    m8aV49PersistentTruthAffordance:
-      state.productUx.productComprehension.persistentLayer.truthAffordanceLabel,
-    m8aV49FirstReadMessage:
-      state.productUx.productComprehension.activeWindowCopy.firstReadMessage,
-    m8aV49WatchCueLabel:
-      state.productUx.productComprehension.activeWindowCopy.watchCueLabel,
-    m8aV49OrbitClassToken:
-      state.productUx.productComprehension.activeWindowCopy.orbitClassToken,
-    m8aV49WindowIds: serializeList(
-      state.productUx.productComprehension.windowIds
-    ),
-    m8aV49SceneNearMeaningLayer:
-      state.productUx.productComprehension.sceneNearMeaningLayer.scope,
-    m8aV49SceneNearReliableVisibleContent: serializeList([
-      ...state.productUx.productComprehension.sceneNearMeaningLayer
-        .reliableVisibleContent
-    ]),
-    m8aV49SceneNearFallbackVisibleContent: serializeList([
-      ...state.productUx.productComprehension.sceneNearMeaningLayer
-        .fallbackVisibleContent
-    ]),
-    m8aV49SceneNearReliableAnchorRequired: String(
-      state.productUx.productComprehension.sceneNearMeaningLayer
-        .reliableAnchorRequired
-    ),
-    m8aV49SceneNearFallbackPolicy:
-      state.productUx.productComprehension.sceneNearMeaningLayer.fallbackPolicy,
-    m8aV49SceneNearConnectorPolicy:
-      state.productUx.productComprehension.sceneNearMeaningLayer.connectorPolicy,
-    m8aV49SceneNearActiveMeaning:
-      state.productUx.productComprehension.sceneNearMeaningLayer.activeMeaning,
-    m8aV49TransitionEventLayer: transitionEventLayer.scope,
-    m8aV49TransitionEventTrigger: transitionEventLayer.trigger,
-    m8aV49TransitionEventDurationMs: String(transitionEventLayer.durationMs),
-    m8aV49TransitionEventVisibleContent: serializeList([
-      ...transitionEventLayer.visibleContent
-    ]),
-    m8aV49TransitionEventDeniedVisibleContent: serializeList([
-      ...transitionEventLayer.deniedVisibleContent
-    ]),
-    m8aV49TransitionEventVisible: String(Boolean(activeTransitionEvent)),
-    m8aV49TransitionEventFromLabel:
-      activeTransitionEvent?.fromProductLabel ?? "",
-    m8aV49TransitionEventToLabel:
-      activeTransitionEvent?.toProductLabel ?? "",
-    m8aV49TransitionEventText: activeTransitionEvent?.summaryText ?? "",
-    m8aV49TransitionEventContext: activeTransitionEvent?.contextText ?? "",
-    m8aV49TransitionEventStateTruthSource:
-      transitionEventLayer.currentStateTruthSource,
-    m8aV49TransitionEventNonBlocking: transitionEventLayer.blockingPolicy,
-    m8aV49InspectorLayer:
-      state.productUx.productComprehension.inspectorLayer.scope,
-    m8aV410InspectorEvidenceRedesign:
-      state.productUx.productComprehension.inspectorLayer
-        .v410EvidenceRedesignVersion,
-    m8aV410InspectorEvidenceStructure: serializeList([
-      ...state.productUx.productComprehension.inspectorLayer.evidenceStructure
-    ]),
-    m8aV410InspectorFirstReadRole:
-      state.productUx.productComprehension.inspectorLayer.firstReadRole,
-    m8aV410InspectorDeniedFirstReadRoles: serializeList([
-      ...state.productUx.productComprehension.inspectorLayer
-        .deniedFirstReadRoles
-    ]),
-    m8aV410InspectorNotClaimedContent: serializeList([
-      ...state.productUx.productComprehension.inspectorLayer.notClaimedContent
-    ]),
-    m8aV410InspectorSurfaceSeparation:
-      state.productUx.productComprehension.inspectorLayer.surfaceSeparation,
-    m8aV49InspectorPrimaryVisibleContent: serializeList([
-      ...state.productUx.productComprehension.inspectorLayer
-        .primaryVisibleContent
-    ]),
-    m8aV49InspectorDeniedPrimaryContent: serializeList([
-      ...state.productUx.productComprehension.inspectorLayer
-        .deniedPrimaryVisibleContent
-    ]),
-    m8aV49InspectorDebugEvidenceContent: serializeList([
-      ...state.productUx.productComprehension.inspectorLayer
-        .debugEvidenceContent
-    ]),
-    m8aV49InspectorDebugEvidenceDefaultOpen: String(
-      state.productUx.productComprehension.inspectorLayer
-        .debugEvidenceDefaultOpen
-    ),
-    m8aV49InspectorTruthBoundaryPlacement:
-      state.productUx.productComprehension.inspectorLayer
-        .truthBoundaryPlacement,
-    m8aV49InspectorMetadataPolicy:
-      state.productUx.productComprehension.inspectorLayer.metadataPolicy,
-    m8aV4GroundStationRawItriSideReadOwnership:
-      state.sourceLineage.rawPackageSideReadOwnership,
-    m8aV4GroundStationRuntimeConsumptionRule:
-      M8A_V4_GROUND_STATION_RUNTIME_PROJECTION.runtimeConsumptionRule,
-    m8aV4GroundStationProofSeam: state.proofSeam,
-    m8aV4GroundStationNonClaims: serializeJson(state.nonClaims),
-    m8aV4ItriRequirementGapSurface: requirementGapSurface.version,
-    m8aV4ItriRequirementGapTruthLabels: serializeList([
-      ...requirementGapSurface.truthBoundaryLabels
-    ]),
-    m8aV4ItriRequirementGapGroupIds: serializeList(
-      requirementGapSurface.groups.map((group) => group.groupId)
-    ),
-    m8aV4ItriRequirementGapGroupStatuses: serializeList(
-      requirementGapSurface.groups.map((group) => `${group.groupId}:${group.status}`)
-    ),
-    m8aV4ItriRequirementGapGroupDispositions: serializeList(
-      requirementGapSurface.groups.map(
-        (group) => `${group.groupId}:${group.disposition}`
-      )
-    ),
-    m8aV4ItriRequirementGapOpenIds: serializeList(
-      requirementGapSurface.openRequirementIds
-    ),
-    m8aV4ItriRequirementGapNotMountedIds: serializeList([
-      ...requirementIdsForGroup("not-mounted-route-gap")
-    ]),
-    m8aV4ItriRequirementGapExternalValidationIds: serializeList([
-      ...requirementIdsForGroup("external-validation-gap")
-    ]),
-    m8aV4ItriRequirementGapRepoSeamIds: serializeList([
-      ...requirementIdsForGroup("bounded-repo-owned-seam")
-    ]),
-    m8aV4ItriRequirementGapBoundedRouteIds: serializeList([
-      ...requirementIdsForGroup("bounded-route-representation")
-    ]),
-    m8aV4ItriRequirementGapRouteBaselineIds: serializeList([
-      ...requirementIdsForGroup("route-owned-visual-baseline")
-    ]),
-    m8aV4ItriDemoPolishDisposition:
-      requirementGapSurface.demoPolishDisposition,
-    m8aV4ItriRouteNativeMeasuredTruthClaimed: String(
-      requirementGapSurface.routeNativeMeasuredTruthClaimed
-    ),
-    m8aV4ItriF09RateSurface: f09RateSurface.version,
-    m8aV4ItriF09RateDisposition: f09RateSurface.disposition,
-    m8aV4ItriF09ExternalTruthDisposition:
-      f09RateSurface.externalTruthDisposition,
-    m8aV4ItriF09CurrentWindowId: f09RateSurface.currentWindowId,
-    m8aV4ItriF09CurrentClass: f09RateSurface.currentNetworkSpeedClass,
-    m8aV4ItriF09CurrentBucket: f09RateSurface.currentBucketLabel,
-    m8aV4ItriF09Provenance: f09RateSurface.provenance,
-    m8aV4ItriF09MetricTruth: f09RateSurface.metricTruth,
-    m8aV4ItriF09MeasuredThroughputClaimed: String(
-      f09RateSurface.measuredThroughputClaimed
-    ),
-    m8aV4ItriF09WindowClasses: serializeList(
-      f09RateSurface.rows.map(
-        (row) => `${row.windowId}:${row.networkSpeedClass}`
-      )
-    ),
-    m8aV4ItriF16ExportSurface: f16ExportSurface.version,
-    m8aV4ItriF16ExportSchemaVersion: f16ExportSurface.schemaVersion,
-    m8aV4ItriF16ExportDisposition: f16ExportSurface.disposition,
-    m8aV4ItriF16ExternalTruthDisposition:
-      f16ExportSurface.externalTruthDisposition,
-    m8aV4ItriF16ExportArtifactTruth: f16ExportSurface.artifactTruth,
-    m8aV4ItriF16ExportFormat: f16ExportSurface.exportFormat,
-    m8aV4ItriF16RouteOwnedStateOnly: String(
-      f16ExportSurface.routeOwnedStateOnly
-    ),
-    m8aV4ItriF16MeasuredValuesIncluded: String(
-      f16ExportSurface.measuredValuesIncluded
-    ),
-    m8aV4ItriF16ExternalReportTruthClaimed: String(
-      f16ExportSurface.externalReportSystemTruthClaimed
-    ),
-    m8aV4ItriF16LastStatus: f16ExportSurface.lastStatus,
-    m8aV4ItriF16LastGeneratedAtUtc: f16ExportSurface.lastGeneratedAtUtc,
-    m8aV4ItriF16LastFilename: f16ExportSurface.lastFilename,
-    m8aV4ItriPolicyRuleControlsSurface: policyRuleControls.version,
-    m8aV4ItriPolicyRuleControlsDisposition:
-      policyRuleControls.disposition,
-    m8aV4ItriPolicyRuleExternalTruthDisposition:
-      policyRuleControls.externalTruthDisposition,
-    m8aV4ItriPolicyRuleTruthBoundary:
-      policyRuleControls.truthBoundary,
-    m8aV4ItriPolicyRuleExportAdjacentTruth:
-      policyRuleControls.exportAdjacentTruth,
-    m8aV4ItriF10PolicyPresetId:
-      policyRuleControls.activePolicyPreset.presetId,
-    m8aV4ItriF10PolicyPresetLabel:
-      policyRuleControls.activePolicyPreset.label,
-    m8aV4ItriF10PolicyPresetMode:
-      policyRuleControls.policyPresetMode,
-    m8aV4ItriF10PolicyPresetIds: serializeList(
-      policyRuleControls.policyPresets.map((preset) => preset.presetId)
-    ),
-    m8aV4ItriF11RulePresetId:
-      policyRuleControls.activeRulePreset.presetId,
-    m8aV4ItriF11RulePresetLabel:
-      policyRuleControls.activeRulePreset.label,
-    m8aV4ItriF11RulePresetMode:
-      policyRuleControls.rulePresetMode,
-    m8aV4ItriF11RulePresetIds: serializeList(
-      policyRuleControls.rulePresets.map((preset) => preset.presetId)
-    ),
-    m8aV4ItriF11RuleParameterChips: serializeList([
-      ...policyRuleControls.activeRulePreset.parameterChips
-    ]),
-    m8aV4ItriPolicyRuleRouteOwnedStateOnly: String(
-      policyRuleControls.routeOwnedStateOnly
-    ),
-    m8aV4ItriPolicyRuleLiveControlClaimed: String(
-      policyRuleControls.liveControlClaimed
-    ),
-    m8aV4ItriPolicyRuleBackendControlClaimed: String(
-      policyRuleControls.backendControlClaimed
-    ),
-    m8aV4ItriPolicyRuleNetworkControlClaimed: String(
-      policyRuleControls.networkControlClaimed
-    ),
-    m8aV4ItriPolicyRuleArbitraryRuleEditorClaimed: String(
-      policyRuleControls.arbitraryRuleEditorClaimed
-    ),
-    m8aV4ItriPolicyRuleMeasuredDecisionTruthClaimed: String(
-      policyRuleControls.measuredDecisionTruthClaimed
-    )
-  });
 }
 
 function buildEndpointState(): M8aV4GroundStationSceneState["endpoints"] {
@@ -7715,6 +5730,35 @@ function buildRequirementGapSurfaceState(): M8aV4GroundStationSceneState["requir
       M8A_V4_ITRI_ROUTE_NATIVE_MEASURED_TRUTH_CLAIMED,
     groups: M8A_V4_ITRI_REQUIREMENT_STATUS_GROUPS,
     openRequirementIds: M8A_V4_ITRI_REQUIREMENT_OPEN_IDS
+  };
+}
+
+function buildAcceptanceLayerState(): M8aV4GroundStationSceneState["acceptanceLayer"] {
+  return {
+    version: M8A_V4_ITRI_DEMO_VIEW_ACCEPTANCE_LAYER_VERSION,
+    layerId: M8A_V4_ITRI_DEMO_VIEW_ACCEPTANCE_LAYER_ID,
+    truthBoundary: M8A_V4_ITRI_DEMO_VIEW_ACCEPTANCE_TRUTH_BOUNDARY,
+    requirementIds: M8A_V4_ITRI_ACCEPTANCE_REQUIREMENT_IDS,
+    coverageRecords: M8A_V4_ITRI_ACCEPTANCE_COVERAGE_RECORDS,
+    requirementStatusPairs: M8A_V4_ITRI_ACCEPTANCE_REQUIREMENT_STATUS_PAIRS,
+    requirementLayerPairs: M8A_V4_ITRI_ACCEPTANCE_REQUIREMENT_LAYER_PAIRS,
+    externalFailIds: M8A_V4_ITRI_ACCEPTANCE_EXTERNAL_FAIL_IDS,
+    boundedRouteRepresentationIds:
+      M8A_V4_ITRI_ACCEPTANCE_BOUNDED_ROUTE_REPRESENTATION_IDS,
+    f13Phase71Evidence: {
+      artifact: M8A_V4_ITRI_PHASE7_1_F13_EVIDENCE_ARTIFACT,
+      generatedAtUtc:
+        M8A_V4_ITRI_PHASE7_1_F13_EVIDENCE_GENERATED_AT_UTC,
+      staleAfterUtc: M8A_V4_ITRI_PHASE7_1_F13_EVIDENCE_STALE_AFTER_UTC,
+      leoCount: M8A_V4_ITRI_PHASE7_1_F13_LEO_COUNT,
+      totalCount: M8A_V4_ITRI_PHASE7_1_F13_TOTAL_COUNT,
+      routeNativeScaleClaimed: false
+    },
+    externalValidationPackage: {
+      artifact: M8A_V4_ITRI_EXTERNAL_V02_V06_VALIDATION_ARTIFACT,
+      status: M8A_V4_ITRI_EXTERNAL_V02_V06_STATUS,
+      failIds: M8A_V4_ITRI_ACCEPTANCE_EXTERNAL_FAIL_IDS
+    }
   };
 }
 
@@ -8824,9 +6868,12 @@ export function createM8aV4GroundStationSceneController({
     syncState();
   };
 
-  const toggleDetailsDisclosure = (): void => {
+  const openInspectorDisclosure = (tab: M8aV411InspectorTab): void => {
     detailsDisclosureOpen = true;
-    activeInspectorTab = "decision";
+    activeInspectorTab = tab;
+    boundaryDisclosureOpen = false;
+    sourcesDisclosureOpen = false;
+    boundaryFullTruthDisclosureOpen = false;
     clearReviewAutoPauseTimer();
     const replayState = replayClock.getState();
     const pinnedRatio = resolveReplayWindowRatio(replayState);
@@ -8845,6 +6892,10 @@ export function createM8aV4GroundStationSceneController({
     if (inspectorSheet) {
       inspectorSheet.scrollTop = 0;
     }
+  };
+
+  const toggleDetailsDisclosure = (): void => {
+    openInspectorDisclosure("decision");
   };
 
   const closeDetailsDisclosure = (): void => {
@@ -9246,6 +7297,7 @@ export function createM8aV4GroundStationSceneController({
         nativeRfHandoverTruth: "not-claimed"
       },
       requirementGapSurface: buildRequirementGapSurfaceState(),
+      acceptanceLayer: buildAcceptanceLayerState(),
       f09RateSurface: buildF09RateSurfaceState(simulationHandoverModel),
       f16ExportSurface: buildF16ExportSurfaceState(latestF16ExportRecord),
       policyRuleControls: buildPolicyRuleControlsState(
@@ -9459,6 +7511,10 @@ export function createM8aV4GroundStationSceneController({
           boundaryFullTruthDisclosureOpen = false;
           syncState();
         }
+        break;
+      }
+      case "open-evidence": {
+        openInspectorDisclosure("evidence");
         break;
       }
       case "toggle-review-mode": {

@@ -2,7 +2,7 @@ export const M8A_V411_SCENE_CONTEXT_CHIP_VERSION =
   "m8a-v4.11-scene-context-chip-conv1-runtime.v1";
 
 export const M8A_V411_SCENE_CONTEXT_CHIP_COPY =
-  "13 顆衛星模擬展示 · 完整 ≥500 LEO 多軌道驗證見後續階段";
+  "≥500 LEO 規模證據另見 Phase 7.1；本路由仍為 13-actor bounded demo";
 
 export const M8A_V411_SCENE_CONTEXT_CHIP_MAX_WIDTH_PX = 380;
 export const M8A_V411_SCENE_CONTEXT_CHIP_MAX_HEIGHT_PX = 28;
