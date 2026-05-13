@@ -151,6 +151,16 @@ The mapping must be per rule or per rule group. A global "use measured
 traffic" statement is insufficient because F-12 decisions depend on
 direction, sample window, candidate set, and metric aggregation.
 
+For `authority-ready`, `measuredPackageRefs[].parsedMetricRefs` and
+`measuredPackageRefs[].thresholdRuleRefs` are exhaustive gates. Every listed ref
+must be covered by a sufficient per-requirement F-07R1 review for the referenced
+measured package; a reviewed ref in the same array must not mask an unreviewed
+ref. Each `decisionRules[].measuredFieldRef` must also be covered by a
+sufficient F-07R1 requirement review for the rule input. In this reviewer
+slice, `throughput` and `networkSpeed` rules that reference an F-09 throughput
+metric require F-09 measured review coverage; omitting F-09 from
+`measuredPackageRefs[].requirementIds` fails closed.
+
 ## Threshold Authority Fields
 
 Threshold authority is external to parser code and external to bounded proxy
@@ -209,6 +219,10 @@ Rule semantics must fail closed:
   the measured authority lane.
 - A fallback that silently substitutes bounded proxy metrics for measured
   fields is not allowed.
+- Missing `unit` or missing `weight` produces
+  `pending-threshold-authority` because rule semantics are incomplete.
+- A fallback that names bounded proxy policy, rule config, or modeled proxy
+  metrics as substitute authority input is not allowed.
 - A tie-breaker must be deterministic and documented; it must not be inferred
   from current repo implementation defaults unless the authority package names
   those defaults as accepted semantics.
