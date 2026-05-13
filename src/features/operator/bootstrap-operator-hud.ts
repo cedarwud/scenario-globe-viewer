@@ -130,67 +130,97 @@ function createElements(
       data-status-panel-containment="v3-d03-s1"
     >
       <div class="operator-status-hud__controls">
-        <div class="operator-status-hud__meta">
-          <span class="operator-status-hud__eyebrow">Operator Controls</span>
+        <div
+          class="operator-status-hud__control-group"
+          data-operator-control-group="scenario"
+          aria-labelledby="operator-control-group-scenario-heading"
+        >
+          <div
+            id="operator-control-group-scenario-heading"
+            data-operator-control-group-heading="true"
+          >Scene controls</div>
+          <div class="operator-status-hud__meta">
+            <span class="operator-status-hud__eyebrow">Operator Controls</span>
+            <span
+              class="operator-status-hud__heading"
+              data-operator-field="scenario-label"
+            ></span>
+          </div>
+          <label class="operator-control-group">
+            <span class="operator-control-label">Scenario</span>
+            <select
+              class="operator-control-select"
+              data-operator-control="scenario"
+              aria-label="Bootstrap scenario selection"
+            >
+              ${scenarioOptionsMarkup}
+            </select>
+          </label>
+        </div>
+        <div
+          class="operator-status-hud__control-group"
+          data-operator-control-group="replay"
+          aria-labelledby="operator-control-group-replay-heading"
+        >
+          <div
+            id="operator-control-group-replay-heading"
+            data-operator-control-group-heading="true"
+          >Replay controls</div>
+          <div class="operator-control-group">
+            <span class="operator-control-label">Replay Mode</span>
+            <div class="operator-control-chipset" role="group" aria-label="Replay mode">
+              <button
+                type="button"
+                class="operator-control-chip"
+                data-operator-control="mode"
+                data-operator-mode="real-time"
+              >
+                Real-time
+              </button>
+              <button
+                type="button"
+                class="operator-control-chip"
+                data-operator-control="mode"
+                data-operator-mode="prerecorded"
+              >
+                Prerecorded
+              </button>
+            </div>
+          </div>
+          <div class="operator-control-group">
+            <span class="operator-control-label">Replay Speed</span>
+            <div class="operator-control-chipset" role="group" aria-label="Replay speed">
+              ${speedControlsMarkup}
+            </div>
+          </div>
+        </div>
+        <div
+          class="operator-status-hud__control-group"
+          data-operator-control-group="policy"
+          aria-labelledby="operator-control-group-policy-heading"
+        >
+          <div
+            id="operator-control-group-policy-heading"
+            data-operator-control-group-heading="true"
+          >Policy controls</div>
+          <label class="operator-control-group">
+            <span class="operator-control-label">Handover Policy</span>
+            <select
+              class="operator-control-select"
+              data-operator-control="handover-policy"
+              aria-label="Handover Policy"
+            >
+              ${policyOptionsMarkup}
+            </select>
+          </label>
           <span
-            class="operator-status-hud__heading"
-            data-operator-field="scenario-label"
+            class="operator-control-live-region"
+            data-operator-policy-status="true"
+            role="status"
+            aria-live="polite"
+            aria-atomic="true"
           ></span>
         </div>
-        <label class="operator-control-group">
-          <span class="operator-control-label">Scenario</span>
-          <select
-            class="operator-control-select"
-            data-operator-control="scenario"
-            aria-label="Bootstrap scenario selection"
-          >
-            ${scenarioOptionsMarkup}
-          </select>
-        </label>
-        <div class="operator-control-group">
-          <span class="operator-control-label">Replay Mode</span>
-          <div class="operator-control-chipset" role="group" aria-label="Replay mode">
-            <button
-              type="button"
-              class="operator-control-chip"
-              data-operator-control="mode"
-              data-operator-mode="real-time"
-            >
-              Real-time
-            </button>
-            <button
-              type="button"
-              class="operator-control-chip"
-              data-operator-control="mode"
-              data-operator-mode="prerecorded"
-            >
-              Prerecorded
-            </button>
-          </div>
-        </div>
-        <div class="operator-control-group">
-          <span class="operator-control-label">Replay Speed</span>
-          <div class="operator-control-chipset" role="group" aria-label="Replay speed">
-            ${speedControlsMarkup}
-          </div>
-        </div>
-        <label class="operator-control-group">
-          <span class="operator-control-label">Handover Policy</span>
-          <select
-            class="operator-control-select"
-            data-operator-control="handover-policy"
-            aria-label="Handover Policy"
-          >
-            ${policyOptionsMarkup}
-          </select>
-        </label>
-        <span
-          class="operator-control-live-region"
-          data-operator-policy-status="true"
-          role="status"
-          aria-live="polite"
-          aria-atomic="true"
-        ></span>
       </div>
       <div class="operator-status-hud__telemetry">
         <div
