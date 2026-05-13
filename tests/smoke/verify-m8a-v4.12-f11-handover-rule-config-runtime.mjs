@@ -311,11 +311,26 @@ async function clickRuleAction(client, action) {
   return await inspectF11(client);
 }
 
+async function toggleRuleConfigSummary(client) {
+  await evaluateRuntimeValue(
+    client,
+    `(() => {
+      const editor = document.querySelector("[data-handover-rule-config-editor='true']");
+      const summary = editor?.querySelector("summary");
+      if (!(editor instanceof HTMLDetailsElement) || !(summary instanceof HTMLElement)) {
+        throw new Error("Missing F-11 rule config summary.");
+      }
+      summary.click();
+    })()`
+  );
+  await sleep(180);
+  return await inspectF11(client);
+}
+
 function assertInitialState(state) {
   assert(state.panel.visible, "F-11 Handover Decision panel must be visible.");
   assert(state.editor.visible, "F-11 rule editor must be visible.");
-  assert(state.editor.open === true, "F-11 rule editor must default open for smoke evidence.");
-  assert(state.editor.formVisible, "F-11 rule form must be visible.");
+  assert(state.editor.open === false, "F-11 rule editor must default closed for smoke evidence.");
   assert(
     state.editor.statusRole === "status" &&
       state.editor.statusAriaLive === "polite",
@@ -339,6 +354,11 @@ function assertInitialState(state) {
   assert(state.forbiddenClaimHit === false, "F-11 panel/report must avoid forbidden claims.");
 }
 
+function assertExpandedState(state) {
+  assert(state.editor.open === true, "F-11 rule editor summary activation must open the editor.");
+  assert(state.editor.formVisible, "F-11 rule form must be visible.");
+}
+
 await withStaticSmokeBrowser(async ({ client, baseUrl }) => {
   ensureOutputRoot(outputRoot);
   await setViewport(client, VIEWPORT_DESKTOP);
@@ -354,9 +374,18 @@ await withStaticSmokeBrowser(async ({ client, baseUrl }) => {
   const initialScreenshotPath = await captureScreenshot(
     client,
     outputRoot,
-    `${VIEWPORT_DESKTOP.name}-initial-open.png`
+    `${VIEWPORT_DESKTOP.name}-initial-closed.png`
   );
   assertScreenshot(initialScreenshotPath);
+
+  const opened = await toggleRuleConfigSummary(client);
+  assertExpandedState(opened);
+  assert(
+    opened.panel.rulePolicyId === "bootstrap-balanced-v1" &&
+      opened.documentTelemetry.rulePolicyId === "bootstrap-balanced-v1" &&
+      opened.report?.appliedRuleConfig?.policyId === "bootstrap-balanced-v1",
+    "F-11 summary activation must preserve the default applied rule config."
+  );
 
   await seekRatio(client, 0.1);
   const beforeInvalidAppliedAt = (await inspectF11(client)).panel.ruleAppliedAt;
@@ -459,6 +488,18 @@ await withStaticSmokeBrowser(async ({ client, baseUrl }) => {
   );
   assertScreenshot(resetScreenshotPath);
 
+  const closed = await toggleRuleConfigSummary(client);
+  assert(
+    closed.editor.open === false,
+    "F-11 rule editor summary activation must close the editor after round-trip."
+  );
+  assert(
+    closed.panel.rulePolicyId === "bootstrap-balanced-v1" &&
+      closed.documentTelemetry.rulePolicyId === "bootstrap-balanced-v1" &&
+      closed.report?.appliedRuleConfig?.policyId === "bootstrap-balanced-v1",
+    "F-11 summary round-trip must preserve the reset applied rule config."
+  );
+
   const artifactPath = writeJsonArtifact(outputRoot, "f11-rule-config-smoke.json", {
     requestPath: REQUEST_PATH,
     viewport: VIEWPORT_DESKTOP,
@@ -471,7 +512,12 @@ await withStaticSmokeBrowser(async ({ client, baseUrl }) => {
     appliedRuleConfig: held.report.appliedRuleConfig,
     resetRuleConfig: reset.report.appliedRuleConfig,
     heldDecisionKind: held.panel.decisionKind,
-    resetDecisionKind: reset.panel.decisionKind
+    resetDecisionKind: reset.panel.decisionKind,
+    disclosureRoundTrip: {
+      initialOpen: ready.editor.open,
+      opened: opened.editor.open,
+      closed: closed.editor.open
+    }
   });
 
   console.log(

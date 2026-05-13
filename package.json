@@ -72,6 +72,7 @@
     "test:m8a-v4.11:correction-a-phase-d": "npm run build && node scripts/verify-m8a-v4.3-raw-itri-side-read.mjs && node scripts/verify-m8a-v4.6b-runtime-source-boundary.mjs && node tests/smoke/verify-m8a-v4.11-correction-a-phase-d-runtime.mjs",
     "test:m8a-v4.11:correction-a-phase-e": "npm run build && node scripts/verify-m8a-v4.3-raw-itri-side-read.mjs && node scripts/verify-m8a-v4.6b-runtime-source-boundary.mjs && node tests/smoke/verify-m8a-v4.11-correction-a-phase-e-runtime.mjs",
     "test:m8a-v3-d03:s1": "npm run build && node tests/smoke/verify-m8a-v3-d03-s1-status-panel-containment-runtime.mjs",
+    "test:m8a-v3-d03:s2": "npm run build && node tests/smoke/verify-m8a-v3-d03-s2-handover-rule-config-default-closed-runtime.mjs",
     "test:m8a-v4.12:f09": "npm run build && node tests/smoke/verify-m8a-v4.12-f09-communication-rate-runtime.mjs",
     "test:m8a-v4.12:f11": "npm run build && node scripts/verify-m8a-v4.12-f11-handover-rule-config.mjs && node tests/smoke/verify-m8a-v4.12-f11-handover-rule-config-runtime.mjs",
     "test:m8a-v4.12:f16": "npm run build && node tests/smoke/verify-m8a-v4.12-f16-statistics-report-export-runtime.mjs",

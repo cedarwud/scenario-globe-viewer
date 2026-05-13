@@ -202,7 +202,6 @@ function createRuleEditorMarkup(): string {
     <details
       class="handover-rule-config"
       data-handover-rule-config-editor="true"
-      open
     >
       <summary class="handover-rule-config__summary">Handover Rule Config</summary>
       <form class="handover-rule-config__form" data-handover-rule-form="true" novalidate>

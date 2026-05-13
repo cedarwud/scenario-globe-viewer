@@ -1441,6 +1441,10 @@ body {
   min-width: 0;
 }
 
+.handover-rule-config:not([open]) .handover-rule-config__form {
+  display: none;
+}
+
 .handover-rule-config__grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));

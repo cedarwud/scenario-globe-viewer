@@ -38,9 +38,13 @@ function resolveProfileArg(argv) {
 }
 
 const captureProfileLabel = resolveProfileArg(process.argv);
+const captureProfileOutputRoots = new Map([
+  ["d03-s2", "output/m8a-v3-d03/d03-s2"]
+]);
 const outputDir = path.join(
   repoRoot,
-  `output/m8a-v3-d03/${captureProfileLabel}`
+  captureProfileOutputRoots.get(captureProfileLabel) ??
+    `output/m8a-v3-d03/${captureProfileLabel}`
 );
 const profileFilenameSuffix =
   captureProfileLabel === "baseline" ? "" : `-${captureProfileLabel}`;
