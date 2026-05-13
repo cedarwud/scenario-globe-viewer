@@ -109,6 +109,12 @@ authority owner explicitly asks for a single retained package.
 | S10 | M8A-V4 endpoint authority preservation and upgrade gate | M8A-V4 endpoint authority | Any request attempts to change endpoint precision, endpoint pair, path semantics, or active service claims. | Authority delta review and, if needed, a new endpoint authority package plus projected artifact update plan. | Existing operator-family bounded closure remains intact unless superseded by a new accepted package. |
 | S11 | Synthetic fallback fixture definitions | Any lane without usable authority or public source | A slice explicitly reaches "no acceptable public/open source" after classification. | A labeled synthetic fixture contract with provenance, intended use, nonclaims, and scan rules. | Closes only fixture readiness; never closes authority truth. |
 
+S4-A close-out pointer: the docs-only public standards source
+classification for F-17/P-01/P-02/P-03 is recorded in
+[../data-contracts/itri-public-standards-source-classification.md](../data-contracts/itri-public-standards-source-classification.md).
+It classifies official ITU sources for a bounded public standards profile only;
+it creates no synthetic fixtures and does not record ITRI/V-group acceptance.
+
 ## Public/Open Source Classification Rules
 
 Before promoting public/open material, classify it in a short source note:
