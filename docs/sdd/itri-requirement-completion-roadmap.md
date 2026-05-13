@@ -155,6 +155,15 @@ It chooses a bounded F-07/F-08/F-09 measured traffic package
 reviewer/importer as the first runtime-facing lane, while preserving all
 external authority and nonclaim boundaries.
 
+F-07R1 close-out: the bounded measured traffic package reviewer/importer landed
+in `57f3a2b` with corrective artifact-ref resolution fix `9671b42`.
+Close-out details are recorded in
+[itri-f07r1-measured-traffic-package-reviewer-closeout.md](./itri-f07r1-measured-traffic-package-reviewer-closeout.md).
+The reviewer reads only explicitly named local packages under
+`output/validation/external-f07-f09/`, fails closed for missing/malformed/
+incomplete/synthetic packages, and does not create retained evidence or close
+measured traffic authority.
+
 ## Public/Open Source Classification Rules
 
 Before promoting public/open material, classify it in a short source note:
