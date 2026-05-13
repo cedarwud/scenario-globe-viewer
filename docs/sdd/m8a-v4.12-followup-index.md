@@ -149,9 +149,11 @@ After each F-ID close-out:
 
 For other immediately-actionable items not covered by V4.12:
 
-- **D-03 richer presentation composition**: covered by
+- **D-03 richer presentation composition**: closed by the M8A-V3 D-03.S1-S5
+  acceptance-route chain and covered by
   [m8a-v3-presentation-convergence-umbrella-plan.md](./m8a-v3-presentation-convergence-umbrella-plan.md).
-  Do not bundle into V4.12.
+  This remains outside V4.12 and does not change the V4.12 bounded followup
+  scope or any external-truth lane.
 - **V4.13 public-TLE multi-orbit closure**: covered by
   [m8a-v4.13-multi-orbit-scale-runtime-plan.md](./m8a-v4.13-multi-orbit-scale-runtime-plan.md)
   and locked by

@@ -201,11 +201,10 @@ scoped narrowly so it can be a separate slice without cross-coupling.
 | D-03.S2 | F-11 Rule Config default-closed disclosure | G3 | 1 panel file + 1 smoke amendment + 1 new smoke + capture-script profile | low | landed 2026-05-13 in commit `6f6770b` (see §14.7) |
 | D-03.S3 | Operator control row grouping | G4 | 1 HUD file + 1 CSS update + 1 new smoke + 1 package.json delta | low | landed 2026-05-13 in commit `a51a840` (see §15.7) |
 | D-03.S4 | Primary surface rank + cross-panel truth chip | G2 (full) + G5 | 1 HUD file + 1 new compact-chip component + 1 CSS update + 1 new smoke + 1 capture-script delta + 1 package.json delta | medium | landed 2026-05-13 in commit `b02be72` (see §16.7) |
-| D-03.S5 | Acceptance-route final acceptance + D-03 row update | umbrella Hard Gates | docs + close-out | low | next unblocked execution lane |
+| D-03.S5 | Acceptance-route final acceptance + D-03 row update | umbrella Hard Gates | docs + close-out | low | landed 2026-05-13 as docs-only acceptance-route close-out (see §17) |
 
 Slices must be executed in **separate conversations**. Each slice ends with a
-quality gate run and commit. After S4 close-out, S5 is the only unblocked
-execution lane. S5 remains the only slice allowed to update the D-03
+quality gate run and commit. S5 was the only slice allowed to update the D-03
 acceptance row and the D-03 closure-adjacent status pointers named in §10.
 
 Slice ordering rationale:
@@ -1930,3 +1929,30 @@ What did **not** change:
 D-03 acceptance row remains `部分完成`. Slice 4 does not update the
 acceptance row. Slice 5 is now unblocked and remains the only slice
 allowed to perform the final D-03 acceptance-route update.
+
+## 17. Slice 5 (D-03.S5) Acceptance-Route Close-Out
+
+Slice 5 is a docs-only acceptance bookkeeping pass. It records that the
+D-03.S1-S4 presentation-composition work now satisfies the bounded D-03
+route under the M8A-V3 umbrella hard gates, with no runtime, CSS, smoke,
+package, or visual implementation changes.
+
+Updated records:
+
+- `/home/u24/papers/itri/itri-acceptance-report-2026-04-20/01-itri-requirement-inventory-and-status.md`
+  moves the D-03 row from `部分完成` to bounded presentation completion
+  wording only.
+- `m8a-v3-presentation-convergence-umbrella-plan.md` records the D-03
+  acceptance-route close-out while preserving the M8A-V2/V3 truth boundary.
+- `m8a-v4.12-followup-index.md` §7 now points to the D-03 close-out as
+  outside the V4.12 chain, not as a V4.12 closure.
+
+Truth boundary preserved:
+
+- V4.12 and V4.13 remain bounded repo-owned/public-TLE surfaces.
+- The close-out does not claim external measured network truth, native/RF
+  handover, ITRI orbit-model integration, NAT/tunnel/DUT validation, or
+  full external authority acceptance.
+- F-01, F-07/F-08/F-12, F-17, P-01..P-03, V-02..V-06, and M8A-V4 second
+  endpoint lanes remain governed by their existing bounded or blocked
+  authority records.

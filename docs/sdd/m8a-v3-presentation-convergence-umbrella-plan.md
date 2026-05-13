@@ -28,6 +28,16 @@ and
 - does not reopen `M8B`, `M8C`, active `MEO`, arbitrary endpoint selection,
   global endpoint navigation, or a second operator pair
 
+2026-05-13 D-03 acceptance-route note:
+
+- D-03.S1-S5 is closed as bounded presentation-composition acceptance
+  bookkeeping for the Operator HUD and D-03 inventory row
+- the close-out preserves the M8A-V2/V3 truth boundary and the V4.12/V4.13
+  bounded repo-owned/public-TLE surfaces
+- it does not convert presentation convergence into external measured network
+  truth, native/RF handover, ITRI orbit-model integration, NAT/tunnel/DUT
+  validation, or full external authority acceptance
+
 2026-04-25 note:
 
 - this umbrella is not the current product-narrative authority for the next
