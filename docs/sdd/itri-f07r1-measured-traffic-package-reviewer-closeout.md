@@ -41,8 +41,8 @@ by default.
 - `authority-pass` is never assigned by default. A submitted authority-pass
   state is downgraded unless raw refs, parsed metric refs, external threshold
   owner/version/rules, and `unresolvedThresholdState: "none"` are present.
-- Declared artifact refs must resolve inside the named package directory.
-  Escaping refs are rejected.
+- Declared artifact refs, including `parsedMetrics[].sourceArtifactRefs`, must
+  resolve inside the named package directory. Escaping refs are rejected.
 - Threshold authority is reported as external to the importer.
 
 ## Nonclaims

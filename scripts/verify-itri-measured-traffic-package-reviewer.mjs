@@ -554,6 +554,40 @@ async function main() {
 
     await withTempRepo(async (tempRepo) => {
       const manifest = baseManifest();
+      manifest.parsedMetrics[0].sourceArtifactRefs = [
+        "raw/missing-metric-source.log"
+      ];
+      await writePackage(tempRepo, manifest);
+      const result = await runCli(reviewItriMeasuredTrafficPackageFromPath, tempRepo);
+      const f07Review = result.review.requirementReviews.find(
+        (entry) => entry.requirementId === "F-07"
+      );
+
+      assert.equal(
+        result.status,
+        1,
+        "Missing parsedMetrics sourceArtifactRefs file must fail closed."
+      );
+      assert.equal(result.review.packageState, "incomplete");
+      assert.deepEqual(result.review.artifactRefSummary.unresolvedRefs, [
+        "raw/missing-metric-source.log"
+      ]);
+      assert(
+        result.review.gaps.some(
+          (gap) =>
+            gap.code === "artifact-ref.unresolved" &&
+            gap.severity === "blocking" &&
+            gap.path === "raw/missing-metric-source.log"
+        ),
+        "Missing parsedMetrics sourceArtifactRefs file must produce a blocking unresolved-ref gap."
+      );
+      assert(f07Review, "F-07 review must exist for missing metric source case.");
+      assert.equal(f07Review.reviewerState, "incomplete");
+      assertNoAuthorityPassByDefault(result.review);
+    });
+
+    await withTempRepo(async (tempRepo) => {
+      const manifest = baseManifest();
       manifest.reviewerVerdicts[2] = {
         ...manifest.reviewerVerdicts[2],
         reviewerState: "authority-pass",
@@ -608,7 +642,7 @@ async function main() {
   }
 
   console.log(
-    "F-07R1 measured-traffic package reviewer verifier passed: missing, malformed, incomplete, synthetic, escaping-ref, importable, authority-gated, and path-boundary cases covered."
+    "F-07R1 measured-traffic package reviewer verifier passed: missing, malformed, incomplete, synthetic, escaping-ref, parsed-metric-source-ref, importable, authority-gated, and path-boundary cases covered."
   );
 }
 

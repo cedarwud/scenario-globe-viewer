@@ -786,37 +786,43 @@ export function collectItriMeasuredTrafficArtifactRefs(
 ): ReadonlyArray<string> {
   const refs = new Set<string>();
 
-  if (!isPlainRecord(manifest) || !isPlainRecord(manifest.artifactRefs)) {
+  if (!isPlainRecord(manifest)) {
     return [];
   }
 
-  const artifactRefs = manifest.artifactRefs;
-  addStringRef(refs, artifactRefs.commandsTranscript);
-  addStringRef(refs, artifactRefs.redactions);
-  addStringRefs(refs, artifactRefs.topology);
+  if (isPlainRecord(manifest.artifactRefs)) {
+    const artifactRefs = manifest.artifactRefs;
+    addStringRef(refs, artifactRefs.commandsTranscript);
+    addStringRef(refs, artifactRefs.redactions);
+    addStringRefs(refs, artifactRefs.topology);
 
-  for (const record of recordArray(artifactRefs.pingLogs)) {
-    addStringRef(refs, record.ref);
+    for (const record of recordArray(artifactRefs.pingLogs)) {
+      addStringRef(refs, record.ref);
+    }
+
+    for (const record of recordArray(artifactRefs.iperf3ClientLogs)) {
+      addStringRef(refs, record.ref);
+    }
+
+    for (const record of recordArray(artifactRefs.iperf3ServerLogs)) {
+      addStringRef(refs, record.ref);
+    }
+
+    for (const record of recordArray(artifactRefs.trafficGeneratorOutputs)) {
+      addStringRef(refs, record.ref);
+      addStringRef(refs, record.profileRef);
+      addStringRefs(refs, record.configRefs);
+    }
+
+    if (isPlainRecord(artifactRefs.packetCaptures)) {
+      addStringRefs(refs, artifactRefs.packetCaptures.captureRefs);
+      addStringRef(refs, artifactRefs.packetCaptures.policyRef);
+      addStringRefs(refs, artifactRefs.packetCaptures.alternatePathEvidenceRefs);
+    }
   }
 
-  for (const record of recordArray(artifactRefs.iperf3ClientLogs)) {
-    addStringRef(refs, record.ref);
-  }
-
-  for (const record of recordArray(artifactRefs.iperf3ServerLogs)) {
-    addStringRef(refs, record.ref);
-  }
-
-  for (const record of recordArray(artifactRefs.trafficGeneratorOutputs)) {
-    addStringRef(refs, record.ref);
-    addStringRef(refs, record.profileRef);
-    addStringRefs(refs, record.configRefs);
-  }
-
-  if (isPlainRecord(artifactRefs.packetCaptures)) {
-    addStringRefs(refs, artifactRefs.packetCaptures.captureRefs);
-    addStringRef(refs, artifactRefs.packetCaptures.policyRef);
-    addStringRefs(refs, artifactRefs.packetCaptures.alternatePathEvidenceRefs);
+  for (const metric of recordArray(manifest.parsedMetrics)) {
+    addStringRefs(refs, metric.sourceArtifactRefs);
   }
 
   for (const relation of recordArray(manifest.relatedValidationRequirements)) {
