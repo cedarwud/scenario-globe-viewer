@@ -617,6 +617,25 @@ Phases 6.1-7.1.
 These planning inputs are routed into Phase 6.0 closure, not into a new audit
 cycle.
 
+## V4.12 ITRI Must-Have Followup Chain
+
+A parallel `V4.12` followup track addresses immediately-actionable ITRI
+requirement closures that do not depend on external stack truth (OMNeT++ /
+INET / ESTNeT), ITRI orbit-model delivery, or the M8A-V4 multi-orbit second
+endpoint authority gate. It covers:
+
+- F-09 dedicated communication-rate visualization
+- F-10 operator-switchable handover policy
+- F-11 configurable handover rules
+- F-13 LEO-scale runtime (Phase 7.1 LEO leg, route-native closure slice)
+- F-16 statistics report export
+
+Single entry point:
+[m8a-v4.12-followup-index.md](./m8a-v4.12-followup-index.md).
+
+This chain runs in parallel with `Phase 8.0` work. It does not reopen Phase 6
+or Phase 7 closure and does not absorb external-truth requirement scope.
+
 ## Immediate Next Step
 
 Phase 6 formal close-out is complete.
