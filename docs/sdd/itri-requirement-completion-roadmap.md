@@ -135,6 +135,18 @@ Parallel data-contract close-out pointers:
   metric fields, threshold authority, reviewer states, and synthetic fallback
   boundaries only. Schema/import readiness does not close measured traffic
   truth.
+- F-12-A decision-threshold authority contract is recorded in
+  [../data-contracts/itri-decision-threshold-authority.md](../data-contracts/itri-decision-threshold-authority.md).
+  It defines authority package metadata, measured-field mapping, rule
+  semantics, threshold authority fields, reviewer states, and synthetic
+  fallback boundaries only. It keeps the existing bounded proxy F-12 lane
+  separate from any future measured/authority F-12 upgrade.
+- V-02-A external validation manifest schema is recorded in
+  [../data-contracts/itri-external-validation-manifest.md](../data-contracts/itri-external-validation-manifest.md).
+  It defines the common manifest envelope for future V-02..V-06 packages,
+  including environment, topology, DUT/generator, raw artifact, redaction,
+  measured-traffic relation, and per-lane reviewer state fields only. Schema
+  readiness does not close V-02..V-06 external validation.
 
 ## Public/Open Source Classification Rules
 
