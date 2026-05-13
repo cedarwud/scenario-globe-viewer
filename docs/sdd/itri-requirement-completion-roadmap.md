@@ -148,6 +148,13 @@ Parallel data-contract close-out pointers:
   measured-traffic relation, and per-lane reviewer state fields only. Schema
   readiness does not close V-02..V-06 external validation.
 
+Runtime readiness decision: the first runtime-facing implementation candidate
+is selected in
+[itri-runtime-readiness-decision.md](./itri-runtime-readiness-decision.md).
+It chooses a bounded F-07/F-08/F-09 measured traffic package
+reviewer/importer as the first runtime-facing lane, while preserving all
+external authority and nonclaim boundaries.
+
 ## Public/Open Source Classification Rules
 
 Before promoting public/open material, classify it in a short source note:
