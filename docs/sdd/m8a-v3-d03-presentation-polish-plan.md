@@ -199,8 +199,8 @@ scoped narrowly so it can be a separate slice without cross-coupling.
 |---|---|---|---|---|---|
 | D-03.S1 | Status panel containment + secondary telemetry collapse | G1 (+ partial G2) | 1 CSS file + 1 panel-orchestrator file + 1 new smoke + 1 new capture script | low | landed 2026-05-13 in commit `b4ae72a` (see §13) |
 | D-03.S2 | F-11 Rule Config default-closed disclosure | G3 | 1 panel file + 1 smoke amendment + 1 new smoke + capture-script profile | low | scope locked in §14; pending execution |
-| D-03.S3 | Operator control row grouping | G4 | 1 HUD file + 1 CSS update | low | pending |
-| D-03.S4 | Primary surface rank + cross-panel truth chip | G2 (full) + G5 | 1 HUD file + 1 CSS update + 1 new compact-chip component | medium | pending |
+| D-03.S3 | Operator control row grouping | G4 | 1 HUD file + 1 CSS update + 1 new smoke + 1 package.json delta | low | scope locked in §15; pending execution |
+| D-03.S4 | Primary surface rank + cross-panel truth chip | G2 (full) + G5 | 1 HUD file + 1 new compact-chip component + 1 CSS update + 1 new smoke + 1 capture-script delta + 1 package.json delta | medium | scope locked in §16; pending execution |
 | D-03.S5 | Acceptance-route final acceptance + D-03 row update | umbrella Hard Gates | docs + close-out | low | pending |
 
 Slices must be executed in **separate conversations**. Each slice ends with a
@@ -782,3 +782,700 @@ and `MEMORY.md` index line. Only then is slice 3 unblocked.
   `:not([open]) > .handover-rule-config__form { display: none; }` rule.
   No existing CSS declaration is altered. The amendment preserves the
   acceptance-criteria surface; gates 1–10 remain unchanged in §14.4.
+
+## 15. Slice 3 (D-03.S3) — Operator Control Row Grouping
+
+Slice 3 targets gap G4 (§4): the operator control row is a flat 5-column
+grid that exposes Scenario heading, Scenario select, Replay Mode, Replay
+Speed, and Handover Policy as equal-weight peers. The operator reads
+five cells instead of three clusters. Slice 1 contained the panel
+envelope; slice 2 collapsed the largest intra-slot contributor; slice 3
+reorganises the top row so the operator can read it as three logical
+groups: Scene, Replay, Policy.
+
+This subsection is the **scope lock** for slice 3. It mirrors §14 (slice 2
+scope lock) and exists so a fresh child conversation can execute slice 3
+without re-deriving acceptance criteria.
+
+### 15.1 Acceptance criteria
+
+1. The operator control row inside `[data-operator-hud='bootstrap']`
+   mounts three sibling group containers in this DOM order:
+   `data-operator-control-group='scenario'`,
+   `data-operator-control-group='replay'`,
+   `data-operator-control-group='policy'`. The `__meta` block (eyebrow
+   + `data-operator-field='scenario-label'`) and the scenario
+   `<select>` belong inside the scenario group container. The Replay
+   Mode chipset and Replay Speed chipset belong inside the replay
+   group. The Handover Policy `<select>` and the
+   `data-operator-policy-status='true'` live region belong inside the
+   policy group.
+2. Each group container carries a visible
+   `data-operator-control-group-heading='true'` element with **exactly**
+   these strings (no variations, no localisation, no abbreviation):
+   - scenario group: `Scene controls`
+   - replay group: `Replay controls`
+   - policy group: `Policy controls`
+   Each heading has a unique `id`, and the parent group container
+   declares `aria-labelledby` (or equivalent `aria-label` set to the
+   same string) wiring back to that heading. The headings deliberately
+   end with the suffix `controls` so they cannot collide with the
+   existing per-field `.operator-control-label` strings (`Scenario`,
+   `Replay Mode`, `Replay Speed`, `Handover Policy`).
+3. Visual grouping cue is present on each group container at desktop
+   1440x900: at least one of border, background tint, divider, or
+   `fieldset`-style border-plus-legend treatment such that the three
+   clusters read as visually distinct from each other. The cue must
+   not add more than 24 px of total combined vertical height to the
+   control row above the slice-1 ceiling; the slice-1 collapsed ceiling
+   of `min(40vh, 22rem)` on `hud-panel--status` must remain binding.
+4. Every V4.12 selector that the F-10 smoke depends on resolves
+   unchanged after grouping: `[data-operator-hud='bootstrap']`,
+   `[data-operator-control='scenario']`,
+   `[data-operator-control='handover-policy']`,
+   `[data-operator-policy-status='true']`,
+   `[data-operator-control='mode'][data-operator-mode='real-time']`,
+   `[data-operator-control='mode'][data-operator-mode='prerecorded']`,
+   `[data-operator-control='speed'][data-operator-speed=*]`,
+   `[data-operator-field='scenario-label']`. No attribute is renamed,
+   relocated, or removed. The slice introduces parent wrapper
+   containers only; it does not rewrite or replace existing inner
+   elements.
+5. Every per-field `.operator-control-label` span (`Scenario`,
+   `Replay Mode`, `Replay Speed`, `Handover Policy`) remains in the
+   DOM at its current position inside its `.operator-control-group`
+   wrapper. The new group-level heading (acceptance #2) is additive.
+6. The operator HUD root `[data-operator-hud='bootstrap']` dataset
+   continues to expose every V4.12 dataset key (`handoverPolicyId`,
+   `handoverPolicyLabel`, `handoverPolicySummary`, `replayMode`,
+   `replaySpeed`, `bootstrapScenarioId`, `scenePreset`,
+   `operatorControlError`). No new dataset key is introduced by
+   slice 3.
+7. New slice-3 smoke
+   `tests/smoke/verify-m8a-v3-d03-s3-operator-control-row-grouping-runtime.mjs`
+   asserts:
+   - All three `data-operator-control-group='{scenario|replay|policy}'`
+     containers are present, visible at desktop-1440x900, and arranged
+     left-to-right (each container's `getBoundingClientRect().left` is
+     monotonically increasing).
+   - Group membership: scenario group contains
+     `[data-operator-field='scenario-label']` and
+     `[data-operator-control='scenario']`; replay group contains
+     `[data-operator-control='mode']` (both modes) and at least one
+     `[data-operator-control='speed']`; policy group contains
+     `[data-operator-control='handover-policy']` and
+     `[data-operator-policy-status='true']`.
+   - Group headings: each container resolves a
+     `[data-operator-control-group-heading='true']` descendant whose
+     trimmed `textContent` is exactly `Scene controls`,
+     `Replay controls`, and `Policy controls` respectively.
+   - V4.12 surface preservation: F-10's selector set (acceptance #4)
+     all resolve and `policySelect.value` round-trips through a
+     `change` event the same way the F-10 smoke exercises it.
+   - D-03.S1 surface preservation:
+     `[data-status-panel-containment='v3-d03-s1']`,
+     `data-status-panel-rank='primary'`, and
+     `data-status-panel-rank='secondary'` all still resolve.
+   - D-03.S2 surface preservation: F-11 `<details>` resolves with
+     `data-handover-rule-config-editor='true'` and
+     `details.open === false` on initial mount (the slice-2 amendment
+     must already be in tree before slice 3 lands).
+   - Containment: `hud-panel--status`
+     `getBoundingClientRect().height` remains within the slice-1
+     collapsed ceiling (`<= Math.round(900 * 0.4) = 360 px`).
+   - Forbidden-claim scan over the operator HUD root's `innerHTML`
+     returns no §8 hit.
+8. Capture script `tests/visual/capture-m8a-v3-d03-baseline.mjs` is
+   invoked with `--profile=d03-s3` and produces after-images under
+   `output/m8a-v3-d03/d03-s3/` for the three default routes (global,
+   regional, addressed first-intake). The existing capture-script
+   fallback (`output/m8a-v3-d03/${label}` when the label is not in the
+   explicit `captureProfileOutputRoots` map) already routes to this
+   directory, so no edit to the capture script is required unless the
+   executor also wants to add `d03-s3` to the explicit map for
+   evidence symmetry with `d03-s2`.
+9. Forbidden-claim scan (§8 probe) over every staged file returns
+   empty.
+
+### 15.2 Implementation outline
+
+Files allowed to change (slice-3 ceiling: 1 HUD orchestrator + 1 narrow
+CSS addition + 1 new smoke + 1 package.json delta + optional 1 narrow
+capture-script registration delta).
+
+1. `src/features/operator/bootstrap-operator-hud.ts`
+   - Modify the innerHTML template inside `createElements`. The change
+     is structural-only:
+     - Replace the flat sequence inside
+       `<div class="operator-status-hud__controls">` with three
+       sibling group containers:
+       `<div class="operator-status-hud__control-group" data-operator-control-group="scenario" aria-labelledby="...">`,
+       likewise for `replay` and `policy`.
+     - Move the existing `__meta` block, the scenario `<label>` /
+       `<select>`, the two replay `.operator-control-group` blocks
+       (Replay Mode + Replay Speed), the Handover Policy `<label>` /
+       `<select>`, and the `data-operator-policy-status='true'` live
+       region into the corresponding group container without renaming
+       any inner attribute or class.
+     - Add a single visible heading per group container with
+       `data-operator-control-group-heading='true'` and a stable `id`
+       referenced by the parent `aria-labelledby`. Heading text is
+       locked in §15.1 #2.
+   - Do not touch any element inside `__telemetry`,
+     `__telemetry-primary`, `__telemetry-secondary`,
+     `__secondary-toggle`, or `__report-export`.
+   - Do not modify any `querySelector` lookup downstream of the
+     template. The introduced wrappers are transparent to every
+     existing lookup because all V4.12 lookups use attribute selectors
+     that match inner elements regardless of parentage.
+2. `src/styles.css`
+   - Replace the `__controls` flat 5-column grid with a 3-column grid
+     keyed off the three group containers, OR keep the 5-column grid
+     and add a `.operator-status-hud__control-group` rule that paints
+     the visual grouping cue (border / tint / padded box) and uses
+     `display: contents` so the inner field layout is preserved.
+     Either pattern is allowed; the executor must pick one and not
+     interleave both.
+   - Append one rule block defining
+     `.operator-status-hud__control-group` and one rule block for
+     `[data-operator-control-group-heading='true']` matching the
+     existing `.operator-control-label` token family (font weight,
+     case, letter-spacing) so the new heading reads as a sibling tier
+     above the per-field labels rather than a competing label.
+   - Do not modify any other selector in `src/styles.css`. Do not
+     modify `.operator-control-group`, `.operator-control-label`,
+     `.operator-control-select`, `.operator-control-chip`,
+     `.operator-control-chipset`, or `.operator-control-live-region`.
+   - Do not touch the `.hud-panel--status` height-ceiling block.
+     Slice-1 binding ceilings remain.
+3. `tests/smoke/verify-m8a-v3-d03-s3-operator-control-row-grouping-runtime.mjs`
+   - New smoke modelled after
+     `verify-m8a-v3-d03-s1-status-panel-containment-runtime.mjs` for
+     the harness shape and after
+     `verify-m8a-v4.12-f10-handover-policy-selector-runtime.mjs` for
+     the policy-selector round-trip pattern.
+4. `package.json`
+   - Add `test:m8a-v3-d03:s3` script that calls `npm run build` then
+     runs the new slice-3 smoke. Mirror the
+     `test:m8a-v3-d03:s1` / `test:m8a-v3-d03:s2` shape.
+5. `tests/visual/capture-m8a-v3-d03-baseline.mjs` (optional, no
+   functional delta required)
+   - The existing fallback already routes `--profile=d03-s3` to
+     `output/m8a-v3-d03/d03-s3/`. Adding
+     `["d03-s3", "output/m8a-v3-d03/d03-s3"]` to the explicit
+     `captureProfileOutputRoots` map is permitted for evidence
+     symmetry but not required. No other change to this file is
+     allowed.
+
+The slice must not introduce:
+
+- a new dataset key on the operator HUD root or on the new group
+  containers (the three `data-operator-control-group` attributes are
+  the only new attributes permitted, plus the per-heading
+  `data-operator-control-group-heading` and the heading `id`s used by
+  `aria-labelledby`)
+- any change to the F-09, F-10, F-11, F-16 panel internals
+- any reorder of telemetry slots inside `__telemetry-primary` or
+  `__telemetry-secondary`
+- any change to the secondary-toggle button, its `aria-expanded`, its
+  `aria-controls`, or the host-panel
+  `data-status-panel-secondary-expanded` propagation
+- any change to the `hud-panel--status` height-ceiling block
+- any change to forbidden-claim copy or truth-boundary footnote text
+
+### 15.3 Forbidden during slice 3
+
+Slice 3 must not:
+
+- modify the F-09 Communication Rate section, its chart, its table
+  toggle, or its dataset values
+- modify the F-10 Handover Policy `<select>` element itself, its
+  `<option>` markup, its `aria-label`, its `data-operator-control`
+  value, its live region, or any operator-HUD dataset key F-10 reads
+- modify the F-11 Handover Rule Config `<details>` element, its
+  summary, its form fields, its status surface, its apply / reset /
+  cancel actions, its `data-handover-rule-config-editor` attribute, or
+  the slice-2 default-closed behaviour (`<details>` without `open`)
+  and the slice-2 additive CSS rule
+- modify the F-16 Report Export action group, its disclosure toggle,
+  its options panel, or its live regions
+- modify D-03.S1 primary / secondary container split, the secondary
+  disclosure toggle, the `data-status-panel-containment` attribute,
+  the `data-status-panel-rank` attributes, or the `hud-panel--status`
+  height-ceiling block
+- modify camera, overlay, scene preset, replay-clock, first-intake
+  addressed-route, or R1V cleanup paths
+- modify the V4.13 multi-orbit overlay path or its retained Phase 7.1
+  evidence
+- introduce a second timer, second autoplay track, new replay control,
+  or new policy control
+- introduce measured-truth language, active-path language, or any
+  forbidden-claim copy. The §8 forbidden-claim strings that must not
+  appear are: `measured throughput`, `measured latency`,
+  `measured jitter`, `measured truth`, `live iperf`, `live ping`,
+  `iperf result`, `ping-verified`, `iperf-backed`, `ping-backed`,
+  `active satellite`, `active gateway`, `active path`,
+  `pair-specific path`, `pair-specific GEO teleport`,
+  `radio-layer handover`, `native RF handover`, `ESTNeT throughput`,
+  `INET speed`, `NAT validated`, `tunnel verified end-to-end`,
+  `DUT closed`, `>=500 LEO closure`, `multi-orbit closure complete`,
+  `multi-orbit radio-layer handover`, `complete ITRI acceptance`,
+  `Phase 8 unlocked`, `M8A-V4 endpoint-pair gate resolved`,
+  `ITRI orbit model is integrated`, `D-03 closed`, `D-03 已完成`,
+  `richer composition closed`, `presentation convergence closed`,
+  `V-02 closed`, `V-03 closed`, `V-04 closed`, `V-05 closed`,
+  `V-06 closed`, `iperf throughput`, `ping latency`
+- update the D-03 acceptance-report row (reserved for slice 5)
+- update `m8a-v3-presentation-convergence-umbrella-plan.md` status
+  note
+- update `m8a-v4.12-followup-index.md` §7 D-03 pointer
+
+### 15.4 Quality gates for slice 3 commit
+
+Run in order before committing slice 3. All steps must be green:
+
+1. `npm run build`
+2. `node tests/smoke/verify-m8a-v4.12-f09-communication-rate-runtime.mjs`
+3. `node tests/smoke/verify-m8a-v4.12-f10-handover-policy-selector-runtime.mjs`
+4. `node tests/smoke/verify-m8a-v4.12-f11-handover-rule-config-runtime.mjs`
+   (the slice-2 amendment must already be in tree; if slice 2 has not
+   landed, slice 3 cannot land)
+5. `node tests/smoke/verify-m8a-v4.12-f16-statistics-report-export-runtime.mjs`
+6. `node tests/validation/run-phase7.1-viewer-scope-validation.mjs --validation-profile-id multi-orbit-scale-1000 --target-leo-count 500 --requested-overlay-mode multi-orbit-scale-points --enforce-pass`
+7. `node tests/smoke/verify-m8a-v3-d03-s1-status-panel-containment-runtime.mjs`
+8. `node tests/smoke/verify-m8a-v3-d03-s2-handover-rule-config-default-closed-runtime.mjs`
+9. `node tests/smoke/verify-m8a-v3-d03-s3-operator-control-row-grouping-runtime.mjs`
+10. Forbidden-claim scan (§8 probe) over every staged file — empty;
+    then `node tests/visual/capture-m8a-v3-d03-baseline.mjs --profile=d03-s3` —
+    after-images written under `output/m8a-v3-d03/d03-s3/`
+
+Commit message prefix:
+`feat(presentation): D-03.S3 operator control row grouping under M8A-V3 umbrella`.
+Commit body must reference this §15 scope lock, the M8A-V3 umbrella, and
+include the `Co-Authored-By: Claude Opus 4.7 (1M context)
+<noreply@anthropic.com>` trailer.
+
+### 15.5 Slice 3 Execution Authorization
+
+A fresh child conversation is authorized to land slice 3 strictly within
+the §15.2 file ceiling. The child must:
+
+- start by re-reading §15 in full, then §14 (slice 2) and §6 (slice 1)
+  as reference shapes
+- confirm slice 2 has landed in `main` before starting (gate 4 and
+  gate 8 both depend on the slice-2 amendment being in tree)
+- run the §15.4 quality gates in the listed order
+- on green, commit a single feature commit using the prescribed prefix
+- return to the total-control parent: commit SHA, retained evidence
+  paths under `output/m8a-v3-d03/d03-s3/`, smoke run logs (one line
+  each), and a one-paragraph regression review explicitly addressing
+  (a) whether the slice-1 containment ceiling is still binding with
+  the new grouping cue, (b) whether the F-10 selector set still
+  resolves verbatim, and (c) whether the slice-2 F-11 default-closed
+  assertion still holds.
+
+The child must not:
+
+- update the D-03 acceptance row (reserved for slice 5)
+- amend already-pushed commits
+- push to remote or open a PR
+- begin slice 4 or 5
+- widen the §15.2 file ceiling unilaterally. If a hard stop is hit
+  (e.g. a V4.12 selector breaks under grouping markup, or the slice-1
+  height ceiling overruns because of the grouping cue), STOP and
+  return to the parent for an amendment, following the §14.6
+  precedent.
+
+After slice 3 close-out, the total-control parent updates this §15
+with the slice-3 close-out commit SHA, the auto-memory
+`scenario-globe-viewer-d03-presentation-polish.md` slice table, and
+`MEMORY.md` index line. Only then is slice 4 unblocked.
+
+### 15.6 Amendment Trail
+
+- 2026-05-13 initial scope lock written.
+
+## 16. Slice 4 (D-03.S4) — Primary Surface Rank + Cross-Panel Truth Chip
+
+Slice 4 targets the joint resolution of gap G2 (full — equal-weight
+telemetry slots with no visual rank) and gap G5 (truth-boundary copy
+duplicated across panels). Slice 1 established the primary / secondary
+container split and the `data-status-panel-rank` attribute scheme.
+Slice 4 builds on top of that scheme by mounting a single cross-panel
+truth chip ahead of the primary container, which both (a) serves as the
+compact primary information surface called for by umbrella
+§"Recovery Principle" and acceptance criterion #15, and
+(b) consolidates the truth-contract framing that currently fragments
+across F-09, F-11, F-16, Physical Inputs, and Validation State.
+
+The slice does **not** re-rank the existing primary / secondary
+containers, **does not** remove any per-panel provenance copy, and
+**does not** modify any internal markup of the F-09, F-10, F-11, F-16,
+Physical Inputs, Scene Starter, or Validation State surfaces.
+
+This subsection is the **scope lock** for slice 4. It mirrors §14
+(slice 2 scope lock) and exists so a fresh child conversation can
+execute slice 4 without re-deriving acceptance criteria.
+
+### 16.1 Acceptance criteria
+
+1. The default Operator HUD renders a new compact element (the
+   "cross-panel truth chip") inside the operator HUD root
+   (`[data-operator-hud='bootstrap']`) and as a direct child of
+   `.operator-status-hud__telemetry`, positioned in DOM order
+   **before** the `[data-status-panel-rank='primary']` container. It
+   is a sibling of the primary container, NOT a member of it. It is
+   NOT inserted into `[data-status-panel-rank='secondary']`. It is
+   NOT inserted into any F-09 / F-10 / F-11 / F-16 panel root. The
+   slice-1 attribute `data-status-panel-rank='primary'` on the
+   primary container is preserved verbatim and the primary
+   container's child set
+   (`data-operator-time-slot`, `data-operator-communication-slot`,
+   `data-operator-decision-slot`) is unchanged.
+2. The chip element carries the following attributes verbatim:
+   - `data-cross-panel-truth-chip="true"`
+   - `data-chip-rank="cross-panel-primary"`
+   - `role="note"`
+   - `aria-label="Cross-panel truth boundary"`
+3. The chip's visible text content is exactly the following two
+   sentences and nothing else:
+   `Modeled, not measured. Communication Rate, Handover Decision, Physical Inputs, and Validation State each retain their own bounded-proxy / Repo-owned provenance.`
+   The string is set via `textContent` (not `innerHTML`) at mount
+   time. No interpolation. No localisation. No trailing whitespace.
+4. The chip introduces no clickable surface, no disclosure toggle, no
+   live region, no timer, no replay control, and no new dataset key
+   on the operator HUD root other than the chip's own attributes. It
+   must not capture focus and must not have `tabindex`. Keyboard tab
+   order through the HUD is unchanged from slice-3 close-out.
+5. Per-panel truth-boundary phrases listed in §7.3 remain reachable
+   verbatim in the default-route DOM after slice 4 lands:
+   - `Modeled, not measured.` — emitted both by the F-09 footnote
+     (existing path) and additionally by the chip itself on the
+     default route. The chip is the first place the operator reads
+     this string and serves as the canonical cross-panel header. The
+     F-09 per-panel emission is preserved unchanged.
+   - `bounded proxy` / `bounded-proxy` — still rendered by the
+     Communication Rate source-label span, the Handover Decision
+     provenance span, the Physical Inputs provenance span, and the
+     Report Export disclaimer / family-description path. The chip
+     also emits the literal `bounded-proxy` substring.
+   - `Repo-owned` / `repo-owned` — still rendered by Physical Inputs,
+     Validation State, Handover Decision, and Report Export along
+     their existing view-model paths. The chip also emits the literal
+     `Repo-owned` substring.
+   - rain-attenuation framing — still rendered as `Rain` (family
+     label) plus `bounded-proxy` (per-family provenance) inside the
+     Physical Inputs panel; §7.3 explicitly permits "equivalent
+     rain-attenuation framing" so this satisfies the rule.
+   - `Validation Boundary` — still rendered as the Validation State
+     panel heading.
+   Reachability of Communication Rate footnote, Handover Decision
+   provenance, Report Export disclaimer copy, and the new chip itself
+   must not require any user action beyond the default-route paint.
+   Physical Inputs + Validation State live in the slice-1 secondary
+   group and remain reachable after the user opens the slice-1
+   secondary disclosure.
+6. The chip text MUST NOT contain, in any case, any phrase listed in
+   §8 "Forbidden Claims". A forbidden-claim scan of the new chip
+   markup, of the modified `bootstrap-operator-hud.ts`, of the new
+   compact-chip component file, of the new slice-4 smoke, and of
+   every staged file returns empty.
+7. A new slice-4 smoke
+   `tests/smoke/verify-m8a-v3-d03-s4-cross-panel-truth-chip-runtime.mjs`
+   asserts:
+   - The chip element is present on the default route
+     (`/?scenePreset=global`), is a descendant of
+     `[data-operator-hud='bootstrap']`, is a descendant of
+     `.operator-status-hud__telemetry`, and is a previous-sibling of
+     `[data-status-panel-rank='primary']` (compare
+     `Node.compareDocumentPosition`).
+   - The chip carries `data-cross-panel-truth-chip='true'`,
+     `data-chip-rank='cross-panel-primary'`, `role='note'`,
+     `aria-label='Cross-panel truth boundary'`.
+   - The chip's `textContent.trim()` exactly equals the §16.1 #3
+     string.
+   - The chip has no `tabindex` attribute and is not inside
+     `[data-status-panel-rank='primary']` or
+     `[data-status-panel-rank='secondary']`.
+   - The slice-1 attributes still resolve:
+     `data-status-panel-containment='v3-d03-s1'`,
+     `[data-status-panel-rank='primary']` containing time /
+     communication / decision slots,
+     `[data-status-panel-rank='secondary']` containing physical /
+     starter / validation slots, the slice-1 secondary toggle with
+     default `aria-expanded='false'`.
+   - With the secondary group expanded (single programmatic click on
+     the slice-1 toggle), every §7.3 phrase is present somewhere in
+     the operator HUD `textContent`: `Modeled, not measured.`,
+     `bounded-proxy`, `Repo-owned` (or `repo-owned`), `Rain`,
+     `Validation Boundary`. The assertion is over the expanded state
+     because Physical Inputs + Validation State live behind it.
+   - Forbidden-claim scan over the operator HUD `innerHTML`
+     (chip included) returns no §8 hit.
+8. The slice-1 smoke
+   `tests/smoke/verify-m8a-v3-d03-s1-status-panel-containment-runtime.mjs`
+   and the slice-2 smoke
+   `tests/smoke/verify-m8a-v3-d03-s2-handover-rule-config-default-closed-runtime.mjs`
+   both still pass verbatim. Slice 4 must not regress the slice-1
+   height ceiling (`min(40vh, 22rem)` collapsed,
+   `min(60vh, 32rem)` expanded). The chip's own rendered height is
+   bounded by its declared CSS (≤ 2.2 rem at desktop-1440x900) so
+   that the slice-1 ceiling stays binding.
+9. Every V4.12 acceptance smoke (F-09, F-10, F-11, F-16) and the
+   V4.13 multi-orbit Phase 7.1 validation harness still pass. The
+   chip must not alter any V4.12 selector listed in §7.1, must not
+   propagate into the F-09 section markup, must not propagate into
+   the F-10 selector / live region, must not propagate into the F-11
+   `<details>`, and must not propagate into the F-16 action group.
+10. Capture script `tests/visual/capture-m8a-v3-d03-baseline.mjs`
+    accepts `--profile=d03-s4` and writes after-images under
+    `output/m8a-v3-d03/d03-s4/` for the three default routes already
+    in the §3 baseline-evidence table (global, regional, addressed
+    first-intake).
+
+### 16.2 Implementation outline
+
+Files allowed to change (slice-4 ceiling: 1 HUD orchestrator file + 1
+new compact-chip component file + 1 CSS update + 1 new slice-4 smoke +
+1 capture-script delta + 1 package.json delta).
+
+1. `src/features/operator/bootstrap-operator-hud.ts`
+   - Inside `createElements`, insert the chip element as a `<div>`
+     (NOT a `<button>`) directly under
+     `.operator-status-hud__telemetry` and ahead of
+     `.operator-status-hud__telemetry-primary` in the template-literal
+     HTML. **All static attributes are set inline in the template
+     HTML**: `class="operator-status-hud__truth-chip operator-control-chip operator-control-chip--cross-panel-truth"`,
+     `data-cross-panel-truth-chip="true"`,
+     `data-chip-rank="cross-panel-primary"`, `role="note"`,
+     `aria-label="Cross-panel truth boundary"`. No `tabindex`. No
+     `aria-pressed`.
+   - Extend `BootstrapOperatorHudElements` with
+     `crossPanelTruthChip: HTMLDivElement`. Add the chip to the
+     `createElements` return object and to the existence check. Add
+     nothing else to the interface.
+   - Invoke `mountCrossPanelTruthChip(elements.crossPanelTruthChip)`
+     once at panel construction. The mount function is the **only**
+     surface that writes `textContent`. The chip does not subscribe to
+     controller state.
+   - Do not modify any other section of this file: scenario controls
+     block, replay-mode block, replay-speed block, handover-policy
+     block, primary-container block, slice-1 secondary toggle,
+     slice-1 secondary container, report-export slot, `renderState`,
+     `renderSecondaryExpansion`, busy-state handling, controller-error
+     handling, or telemetry sync.
+2. `src/features/operator/cross-panel-truth-chip.ts` (new file)
+   - Single export: `mountCrossPanelTruthChip(container: HTMLDivElement): () => void`.
+   - Sets `container.textContent` to the §16.1 #3 string verbatim. No
+     `innerHTML`. No template interpolation. The constant lives in
+     this file.
+   - All `role`, `aria-label`, `class`, and `data-*` attributes are
+     set by the template HTML in item 1. This file does NOT set them
+     a second time (avoids double-write conflict).
+   - Exports a `dispose` (`() => void`) for symmetry with sibling
+     components; the chip has no subscription so `dispose` is a
+     no-op.
+   - No imports from any panel-internal feature module. The component
+     must not import from `communication-rate/`, `physical-input/`,
+     `validation-state/`, `report-export/`, or `handover-decision/`.
+3. `src/styles.css`
+   - Append (do NOT modify any existing declaration) a single new
+     rule group adjacent to the existing
+     `.operator-status-hud__telemetry` block. The group must contain
+     exactly two new rules:
+     - `.operator-status-hud__truth-chip` — text wrap, line-height,
+       padding, font-size, opacity; inherits `.operator-control-chip`
+       token colours.
+     - `.operator-control-chip.operator-control-chip--cross-panel-truth`
+       — defensive overrides so a static `<div>` chip does not
+       inherit pressed-button visual treatment from the existing
+       `.operator-control-chip[aria-pressed]` cascade. If the chip is
+       never given `aria-pressed` (and slice 4 forbids setting it),
+       this rule is defensive but harmless.
+   - No existing selector / declaration / property in
+     `src/styles.css` may be modified. No other new rule may be
+     added. If the chip cannot be styled inside this constraint
+     (e.g. cascade conflict with `.operator-control-chip:disabled`),
+     STOP and report back rather than widening scope.
+4. `tests/smoke/verify-m8a-v3-d03-s4-cross-panel-truth-chip-runtime.mjs`
+   (new smoke)
+   - Modelled after
+     `verify-m8a-v3-d03-s1-status-panel-containment-runtime.mjs` and
+     the slice-2 smoke.
+   - Implements every assertion enumerated in §16.1 #7.
+   - Captures before/after screenshots into
+     `output/m8a-v3-d03/d03-s4/evidence/` for the global default
+     route at desktop-1440x900, both with the secondary group
+     collapsed (default) and expanded (after the single toggle
+     click).
+   - Reuses existing harness helpers; no new harness primitive may
+     be introduced.
+5. `tests/visual/capture-m8a-v3-d03-baseline.mjs`
+   - Extend `--profile` to accept `d03-s4` and write after-images
+     under `output/m8a-v3-d03/d03-s4/` for the three default routes,
+     mirroring the existing `d03-s1` / `d03-s2` profile entries.
+6. `package.json`
+   - Add one new script entry:
+     `"test:m8a-v3-d03:s4": "npm run build && node tests/smoke/verify-m8a-v3-d03-s4-cross-panel-truth-chip-runtime.mjs"`.
+     Mirror the existing `test:m8a-v3-d03:s1` /
+     `test:m8a-v3-d03:s2` shape verbatim.
+
+**§7.3 preservation strategy (consolidation without removal).** Slice 4
+consolidates by *adding* the chip; it does NOT remove or weaken any
+per-panel provenance copy. The chip is additive. Every §7.3 phrase
+continues to be emitted by its existing view-model path into its
+existing per-panel span; the chip carries the canonical
+`Modeled, not measured.` plus `bounded-proxy` plus `Repo-owned`
+substrings on the default route as a belt-and-braces redundancy.
+Slice 4 does NOT collapse the per-panel surfaces into `aria-hidden`
+form, does NOT visually de-emphasise them beyond what slice 1 already
+established for the secondary group, and does NOT touch their feature
+modules.
+
+The slice must not introduce:
+
+- a removal, shortening, paraphrase, or `aria-hidden` wrap of any
+  §7.3 phrase inside any panel feature module
+- a programmatic mechanism by which the chip displaces, hides, or
+  "owns" the per-panel provenance spans
+- a `data-status-panel-rank` value other than the two slice-1 values
+  (`primary`, `secondary`); the chip uses `data-chip-rank`, not
+  `data-status-panel-rank`
+- a clickable chip, focusable chip, or chip with a disclosure / live
+  region
+- a controller subscription, telemetry sync entry, or
+  `OPERATOR_TELEMETRY_KEYS` extension for the chip
+- any change to F-09, F-10, F-11, F-16, Physical Inputs, Scene
+  Starter, Validation State, Report Export, the slice-1 secondary
+  toggle, the slice-1 containment attribute, the slice-2
+  default-closed F-11 disclosure, or the slice-3 operator control row
+  grouping (when slice 3 lands)
+- any change in `src/styles.css` beyond the additive rule group
+  described in item 3
+
+### 16.3 Forbidden during slice 4
+
+Slice 4 must not:
+
+- modify any panel-internal markup (Communication Time + F-09
+  section, Handover Decision + F-11 editor + F-11 form + F-11 status
+  + F-11 actions, Physical Inputs, Scene Starter, Validation State,
+  Report Export action group + disclosure + options + live regions)
+- modify any V4.12 acceptance selector listed in §7.1
+- modify the F-10 handover policy selector or the F-10 live region
+- modify the slice-1 primary / secondary container split, the slice-1
+  secondary toggle, the slice-1 `data-status-panel-containment`
+  value, or the slice-1 `data-status-panel-rank` attribute scheme
+- modify the slice-2 F-11 default-closed `<details>` behaviour or the
+  slice-2 additive
+  `.handover-rule-config:not([open]) .handover-rule-config__form { display: none; }`
+  rule
+- modify the slice-3 operator control row grouping (when slice 3
+  lands)
+- modify any forbidden-claim copy or §7.3 truth-boundary phrase (any
+  removal, shortening, paraphrase, casing change, punctuation change,
+  or `aria-hidden` wrap of a §7.3 phrase inside its existing
+  per-panel span is forbidden)
+- introduce any of the §8 forbidden-claim phrases in chip text, CSS,
+  smoke, capture script, runtime JSON, or commit body. The §8 list
+  is: `measured throughput`, `measured latency`, `measured jitter`,
+  `measured truth`, `live iperf`, `live ping`, `iperf result`,
+  `ping-verified`, `iperf-backed`, `ping-backed`, `active satellite`,
+  `active gateway`, `active path`, `pair-specific path`,
+  `pair-specific GEO teleport`, `radio-layer handover`,
+  `native RF handover`, `ESTNeT throughput`, `INET speed`,
+  `NAT validated`, `tunnel verified end-to-end`, `DUT closed`,
+  `>=500 LEO closure`, `multi-orbit closure complete`,
+  `multi-orbit radio-layer handover`, `complete ITRI acceptance`,
+  `Phase 8 unlocked`, `M8A-V4 endpoint-pair gate resolved`,
+  `ITRI orbit model is integrated`, `D-03 closed`, `D-03 已完成`,
+  `richer composition closed`, `presentation convergence closed`,
+  `V-02 closed`, `V-03 closed`, `V-04 closed`, `V-05 closed`,
+  `V-06 closed`, `iperf throughput`, `ping latency`
+- modify camera, overlay, scene preset, replay-clock, first-intake
+  addressed-route, R1V cleanup, or any runtime controller
+- modify the V4.13 multi-orbit overlay path or its retained evidence
+- update the D-03 acceptance-report row (reserved for slice 5)
+- update `m8a-v3-presentation-convergence-umbrella-plan.md` status
+  note
+- update `m8a-v4.12-followup-index.md` §7 D-03 pointer
+- introduce a second timer, a second autoplay track, a new replay
+  control, a persistent disclosure cookie, a localisation layer, or
+  any new measurement-truth / active-path / pair-specific language
+
+### 16.4 Quality gates for slice 4 commit
+
+Run in order before committing slice 4. All steps must be green:
+
+1. `npm run build`
+2. `node tests/smoke/verify-m8a-v4.12-f09-communication-rate-runtime.mjs`
+3. `node tests/smoke/verify-m8a-v4.12-f10-handover-policy-selector-runtime.mjs`
+4. `node tests/smoke/verify-m8a-v4.12-f11-handover-rule-config-runtime.mjs`
+5. `node tests/smoke/verify-m8a-v4.12-f16-statistics-report-export-runtime.mjs`
+6. `node tests/validation/run-phase7.1-viewer-scope-validation.mjs --validation-profile-id multi-orbit-scale-1000 --target-leo-count 500 --requested-overlay-mode multi-orbit-scale-points --enforce-pass`
+7. `node tests/smoke/verify-m8a-v3-d03-s1-status-panel-containment-runtime.mjs`
+8. `node tests/smoke/verify-m8a-v3-d03-s2-handover-rule-config-default-closed-runtime.mjs`
+9. `node tests/smoke/verify-m8a-v3-d03-s4-cross-panel-truth-chip-runtime.mjs`
+10. Forbidden-claim scan (§8 probe) over every staged file — empty;
+    then `node tests/visual/capture-m8a-v3-d03-baseline.mjs --profile=d03-s4` —
+    after-images written under `output/m8a-v3-d03/d03-s4/`
+
+When slice 3 has landed before slice 4 runs, an additional gate is
+inserted between the existing gates 8 and 9 to run the slice-3 smoke
+`verify-m8a-v3-d03-s3-operator-control-row-grouping-runtime.mjs`. If
+slice 3 has not landed, slice 4 may still execute; the chip anchor in
+§16.1 #1 does not depend on slice-3 markup.
+
+Commit message prefix:
+`feat(presentation): D-03.S4 primary surface rank + cross-panel truth chip under M8A-V3 umbrella`.
+Commit body must reference this §16 scope lock, the M8A-V3 umbrella,
+the joint resolution of G2 + G5, and include the
+`Co-Authored-By: Claude Opus 4.7 (1M context) <noreply@anthropic.com>`
+trailer.
+
+### 16.5 Slice 4 Execution Authorization
+
+A fresh child conversation is authorized to land slice 4 strictly
+within the §16.2 file ceiling. The child must:
+
+- start by re-reading §16 in full, then §14 (slice 2) and §6
+  (slice 1) as reference shapes
+- run the §16.4 quality gates in the listed order
+- on green, commit a single feature commit using the prescribed
+  prefix
+- return to the total-control parent: commit SHA, retained evidence
+  paths under `output/m8a-v3-d03/d03-s4/`, smoke run logs (one line
+  each), and a one-paragraph regression review explicitly addressing
+  (a) whether the slice-1 containment ceiling is still binding with
+  the chip rendered, (b) whether every §7.3 phrase is still emitted
+  by its existing per-panel span and reachable in the toggle-expanded
+  DOM, and (c) whether the chip introduces any unintended cascade
+  interaction with the slice-1 secondary toggle or the slice-2 F-11
+  `:not([open])` rule
+
+The child must not:
+
+- update the D-03 acceptance row (reserved for slice 5)
+- amend already-pushed commits
+- push to remote or open a PR
+- begin slice 5
+- silently widen scope. If the chip cannot be styled, mounted, or
+  asserted inside the §16.2 ceiling, STOP and return to the parent
+  for an amendment (mirror slice 2's §14.6 amendment pattern).
+
+After slice 4 close-out, the total-control parent updates this §16
+with the slice-4 close-out commit SHA (mirror §13's slice-1 and §14's
+slice-2 close-out records), the auto-memory
+`scenario-globe-viewer-d03-presentation-polish.md` slice table, and
+`MEMORY.md` index line. Only then is slice 5 unblocked.
+
+### 16.6 Amendment Trail
+
+- 2026-05-13 initial scope lock written. Chip text fixed to
+  `Modeled, not measured. Communication Rate, Handover Decision, Physical Inputs, and Validation State each retain their own bounded-proxy / Repo-owned provenance.`
+  (the draft's earlier `not measured truth` substring would have hit
+  the §8 forbidden-claim scan because `measured truth` is in the
+  list; the canonical F-09 phrase `Modeled, not measured.` avoids the
+  collision and additionally surfaces §7.3 reachability for the
+  canonical phrase on the default route without requiring secondary
+  disclosure expansion).
