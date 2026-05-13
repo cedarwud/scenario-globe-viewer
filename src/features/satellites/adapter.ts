@@ -7,6 +7,8 @@ export interface Vec3 {
   z: number;
 }
 
+export type OrbitClass = "leo" | "meo" | "geo";
+
 export type SatelliteJsonValue =
   | null
   | boolean
@@ -18,15 +20,26 @@ export type SatelliteJsonValue =
 export interface SatelliteSample {
   id: string;
   name?: string;
+  orbitClass?: OrbitClass;
+  sourceId?: string;
+  noradId?: number;
+  meanMotionRevPerDay?: number;
   positionEcef: Vec3;
   velocityEcef?: Vec3;
   time: ClockTimestamp;
 }
 
+export interface SatelliteTleCatalogSource {
+  sourceId: string;
+  tleText: string;
+  expectedOrbitClass?: OrbitClass;
+}
+
 export type SatelliteFixture =
   | {
       kind: "tle";
-      tleText: string;
+      tleText?: string;
+      catalogs?: ReadonlyArray<SatelliteTleCatalogSource>;
       propagator?: "sgp4";
       epochMode?: "absolute" | "relative-to-now";
     }

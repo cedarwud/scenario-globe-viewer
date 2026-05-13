@@ -55,7 +55,7 @@ V4.12 explicitly does **not** close:
 | F-09 | 已完成（bounded） | [m8a-v4.12-f09-communication-rate-visualization-plan.md](./m8a-v4.12-f09-communication-rate-visualization-plan.md) | [m8a-v4.12-f09-impl-phase1-visualization-spec.md](./m8a-v4.12-f09-impl-phase1-visualization-spec.md) | closed — [m8a-v4.12-f09-impl-phase5-closeout.md](./m8a-v4.12-f09-impl-phase5-closeout.md) |
 | F-10 | 已完成（bounded） | [m8a-v4.12-f10-handover-policy-selector-plan.md](./m8a-v4.12-f10-handover-policy-selector-plan.md) | [m8a-v4.12-f10-impl-phase1-policy-spec.md](./m8a-v4.12-f10-impl-phase1-policy-spec.md) | closed — [Phase 5 evidence](./m8a-v4.12-f10-impl-phase5-closeout.md) |
 | F-11 | 已完成（bounded） | [m8a-v4.12-f11-handover-rule-config-plan.md](./m8a-v4.12-f11-handover-rule-config-plan.md) | [m8a-v4.12-f11-impl-phase1-rule-config-spec.md](./m8a-v4.12-f11-impl-phase1-rule-config-spec.md) | closed — [Phase 6 evidence](./m8a-v4.12-f11-impl-phase6-closeout.md) |
-| F-13 | closed for LEO leg only (route-native bounded overlay; MEO/GEO still open) | [m8a-v4.12-f13-leo-scale-runtime-plan.md](./m8a-v4.12-f13-leo-scale-runtime-plan.md) | [m8a-v4.12-f13-impl-phase1-leo-scale-spec.md](./m8a-v4.12-f13-impl-phase1-leo-scale-spec.md) | complete for LEO leg; independent of F-09/10/11/16. ADR `0005-perf-budget` re-reviewed. Close-out evidence: [../intake/itri-f13-leo-scale-runtime-closure-evidence-2026-05-12.md](../intake/itri-f13-leo-scale-runtime-closure-evidence-2026-05-12.md). Readiness baseline: [../intake/itri-f13-scale-readiness-evidence-addendum-2026-05-12.md](../intake/itri-f13-scale-readiness-evidence-addendum-2026-05-12.md). |
+| F-13 | 已完成（multi-orbit bounded public TLE after V4.13） | [m8a-v4.12-f13-leo-scale-runtime-plan.md](./m8a-v4.12-f13-leo-scale-runtime-plan.md); V4.13 follow-on: [m8a-v4.13-multi-orbit-scale-runtime-plan.md](./m8a-v4.13-multi-orbit-scale-runtime-plan.md) | [m8a-v4.12-f13-impl-phase1-leo-scale-spec.md](./m8a-v4.12-f13-impl-phase1-leo-scale-spec.md); V4.13 lock: [m8a-v4.13-impl-phase1-multi-orbit-spec.md](./m8a-v4.13-impl-phase1-multi-orbit-spec.md) | LEO leg complete in V4.12; public MEO/GEO bounded runtime gate closed in V4.13 with `multi-orbit-scale-1000` retained evidence. ITRI orbit-model integration and measured network truth remain successor requirements. |
 | F-16 | 已完成（bounded） | [m8a-v4.12-f16-statistics-report-export-plan.md](./m8a-v4.12-f16-statistics-report-export-plan.md) | [m8a-v4.12-f16-impl-phase1-export-spec.md](./m8a-v4.12-f16-impl-phase1-export-spec.md) | closed — Operator HUD `Report Export` action downloads bounded JSON+CSV report bundles; smoke/screenshot evidence in `output/m8a-v4.12-f16-report-export/` |
 
 Supporting / sibling docs:
@@ -98,12 +98,12 @@ Every V4.12 slice must obey:
 - no `measured throughput`, `measured latency`, `measured jitter`
 - no `live iperf`, `live ping`, `iperf result`, `ping-verified`
 - no `active satellite`, `active gateway`, `pair-specific path`
-- no `native RF handover`
+- no `radio-layer handover`
 - no `ESTNeT throughput`, `INET speed`, `NAT validated`,
   `tunnel verified end-to-end`, `DUT closed`
 - no `>=500 LEO closure` (except F-13 LEO leg, which still cannot claim
   full multi-orbit closure)
-- no `full ITRI acceptance`
+- no `complete ITRI acceptance`
 - no `Phase 8 unlocked`
 
 Each slice provenance copy stays bounded-proxy / modeled-bounded-class
@@ -145,6 +145,12 @@ For other immediately-actionable items not covered by V4.12:
 - **D-03 richer presentation composition**: covered by
   [m8a-v3-presentation-convergence-umbrella-plan.md](./m8a-v3-presentation-convergence-umbrella-plan.md).
   Do not bundle into V4.12.
+- **V4.13 public-TLE multi-orbit closure**: covered by
+  [m8a-v4.13-multi-orbit-scale-runtime-plan.md](./m8a-v4.13-multi-orbit-scale-runtime-plan.md)
+  and locked by
+  [m8a-v4.13-impl-phase1-multi-orbit-spec.md](./m8a-v4.13-impl-phase1-multi-orbit-spec.md).
+  It closes the bounded public-TLE LEO/MEO/GEO viewer gate only; it does not
+  integrate ITRI orbit-model data or measured network truth.
 - **Multi-orbit second endpoint authority**: covered by
   [m8a-v4-ground-station-multi-orbit-handover-plan.md](./m8a-v4-ground-station-multi-orbit-handover-plan.md)
   and ADR

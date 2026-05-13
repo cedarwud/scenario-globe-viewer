@@ -154,9 +154,9 @@ async function waitForCommunicationRateReady(client) {
         const panel = document.querySelector("[data-communication-panel='bootstrap']");
 
         return {
-          bootstrapState: document.documentElement.dataset.bootstrapState ?? null,
-          bootstrapDetail: document.documentElement.dataset.bootstrapDetail ?? null,
-          scenePreset: document.documentElement.dataset.scenePreset ?? null,
+          bootstrapState: document.documentElement?.dataset.bootstrapState ?? null,
+          bootstrapDetail: document.documentElement?.dataset.bootstrapDetail ?? null,
+          scenePreset: document.documentElement?.dataset.scenePreset ?? null,
           sectionPresent: section instanceof HTMLElement,
           mountedInCommunicationPanel: Boolean(section && panel?.contains(section)),
           pointCount: Number(section?.dataset.communicationRatePointCount ?? 0),
@@ -199,8 +199,8 @@ async function waitForV411GroundStationReady(client) {
       `(() => {
         const capture = window.__SCENARIO_GLOBE_VIEWER_CAPTURE__;
         return {
-          bootstrapState: document.documentElement.dataset.bootstrapState ?? null,
-          scenePreset: document.documentElement.dataset.scenePreset ?? null,
+          bootstrapState: document.documentElement?.dataset.bootstrapState ?? null,
+          scenePreset: document.documentElement?.dataset.scenePreset ?? null,
           hasV411Scene: Boolean(capture?.m8aV4GroundStationScene?.getState?.()),
           communicationRateMounted: Boolean(
             document.querySelector("[data-communication-rate-section='bootstrap']")
@@ -301,15 +301,15 @@ async function populateBoundedWindowsAndInspect(client) {
           document.getElementById(chart.getAttribute("aria-describedby") || "")?.textContent ||
           "",
         documentTelemetry: {
-          scenarioId: document.documentElement.dataset.communicationRateScenarioId || null,
+          scenarioId: document.documentElement?.dataset.communicationRateScenarioId || null,
           currentClass:
-            document.documentElement.dataset.communicationRateCurrentClass || null,
-          source: document.documentElement.dataset.communicationRateSource || null,
+            document.documentElement?.dataset.communicationRateCurrentClass || null,
+          source: document.documentElement?.dataset.communicationRateSource || null,
           truthState:
-            document.documentElement.dataset.communicationRateTruthState || null,
+            document.documentElement?.dataset.communicationRateTruthState || null,
           numericDisplay:
-            document.documentElement.dataset.communicationRateNumericDisplayAllowed || null,
-          pointCount: document.documentElement.dataset.communicationRatePointCount || null
+            document.documentElement?.dataset.communicationRateNumericDisplayAllowed || null,
+          pointCount: document.documentElement?.dataset.communicationRatePointCount || null
         },
         currentClassText:
           document.querySelector("[data-communication-rate-field='current-class']")

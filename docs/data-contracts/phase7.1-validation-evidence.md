@@ -50,8 +50,9 @@ type LiveRuntimeStatus = "observed" | "walker-only" | "not-implemented" | "error
 interface ValidationProfile {
   id: string;
   description: string;
-  // `first-slice` keeps leo/meo/geo required. `leo-scale-500` requires only
-  // the LEO leg and keeps MEO/GEO as explicit known gaps.
+  // `first-slice` and `multi-orbit-scale-1000` require leo/meo/geo.
+  // `leo-scale-500` requires only the LEO leg and keeps MEO/GEO as explicit
+  // known gaps.
   requiredOrbitClasses: ReadonlyArray<OrbitScopeClass>;
   requestedOverlayMode:
     | "walker-points"
@@ -76,7 +77,11 @@ interface OrbitScopeMatrixEntry {
 interface ScaleRunParams {
   runId: string;
   targetLeoCount: number;
+  targetMeoCount: number;
+  targetGeoCount: number;
   observedLeoCount: number;
+  observedMeoCount: number;
+  observedGeoCount: number;
   requestedOverlayMode:
     | "walker-points"
     | "leo-scale-points"
@@ -98,7 +103,12 @@ interface ObservedRuntimeVariant {
   validationAttachState: string | null;
   overlayMode: string | null;
   overlayState: string | null;
-  overlayRenderMode: "point-label-polyline" | "leo-scale-points" | string | null;
+  overlayRenderMode:
+    | "point-label-polyline"
+    | "leo-scale-points"
+    | "multi-orbit-scale-points"
+    | string
+    | null;
   overlayPointCount: number;
   overlayOrbitClassCounts: {
     leo: number;
@@ -207,11 +217,19 @@ LEO leg when `requiredOrbitClasses = ["leo"]`, `observedLeoCount >= 500`, and
 must still keep MEO/GEO rows present and honest as `not-implemented` or another
 non-passing state until a later multi-orbit slice lands.
 
-A later multi-orbit slice may close the full gate only when it keeps the same
-runtime overlay path and the retained artifact shows both:
+The V4.13 multi-orbit profile
+(`validationProfile.id = "multi-orbit-scale-1000"`) may pass the full
+viewer-side bounded public-TLE gate only when it keeps the same evidence
+boundary and the retained artifact shows all of:
 
 - `observedLeoCount >= 500`
+- `observedMeoCount >= 30`
+- `observedGeoCount >= 20`
 - non-zero `leo/meo/geo` live runtime counts
+- `observedRuntimeVariant.overlayRenderMode = "multi-orbit-scale-points"`
+
+This profile does not close ITRI orbit-model integration, external
+validation, measured traffic truth, or radio-layer handover.
 
 `--enforce-pass` converts a failing requirement gate into a non-zero process
 exit so the same runner has an explicit pass/fail path.

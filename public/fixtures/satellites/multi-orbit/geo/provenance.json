@@ -1,0 +1,25 @@
+{
+  "schemaVersion": "itri-v4.13-multi-orbit-fixture-provenance.v1",
+  "orbitClass": "geo",
+  "capturedAt": "2026-05-13T01:28:37.000Z",
+  "epochCount": 30,
+  "targetCount": 20,
+  "sourceSet": [
+    "geo"
+  ],
+  "catalogs": [
+    {
+      "sourceId": "geo-commercial-top30",
+      "source": "Celestrak",
+      "sourceUrl": "https://celestrak.org/NORAD/elements/gp.php?GROUP=geo&FORMAT=tle",
+      "fixtureFile": "commercial-geo-top30-2026-05-13T01-28-37Z.tle",
+      "rawRecordCount": 571,
+      "commercialCandidateCount": 249,
+      "epochCount": 30
+    }
+  ],
+  "classTagDerivation": "meanMotionRevPerDay > 11 => leo; 0.9..1.1 => geo; >1.1..11 => meo; out-of-band records are outside this gate",
+  "subsetPolicy": "deterministic top-30 active commercial GEO records sorted by NORAD catalog id; excludes obvious debris, rocket bodies, transfer objects, and military/government-only names by repo-owned name filters",
+  "renderPolicy": "one current SGP4-propagated point primitive per copied TLE; no labels, paths, polylines, or orbit-history accumulation in multi-orbit-scale-points mode",
+  "licenseNote": "Celestrak public GP/TLE data copied for bounded repo validation. This fixture is not ITRI authority data, live network truth, active satellite path truth, or measured performance truth."
+}

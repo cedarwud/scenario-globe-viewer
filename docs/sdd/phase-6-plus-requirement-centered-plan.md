@@ -97,7 +97,7 @@ The current repo direction is not wrong, but its next-step priority has drift ri
 
 | Requirement-bearing area | Requirement source | Current repo status | Target phase(s) | Closure signal | Current risk if deferred |
 |---|---|---|---|---|---|
-| Orbit scope / TLE / multi-orbit | `r1.docx`: `LEO/MEO/GEO`, `≥ 500 LEO`.<br>`kickoff.pptx` Slide 2: multi-orbit switching plus `TLE` input | Generic `tle/czml/sample-series` adapter seam exists, but live runtime is still a walker-only proof path with no formal multi-orbit scenario model | `6.1` start, `7.1` closure | Scenario contract can declare real source descriptors and orbit-class intent; later validation explicitly covers LEO/MEO/GEO and no longer collapses back to walker-only | High: walker proof risks being misread as scope coverage |
+| Orbit scope / TLE / multi-orbit | `r1.docx`: `LEO/MEO/GEO`, `≥ 500 LEO`.<br>`kickoff.pptx` Slide 2: multi-orbit switching plus `TLE` input | V4.13 now has bounded public-TLE LEO/MEO/GEO runtime evidence through `multi-orbit-scale-points`; ITRI orbit-model integration and measured network truth remain successor requirements | `6.1` start, `7.1` closure | Retained Phase 7.1 evidence explicitly covers LEO/MEO/GEO and no longer collapses back to walker-only | Lower after V4.13: remaining risk is external/ITRI-authority integration, not viewer-side public-TLE coverage |
 | Dynamic parameter UI | `r1.docx`: `可動態調整參數介面`.<br>`kickoff.pptx` Slide 5: `模擬速度可調` and parameter-facing UI intent | Query/bootstrap knobs and capture seam exist, but no operator-grade runtime control surface exists | `6.2` | User-visible controls can steer scenario, replay, policy, and bounded model inputs without rebuild or URL editing | High: WP1-facing operator requirement remains uncovered |
 | Communication-time display / statistics / export | `r1.docx`: `即時顯示可通訊時間`, `統計報表匯出`.<br>`kickoff.pptx` Slide 5: `iperf` / `ping`-anchored communication-time display | No live communication-time state, no statistics boundary, no export-ready report structure | `6.3` | Repo-owned communication-time state, scenario-bounded summaries, and export-ready schema exist independently of showcase overlays | High: a named deliverable surface is still absent |
 | Handover / link decision logic | `r1.docx`: `換手策略切換`.<br>`kickoff.pptx` Slide 2 and 6: switching by `latency`, `jitter`, `network speed` across orbit classes | No repo-owned decision layer; current runtime only proves a bounded overlay path and not switching semantics | `6.4` | Deterministic decision outputs and reason signals exist and can feed statistics and later presentation | High: central simulator behavior is still only described by requirement text |
@@ -105,7 +105,7 @@ The current repo direction is not wrong, but its next-step priority has drift ri
 | Scenario loading / prerecorded vs real-time | `kickoff.pptx` Slide 5 and 6: `real time` vs prerecorded scenario/demo modes | `scene-preset` covers framing only and `replay-clock` covers time only; no repo-owned scenario identity/source/lifecycle contract exists | `6.1` | One plain-data scenario model coordinates identity, source type, load/unload lifecycle, and mode switching | High: prerecorded vs real-time has no stable ownership boundary |
 | Validation bridge / NAT / tunnel / DUT | `kickoff.pptx` Slide 3 and 6: Windows tunneling, NAT routing, virtual/physical DUT, ESTNeT/INET bridge | Site tileset hook exists, but it is only a visual dataset seam and not a validation-environment seam | `6.6` | Validation modes, DUT boundaries, and NAT/tunnel/bridge ownership notes are explicit and repo-owned | High: external validation requirement has no named home in the current delivery repo |
 | 24h soak | `r1.docx` WP1 close-out and `kickoff.pptx` Slide 6: stable for at least `24` hours | Formal soak contract/harness now has retained rehearsal evidence plus a retained `24h` full-run pass artifact from the canonical package entry | `7.0` | Repeatable soak procedure, pass/fail rule, and retained `24h` full-run evidence exist | Lower after close-out: the formal soak gate is now evidenced rather than inferred |
-| 500 LEO validation | `r1.docx`: `支援 ≥ 500 LEO 模擬`.<br>`kickoff.pptx` Slide 5: `支援 ≥ 500 LEO 模擬` | Current runtime remains bounded to the copied walker proof fixture and constrained orbit rendering | `7.1` | Explicit scale validation closes the gap between walker proof and named requirement scale | High: scale requirement is currently unproven |
+| 500 LEO validation | `r1.docx`: `支援 ≥ 500 LEO 模擬`.<br>`kickoff.pptx` Slide 5: `支援 ≥ 500 LEO 模擬` | V4.12 closed the route-native LEO leg with `600` public Starlink TLE records; V4.13 carries that count inside the multi-orbit public-TLE gate | `7.1` | `multi-orbit-scale-1000` retained evidence shows `observedLeoCount = 600` with MEO/GEO counts also observed | Lower after V4.13: scale is evidenced for bounded public TLE, not for ITRI orbit-model or measured network truth |
 | Showcase / presentation work | `kickoff.pptx` Slide 6: demo intent exists, but only after requirement-bearing surfaces are mapped | OSM showcase, orbit/label artifact lines, and handover-demo presentation work already exist as useful but non-authoritative later lines | `8.0` | Presentation work resumes only after Phases `6.1-7.1` close or are explicitly waived | Low if deferred; high only if allowed to keep driving ordering |
 
 ## Preserve / Downgrade / Stop / Consider-Remove
@@ -550,6 +550,19 @@ scope/scale signals.
   `requirementGatePassed=true`, and `knownGaps=[]`. This remains separate from
   the V4 13-actor demo route and does not close external NAT / `iperf` / DUT
   truth.
+- V4.13 public-TLE multi-orbit gate closure on `2026-05-13`: locked by
+  [m8a-v4.13-impl-phase1-multi-orbit-spec.md](./m8a-v4.13-impl-phase1-multi-orbit-spec.md)
+  and implemented against
+  [m8a-v4.13-multi-orbit-scale-runtime-plan.md](./m8a-v4.13-multi-orbit-scale-runtime-plan.md).
+  The retained artifact
+  `output/validation/phase7.1/2026-05-13T01-38-25.092Z-multi-orbit-scale-1000/summary.json`
+  reports `requirementGatePassed=true`, `overlayRenderMode="multi-orbit-scale-points"`,
+  and `observedRuntimeVariant.overlayOrbitClassCounts = { leo: 600, meo: 65, geo: 30 }`.
+  ADR `0005-perf-budget` was re-reviewed; the retained perf file records the
+  bounded point-primitive posture with no labels, paths, polylines, or
+  orbit-history accumulation. This closes only the viewer-side bounded
+  public-TLE multi-orbit gate, not ITRI orbit-model integration, measured
+  traffic truth, external validation, or radio-layer handover.
 - Next active entry: `Phase 8.0`
 
 ## Phase 8.0
@@ -642,9 +655,11 @@ Phase 6 formal close-out is complete.
 
 `Phase 7.0` is closed via accepted soak-evidence close-out commit `11732e3`.
 
-`Phase 7.1` is closed via the accepted validation-evidence boundary, live LEO
-scale expansion, and multi-orbit gate closure commits `b83ed0b`, `28fdcb8`,
-and `d6b0d85`.
+`Phase 7.1` is closed for the viewer-side bounded public-TLE gate via the
+accepted validation-evidence boundary, the V4.12 LEO-scale expansion, and the
+V4.13 public MEO/GEO multi-orbit retained artifact. This does not close ITRI
+orbit-model integration, measured traffic truth, external validation, or native
+RF handover.
 
 The next active entry is `Phase 8.0`.
 

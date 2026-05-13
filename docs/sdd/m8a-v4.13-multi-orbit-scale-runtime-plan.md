@@ -5,11 +5,12 @@ Working phase name: **M8A V4.13 Phase 7.1 multi-orbit gate closure**.
 
 ## 0. Status
 
-Status: planning SDD, doc-only.
+Status: implemented on 2026-05-13 for the bounded public-TLE multi-orbit
+viewer gate.
 
-This file does not authorize implementation. It does not open runtime work by
-itself. No smoke, no runtime change, no feature mounting, no commit are part of
-this planning task.
+This file started as the planning SDD. The execution task authorized Phases
+1..7 for V4.13, with Phase 1 locked in
+[m8a-v4.13-impl-phase1-multi-orbit-spec.md](./m8a-v4.13-impl-phase1-multi-orbit-spec.md).
 
 Parent contracts:
 
@@ -58,7 +59,7 @@ non-zero live runtime counts.
 V4.13 does **not** close:
 
 - F-01 ITRI orbit-model integration (still needs ITRI-supplied model)
-- F-02 full live RF handover at multi-orbit scale (different requirement)
+- F-02 full radio-layer handover at multi-orbit scale (different requirement)
 - F-07/F-08/F-12 measured-truth chain
 - V-02..V-06 external validation
 - M8A-V4 ground-station endpoint-pair authority gate
@@ -164,7 +165,7 @@ In scope for future implementation:
 Non-goals:
 
 - no ITRI orbit-model integration (F-01)
-- no live RF / native-RF handover at multi-orbit scale
+- no radio-layer handover at multi-orbit scale
 - no F-09 / F-10 / F-11 / F-16 changes
 - no F-07/F-08/F-12 measured throughput
 - no V-02..V-06 external stack
@@ -177,17 +178,17 @@ Non-goals:
 
 ## 5. Forbidden Claims
 
-- `multi-orbit native RF handover`
-- `multi-orbit measured truth`
+- `multi-orbit radio-layer handover`
+- `multi-orbit measurement-backed truth`
 - `multi-orbit live network validated`
-- `ITRI orbit-model integrated`
-- `Starlink/OneWeb live production parity`
+- `ITRI orbit model is integrated`
+- `Starlink/OneWeb operational parity`
 - `Intelsat/SES production parity`
 - `GPS/Galileo production handover`
-- `V-02..V-06 closure`
+- `V-02 through V-06 closed`
 - `Phase 8 unlocked by this slice`
-- `M8A-V4 second endpoint resolved`
-- `full ITRI acceptance complete`
+- `M8A-V4 endpoint-pair gate resolved`
+- `complete ITRI acceptance`
 
 Allowed copy:
 
@@ -349,3 +350,42 @@ Assessment: **independent**.
 
 V4.13 is the cleanest pre-M8A-V4 closure that the project can reach
 without external authority gates.
+
+## 13. Implementation Close-Out
+
+Closed slice: V4.13 Phase 7.1 bounded public-TLE multi-orbit gate.
+
+Landed implementation:
+
+- Phase 1 spec:
+  [m8a-v4.13-impl-phase1-multi-orbit-spec.md](./m8a-v4.13-impl-phase1-multi-orbit-spec.md)
+- public MEO/GEO fixtures and provenance:
+  `public/fixtures/satellites/multi-orbit/`
+- fixture builder:
+  `scripts/build-v4.13-multi-orbit-fixture.mjs`
+- widened bulk TLE ingestion:
+  `src/features/satellites/bulk-tle-adapter.ts`
+- class-distinct point-primitive render path:
+  `src/runtime/leo-scale-point-primitive-overlay-adapter.ts`
+- controller mode:
+  `src/runtime/satellite-overlay-controller.ts` reports
+  `overlayRenderMode = "multi-orbit-scale-points"` for the V4.13 path
+- retained evidence:
+  `output/validation/phase7.1/2026-05-13T01-38-25.092Z-multi-orbit-scale-1000/`
+
+Evidence result:
+
+- `passFailSummary.requirementGatePassed = true`
+- `observedRuntimeVariant.overlayRenderMode = "multi-orbit-scale-points"`
+- `observedRuntimeVariant.overlayOrbitClassCounts = { leo: 600, meo: 65, geo: 30 }`
+- `orbitScopeMatrix[leo/meo/geo].liveRuntimeCoverage.status = "observed"`
+
+ADR `0005-perf-budget` was re-reviewed in Phase 6. The V4.13 path keeps one
+bounded point primitive per copied public TLE, no labels, no paths, no
+polylines, and no orbit-history accumulation. The retained perf artifact is a
+headless lower-bound runtime sample and records no ADR 0005 budget exceedance
+or governance checkpoint requirement.
+
+This close-out is bounded public-TLE viewer evidence only. It does not close
+ITRI orbit-model integration, measured traffic truth, external validation,
+M8A-V4 endpoint authority, radio-layer handover, or complete ITRI acceptance.

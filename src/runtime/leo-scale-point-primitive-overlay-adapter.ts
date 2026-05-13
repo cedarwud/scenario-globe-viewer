@@ -7,6 +7,7 @@ import {
 } from "cesium";
 
 import type { SatelliteFixture, SatelliteOverlayAdapter } from "../features/satellites";
+import type { OrbitClass, SatelliteSample } from "../features/satellites/adapter";
 import {
   createBulkTleAdapter,
   type BulkTleAdapterState
@@ -27,6 +28,34 @@ export interface LeoScalePointPrimitiveOverlayRuntimeAdapter
 const LEO_SCALE_POINT_PIXEL_SIZE = 3.5;
 const LEO_SCALE_POINT_COLOR = Color.fromCssColorString("#aee7ff").withAlpha(0.88);
 const LEO_SCALE_POINT_OUTLINE_COLOR = Color.fromCssColorString("#04121c").withAlpha(0.86);
+const POINT_STYLE_BY_ORBIT_CLASS: Record<
+  OrbitClass,
+  {
+    color: Color;
+    outlineColor: Color;
+    outlineWidth: number;
+    pixelSize: number;
+  }
+> = {
+  leo: {
+    color: LEO_SCALE_POINT_COLOR,
+    outlineColor: LEO_SCALE_POINT_OUTLINE_COLOR,
+    outlineWidth: 0.75,
+    pixelSize: LEO_SCALE_POINT_PIXEL_SIZE
+  },
+  meo: {
+    color: Color.fromCssColorString("#ffd166").withAlpha(0.92),
+    outlineColor: Color.fromCssColorString("#201402").withAlpha(0.9),
+    outlineWidth: 1.05,
+    pixelSize: 5.25
+  },
+  geo: {
+    color: Color.fromCssColorString("#ff7ab6").withAlpha(0.94),
+    outlineColor: Color.fromCssColorString("#230817").withAlpha(0.92),
+    outlineWidth: 1.35,
+    pixelSize: 6.75
+  }
+};
 
 function toCartesianPosition(sample: {
   positionEcef: { x: number; y: number; z: number };
@@ -35,18 +64,33 @@ function toCartesianPosition(sample: {
   return new Cartesian3(x, y, z);
 }
 
+function resolvePointStyle(orbitClass: OrbitClass | undefined) {
+  return POINT_STYLE_BY_ORBIT_CLASS[orbitClass ?? "leo"];
+}
+
 function createPoint(
   collection: PointPrimitiveCollection,
+  sample: SatelliteSample,
   position: Cartesian3
 ): PointPrimitive {
+  const style = resolvePointStyle(sample.orbitClass);
+
   return collection.add({
     position,
-    pixelSize: LEO_SCALE_POINT_PIXEL_SIZE,
-    color: LEO_SCALE_POINT_COLOR,
-    outlineColor: LEO_SCALE_POINT_OUTLINE_COLOR,
-    outlineWidth: 0.75,
+    pixelSize: style.pixelSize,
+    color: style.color,
+    outlineColor: style.outlineColor,
+    outlineWidth: style.outlineWidth,
     disableDepthTestDistance: Number.POSITIVE_INFINITY
   });
+}
+
+function syncPointStyle(point: PointPrimitive, sample: SatelliteSample): void {
+  const style = resolvePointStyle(sample.orbitClass);
+  point.pixelSize = style.pixelSize;
+  point.color = style.color;
+  point.outlineColor = style.outlineColor;
+  point.outlineWidth = style.outlineWidth;
 }
 
 export function createLeoScalePointPrimitiveOverlayAdapter(
@@ -98,8 +142,9 @@ export function createLeoScalePointPrimitiveOverlayAdapter(
 
         if (existingPoint) {
           existingPoint.position = position;
+          syncPointStyle(existingPoint, sample);
         } else {
-          pointsById.set(sample.id, createPoint(collection, position));
+          pointsById.set(sample.id, createPoint(collection, sample, position));
         }
 
         seenIds.add(sample.id);

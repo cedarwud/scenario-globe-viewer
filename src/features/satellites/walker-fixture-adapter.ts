@@ -239,6 +239,10 @@ export class WalkerFixtureAdapter implements SatelliteOverlayAdapter {
       throw new Error(`Unsupported walker propagator: ${propagator}`);
     }
 
+    if (typeof fixture.tleText !== "string") {
+      throw new Error("WalkerFixtureAdapter requires an inline TLE fixture.");
+    }
+
     const records = parseWalkerTleRecords(fixture.tleText);
     const epochMode = fixture.epochMode ?? DEFAULT_WALKER_TLE_EPOCH_MODE;
     const clockAnchorTime = resolveClockAnchorTime(this.attachedClock);

@@ -50,8 +50,10 @@ function resolveProfile(args) {
   const profile = readOption(args, "profile") ?? "first-slice";
 
   assert(
-    profile === "first-slice",
-    "Expected --profile=first-slice for the current Phase 7.1 boundary."
+    profile === "first-slice" ||
+      profile === "leo-scale-500" ||
+      profile === "multi-orbit-scale-1000",
+    "Expected --profile=first-slice, --profile=leo-scale-500, or --profile=multi-orbit-scale-1000 for the current Phase 7.1 boundary."
   );
 
   return profile;

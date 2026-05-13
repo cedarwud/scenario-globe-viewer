@@ -51,7 +51,10 @@ const captureViewport = {
 const VALIDATION_SCHEMA_VERSION = "phase7.1-viewer-validation-evidence.v1";
 const DEFAULT_PROFILE_ID = "first-slice";
 const LEO_SCALE_PROFILE_ID = "leo-scale-500";
+const MULTI_ORBIT_SCALE_PROFILE_ID = "multi-orbit-scale-1000";
 const DEFAULT_TARGET_LEO_COUNT = 500;
+const DEFAULT_TARGET_MEO_COUNT = 30;
+const DEFAULT_TARGET_GEO_COUNT = 20;
 const DEFAULT_RETENTION_DAYS = 14;
 const DEFAULT_OVERLAY_MODE = "multi-orbit-scale-points";
 const WALKER_OVERLAY_MODE = "walker-points";
@@ -64,6 +67,18 @@ const VALID_OVERLAY_MODES = [
   MULTI_ORBIT_SCALE_OVERLAY_MODE
 ];
 const PERF_SAMPLE_WINDOW_MS = 1500;
+
+function resolveExpectedRenderMode(requestedOverlayMode) {
+  if (requestedOverlayMode === LEO_SCALE_OVERLAY_MODE) {
+    return LEO_SCALE_OVERLAY_MODE;
+  }
+
+  if (requestedOverlayMode === MULTI_ORBIT_SCALE_OVERLAY_MODE) {
+    return MULTI_ORBIT_SCALE_OVERLAY_MODE;
+  }
+
+  return "point-label-polyline";
+}
 
 function parseArgs(argv) {
   const options = {};
@@ -133,14 +148,28 @@ function resolveRunConfig(options) {
   const profileId =
     options["validation-profile-id"] ?? options.profile ?? DEFAULT_PROFILE_ID;
   assert(
-    profileId === DEFAULT_PROFILE_ID || profileId === LEO_SCALE_PROFILE_ID,
-    "Only --profile=first-slice or --validation-profile-id=leo-scale-500 is supported."
+    profileId === DEFAULT_PROFILE_ID ||
+      profileId === LEO_SCALE_PROFILE_ID ||
+      profileId === MULTI_ORBIT_SCALE_PROFILE_ID,
+    "Only --profile=first-slice, --validation-profile-id=leo-scale-500, or --validation-profile-id=multi-orbit-scale-1000 is supported."
   );
 
   const targetLeoCount =
     options["target-leo-count"] !== undefined
       ? parsePositiveInteger(options["target-leo-count"], "--target-leo-count")
       : DEFAULT_TARGET_LEO_COUNT;
+  const targetMeoCount =
+    options["target-meo-count"] !== undefined
+      ? parsePositiveInteger(options["target-meo-count"], "--target-meo-count")
+      : profileId === LEO_SCALE_PROFILE_ID
+        ? 0
+        : DEFAULT_TARGET_MEO_COUNT;
+  const targetGeoCount =
+    options["target-geo-count"] !== undefined
+      ? parsePositiveInteger(options["target-geo-count"], "--target-geo-count")
+      : profileId === LEO_SCALE_PROFILE_ID
+        ? 0
+        : DEFAULT_TARGET_GEO_COUNT;
   const retentionDays =
     options["retention-days"] !== undefined
       ? parsePositiveInteger(options["retention-days"], "--retention-days")
@@ -152,6 +181,8 @@ function resolveRunConfig(options) {
       ? options["run-id"].trim()
       : profileId === LEO_SCALE_PROFILE_ID
         ? LEO_SCALE_PROFILE_ID
+        : profileId === MULTI_ORBIT_SCALE_PROFILE_ID
+          ? MULTI_ORBIT_SCALE_PROFILE_ID
         : "phase7-1-first-slice";
   const requestedOverlayMode =
     typeof options["requested-overlay-mode"] === "string"
@@ -165,15 +196,18 @@ function resolveRunConfig(options) {
   );
   const requiredOrbitClasses =
     profileId === LEO_SCALE_PROFILE_ID ? ["leo"] : REQUIRED_ORBIT_CLASSES;
+  const description =
+    profileId === LEO_SCALE_PROFILE_ID
+      ? "Viewer-side Phase 7.1 LEO leg. Requires route-native >=500 LEO coverage through leo-scale-points while keeping MEO/GEO gaps explicit."
+      : profileId === MULTI_ORBIT_SCALE_PROFILE_ID
+        ? "Viewer-side Phase 7.1 multi-orbit gate. Requires public-TLE LEO, MEO, and GEO coverage through multi-orbit-scale-points with per-class target counts."
+        : "Viewer-side Phase 7.1 first slice. Converges orbit-scope matrix, >=500 LEO gate, retained artifact layout, and known-gap reporting without claiming closure.";
 
   return {
     schemaVersion: VALIDATION_SCHEMA_VERSION,
     validationProfile: {
       id: profileId,
-      description:
-        profileId === LEO_SCALE_PROFILE_ID
-          ? "Viewer-side Phase 7.1 LEO leg. Requires route-native >=500 LEO coverage through leo-scale-points while keeping MEO/GEO gaps explicit."
-          : "Viewer-side Phase 7.1 first slice. Converges orbit-scope matrix, >=500 LEO gate, retained artifact layout, and known-gap reporting without claiming closure.",
+      description,
       requiredOrbitClasses,
       requestedOverlayMode,
       retentionDays
@@ -181,6 +215,8 @@ function resolveRunConfig(options) {
     scaleRunParams: {
       runId,
       targetLeoCount,
+      targetMeoCount,
+      targetGeoCount,
       requestedOverlayMode,
       enforcePass
     }
@@ -637,10 +673,7 @@ async function readOverlayObservation(client) {
 
 async function waitForOverlayReady(client, requestedOverlayMode) {
   let lastObservation = null;
-  const expectedRenderMode =
-    requestedOverlayMode === LEO_SCALE_OVERLAY_MODE
-      ? LEO_SCALE_OVERLAY_MODE
-      : "point-label-polyline";
+  const expectedRenderMode = resolveExpectedRenderMode(requestedOverlayMode);
 
   for (let attempt = 0; attempt < 240; attempt += 1) {
     lastObservation = await readOverlayObservation(client);
@@ -899,6 +932,9 @@ function inspectContractSignals() {
         : null,
       overlayControllerSource.includes('"leo-scale-points"')
         ? "leo-scale-points"
+        : null,
+      overlayControllerSource.includes('"multi-orbit-scale-points"')
+        ? "multi-orbit-scale-points"
         : null
     ].filter(Boolean)
   };
@@ -925,8 +961,8 @@ function inspectContractSignals() {
   );
   assert.deepEqual(
     signals.liveRenderModes,
-    ["point-label-polyline", "leo-scale-points"],
-    "Live overlay render modes must distinguish walker baseline from route-native LEO scale."
+    ["point-label-polyline", "leo-scale-points", "multi-orbit-scale-points"],
+    "Live overlay render modes must distinguish walker baseline from route-native LEO scale and public-TLE multi-orbit scale."
   );
 
   return signals;
@@ -997,7 +1033,7 @@ function createOrbitScopeMatrix(contractSignals, runtimeObservation) {
       contractCoverage: {
         status: orbitClassDeclared ? "partial" : "missing",
         detail:
-          "Physical-input declares the orbit class and the repo keeps generic scenario/source descriptors, but the viewer runtime does not yet wire a distinct orbit-class-specific live source."
+          "Physical-input declares the orbit class and the repo keeps generic scenario/source descriptors; live runtime coverage is evaluated from the requested overlay mode and reported counts."
       },
       liveRuntimeCoverage: {
         status:
@@ -1025,9 +1061,13 @@ function createOrbitScopeMatrix(contractSignals, runtimeObservation) {
   });
 }
 
-function createKnownGaps(matrix, runtimeObservation, targetLeoCount) {
+function createKnownGaps(matrix, runtimeObservation, config) {
   const knownGaps = [];
-  const observedLeoCount = runtimeObservation.overlayOrbitClassCounts?.leo ?? 0;
+  const observedCounts = runtimeObservation.overlayOrbitClassCounts ?? {
+    leo: 0,
+    meo: 0,
+    geo: 0
+  };
 
   if (
     matrix.some(
@@ -1039,9 +1079,27 @@ function createKnownGaps(matrix, runtimeObservation, targetLeoCount) {
     );
   }
 
-  if (observedLeoCount < targetLeoCount) {
+  if (observedCounts.leo < config.scaleRunParams.targetLeoCount) {
     knownGaps.push(
-      `Observed live runtime leoCount=${observedLeoCount} is below the Phase 7.1 target of ${targetLeoCount} LEO.`
+      `Observed live runtime leoCount=${observedCounts.leo} is below the Phase 7.1 target of ${config.scaleRunParams.targetLeoCount} LEO.`
+    );
+  }
+
+  if (
+    config.validationProfile.requiredOrbitClasses.includes("meo") &&
+    observedCounts.meo < config.scaleRunParams.targetMeoCount
+  ) {
+    knownGaps.push(
+      `Observed live runtime meoCount=${observedCounts.meo} is below the Phase 7.1 target of ${config.scaleRunParams.targetMeoCount} MEO.`
+    );
+  }
+
+  if (
+    config.validationProfile.requiredOrbitClasses.includes("geo") &&
+    observedCounts.geo < config.scaleRunParams.targetGeoCount
+  ) {
+    knownGaps.push(
+      `Observed live runtime geoCount=${observedCounts.geo} is below the Phase 7.1 target of ${config.scaleRunParams.targetGeoCount} GEO.`
     );
   }
 
@@ -1060,11 +1118,14 @@ function createKnownGaps(matrix, runtimeObservation, targetLeoCount) {
 
 function createPassFailSummary(matrix, contractSignals, runtimeObservation, config, knownGaps) {
   const captureReady = Object.values(runtimeObservation.captureHandles).every(Boolean);
-  const observedLeoCount = runtimeObservation.overlayOrbitClassCounts?.leo ?? 0;
-  const expectedRenderMode =
-    config.validationProfile.requestedOverlayMode === LEO_SCALE_OVERLAY_MODE
-      ? LEO_SCALE_OVERLAY_MODE
-      : "point-label-polyline";
+  const observedCounts = runtimeObservation.overlayOrbitClassCounts ?? {
+    leo: 0,
+    meo: 0,
+    geo: 0
+  };
+  const expectedRenderMode = resolveExpectedRenderMode(
+    config.validationProfile.requestedOverlayMode
+  );
   const contractScopeSignalsPassed =
     contractSignals.scenarioSatelliteSourceKinds.length === 2 &&
     contractSignals.satelliteFixtureKinds.length === 3 &&
@@ -1081,8 +1142,16 @@ function createPassFailSummary(matrix, contractSignals, runtimeObservation, conf
       matrix.find((entry) => entry.orbitClass === orbitClass)?.liveRuntimeCoverage
         .status === "observed"
   );
+  const leoScaleGatePassed =
+    observedCounts.leo >= config.scaleRunParams.targetLeoCount;
+  const meoScaleGatePassed =
+    !config.validationProfile.requiredOrbitClasses.includes("meo") ||
+    observedCounts.meo >= config.scaleRunParams.targetMeoCount;
+  const geoScaleGatePassed =
+    !config.validationProfile.requiredOrbitClasses.includes("geo") ||
+    observedCounts.geo >= config.scaleRunParams.targetGeoCount;
   const scaleGatePassed =
-    observedLeoCount >= config.scaleRunParams.targetLeoCount;
+    leoScaleGatePassed && meoScaleGatePassed && geoScaleGatePassed;
   const requirementGatePassed = requiredLiveCoveragePassed && scaleGatePassed;
   const knownGapReportingPassed = requirementGatePassed || knownGaps.length > 0;
 
@@ -1102,17 +1171,27 @@ function createPassFailSummary(matrix, contractSignals, runtimeObservation, conf
     {
       id: "overlay-observed",
       passed: overlayObserved,
-      detail: `Requested overlayMode=${config.validationProfile.requestedOverlayMode}, observed overlayState=${runtimeObservation.overlayState}, observed pointCount=${runtimeObservation.overlayPointCount}, observed leoCount=${observedLeoCount}.`
+      detail: `Requested overlayMode=${config.validationProfile.requestedOverlayMode}, observed overlayState=${runtimeObservation.overlayState}, observed pointCount=${runtimeObservation.overlayPointCount}, observed leoCount=${observedCounts.leo}, meoCount=${observedCounts.meo}, geoCount=${observedCounts.geo}.`
     },
     {
       id: "required-live-coverage",
       passed: requiredLiveCoveragePassed,
-      detail: `Passes when requiredOrbitClasses=${config.validationProfile.requiredOrbitClasses.join(",")} have non-placeholder live runtime coverage. Non-required MEO/GEO rows may remain explicit known gaps for the LEO leg.`
+      detail: `Passes when requiredOrbitClasses=${config.validationProfile.requiredOrbitClasses.join(",")} have non-placeholder live runtime coverage. Non-required rows may remain explicit known gaps for narrower profiles.`
     },
     {
       id: "500-leo-scale",
-      passed: scaleGatePassed,
-      detail: `Observed live runtime leoCount=${observedLeoCount}; targetLeoCount=${config.scaleRunParams.targetLeoCount}.`
+      passed: leoScaleGatePassed,
+      detail: `Observed live runtime leoCount=${observedCounts.leo}; targetLeoCount=${config.scaleRunParams.targetLeoCount}.`
+    },
+    {
+      id: "target-meo-scale",
+      passed: meoScaleGatePassed,
+      detail: `Observed live runtime meoCount=${observedCounts.meo}; targetMeoCount=${config.scaleRunParams.targetMeoCount}; required=${config.validationProfile.requiredOrbitClasses.includes("meo")}.`
+    },
+    {
+      id: "target-geo-scale",
+      passed: geoScaleGatePassed,
+      detail: `Observed live runtime geoCount=${observedCounts.geo}; targetGeoCount=${config.scaleRunParams.targetGeoCount}; required=${config.validationProfile.requiredOrbitClasses.includes("geo")}.`
     },
     {
       id: "known-gap-reporting",
@@ -1165,7 +1244,7 @@ async function observeRuntime(baseUrl, browserCommand, config) {
 
       let walkerBaseline = null;
 
-      if (requestedOverlayMode === LEO_SCALE_OVERLAY_MODE) {
+      if (requestedOverlayMode !== WALKER_OVERLAY_MODE) {
         await enableOverlay(client, WALKER_OVERLAY_MODE);
         await waitForOverlayReady(client, WALKER_OVERLAY_MODE);
         walkerBaseline = await collectPerfSample(
@@ -1183,26 +1262,35 @@ async function observeRuntime(baseUrl, browserCommand, config) {
         `${requestedOverlayMode}-requested`,
         PERF_SAMPLE_WINDOW_MS
       );
+      const boundedPrimitivePath =
+        (requestedOverlayMode === LEO_SCALE_OVERLAY_MODE ||
+          requestedOverlayMode === MULTI_ORBIT_SCALE_OVERLAY_MODE) &&
+        overlayObservation.overlayRenderMode === requestedOverlayMode &&
+        overlayObservation.controllerState?.pathCount === 0 &&
+        overlayObservation.controllerState?.polylineCount === 0 &&
+        overlayObservation.controllerState?.labelCount === 0;
       const perfMeasurement = {
-        schemaVersion: "phase7.1-f13-perf-measurement.v1",
+        schemaVersion:
+          requestedOverlayMode === MULTI_ORBIT_SCALE_OVERLAY_MODE
+            ? "phase7.1-v4.13-multi-orbit-perf-measurement.v1"
+            : "phase7.1-f13-perf-measurement.v1",
         sampleWindowMs: PERF_SAMPLE_WINDOW_MS,
         walkerBaseline,
         requestedOverlay: requestedSample,
         budgetComparison: {
           adr: "docs/decisions/0005-perf-budget.md",
           adrReReviewedAt: new Date().toISOString(),
-          boundedPrimitivePath:
-            requestedOverlayMode === LEO_SCALE_OVERLAY_MODE &&
-            overlayObservation.overlayRenderMode === LEO_SCALE_OVERLAY_MODE &&
-            overlayObservation.controllerState?.pathCount === 0 &&
-            overlayObservation.controllerState?.polylineCount === 0 &&
-            overlayObservation.controllerState?.labelCount === 0,
+          boundedPrimitivePath,
           targetLeoCount: config.scaleRunParams.targetLeoCount,
+          targetMeoCount: config.scaleRunParams.targetMeoCount,
+          targetGeoCount: config.scaleRunParams.targetGeoCount,
           observedLeoCount: overlayObservation.overlayOrbitClassCounts?.leo ?? 0,
+          observedMeoCount: overlayObservation.overlayOrbitClassCounts?.meo ?? 0,
+          observedGeoCount: overlayObservation.overlayOrbitClassCounts?.geo ?? 0,
           adr0005BudgetExceeded: false,
           governanceCheckpointRequired: false,
           note:
-            "ADR 0005 defines formal Tier 1/Tier 2 globe-only gates and requires bounded overlay widening. This LEO slice uses one PointPrimitive per copied TLE with no labels, paths, polylines, or orbit-history accumulation."
+            "ADR 0005 defines formal Tier 1/Tier 2 globe-only gates and requires bounded overlay widening. This slice uses one PointPrimitive per copied public TLE with no labels, paths, polylines, or orbit-history accumulation. The sample is a headless lower-bound runtime check, not formal Tier 1/Tier 2 hardware evidence."
         }
       };
 
@@ -1260,7 +1348,7 @@ async function main() {
   const knownGaps = createKnownGaps(
     orbitScopeMatrix,
     runtimeObservation,
-    config.scaleRunParams.targetLeoCount
+    config
   );
   const passFailSummary = createPassFailSummary(
     orbitScopeMatrix,
@@ -1312,6 +1400,8 @@ async function main() {
     scaleRunParams: {
       ...config.scaleRunParams,
       observedLeoCount: runtimeObservation.overlayOrbitClassCounts?.leo ?? 0,
+      observedMeoCount: runtimeObservation.overlayOrbitClassCounts?.meo ?? 0,
+      observedGeoCount: runtimeObservation.overlayOrbitClassCounts?.geo ?? 0,
       observedOverlayRenderMode: runtimeObservation.overlayRenderMode
     },
     observedRuntimeVariant,

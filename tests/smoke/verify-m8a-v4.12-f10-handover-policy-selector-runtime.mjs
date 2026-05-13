@@ -173,7 +173,7 @@ async function inspectF10(client) {
       ].join("\\n");
 
       return {
-        bootstrapState: document.documentElement.dataset.bootstrapState ?? null,
+        bootstrapState: document.documentElement?.dataset.bootstrapState ?? null,
         requestPath: window.location.pathname + window.location.search,
         hasCapture: Boolean(capture?.viewer && capture?.handoverDecision),
         runtimeErrors: window.__F10_RUNTIME_ERRORS__ ?? [],
@@ -210,11 +210,11 @@ async function inspectF10(client) {
           provenance: handoverRoot?.dataset.handoverProvenance ?? null
         },
         documentTelemetry: {
-          policyId: document.documentElement.dataset.handoverPolicyId ?? null,
-          policyLabel: document.documentElement.dataset.handoverPolicyLabel ?? null,
-          policySummary: document.documentElement.dataset.handoverPolicySummary ?? null,
-          policyTieBreak: document.documentElement.dataset.handoverPolicyTieBreak ?? null,
-          provenance: document.documentElement.dataset.handoverProvenance ?? null
+          policyId: document.documentElement?.dataset.handoverPolicyId ?? null,
+          policyLabel: document.documentElement?.dataset.handoverPolicyLabel ?? null,
+          policySummary: document.documentElement?.dataset.handoverPolicySummary ?? null,
+          policyTieBreak: document.documentElement?.dataset.handoverPolicyTieBreak ?? null,
+          provenance: document.documentElement?.dataset.handoverProvenance ?? null
         },
         report: state?.report ?? null,
         snapshot: state?.snapshot ?? null,

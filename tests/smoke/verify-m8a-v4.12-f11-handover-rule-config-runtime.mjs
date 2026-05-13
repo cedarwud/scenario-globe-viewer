@@ -148,7 +148,7 @@ async function inspectF11(client) {
       ].join("\\n");
 
       return {
-        bootstrapState: document.documentElement.dataset.bootstrapState ?? null,
+        bootstrapState: document.documentElement?.dataset.bootstrapState ?? null,
         hasCapture: Boolean(capture?.viewer && capture?.handoverDecision),
         runtimeErrors: window.__F11_RUNTIME_ERRORS__ ?? [],
         panel: {
@@ -198,15 +198,15 @@ async function inspectF11(client) {
           }
         },
         documentTelemetry: {
-          rulePolicyId: document.documentElement.dataset.handoverRulePolicyId ?? null,
-          ruleAppliedAt: document.documentElement.dataset.handoverRuleAppliedAt ?? null,
-          ruleWeights: document.documentElement.dataset.handoverRuleWeights ?? null,
+          rulePolicyId: document.documentElement?.dataset.handoverRulePolicyId ?? null,
+          ruleAppliedAt: document.documentElement?.dataset.handoverRuleAppliedAt ?? null,
+          ruleWeights: document.documentElement?.dataset.handoverRuleWeights ?? null,
           ruleTieBreakOrder:
-            document.documentElement.dataset.handoverRuleTieBreakOrder ?? null,
+            document.documentElement?.dataset.handoverRuleTieBreakOrder ?? null,
           minDwellTicks:
-            document.documentElement.dataset.handoverRuleMinDwellTicks ?? null,
+            document.documentElement?.dataset.handoverRuleMinDwellTicks ?? null,
           hysteresisMargin:
-            document.documentElement.dataset.handoverRuleHysteresisMargin ?? null
+            document.documentElement?.dataset.handoverRuleHysteresisMargin ?? null
         },
         report: state?.report ?? null,
         snapshot: state?.snapshot ?? null,

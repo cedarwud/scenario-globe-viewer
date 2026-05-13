@@ -218,7 +218,7 @@ async function inspectReportExport(client) {
       }));
 
       return {
-        bootstrapState: document.documentElement.dataset.bootstrapState ?? null,
+        bootstrapState: document.documentElement?.dataset.bootstrapState ?? null,
         requestPath: window.location.pathname + window.location.search,
         runtimeErrors: window.__F16_RUNTIME_ERRORS__ ?? [],
         hasCapture: Boolean(

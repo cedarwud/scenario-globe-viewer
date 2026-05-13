@@ -9,8 +9,6 @@ import {
 import type { ReplayClock } from "../features/time";
 import {
   LEO_SCALE_OVERLAY_MODE,
-  createMultiOrbitScaleFixtureText,
-  MULTI_ORBIT_SCALE_OVERLAY_COUNTS,
   MULTI_ORBIT_SCALE_OVERLAY_MODE,
   type OverlayOrbitClassCounts
 } from "./leo-scale-overlay-fixture";
@@ -37,7 +35,8 @@ export type SatelliteOverlaySource = "default-off" | "runtime";
 export type SatelliteOverlayStatus = "disabled" | "loading" | "ready" | "error";
 export type SatelliteOverlayRenderMode =
   | "point-label-polyline"
-  | "leo-scale-points";
+  | "leo-scale-points"
+  | "multi-orbit-scale-points";
 
 type SatelliteOverlayRuntimeAdapter =
   | WalkerPointOverlayRuntimeAdapter
@@ -80,6 +79,10 @@ const WALKER_TLE_FIXTURE_PATH =
   "fixtures/satellites/walker-o6-s3-i45-h698.tle";
 const LEO_SCALE_PROVENANCE_PATH =
   "fixtures/satellites/leo-scale/provenance.json";
+const MULTI_ORBIT_MEO_PROVENANCE_PATH =
+  "fixtures/satellites/multi-orbit/meo/provenance.json";
+const MULTI_ORBIT_GEO_PROVENANCE_PATH =
+  "fixtures/satellites/multi-orbit/geo/provenance.json";
 const MANAGED_OVERLAY_IDS = new Set([
   WALKER_OVERLAY_ID,
   LEO_SCALE_OVERLAY_ID,
@@ -93,6 +96,22 @@ interface LeoScaleFixtureProvenance {
   sourceUrl: string;
   capturedAt: string;
   subsetPolicy: string;
+}
+
+interface MultiOrbitCatalogProvenance {
+  sourceId: string;
+  source: string;
+  sourceUrl: string;
+  fixtureFile: string;
+  epochCount: number;
+}
+
+interface MultiOrbitFixtureProvenance {
+  orbitClass: "meo" | "geo";
+  capturedAt: string;
+  epochCount: number;
+  targetCount: number;
+  catalogs: ReadonlyArray<MultiOrbitCatalogProvenance>;
 }
 
 function serializeOverlayError(reason: unknown): string {
@@ -138,6 +157,18 @@ function createEmptyOrbitClassCounts(): OverlayOrbitClassCounts {
   };
 }
 
+function resolveOverlayRenderMode(mode: SatelliteOverlayMode): SatelliteOverlayRenderMode {
+  if (mode === LEO_SCALE_OVERLAY_MODE) {
+    return "leo-scale-points";
+  }
+
+  if (mode === MULTI_ORBIT_SCALE_OVERLAY_MODE) {
+    return "multi-orbit-scale-points";
+  }
+
+  return "point-label-polyline";
+}
+
 function createControllerState(
   mode: SatelliteOverlayMode,
   source: SatelliteOverlaySource,
@@ -161,7 +192,7 @@ function createControllerState(
     pathCount: runtimeState.pathCount,
     pointCount: runtimeState.pointCount,
     polylineCount: runtimeState.polylineCount,
-    renderMode: mode === LEO_SCALE_OVERLAY_MODE ? "leo-scale-points" : "point-label-polyline",
+    renderMode: resolveOverlayRenderMode(mode),
     sampleTime: runtimeState.sampleTime,
     satCount: runtimeState.satCount,
     source,
@@ -240,6 +271,109 @@ async function loadLeoScaleFixture(): Promise<{
   };
 }
 
+async function loadMultiOrbitProvenance(
+  provenancePath: string,
+  orbitClass: "meo" | "geo"
+): Promise<MultiOrbitFixtureProvenance> {
+  const provenanceResponse = await fetch(resolvePublicFixtureUrl(provenancePath));
+  if (!provenanceResponse.ok) {
+    throw new Error(
+      `Failed to load ${orbitClass.toUpperCase()} multi-orbit fixture provenance: ${provenanceResponse.status} ${provenanceResponse.statusText}`
+    );
+  }
+
+  const provenance =
+    (await provenanceResponse.json()) as MultiOrbitFixtureProvenance;
+  if (
+    provenance.orbitClass !== orbitClass ||
+    typeof provenance.epochCount !== "number" ||
+    provenance.epochCount < provenance.targetCount ||
+    !Array.isArray(provenance.catalogs) ||
+    provenance.catalogs.length === 0
+  ) {
+    throw new Error(
+      `${orbitClass.toUpperCase()} multi-orbit fixture provenance is missing required catalog metadata.`
+    );
+  }
+
+  return provenance;
+}
+
+async function loadMultiOrbitCatalogs(
+  provenance: MultiOrbitFixtureProvenance
+): Promise<
+  ReadonlyArray<{
+    sourceId: string;
+    tleText: string;
+    expectedOrbitClass: "meo" | "geo";
+  }>
+> {
+  const catalogs = [];
+
+  for (const catalog of provenance.catalogs) {
+    const fixtureResponse = await fetch(
+      resolvePublicFixtureUrl(
+        `fixtures/satellites/multi-orbit/${provenance.orbitClass}/${catalog.fixtureFile}`
+      )
+    );
+    if (!fixtureResponse.ok) {
+      throw new Error(
+        `Failed to load ${provenance.orbitClass.toUpperCase()} fixture ${catalog.fixtureFile}: ${fixtureResponse.status} ${fixtureResponse.statusText}`
+      );
+    }
+
+    catalogs.push({
+      sourceId: catalog.sourceId,
+      tleText: await fixtureResponse.text(),
+      expectedOrbitClass: provenance.orbitClass
+    });
+  }
+
+  return catalogs;
+}
+
+async function loadMultiOrbitScaleFixture(): Promise<{
+  detail: string;
+  fixture: SatelliteFixture;
+  orbitClassCounts: OverlayOrbitClassCounts;
+}> {
+  const leoFixture = await loadLeoScaleFixture();
+  const meoProvenance = await loadMultiOrbitProvenance(
+    MULTI_ORBIT_MEO_PROVENANCE_PATH,
+    "meo"
+  );
+  const meoCatalogs = await loadMultiOrbitCatalogs(meoProvenance);
+  const geoProvenance = await loadMultiOrbitProvenance(
+    MULTI_ORBIT_GEO_PROVENANCE_PATH,
+    "geo"
+  );
+  const geoCatalogs = await loadMultiOrbitCatalogs(geoProvenance);
+
+  return {
+    detail:
+      `Loaded ${leoFixture.provenance.epochCount} LEO, ${meoProvenance.epochCount} MEO, and ${geoProvenance.epochCount} GEO public TLE records as bounded multi-orbit point primitives.`,
+    fixture: {
+      kind: "tle",
+      catalogs: [
+        {
+          sourceId: "leo-starlink",
+          tleText: leoFixture.tleText,
+          expectedOrbitClass: "leo"
+        },
+        ...meoCatalogs,
+        ...geoCatalogs
+      ],
+      propagator: "sgp4",
+      epochMode: "absolute"
+    },
+    orbitClassCounts: {
+      leo: leoFixture.provenance.epochCount,
+      meo: meoProvenance.epochCount,
+      geo: geoProvenance.epochCount
+    }
+  };
+}
+
 async function resolveOverlayFixture(
   mode: Exclude<SatelliteOverlayMode, "off">
 ): Promise<{
@@ -284,16 +418,11 @@ async function resolveOverlayFixture(
     };
   }
 
-  const walkerFixtureText = await loadWalkerFixtureText();
+  const multiOrbitFixture = await loadMultiOrbitScaleFixture();
   return {
-    detail: `Generated ${MULTI_ORBIT_SCALE_OVERLAY_COUNTS.leo} LEO plus ${MULTI_ORBIT_SCALE_OVERLAY_COUNTS.meo} MEO and ${MULTI_ORBIT_SCALE_OVERLAY_COUNTS.geo} GEO model-backed scale points from walker-derived TLE templates.`,
-    fixture: {
-      kind: "tle",
-      tleText: createMultiOrbitScaleFixtureText(walkerFixtureText)
-    },
-    orbitClassCounts: {
-      ...MULTI_ORBIT_SCALE_OVERLAY_COUNTS
-    },
+    detail: multiOrbitFixture.detail,
+    fixture: multiOrbitFixture.fixture,
+    orbitClassCounts: multiOrbitFixture.orbitClassCounts,
     overlayId: MULTI_ORBIT_SCALE_OVERLAY_ID
   };
 }
@@ -496,7 +625,7 @@ export function createSatelliteOverlayController({
     commitState();
 
     const adapter =
-      mode === LEO_SCALE_OVERLAY_MODE
+      mode === LEO_SCALE_OVERLAY_MODE || mode === MULTI_ORBIT_SCALE_OVERLAY_MODE
         ? createLeoScalePointPrimitiveOverlayAdapter(viewer)
         : createWalkerPointOverlayAdapter(viewer);
     pendingAdapter = adapter;
