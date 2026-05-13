@@ -136,6 +136,13 @@ Public/open data promotion checklist:
 Synthetic fixtures are allowed only after S11 records why Tier 1 and Tier 2
 evidence are unavailable or unacceptable for the bounded deliverable.
 
+S11 close-out pointer: the concrete synthetic fallback fixture boundary is
+defined in
+[../data-contracts/itri-synthetic-fallback-fixtures.md](../data-contracts/itri-synthetic-fallback-fixtures.md).
+That contract defines required metadata, lane-specific fixture categories,
+nonclaim fields, replacement triggers, and D-03-aligned scan scoping. It closes
+only fixture readiness, not authority truth.
+
 Every synthetic fixture must include:
 
 - fixture id and generation date;
