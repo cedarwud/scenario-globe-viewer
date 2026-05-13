@@ -1,5 +1,4 @@
 import {
-  HANDOVER_UNSUPPORTED_POLICY_ID,
   evaluateHandoverDecisionSnapshot,
   type HandoverDecisionState
 } from "../features/handover-decision/handover-decision";
@@ -58,13 +57,13 @@ function resolveState(
       start: toIsoTimestamp(replayState.startTime),
       stop: toIsoTimestamp(replayState.stopTime)
     },
-    policyId: HANDOVER_UNSUPPORTED_POLICY_ID,
+    policyId: FIRST_INTAKE_HANDOVER_UNSUPPORTED_POLICY_ID,
     decisionModel: FIRST_INTAKE_HANDOVER_DECISION_MODEL,
     isNativeRfHandover: FIRST_INTAKE_HANDOVER_IS_NATIVE_RF_HANDOVER,
     candidates: []
   });
 
-  return attachFirstIntakePolicyId(attachTruthBoundaryLabel(state, truthBoundaryLabel));
+  return attachTruthBoundaryLabel(state, truthBoundaryLabel);
 }
 
 function attachTruthBoundaryLabel(
@@ -88,26 +87,6 @@ function attachTruthBoundaryLabel(
           ...state.report.result.semanticsBridge,
           truthBoundaryLabel
         }
-      }
-    }
-  };
-}
-
-function attachFirstIntakePolicyId(
-  state: HandoverDecisionState
-): HandoverDecisionState {
-  return {
-    ...state,
-    snapshot: {
-      ...state.snapshot,
-      policyId: FIRST_INTAKE_HANDOVER_UNSUPPORTED_POLICY_ID
-    },
-    report: {
-      ...state.report,
-      policyId: FIRST_INTAKE_HANDOVER_UNSUPPORTED_POLICY_ID,
-      snapshot: {
-        ...state.report.snapshot,
-        policyId: FIRST_INTAKE_HANDOVER_UNSUPPORTED_POLICY_ID
       }
     }
   };
