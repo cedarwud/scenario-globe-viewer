@@ -256,6 +256,10 @@ The current document-level telemetry surface includes these groups:
   `satelliteOverlayMeoCount`, `satelliteOverlayGeoCount`,
   `satelliteOverlayDetail`
 
+For F-13, `satelliteOverlayRenderMode = "leo-scale-points"` identifies the
+route-native public-TLE LEO point-primitive path. The walker baseline continues
+to report `point-label-polyline`.
+
 ## Reader Expectations
 
 - Readers may treat missing keys as cleared or inactive state.

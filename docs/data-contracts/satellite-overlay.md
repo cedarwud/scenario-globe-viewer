@@ -125,6 +125,14 @@ In the current repo state:
 - enabling that controller loads the copied walker TLE fixture through the existing walker adapter seam and renders the landed point entities plus fixed runtime-local labels from existing `name` or fallback `id` together with bounded Cesium polyline orbits
 - disabling that controller detaches the point/label/polyline overlay cleanly so globe-only validation remains available
 - orbit sample budgets and cache policy remain runtime-local or adapter-local only; `SatelliteFixture`, `SatelliteSample`, `SatelliteOverlayAdapter`, and `OverlayManagerState` remain unchanged
+- F-13 adds a separate route-native `leo-scale-points` path backed by
+  `src/features/satellites/bulk-tle-adapter.ts` and
+  `src/runtime/leo-scale-point-primitive-overlay-adapter.ts`. That path loads
+  the copied public Celestrak Starlink fixture from
+  `public/fixtures/satellites/leo-scale/`, renders one Cesium
+  `PointPrimitive` per copied LEO TLE, exposes
+  `satelliteOverlayRenderMode = "leo-scale-points"`, and deliberately omits
+  labels, paths, polylines, MEO/GEO ingestion, and measured-truth claims.
 
 ## Walker Fixture Boundary
 

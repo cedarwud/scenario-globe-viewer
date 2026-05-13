@@ -50,6 +50,8 @@ type LiveRuntimeStatus = "observed" | "walker-only" | "not-implemented" | "error
 interface ValidationProfile {
   id: string;
   description: string;
+  // `first-slice` keeps leo/meo/geo required. `leo-scale-500` requires only
+  // the LEO leg and keeps MEO/GEO as explicit known gaps.
   requiredOrbitClasses: ReadonlyArray<OrbitScopeClass>;
   requestedOverlayMode:
     | "walker-points"
@@ -96,7 +98,7 @@ interface ObservedRuntimeVariant {
   validationAttachState: string | null;
   overlayMode: string | null;
   overlayState: string | null;
-  overlayRenderMode: string | null;
+  overlayRenderMode: "point-label-polyline" | "leo-scale-points" | string | null;
   overlayPointCount: number;
   overlayOrbitClassCounts: {
     leo: number;
@@ -135,6 +137,7 @@ interface ArtifactLayout {
 
 interface Phase71ValidationSummary {
   schemaVersion: string;
+  overlayRenderMode: string | null;
   validationProfile: ValidationProfile;
   orbitScopeMatrix: ReadonlyArray<OrbitScopeMatrixEntry>;
   scaleRunParams: ScaleRunParams;
@@ -172,6 +175,7 @@ output/validation/phase7.1/<ISO8601>-<run-id>/
   observed-runtime.json
   orbit-scope-matrix.json
   known-gaps.json
+  perf-measurement.json
   summary.json
 ```
 
@@ -187,7 +191,8 @@ The Phase 7.1 first-slice runner keeps two outcomes separate:
    - the built viewer reached a bounded ready state
    - the requested viewer-side observation path ran and wrote retained artifacts
 2. `requirementGatePassed`
-   - every required orbit class has non-placeholder live runtime coverage
+   - every `validationProfile.requiredOrbitClasses` entry has
+     non-placeholder live runtime coverage
    - `observedLeoCount >= targetLeoCount`
 
 This separation is intentional. The first-slice boundary may be established
@@ -196,10 +201,11 @@ while the requirement-critical gate still fails.
 The default command writes retained artifacts even when `requirementGatePassed`
 is `false`.
 
-The second slice may improve only part of the gate. A walker-derived
-`leo-scale-points` runtime can legitimately satisfy the LEO scale leg while the
-overall requirement gate remains `false` until MEO/GEO live coverage is also
-observed.
+The LEO-scale profile (`validationProfile.id = "leo-scale-500"`) may pass the
+LEO leg when `requiredOrbitClasses = ["leo"]`, `observedLeoCount >= 500`, and
+`observedRuntimeVariant.overlayRenderMode = "leo-scale-points"`. That artifact
+must still keep MEO/GEO rows present and honest as `not-implemented` or another
+non-passing state until a later multi-orbit slice lands.
 
 A later multi-orbit slice may close the full gate only when it keeps the same
 runtime overlay path and the retained artifact shows both:
