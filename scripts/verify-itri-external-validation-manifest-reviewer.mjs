@@ -529,10 +529,12 @@ async function writePackage(repoRootForTest, manifest, reviewer, options = {}) {
 async function runCli(
   reviewItriExternalValidationManifestFromPath,
   repoRootForTest,
-  packagePath = packageRelativePath
+  packagePath = packageRelativePath,
+  manifestPath
 ) {
   const review = await reviewItriExternalValidationManifestFromPath({
     packageInput: packagePath,
+    manifestInput: manifestPath,
     repoRoot: repoRootForTest
   });
 
@@ -801,6 +803,41 @@ async function main() {
 
     await withTempRepo(async (tempRepo) => {
       const manifest = clone(baseManifest());
+      const outsideManifestPath = path.join(tempRepo, "repo-root-manifest.json");
+      await writePackage(tempRepo, manifest, reviewer);
+      await writeTextFile(
+        tempRepo,
+        "repo-root-manifest.json",
+        `${JSON.stringify(manifest, null, 2)}\n`
+      );
+      const result = await runCli(
+        reviewItriExternalValidationManifestFromPath,
+        tempRepo,
+        packageRelativePath,
+        outsideManifestPath
+      );
+
+      assert.equal(
+        result.status,
+        1,
+        "Explicit manifest path outside the named package must fail closed."
+      );
+      assert.equal(result.review.packageState, "rejected");
+      assertHasGap(
+        result.review,
+        "manifest.path-outside-package",
+        "Outside manifest path must produce a manifest package-boundary gap."
+      );
+      assert(
+        result.review.requirementReviews.every(
+          (entry) => entry.reviewerState !== "authority-pass"
+        ),
+        "Outside manifest path must not produce authority-pass lane reviews."
+      );
+    });
+
+    await withTempRepo(async (tempRepo) => {
+      const manifest = clone(baseManifest());
       await writePackage(tempRepo, manifest, reviewer);
       const result = await runCli(reviewItriExternalValidationManifestFromPath, tempRepo);
 
@@ -850,7 +887,7 @@ async function main() {
   }
 
   console.log(
-    "V-02R1 external-validation manifest reviewer verifier passed: missing package, wrong root, missing manifest, malformed manifest, wrong schemaVersion, synthetic/tier-3, escaping ref, nested sourceArtifactRefs, ownerVerdictRefs, audit-blocking redaction, screenshot-only evidence, related measured truth promotion, and temp-only per-lane authority-pass cases covered."
+    "V-02R1 external-validation manifest reviewer verifier passed: missing package, wrong root, missing manifest, malformed manifest, wrong schemaVersion, synthetic/tier-3, escaping ref, nested sourceArtifactRefs, ownerVerdictRefs, audit-blocking redaction, screenshot-only evidence, related measured truth promotion, manifest-outside-package, and temp-only per-lane authority-pass cases covered."
   );
 }
 

@@ -193,6 +193,7 @@ const REQUIRED_ROOT_FIELDS = [
 
 const BLOCKING_REJECT_CODES = [
   "package.path-outside-retained-root",
+  "manifest.path-outside-package",
   "artifact-ref.escapes-package",
   "artifact-ref.external-url",
   "synthetic-source.rejected",
@@ -432,6 +433,24 @@ export function reviewRejectedItriExternalValidationPackagePath(
     "package.path-outside-retained-root",
     `External-validation package path must be under ${ITRI_EXTERNAL_VALIDATION_PACKAGE_ROOT}/.`,
     { path: normalizePackagePath(options.packagePath) }
+  );
+
+  return closedReview({
+    ...options,
+    packageState: "rejected",
+    gaps
+  });
+}
+
+export function reviewRejectedItriExternalValidationManifestPath(
+  options: ItriExternalValidationClosedReviewOptions
+): ItriExternalValidationManifestReview {
+  const gaps: ItriExternalValidationReviewGap[] = [];
+  addGap(
+    gaps,
+    "manifest.path-outside-package",
+    "Explicit manifest path must resolve inside the explicitly named external-validation package directory.",
+    { path: options.manifestPath ?? defaultManifestPath(options.packagePath) }
   );
 
   return closedReview({

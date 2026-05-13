@@ -9,6 +9,7 @@ export {
   reviewMalformedItriExternalValidationManifest,
   reviewMissingItriExternalValidationManifest,
   reviewMissingItriExternalValidationPackage,
+  reviewRejectedItriExternalValidationManifestPath,
   reviewRejectedItriExternalValidationPackagePath
 } from "./external-validation-manifest-reviewer";
 export type {

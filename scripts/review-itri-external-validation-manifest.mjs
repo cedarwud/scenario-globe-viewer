@@ -104,13 +104,16 @@ function resolvePackageInput(repoRoot, packageInput) {
 }
 
 function resolveManifestInput(repoRoot, absolutePackagePath, manifestInput) {
-  const absoluteManifestPath = manifestInput
+  const hasManifestInput = manifestInput !== undefined;
+  const absoluteManifestPath = hasManifestInput
     ? path.resolve(repoRoot, manifestInput)
     : path.join(absolutePackagePath, "manifest.json");
 
   return {
     absoluteManifestPath,
-    relativeManifestPath: repoRelativePath(repoRoot, absoluteManifestPath)
+    relativeManifestPath: repoRelativePath(repoRoot, absoluteManifestPath),
+    isExplicit: hasManifestInput,
+    isAllowed: !hasManifestInput || isInside(absolutePackagePath, absoluteManifestPath)
   };
 }
 
@@ -190,16 +193,24 @@ export async function reviewItriExternalValidationManifestFromPath({
     retainedRoot,
     isAllowed
   } = resolvePackageInput(resolvedRepoRoot, packageInput);
-  const { absoluteManifestPath, relativeManifestPath } = resolveManifestInput(
-    resolvedRepoRoot,
-    absolutePackagePath,
-    manifestInput
-  );
+  const {
+    absoluteManifestPath,
+    relativeManifestPath,
+    isExplicit: hasExplicitManifestPath,
+    isAllowed: isManifestAllowed
+  } = resolveManifestInput(resolvedRepoRoot, absolutePackagePath, manifestInput);
   const { module: reviewer, cleanup } = await loadReviewerModule();
 
   try {
     if (!isAllowed) {
       return reviewer.reviewRejectedItriExternalValidationPackagePath({
+        packagePath: relativePackagePath,
+        manifestPath: relativeManifestPath
+      });
+    }
+
+    if (hasExplicitManifestPath && !isManifestAllowed) {
+      return reviewer.reviewRejectedItriExternalValidationManifestPath({
         packagePath: relativePackagePath,
         manifestPath: relativeManifestPath
       });
