@@ -838,6 +838,101 @@ slice-2 close-out commit SHA (mirror §13's slice-1 close-out record), the
 auto-memory `scenario-globe-viewer-d03-presentation-polish.md` slice table,
 and `MEMORY.md` index line. Only then is slice 3 unblocked.
 
+### 14.7 Slice 2 Close-Out Record
+
+Landed implementation: commit `6f6770b feat(presentation): D-03.S2 F-11
+rule config default-closed disclosure under M8A-V3 umbrella`.
+
+Diff stat: 6 files (matches §14.2 amended ceiling exactly), 522
+insertions, 6 deletions.
+
+What landed:
+
+- F-11 panel source:
+  `src/features/handover-decision/bootstrap-handover-decision-panel.ts`
+  removes the `open` attribute on the
+  `<details data-handover-rule-config-editor='true'>` element.
+  Single-line removal; every other attribute, every child node, every
+  rendering path preserved verbatim.
+- F-11 closed-state hiding CSS:
+  `src/styles.css` appends the single additive rule
+  `.handover-rule-config:not([open]) .handover-rule-config__form { display: none; }`
+  authorised by §14.2 item 6 / §14.6 (2026-05-13 CSS amendment). No
+  existing declaration modified. Rule deactivates the moment the user
+  re-opens the editor via the `<summary>` so the round-trip works
+  natively.
+- F-11 acceptance smoke amendment:
+  `tests/smoke/verify-m8a-v4.12-f11-handover-rule-config-runtime.mjs`
+  flips the initial-state assertion from `editor.open === true` to
+  `editor.open === false`, renames the `initial-open` screenshot to
+  `initial-closed`, and inserts a `clickSummary()` activation step
+  before the existing form-interaction flow plus a close-round-trip
+  re-assertion. Every other selector / assertion / screenshot is
+  preserved.
+- New slice-2 smoke:
+  `tests/smoke/verify-m8a-v3-d03-s2-handover-rule-config-default-closed-runtime.mjs`
+  (462 lines) implements every §14.1 assertion: default-closed on the
+  default route, summary visible + keyboard-focusable
+  (`document.activeElement === summary` after `summary.focus()`),
+  `clickSummary()` round-trip, V4.12 F-11 selectors resolve when
+  opened, D-03.S1 containment attributes resolve, in-DOM
+  forbidden-claim scan scoped to the editor element's outerHTML per
+  §8.1 / §14.6 (2026-05-13 scan-scoping amendment).
+- Capture-script profile:
+  `tests/visual/capture-m8a-v3-d03-baseline.mjs` accepts
+  `--profile=d03-s2` and writes after-images under
+  `output/m8a-v3-d03/d03-s2/`.
+- npm script: `test:m8a-v3-d03:s2` added to `package.json`.
+
+Quality gates run pre-commit (all green):
+
+- `npm run build`
+- `node tests/smoke/verify-m8a-v4.12-f09-communication-rate-runtime.mjs`
+- `node tests/smoke/verify-m8a-v4.12-f10-handover-policy-selector-runtime.mjs`
+- `node tests/smoke/verify-m8a-v4.12-f11-handover-rule-config-runtime.mjs` (amended)
+- `node tests/smoke/verify-m8a-v4.12-f16-statistics-report-export-runtime.mjs`
+- `node tests/validation/run-phase7.1-viewer-scope-validation.mjs --validation-profile-id multi-orbit-scale-1000 --target-leo-count 500 --requested-overlay-mode multi-orbit-scale-points --enforce-pass`
+  → retained at `output/validation/phase7.1/2026-05-13T06-39-43.592Z-multi-orbit-scale-1000`
+- `node tests/smoke/verify-m8a-v3-d03-s1-status-panel-containment-runtime.mjs`
+- `node tests/smoke/verify-m8a-v3-d03-s2-handover-rule-config-default-closed-runtime.mjs`
+- §8 staged-files probe — empty
+- `node tests/visual/capture-m8a-v3-d03-baseline.mjs --profile=d03-s2` —
+  three after-images written
+
+Evidence under `output/m8a-v3-d03/d03-s2/`:
+
+- `d03-s2-f11-default-closed-1440x900.png`
+- `d03-s2-f11-opened-1440x900.png`
+- `d03-s2-runtime-state.json`
+- `operator-hud-global-d03-s2-1440x900.png`
+- `operator-hud-regional-d03-s2-1440x900.png`
+- `first-intake-addressed-global-d03-s2-1440x900.png`
+
+Regression review (per §14.5 return contract): the D-03.S1 status-panel
+containment marker, primary / secondary ranks, and ≤ 360 px collapsed
+height envelope all still hold after the F-11 editor goes
+default-closed; the intrinsic Handover Decision slot height drops as
+expected, which gives slack inside the S1 ceiling rather than
+breaching it. All V4.12 F-11 selectors still resolve once the editor
+is summary-activated. F-09 / F-10 / F-16 unchanged.
+
+Independent diff review: `cavecrew-reviewer` audited the commit
+against §14.1, §14.2, §14.3, §14.4, §14.7-implicit (close-out),
+§8 + §8.1 (scan scoping), and the commit message rules; result
+`✅ S2 diff matches locked §14 plan; no findings.`
+
+What did **not** change:
+
+- F-09 Communication Rate section, F-10 Handover Policy selector +
+  live region, F-11 form / status / actions internals, F-16 Report
+  Export action group / disclosure / options / live regions, V4.13
+  multi-orbit overlay path, first-intake addressed-route surfaces,
+  R1V cleanup path, scene-preset / replay-clock logic, camera,
+  measurement-truth copy, the D-03 acceptance-report row, the
+  umbrella plan status, or the v4.12-followup-index §7 D-03 pointer.
+
+D-03 acceptance row remains `部分完成`. Slice 2 does not close D-03.
+
 ### 14.6 Amendment Trail
 
 - 2026-05-13 initial scope lock written (commit `a35ec6c`).
