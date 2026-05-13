@@ -197,7 +197,7 @@ scoped narrowly so it can be a separate slice without cross-coupling.
 
 | Slice ID | Title | Primary gap | Scope size | Risk | Status |
 |---|---|---|---|---|---|
-| D-03.S1 | Status panel containment + secondary telemetry collapse | G1 (+ partial G2) | 1 CSS file + 1 panel-orchestrator file + 1 new smoke + 1 new capture script | low | landed 2026-05-13 (see §13) |
+| D-03.S1 | Status panel containment + secondary telemetry collapse | G1 (+ partial G2) | 1 CSS file + 1 panel-orchestrator file + 1 new smoke + 1 new capture script | low | landed 2026-05-13 in commit `b4ae72a` (see §13) |
 | D-03.S2 | F-11 Rule Config default-closed disclosure | G3 | 1 panel file + 1 smoke amendment | low | pending |
 | D-03.S3 | Operator control row grouping | G4 | 1 HUD file + 1 CSS update | low | pending |
 | D-03.S4 | Primary surface rank + cross-panel truth chip | G2 (full) + G5 | 1 HUD file + 1 CSS update + 1 new compact-chip component | medium | pending |
