@@ -164,6 +164,17 @@ The reviewer reads only explicitly named local packages under
 incomplete/synthetic packages, and does not create retained evidence or close
 measured traffic authority.
 
+F-12R1 close-out: the bounded decision-threshold authority reviewer landed in
+`58e131f` after a corrective pass that requires exhaustive F-07R1 coverage for
+F-12 measured refs and rule measured-field refs. Close-out details are recorded
+in
+[itri-f12r1-decision-threshold-authority-reviewer-closeout.md](./itri-f12r1-decision-threshold-authority-reviewer-closeout.md).
+The reviewer reads only explicitly named local packages under
+`output/validation/external-f12/`, references measured packages through the
+F-07R1 reviewer surface, fails closed for missing/malformed/incomplete/
+synthetic/unreviewed-ref packages, and does not create retained evidence,
+change F-12 handover behavior, or close F-12 measured authority.
+
 ## Public/Open Source Classification Rules
 
 Before promoting public/open material, classify it in a short source note:
