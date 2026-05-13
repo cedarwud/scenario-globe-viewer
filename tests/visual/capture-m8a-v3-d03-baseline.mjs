@@ -39,7 +39,8 @@ function resolveProfileArg(argv) {
 
 const captureProfileLabel = resolveProfileArg(process.argv);
 const captureProfileOutputRoots = new Map([
-  ["d03-s2", "output/m8a-v3-d03/d03-s2"]
+  ["d03-s2", "output/m8a-v3-d03/d03-s2"],
+  ["d03-s4", "output/m8a-v3-d03/d03-s4"]
 ]);
 const outputDir = path.join(
   repoRoot,

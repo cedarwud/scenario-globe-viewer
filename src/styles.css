@@ -483,6 +483,22 @@ body {
   min-width: 0;
 }
 
+.operator-status-hud__truth-chip {
+  overflow-wrap: anywhere;
+  line-height: 1.25;
+  padding: 0.36rem 0.78rem;
+  font-size: 0.72rem;
+  opacity: 0.92;
+}
+
+.operator-control-chip.operator-control-chip--cross-panel-truth {
+  border-color: rgba(121, 166, 199, 0.26);
+  background: rgba(10, 20, 29, 0.76);
+  color: rgba(218, 232, 243, 0.88);
+  box-shadow: none;
+  cursor: default;
+}
+
 .operator-status-hud__telemetry-primary {
   display: grid;
   grid-template-columns:

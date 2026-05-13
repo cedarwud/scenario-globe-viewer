@@ -12,6 +12,7 @@ import { mountBootstrapPhysicalInputPanel } from "../physical-input";
 import { mountBootstrapSceneStarterPanel } from "../scene-starter/bootstrap-scene-starter-panel";
 import { mountBootstrapValidationStatePanel } from "../validation-state";
 import { mountBootstrapReportExportAction } from "../report-export/bootstrap-report-export-action";
+import { mountCrossPanelTruthChip } from "./cross-panel-truth-chip";
 import type {
   BootstrapOperatorController,
   BootstrapOperatorControllerState,
@@ -46,6 +47,7 @@ interface BootstrapOperatorHudElements {
   reportExportSlot: HTMLDivElement;
   timeSlot: HTMLDivElement;
   communicationSlot: HTMLDivElement;
+  crossPanelTruthChip: HTMLDivElement;
   physicalSlot: HTMLDivElement;
   decisionSlot: HTMLDivElement;
   starterSlot: HTMLDivElement;
@@ -224,6 +226,13 @@ function createElements(
       </div>
       <div class="operator-status-hud__telemetry">
         <div
+          class="operator-status-hud__truth-chip operator-control-chip operator-control-chip--cross-panel-truth"
+          data-cross-panel-truth-chip="true"
+          data-chip-rank="cross-panel-primary"
+          role="note"
+          aria-label="Cross-panel truth boundary"
+        ></div>
+        <div
           class="operator-status-hud__telemetry-primary"
           data-status-panel-rank="primary"
         >
@@ -311,6 +320,9 @@ function createElements(
   const communicationSlot = statusPanel.querySelector<HTMLDivElement>(
     "[data-operator-communication-slot='true']"
   );
+  const crossPanelTruthChip = statusPanel.querySelector<HTMLDivElement>(
+    "[data-cross-panel-truth-chip='true']"
+  );
   const physicalSlot = statusPanel.querySelector<HTMLDivElement>(
     "[data-operator-physical-slot='true']"
   );
@@ -342,6 +354,7 @@ function createElements(
     !reportExportSlot ||
     !timeSlot ||
     !communicationSlot ||
+    !crossPanelTruthChip ||
     !physicalSlot ||
     !decisionSlot ||
     !starterSlot ||
@@ -366,6 +379,7 @@ function createElements(
     reportExportSlot,
     timeSlot,
     communicationSlot,
+    crossPanelTruthChip,
     physicalSlot,
     decisionSlot,
     starterSlot,
@@ -467,6 +481,9 @@ export function mountBootstrapOperatorHud({
     container: elements.timeSlot,
     replayClock: operatorTimelineClock
   });
+  const unmountCrossPanelTruthChip = mountCrossPanelTruthChip(
+    elements.crossPanelTruthChip
+  );
   const unmountReportExportAction = mountBootstrapReportExportAction({
     container: elements.reportExportSlot,
     operatorController: controller
@@ -652,6 +669,7 @@ export function mountBootstrapOperatorHud({
     unmountPhysicalInputPanel();
     unmountCommunicationTimePanel();
     unmountReportExportAction();
+    unmountCrossPanelTruthChip();
     unmountTimelineHudPlaceholder();
     elements.scenarioSelect.removeEventListener("change", handleScenarioChange);
     elements.policySelect.removeEventListener("change", handlePolicyChange);
