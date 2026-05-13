@@ -637,7 +637,8 @@ without re-deriving acceptance criteria.
 ### 14.2 Implementation outline
 
 Files allowed to change (slice-2 ceiling: 1 panel source file + 1 smoke
-amendment + 1 new smoke + 1 capture-script delta + 1 package.json delta):
+amendment + 1 new smoke + 1 capture-script delta + 1 package.json delta +
+1 narrow CSS rule in `src/styles.css`):
 
 1. `src/features/handover-decision/bootstrap-handover-decision-panel.ts`
    - Remove the `open` attribute on the
@@ -657,6 +658,28 @@ amendment + 1 new smoke + 1 capture-script delta + 1 package.json delta):
 5. `package.json`
    - Add `test:m8a-v3-d03:s2` script that calls `npm run build` then runs
      the new slice-2 smoke. Mirror the `test:m8a-v3-d03:s1` shape.
+6. `src/styles.css`
+   - Append a **single additive** CSS rule adjacent to the existing
+     `.handover-rule-config` block group (current location near lines
+     1415–1530). The rule must be exactly:
+
+     ```css
+     .handover-rule-config:not([open]) .handover-rule-config__form {
+       display: none;
+     }
+     ```
+
+   - Rationale: the existing `.handover-rule-config { display: grid; }`
+     declaration (line 1415) overrides the native `<details>` closed-state
+     hiding mechanism for descendants, so the form remains visibly
+     rendered even when `details.open === false`. The additive
+     `:not([open])` rule restores closed-state hiding without touching any
+     existing declaration.
+   - Allowed edits in this file are restricted to **appending** the rule
+     above. The executor must not modify any existing selector, property,
+     or declaration in `src/styles.css`. The executor must not add any
+     other new rule. If the rule cannot be added because the file shape
+     conflicts (e.g. linter rejects the placement), STOP and report back.
 
 The slice must not introduce:
 
@@ -665,8 +688,10 @@ The slice must not introduce:
 - a different layout primitive (must remain `<details>` for accessibility
   parity with the slice-1 secondary-group disclosure pattern)
 - any new attribute on the rule editor outside the existing set
-- any new CSS rule in `src/styles.css` (slice 2 is JS+markup-only; layout
-  was already settled in slice 1)
+- any CSS change in `src/styles.css` beyond the single additive
+  `:not([open]) > .handover-rule-config__form { display: none; }` rule
+  named in §14.2 item 6; no existing selector / property / declaration
+  may be modified, and no other new rule may be added
 - any change to the F-09 communication-rate section, the F-10 handover
   policy selector or live region, the F-16 report-export action group, or
   any other panel root
@@ -742,3 +767,18 @@ After slice 2 close-out, the total-control parent updates this §14 with the
 slice-2 close-out commit SHA (mirror §13's slice-1 close-out record), the
 auto-memory `scenario-globe-viewer-d03-presentation-polish.md` slice table,
 and `MEMORY.md` index line. Only then is slice 3 unblocked.
+
+### 14.6 Amendment Trail
+
+- 2026-05-13 initial scope lock written (commit `a35ec6c`).
+- 2026-05-13 amendment: §14.2 ceiling widened to allow one additive CSS
+  rule in `src/styles.css`. Trigger: first slice-2 child conversation hit
+  a hard stop at gate 8 because removing only the `<details>` `open`
+  attribute did not hide the rule editor's form. Root cause: existing
+  `.handover-rule-config { display: grid; }` declaration (line 1415)
+  overrides native `<details>` closed-state hiding for descendants. The
+  child correctly refused to widen scope unilaterally and returned to the
+  parent. The amendment narrowly permits a single additive
+  `:not([open]) > .handover-rule-config__form { display: none; }` rule.
+  No existing CSS declaration is altered. The amendment preserves the
+  acceptance-criteria surface; gates 1–10 remain unchanged in §14.4.
