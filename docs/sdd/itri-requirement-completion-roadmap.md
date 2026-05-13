@@ -115,6 +115,27 @@ classification for F-17/P-01/P-02/P-03 is recorded in
 It classifies official ITU sources for a bounded public standards profile only;
 it creates no synthetic fixtures and does not record ITRI/V-group acceptance.
 
+Parallel data-contract close-out pointers:
+
+- S4-B public standards bounded profile schema is recorded in
+  [../data-contracts/itri-public-standards-profile.md](../data-contracts/itri-public-standards-profile.md).
+  It defines profile metadata, source lineage, physical/profile fields,
+  validation-vector hooks, nonclaims, and replacement rules only. It does not
+  implement numeric standards-derived behavior or record ITRI/V-group
+  acceptance.
+- F-01-A orbit-model intake contract is recorded in
+  [../data-contracts/itri-orbit-model-intake.md](../data-contracts/itri-orbit-model-intake.md).
+  It defines the authority package, model identity, input/output schema,
+  validation-vector, adapter-boundary, public-TLE fallback, and synthetic
+  fallback requirements only. It does not claim that an ITRI model package is
+  present or integrated.
+- F-07-A measured traffic package schema is recorded in
+  [../data-contracts/itri-measured-traffic-package.md](../data-contracts/itri-measured-traffic-package.md).
+  It defines future package metadata, topology, raw artifact refs, parsed
+  metric fields, threshold authority, reviewer states, and synthetic fallback
+  boundaries only. Schema/import readiness does not close measured traffic
+  truth.
+
 ## Public/Open Source Classification Rules
 
 Before promoting public/open material, classify it in a short source note:
