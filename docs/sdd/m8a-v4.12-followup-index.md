@@ -3,6 +3,10 @@
 Date: 2026-05-12
 Working phase name: **M8A V4.12 ITRI must-have followup**.
 
+Status refresh: 2026-05-13. The V4.12 bounded followup chain is closed, and
+the V4.13 public-TLE multi-orbit follow-on is also closed for viewer-side
+bounded runtime evidence.
+
 ## 0. Purpose
 
 Single entry point for the V4.12 chain of ITRI must-have followup SDDs.
@@ -40,8 +44,10 @@ V4.12 explicitly closes:
 V4.12 explicitly does **not** close:
 
 - F-01 (needs ITRI orbit model)
-- F-02 full multi-orbit (needs MEO/GEO data + endpoint pair authority)
-- F-03 full TLE breadth (multi-source still walker + F-13 public TLE only)
+- F-02 full ITRI/radio/endpoint authority. V4.13 separately closes only the
+  bounded public-TLE LEO/MEO/GEO viewer gate.
+- F-03 full external-source/ITRI-model TLE breadth. V4.13 covers bounded
+  public-TLE runtime evidence, not ITRI source-model intake.
 - F-07/F-08/F-12 measured-truth upgrades
 - F-17 / P-01..P-03 real physical model
 - V-02..V-06 external validation end-to-end
@@ -69,7 +75,7 @@ Supporting / sibling docs:
 
 ## 3. Execution Ordering
 
-Recommended order:
+Historical execution order:
 
 ```text
 F-09 Phase 2..5    ──┐
@@ -101,8 +107,9 @@ Every V4.12 slice must obey:
 - no `radio-layer handover`
 - no `ESTNeT throughput`, `INET speed`, `NAT validated`,
   `tunnel verified end-to-end`, `DUT closed`
-- no `>=500 LEO closure` (except F-13 LEO leg, which still cannot claim
-  full multi-orbit closure)
+- no external-truth `>=500 LEO` or ITRI orbit-model closure. V4.12 F-13 may
+  claim the bounded public-TLE LEO leg; V4.13 may claim the bounded public-TLE
+  LEO/MEO/GEO viewer gate.
 - no `complete ITRI acceptance`
 - no `Phase 8 unlocked`
 
@@ -171,5 +178,11 @@ V4.12 chain may be marked closed when:
   acceptance report
 - forbidden-claim scans green across all five slices
 - one consolidated demo path exercises all five
-- next-step pointer recorded in this index (likely: multi-orbit MEO/GEO leg
-  or external validation package)
+- next-step pointer recorded in this index
+
+Current closeout:
+
+- V4.12 chain is closed.
+- V4.13 bounded public-TLE LEO/MEO/GEO viewer gate is closed.
+- Remaining successors are ITRI orbit-model intake, measured traffic truth,
+  and external NAT/tunnel/DUT validation packages.

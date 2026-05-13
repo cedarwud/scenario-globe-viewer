@@ -8,6 +8,9 @@ Working phase name: **M8A V4.13 Phase 7.1 multi-orbit gate closure**.
 Status: implemented on 2026-05-13 for the bounded public-TLE multi-orbit
 viewer gate.
 
+Sections 1-12 preserve the planning record. The current implementation status
+is summarized in Section 13.
+
 This file started as the planning SDD. The execution task authorized Phases
 1..7 for V4.13, with Phase 1 locked in
 [m8a-v4.13-impl-phase1-multi-orbit-spec.md](./m8a-v4.13-impl-phase1-multi-orbit-spec.md).
@@ -29,7 +32,7 @@ Hard dependencies:
 
 ## 1. ITRI Requirement Reference
 
-Acceptance-report quotes:
+Planning-time acceptance-report quotes before V4.13 closure:
 
 `/home/u24/papers/itri/itri-acceptance-report-2026-04-20/01-itri-requirement-inventory-and-status.md`:
 
@@ -82,7 +85,7 @@ After V4.12 close-out and F-13 fix:
   `synthetic-walker-derived` orbits for MEO/GEO, so the gate cannot reach
   full closure
 
-What is missing:
+Planning-time missing work, now implemented by the close-out in Section 13:
 
 1. Public MEO TLE fixture (planning recommendation: Celestrak `gps-ops` +
    `galileo` — combined ~50–60 active satellites) with provenance JSON
@@ -152,7 +155,7 @@ V4.13 closed requires:
 
 ## 4. Scope / Non-Goals
 
-In scope for future implementation:
+Implemented scope:
 
 - public MEO + GEO TLE fixture copy + provenance metadata
 - bulk-TLE adapter widening for orbit-class tagging + multi-catalog merge
