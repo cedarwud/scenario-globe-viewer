@@ -12,6 +12,24 @@
 - Treat archived viewer lines as postmortem-only references. Delivery authority lives in this repo's README, ADRs, and docs.
 - Keep the default visual baseline on Cesium's native `Viewer` path. Local or on-prem imagery/terrain mirrors are opt-in deployment configuration, not a reason to disable native controls or replace native providers by default.
 
+## Supplemental Agent Skill Routing
+
+Workspace-level skills are optional checklists only; they do not override this
+repo's README, ADRs, data contracts, phase docs, Cesium-native viewer strategy,
+or smoke/capture commands.
+
+- Use `/home/u24/papers/skill/module-boundary-design/SKILL.md` for Cesium
+  adapter seams, plain-data contracts, scenario-controller boundaries, and
+  runtime-vs-feature separation.
+- Use `/home/u24/papers/skill/data-contract-review/SKILL.md` for replay-clock,
+  scenario, overlay, telemetry, fixture, and exported evidence contracts.
+- Use `/home/u24/papers/skill/safe-refactor/SKILL.md` before restructuring
+  phase-history runtime controllers, overlay adapters, or validation scripts.
+- Use `/home/u24/papers/skill/demo-operability/SKILL.md` for Vite/browser
+  smoke, capture baselines, env guard, asset/tileset failure states, and cleanup
+  paths; pair it with `/home/u24/papers/skill/papers-runtime-hygiene/SKILL.md`
+  when starting servers or browser automation.
+
 ## Quick Start
 
 1. Install dependencies with `npm install`.
