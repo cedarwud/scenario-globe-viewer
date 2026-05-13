@@ -200,13 +200,13 @@ scoped narrowly so it can be a separate slice without cross-coupling.
 | D-03.S1 | Status panel containment + secondary telemetry collapse | G1 (+ partial G2) | 1 CSS file + 1 panel-orchestrator file + 1 new smoke + 1 new capture script | low | landed 2026-05-13 in commit `b4ae72a` (see §13) |
 | D-03.S2 | F-11 Rule Config default-closed disclosure | G3 | 1 panel file + 1 smoke amendment + 1 new smoke + capture-script profile | low | landed 2026-05-13 in commit `6f6770b` (see §14.7) |
 | D-03.S3 | Operator control row grouping | G4 | 1 HUD file + 1 CSS update + 1 new smoke + 1 package.json delta | low | landed 2026-05-13 in commit `a51a840` (see §15.7) |
-| D-03.S4 | Primary surface rank + cross-panel truth chip | G2 (full) + G5 | 1 HUD file + 1 new compact-chip component + 1 CSS update + 1 new smoke + 1 capture-script delta + 1 package.json delta | medium | scope locked in §16; next unblocked execution lane |
-| D-03.S5 | Acceptance-route final acceptance + D-03 row update | umbrella Hard Gates | docs + close-out | low | pending |
+| D-03.S4 | Primary surface rank + cross-panel truth chip | G2 (full) + G5 | 1 HUD file + 1 new compact-chip component + 1 CSS update + 1 new smoke + 1 capture-script delta + 1 package.json delta | medium | landed 2026-05-13 in commit `b02be72` (see §16.7) |
+| D-03.S5 | Acceptance-route final acceptance + D-03 row update | umbrella Hard Gates | docs + close-out | low | next unblocked execution lane |
 
 Slices must be executed in **separate conversations**. Each slice ends with a
-quality gate run and commit. After S3 close-out, S4 is the next unblocked
-execution lane; S5 remains reserved until S2 + S3 + S4 have all landed and
-been closed out in this plan.
+quality gate run and commit. After S4 close-out, S5 is the only unblocked
+execution lane. S5 remains the only slice allowed to update the D-03
+acceptance row and the D-03 closure-adjacent status pointers named in §10.
 
 Slice ordering rationale:
 
@@ -1403,8 +1403,7 @@ What did **not** change:
   umbrella plan status, or the v4.12-followup-index §7 D-03 pointer.
 
 D-03 acceptance row remains `部分完成`. Slice 3 does not close D-03.
-Slice 4 is now the next unblocked execution lane; Slice 5 remains
-reserved until Slice 4 lands and receives its own close-out record.
+Slice 4 later landed in `b02be72` and is recorded in §16.7.
 
 ## 16. Slice 4 (D-03.S4) — Primary Surface Rank + Cross-Panel Truth Chip
 
@@ -1808,3 +1807,126 @@ slice-2 close-out records), the auto-memory
   HUD root innerHTML because that includes the same kind of
   pre-existing negations enumerated in §8.1; scanning the chip's
   outerHTML alone is the architecturally correct slice-level audit.
+
+### 16.7 Slice 4 Close-Out Record
+
+Landed implementation: commit `b02be726956aff2df7632bf20f59dbcfc8ee75e6
+feat(presentation): D-03.S4 primary surface rank + cross-panel truth
+chip under M8A-V3 umbrella`.
+
+Diff stat: 6 files, 861 insertions, 1 deletion. This matches the
+§16.2 file ceiling: one HUD orchestrator update, one new compact-chip
+component, one CSS update, one new slice-4 smoke, one capture-script
+profile registration, and one `package.json` script delta.
+
+What landed:
+
+- Operator HUD orchestrator:
+  `src/features/operator/bootstrap-operator-hud.ts` imports
+  `mountCrossPanelTruthChip`, inserts the static chip as a direct
+  child of `.operator-status-hud__telemetry`, before
+  `.operator-status-hud__telemetry-primary`, and wires it through
+  `BootstrapOperatorHudElements` plus the unmount sequence. No
+  controller subscription, telemetry key, or interactive handler was
+  added for the chip.
+- Cross-panel chip component:
+  `src/features/operator/cross-panel-truth-chip.ts` exports
+  `mountCrossPanelTruthChip(container: HTMLDivElement): () => void`
+  and sets `textContent` to the §16.1 #3 string exactly:
+  `Modeled, not measured. Communication Rate, Handover Decision, Physical Inputs, and Validation State each retain their own bounded-proxy / Repo-owned provenance.`
+  The component does not set attributes and imports no panel-internal
+  feature module.
+- CSS:
+  `src/styles.css` adds only the two S4 chip rules adjacent to
+  `.operator-status-hud__telemetry`: `.operator-status-hud__truth-chip`
+  and `.operator-control-chip.operator-control-chip--cross-panel-truth`.
+  Existing declarations were not modified.
+- New slice-4 smoke:
+  `tests/smoke/verify-m8a-v3-d03-s4-cross-panel-truth-chip-runtime.mjs`
+  asserts chip placement, exact attributes, exact text, static
+  non-focusable behavior, S1 containment/rank preservation, S2
+  default-closed preservation, S3 group preservation, expanded-state
+  §7.3 reachability, status-panel height ceilings, chip height bound,
+  no runtime console errors, and the §8.1-scoped forbidden-claim scan
+  over the chip outerHTML only.
+- Capture profile:
+  `tests/visual/capture-m8a-v3-d03-baseline.mjs` registers `d03-s4`
+  under `output/m8a-v3-d03/d03-s4/`.
+- npm script: `test:m8a-v3-d03:s4` added to `package.json`.
+
+Quality gates reported by the execution child (all green):
+
+- `npm run build`
+- `node tests/smoke/verify-m8a-v4.12-f09-communication-rate-runtime.mjs`
+- `node tests/smoke/verify-m8a-v4.12-f10-handover-policy-selector-runtime.mjs`
+- `node tests/smoke/verify-m8a-v4.12-f11-handover-rule-config-runtime.mjs`
+- `node tests/smoke/verify-m8a-v4.12-f16-statistics-report-export-runtime.mjs`
+- `node tests/validation/run-phase7.1-viewer-scope-validation.mjs --validation-profile-id multi-orbit-scale-1000 --target-leo-count 500 --requested-overlay-mode multi-orbit-scale-points --enforce-pass`
+  → retained at `output/validation/phase7.1/2026-05-13T08-05-32.254Z-multi-orbit-scale-1000`
+- `node tests/smoke/verify-m8a-v3-d03-s1-status-panel-containment-runtime.mjs`
+- `node tests/smoke/verify-m8a-v3-d03-s2-handover-rule-config-default-closed-runtime.mjs`
+- `node tests/smoke/verify-m8a-v3-d03-s3-operator-control-row-grouping-runtime.mjs`
+- `node tests/smoke/verify-m8a-v3-d03-s4-cross-panel-truth-chip-runtime.mjs`
+- §8 staged-files forbidden-claim probe — empty
+- `node tests/visual/capture-m8a-v3-d03-baseline.mjs --profile=d03-s4`
+
+Evidence under `output/m8a-v3-d03/d03-s4/`:
+
+- `d03-s4-runtime-state.json`
+- `evidence/d03-s4-truth-chip-default-collapsed-1440x900.png`
+- `evidence/d03-s4-truth-chip-secondary-expanded-1440x900.png`
+- `operator-hud-global-d03-s4-1440x900.png`
+- `operator-hud-regional-d03-s4-1440x900.png`
+- `first-intake-addressed-global-d03-s4-1440x900.png`
+
+Total-control parent review:
+
+- `git show --check b02be726956aff2df7632bf20f59dbcfc8ee75e6` clean.
+- Commit message uses the locked §16.4 prefix, references §16 and the
+  M8A-V3 umbrella, states the joint G2+G5 resolution, and includes the
+  required co-author trailer.
+- Changed-file set matches §16.2 exactly.
+- Runtime state confirms the chip is a visible `DIV`, direct child of
+  `.operator-status-hud__telemetry`, before the primary telemetry
+  group, outside both rank containers, with exact attrs and exact
+  text, no `tabindex`, no `aria-live`, no disclosure attrs, and no
+  `aria-pressed`.
+
+Regression review (per §16.5 return contract):
+
+- Slice-1 containment remains binding with the chip rendered:
+  retained runtime state records collapsed status-panel height 352 px
+  against the 360 px ceiling, expanded height 512 px against the
+  540 px ceiling, and chip height 27.89 px against the 2.2 rem bound
+  (35.2 px at 16 px root font size).
+- §7.3 phrases remain reachable after opening the S1 secondary group:
+  `Modeled, not measured.`, `bounded-proxy` / `bounded proxy`,
+  `Repo-owned` / `repo-owned`, `Rain`, and `Validation Boundary`
+  all resolve in the retained runtime state. Existing per-panel
+  provenance/title paths remain present.
+- No unintended cascade interaction was observed against the S1
+  secondary toggle, the S2
+  `.handover-rule-config:not([open]) .handover-rule-config__form`
+  rule, or the S3 Scene / Replay / Policy control grouping.
+
+Parent caveat: this control conversation reviewed the landed diff,
+commit metadata, retained artifacts, and child-reported gate list. It
+did not rerun the §16.4 gates in the parent conversation.
+
+What did **not** change:
+
+- F-09 Communication Rate internals, F-10 Handover Policy selector /
+  live region, F-11 Rule Config details / form / status / actions,
+  F-16 Report Export action group / disclosure / options / live
+  regions, Physical Inputs internals, Scene Starter internals,
+  Validation State internals, D-03.S1 rank/toggle/containment
+  scheme, D-03.S2 default-closed disclosure behavior, D-03.S3
+  control grouping, V4.13 multi-orbit overlay path, first-intake
+  addressed-route surfaces, R1V cleanup path, camera, overlay,
+  replay-clock, scene-preset logic, the D-03 acceptance-report row,
+  the umbrella plan status, or the v4.12-followup-index §7 D-03
+  pointer.
+
+D-03 acceptance row remains `部分完成`. Slice 4 does not update the
+acceptance row. Slice 5 is now unblocked and remains the only slice
+allowed to perform the final D-03 acceptance-route update.
