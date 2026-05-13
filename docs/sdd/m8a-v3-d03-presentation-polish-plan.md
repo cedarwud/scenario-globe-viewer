@@ -198,14 +198,15 @@ scoped narrowly so it can be a separate slice without cross-coupling.
 | Slice ID | Title | Primary gap | Scope size | Risk | Status |
 |---|---|---|---|---|---|
 | D-03.S1 | Status panel containment + secondary telemetry collapse | G1 (+ partial G2) | 1 CSS file + 1 panel-orchestrator file + 1 new smoke + 1 new capture script | low | landed 2026-05-13 in commit `b4ae72a` (see §13) |
-| D-03.S2 | F-11 Rule Config default-closed disclosure | G3 | 1 panel file + 1 smoke amendment + 1 new smoke + capture-script profile | low | scope locked in §14; pending execution |
-| D-03.S3 | Operator control row grouping | G4 | 1 HUD file + 1 CSS update + 1 new smoke + 1 package.json delta | low | scope locked in §15; pending execution |
-| D-03.S4 | Primary surface rank + cross-panel truth chip | G2 (full) + G5 | 1 HUD file + 1 new compact-chip component + 1 CSS update + 1 new smoke + 1 capture-script delta + 1 package.json delta | medium | scope locked in §16; pending execution |
+| D-03.S2 | F-11 Rule Config default-closed disclosure | G3 | 1 panel file + 1 smoke amendment + 1 new smoke + capture-script profile | low | landed 2026-05-13 in commit `6f6770b` (see §14.7) |
+| D-03.S3 | Operator control row grouping | G4 | 1 HUD file + 1 CSS update + 1 new smoke + 1 package.json delta | low | landed 2026-05-13 in commit `a51a840` (see §15.7) |
+| D-03.S4 | Primary surface rank + cross-panel truth chip | G2 (full) + G5 | 1 HUD file + 1 new compact-chip component + 1 CSS update + 1 new smoke + 1 capture-script delta + 1 package.json delta | medium | scope locked in §16; next unblocked execution lane |
 | D-03.S5 | Acceptance-route final acceptance + D-03 row update | umbrella Hard Gates | docs + close-out | low | pending |
 
 Slices must be executed in **separate conversations**. Each slice ends with a
-quality gate run and commit. Slice 1 (D-03.S1) is the only authorized slice
-for this conversation.
+quality gate run and commit. After S3 close-out, S4 is the next unblocked
+execution lane; S5 remains reserved until S2 + S3 + S4 have all landed and
+been closed out in this plan.
 
 Slice ordering rationale:
 
@@ -1306,6 +1307,104 @@ with the slice-3 close-out commit SHA, the auto-memory
   `handover-decision.ts:8-9`). The slice-3 smoke must not scan the
   HUD root innerHTML because that includes the same kind of
   pre-existing negations enumerated in §8.1.
+
+### 15.7 Slice 3 Close-Out Record
+
+Landed implementation: commit `a51a840 feat(presentation): D-03.S3
+operator control row grouping under M8A-V3 umbrella`.
+
+Diff stat: 4 files, 774 insertions, 61 deletions. This matches the
+§15.2 file ceiling: one HUD orchestrator update, one CSS update, one
+new slice-3 smoke, and one `package.json` script delta. The optional
+capture-script registration delta was not needed because the existing
+`--profile` fallback already routes `d03-s3` output correctly.
+
+What landed:
+
+- Operator HUD control row:
+  `src/features/operator/bootstrap-operator-hud.ts` wraps the existing
+  scenario, replay, and policy controls in three sibling containers
+  carrying `data-operator-control-group='scenario'`,
+  `data-operator-control-group='replay'`, and
+  `data-operator-control-group='policy'` in that DOM order. The
+  existing inner controls, labels, selectors, buttons, and live region
+  keep their V4.12 attributes.
+- Group headings: each group has a visible
+  `[data-operator-control-group-heading='true']` heading with the
+  exact locked text `Scene controls`, `Replay controls`, and
+  `Policy controls`; each parent group is wired by `aria-labelledby`
+  to its heading id.
+- CSS grouping cue: `src/styles.css` replaces the flat five-column
+  `.operator-status-hud__controls` grid with a three-column grouping
+  grid and adds the narrow `.operator-status-hud__control-group` and
+  `[data-operator-control-group-heading='true']` rule blocks. The
+  slice-1 `.hud-panel--status` height ceiling block is untouched.
+- New slice-3 smoke:
+  `tests/smoke/verify-m8a-v3-d03-s3-operator-control-row-grouping-runtime.mjs`
+  asserts group presence/order/visibility, membership, exact heading
+  text, V4.12 F-10 selector preservation and policy round-trip,
+  D-03.S1 containment/rank preservation, D-03.S2 default-closed F-11
+  preservation, status-panel height ≤ 360 px at 1440x900, no runtime
+  console errors, and the §8.1-scoped forbidden-claim scan over the
+  three group outerHTML strings plus the three heading outerHTML
+  strings only.
+- npm script: `test:m8a-v3-d03:s3` added to `package.json`.
+
+Evidence reviewed by the total-control parent:
+
+- Commit review: `git show --check a51a840` clean; commit message uses
+  the locked §15.4 prefix and includes the required co-author trailer.
+- Retained V4.13 validation artifact matching the S3 pre-commit
+  sequence: `output/validation/phase7.1/2026-05-13T07-16-21.479Z-multi-orbit-scale-1000`.
+- Retained V4.12 smoke artifacts adjacent to the S3 run:
+  `output/m8a-v4.12-f10-policy-selector/f10-policy-selector-smoke.json`,
+  `output/m8a-v4.12-f11-rule-config/f11-rule-config-smoke.json`, and
+  `output/m8a-v4.12-f16-report-export/downloads/m8a-v4.12-f16-report-bootstrap-global-real-time-20260513T071524Z.{json,csv}`.
+- Retained D-03 regression artifacts adjacent to the S3 run:
+  `output/m8a-v3-d03/d03-s1/d03-s1-runtime-state.json`,
+  `output/m8a-v3-d03/d03-s2/d03-s2-runtime-state.json`, and
+  `output/m8a-v3-d03/d03-s3/d03-s3-runtime-state.json`.
+- Retained S3 visual evidence under `output/m8a-v3-d03/d03-s3/`:
+  `d03-s3-control-row-grouping-1440x900.png`,
+  `operator-hud-global-d03-s3-1440x900.png`,
+  `operator-hud-regional-d03-s3-1440x900.png`, and
+  `first-intake-addressed-global-d03-s3-1440x900.png`.
+
+Regression review (per §15.5 return contract):
+
+- Slice-1 containment remains binding: the retained S3 runtime state
+  records `statusPanelHeight: 352` at desktop-1440x900, below the
+  slice-1 collapsed ceiling of 360 px.
+- F-10 selector preservation holds in the retained runtime state:
+  operator root, scenario select, policy select, policy status,
+  real-time mode, prerecorded mode, speed controls, and scenario
+  label all resolve; all three locked policy ids round-trip through
+  the selector and align across HUD, panel, document, report, and
+  snapshot surfaces.
+- Slice-2 F-11 default-closed behavior still holds: the retained S3
+  runtime state records `editorPresent: true` and `editorOpen: false`
+  on initial mount.
+
+Parent caveat: this control conversation did not rerun §15.4 gates and
+did not receive a child transcript containing full console logs for
+every command. The close-out record is based on the landed commit diff,
+retained artifacts in `output/`, and the S3 runtime-state artifact.
+
+What did **not** change:
+
+- F-09 Communication Rate section, F-10 Handover Policy selector +
+  live region, F-11 Rule Config details / form / status / actions,
+  F-16 Report Export action group / disclosure / options / live
+  regions, D-03.S1 primary / secondary telemetry split, D-03.S1
+  secondary toggle, D-03.S2 `:not([open])` CSS rule, V4.13
+  multi-orbit overlay path, first-intake addressed-route surfaces,
+  R1V cleanup path, camera, overlay, replay-clock, scene-preset
+  logic, measurement-truth copy, the D-03 acceptance-report row, the
+  umbrella plan status, or the v4.12-followup-index §7 D-03 pointer.
+
+D-03 acceptance row remains `部分完成`. Slice 3 does not close D-03.
+Slice 4 is now the next unblocked execution lane; Slice 5 remains
+reserved until Slice 4 lands and receives its own close-out record.
 
 ## 16. Slice 4 (D-03.S4) — Primary Surface Rank + Cross-Panel Truth Chip
 
