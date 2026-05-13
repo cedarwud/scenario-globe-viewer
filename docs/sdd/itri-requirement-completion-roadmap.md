@@ -175,6 +175,18 @@ F-07R1 reviewer surface, fails closed for missing/malformed/incomplete/
 synthetic/unreviewed-ref packages, and does not create retained evidence,
 change F-12 handover behavior, or close F-12 measured authority.
 
+V-02R1 close-out: the bounded external-validation manifest reviewer landed in
+`7e54e48` with package-boundary corrective fix `46b124b`. Close-out details are
+recorded in
+[itri-v02r1-external-validation-manifest-reviewer-closeout.md](./itri-v02r1-external-validation-manifest-reviewer-closeout.md).
+The reviewer reads only explicitly named local packages under
+`output/validation/external-v02-v06/`, fails closed for missing/malformed/
+wrong-schema/synthetic/redaction-blocked/escaping-ref/unresolved-ref packages,
+and rejects explicit manifest paths outside the named package. It does not
+create retained evidence, run live Windows/WSL, tunnel, NAT, DUT, NE-ONE,
+vendor, `ping`, or `iperf` tools, change existing V-02..V-06 runtime verdicts,
+or close V-02..V-06 external-validation authority.
+
 ## Public/Open Source Classification Rules
 
 Before promoting public/open material, classify it in a short source note:

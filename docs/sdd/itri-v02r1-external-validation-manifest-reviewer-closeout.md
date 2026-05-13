@@ -30,10 +30,21 @@ DUTs, run NE-ONE/vendor tools, or create retained evidence packages.
 - Package command:
   `npm run test:itri-v02r1`
 
+## Landed Chain
+
+- `7e54e48` implemented the bounded V-02R1 external-validation manifest
+  reviewer.
+- `46b124b` fixed the explicit-manifest package-boundary check after review
+  found that `--manifest` could point outside the explicitly named package
+  directory.
+
 ## Behavior Locked
 
 - A missing package returns package state `missing` and fails closed.
 - A path outside `output/validation/external-v02-v06/` returns `rejected`.
+- An explicit `--manifest` path outside the named package returns `rejected`
+  with `manifest.path-outside-package` and does not produce per-lane
+  `authority-pass`.
 - A missing, malformed, or wrong-version `manifest.json` returns a non-authority
   package-review state with actionable gaps.
 - Synthetic source tier, synthetic provenance, or `tier-3-synthetic` material in
@@ -79,3 +90,8 @@ F-12R1 focused verifiers, the new V-02R1 focused verifier, `git diff --check`,
 new-file whitespace checks where needed, and forbidden-claim scans scoped to the
 edited files only. The verifier creates only temp package trees and does not
 mutate retained evidence under `output/validation/external-v02-v06/`.
+The V-02R1 verifier now includes missing package, wrong root, missing manifest,
+malformed manifest, wrong schema, synthetic/tier-3, escaping ref, nested
+reviewer source refs, owner verdict refs, audit-blocking redaction,
+screenshot-only evidence, related measured-traffic truth promotion,
+manifest-outside-package, and temp-only per-lane authority-pass cases.
