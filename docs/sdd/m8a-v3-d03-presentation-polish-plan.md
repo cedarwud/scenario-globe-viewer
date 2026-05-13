@@ -198,7 +198,7 @@ scoped narrowly so it can be a separate slice without cross-coupling.
 | Slice ID | Title | Primary gap | Scope size | Risk | Status |
 |---|---|---|---|---|---|
 | D-03.S1 | Status panel containment + secondary telemetry collapse | G1 (+ partial G2) | 1 CSS file + 1 panel-orchestrator file + 1 new smoke + 1 new capture script | low | landed 2026-05-13 in commit `b4ae72a` (see §13) |
-| D-03.S2 | F-11 Rule Config default-closed disclosure | G3 | 1 panel file + 1 smoke amendment | low | pending |
+| D-03.S2 | F-11 Rule Config default-closed disclosure | G3 | 1 panel file + 1 smoke amendment + 1 new smoke + capture-script profile | low | scope locked in §14; pending execution |
 | D-03.S3 | Operator control row grouping | G4 | 1 HUD file + 1 CSS update | low | pending |
 | D-03.S4 | Primary surface rank + cross-panel truth chip | G2 (full) + G5 | 1 HUD file + 1 CSS update + 1 new compact-chip component | medium | pending |
 | D-03.S5 | Acceptance-route final acceptance + D-03 row update | umbrella Hard Gates | docs + close-out | low | pending |
@@ -552,3 +552,193 @@ What did **not** change:
   scene-preset / replay-clock logic, camera, or measurement-truth copy.
 
 D-03 acceptance row remains `部分完成`. Slice 1 does not close D-03.
+
+## 14. Slice 2 (D-03.S2) — F-11 Rule Config Default-Closed Disclosure
+
+Slice 2 targets gap G3 (`Identified Presentation Gaps` §4): the F-11 rule
+editor currently ships `<details ... open>`, adding ~16–22 rem of vertical
+content to the Handover Decision column on first paint. Slice 1 capped the
+status panel envelope; slice 2 collapses the largest single intra-slot
+contributor inside that envelope.
+
+This subsection is the **scope lock** for slice 2. It mirrors §6 (slice 1
+scope lock) and exists so a fresh child conversation can execute slice 2
+without re-deriving acceptance criteria.
+
+### 14.1 Acceptance criteria
+
+1. The F-11 rule editor `<details>` element at
+   `src/features/handover-decision/bootstrap-handover-decision-panel.ts` no
+   longer carries the `open` attribute on initial mount. Every other
+   attribute (`class`, `data-handover-rule-config-editor="true"`) and every
+   child node of the `<details>` (summary, form, status, action buttons) is
+   preserved verbatim.
+2. The Handover Decision panel still mounts the full F-11 form, status
+   surface, and apply / reset / cancel actions on every supported scene
+   preset. Collapsing only removes the editor's expanded surface from the
+   initial paint, not its presence in the DOM.
+3. Disclosure round-trip works: clicking or keyboard-activating the
+   `<summary>` opens the editor (`details.open === true`); activating it
+   again closes it (`details.open === false`). Round-trip preserves the
+   applied rule-config state (no re-render flush; the `bootstrap-balanced-v1`
+   default applied config still threads through panel, telemetry, and report
+   fields).
+4. The existing F-11 acceptance smoke
+   `tests/smoke/verify-m8a-v4.12-f11-handover-rule-config-runtime.mjs` is
+   amended to match the new default:
+   - Flip the initial-state assertion at line 317 from
+     `state.editor.open === true` to `state.editor.open === false`.
+   - Rename the initial screenshot path at line 357 (`...-initial-open.png`)
+     to `...-initial-closed.png` so the captured evidence semantically
+     matches the new default. Grep the smoke for any other `initial-open`
+     literal before commit; rename consistently.
+   - Insert an explicit summary-activation step before the existing
+     form-interaction flow so the editor is opened in-script before the
+     existing apply / reset / cancel assertions run. After the existing flow
+     completes, click the summary again and re-assert `editor.open === false`
+     so the round-trip is observable inside the F-11 evidence chain.
+   - Preserve every other selector, every other assertion, and every other
+     screenshot in the smoke verbatim. No assertion may be removed; only the
+     initial-open assertion is allowed to flip.
+5. A new slice-2 smoke
+   `tests/smoke/verify-m8a-v3-d03-s2-handover-rule-config-default-closed-runtime.mjs`
+   asserts:
+   - On the default route (`/?scenePreset=global`) the F-11 rule editor is
+     present in the DOM but `details.open === false` and renders no form
+     fields visible.
+   - The summary text "Handover Rule Config" remains visible and
+     keyboard-focusable.
+   - Activating the summary opens the editor; activating it again closes it.
+   - When opened, every V4.12 F-11 selector still resolves:
+     `[data-handover-rule-form='true']`, `[data-handover-rule-status='true']`,
+     `[data-handover-rule-action='apply']`,
+     `[data-handover-rule-action='reset']`,
+     `[data-handover-rule-action='cancel']`.
+   - D-03.S1 status-panel containment attributes still resolve:
+     `data-status-panel-containment="v3-d03-s1"`,
+     `data-status-panel-rank="primary"` covering Communication Time and
+     Handover Decision, `data-status-panel-rank="secondary"` covering
+     Physical Inputs / Scene Starter / Validation State.
+   - Forbidden-claim scan (run inside the smoke against the panel innerHTML)
+     returns no hit for any phrase listed in §8.
+6. The slice-1 status-panel smoke
+   `tests/smoke/verify-m8a-v3-d03-s1-status-panel-containment-runtime.mjs`
+   still passes. With the F-11 editor closed by default, the Handover
+   Decision slot's intrinsic height drops, but the slice-1 ceiling of
+   `min(40vh, 22rem)` collapsed and `min(60vh, 32rem)` expanded must remain
+   the binding bound.
+7. Capture script `tests/visual/capture-m8a-v3-d03-baseline.mjs` accepts
+   `--profile=d03-s2` and writes after-images under
+   `output/m8a-v3-d03/d03-s2/` for the three default routes named in §3
+   baseline-evidence table (global, regional, addressed first-intake).
+8. Forbidden-claim scan over every file the slice touches returns empty
+   (see §8 probe).
+
+### 14.2 Implementation outline
+
+Files allowed to change (slice-2 ceiling: 1 panel source file + 1 smoke
+amendment + 1 new smoke + 1 capture-script delta + 1 package.json delta):
+
+1. `src/features/handover-decision/bootstrap-handover-decision-panel.ts`
+   - Remove the `open` attribute on the
+     `<details data-handover-rule-config-editor="true">` element. No other
+     change to this file is allowed in slice 2.
+2. `tests/smoke/verify-m8a-v4.12-f11-handover-rule-config-runtime.mjs`
+   - Flip the initial-state assertion and add the open round-trip block as
+     described in §14.1 acceptance #4.
+   - Rename the initial screenshot path consistently.
+   - Do not remove any other assertion, selector, or screenshot capture.
+3. `tests/smoke/verify-m8a-v3-d03-s2-handover-rule-config-default-closed-runtime.mjs`
+   - New smoke modelled after `verify-m8a-v3-d03-s1-status-panel-containment-runtime.mjs`
+     (D-03 family) and the amended F-11 smoke (open round-trip pattern).
+4. `tests/visual/capture-m8a-v3-d03-baseline.mjs`
+   - Extend `--profile` to accept `d03-s2` and write after-images under
+     `output/m8a-v3-d03/d03-s2/`. Do not modify routes or viewport defaults.
+5. `package.json`
+   - Add `test:m8a-v3-d03:s2` script that calls `npm run build` then runs
+     the new slice-2 smoke. Mirror the `test:m8a-v3-d03:s1` shape.
+
+The slice must not introduce:
+
+- a "remember last open state" mechanism, persistent disclosure cookie, or
+  any persistent-state primitive for the F-11 editor (would re-open scope)
+- a different layout primitive (must remain `<details>` for accessibility
+  parity with the slice-1 secondary-group disclosure pattern)
+- any new attribute on the rule editor outside the existing set
+- any new CSS rule in `src/styles.css` (slice 2 is JS+markup-only; layout
+  was already settled in slice 1)
+- any change to the F-09 communication-rate section, the F-10 handover
+  policy selector or live region, the F-16 report-export action group, or
+  any other panel root
+
+### 14.3 Forbidden during slice 2
+
+Slice 2 must not:
+
+- modify any other F-11 surface (form fields, weight inputs, tie-break
+  order selector, dwell-tick selector, hysteresis units, apply / reset /
+  cancel handlers, rule-config dataset values)
+- modify the F-10 handover policy selector or its live region
+- modify the F-09 Communication Rate section or its chart / table toggle
+- modify the F-16 Report Export action group, options panel, or live
+  regions
+- modify the D-03.S1 primary / secondary container split, the disclosure
+  toggle, or the `data-status-panel-containment` attribute
+- modify camera, overlay, scene preset, replay-clock, first-intake
+  addressed-route, or R1V cleanup paths
+- modify the V4.13 multi-orbit overlay path or its retained evidence
+- modify any forbidden-claim copy or truth-boundary footnote
+  ("Modeled, not measured.", "bounded proxy", "Repo-owned", etc.)
+- update the D-03 acceptance-report row (reserved for slice 5)
+- update `m8a-v3-presentation-convergence-umbrella-plan.md` status note
+- update `m8a-v4.12-followup-index.md` §7 D-03 pointer
+
+### 14.4 Quality gates for slice 2 commit
+
+Run in order before committing slice 2. All steps must be green:
+
+1. `npm run build`
+2. `node tests/smoke/verify-m8a-v4.12-f09-communication-rate-runtime.mjs`
+3. `node tests/smoke/verify-m8a-v4.12-f10-handover-policy-selector-runtime.mjs`
+4. `node tests/smoke/verify-m8a-v4.12-f11-handover-rule-config-runtime.mjs`
+   (amended; default-closed initial state + open round-trip both observable)
+5. `node tests/smoke/verify-m8a-v4.12-f16-statistics-report-export-runtime.mjs`
+6. `node tests/validation/run-phase7.1-viewer-scope-validation.mjs --validation-profile-id multi-orbit-scale-1000 --target-leo-count 500 --requested-overlay-mode multi-orbit-scale-points --enforce-pass`
+7. `node tests/smoke/verify-m8a-v3-d03-s1-status-panel-containment-runtime.mjs`
+8. `node tests/smoke/verify-m8a-v3-d03-s2-handover-rule-config-default-closed-runtime.mjs`
+9. Forbidden-claim scan (§8 probe) over every staged file — empty
+10. `node tests/visual/capture-m8a-v3-d03-baseline.mjs --profile=d03-s2` —
+    after-images written under `output/m8a-v3-d03/d03-s2/`
+
+Commit message prefix:
+`feat(presentation): D-03.S2 F-11 rule config default-closed disclosure under M8A-V3 umbrella`.
+Commit body must reference this §14 scope lock, the M8A-V3 umbrella, and
+include the `Co-Authored-By: Claude Opus 4.7 (1M context)
+<noreply@anthropic.com>` trailer.
+
+### 14.5 Slice 2 Execution Authorization
+
+A fresh child conversation is authorized to land slice 2 strictly within
+the §14.2 file ceiling. The child must:
+
+- start by re-reading §14 in full, then §6 (slice 1) as a reference shape
+- run the §14.4 quality gates in the listed order
+- on green, commit a single feature commit using the prescribed prefix
+- return to the total-control parent: commit SHA, retained evidence paths
+  under `output/m8a-v3-d03/d03-s2/`, smoke run logs (one line each), and a
+  one-paragraph regression review explicitly addressing whether the slice-1
+  containment ceiling is still binding with the editor default-closed
+
+The child must not:
+
+- update the D-03 acceptance row in
+  `/home/u24/papers/itri/itri-acceptance-report-2026-04-20/01-itri-requirement-inventory-and-status.md`
+  (reserved for slice 5)
+- amend already-pushed commits
+- push to remote or open a PR
+- begin slice 3, 4, or 5
+
+After slice 2 close-out, the total-control parent updates this §14 with the
+slice-2 close-out commit SHA (mirror §13's slice-1 close-out record), the
+auto-memory `scenario-globe-viewer-d03-presentation-polish.md` slice table,
+and `MEMORY.md` index line. Only then is slice 3 unblocked.
