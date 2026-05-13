@@ -50,6 +50,8 @@ interface BootstrapOperatorHudElements {
   decisionSlot: HTMLDivElement;
   starterSlot: HTMLDivElement;
   validationSlot: HTMLDivElement;
+  secondaryGroup: HTMLDivElement;
+  secondaryToggle: HTMLButtonElement;
 }
 
 const OPERATOR_TELEMETRY_KEYS = [
@@ -119,8 +121,14 @@ function createElements(
     )
     .join("");
 
+  const secondaryGroupId = "operator-status-hud-secondary";
+
   statusPanel.innerHTML = `
-    <div class="operator-status-hud" data-operator-hud="bootstrap">
+    <div
+      class="operator-status-hud"
+      data-operator-hud="bootstrap"
+      data-status-panel-containment="v3-d03-s1"
+    >
       <div class="operator-status-hud__controls">
         <div class="operator-status-hud__meta">
           <span class="operator-status-hud__eyebrow">Operator Controls</span>
@@ -184,33 +192,57 @@ function createElements(
           aria-atomic="true"
         ></span>
       </div>
+      <div class="operator-status-hud__telemetry">
+        <div
+          class="operator-status-hud__telemetry-primary"
+          data-status-panel-rank="primary"
+        >
+          <div class="operator-status-hud__timeline" data-operator-time-slot="true"></div>
+          <div
+            class="operator-status-hud__communication"
+            data-operator-communication-slot="true"
+          ></div>
+          <div
+            class="operator-status-hud__decision"
+            data-operator-decision-slot="true"
+          ></div>
+        </div>
+        <button
+          type="button"
+          class="operator-control-chip operator-status-hud__secondary-toggle"
+          data-status-panel-secondary-toggle="true"
+          aria-expanded="false"
+          aria-controls="${secondaryGroupId}"
+        >
+          <span data-status-panel-secondary-toggle-label="true">
+            Show boundary &amp; physical state
+          </span>
+        </button>
+        <div
+          id="${secondaryGroupId}"
+          class="operator-status-hud__telemetry-secondary"
+          data-status-panel-rank="secondary"
+          aria-hidden="true"
+          hidden
+        >
+          <div
+            class="operator-status-hud__physical"
+            data-operator-physical-slot="true"
+          ></div>
+          <div
+            class="operator-status-hud__starter"
+            data-operator-starter-slot="true"
+          ></div>
+          <div
+            class="operator-status-hud__validation"
+            data-operator-validation-slot="true"
+          ></div>
+        </div>
+      </div>
       <div
         class="operator-status-hud__report-export"
         data-operator-report-export-slot="true"
       ></div>
-      <div class="operator-status-hud__telemetry">
-        <div class="operator-status-hud__timeline" data-operator-time-slot="true"></div>
-        <div
-          class="operator-status-hud__communication"
-          data-operator-communication-slot="true"
-        ></div>
-        <div
-          class="operator-status-hud__physical"
-          data-operator-physical-slot="true"
-        ></div>
-        <div
-          class="operator-status-hud__decision"
-          data-operator-decision-slot="true"
-        ></div>
-        <div
-          class="operator-status-hud__starter"
-          data-operator-starter-slot="true"
-        ></div>
-        <div
-          class="operator-status-hud__validation"
-          data-operator-validation-slot="true"
-        ></div>
-      </div>
     </div>
   `;
 
@@ -261,6 +293,12 @@ function createElements(
   const validationSlot = statusPanel.querySelector<HTMLDivElement>(
     "[data-operator-validation-slot='true']"
   );
+  const secondaryGroup = statusPanel.querySelector<HTMLDivElement>(
+    "[data-status-panel-rank='secondary']"
+  );
+  const secondaryToggle = statusPanel.querySelector<HTMLButtonElement>(
+    "[data-status-panel-secondary-toggle='true']"
+  );
 
   if (
     !root ||
@@ -277,7 +315,9 @@ function createElements(
     !physicalSlot ||
     !decisionSlot ||
     !starterSlot ||
-    !validationSlot
+    !validationSlot ||
+    !secondaryGroup ||
+    !secondaryToggle
   ) {
     throw new Error("Missing bootstrap operator HUD elements");
   }
@@ -299,7 +339,9 @@ function createElements(
     physicalSlot,
     decisionSlot,
     starterSlot,
-    validationSlot
+    validationSlot,
+    secondaryGroup,
+    secondaryToggle
   };
 }
 
@@ -510,9 +552,50 @@ export function mountBootstrapOperatorHud({
     }
   };
 
+  let secondaryExpanded = false;
+
+  const renderSecondaryExpansion = (): void => {
+    elements.secondaryToggle.setAttribute(
+      "aria-expanded",
+      secondaryExpanded ? "true" : "false"
+    );
+    elements.secondaryGroup.hidden = !secondaryExpanded;
+    elements.secondaryGroup.setAttribute(
+      "aria-hidden",
+      secondaryExpanded ? "false" : "true"
+    );
+    elements.root.dataset.statusPanelSecondaryExpanded = secondaryExpanded
+      ? "true"
+      : "false";
+
+    const statusPanelHost = statusPanel.closest<HTMLElement>(".hud-panel--status");
+
+    if (statusPanelHost) {
+      statusPanelHost.dataset.statusPanelSecondaryExpanded = secondaryExpanded
+        ? "true"
+        : "false";
+    }
+
+    const label = elements.secondaryToggle.querySelector<HTMLSpanElement>(
+      "[data-status-panel-secondary-toggle-label='true']"
+    );
+
+    if (label) {
+      label.textContent = secondaryExpanded
+        ? "Hide boundary & physical state"
+        : "Show boundary & physical state";
+    }
+  };
+
+  const handleSecondaryToggleClick = (): void => {
+    secondaryExpanded = !secondaryExpanded;
+    renderSecondaryExpansion();
+  };
+
   renderState(elements, controller.getState());
   updateBusyState(false);
   clearControlError();
+  renderSecondaryExpansion();
 
   const unsubscribe = controller.subscribe((state) => {
     renderState(elements, state);
@@ -525,6 +608,7 @@ export function mountBootstrapOperatorHud({
     "click",
     handlePrerecordedClick
   );
+  elements.secondaryToggle.addEventListener("click", handleSecondaryToggleClick);
 
   for (const button of elements.speedButtons) {
     button.addEventListener("click", handleSpeedClick);
@@ -545,6 +629,10 @@ export function mountBootstrapOperatorHud({
     elements.modeButtons.prerecorded.removeEventListener(
       "click",
       handlePrerecordedClick
+    );
+    elements.secondaryToggle.removeEventListener(
+      "click",
+      handleSecondaryToggleClick
     );
 
     for (const button of elements.speedButtons) {

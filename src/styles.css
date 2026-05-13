@@ -178,7 +178,21 @@ body {
   right: calc(var(--hud-frame-gap) + 3.5rem);
   bottom: calc(var(--hud-frame-gap) + var(--hud-native-bottom-clearance));
   min-height: 10rem;
+  max-height: min(40vh, 22rem);
   pointer-events: auto;
+}
+
+.hud-panel--status[data-status-panel-secondary-expanded="true"] {
+  max-height: min(60vh, 32rem);
+}
+
+.operator-status-hud[data-status-panel-containment="v3-d03-s1"] {
+  max-height: min(40vh, 22rem);
+  overflow-y: auto;
+}
+
+.operator-status-hud[data-status-panel-containment="v3-d03-s1"][data-status-panel-secondary-expanded="true"] {
+  max-height: min(60vh, 32rem);
 }
 
 .hud-panel--status * {
@@ -446,9 +460,34 @@ body {
 
 .operator-status-hud__telemetry {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
-  gap: 0.75rem 1rem;
+  grid-template-rows: auto auto auto;
+  gap: 0.6rem 1rem;
   min-width: 0;
+}
+
+.operator-status-hud__telemetry-primary {
+  display: grid;
+  grid-template-columns:
+    minmax(8rem, 0.7fr) minmax(15rem, 1.2fr) minmax(15rem, 1.2fr);
+  gap: 0.6rem 0.9rem;
+  min-width: 0;
+}
+
+.operator-status-hud__telemetry-secondary {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+  gap: 0.6rem 0.9rem;
+  min-width: 0;
+}
+
+.operator-status-hud__telemetry-secondary[hidden] {
+  display: none;
+}
+
+.operator-status-hud__secondary-toggle {
+  justify-self: start;
+  padding: 0.34rem 0.85rem;
+  font-size: 0.74rem;
 }
 
 .operator-status-hud__communication {
@@ -1847,6 +1886,11 @@ body {
   }
 
   .operator-status-hud__telemetry {
+    grid-template-columns: 1fr;
+  }
+
+  .operator-status-hud__telemetry-primary,
+  .operator-status-hud__telemetry-secondary {
     grid-template-columns: 1fr;
   }
 
