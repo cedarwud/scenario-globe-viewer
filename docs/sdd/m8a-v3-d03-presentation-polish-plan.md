@@ -426,6 +426,68 @@ git diff --staged --name-only -z | xargs -0 grep -EHIin \
 Scan must return empty for each commit. The script above is a probe, not
 a CI gate — the slice author runs it manually before commit.
 
+### 8.1 Scan Scoping
+
+The §8 forbidden-claim list is a substring-grep target. It is the right
+tool for catching **new** forbidden copy authored into a slice's diff,
+but it is the wrong tool for blanket DOM scans because the codebase
+already ships many pre-existing truth-boundary **disclaimers** that
+contain these substrings inside **negations**. Examples present in
+`main` as of 2026-05-13:
+
+- `src/features/handover-decision/handover-decision.ts:8-9` ships
+  `"Deterministic bootstrap candidate metrics used for repo-owned
+  handover evaluation; not measured latency, jitter, or throughput
+  truth."` — a negation that disclaims measured latency.
+- `src/features/report-export/report-export.ts:167` ships
+  `"Bounded-proxy decision over deterministic candidate metrics; not
+  measured latency, jitter, or throughput truth."`.
+- `src/runtime/m8a-v4-itri-demo-renderers.ts:165` ships a
+  V4.11/V4.6D disclaimer ending in `"not an active satellite/gateway/
+  path claim, and not measured network truth."`.
+- `src/runtime/first-intake-operator-explainer-controller.ts:206` ships
+  `"This active first-intake case stays on …, is not native RF
+  handover, and remains bounded-proxy, not measurement truth."`.
+- `src/runtime/m8a-v411-inspector-concurrency.ts:31` ships
+  `"No measured latency, jitter, throughput, or continuity values are
+  shown."`.
+- `src/runtime/m8a-v4-ground-station-projection.ts:558, 1149-1152,
+  1257-1259, 1313-1316, 1423-1425, 1454` ships several
+  `"not active satellite"`, `"not native RF handover"`, and
+  `"measured latency/jitter/throughput truth"` disclaimers inside the
+  V4.6B / V4.11 projection envelope strings.
+
+These pre-existing disclaimers are **correct** truth-boundary copy.
+They negate the forbidden claim rather than make it. They are out of
+scope for D-03 polish.
+
+The two scan modes used by D-03 slices are therefore disambiguated:
+
+1. **Staged-files probe** (the §8 shell command above) — run from the
+   repo root before commit. Scans only files in
+   `git diff --staged --name-only`. Pre-existing disclaimers are not
+   staged so they are not scanned; only new copy authored into the
+   slice's diff is checked. This is the authoritative pre-commit gate.
+2. **In-smoke DOM scan** — runs inside a slice's runtime smoke against
+   live DOM after the slice's change has been applied. Because the
+   live DOM contains every pre-existing disclaimer rendered by the
+   panel / HUD / globe-viewer root, this scan **must be scoped to the
+   subtree the slice introduces or modifies**, not to a panel root or
+   HUD root or globe root. If the slice's smoke scopes too broadly, it
+   will incorrectly flag pre-existing negations.
+
+Per-slice DOM scan scope is fixed as follows:
+
+| Slice | DOM scan target |
+|---|---|
+| D-03.S2 | `<details data-handover-rule-config-editor='true'>` element's outerHTML (the only element the slice modifies — the slice removes the `open` attribute and S2 adds nothing else to the rendered DOM). |
+| D-03.S3 | Union of the three new `data-operator-control-group='{scenario|replay|policy}'` container outerHTML strings plus the three new `[data-operator-control-group-heading='true']` element outerHTML strings. |
+| D-03.S4 | The new `[data-cross-panel-truth-chip='true']` element's outerHTML. |
+| Future slices | The element(s) introduced or modified by the slice; pre-existing V4.12 / V4.11 / V3 / V2 elements remain out of scope for slice DOM scans. |
+
+The staged-files probe still runs over every staged file as the
+authoritative pre-commit check.
+
 ## 9. Slice-1 Out-Of-Scope Pointers
 
 These remain unaddressed by slice 1 and are deferred to slices 2–5:
@@ -619,8 +681,16 @@ without re-deriving acceptance criteria.
      `data-status-panel-rank="primary"` covering Communication Time and
      Handover Decision, `data-status-panel-rank="secondary"` covering
      Physical Inputs / Scene Starter / Validation State.
-   - Forbidden-claim scan (run inside the smoke against the panel innerHTML)
-     returns no hit for any phrase listed in §8.
+   - Forbidden-claim scan scoped per §8.1 Scan Scoping to the
+     `<details data-handover-rule-config-editor='true'>` element's
+     outerHTML (the only element the slice modifies). The scan must
+     NOT cover the surrounding panel innerHTML, because the panel root
+     contains the pre-existing V4.12 truth-boundary disclaimer copy
+     enumerated in §8.1 (e.g. `HANDOVER_DECISION_PROXY_PROVENANCE_DETAIL`
+     at `handover-decision.ts:8-9`, rendered into
+     `elements.provenance.title` at
+     `bootstrap-handover-decision-panel.ts:477`). The scan must return
+     no §8 hit on the editor element's outerHTML.
 6. The slice-1 status-panel smoke
    `tests/smoke/verify-m8a-v3-d03-s1-status-panel-containment-runtime.mjs`
    still passes. With the F-11 editor closed by default, the Handover
@@ -782,6 +852,34 @@ and `MEMORY.md` index line. Only then is slice 3 unblocked.
   `:not([open]) > .handover-rule-config__form { display: none; }` rule.
   No existing CSS declaration is altered. The amendment preserves the
   acceptance-criteria surface; gates 1–10 remain unchanged in §14.4.
+- 2026-05-13 amendment: §14.1 #5 narrowed to scope the in-smoke DOM
+  forbidden-claim scan to the
+  `<details data-handover-rule-config-editor='true'>` element's
+  outerHTML only, per new §8.1 Scan Scoping subsection. Trigger:
+  second slice-2 child conversation passed gates 1–7 plus the
+  pressSummaryEnter → clickSummary helper fix, then failed gate 8
+  because the new S2 smoke's forbidden-claim scan over the panel
+  innerHTML caught the substring `measured latency` inside the
+  pre-existing V4.12 truth-boundary disclaimer at
+  `handover-decision.ts:8-9`
+  (`HANDOVER_DECISION_PROXY_PROVENANCE_DETAIL =
+  "Deterministic bootstrap candidate metrics used for repo-owned
+  handover evaluation; not measured latency, jitter, or throughput
+  truth."`) rendered into the provenance field title at
+  `bootstrap-handover-decision-panel.ts:477`. Root cause: §14.1 #5
+  originally said the scan covers "the panel innerHTML", which is too
+  broad — it sweeps in pre-existing truth-boundary disclaimers that
+  legitimately contain forbidden substrings inside negations.
+  Resolution: amend §14.1 #5 to scope the in-smoke DOM scan to the
+  subtree the slice introduces or modifies. Add §8.1 Scan Scoping
+  subsection that disambiguates the staged-files probe (catches new
+  copy in diffs, the authoritative pre-commit gate) from the in-smoke
+  DOM scan (must be scoped to slice-introduced elements). The child
+  correctly refused to widen scope to modify pre-existing V4.12
+  truth-boundary copy and returned to the parent. The amendment
+  preserves the acceptance-criteria surface; gates 1–10 remain
+  unchanged in §14.4. §15.6 and §16.6 also recorded for the same
+  scoping rule.
 
 ## 15. Slice 3 (D-03.S3) — Operator Control Row Grouping
 
@@ -883,8 +981,14 @@ without re-deriving acceptance criteria.
    - Containment: `hud-panel--status`
      `getBoundingClientRect().height` remains within the slice-1
      collapsed ceiling (`<= Math.round(900 * 0.4) = 360 px`).
-   - Forbidden-claim scan over the operator HUD root's `innerHTML`
-     returns no §8 hit.
+   - Forbidden-claim scan scoped per §8.1 Scan Scoping to the union
+     of the three new `data-operator-control-group` container
+     outerHTML strings plus the three new
+     `[data-operator-control-group-heading='true']` element
+     outerHTML strings. The scan must NOT cover the surrounding HUD
+     root innerHTML, because that includes pre-existing V4.12 / V4.11
+     truth-boundary disclaimer copy enumerated in §8.1. The scan must
+     return no §8 hit on the scoped subtree.
 8. Capture script `tests/visual/capture-m8a-v3-d03-baseline.mjs` is
    invoked with `--profile=d03-s3` and produces after-images under
    `output/m8a-v3-d03/d03-s3/` for the three default routes (global,
@@ -1094,6 +1198,19 @@ with the slice-3 close-out commit SHA, the auto-memory
 ### 15.6 Amendment Trail
 
 - 2026-05-13 initial scope lock written.
+- 2026-05-13 amendment: §15.1 #7 last bullet narrowed to scope the
+  in-smoke DOM forbidden-claim scan to the union of the three new
+  `data-operator-control-group` container outerHTML strings plus the
+  three new `[data-operator-control-group-heading='true']` element
+  outerHTML strings, per new §8.1 Scan Scoping subsection. This
+  amendment is pre-emptive: it inherits the same scoping fix
+  authorised against §14 (slice 2) after the slice-2 second child
+  conversation hit a hard stop on a panel-wide DOM forbidden-claim
+  scan that swept pre-existing V4.12 truth-boundary disclaimers
+  (substring `measured latency` inside a negation in
+  `handover-decision.ts:8-9`). The slice-3 smoke must not scan the
+  HUD root innerHTML because that includes the same kind of
+  pre-existing negations enumerated in §8.1.
 
 ## 16. Slice 4 (D-03.S4) — Primary Surface Rank + Cross-Panel Truth Chip
 
@@ -1210,8 +1327,13 @@ execute slice 4 without re-deriving acceptance criteria.
      `bounded-proxy`, `Repo-owned` (or `repo-owned`), `Rain`,
      `Validation Boundary`. The assertion is over the expanded state
      because Physical Inputs + Validation State live behind it.
-   - Forbidden-claim scan over the operator HUD `innerHTML`
-     (chip included) returns no §8 hit.
+   - Forbidden-claim scan scoped per §8.1 Scan Scoping to the
+     `[data-cross-panel-truth-chip='true']` element's outerHTML
+     (the only element the slice introduces into the DOM). The scan
+     must NOT cover the surrounding HUD root innerHTML, because that
+     includes pre-existing V4.12 / V4.11 truth-boundary disclaimer
+     copy enumerated in §8.1. The scan must return no §8 hit on the
+     chip's outerHTML.
 8. The slice-1 smoke
    `tests/smoke/verify-m8a-v3-d03-s1-status-panel-containment-runtime.mjs`
    and the slice-2 smoke
@@ -1479,3 +1601,16 @@ slice-2 close-out records), the auto-memory
   collision and additionally surfaces §7.3 reachability for the
   canonical phrase on the default route without requiring secondary
   disclosure expansion).
+- 2026-05-13 amendment: §16.1 #7 last bullet narrowed to scope the
+  in-smoke DOM forbidden-claim scan to the
+  `[data-cross-panel-truth-chip='true']` element's outerHTML only,
+  per new §8.1 Scan Scoping subsection. This amendment is
+  pre-emptive: it inherits the same scoping fix authorised against
+  §14 (slice 2) after the slice-2 second child conversation hit a
+  hard stop on a panel-wide DOM forbidden-claim scan that swept
+  pre-existing V4.12 truth-boundary disclaimers (substring
+  `measured latency` inside a negation in
+  `handover-decision.ts:8-9`). The slice-4 smoke must not scan the
+  HUD root innerHTML because that includes the same kind of
+  pre-existing negations enumerated in §8.1; scanning the chip's
+  outerHTML alone is the architecturally correct slice-level audit.
