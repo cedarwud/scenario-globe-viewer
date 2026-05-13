@@ -19,7 +19,8 @@ export type SelectableHandoverPolicyId =
   (typeof SELECTABLE_HANDOVER_POLICY_IDS)[number];
 export type HandoverPolicyId =
   | SelectableHandoverPolicyId
-  | typeof HANDOVER_UNSUPPORTED_POLICY_ID;
+  | typeof HANDOVER_UNSUPPORTED_POLICY_ID
+  | typeof FIRST_INTAKE_HANDOVER_UNSUPPORTED_POLICY_ID;
 export type HandoverPolicyTieBreak =
   | "latency"
   | "jitter"
@@ -98,6 +99,8 @@ export const DEFAULT_HANDOVER_POLICY_ID: SelectableHandoverPolicyId =
   "bootstrap-balanced-v1";
 export const HANDOVER_UNSUPPORTED_POLICY_ID =
   "bootstrap-unsupported-scenario-noop-v1" as const;
+export const FIRST_INTAKE_HANDOVER_UNSUPPORTED_POLICY_ID =
+  "first-intake-unsupported-noop-v1" as const;
 
 export const HANDOVER_POLICY_DESCRIPTORS: ReadonlyArray<HandoverPolicyDescriptor> = [
   {
@@ -151,10 +154,24 @@ const HANDOVER_UNSUPPORTED_POLICY_DESCRIPTOR: HandoverPolicyDescriptor = {
   tieBreak: []
 };
 
+const FIRST_INTAKE_HANDOVER_UNSUPPORTED_POLICY_DESCRIPTOR: HandoverPolicyDescriptor = {
+  id: FIRST_INTAKE_HANDOVER_UNSUPPORTED_POLICY_ID,
+  label: "First-intake unsupported no-op policy",
+  summary:
+    "No bounded bootstrap handover policy is available for the first-intake runtime seam.",
+  weights: {
+    latencyMs: 0,
+    jitterMs: 0,
+    networkSpeedMbps: 0
+  },
+  tieBreak: []
+};
+
 const HANDOVER_POLICY_DESCRIPTOR_BY_ID = new Map<string, HandoverPolicyDescriptor>(
   [
     ...HANDOVER_POLICY_DESCRIPTORS,
-    HANDOVER_UNSUPPORTED_POLICY_DESCRIPTOR
+    HANDOVER_UNSUPPORTED_POLICY_DESCRIPTOR,
+    FIRST_INTAKE_HANDOVER_UNSUPPORTED_POLICY_DESCRIPTOR
   ].map((descriptor) => [descriptor.id, descriptor])
 );
 
@@ -186,7 +203,8 @@ export const DEFAULT_HANDOVER_RULE_CONFIGS: ReadonlyArray<HandoverRuleConfig> =
 const DEFAULT_HANDOVER_RULE_CONFIG_BY_ID = new Map<string, HandoverRuleConfig>(
   [
     ...DEFAULT_HANDOVER_RULE_CONFIGS,
-    createDefaultRuleConfig(HANDOVER_UNSUPPORTED_POLICY_DESCRIPTOR)
+    createDefaultRuleConfig(HANDOVER_UNSUPPORTED_POLICY_DESCRIPTOR),
+    createDefaultRuleConfig(FIRST_INTAKE_HANDOVER_UNSUPPORTED_POLICY_DESCRIPTOR)
   ].map((config) => [config.policyId, config])
 );
 
@@ -458,7 +476,8 @@ export function validateHandoverRuleConfig(
     config.weights.latencyMs === 0 &&
     config.weights.jitterMs === 0 &&
     config.weights.networkSpeedMbps === 0 &&
-    config.policyId !== HANDOVER_UNSUPPORTED_POLICY_ID
+    config.policyId !== HANDOVER_UNSUPPORTED_POLICY_ID &&
+    config.policyId !== FIRST_INTAKE_HANDOVER_UNSUPPORTED_POLICY_ID
   ) {
     issues.push({
       field: "weights",
