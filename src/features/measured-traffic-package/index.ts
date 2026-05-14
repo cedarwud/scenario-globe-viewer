@@ -9,6 +9,7 @@ export {
   reviewMalformedItriMeasuredTrafficManifest,
   reviewMissingItriMeasuredTrafficManifest,
   reviewMissingItriMeasuredTrafficPackage,
+  reviewRejectedItriMeasuredTrafficManifestPath,
   reviewRejectedItriMeasuredTrafficPackagePath
 } from "./measured-traffic-package-reviewer";
 export type {

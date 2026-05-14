@@ -89,6 +89,14 @@ export interface ItriMeasuredTrafficNonClaims {
   itriOrbitModelIntegration: false;
   radioLayerHandover: false;
   fullItriAcceptance: false;
+  completeItriAcceptance: false;
+  closesF01ItriOrbitModelIntegration: false;
+  arbitraryExternalSourceAcceptance: false;
+  liveRealTimeFeedExecution: false;
+  measuredTrafficNetworkTruth: false;
+  natTunnelDutValidation: false;
+  nativeRfHandoverTruth: false;
+  publicCelesTrakOrSpaceTrackSubstitutesForItriPrivateSourceAuthorityWithoutOwnerEvidence: false;
 }
 
 export interface ItriMeasuredTrafficPackageReview {
@@ -152,7 +160,15 @@ const REQUIRED_NON_CLAIMS: ItriMeasuredTrafficNonClaims = {
   dutNatTunnelPathSuccessFromSchemaOnly: false,
   itriOrbitModelIntegration: false,
   radioLayerHandover: false,
-  fullItriAcceptance: false
+  fullItriAcceptance: false,
+  completeItriAcceptance: false,
+  closesF01ItriOrbitModelIntegration: false,
+  arbitraryExternalSourceAcceptance: false,
+  liveRealTimeFeedExecution: false,
+  measuredTrafficNetworkTruth: false,
+  natTunnelDutValidation: false,
+  nativeRfHandoverTruth: false,
+  publicCelesTrakOrSpaceTrackSubstitutesForItriPrivateSourceAuthorityWithoutOwnerEvidence: false
 };
 
 const EMPTY_ARTIFACT_REF_CHECK: ItriMeasuredTrafficArtifactRefCheck = {
@@ -409,6 +425,24 @@ export function reviewRejectedItriMeasuredTrafficPackagePath(
     "package.path-outside-retained-root",
     `Measured-traffic package path must be under ${ITRI_MEASURED_TRAFFIC_PACKAGE_ROOT}/.`,
     { path: normalizePackagePath(options.packagePath) }
+  );
+
+  return closedReview({
+    ...options,
+    packageState: "rejected",
+    gaps
+  });
+}
+
+export function reviewRejectedItriMeasuredTrafficManifestPath(
+  options: ItriMeasuredTrafficClosedReviewOptions
+): ItriMeasuredTrafficPackageReview {
+  const gaps: ItriMeasuredTrafficReviewGap[] = [];
+  addGap(
+    gaps,
+    "manifest.path-outside-package",
+    "Explicit manifest path must resolve inside the explicitly named package directory.",
+    { path: options.manifestPath ?? defaultManifestPath(options.packagePath) }
   );
 
   return closedReview({
@@ -1453,6 +1487,28 @@ function buildRequirementReview(options: {
       artifactRefCheck,
       gaps
     });
+  } else if (verdict) {
+    if (verdict.sourceArtifactRefs.length > 0 && !hasResolvedSourceRefs(verdict.sourceArtifactRefs, artifactRefCheck)) {
+      addGap(
+        gaps,
+        "requirement.source-artifact-refs-unresolved",
+        `${requirementId} review verdict sourceArtifactRefs must resolve inside the retained package directory.`,
+        { requirementId, path: "reviewerVerdicts.sourceArtifactRefs" }
+      );
+    }
+
+    const unresolvedMetricRefs = verdict.parsedMetricRefs.filter(
+      (metricId) => !parsedMetricRefs.includes(metricId)
+    );
+
+    if (unresolvedMetricRefs.length > 0) {
+      addGap(
+        gaps,
+        "requirement.parsed-metric-refs-unresolved",
+        `${requirementId} review verdict parsedMetricRefs must reference known parsed metrics for the requirement.`,
+        { requirementId, path: "reviewerVerdicts.parsedMetricRefs" }
+      );
+    }
   }
 
   let reviewerState: ItriMeasuredTrafficReviewerState =

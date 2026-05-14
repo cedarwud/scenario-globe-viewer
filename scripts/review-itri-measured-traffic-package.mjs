@@ -100,13 +100,18 @@ function resolvePackageInput(repoRoot, packageInput) {
 }
 
 function resolveManifestInput(repoRoot, absolutePackagePath, manifestInput) {
-  const absoluteManifestPath = manifestInput
+  const hasManifestInput = manifestInput !== undefined;
+  const absoluteManifestPath = hasManifestInput
     ? path.resolve(repoRoot, manifestInput)
     : path.join(absolutePackagePath, "manifest.json");
 
   return {
     absoluteManifestPath,
-    relativeManifestPath: repoRelativePath(repoRoot, absoluteManifestPath)
+    relativeManifestPath: repoRelativePath(repoRoot, absoluteManifestPath),
+    isExplicit: hasManifestInput,
+    isInsidePackage: hasManifestInput
+      ? isInside(absolutePackagePath, absoluteManifestPath)
+      : true
   };
 }
 
@@ -179,7 +184,12 @@ export async function reviewItriMeasuredTrafficPackageFromPath({
     retainedRoot,
     isAllowed
   } = resolvePackageInput(resolvedRepoRoot, packageInput);
-  const { absoluteManifestPath, relativeManifestPath } = resolveManifestInput(
+  const {
+    absoluteManifestPath,
+    relativeManifestPath,
+    isExplicit: hasExplicitManifestPath,
+    isInsidePackage
+  } = resolveManifestInput(
     resolvedRepoRoot,
     absolutePackagePath,
     manifestInput
@@ -189,6 +199,13 @@ export async function reviewItriMeasuredTrafficPackageFromPath({
   try {
     if (!isAllowed) {
       return reviewer.reviewRejectedItriMeasuredTrafficPackagePath({
+        packagePath: relativePackagePath,
+        manifestPath: relativeManifestPath
+      });
+    }
+
+    if (hasExplicitManifestPath && !isInsidePackage) {
+      return reviewer.reviewRejectedItriMeasuredTrafficManifestPath({
         packagePath: relativePackagePath,
         manifestPath: relativeManifestPath
       });

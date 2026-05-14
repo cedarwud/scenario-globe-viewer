@@ -346,7 +346,15 @@ function baseManifest() {
       dutNatTunnelPathSuccessFromSchemaOnly: false,
       itriOrbitModelIntegration: false,
       radioLayerHandover: false,
-      fullItriAcceptance: false
+      fullItriAcceptance: false,
+      completeItriAcceptance: false,
+      closesF01ItriOrbitModelIntegration: false,
+      arbitraryExternalSourceAcceptance: false,
+      liveRealTimeFeedExecution: false,
+      measuredTrafficNetworkTruth: false,
+      natTunnelDutValidation: false,
+      nativeRfHandoverTruth: false,
+      publicCelesTrakOrSpaceTrackSubstitutesForItriPrivateSourceAuthorityWithoutOwnerEvidence: false
     }
   };
 }
@@ -391,9 +399,15 @@ async function writePackage(repoRootForTest, manifest) {
   );
 }
 
-async function runCli(reviewPackageFromPath, repoRootForTest, packagePath = packageRelativePath) {
+async function runCli(
+  reviewPackageFromPath,
+  repoRootForTest,
+  packagePath = packageRelativePath,
+  manifestPath
+) {
   const review = await reviewPackageFromPath({
     packageInput: packagePath,
+    manifestInput: manifestPath,
     repoRoot: repoRootForTest
   });
 
@@ -426,6 +440,13 @@ function assertNoAuthorityPassByDefault(review) {
   );
 }
 
+function assertHasGap(review, code, message) {
+  assert(
+    review.gaps.some((gap) => gap.code === code),
+    message
+  );
+}
+
 async function main() {
   const { reviewer, cleanup } = await importReviewer();
   const { reviewItriMeasuredTrafficPackageFromPath } = await import(
@@ -453,6 +474,15 @@ async function main() {
       assert.equal(result.review.packageState, "missing");
       assert.equal(result.review.requirementReviews.length, 3);
       assertNoAuthorityPassByDefault(result.review);
+    });
+
+    await withTempRepo(async (tempRepo) => {
+      await mkdir(path.join(tempRepo, packageRelativePath), { recursive: true });
+      const result = await runCli(reviewItriMeasuredTrafficPackageFromPath, tempRepo);
+
+      assert.equal(result.status, 1, "Missing manifest must fail closed.");
+      assert.equal(result.review.packageState, "incomplete");
+      assertHasGap(result.review, "manifest.missing", "Missing manifest must be reported as a package manifest gap.");
     });
 
     await withTempRepo(async (tempRepo) => {
@@ -513,6 +543,21 @@ async function main() {
     });
 
     await withTempRepo(async (tempRepo) => {
+      const manifest = baseManifest();
+      manifest.schemaVersion = "itri-measured-traffic-package.v0";
+      await writePackage(tempRepo, manifest);
+      const result = await runCli(reviewItriMeasuredTrafficPackageFromPath, tempRepo);
+
+      assert.equal(result.status, 1, "Wrong schemaVersion must fail closed.");
+      assert.equal(result.review.packageState, "incomplete");
+      assertHasGap(
+        result.review,
+        "manifest.schema-version",
+        "Wrong schemaVersion must emit a schema-version gap."
+      );
+    });
+
+    await withTempRepo(async (tempRepo) => {
       const manifest = {
         ...baseManifest(),
         sourceTier: "tier-3-synthetic",
@@ -550,6 +595,67 @@ async function main() {
       assert.deepEqual(result.review.artifactRefSummary.escapedRefs, [
         "../escaped-ping.log"
       ]);
+    });
+
+    await withTempRepo(async (tempRepo) => {
+      const manifest = baseManifest();
+      await writePackage(tempRepo, manifest);
+      const outsideManifestPath = path.join(tempRepo, "outside-manifest.json");
+      await writeTextFile(
+        tempRepo,
+        "outside-manifest.json",
+        `${JSON.stringify(manifest, null, 2)}\n`
+      );
+
+      const result = await runCli(
+        reviewItriMeasuredTrafficPackageFromPath,
+        tempRepo,
+        packageRelativePath,
+        outsideManifestPath
+      );
+
+      assert.equal(result.status, 1, "Explicit manifest path outside package must fail closed.");
+      assert.equal(result.review.packageState, "rejected");
+      assertHasGap(
+        result.review,
+        "manifest.path-outside-package",
+        "Manifest path boundary must be enforced."
+      );
+    });
+
+    await withTempRepo(async (tempRepo) => {
+      const manifest = baseManifest();
+      manifest.reviewerVerdicts = [
+        {
+          ...manifest.reviewerVerdicts[0],
+          sourceArtifactRefs: ["raw/missing-verdict-source.log"],
+          parsedMetricRefs: ["unknown-metric-ref"]
+        },
+        ...manifest.reviewerVerdicts.slice(1)
+      ];
+      await writePackage(tempRepo, manifest);
+      const result = await runCli(reviewItriMeasuredTrafficPackageFromPath, tempRepo);
+      const f07Review = result.review.requirementReviews.find(
+        (entry) => entry.requirementId === "F-07"
+      );
+
+      assert.equal(result.status, 1, "Invalid verdict refs must fail closed.");
+      assert.equal(result.review.packageState, "incomplete");
+      assert(
+        f07Review.gaps.some(
+          (gap) => gap.code === "requirement.source-artifact-refs-unresolved"
+        ),
+        "Invalid verdict sourceArtifactRefs must be reported."
+      );
+      assert(
+        f07Review.gaps.some(
+          (gap) => gap.code === "requirement.parsed-metric-refs-unresolved"
+        ),
+        "Invalid verdict parsedMetricRefs must be reported."
+      );
+      assert(f07Review, "F-07 review must exist for verdict-ref mismatch case.");
+      assert.equal(f07Review.reviewerState, "incomplete");
+      assertNoAuthorityPassByDefault(result.review);
     });
 
     await withTempRepo(async (tempRepo) => {
@@ -642,7 +748,7 @@ async function main() {
   }
 
   console.log(
-    "F-07R1 measured-traffic package reviewer verifier passed: missing, malformed, incomplete, synthetic, escaping-ref, parsed-metric-source-ref, importable, authority-gated, and path-boundary cases covered."
+    "F-07R1 measured-traffic package reviewer verifier passed: missing package, missing manifest, malformed, wrong schemaVersion, incomplete, synthetic, escaped-ref, verdict-ref consistency, parsed-metric-source-ref, importable, authority-gated, and path-boundary cases covered."
   );
 }
 
