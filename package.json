@@ -81,6 +81,7 @@
     "test:itri-f07r1": "npm run build && node scripts/verify-itri-measured-traffic-package-reviewer.mjs",
     "test:itri-f12r1": "npm run build && node scripts/verify-itri-f12-decision-threshold-authority-reviewer.mjs",
     "test:itri-v02r1": "npm run build && node scripts/verify-itri-external-validation-manifest-reviewer.mjs",
+    "test:itri-s4r1": "npm run build && node scripts/verify-itri-public-standards-profile-reviewer.mjs",
     "capture:phase2.12": "node scripts/site-hook-guard.mjs --context=phase2.12-capture && npm run build && node tests/visual/capture-three-preset-baselines.mjs",
     "capture:phase5.3-orbits": "node scripts/site-hook-guard.mjs --context=phase5.3-orbit-capture && npm run build && node tests/visual/capture-phase5.3-orbit-review.mjs",
     "capture:site-dataset": "node scripts/site-dataset-visual-orchestration.mjs",
