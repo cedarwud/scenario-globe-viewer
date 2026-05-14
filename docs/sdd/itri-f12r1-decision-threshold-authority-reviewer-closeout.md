@@ -95,3 +95,51 @@ focused verifier, the new F-12R1 focused verifier, `git diff --check`, and
 forbidden-claim scans scoped to the edited files only. The verifier creates
 only temp package trees and does not mutate retained evidence under
 `output/validation/external-f12/` or `output/validation/external-f07-f09/`.
+
+## S3-F12R2 — Verifier schema-ready fixture stabilization (2026-05-14)
+
+### Problem
+
+`node scripts/verify-itri-f12-decision-threshold-authority-reviewer.mjs`
+exited 1 at line 812 (`Schema-ready package must review cleanly`). The F-12
+verifier's `measuredManifest()` fixture had not been kept in sync with F-07R1
+corrective commits 9671b42, 23439d3, and 70b9e90. Specifically, commit 23439d3
+extended `REQUIRED_NON_CLAIMS` in the F-07R1 reviewer with 8 additional
+literal-false fields:
+`completeItriAcceptance`, `closesF01ItriOrbitModelIntegration`,
+`arbitraryExternalSourceAcceptance`, `liveRealTimeFeedExecution`,
+`measuredTrafficNetworkTruth`, `natTunnelDutValidation`,
+`nativeRfHandoverTruth`, and
+`publicCelesTrakOrSpaceTrackSubstitutesForItriPrivateSourceAuthorityWithoutOwnerEvidence`.
+All 8 were absent from the fixture's `nonClaims` block. F-07R1 emitted 8
+blocking `nonclaims.literal-false-missing` gaps, causing
+`packageState=incomplete` for F-07, F-08, and F-09, which in turn caused the
+F-12 reviewer to emit `pending-measured-fields` and the verifier to exit 1.
+
+### Resolution
+
+Added the 8 missing non-claims fields (all `false`) to `measuredManifest()`
+inside `scripts/verify-itri-f12-decision-threshold-authority-reviewer.mjs`.
+No F-07R1 reviewer, F-12 reviewer, or S12 reviewer source was changed.
+
+### Commit
+
+`1ea4e180044e3d8b183c2d33d7465c9026636a17` — `itri: stabilize f12 verifier schema-ready fixture`
+
+### Validation result
+
+- `npx tsc --noEmit`: exit 0
+- `npm run build`: exit 0
+- `node scripts/verify-itri-f12-decision-threshold-authority-reviewer.mjs`: exit 0
+- `npm run test:itri-f12r1`: exit 0
+- `npm run test:itri-f07r1`: exit 0
+- `npm run test:itri-v02r1`: exit 0
+- `npm run test:itri-s4r1`: exit 0
+- `npm run test:itri-f01r1`: exit 0
+- `npm run test:itri-s11r1`: exit 0
+- `npm run test:itri-s12r1`: exit 0
+- `npm run test:itri-s12r3`: exit 0
+- Missing-package fail-closed: `packageState=missing`, exit 1
+- Manifest-outside-package fail-closed: `packageState=rejected`, gap `manifest.path-outside-package`, exit 1
+- Forbidden-claim scan: 0 matches
+- `git diff --check` and `git show --check HEAD`: clean
