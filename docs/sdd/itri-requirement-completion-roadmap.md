@@ -210,6 +210,18 @@ authority evidence, add an ITRI runtime adapter, implement propagation, change
 satellite/scenario/overlay runtime, promote public TLE/CelesTrak/Space-Track
 output as ITRI model authority, or close F-01 authority completion.
 
+S11R1 close-out: the bounded synthetic fallback fixture reviewer landed in
+`0d0074b`. Close-out details are recorded in
+[itri-s11r1-synthetic-fallback-fixture-reviewer-closeout.md](./itri-s11r1-synthetic-fallback-fixture-reviewer-closeout.md).
+The reviewer reads only explicitly named local packages under
+`output/validation/synthetic-fallback-fixtures/`, fails closed for missing/
+malformed/wrong-schema/non-Tier-3/strong-claim/unresolved-ref packages, and can
+reach only `bounded-synthetic-fixture-ready`. It does not create retained
+evidence, create fixture JSON, fetch external data, execute live tools, promote
+synthetic material to authority evidence, or close any measured, external,
+physical, F-01, F-12, V-lane, DUT/NAT/tunnel, native radio handover, active
+gateway/path, or full acceptance by ITRI.
+
 ## Public/Open Source Classification Rules
 
 Before promoting public/open material, classify it in a short source note:
