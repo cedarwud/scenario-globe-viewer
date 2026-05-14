@@ -531,6 +531,10 @@ function collectSourceArtifactRefIdsFromManifest(
   const catalogDerivation = catalog && isPlainRecord(catalog.derivation) ? catalog.derivation : null;
   const sourceAuthority = isPlainRecord(manifest.sourceAuthority) ? manifest.sourceAuthority : null;
   const ownerIdentity = isPlainRecord(manifest.ownerIdentity) ? manifest.ownerIdentity : null;
+  const licenseRedistributionPolicy = isPlainRecord(manifest.licenseRedistributionPolicy) ? manifest.licenseRedistributionPolicy : null;
+  const checksumPolicy = isPlainRecord(manifest.checksumPolicy) ? manifest.checksumPolicy : null;
+  const scenarioMapping = isPlainRecord(manifest.scenarioMapping) ? manifest.scenarioMapping : null;
+  const reviewGate = isPlainRecord(manifest.reviewGate) ? manifest.reviewGate : null;
 
   const ownerEvidenceRefs = ownerIdentity && ownerIdentity.ownerEvidenceRefs;
   addId(ownerEvidenceRefs, "ownerIdentity.ownerEvidenceRefs", true, gaps);
@@ -547,12 +551,11 @@ function collectSourceArtifactRefIdsFromManifest(
   addId(stalePolicy ? stalePolicy.policyArtifactRefs : null, "temporalRules.staleDataPolicy.policyArtifactRefs", true, gaps);
   addId(manifestTemporal ? manifestTemporal.temporalArtifactRefs : null, "temporalRules.temporalArtifactRefs", true, gaps);
 
-  addId(manifest.licenseRedistributionPolicy ? manifest.licenseRedistributionPolicy.policyArtifactRefs : null, "licenseRedistributionPolicy.policyArtifactRefs", true, gaps);
-  addId(manifest.checksumPolicy ? manifest.checksumPolicy.checksumManifestRefs : null, "checksumPolicy.checksumManifestRefs", true, gaps);
+  addId(licenseRedistributionPolicy ? licenseRedistributionPolicy.policyArtifactRefs : null, "licenseRedistributionPolicy.policyArtifactRefs", true, gaps);
+  addId(checksumPolicy ? checksumPolicy.checksumManifestRefs : null, "checksumPolicy.checksumManifestRefs", true, gaps);
 
-  addId(manifest.scenarioMapping ? manifest.scenarioMapping.sourceArtifactRefs : null, "scenarioMapping.sourceArtifactRefs", true, gaps);
+  addId(scenarioMapping ? scenarioMapping.sourceArtifactRefs : null, "scenarioMapping.sourceArtifactRefs", true, gaps);
 
-  const scenarioMapping = isPlainRecord(manifest.scenarioMapping) ? manifest.scenarioMapping : null;
   for (const rule of arrayValue(scenarioMapping?.recordToScenarioRules)) {
     if (isPlainRecord(rule)) {
       addId(rule.sourceArtifactRefs, "scenarioMapping.recordToScenarioRules[].sourceArtifactRefs", true, gaps);
@@ -584,13 +587,13 @@ function collectSourceArtifactRefIdsFromManifest(
     }
   }
 
-  addId(manifest.reviewGate ? manifest.reviewGate.sourceArtifactRefs : null, "reviewGate.sourceArtifactRefs", true, gaps);
+  addId(reviewGate ? reviewGate.sourceArtifactRefs : null, "reviewGate.sourceArtifactRefs", true, gaps);
 
   const ownerAuthorityPromotion = isPlainRecord(sourceAuthority?.ownerAuthorityPromotion) ? sourceAuthority?.ownerAuthorityPromotion : null;
   addId(ownerAuthorityPromotion ? ownerAuthorityPromotion.approvalArtifactRefs : null, "ownerAuthorityPromotion.approvalArtifactRefs", false, gaps);
 
-  const notes = isPlainRecord(manifest.reviewGate) && Array.isArray(manifest.reviewGate.reviewNotes)
-    ? manifest.reviewGate.reviewNotes
+  const notes = reviewGate && Array.isArray(reviewGate.reviewNotes)
+    ? reviewGate.reviewNotes
     : [];
   for (const note of arrayValue(notes)) {
     if (isPlainRecord(note)) {
@@ -1906,7 +1909,7 @@ function reviewPackageArtifacts(
         addGap(gaps, "package-artifacts.checksum-algorithm", "packageArtifact.checksum.algorithm is invalid.", {
           path: "packageArtifacts.checksum.algorithm"
         });
-      } else if (requiredChecksumAlgorithms !== null && !requiredChecksumAlgorithms.has(algorithm)) {
+      } else if (algorithm !== null && requiredChecksumAlgorithms !== null && !requiredChecksumAlgorithms.has(algorithm)) {
         addGap(
           gaps,
           "package-artifacts.checksum-policy-algorithm",
@@ -2033,53 +2036,6 @@ function reviewSyntheticReadiness(manifest: PlainRecord, gaps: ItriExternalSourc
   }
 
   return detectedPaths;
-}
-
-function synthesizeRequirementState(
-  packageState: ItriExternalSourcePackageIntakePackageState,
-  gaps: ItriExternalSourcePackageIntakeReviewGap[],
-  sourceArtifactRefSummary: ItriExternalSourcePackageIntakeSourceArtifactRefCheck,
-  reviewedAt: string
-): ItriExternalSourcePackageIntakeReview {
-  const packageStateValue = packageState;
-  const requirementState: ItriExternalSourcePackageIntakeReviewerState =
-    packageStateValue === "ready-for-intake" ? "ready-for-intake" : packageStateValue === "rejected" ? "rejected" : "incomplete";
-
-  return {
-    schemaVersion: ITRI_EXTERNAL_SOURCE_PACKAGE_INTAKE_REVIEW_SCHEMA_VERSION,
-    reviewedAt,
-    packagePath: "",
-    manifestPath: "",
-    packageState: packageStateValue,
-    manifestSchemaVersion: null,
-    packageIdentityId: null,
-    coveredRequirements: [...ITRI_EXTERNAL_SOURCE_PACKAGE_INTAKE_REQUIREMENTS],
-    requirementReviews: ITRI_EXTERNAL_SOURCE_PACKAGE_INTAKE_REQUIREMENTS.map((requirementId) => ({
-      requirementId,
-      reviewerState: requirementState,
-        evidenceScope:
-        "S12-D source package readiness requires declared boundaries, checksums, scenario mappings, and closed nonclaims.",
-      sourceArtifactIds: sourceArtifactRefSummary.declaredRefIds,
-      reviewer: {
-        nameOrRole: ITRI_EXTERNAL_SOURCE_PACKAGE_INTAKE_REVIEWER_NAME,
-        reviewedAt,
-        notes: [packageStateValue === "ready-for-intake"
-          ? "Source-package intake check passed."
-          : "Source-package intake has blocking gaps and is not ready."
-        ]
-      },
-      gaps
-    })),
-    gaps,
-    sourceArtifactRefSummary,
-    packageArtifactPathSummary: EMPTY_ARTIFACT_PATH_CHECK,
-    synthetic: {
-      syntheticSourceDetected: false,
-      detectedPaths: [],
-      rejected: packageStateValue === "rejected"
-    },
-    nonClaims: nonClaims()
-  };
 }
 
 export function reviewMissingItriExternalSourcePackageIntakePackagePath(
@@ -2243,7 +2199,7 @@ export function reviewItriExternalSourcePackageIntakeManifest(
 
   const syntheticPaths = reviewSyntheticReadiness(manifest, gaps);
 
-  const packageIdentity = isPlainRecord(manifest.packageIdentity) ? isPlainRecord(manifest.packageIdentity) && manifest.packageIdentity : null;
+  const packageIdentity = isPlainRecord(manifest.packageIdentity) ? manifest.packageIdentity : null;
   const packageIdentityId = packageIdentity && stringValue(packageIdentity, "packageId");
   const packageState: ItriExternalSourcePackageIntakePackageState =
     gaps.length === 0 ? "ready-for-intake" : "incomplete";
@@ -2253,7 +2209,7 @@ export function reviewItriExternalSourcePackageIntakeManifest(
   const requirementReviews: ItriExternalSourcePackageIntakeRequirementReview[] =
     ITRI_EXTERNAL_SOURCE_PACKAGE_INTAKE_REQUIREMENTS.map((requirementId) => ({
       requirementId,
-      reviewerState: packageState === "ready-for-intake" ? "ready-for-intake" : packageState === "rejected" ? "rejected" : "incomplete",
+      reviewerState: packageState === "ready-for-intake" ? "ready-for-intake" : "incomplete",
       evidenceScope:
         "F-03/F-15 source-package intake structural and boundary review for external source contracts.",
       sourceArtifactIds: declaredRefCheck.resolvedRefIds,
