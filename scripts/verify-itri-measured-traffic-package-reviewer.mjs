@@ -558,6 +558,63 @@ async function main() {
     });
 
     await withTempRepo(async (tempRepo) => {
+      const manifest = baseManifest();
+      manifest.topology.source.endpointId = "";
+      await writePackage(tempRepo, manifest);
+      const result = await runCli(reviewItriMeasuredTrafficPackageFromPath, tempRepo);
+
+      assert.equal(result.status, 1, "Missing topology.endpointId must fail closed.");
+      assert.equal(result.review.packageState, "incomplete");
+      assertHasGap(
+        result.review,
+        "topology.endpoint-field-missing",
+        "Topology endpoint field validation must cover required endpoint keys."
+      );
+    });
+
+    await withTempRepo(async (tempRepo) => {
+      const manifest = baseManifest();
+      manifest.topology = null;
+      await writePackage(tempRepo, manifest);
+      const result = await runCli(reviewItriMeasuredTrafficPackageFromPath, tempRepo);
+
+      assert.equal(result.status, 1, "Missing topology object must fail closed.");
+      assert.equal(result.review.packageState, "incomplete");
+      assertHasGap(
+        result.review,
+        "topology.missing",
+        "Missing topology object must be reported as a topology gap."
+      );
+    });
+
+    await withTempRepo(async (tempRepo) => {
+      const manifest = baseManifest();
+      manifest.parsedMetrics = [
+        {
+          ...manifest.parsedMetrics[0],
+          metricId: null,
+          sourceArtifactRefs: []
+        },
+        ...manifest.parsedMetrics.slice(1)
+      ];
+      await writePackage(tempRepo, manifest);
+      const result = await runCli(reviewItriMeasuredTrafficPackageFromPath, tempRepo);
+
+      assert.equal(result.status, 1, "Missing metric metricId and sourceArtifactRefs must fail closed.");
+      assert.equal(result.review.packageState, "incomplete");
+      assertHasGap(
+        result.review,
+        "parsed-metrics.metric-id-missing",
+        "Parsed metric metricId must be required and validated."
+      );
+      assertHasGap(
+        result.review,
+        "parsed-metrics.source-artifact-refs-missing",
+        "Parsed metric source artifact refs must be required and validated."
+      );
+    });
+
+    await withTempRepo(async (tempRepo) => {
       const manifest = {
         ...baseManifest(),
         sourceTier: "tier-3-synthetic",
@@ -748,7 +805,7 @@ async function main() {
   }
 
   console.log(
-    "F-07R1 measured-traffic package reviewer verifier passed: missing package, missing manifest, malformed, wrong schemaVersion, incomplete, synthetic, escaped-ref, verdict-ref consistency, parsed-metric-source-ref, importable, authority-gated, and path-boundary cases covered."
+    "F-07R1 measured-traffic package reviewer verifier passed: missing package, missing manifest, malformed, wrong schemaVersion, missing endpoint/topology/metric fields, synthetic, escaped-ref, verdict-ref consistency, parsed-metric-source-ref, importable, authority-gated, and path-boundary cases covered."
   );
 }
 

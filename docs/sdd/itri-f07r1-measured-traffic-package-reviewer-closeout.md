@@ -41,6 +41,10 @@ by default.
 - `authority-pass` is never assigned by default. A submitted authority-pass
   state is downgraded unless raw refs, parsed metric refs, external threshold
   owner/version/rules, and `unresolvedThresholdState: "none"` are present.
+- Positive path: a complete owner-package manifest under
+  `output/validation/external-f07-f09/<timestamp>-measured-traffic` now reviews as
+  `packageState: "importable"` with per-requirement `importable` state and exit
+  code 0, matching S2-C positive availability alignment.
 - Declared artifact refs, including `parsedMetrics[].sourceArtifactRefs`, must
   resolve inside the named package directory. Escaping refs are rejected.
 - Threshold authority is reported as external to the importer.
