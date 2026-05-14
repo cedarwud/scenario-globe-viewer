@@ -1,16 +1,16 @@
-export const ITRI_EXTERNAL_SOURCE_PACKAGE_INTAKE_SCHEMA_VERSION =
+export const CUSTOMER_EXTERNAL_SOURCE_PACKAGE_INTAKE_SCHEMA_VERSION =
   "itri.f03-f15.external-source-package-intake.v1" as const;
-export const ITRI_EXTERNAL_SOURCE_PACKAGE_INTAKE_REVIEW_SCHEMA_VERSION =
+export const CUSTOMER_EXTERNAL_SOURCE_PACKAGE_INTAKE_REVIEW_SCHEMA_VERSION =
   "itri.f03-f15r1.external-source-package-intake-review.v1" as const;
-export const ITRI_EXTERNAL_SOURCE_PACKAGE_INTAKE_PACKAGE_ROOT =
+export const CUSTOMER_EXTERNAL_SOURCE_PACKAGE_INTAKE_PACKAGE_ROOT =
   "output/validation/external-f03-f15" as const;
-export const ITRI_EXTERNAL_SOURCE_PACKAGE_INTAKE_REQUIREMENTS = ["F-03", "F-15"] as const;
+export const CUSTOMER_EXTERNAL_SOURCE_PACKAGE_INTAKE_REQUIREMENTS = ["F-03", "F-15"] as const;
 
-export const ITRI_EXTERNAL_SOURCE_PACKAGE_INTAKE_REVIEWER_NAME =
+export const CUSTOMER_EXTERNAL_SOURCE_PACKAGE_INTAKE_REVIEWER_NAME =
   "S12-D external source-package-intake reviewer" as const;
 
 export type ItriExternalSourcePackageIntakeRequirementId =
-  (typeof ITRI_EXTERNAL_SOURCE_PACKAGE_INTAKE_REQUIREMENTS)[number];
+  (typeof CUSTOMER_EXTERNAL_SOURCE_PACKAGE_INTAKE_REQUIREMENTS)[number];
 
 export type ItriExternalSourcePackageIntakeReviewerState =
   | "ready-for-intake"
@@ -75,7 +75,7 @@ export interface ItriExternalSourcePackageIntakeNonClaims {
 }
 
 export interface ItriExternalSourcePackageIntakeReview {
-  schemaVersion: typeof ITRI_EXTERNAL_SOURCE_PACKAGE_INTAKE_REVIEW_SCHEMA_VERSION;
+  schemaVersion: typeof CUSTOMER_EXTERNAL_SOURCE_PACKAGE_INTAKE_REVIEW_SCHEMA_VERSION;
   reviewedAt: string;
   packagePath: string;
   manifestPath: string;
@@ -344,7 +344,7 @@ function isAllowedPackagePath(packagePath: string): boolean {
     return false;
   }
 
-  return normalized.startsWith(`${ITRI_EXTERNAL_SOURCE_PACKAGE_INTAKE_PACKAGE_ROOT}/`);
+  return normalized.startsWith(`${CUSTOMER_EXTERNAL_SOURCE_PACKAGE_INTAKE_PACKAGE_ROOT}/`);
 }
 
 function valueOrNull(value: unknown): string | null {
@@ -373,7 +373,7 @@ function readRequirementIds(manifest: PlainRecord, gaps: ItriExternalSourcePacka
 
   const declaredSet = new Set<string>();
   for (const requirement of requirements) {
-    if ((ITRI_EXTERNAL_SOURCE_PACKAGE_INTAKE_REQUIREMENTS as readonly string[]).includes(requirement)) {
+    if ((CUSTOMER_EXTERNAL_SOURCE_PACKAGE_INTAKE_REQUIREMENTS as readonly string[]).includes(requirement)) {
       declaredSet.add(requirement);
       continue;
     }
@@ -412,21 +412,21 @@ function closedReview(
     "S12 source-package intake readiness for F-03/F-15 (structural, boundary, and nonclaim checks).";
 
   return {
-    schemaVersion: ITRI_EXTERNAL_SOURCE_PACKAGE_INTAKE_REVIEW_SCHEMA_VERSION,
+    schemaVersion: CUSTOMER_EXTERNAL_SOURCE_PACKAGE_INTAKE_REVIEW_SCHEMA_VERSION,
     reviewedAt,
     packagePath,
     manifestPath,
     packageState: options.packageState,
     manifestSchemaVersion: options.manifestSchemaVersion ?? null,
     packageIdentityId: options.packageIdentityId ?? null,
-    coveredRequirements: [...ITRI_EXTERNAL_SOURCE_PACKAGE_INTAKE_REQUIREMENTS],
-    requirementReviews: ITRI_EXTERNAL_SOURCE_PACKAGE_INTAKE_REQUIREMENTS.map((requirementId) => ({
+    coveredRequirements: [...CUSTOMER_EXTERNAL_SOURCE_PACKAGE_INTAKE_REQUIREMENTS],
+    requirementReviews: CUSTOMER_EXTERNAL_SOURCE_PACKAGE_INTAKE_REQUIREMENTS.map((requirementId) => ({
       requirementId,
       reviewerState: requirementState,
       evidenceScope,
       sourceArtifactIds: options.sourceArtifactRefSummary ? options.sourceArtifactRefSummary.declaredRefIds : [],
       reviewer: {
-        nameOrRole: ITRI_EXTERNAL_SOURCE_PACKAGE_INTAKE_REVIEWER_NAME,
+        nameOrRole: CUSTOMER_EXTERNAL_SOURCE_PACKAGE_INTAKE_REVIEWER_NAME,
         reviewedAt,
         notes: [
           options.packageState === "ready-for-intake"
@@ -616,11 +616,11 @@ function reviewMissingRootFields(manifest: PlainRecord, gaps: ItriExternalSource
 
 function reviewSchemaVersion(manifest: PlainRecord, gaps: ItriExternalSourcePackageIntakeReviewGap[]): string | null {
   const schemaVersion = stringValue(manifest, "schemaVersion");
-  if (schemaVersion !== ITRI_EXTERNAL_SOURCE_PACKAGE_INTAKE_SCHEMA_VERSION) {
+  if (schemaVersion !== CUSTOMER_EXTERNAL_SOURCE_PACKAGE_INTAKE_SCHEMA_VERSION) {
     addGap(
       gaps,
       "manifest.schema-version",
-      `manifest.schemaVersion must be ${ITRI_EXTERNAL_SOURCE_PACKAGE_INTAKE_SCHEMA_VERSION}.`,
+      `manifest.schemaVersion must be ${CUSTOMER_EXTERNAL_SOURCE_PACKAGE_INTAKE_SCHEMA_VERSION}.`,
       { path: "schemaVersion" }
     );
     return schemaVersion;
@@ -634,7 +634,7 @@ function reviewPackagePath(packagePath: string, gaps: ItriExternalSourcePackageI
     addGap(
       gaps,
       "package.path-outside-retained-root",
-      `Package path must be under ${ITRI_EXTERNAL_SOURCE_PACKAGE_INTAKE_PACKAGE_ROOT}/.`,
+      `Package path must be under ${CUSTOMER_EXTERNAL_SOURCE_PACKAGE_INTAKE_PACKAGE_ROOT}/.`,
       { path: "packagePath" }
     );
   }
@@ -2112,7 +2112,7 @@ export function reviewRejectedItriExternalSourcePackageIntakePackagePath(
   addGap(
     gaps,
     "package.path-outside-retained-root",
-    `Package path must be under ${ITRI_EXTERNAL_SOURCE_PACKAGE_INTAKE_PACKAGE_ROOT}/.`,
+    `Package path must be under ${CUSTOMER_EXTERNAL_SOURCE_PACKAGE_INTAKE_PACKAGE_ROOT}/.`,
     { path: "packagePath" }
   );
 
@@ -2207,14 +2207,14 @@ export function reviewItriExternalSourcePackageIntakeManifest(
   const coveredRequirements = readRequirementIds(packageIdentity as PlainRecord, gaps);
 
   const requirementReviews: ItriExternalSourcePackageIntakeRequirementReview[] =
-    ITRI_EXTERNAL_SOURCE_PACKAGE_INTAKE_REQUIREMENTS.map((requirementId) => ({
+    CUSTOMER_EXTERNAL_SOURCE_PACKAGE_INTAKE_REQUIREMENTS.map((requirementId) => ({
       requirementId,
       reviewerState: packageState === "ready-for-intake" ? "ready-for-intake" : "incomplete",
       evidenceScope:
         "F-03/F-15 source-package intake structural and boundary review for external source contracts.",
       sourceArtifactIds: declaredRefCheck.resolvedRefIds,
       reviewer: {
-        nameOrRole: ITRI_EXTERNAL_SOURCE_PACKAGE_INTAKE_REVIEWER_NAME,
+        nameOrRole: CUSTOMER_EXTERNAL_SOURCE_PACKAGE_INTAKE_REVIEWER_NAME,
         reviewedAt,
         notes:
           gaps.length === 0
@@ -2225,7 +2225,7 @@ export function reviewItriExternalSourcePackageIntakeManifest(
     }));
 
   return {
-    schemaVersion: ITRI_EXTERNAL_SOURCE_PACKAGE_INTAKE_REVIEW_SCHEMA_VERSION,
+    schemaVersion: CUSTOMER_EXTERNAL_SOURCE_PACKAGE_INTAKE_REVIEW_SCHEMA_VERSION,
     reviewedAt,
     packagePath,
     manifestPath,
@@ -2235,7 +2235,7 @@ export function reviewItriExternalSourcePackageIntakeManifest(
     coveredRequirements:
       coveredRequirements.length > 0
         ? (coveredRequirements as ReadonlyArray<ItriExternalSourcePackageIntakeRequirementId>)
-        : [...ITRI_EXTERNAL_SOURCE_PACKAGE_INTAKE_REQUIREMENTS],
+        : [...CUSTOMER_EXTERNAL_SOURCE_PACKAGE_INTAKE_REQUIREMENTS],
     requirementReviews,
     gaps,
     sourceArtifactRefSummary: {

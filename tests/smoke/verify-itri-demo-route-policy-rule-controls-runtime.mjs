@@ -638,7 +638,7 @@ async function main() {
       url: `${baseUrl}${REQUEST_PATH}`
     });
     await waitForPolicyRuleReady(client);
-    await waitForGlobeReady(client, "ITRI policy/rule controls");
+    await waitForGlobeReady(client, "customer policy/rule controls");
     await openInspectorForCapture(client);
     await sleep(500);
 
@@ -689,7 +689,7 @@ async function main() {
     );
   });
 
-  console.log(`ITRI policy/rule controls validated. Output: ${outputRoot}`);
+  console.log(`customer policy/rule controls validated. Output: ${outputRoot}`);
 }
 
 main().catch((error) => {

@@ -84,7 +84,7 @@ async function waitForDefaultFocusReady(client) {
     await sleep(100);
   }
 
-  throw new Error(`ITRI default-focus view did not become ready: ${JSON.stringify(lastState)}`);
+  throw new Error(`customer default-focus view did not become ready: ${JSON.stringify(lastState)}`);
 }
 
 async function inspectDefaultFocus(client) {
@@ -409,7 +409,7 @@ async function main() {
       url: `${baseUrl}${REQUEST_PATH}`
     });
     await waitForDefaultFocusReady(client);
-    await waitForGlobeReady(client, "ITRI demo view default focus");
+    await waitForGlobeReady(client, "customer demo view default focus");
     await evaluateRuntimeValue(
       client,
       `window.__SCENARIO_GLOBE_VIEWER_CAPTURE__?.m8aV4GroundStationScene?.pause?.()`
@@ -440,7 +440,7 @@ async function main() {
     );
   });
 
-  console.log(`ITRI demo view default focus validated. Output: ${outputRoot}`);
+  console.log(`customer demo view default focus validated. Output: ${outputRoot}`);
 }
 
 main().catch((error) => {

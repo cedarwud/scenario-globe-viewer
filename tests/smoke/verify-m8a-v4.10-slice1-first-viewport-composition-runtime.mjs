@@ -211,7 +211,7 @@ function assertForbiddenClaimScan(result, label) {
   );
   assert(
     result.resourceHits.length === 0,
-    `${label} must not fetch raw ITRI packages or live external source resources: ` +
+    `${label} must not fetch raw customer packages or live external source resources: ` +
       JSON.stringify(result.resourceHits)
   );
 }

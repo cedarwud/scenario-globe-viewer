@@ -1,11 +1,11 @@
-export const ITRI_EXTERNAL_VALIDATION_MANIFEST_SCHEMA_VERSION =
+export const CUSTOMER_EXTERNAL_VALIDATION_MANIFEST_SCHEMA_VERSION =
   "itri.v02-v06.external-validation-manifest.v1" as const;
-export const ITRI_EXTERNAL_VALIDATION_MANIFEST_REVIEW_SCHEMA_VERSION =
+export const CUSTOMER_EXTERNAL_VALIDATION_MANIFEST_REVIEW_SCHEMA_VERSION =
   "itri.v02r1.external-validation-manifest-review.v1" as const;
-export const ITRI_EXTERNAL_VALIDATION_PACKAGE_ROOT =
+export const CUSTOMER_EXTERNAL_VALIDATION_PACKAGE_ROOT =
   "output/validation/external-v02-v06" as const;
 
-export const ITRI_EXTERNAL_VALIDATION_REQUIREMENTS = [
+export const CUSTOMER_EXTERNAL_VALIDATION_REQUIREMENTS = [
   "V-02",
   "V-03",
   "V-04",
@@ -14,7 +14,7 @@ export const ITRI_EXTERNAL_VALIDATION_REQUIREMENTS = [
 ] as const;
 
 export type ItriExternalValidationRequirementId =
-  (typeof ITRI_EXTERNAL_VALIDATION_REQUIREMENTS)[number];
+  (typeof CUSTOMER_EXTERNAL_VALIDATION_REQUIREMENTS)[number];
 
 export type ItriExternalValidationReviewerState =
   | "importable"
@@ -95,7 +95,7 @@ export interface ItriExternalValidationNonClaims {
 }
 
 export interface ItriExternalValidationManifestReview {
-  schemaVersion: typeof ITRI_EXTERNAL_VALIDATION_MANIFEST_REVIEW_SCHEMA_VERSION;
+  schemaVersion: typeof CUSTOMER_EXTERNAL_VALIDATION_MANIFEST_REVIEW_SCHEMA_VERSION;
   reviewedAt: string;
   packagePath: string;
   manifestPath: string;
@@ -278,7 +278,7 @@ function normalizePackagePath(packagePath: string): string {
 
 export function isAllowedItriExternalValidationPackagePath(packagePath: string): boolean {
   const normalized = normalizePackagePath(packagePath);
-  const root = ITRI_EXTERNAL_VALIDATION_PACKAGE_ROOT;
+  const root = CUSTOMER_EXTERNAL_VALIDATION_PACKAGE_ROOT;
 
   return (
     normalized.startsWith(`${root}/`) &&
@@ -333,7 +333,7 @@ function closedReview(
     "External-validation manifest review did not reach an importable state.";
 
   return {
-    schemaVersion: ITRI_EXTERNAL_VALIDATION_MANIFEST_REVIEW_SCHEMA_VERSION,
+    schemaVersion: CUSTOMER_EXTERNAL_VALIDATION_MANIFEST_REVIEW_SCHEMA_VERSION,
     reviewedAt,
     packagePath: normalizePackagePath(options.packagePath),
     manifestPath: options.manifestPath ?? defaultManifestPath(options.packagePath),
@@ -341,8 +341,8 @@ function closedReview(
     manifestSchemaVersion: options.manifestSchemaVersion ?? null,
     packageId: null,
     runId: null,
-    coveredRequirements: [...ITRI_EXTERNAL_VALIDATION_REQUIREMENTS],
-    requirementReviews: ITRI_EXTERNAL_VALIDATION_REQUIREMENTS.map((requirementId) =>
+    coveredRequirements: [...CUSTOMER_EXTERNAL_VALIDATION_REQUIREMENTS],
+    requirementReviews: CUSTOMER_EXTERNAL_VALIDATION_REQUIREMENTS.map((requirementId) =>
       missingRequirementReview(requirementId, reviewedAt, message)
     ),
     gaps: options.gaps,
@@ -431,7 +431,7 @@ export function reviewRejectedItriExternalValidationPackagePath(
   addGap(
     gaps,
     "package.path-outside-retained-root",
-    `External-validation package path must be under ${ITRI_EXTERNAL_VALIDATION_PACKAGE_ROOT}/.`,
+    `External-validation package path must be under ${CUSTOMER_EXTERNAL_VALIDATION_PACKAGE_ROOT}/.`,
     { path: normalizePackagePath(options.packagePath) }
   );
 
@@ -479,11 +479,11 @@ function reviewSchemaVersion(
 ): string | null {
   const schemaVersion = stringValue(manifest, "schemaVersion");
 
-  if (schemaVersion !== ITRI_EXTERNAL_VALIDATION_MANIFEST_SCHEMA_VERSION) {
+  if (schemaVersion !== CUSTOMER_EXTERNAL_VALIDATION_MANIFEST_SCHEMA_VERSION) {
     addGap(
       gaps,
       "manifest.schema-version",
-      `Manifest schemaVersion must be ${ITRI_EXTERNAL_VALIDATION_MANIFEST_SCHEMA_VERSION}.`,
+      `Manifest schemaVersion must be ${CUSTOMER_EXTERNAL_VALIDATION_MANIFEST_SCHEMA_VERSION}.`,
       { path: "schemaVersion" }
     );
   }
@@ -503,7 +503,7 @@ function reviewPackagePath(
     addGap(
       gaps,
       "package.path-outside-retained-root",
-      `Package path must be explicitly under ${ITRI_EXTERNAL_VALIDATION_PACKAGE_ROOT}/.`,
+      `Package path must be explicitly under ${CUSTOMER_EXTERNAL_VALIDATION_PACKAGE_ROOT}/.`,
       { path: "packagePath" }
     );
   }
@@ -671,7 +671,7 @@ function buildRedactionReview(policy: PlainRecord | null): ItriExternalValidatio
 
 function requirementFromUnknown(value: unknown): ItriExternalValidationRequirementId | null {
   return typeof value === "string" &&
-    (ITRI_EXTERNAL_VALIDATION_REQUIREMENTS as ReadonlyArray<string>).includes(value)
+    (CUSTOMER_EXTERNAL_VALIDATION_REQUIREMENTS as ReadonlyArray<string>).includes(value)
     ? (value as ItriExternalValidationRequirementId)
     : null;
 }
@@ -1807,7 +1807,7 @@ export function reviewItriExternalValidationManifest({
   const reviewRequirements =
     coveredRequirements.length > 0
       ? coveredRequirements
-      : [...ITRI_EXTERNAL_VALIDATION_REQUIREMENTS];
+      : [...CUSTOMER_EXTERNAL_VALIDATION_REQUIREMENTS];
   const requirementReviews = reviewRequirements.map((requirementId) =>
     buildRequirementReview({
       manifest,
@@ -1821,7 +1821,7 @@ export function reviewItriExternalValidationManifest({
   );
 
   return {
-    schemaVersion: ITRI_EXTERNAL_VALIDATION_MANIFEST_REVIEW_SCHEMA_VERSION,
+    schemaVersion: CUSTOMER_EXTERNAL_VALIDATION_MANIFEST_REVIEW_SCHEMA_VERSION,
     reviewedAt: resolvedReviewTime,
     packagePath: normalizedPackagePath,
     manifestPath: normalizedManifestPath,

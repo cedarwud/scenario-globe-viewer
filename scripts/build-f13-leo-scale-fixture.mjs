@@ -143,7 +143,7 @@ function main() {
         refreshPolicy:
           "ad-hoc explicit refresh only; rerun this script after fetching a new Celestrak export and rerun Phase 7.1 validation",
         licenseNote:
-          "Celestrak public GP/TLE data copied for bounded repo validation. This fixture is not ITRI authority data, live network truth, active satellite path truth, or measured performance truth."
+          "Celestrak public GP/TLE data copied for bounded repo validation. This fixture is not customer authority data, live network truth, active satellite path truth, or measured performance truth."
       },
       null,
       2

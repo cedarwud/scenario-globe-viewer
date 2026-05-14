@@ -901,7 +901,7 @@ function assertPreservedScenarioFacts(result) {
   );
   assert(
     result.resourceHits.length === 0,
-    "V4.9 runtime must not fetch raw ITRI packages or live external source resources: " +
+    "V4.9 runtime must not fetch raw customer packages or live external source resources: " +
       JSON.stringify(result.resourceHits)
   );
 }

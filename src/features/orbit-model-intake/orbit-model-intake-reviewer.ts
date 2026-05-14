@@ -1,14 +1,14 @@
-export const ITRI_ORBIT_MODEL_INTAKE_PACKAGE_SCHEMA_VERSION =
+export const CUSTOMER_ORBIT_MODEL_INTAKE_PACKAGE_SCHEMA_VERSION =
   "itri.f01.orbit-model-intake.v1" as const;
-export const ITRI_ORBIT_MODEL_INTAKE_REVIEW_SCHEMA_VERSION =
+export const CUSTOMER_ORBIT_MODEL_INTAKE_REVIEW_SCHEMA_VERSION =
   "itri.f01r1.orbit-model-intake-review.v1" as const;
-export const ITRI_ORBIT_MODEL_INTAKE_PACKAGE_ROOT =
+export const CUSTOMER_ORBIT_MODEL_INTAKE_PACKAGE_ROOT =
   "output/validation/external-f01-orbit-model" as const;
 
-export const ITRI_ORBIT_MODEL_INTAKE_REQUIREMENTS = ["F-01"] as const;
+export const CUSTOMER_ORBIT_MODEL_INTAKE_REQUIREMENTS = ["F-01"] as const;
 
 export type ItriOrbitModelIntakeRequirementId =
-  (typeof ITRI_ORBIT_MODEL_INTAKE_REQUIREMENTS)[number];
+  (typeof CUSTOMER_ORBIT_MODEL_INTAKE_REQUIREMENTS)[number];
 
 export type ItriOrbitModelIntakeReviewerState =
   | "ready-for-design-review"
@@ -85,7 +85,7 @@ export interface ItriOrbitModelIntakeNonClaims {
 }
 
 export interface ItriOrbitModelIntakeReview {
-  schemaVersion: typeof ITRI_ORBIT_MODEL_INTAKE_REVIEW_SCHEMA_VERSION;
+  schemaVersion: typeof CUSTOMER_ORBIT_MODEL_INTAKE_REVIEW_SCHEMA_VERSION;
   reviewedAt: string;
   packagePath: string;
   manifestPath: string;
@@ -276,7 +276,7 @@ export function isAllowedItriOrbitModelIntakePackagePath(
   packagePath: string
 ): boolean {
   const normalized = normalizePackagePath(packagePath);
-  const root = ITRI_ORBIT_MODEL_INTAKE_PACKAGE_ROOT;
+  const root = CUSTOMER_ORBIT_MODEL_INTAKE_PACKAGE_ROOT;
 
   return (
     normalized.startsWith(`${root}/`) &&
@@ -354,7 +354,7 @@ function closedReview(
     options.packageState === "rejected" ? "rejected" : "incomplete";
 
   return {
-    schemaVersion: ITRI_ORBIT_MODEL_INTAKE_REVIEW_SCHEMA_VERSION,
+    schemaVersion: CUSTOMER_ORBIT_MODEL_INTAKE_REVIEW_SCHEMA_VERSION,
     reviewedAt,
     packagePath: normalizePackagePath(options.packagePath),
     manifestPath: options.manifestPath ?? defaultManifestPath(options.packagePath),
@@ -437,7 +437,7 @@ export function reviewRejectedItriOrbitModelIntakePackagePath(
   addGap(
     gaps,
     "package.path-outside-retained-root",
-    `Orbit-model intake package path must be under ${ITRI_ORBIT_MODEL_INTAKE_PACKAGE_ROOT}/.`,
+    `Orbit-model intake package path must be under ${CUSTOMER_ORBIT_MODEL_INTAKE_PACKAGE_ROOT}/.`,
     { path: normalizePackagePath(options.packagePath) }
   );
 
@@ -505,11 +505,11 @@ function reviewSchemaVersion(
 ): string | null {
   const schemaVersion = stringValue(manifest, "schemaVersion");
 
-  if (schemaVersion !== ITRI_ORBIT_MODEL_INTAKE_PACKAGE_SCHEMA_VERSION) {
+  if (schemaVersion !== CUSTOMER_ORBIT_MODEL_INTAKE_PACKAGE_SCHEMA_VERSION) {
     addGap(
       gaps,
       "manifest.schema-version",
-      `Manifest schemaVersion must be ${ITRI_ORBIT_MODEL_INTAKE_PACKAGE_SCHEMA_VERSION}.`,
+      `Manifest schemaVersion must be ${CUSTOMER_ORBIT_MODEL_INTAKE_PACKAGE_SCHEMA_VERSION}.`,
       { path: "schemaVersion" }
     );
   }
@@ -527,7 +527,7 @@ function reviewPackagePath(
     addGap(
       gaps,
       "package.path-outside-retained-root",
-      `Package path must be explicitly under ${ITRI_ORBIT_MODEL_INTAKE_PACKAGE_ROOT}/.`,
+      `Package path must be explicitly under ${CUSTOMER_ORBIT_MODEL_INTAKE_PACKAGE_ROOT}/.`,
       { path: "packagePath" }
     );
   }
@@ -634,7 +634,7 @@ function reviewSourceTier(
     addGap(
       gaps,
       "source-tier.public-tle-promoted",
-      "Public TLE, CelesTrak, or Space-Track source tiers must not be promoted to ITRI orbit-model authority.",
+      "Public TLE, CelesTrak, or Space-Track source tiers must not be promoted to customer orbit-model authority.",
       { path: "sourceTier" }
     );
     return sourceTier;
@@ -646,7 +646,7 @@ function reviewSourceTier(
     addGap(
       gaps,
       "source-tier.not-retained-authority",
-      "sourceTier must indicate retained ITRI or owner-approved orbit-model authority context.",
+      "sourceTier must indicate retained customer or owner-approved orbit-model authority context.",
       { path: "sourceTier" }
     );
   }
@@ -1432,7 +1432,7 @@ export function reviewItriOrbitModelIntakeManifest({
   const packageState = packageStateFromGaps(gaps);
 
   return {
-    schemaVersion: ITRI_ORBIT_MODEL_INTAKE_REVIEW_SCHEMA_VERSION,
+    schemaVersion: CUSTOMER_ORBIT_MODEL_INTAKE_REVIEW_SCHEMA_VERSION,
     reviewedAt: resolvedReviewTime,
     packagePath: normalizedPackagePath,
     manifestPath: normalizedManifestPath,

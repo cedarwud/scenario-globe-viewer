@@ -216,14 +216,14 @@ function baseProfile() {
     frequencyBands: [
       {
         bandId: "not-yet-selected",
-        label: "ITRI/V-group frequency bands not yet supplied",
+        label: "customer/V-group frequency bands not yet supplied",
         sourceIds: ["S4A-ITU-P618"],
         notes: ["No numeric band is inferred from current bounded proxy values."]
       }
     ],
     geography: {
       geographyId: "not-yet-selected",
-      label: "ITRI/V-group geography not yet supplied",
+      label: "customer/V-group geography not yet supplied",
       sourceIds: ["S4A-ITU-P837", "S4A-ITU-P839"],
       notes: ["No location parameter is invented by the public profile."]
     },
@@ -257,7 +257,7 @@ function baseProfile() {
       classId: "not-yet-selected",
       terminalRole: "earth-station",
       selectedPatternSourceIds: ["S4A-ITU-S465", "S4A-ITU-S580"],
-      notes: ["Antenna geometry remains pending ITRI/V-group input."]
+      notes: ["Antenna geometry remains pending customer/V-group input."]
     },
     pointingAssumptions: [
       "No pointing assumption is selected beyond bounded public profile review."
@@ -272,7 +272,7 @@ function baseProfile() {
         vectorId: "itri-validation-vectors-not-yet-supplied",
         source: "not-yet-supplied",
         coveredRequirements: ["F-17", "P-01", "P-02", "P-03"],
-        inputSummary: "ITRI/V-group validation vectors are not retained.",
+        inputSummary: "customer/V-group validation vectors are not retained.",
         notes: ["Placeholder request only; not a synthetic fixture."]
       }
     ],

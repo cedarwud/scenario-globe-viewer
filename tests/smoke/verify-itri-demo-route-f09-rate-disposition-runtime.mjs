@@ -364,7 +364,7 @@ async function main() {
       url: `${baseUrl}${REQUEST_PATH}`
     });
     await waitForF09Ready(client);
-    await waitForGlobeReady(client, "ITRI F-09 route rate disposition");
+    await waitForGlobeReady(client, "customer F-09 route rate disposition");
     await openInspectorForCapture(client);
     await sleep(500);
 
@@ -485,7 +485,7 @@ async function main() {
     assertScreenshot(screenshot);
   });
 
-  console.log(`ITRI F-09 route rate disposition validated. Output: ${outputRoot}`);
+  console.log(`customer F-09 route rate disposition validated. Output: ${outputRoot}`);
 }
 
 main().catch((error) => {

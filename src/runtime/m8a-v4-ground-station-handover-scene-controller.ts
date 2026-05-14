@@ -61,79 +61,79 @@ import { syncTelemetry } from "./m8a-v4-ground-station-telemetry-sync";
 import {
   isM8aV4ItriF10PolicyPresetId,
   isM8aV4ItriF11RulePresetId,
-  M8A_V4_ITRI_ACCEPTANCE_BOUNDED_ROUTE_REPRESENTATION_IDS,
-  M8A_V4_ITRI_ACCEPTANCE_COVERAGE_RECORDS,
-  M8A_V4_ITRI_ACCEPTANCE_EXTERNAL_FAIL_IDS,
-  M8A_V4_ITRI_ACCEPTANCE_REQUIREMENT_IDS,
-  M8A_V4_ITRI_ACCEPTANCE_REQUIREMENT_LAYER_PAIRS,
-  M8A_V4_ITRI_ACCEPTANCE_REQUIREMENT_STATUS_PAIRS,
-  M8A_V4_ITRI_DEMO_POLISH_DISPOSITION,
-  M8A_V4_ITRI_DEMO_VIEW_ACCEPTANCE_LAYER_ID,
-  M8A_V4_ITRI_DEMO_VIEW_ACCEPTANCE_LAYER_VERSION,
-  M8A_V4_ITRI_DEMO_VIEW_ACCEPTANCE_TRUTH_BOUNDARY,
-  M8A_V4_ITRI_DEMO_VIEW_DEFAULT_FOCUS_VERSION,
-  M8A_V4_ITRI_DEMO_VIEW_DEFAULT_TRUTH_COPY,
-  M8A_V4_ITRI_DEMO_VIEW_NARROW_VERSION,
-  M8A_V4_ITRI_EXTERNAL_V02_V06_STATUS,
-  M8A_V4_ITRI_EXTERNAL_V02_V06_VALIDATION_ARTIFACT,
-  M8A_V4_ITRI_F09_EXTERNAL_TRUTH_DISPOSITION,
-  M8A_V4_ITRI_F09_MEASURED_THROUGHPUT_CLAIMED,
-  M8A_V4_ITRI_F09_METRIC_TRUTH,
-  M8A_V4_ITRI_F09_PROVENANCE,
-  M8A_V4_ITRI_F09_RATE_DISPOSITION,
-  M8A_V4_ITRI_F09_RATE_SURFACE_VERSION,
-  M8A_V4_ITRI_F10_POLICY_DEFAULT_PRESET_ID,
-  M8A_V4_ITRI_F10_POLICY_PRESET_MODE,
-  M8A_V4_ITRI_F10_POLICY_PRESETS,
-  M8A_V4_ITRI_F11_RULE_DEFAULT_PRESET_ID,
-  M8A_V4_ITRI_F11_RULE_PRESET_MODE,
-  M8A_V4_ITRI_F11_RULE_PRESETS,
-  M8A_V4_ITRI_F16_EXPORT_ARTIFACT_TRUTH,
-  M8A_V4_ITRI_F16_EXPORT_DISPOSITION,
-  M8A_V4_ITRI_F16_EXPORT_FORMAT,
-  M8A_V4_ITRI_F16_EXPORT_PROVENANCE,
-  M8A_V4_ITRI_F16_EXPORT_SCHEMA_VERSION,
-  M8A_V4_ITRI_F16_EXPORT_SURFACE_VERSION,
-  M8A_V4_ITRI_F16_EXTERNAL_REPORT_TRUTH_CLAIMED,
-  M8A_V4_ITRI_F16_EXTERNAL_TRUTH_DISPOSITION,
-  M8A_V4_ITRI_F16_EXPLICIT_NON_CLAIMS,
-  M8A_V4_ITRI_F16_MEASURED_VALUES_INCLUDED,
-  M8A_V4_ITRI_F16_ROUTE_OWNED_STATE_ONLY,
-  M8A_V4_ITRI_F13_ROUTE_NATIVE_SCALE_BUILT_AT_UTC,
-  M8A_V4_ITRI_F13_ROUTE_NATIVE_SCALE_DATA_SOURCE_LABEL,
-  M8A_V4_ITRI_F13_ROUTE_NATIVE_SCALE_FRESHNESS_NOTES,
-  M8A_V4_ITRI_F13_ROUTE_NATIVE_SCALE_FRESHNESS_TIMESTAMP_UTC,
-  M8A_V4_ITRI_F13_ROUTE_NATIVE_SCALE_LICENSE_NOTES,
-  M8A_V4_ITRI_F13_ROUTE_NATIVE_SCALE_PUBLIC_SOURCE_USED,
-  M8A_V4_ITRI_F13_ROUTE_NATIVE_SCALE_READINESS_COUNTS,
-  M8A_V4_ITRI_F13_ROUTE_NATIVE_SCALE_READINESS_KNOWN_GAPS,
-  M8A_V4_ITRI_F13_ROUTE_NATIVE_SCALE_READINESS_NON_CLAIMS,
-  M8A_V4_ITRI_F13_ROUTE_NATIVE_SCALE_READINESS_VERSION,
-  M8A_V4_ITRI_F13_ROUTE_NATIVE_SCALE_SOURCE_MODE,
-  M8A_V4_ITRI_F13_ROUTE_NATIVE_SCALE_SOURCE_TYPE,
-  M8A_V4_ITRI_F13_ROUTE_NATIVE_SCALE_SOURCE_URL,
-  M8A_V4_ITRI_F13_ROUTE_NATIVE_SCALE_TARGET_LEO_COUNT,
-  M8A_V4_ITRI_PHASE7_1_F13_EVIDENCE_ARTIFACT,
-  M8A_V4_ITRI_PHASE7_1_F13_EVIDENCE_GENERATED_AT_UTC,
-  M8A_V4_ITRI_PHASE7_1_F13_EVIDENCE_STALE_AFTER_UTC,
-  M8A_V4_ITRI_PHASE7_1_F13_LEO_COUNT,
-  M8A_V4_ITRI_PHASE7_1_F13_TOTAL_COUNT,
-  M8A_V4_ITRI_POLICY_RULE_ARBITRARY_EDITOR_CLAIMED,
-  M8A_V4_ITRI_POLICY_RULE_BACKEND_CONTROL_CLAIMED,
-  M8A_V4_ITRI_POLICY_RULE_CONTROLS_VERSION,
-  M8A_V4_ITRI_POLICY_RULE_DISPOSITION,
-  M8A_V4_ITRI_POLICY_RULE_EXPORT_ADJACENT_TRUTH,
-  M8A_V4_ITRI_POLICY_RULE_EXTERNAL_TRUTH_DISPOSITION,
-  M8A_V4_ITRI_POLICY_RULE_LIVE_CONTROL_CLAIMED,
-  M8A_V4_ITRI_POLICY_RULE_MEASURED_DECISION_TRUTH_CLAIMED,
-  M8A_V4_ITRI_POLICY_RULE_NETWORK_CONTROL_CLAIMED,
-  M8A_V4_ITRI_POLICY_RULE_ROUTE_OWNED_STATE_ONLY,
-  M8A_V4_ITRI_POLICY_RULE_TRUTH_BOUNDARY,
-  M8A_V4_ITRI_REQUIREMENT_GAP_SURFACE_VERSION,
-  M8A_V4_ITRI_REQUIREMENT_GAP_TRUTH_LABELS,
-  M8A_V4_ITRI_REQUIREMENT_OPEN_IDS,
-  M8A_V4_ITRI_REQUIREMENT_STATUS_GROUPS,
-  M8A_V4_ITRI_ROUTE_NATIVE_MEASURED_TRUTH_CLAIMED,
+  M8A_V4_CUSTOMER_ACCEPTANCE_BOUNDED_ROUTE_REPRESENTATION_IDS,
+  M8A_V4_CUSTOMER_ACCEPTANCE_COVERAGE_RECORDS,
+  M8A_V4_CUSTOMER_ACCEPTANCE_EXTERNAL_FAIL_IDS,
+  M8A_V4_CUSTOMER_ACCEPTANCE_REQUIREMENT_IDS,
+  M8A_V4_CUSTOMER_ACCEPTANCE_REQUIREMENT_LAYER_PAIRS,
+  M8A_V4_CUSTOMER_ACCEPTANCE_REQUIREMENT_STATUS_PAIRS,
+  M8A_V4_CUSTOMER_DEMO_POLISH_DISPOSITION,
+  M8A_V4_CUSTOMER_DEMO_VIEW_ACCEPTANCE_LAYER_ID,
+  M8A_V4_CUSTOMER_DEMO_VIEW_ACCEPTANCE_LAYER_VERSION,
+  M8A_V4_CUSTOMER_DEMO_VIEW_ACCEPTANCE_TRUTH_BOUNDARY,
+  M8A_V4_CUSTOMER_DEMO_VIEW_DEFAULT_FOCUS_VERSION,
+  M8A_V4_CUSTOMER_DEMO_VIEW_DEFAULT_TRUTH_COPY,
+  M8A_V4_CUSTOMER_DEMO_VIEW_NARROW_VERSION,
+  M8A_V4_CUSTOMER_EXTERNAL_V02_V06_STATUS,
+  M8A_V4_CUSTOMER_EXTERNAL_V02_V06_VALIDATION_ARTIFACT,
+  M8A_V4_CUSTOMER_F09_EXTERNAL_TRUTH_DISPOSITION,
+  M8A_V4_CUSTOMER_F09_MEASURED_THROUGHPUT_CLAIMED,
+  M8A_V4_CUSTOMER_F09_METRIC_TRUTH,
+  M8A_V4_CUSTOMER_F09_PROVENANCE,
+  M8A_V4_CUSTOMER_F09_RATE_DISPOSITION,
+  M8A_V4_CUSTOMER_F09_RATE_SURFACE_VERSION,
+  M8A_V4_CUSTOMER_F10_POLICY_DEFAULT_PRESET_ID,
+  M8A_V4_CUSTOMER_F10_POLICY_PRESET_MODE,
+  M8A_V4_CUSTOMER_F10_POLICY_PRESETS,
+  M8A_V4_CUSTOMER_F11_RULE_DEFAULT_PRESET_ID,
+  M8A_V4_CUSTOMER_F11_RULE_PRESET_MODE,
+  M8A_V4_CUSTOMER_F11_RULE_PRESETS,
+  M8A_V4_CUSTOMER_F16_EXPORT_ARTIFACT_TRUTH,
+  M8A_V4_CUSTOMER_F16_EXPORT_DISPOSITION,
+  M8A_V4_CUSTOMER_F16_EXPORT_FORMAT,
+  M8A_V4_CUSTOMER_F16_EXPORT_PROVENANCE,
+  M8A_V4_CUSTOMER_F16_EXPORT_SCHEMA_VERSION,
+  M8A_V4_CUSTOMER_F16_EXPORT_SURFACE_VERSION,
+  M8A_V4_CUSTOMER_F16_EXTERNAL_REPORT_TRUTH_CLAIMED,
+  M8A_V4_CUSTOMER_F16_EXTERNAL_TRUTH_DISPOSITION,
+  M8A_V4_CUSTOMER_F16_EXPLICIT_NON_CLAIMS,
+  M8A_V4_CUSTOMER_F16_MEASURED_VALUES_INCLUDED,
+  M8A_V4_CUSTOMER_F16_ROUTE_OWNED_STATE_ONLY,
+  M8A_V4_CUSTOMER_F13_ROUTE_NATIVE_SCALE_BUILT_AT_UTC,
+  M8A_V4_CUSTOMER_F13_ROUTE_NATIVE_SCALE_DATA_SOURCE_LABEL,
+  M8A_V4_CUSTOMER_F13_ROUTE_NATIVE_SCALE_FRESHNESS_NOTES,
+  M8A_V4_CUSTOMER_F13_ROUTE_NATIVE_SCALE_FRESHNESS_TIMESTAMP_UTC,
+  M8A_V4_CUSTOMER_F13_ROUTE_NATIVE_SCALE_LICENSE_NOTES,
+  M8A_V4_CUSTOMER_F13_ROUTE_NATIVE_SCALE_PUBLIC_SOURCE_USED,
+  M8A_V4_CUSTOMER_F13_ROUTE_NATIVE_SCALE_READINESS_COUNTS,
+  M8A_V4_CUSTOMER_F13_ROUTE_NATIVE_SCALE_READINESS_KNOWN_GAPS,
+  M8A_V4_CUSTOMER_F13_ROUTE_NATIVE_SCALE_READINESS_NON_CLAIMS,
+  M8A_V4_CUSTOMER_F13_ROUTE_NATIVE_SCALE_READINESS_VERSION,
+  M8A_V4_CUSTOMER_F13_ROUTE_NATIVE_SCALE_SOURCE_MODE,
+  M8A_V4_CUSTOMER_F13_ROUTE_NATIVE_SCALE_SOURCE_TYPE,
+  M8A_V4_CUSTOMER_F13_ROUTE_NATIVE_SCALE_SOURCE_URL,
+  M8A_V4_CUSTOMER_F13_ROUTE_NATIVE_SCALE_TARGET_LEO_COUNT,
+  M8A_V4_CUSTOMER_PHASE7_1_F13_EVIDENCE_ARTIFACT,
+  M8A_V4_CUSTOMER_PHASE7_1_F13_EVIDENCE_GENERATED_AT_UTC,
+  M8A_V4_CUSTOMER_PHASE7_1_F13_EVIDENCE_STALE_AFTER_UTC,
+  M8A_V4_CUSTOMER_PHASE7_1_F13_LEO_COUNT,
+  M8A_V4_CUSTOMER_PHASE7_1_F13_TOTAL_COUNT,
+  M8A_V4_CUSTOMER_POLICY_RULE_ARBITRARY_EDITOR_CLAIMED,
+  M8A_V4_CUSTOMER_POLICY_RULE_BACKEND_CONTROL_CLAIMED,
+  M8A_V4_CUSTOMER_POLICY_RULE_CONTROLS_VERSION,
+  M8A_V4_CUSTOMER_POLICY_RULE_DISPOSITION,
+  M8A_V4_CUSTOMER_POLICY_RULE_EXPORT_ADJACENT_TRUTH,
+  M8A_V4_CUSTOMER_POLICY_RULE_EXTERNAL_TRUTH_DISPOSITION,
+  M8A_V4_CUSTOMER_POLICY_RULE_LIVE_CONTROL_CLAIMED,
+  M8A_V4_CUSTOMER_POLICY_RULE_MEASURED_DECISION_TRUTH_CLAIMED,
+  M8A_V4_CUSTOMER_POLICY_RULE_NETWORK_CONTROL_CLAIMED,
+  M8A_V4_CUSTOMER_POLICY_RULE_ROUTE_OWNED_STATE_ONLY,
+  M8A_V4_CUSTOMER_POLICY_RULE_TRUTH_BOUNDARY,
+  M8A_V4_CUSTOMER_REQUIREMENT_GAP_SURFACE_VERSION,
+  M8A_V4_CUSTOMER_REQUIREMENT_GAP_TRUTH_LABELS,
+  M8A_V4_CUSTOMER_REQUIREMENT_OPEN_IDS,
+  M8A_V4_CUSTOMER_REQUIREMENT_STATUS_GROUPS,
+  M8A_V4_CUSTOMER_ROUTE_NATIVE_MEASURED_TRUTH_CLAIMED,
   resolveF09RateClassCopy,
   resolveItriF10PolicyPreset,
   resolveItriF11RulePreset,
@@ -277,8 +277,8 @@ import {
   buildV49ProductComprehensionRuntime,
   buildV49TransitionEvent,
   coercePlaybackMultiplier,
-  M8A_V4_ITRI_DEMO_VIEW_FOCUS_CHOREOGRAPHY_VERSION,
-  M8A_V4_ITRI_DEMO_VIEW_FOCUS_VISIBLE_CONTENT,
+  M8A_V4_CUSTOMER_DEMO_VIEW_FOCUS_CHOREOGRAPHY_VERSION,
+  M8A_V4_CUSTOMER_DEMO_VIEW_FOCUS_VISIBLE_CONTENT,
   M8A_V4_LINK_FLOW_CUE_MODE,
   M8A_V4_LINK_FLOW_CUE_VERSION,
   M8A_V4_LINK_FLOW_DIRECTIONS,
@@ -650,42 +650,42 @@ export interface M8aV4GroundStationSceneState {
     nativeRfHandoverTruth: "not-claimed";
   };
   requirementGapSurface: {
-    version: typeof M8A_V4_ITRI_REQUIREMENT_GAP_SURFACE_VERSION;
+    version: typeof M8A_V4_CUSTOMER_REQUIREMENT_GAP_SURFACE_VERSION;
     route:
       typeof M8A_V4_GROUND_STATION_RUNTIME_PROJECTION.simulationHandoverModel.route;
     endpointPairId:
       typeof M8A_V4_GROUND_STATION_RUNTIME_PROJECTION.simulationHandoverModel.endpointPairId;
     acceptedPairPrecision: "operator-family-only";
-    truthBoundaryLabels: typeof M8A_V4_ITRI_REQUIREMENT_GAP_TRUTH_LABELS;
-    demoPolishDisposition: typeof M8A_V4_ITRI_DEMO_POLISH_DISPOSITION;
+    truthBoundaryLabels: typeof M8A_V4_CUSTOMER_REQUIREMENT_GAP_TRUTH_LABELS;
+    demoPolishDisposition: typeof M8A_V4_CUSTOMER_DEMO_POLISH_DISPOSITION;
     routeNativeMeasuredTruthClaimed:
-      typeof M8A_V4_ITRI_ROUTE_NATIVE_MEASURED_TRUTH_CLAIMED;
+      typeof M8A_V4_CUSTOMER_ROUTE_NATIVE_MEASURED_TRUTH_CLAIMED;
     groups: ReadonlyArray<M8aV4ItriRequirementStatusGroup>;
     openRequirementIds: ReadonlyArray<string>;
   };
   acceptanceLayer: {
-    version: typeof M8A_V4_ITRI_DEMO_VIEW_ACCEPTANCE_LAYER_VERSION;
-    layerId: typeof M8A_V4_ITRI_DEMO_VIEW_ACCEPTANCE_LAYER_ID;
-    truthBoundary: typeof M8A_V4_ITRI_DEMO_VIEW_ACCEPTANCE_TRUTH_BOUNDARY;
-    requirementIds: typeof M8A_V4_ITRI_ACCEPTANCE_REQUIREMENT_IDS;
+    version: typeof M8A_V4_CUSTOMER_DEMO_VIEW_ACCEPTANCE_LAYER_VERSION;
+    layerId: typeof M8A_V4_CUSTOMER_DEMO_VIEW_ACCEPTANCE_LAYER_ID;
+    truthBoundary: typeof M8A_V4_CUSTOMER_DEMO_VIEW_ACCEPTANCE_TRUTH_BOUNDARY;
+    requirementIds: typeof M8A_V4_CUSTOMER_ACCEPTANCE_REQUIREMENT_IDS;
     coverageRecords: ReadonlyArray<M8aV4ItriAcceptanceCoverageRecord>;
     requirementStatusPairs: ReadonlyArray<string>;
     requirementLayerPairs: ReadonlyArray<string>;
-    externalFailIds: typeof M8A_V4_ITRI_ACCEPTANCE_EXTERNAL_FAIL_IDS;
+    externalFailIds: typeof M8A_V4_CUSTOMER_ACCEPTANCE_EXTERNAL_FAIL_IDS;
     boundedRouteRepresentationIds:
-      typeof M8A_V4_ITRI_ACCEPTANCE_BOUNDED_ROUTE_REPRESENTATION_IDS;
+      typeof M8A_V4_CUSTOMER_ACCEPTANCE_BOUNDED_ROUTE_REPRESENTATION_IDS;
     f13Phase71Evidence: {
-      artifact: typeof M8A_V4_ITRI_PHASE7_1_F13_EVIDENCE_ARTIFACT;
+      artifact: typeof M8A_V4_CUSTOMER_PHASE7_1_F13_EVIDENCE_ARTIFACT;
       generatedAtUtc:
-        typeof M8A_V4_ITRI_PHASE7_1_F13_EVIDENCE_GENERATED_AT_UTC;
+        typeof M8A_V4_CUSTOMER_PHASE7_1_F13_EVIDENCE_GENERATED_AT_UTC;
       staleAfterUtc:
-        typeof M8A_V4_ITRI_PHASE7_1_F13_EVIDENCE_STALE_AFTER_UTC;
-      leoCount: typeof M8A_V4_ITRI_PHASE7_1_F13_LEO_COUNT;
-      totalCount: typeof M8A_V4_ITRI_PHASE7_1_F13_TOTAL_COUNT;
+        typeof M8A_V4_CUSTOMER_PHASE7_1_F13_EVIDENCE_STALE_AFTER_UTC;
+      leoCount: typeof M8A_V4_CUSTOMER_PHASE7_1_F13_LEO_COUNT;
+      totalCount: typeof M8A_V4_CUSTOMER_PHASE7_1_F13_TOTAL_COUNT;
       routeNativeScaleClaimed: false;
     };
     f13RouteNativeScaleReadiness: {
-      version: typeof M8A_V4_ITRI_F13_ROUTE_NATIVE_SCALE_READINESS_VERSION;
+      version: typeof M8A_V4_CUSTOMER_F13_ROUTE_NATIVE_SCALE_READINESS_VERSION;
       currentRouteActorCount: number;
       currentRouteLeoActorCount: number;
       currentRouteMeoActorCount: number;
@@ -695,103 +695,103 @@ export interface M8aV4GroundStationSceneState {
       readinessMeoActorCount: number;
       readinessGeoActorCount: number;
       targetLeoCount:
-        typeof M8A_V4_ITRI_F13_ROUTE_NATIVE_SCALE_TARGET_LEO_COUNT;
+        typeof M8A_V4_CUSTOMER_F13_ROUTE_NATIVE_SCALE_TARGET_LEO_COUNT;
       targetReached: boolean;
-      sourceType: typeof M8A_V4_ITRI_F13_ROUTE_NATIVE_SCALE_SOURCE_TYPE;
-      sourceMode: typeof M8A_V4_ITRI_F13_ROUTE_NATIVE_SCALE_SOURCE_MODE;
-      sourceUrl: typeof M8A_V4_ITRI_F13_ROUTE_NATIVE_SCALE_SOURCE_URL;
+      sourceType: typeof M8A_V4_CUSTOMER_F13_ROUTE_NATIVE_SCALE_SOURCE_TYPE;
+      sourceMode: typeof M8A_V4_CUSTOMER_F13_ROUTE_NATIVE_SCALE_SOURCE_MODE;
+      sourceUrl: typeof M8A_V4_CUSTOMER_F13_ROUTE_NATIVE_SCALE_SOURCE_URL;
       dataSourceLabel:
-        typeof M8A_V4_ITRI_F13_ROUTE_NATIVE_SCALE_DATA_SOURCE_LABEL;
+        typeof M8A_V4_CUSTOMER_F13_ROUTE_NATIVE_SCALE_DATA_SOURCE_LABEL;
       publicSourceUsed:
-        typeof M8A_V4_ITRI_F13_ROUTE_NATIVE_SCALE_PUBLIC_SOURCE_USED;
-      builtAtUtc: typeof M8A_V4_ITRI_F13_ROUTE_NATIVE_SCALE_BUILT_AT_UTC;
+        typeof M8A_V4_CUSTOMER_F13_ROUTE_NATIVE_SCALE_PUBLIC_SOURCE_USED;
+      builtAtUtc: typeof M8A_V4_CUSTOMER_F13_ROUTE_NATIVE_SCALE_BUILT_AT_UTC;
       freshnessTimestampUtc:
-        typeof M8A_V4_ITRI_F13_ROUTE_NATIVE_SCALE_FRESHNESS_TIMESTAMP_UTC;
+        typeof M8A_V4_CUSTOMER_F13_ROUTE_NATIVE_SCALE_FRESHNESS_TIMESTAMP_UTC;
       freshnessNotes:
-        typeof M8A_V4_ITRI_F13_ROUTE_NATIVE_SCALE_FRESHNESS_NOTES;
-      licenseNotes: typeof M8A_V4_ITRI_F13_ROUTE_NATIVE_SCALE_LICENSE_NOTES;
+        typeof M8A_V4_CUSTOMER_F13_ROUTE_NATIVE_SCALE_FRESHNESS_NOTES;
+      licenseNotes: typeof M8A_V4_CUSTOMER_F13_ROUTE_NATIVE_SCALE_LICENSE_NOTES;
       knownGaps:
-        typeof M8A_V4_ITRI_F13_ROUTE_NATIVE_SCALE_READINESS_KNOWN_GAPS;
+        typeof M8A_V4_CUSTOMER_F13_ROUTE_NATIVE_SCALE_READINESS_KNOWN_GAPS;
       nonClaims:
-        typeof M8A_V4_ITRI_F13_ROUTE_NATIVE_SCALE_READINESS_NON_CLAIMS;
+        typeof M8A_V4_CUSTOMER_F13_ROUTE_NATIVE_SCALE_READINESS_NON_CLAIMS;
       routeNativeScaleClosureClaimed: false;
       externalValidationClosureClaimed: false;
       itriAuthorityClaimed: false;
     };
     externalValidationPackage: {
-      artifact: typeof M8A_V4_ITRI_EXTERNAL_V02_V06_VALIDATION_ARTIFACT;
-      status: typeof M8A_V4_ITRI_EXTERNAL_V02_V06_STATUS;
-      failIds: typeof M8A_V4_ITRI_ACCEPTANCE_EXTERNAL_FAIL_IDS;
+      artifact: typeof M8A_V4_CUSTOMER_EXTERNAL_V02_V06_VALIDATION_ARTIFACT;
+      status: typeof M8A_V4_CUSTOMER_EXTERNAL_V02_V06_STATUS;
+      failIds: typeof M8A_V4_CUSTOMER_ACCEPTANCE_EXTERNAL_FAIL_IDS;
     };
   };
   f09RateSurface: {
-    version: typeof M8A_V4_ITRI_F09_RATE_SURFACE_VERSION;
-    disposition: typeof M8A_V4_ITRI_F09_RATE_DISPOSITION;
+    version: typeof M8A_V4_CUSTOMER_F09_RATE_SURFACE_VERSION;
+    disposition: typeof M8A_V4_CUSTOMER_F09_RATE_DISPOSITION;
     externalTruthDisposition:
-      typeof M8A_V4_ITRI_F09_EXTERNAL_TRUTH_DISPOSITION;
+      typeof M8A_V4_CUSTOMER_F09_EXTERNAL_TRUTH_DISPOSITION;
     currentWindowId: M8aV46dSimulationHandoverWindowId;
     currentOrbitClass: M8aV4OrbitClass;
     currentNetworkSpeedClass: M8aV4F09NetworkSpeedClass;
     currentClassLabel: string;
     currentBucketLabel: string;
     currentReviewLabel: string;
-    provenance: typeof M8A_V4_ITRI_F09_PROVENANCE;
-    metricTruth: typeof M8A_V4_ITRI_F09_METRIC_TRUTH;
+    provenance: typeof M8A_V4_CUSTOMER_F09_PROVENANCE;
+    metricTruth: typeof M8A_V4_CUSTOMER_F09_METRIC_TRUTH;
     measuredThroughputClaimed:
-      typeof M8A_V4_ITRI_F09_MEASURED_THROUGHPUT_CLAIMED;
+      typeof M8A_V4_CUSTOMER_F09_MEASURED_THROUGHPUT_CLAIMED;
     rows: ReadonlyArray<M8aV4F09RateWindowRow>;
   };
   f16ExportSurface: {
-    version: typeof M8A_V4_ITRI_F16_EXPORT_SURFACE_VERSION;
-    schemaVersion: typeof M8A_V4_ITRI_F16_EXPORT_SCHEMA_VERSION;
-    disposition: typeof M8A_V4_ITRI_F16_EXPORT_DISPOSITION;
+    version: typeof M8A_V4_CUSTOMER_F16_EXPORT_SURFACE_VERSION;
+    schemaVersion: typeof M8A_V4_CUSTOMER_F16_EXPORT_SCHEMA_VERSION;
+    disposition: typeof M8A_V4_CUSTOMER_F16_EXPORT_DISPOSITION;
     externalTruthDisposition:
-      typeof M8A_V4_ITRI_F16_EXTERNAL_TRUTH_DISPOSITION;
-    artifactTruth: typeof M8A_V4_ITRI_F16_EXPORT_ARTIFACT_TRUTH;
-    exportFormat: typeof M8A_V4_ITRI_F16_EXPORT_FORMAT;
-    provenance: typeof M8A_V4_ITRI_F16_EXPORT_PROVENANCE;
+      typeof M8A_V4_CUSTOMER_F16_EXTERNAL_TRUTH_DISPOSITION;
+    artifactTruth: typeof M8A_V4_CUSTOMER_F16_EXPORT_ARTIFACT_TRUTH;
+    exportFormat: typeof M8A_V4_CUSTOMER_F16_EXPORT_FORMAT;
+    provenance: typeof M8A_V4_CUSTOMER_F16_EXPORT_PROVENANCE;
     routeOwnedStateOnly:
-      typeof M8A_V4_ITRI_F16_ROUTE_OWNED_STATE_ONLY;
+      typeof M8A_V4_CUSTOMER_F16_ROUTE_OWNED_STATE_ONLY;
     measuredValuesIncluded:
-      typeof M8A_V4_ITRI_F16_MEASURED_VALUES_INCLUDED;
+      typeof M8A_V4_CUSTOMER_F16_MEASURED_VALUES_INCLUDED;
     externalReportSystemTruthClaimed:
-      typeof M8A_V4_ITRI_F16_EXTERNAL_REPORT_TRUTH_CLAIMED;
-    explicitNonClaims: typeof M8A_V4_ITRI_F16_EXPLICIT_NON_CLAIMS;
+      typeof M8A_V4_CUSTOMER_F16_EXTERNAL_REPORT_TRUTH_CLAIMED;
+    explicitNonClaims: typeof M8A_V4_CUSTOMER_F16_EXPLICIT_NON_CLAIMS;
     lastStatus: "ready" | M8aV4ItriF16ExportRecord["status"];
     lastGeneratedAtUtc: string;
     lastFilename: string;
     lastErrorMessage: string;
   };
   policyRuleControls: {
-    version: typeof M8A_V4_ITRI_POLICY_RULE_CONTROLS_VERSION;
-    disposition: typeof M8A_V4_ITRI_POLICY_RULE_DISPOSITION;
+    version: typeof M8A_V4_CUSTOMER_POLICY_RULE_CONTROLS_VERSION;
+    disposition: typeof M8A_V4_CUSTOMER_POLICY_RULE_DISPOSITION;
     externalTruthDisposition:
-      typeof M8A_V4_ITRI_POLICY_RULE_EXTERNAL_TRUTH_DISPOSITION;
-    truthBoundary: typeof M8A_V4_ITRI_POLICY_RULE_TRUTH_BOUNDARY;
+      typeof M8A_V4_CUSTOMER_POLICY_RULE_EXTERNAL_TRUTH_DISPOSITION;
+    truthBoundary: typeof M8A_V4_CUSTOMER_POLICY_RULE_TRUTH_BOUNDARY;
     exportAdjacentTruth:
-      typeof M8A_V4_ITRI_POLICY_RULE_EXPORT_ADJACENT_TRUTH;
+      typeof M8A_V4_CUSTOMER_POLICY_RULE_EXPORT_ADJACENT_TRUTH;
     f10RequirementId: "F-10";
     f11RequirementId: "F-11";
-    policyPresetMode: typeof M8A_V4_ITRI_F10_POLICY_PRESET_MODE;
-    rulePresetMode: typeof M8A_V4_ITRI_F11_RULE_PRESET_MODE;
-    defaultPolicyPresetId: typeof M8A_V4_ITRI_F10_POLICY_DEFAULT_PRESET_ID;
-    defaultRulePresetId: typeof M8A_V4_ITRI_F11_RULE_DEFAULT_PRESET_ID;
+    policyPresetMode: typeof M8A_V4_CUSTOMER_F10_POLICY_PRESET_MODE;
+    rulePresetMode: typeof M8A_V4_CUSTOMER_F11_RULE_PRESET_MODE;
+    defaultPolicyPresetId: typeof M8A_V4_CUSTOMER_F10_POLICY_DEFAULT_PRESET_ID;
+    defaultRulePresetId: typeof M8A_V4_CUSTOMER_F11_RULE_DEFAULT_PRESET_ID;
     activePolicyPreset: M8aV4ItriF10PolicyPreset;
     activeRulePreset: M8aV4ItriF11RulePreset;
-    policyPresets: typeof M8A_V4_ITRI_F10_POLICY_PRESETS;
-    rulePresets: typeof M8A_V4_ITRI_F11_RULE_PRESETS;
+    policyPresets: typeof M8A_V4_CUSTOMER_F10_POLICY_PRESETS;
+    rulePresets: typeof M8A_V4_CUSTOMER_F11_RULE_PRESETS;
     routeOwnedStateOnly:
-      typeof M8A_V4_ITRI_POLICY_RULE_ROUTE_OWNED_STATE_ONLY;
+      typeof M8A_V4_CUSTOMER_POLICY_RULE_ROUTE_OWNED_STATE_ONLY;
     liveControlClaimed:
-      typeof M8A_V4_ITRI_POLICY_RULE_LIVE_CONTROL_CLAIMED;
+      typeof M8A_V4_CUSTOMER_POLICY_RULE_LIVE_CONTROL_CLAIMED;
     backendControlClaimed:
-      typeof M8A_V4_ITRI_POLICY_RULE_BACKEND_CONTROL_CLAIMED;
+      typeof M8A_V4_CUSTOMER_POLICY_RULE_BACKEND_CONTROL_CLAIMED;
     networkControlClaimed:
-      typeof M8A_V4_ITRI_POLICY_RULE_NETWORK_CONTROL_CLAIMED;
+      typeof M8A_V4_CUSTOMER_POLICY_RULE_NETWORK_CONTROL_CLAIMED;
     arbitraryRuleEditorClaimed:
-      typeof M8A_V4_ITRI_POLICY_RULE_ARBITRARY_EDITOR_CLAIMED;
+      typeof M8A_V4_CUSTOMER_POLICY_RULE_ARBITRARY_EDITOR_CLAIMED;
     measuredDecisionTruthClaimed:
-      typeof M8A_V4_ITRI_POLICY_RULE_MEASURED_DECISION_TRUTH_CLAIMED;
+      typeof M8A_V4_CUSTOMER_POLICY_RULE_MEASURED_DECISION_TRUTH_CLAIMED;
   };
   nonClaims: M8aV4RuntimeNarrativeNonClaims;
   proofSeam: typeof M8A_V4_GROUND_STATION_PROOF_SEAM;
@@ -1835,11 +1835,11 @@ function createProductUxRoot(): HTMLElement {
   root.dataset.m8aV410FirstViewportComposition =
     M8A_V410_FIRST_VIEWPORT_COMPOSITION_VERSION;
   root.dataset.m8aV4ItriDemoViewFocusChoreography =
-    M8A_V4_ITRI_DEMO_VIEW_FOCUS_CHOREOGRAPHY_VERSION;
+    M8A_V4_CUSTOMER_DEMO_VIEW_FOCUS_CHOREOGRAPHY_VERSION;
   root.dataset.m8aV4ItriDemoViewDefaultFocus =
-    M8A_V4_ITRI_DEMO_VIEW_DEFAULT_FOCUS_VERSION;
+    M8A_V4_CUSTOMER_DEMO_VIEW_DEFAULT_FOCUS_VERSION;
   root.dataset.m8aV4ItriDemoViewNarrow =
-    M8A_V4_ITRI_DEMO_VIEW_NARROW_VERSION;
+    M8A_V4_CUSTOMER_DEMO_VIEW_NARROW_VERSION;
   root.dataset.m8aV411GlanceRankSurface =
     M8A_V411_GLANCE_RANK_SURFACE_VERSION;
   root.dataset.m8aV411HoverPopover = M8A_V411_HOVER_POPOVER_VERSION;
@@ -2025,9 +2025,9 @@ function ensureProductUxStructure(root: HTMLElement): void {
       <span data-m8a-v411-top-strip-slot="boundary" data-m8a-v48-info-class="dynamic">Boundary: repo-owned projection · not measured truth</span>
     </div>
     <button type="button" class="m8a-v411-handover-rail-scrim" data-m8a-v411-handover-rail-scrim="true" data-m8a-v47-action="close-handover-rail" data-m8a-v48-info-class="control" tabindex="-1" aria-label="Close handover rail" hidden></button>
-    <aside id="m8a-v411-handover-rail-drawer" class="m8a-v411-handover-rail" data-m8a-v411-handover-rail="true" data-itri-demo-l0-briefing-card="true" data-itri-demo-l0-layer="L0-first-read-demo-stage" data-itri-demo-l0-version="${M8A_V4_ITRI_DEMO_VIEW_DEFAULT_FOCUS_VERSION}" data-m8a-v47-ui-surface="left-handover-rail" aria-label="Handover briefing">
+    <aside id="m8a-v411-handover-rail-drawer" class="m8a-v411-handover-rail" data-m8a-v411-handover-rail="true" data-itri-demo-l0-briefing-card="true" data-itri-demo-l0-layer="L0-first-read-demo-stage" data-itri-demo-l0-version="${M8A_V4_CUSTOMER_DEMO_VIEW_DEFAULT_FOCUS_VERSION}" data-m8a-v47-ui-surface="left-handover-rail" aria-label="Handover briefing">
       <div class="m8a-v411-handover-rail-header" data-m8a-v411-handover-rail-header="true">
-        <span data-itri-demo-l0-eyebrow="true" data-m8a-v48-info-class="fixed">ITRI V4 demo</span>
+        <span data-itri-demo-l0-eyebrow="true" data-m8a-v48-info-class="fixed">customer V4 demo</span>
         <strong data-itri-demo-l0-heading="true" data-m8a-v48-info-class="fixed">Handover briefing</strong>
         <button type="button" class="m8a-v411-handover-rail-close" data-m8a-v47-action="close-handover-rail" data-m8a-v411-handover-rail-close="true" data-m8a-v48-info-class="control" aria-label="Collapse briefing sheet">Close</button>
       </div>
@@ -2056,7 +2056,7 @@ function ensureProductUxStructure(root: HTMLElement): void {
           </div>
           <p class="m8a-v411-rail-next" data-m8a-v411-rail-layer="next" data-m8a-v411-rail-slot="next" data-itri-demo-l0-next-state="true" data-m8a-v48-info-class="dynamic">Next: --</p>
           <p class="m8a-v411-rail-evidence" data-m8a-v411-rail-layer="evidence" data-m8a-v411-rail-slot="evidence" data-m8a-v48-info-class="dynamic">modeled quality --</p>
-          <p class="m8a-v411-briefing-truth" data-itri-demo-l0-truth-boundary="true" data-m8a-v48-info-class="fixed">${M8A_V4_ITRI_DEMO_VIEW_DEFAULT_TRUTH_COPY}</p>
+          <p class="m8a-v411-briefing-truth" data-itri-demo-l0-truth-boundary="true" data-m8a-v48-info-class="fixed">${M8A_V4_CUSTOMER_DEMO_VIEW_DEFAULT_TRUTH_COPY}</p>
         </div>
       </div>
     </aside>
@@ -2223,15 +2223,15 @@ function ensureProductUxStructure(root: HTMLElement): void {
             <span class="m8a-v410-inspector__group-label" data-m8a-v48-info-class="fixed">Evidence</span>
             <strong data-m8a-v411-sources-title="true" data-m8a-v48-info-class="fixed">Evidence summary</strong>
             ${renderItriAcceptanceLayer()}
-            <section class="m8a-v411-requirement-gap" data-itri-requirement-gap-surface="true" data-itri-requirement-gap-version="${M8A_V4_ITRI_REQUIREMENT_GAP_SURFACE_VERSION}" aria-label="ITRI requirement route status">
+            <section class="m8a-v411-requirement-gap" data-itri-requirement-gap-surface="true" data-itri-requirement-gap-version="${M8A_V4_CUSTOMER_REQUIREMENT_GAP_SURFACE_VERSION}" aria-label="customer requirement route status">
               <div class="m8a-v411-requirement-gap__header">
-                <strong data-m8a-v48-info-class="fixed">ITRI status groups</strong>
-                <span data-itri-requirement-gap-demo-polish="${M8A_V4_ITRI_DEMO_POLISH_DISPOSITION}" data-m8a-v48-info-class="fixed">Demo polish: no closure claim</span>
+                <strong data-m8a-v48-info-class="fixed">customer status groups</strong>
+                <span data-itri-requirement-gap-demo-polish="${M8A_V4_CUSTOMER_DEMO_POLISH_DISPOSITION}" data-m8a-v48-info-class="fixed">Demo polish: no closure claim</span>
               </div>
               <ol class="m8a-v411-requirement-gap__list">
                 ${renderItriRequirementGapGroups()}
               </ol>
-              <section class="m8a-v411-f16-export" data-itri-f16-export-surface="true" data-itri-f16-export-version="${M8A_V4_ITRI_F16_EXPORT_SURFACE_VERSION}" data-itri-f16-export-schema-version="${M8A_V4_ITRI_F16_EXPORT_SCHEMA_VERSION}" data-itri-f16-export-disposition="${M8A_V4_ITRI_F16_EXPORT_DISPOSITION}" aria-labelledby="m8a-v411-f16-export-heading">
+              <section class="m8a-v411-f16-export" data-itri-f16-export-surface="true" data-itri-f16-export-version="${M8A_V4_CUSTOMER_F16_EXPORT_SURFACE_VERSION}" data-itri-f16-export-schema-version="${M8A_V4_CUSTOMER_F16_EXPORT_SCHEMA_VERSION}" data-itri-f16-export-disposition="${M8A_V4_CUSTOMER_F16_EXPORT_DISPOSITION}" aria-labelledby="m8a-v411-f16-export-heading">
                 <div class="m8a-v411-f16-export__header">
                   <span data-m8a-v48-info-class="fixed">F-16</span>
                   <strong id="m8a-v411-f16-export-heading" data-m8a-v48-info-class="fixed">Bounded Route Export</strong>
@@ -2247,7 +2247,7 @@ function ensureProductUxStructure(root: HTMLElement): void {
                 </div>
               </section>
             </section>
-            <section class="m8a-v411-policy-rule" data-itri-policy-rule-controls-surface="true" data-itri-policy-rule-controls-version="${M8A_V4_ITRI_POLICY_RULE_CONTROLS_VERSION}" data-itri-policy-rule-controls-disposition="${M8A_V4_ITRI_POLICY_RULE_DISPOSITION}" data-itri-policy-rule-truth-boundary="${M8A_V4_ITRI_POLICY_RULE_TRUTH_BOUNDARY}" aria-labelledby="m8a-v411-policy-rule-heading">
+            <section class="m8a-v411-policy-rule" data-itri-policy-rule-controls-surface="true" data-itri-policy-rule-controls-version="${M8A_V4_CUSTOMER_POLICY_RULE_CONTROLS_VERSION}" data-itri-policy-rule-controls-disposition="${M8A_V4_CUSTOMER_POLICY_RULE_DISPOSITION}" data-itri-policy-rule-truth-boundary="${M8A_V4_CUSTOMER_POLICY_RULE_TRUTH_BOUNDARY}" aria-labelledby="m8a-v411-policy-rule-heading">
               <div class="m8a-v411-policy-rule__header">
                 <span data-m8a-v48-info-class="fixed">F-10/F-11</span>
                 <strong id="m8a-v411-policy-rule-heading" data-m8a-v48-info-class="fixed">Modeled Replay Presets</strong>
@@ -2257,13 +2257,13 @@ function ensureProductUxStructure(root: HTMLElement): void {
               <div class="m8a-v411-policy-rule__controls">
                 <label class="m8a-v411-policy-rule__field" for="m8a-v411-f10-policy-preset">
                   <span data-m8a-v48-info-class="fixed">F-10 policy preset</span>
-                  <select id="m8a-v411-f10-policy-preset" data-itri-f10-policy-selector="true" data-itri-f10-policy-preset-mode="${M8A_V4_ITRI_F10_POLICY_PRESET_MODE}" data-m8a-v48-info-class="control" aria-label="F-10 modeled replay policy preset selector. Preset only; not live control.">
+                  <select id="m8a-v411-f10-policy-preset" data-itri-f10-policy-selector="true" data-itri-f10-policy-preset-mode="${M8A_V4_CUSTOMER_F10_POLICY_PRESET_MODE}" data-m8a-v48-info-class="control" aria-label="F-10 modeled replay policy preset selector. Preset only; not live control.">
                     ${renderItriF10PolicyPresetOptions()}
                   </select>
                 </label>
                 <label class="m8a-v411-policy-rule__field" for="m8a-v411-f11-rule-preset">
                   <span data-m8a-v48-info-class="fixed">F-11 rule preset</span>
-                  <select id="m8a-v411-f11-rule-preset" data-itri-f11-rule-preset="true" data-itri-f11-rule-preset-mode="${M8A_V4_ITRI_F11_RULE_PRESET_MODE}" data-m8a-v48-info-class="control" aria-label="F-11 bounded replay rule and parameter preset. Preset only; not live control.">
+                  <select id="m8a-v411-f11-rule-preset" data-itri-f11-rule-preset="true" data-itri-f11-rule-preset-mode="${M8A_V4_CUSTOMER_F11_RULE_PRESET_MODE}" data-m8a-v48-info-class="control" aria-label="F-11 bounded replay rule and parameter preset. Preset only; not live control.">
                     ${renderItriF11RulePresetOptions()}
                   </select>
                 </label>
@@ -2272,12 +2272,12 @@ function ensureProductUxStructure(root: HTMLElement): void {
                 <p data-itri-f10-policy-preview="true" data-m8a-v48-info-class="dynamic"></p>
                 <p data-itri-f11-rule-preview="true" data-m8a-v48-info-class="dynamic"></p>
                 <ul data-itri-f11-rule-parameter-list="true">
-                  ${renderItriF11RuleParameterChips(resolveItriF11RulePreset(M8A_V4_ITRI_F11_RULE_DEFAULT_PRESET_ID))}
+                  ${renderItriF11RuleParameterChips(resolveItriF11RulePreset(M8A_V4_CUSTOMER_F11_RULE_DEFAULT_PRESET_ID))}
                 </ul>
               </div>
               <span class="m8a-v411-policy-rule__status" data-itri-policy-rule-status="true" data-m8a-v48-info-class="dynamic" role="status" aria-live="polite">Modeled replay presets ready; preset-only, not live control.</span>
             </section>
-            <section class="m8a-v411-f09-rate" data-itri-f09-rate-surface="true" data-itri-f09-rate-version="${M8A_V4_ITRI_F09_RATE_SURFACE_VERSION}" aria-labelledby="m8a-v411-f09-rate-heading">
+            <section class="m8a-v411-f09-rate" data-itri-f09-rate-surface="true" data-itri-f09-rate-version="${M8A_V4_CUSTOMER_F09_RATE_SURFACE_VERSION}" aria-labelledby="m8a-v411-f09-rate-heading">
               <div class="m8a-v411-f09-rate__header">
                 <span data-m8a-v48-info-class="fixed">F-09</span>
                 <strong id="m8a-v411-f09-rate-heading" data-m8a-v48-info-class="fixed">Communication Rate</strong>
@@ -3339,9 +3339,9 @@ function renderProductUx(
   root.dataset.m8aV4ItriDemoViewFocusTruthBoundary =
     focusChoreography.truthBoundary;
   root.dataset.m8aV4ItriDemoViewDefaultFocus =
-    M8A_V4_ITRI_DEMO_VIEW_DEFAULT_FOCUS_VERSION;
+    M8A_V4_CUSTOMER_DEMO_VIEW_DEFAULT_FOCUS_VERSION;
   root.dataset.m8aV4ItriDemoViewNarrow =
-    M8A_V4_ITRI_DEMO_VIEW_NARROW_VERSION;
+    M8A_V4_CUSTOMER_DEMO_VIEW_NARROW_VERSION;
   root.dataset.m8aV4ItriDemoViewDefaultLayer =
     "L0-first-read-demo-stage";
   root.dataset.m8aV4ItriDemoViewDefaultInspectorOpen = String(sheetOpen);
@@ -3356,7 +3356,7 @@ function renderProductUx(
   root.dataset.m8aV4ItriDemoViewDefaultRateClass =
     f09RateSurface.currentClassLabel;
   root.dataset.m8aV4ItriDemoViewDefaultTruthBoundary =
-    M8A_V4_ITRI_DEMO_VIEW_DEFAULT_TRUTH_COPY;
+    M8A_V4_CUSTOMER_DEMO_VIEW_DEFAULT_TRUTH_COPY;
   root.dataset.m8aV4ItriDemoViewAcceptanceLayer =
     acceptanceLayer.version;
   root.dataset.m8aV4ItriDemoViewAcceptanceLayerId =
@@ -4070,7 +4070,7 @@ function renderProductUx(
   updateProductUxText(
     root,
     "[data-itri-demo-l0-truth-boundary='true']",
-    M8A_V4_ITRI_DEMO_VIEW_DEFAULT_TRUTH_COPY
+    M8A_V4_CUSTOMER_DEMO_VIEW_DEFAULT_TRUTH_COPY
   );
   const l0BriefingCard = root.querySelector<HTMLElement>(
     "[data-itri-demo-l0-briefing-card='true']"
@@ -4085,7 +4085,7 @@ function renderProductUx(
     l0BriefingCard.dataset.itriDemoL0RateClass =
       f09RateSurface.currentClassLabel;
     l0BriefingCard.dataset.itriDemoL0TruthBoundary =
-      M8A_V4_ITRI_DEMO_VIEW_DEFAULT_TRUTH_COPY;
+      M8A_V4_CUSTOMER_DEMO_VIEW_DEFAULT_TRUTH_COPY;
     l0BriefingCard.dataset.itriDemoFocusChoreographyVersion =
       focusChoreography.version;
     l0BriefingCard.dataset.itriDemoFocusWindowId =
@@ -4097,7 +4097,7 @@ function renderProductUx(
       focusChoreography.secondaryActorPolicy;
     l0BriefingCard.setAttribute(
       "aria-label",
-      `Handover briefing. Now: ${focusChoreography.primaryFocusLabel}. ${focusChoreography.briefingLine}. ${focusChoreography.nextFocusHint}. Modeled rate: ${f09RateSurface.currentClassLabel}. ${M8A_V4_ITRI_DEMO_VIEW_DEFAULT_TRUTH_COPY}`
+      `Handover briefing. Now: ${focusChoreography.primaryFocusLabel}. ${focusChoreography.briefingLine}. ${focusChoreography.nextFocusHint}. Modeled rate: ${f09RateSurface.currentClassLabel}. ${M8A_V4_CUSTOMER_DEMO_VIEW_DEFAULT_TRUTH_COPY}`
     );
   }
   updateProductUxText(
@@ -4943,7 +4943,7 @@ function renderProductUx(
   sheet.dataset.m8aV48AnchorStatus = placement.anchorStatus;
   sheet.dataset.m8aV48FallbackReason = placement.fallbackReason;
   sheet.dataset.m8aV4ItriDemoViewNarrow =
-    M8A_V4_ITRI_DEMO_VIEW_NARROW_VERSION;
+    M8A_V4_CUSTOMER_DEMO_VIEW_NARROW_VERSION;
   sheet.dataset.m8aV4ItriDemoViewNarrowPresentation =
     productUx.layout.viewportClass === "narrow" ? "modal-sheet" : "side-sheet";
   sheet.setAttribute(
@@ -5423,7 +5423,7 @@ function renderM8aV411ReviewerMode(
     railDrawer.dataset.m8aV411HandoverRailDrawerState =
       productUx.layout.narrowRailDrawerState;
     railDrawer.dataset.m8aV4ItriDemoViewNarrow =
-      M8A_V4_ITRI_DEMO_VIEW_NARROW_VERSION;
+      M8A_V4_CUSTOMER_DEMO_VIEW_NARROW_VERSION;
     railDrawer.dataset.m8aV4ItriDemoViewNarrowPresentation =
       productUx.layout.viewportClass === "narrow"
         ? "bottom-sheet-briefing"
@@ -5651,7 +5651,7 @@ function cloneState(
           visibleContent: [
             ...state.productUx.productComprehension.focusChoreography
               .visibleContent
-          ] as typeof M8A_V4_ITRI_DEMO_VIEW_FOCUS_VISIBLE_CONTENT,
+          ] as typeof M8A_V4_CUSTOMER_DEMO_VIEW_FOCUS_VISIBLE_CONTENT,
           secondaryActorEmphasisRoles: [
             ...state.productUx.productComprehension.focusChoreography
               .secondaryActorEmphasisRoles
@@ -5753,7 +5753,7 @@ function cloneState(
       ...state.requirementGapSurface,
       truthBoundaryLabels: [
         ...state.requirementGapSurface.truthBoundaryLabels
-      ] as typeof M8A_V4_ITRI_REQUIREMENT_GAP_TRUTH_LABELS,
+      ] as typeof M8A_V4_CUSTOMER_REQUIREMENT_GAP_TRUTH_LABELS,
       groups: state.requirementGapSurface.groups.map((group) => ({
         ...group,
         requirementIds: [...group.requirementIds]
@@ -5766,7 +5766,7 @@ function cloneState(
       ...state.acceptanceLayer,
       requirementIds: [
         ...state.acceptanceLayer.requirementIds
-      ] as typeof M8A_V4_ITRI_ACCEPTANCE_REQUIREMENT_IDS,
+      ] as typeof M8A_V4_CUSTOMER_ACCEPTANCE_REQUIREMENT_IDS,
       coverageRecords: state.acceptanceLayer.coverageRecords.map((record) => ({
         ...record
       })),
@@ -5778,10 +5778,10 @@ function cloneState(
       ],
       externalFailIds: [
         ...state.acceptanceLayer.externalFailIds
-      ] as typeof M8A_V4_ITRI_ACCEPTANCE_EXTERNAL_FAIL_IDS,
+      ] as typeof M8A_V4_CUSTOMER_ACCEPTANCE_EXTERNAL_FAIL_IDS,
       boundedRouteRepresentationIds: [
         ...state.acceptanceLayer.boundedRouteRepresentationIds
-      ] as typeof M8A_V4_ITRI_ACCEPTANCE_BOUNDED_ROUTE_REPRESENTATION_IDS,
+      ] as typeof M8A_V4_CUSTOMER_ACCEPTANCE_BOUNDED_ROUTE_REPRESENTATION_IDS,
       f13Phase71Evidence: {
         ...state.acceptanceLayer.f13Phase71Evidence
       },
@@ -5789,16 +5789,16 @@ function cloneState(
         ...state.acceptanceLayer.f13RouteNativeScaleReadiness,
         knownGaps: [
           ...state.acceptanceLayer.f13RouteNativeScaleReadiness.knownGaps
-        ] as typeof M8A_V4_ITRI_F13_ROUTE_NATIVE_SCALE_READINESS_KNOWN_GAPS,
+        ] as typeof M8A_V4_CUSTOMER_F13_ROUTE_NATIVE_SCALE_READINESS_KNOWN_GAPS,
         nonClaims: [
           ...state.acceptanceLayer.f13RouteNativeScaleReadiness.nonClaims
-        ] as typeof M8A_V4_ITRI_F13_ROUTE_NATIVE_SCALE_READINESS_NON_CLAIMS
+        ] as typeof M8A_V4_CUSTOMER_F13_ROUTE_NATIVE_SCALE_READINESS_NON_CLAIMS
       },
       externalValidationPackage: {
         ...state.acceptanceLayer.externalValidationPackage,
         failIds: [
           ...state.acceptanceLayer.externalValidationPackage.failIds
-        ] as typeof M8A_V4_ITRI_ACCEPTANCE_EXTERNAL_FAIL_IDS
+        ] as typeof M8A_V4_CUSTOMER_ACCEPTANCE_EXTERNAL_FAIL_IDS
       }
     },
     f09RateSurface: {
@@ -5809,7 +5809,7 @@ function cloneState(
       ...state.f16ExportSurface,
       explicitNonClaims: [
         ...state.f16ExportSurface.explicitNonClaims
-      ] as typeof M8A_V4_ITRI_F16_EXPLICIT_NON_CLAIMS
+      ] as typeof M8A_V4_CUSTOMER_F16_EXPLICIT_NON_CLAIMS
     },
     policyRuleControls: buildPolicyRuleControlsState(
       state.policyRuleControls.activePolicyPreset.presetId,
@@ -5903,16 +5903,16 @@ function buildRequirementGapSurfaceState(): M8aV4GroundStationSceneState["requir
   const model = M8A_V4_GROUND_STATION_RUNTIME_PROJECTION.simulationHandoverModel;
 
   return {
-    version: M8A_V4_ITRI_REQUIREMENT_GAP_SURFACE_VERSION,
+    version: M8A_V4_CUSTOMER_REQUIREMENT_GAP_SURFACE_VERSION,
     route: model.route,
     endpointPairId: model.endpointPairId,
     acceptedPairPrecision: model.acceptedPairPrecision,
-    truthBoundaryLabels: M8A_V4_ITRI_REQUIREMENT_GAP_TRUTH_LABELS,
-    demoPolishDisposition: M8A_V4_ITRI_DEMO_POLISH_DISPOSITION,
+    truthBoundaryLabels: M8A_V4_CUSTOMER_REQUIREMENT_GAP_TRUTH_LABELS,
+    demoPolishDisposition: M8A_V4_CUSTOMER_DEMO_POLISH_DISPOSITION,
     routeNativeMeasuredTruthClaimed:
-      M8A_V4_ITRI_ROUTE_NATIVE_MEASURED_TRUTH_CLAIMED,
-    groups: M8A_V4_ITRI_REQUIREMENT_STATUS_GROUPS,
-    openRequirementIds: M8A_V4_ITRI_REQUIREMENT_OPEN_IDS
+      M8A_V4_CUSTOMER_ROUTE_NATIVE_MEASURED_TRUTH_CLAIMED,
+    groups: M8A_V4_CUSTOMER_REQUIREMENT_STATUS_GROUPS,
+    openRequirementIds: M8A_V4_CUSTOMER_REQUIREMENT_OPEN_IDS
   };
 }
 
@@ -5920,32 +5920,32 @@ function buildAcceptanceLayerState(
   currentRouteActorCount: number,
   currentRouteOrbitActorCounts: Record<M8aV4OrbitClass, number>
 ): M8aV4GroundStationSceneState["acceptanceLayer"] {
-  const readinessCounts = M8A_V4_ITRI_F13_ROUTE_NATIVE_SCALE_READINESS_COUNTS;
+  const readinessCounts = M8A_V4_CUSTOMER_F13_ROUTE_NATIVE_SCALE_READINESS_COUNTS;
   const readinessTargetReached =
-    readinessCounts.leo >= M8A_V4_ITRI_F13_ROUTE_NATIVE_SCALE_TARGET_LEO_COUNT;
+    readinessCounts.leo >= M8A_V4_CUSTOMER_F13_ROUTE_NATIVE_SCALE_TARGET_LEO_COUNT;
 
   return {
-    version: M8A_V4_ITRI_DEMO_VIEW_ACCEPTANCE_LAYER_VERSION,
-    layerId: M8A_V4_ITRI_DEMO_VIEW_ACCEPTANCE_LAYER_ID,
-    truthBoundary: M8A_V4_ITRI_DEMO_VIEW_ACCEPTANCE_TRUTH_BOUNDARY,
-    requirementIds: M8A_V4_ITRI_ACCEPTANCE_REQUIREMENT_IDS,
-    coverageRecords: M8A_V4_ITRI_ACCEPTANCE_COVERAGE_RECORDS,
-    requirementStatusPairs: M8A_V4_ITRI_ACCEPTANCE_REQUIREMENT_STATUS_PAIRS,
-    requirementLayerPairs: M8A_V4_ITRI_ACCEPTANCE_REQUIREMENT_LAYER_PAIRS,
-    externalFailIds: M8A_V4_ITRI_ACCEPTANCE_EXTERNAL_FAIL_IDS,
+    version: M8A_V4_CUSTOMER_DEMO_VIEW_ACCEPTANCE_LAYER_VERSION,
+    layerId: M8A_V4_CUSTOMER_DEMO_VIEW_ACCEPTANCE_LAYER_ID,
+    truthBoundary: M8A_V4_CUSTOMER_DEMO_VIEW_ACCEPTANCE_TRUTH_BOUNDARY,
+    requirementIds: M8A_V4_CUSTOMER_ACCEPTANCE_REQUIREMENT_IDS,
+    coverageRecords: M8A_V4_CUSTOMER_ACCEPTANCE_COVERAGE_RECORDS,
+    requirementStatusPairs: M8A_V4_CUSTOMER_ACCEPTANCE_REQUIREMENT_STATUS_PAIRS,
+    requirementLayerPairs: M8A_V4_CUSTOMER_ACCEPTANCE_REQUIREMENT_LAYER_PAIRS,
+    externalFailIds: M8A_V4_CUSTOMER_ACCEPTANCE_EXTERNAL_FAIL_IDS,
     boundedRouteRepresentationIds:
-      M8A_V4_ITRI_ACCEPTANCE_BOUNDED_ROUTE_REPRESENTATION_IDS,
+      M8A_V4_CUSTOMER_ACCEPTANCE_BOUNDED_ROUTE_REPRESENTATION_IDS,
     f13Phase71Evidence: {
-      artifact: M8A_V4_ITRI_PHASE7_1_F13_EVIDENCE_ARTIFACT,
+      artifact: M8A_V4_CUSTOMER_PHASE7_1_F13_EVIDENCE_ARTIFACT,
       generatedAtUtc:
-        M8A_V4_ITRI_PHASE7_1_F13_EVIDENCE_GENERATED_AT_UTC,
-      staleAfterUtc: M8A_V4_ITRI_PHASE7_1_F13_EVIDENCE_STALE_AFTER_UTC,
-      leoCount: M8A_V4_ITRI_PHASE7_1_F13_LEO_COUNT,
-      totalCount: M8A_V4_ITRI_PHASE7_1_F13_TOTAL_COUNT,
+        M8A_V4_CUSTOMER_PHASE7_1_F13_EVIDENCE_GENERATED_AT_UTC,
+      staleAfterUtc: M8A_V4_CUSTOMER_PHASE7_1_F13_EVIDENCE_STALE_AFTER_UTC,
+      leoCount: M8A_V4_CUSTOMER_PHASE7_1_F13_LEO_COUNT,
+      totalCount: M8A_V4_CUSTOMER_PHASE7_1_F13_TOTAL_COUNT,
       routeNativeScaleClaimed: false
     },
     f13RouteNativeScaleReadiness: {
-      version: M8A_V4_ITRI_F13_ROUTE_NATIVE_SCALE_READINESS_VERSION,
+      version: M8A_V4_CUSTOMER_F13_ROUTE_NATIVE_SCALE_READINESS_VERSION,
       currentRouteActorCount,
       currentRouteLeoActorCount: currentRouteOrbitActorCounts.leo,
       currentRouteMeoActorCount: currentRouteOrbitActorCounts.meo,
@@ -5954,28 +5954,28 @@ function buildAcceptanceLayerState(
       readinessLeoActorCount: readinessCounts.leo,
       readinessMeoActorCount: readinessCounts.meo,
       readinessGeoActorCount: readinessCounts.geo,
-      targetLeoCount: M8A_V4_ITRI_F13_ROUTE_NATIVE_SCALE_TARGET_LEO_COUNT,
+      targetLeoCount: M8A_V4_CUSTOMER_F13_ROUTE_NATIVE_SCALE_TARGET_LEO_COUNT,
       targetReached: readinessTargetReached,
-      sourceType: M8A_V4_ITRI_F13_ROUTE_NATIVE_SCALE_SOURCE_TYPE,
-      sourceMode: M8A_V4_ITRI_F13_ROUTE_NATIVE_SCALE_SOURCE_MODE,
-      sourceUrl: M8A_V4_ITRI_F13_ROUTE_NATIVE_SCALE_SOURCE_URL,
-      dataSourceLabel: M8A_V4_ITRI_F13_ROUTE_NATIVE_SCALE_DATA_SOURCE_LABEL,
-      publicSourceUsed: M8A_V4_ITRI_F13_ROUTE_NATIVE_SCALE_PUBLIC_SOURCE_USED,
-      builtAtUtc: M8A_V4_ITRI_F13_ROUTE_NATIVE_SCALE_BUILT_AT_UTC,
+      sourceType: M8A_V4_CUSTOMER_F13_ROUTE_NATIVE_SCALE_SOURCE_TYPE,
+      sourceMode: M8A_V4_CUSTOMER_F13_ROUTE_NATIVE_SCALE_SOURCE_MODE,
+      sourceUrl: M8A_V4_CUSTOMER_F13_ROUTE_NATIVE_SCALE_SOURCE_URL,
+      dataSourceLabel: M8A_V4_CUSTOMER_F13_ROUTE_NATIVE_SCALE_DATA_SOURCE_LABEL,
+      publicSourceUsed: M8A_V4_CUSTOMER_F13_ROUTE_NATIVE_SCALE_PUBLIC_SOURCE_USED,
+      builtAtUtc: M8A_V4_CUSTOMER_F13_ROUTE_NATIVE_SCALE_BUILT_AT_UTC,
       freshnessTimestampUtc:
-        M8A_V4_ITRI_F13_ROUTE_NATIVE_SCALE_FRESHNESS_TIMESTAMP_UTC,
-      freshnessNotes: M8A_V4_ITRI_F13_ROUTE_NATIVE_SCALE_FRESHNESS_NOTES,
-      licenseNotes: M8A_V4_ITRI_F13_ROUTE_NATIVE_SCALE_LICENSE_NOTES,
-      knownGaps: M8A_V4_ITRI_F13_ROUTE_NATIVE_SCALE_READINESS_KNOWN_GAPS,
-      nonClaims: M8A_V4_ITRI_F13_ROUTE_NATIVE_SCALE_READINESS_NON_CLAIMS,
+        M8A_V4_CUSTOMER_F13_ROUTE_NATIVE_SCALE_FRESHNESS_TIMESTAMP_UTC,
+      freshnessNotes: M8A_V4_CUSTOMER_F13_ROUTE_NATIVE_SCALE_FRESHNESS_NOTES,
+      licenseNotes: M8A_V4_CUSTOMER_F13_ROUTE_NATIVE_SCALE_LICENSE_NOTES,
+      knownGaps: M8A_V4_CUSTOMER_F13_ROUTE_NATIVE_SCALE_READINESS_KNOWN_GAPS,
+      nonClaims: M8A_V4_CUSTOMER_F13_ROUTE_NATIVE_SCALE_READINESS_NON_CLAIMS,
       routeNativeScaleClosureClaimed: false,
       externalValidationClosureClaimed: false,
       itriAuthorityClaimed: false
     },
     externalValidationPackage: {
-      artifact: M8A_V4_ITRI_EXTERNAL_V02_V06_VALIDATION_ARTIFACT,
-      status: M8A_V4_ITRI_EXTERNAL_V02_V06_STATUS,
-      failIds: M8A_V4_ITRI_ACCEPTANCE_EXTERNAL_FAIL_IDS
+      artifact: M8A_V4_CUSTOMER_EXTERNAL_V02_V06_VALIDATION_ARTIFACT,
+      status: M8A_V4_CUSTOMER_EXTERNAL_V02_V06_STATUS,
+      failIds: M8A_V4_CUSTOMER_ACCEPTANCE_EXTERNAL_FAIL_IDS
     }
   };
 }
@@ -5988,19 +5988,19 @@ function buildF09RateSurfaceState(
   const classCopy = resolveF09RateClassCopy(currentClass);
 
   return {
-    version: M8A_V4_ITRI_F09_RATE_SURFACE_VERSION,
-    disposition: M8A_V4_ITRI_F09_RATE_DISPOSITION,
-    externalTruthDisposition: M8A_V4_ITRI_F09_EXTERNAL_TRUTH_DISPOSITION,
+    version: M8A_V4_CUSTOMER_F09_RATE_SURFACE_VERSION,
+    disposition: M8A_V4_CUSTOMER_F09_RATE_DISPOSITION,
+    externalTruthDisposition: M8A_V4_CUSTOMER_F09_EXTERNAL_TRUTH_DISPOSITION,
     currentWindowId: currentWindow.windowId,
     currentOrbitClass: currentWindow.displayRepresentativeOrbitClass,
     currentNetworkSpeedClass: currentClass,
     currentClassLabel: classCopy.classLabel,
     currentBucketLabel: classCopy.bucketLabel,
     currentReviewLabel: classCopy.reviewLabel,
-    provenance: M8A_V4_ITRI_F09_PROVENANCE,
-    metricTruth: M8A_V4_ITRI_F09_METRIC_TRUTH,
+    provenance: M8A_V4_CUSTOMER_F09_PROVENANCE,
+    metricTruth: M8A_V4_CUSTOMER_F09_METRIC_TRUTH,
     measuredThroughputClaimed:
-      M8A_V4_ITRI_F09_MEASURED_THROUGHPUT_CLAIMED,
+      M8A_V4_CUSTOMER_F09_MEASURED_THROUGHPUT_CLAIMED,
     rows: buildF09RateWindowRows()
   };
 }
@@ -6009,18 +6009,18 @@ function buildF16ExportSurfaceState(
   latestExportRecord: M8aV4ItriF16ExportRecord | null
 ): M8aV4GroundStationSceneState["f16ExportSurface"] {
   return {
-    version: M8A_V4_ITRI_F16_EXPORT_SURFACE_VERSION,
-    schemaVersion: M8A_V4_ITRI_F16_EXPORT_SCHEMA_VERSION,
-    disposition: M8A_V4_ITRI_F16_EXPORT_DISPOSITION,
-    externalTruthDisposition: M8A_V4_ITRI_F16_EXTERNAL_TRUTH_DISPOSITION,
-    artifactTruth: M8A_V4_ITRI_F16_EXPORT_ARTIFACT_TRUTH,
-    exportFormat: M8A_V4_ITRI_F16_EXPORT_FORMAT,
-    provenance: M8A_V4_ITRI_F16_EXPORT_PROVENANCE,
-    routeOwnedStateOnly: M8A_V4_ITRI_F16_ROUTE_OWNED_STATE_ONLY,
-    measuredValuesIncluded: M8A_V4_ITRI_F16_MEASURED_VALUES_INCLUDED,
+    version: M8A_V4_CUSTOMER_F16_EXPORT_SURFACE_VERSION,
+    schemaVersion: M8A_V4_CUSTOMER_F16_EXPORT_SCHEMA_VERSION,
+    disposition: M8A_V4_CUSTOMER_F16_EXPORT_DISPOSITION,
+    externalTruthDisposition: M8A_V4_CUSTOMER_F16_EXTERNAL_TRUTH_DISPOSITION,
+    artifactTruth: M8A_V4_CUSTOMER_F16_EXPORT_ARTIFACT_TRUTH,
+    exportFormat: M8A_V4_CUSTOMER_F16_EXPORT_FORMAT,
+    provenance: M8A_V4_CUSTOMER_F16_EXPORT_PROVENANCE,
+    routeOwnedStateOnly: M8A_V4_CUSTOMER_F16_ROUTE_OWNED_STATE_ONLY,
+    measuredValuesIncluded: M8A_V4_CUSTOMER_F16_MEASURED_VALUES_INCLUDED,
     externalReportSystemTruthClaimed:
-      M8A_V4_ITRI_F16_EXTERNAL_REPORT_TRUTH_CLAIMED,
-    explicitNonClaims: M8A_V4_ITRI_F16_EXPLICIT_NON_CLAIMS,
+      M8A_V4_CUSTOMER_F16_EXTERNAL_REPORT_TRUTH_CLAIMED,
+    explicitNonClaims: M8A_V4_CUSTOMER_F16_EXPLICIT_NON_CLAIMS,
     lastStatus: latestExportRecord?.status ?? "ready",
     lastGeneratedAtUtc: latestExportRecord?.generatedAtUtc ?? "",
     lastFilename: latestExportRecord?.filename ?? "",
@@ -6033,30 +6033,30 @@ function buildPolicyRuleControlsState(
   activeRulePresetId: M8aV4ItriF11RulePresetId
 ): M8aV4GroundStationSceneState["policyRuleControls"] {
   return {
-    version: M8A_V4_ITRI_POLICY_RULE_CONTROLS_VERSION,
-    disposition: M8A_V4_ITRI_POLICY_RULE_DISPOSITION,
+    version: M8A_V4_CUSTOMER_POLICY_RULE_CONTROLS_VERSION,
+    disposition: M8A_V4_CUSTOMER_POLICY_RULE_DISPOSITION,
     externalTruthDisposition:
-      M8A_V4_ITRI_POLICY_RULE_EXTERNAL_TRUTH_DISPOSITION,
-    truthBoundary: M8A_V4_ITRI_POLICY_RULE_TRUTH_BOUNDARY,
-    exportAdjacentTruth: M8A_V4_ITRI_POLICY_RULE_EXPORT_ADJACENT_TRUTH,
+      M8A_V4_CUSTOMER_POLICY_RULE_EXTERNAL_TRUTH_DISPOSITION,
+    truthBoundary: M8A_V4_CUSTOMER_POLICY_RULE_TRUTH_BOUNDARY,
+    exportAdjacentTruth: M8A_V4_CUSTOMER_POLICY_RULE_EXPORT_ADJACENT_TRUTH,
     f10RequirementId: "F-10",
     f11RequirementId: "F-11",
-    policyPresetMode: M8A_V4_ITRI_F10_POLICY_PRESET_MODE,
-    rulePresetMode: M8A_V4_ITRI_F11_RULE_PRESET_MODE,
-    defaultPolicyPresetId: M8A_V4_ITRI_F10_POLICY_DEFAULT_PRESET_ID,
-    defaultRulePresetId: M8A_V4_ITRI_F11_RULE_DEFAULT_PRESET_ID,
+    policyPresetMode: M8A_V4_CUSTOMER_F10_POLICY_PRESET_MODE,
+    rulePresetMode: M8A_V4_CUSTOMER_F11_RULE_PRESET_MODE,
+    defaultPolicyPresetId: M8A_V4_CUSTOMER_F10_POLICY_DEFAULT_PRESET_ID,
+    defaultRulePresetId: M8A_V4_CUSTOMER_F11_RULE_DEFAULT_PRESET_ID,
     activePolicyPreset: resolveItriF10PolicyPreset(activePolicyPresetId),
     activeRulePreset: resolveItriF11RulePreset(activeRulePresetId),
-    policyPresets: M8A_V4_ITRI_F10_POLICY_PRESETS,
-    rulePresets: M8A_V4_ITRI_F11_RULE_PRESETS,
-    routeOwnedStateOnly: M8A_V4_ITRI_POLICY_RULE_ROUTE_OWNED_STATE_ONLY,
-    liveControlClaimed: M8A_V4_ITRI_POLICY_RULE_LIVE_CONTROL_CLAIMED,
-    backendControlClaimed: M8A_V4_ITRI_POLICY_RULE_BACKEND_CONTROL_CLAIMED,
-    networkControlClaimed: M8A_V4_ITRI_POLICY_RULE_NETWORK_CONTROL_CLAIMED,
+    policyPresets: M8A_V4_CUSTOMER_F10_POLICY_PRESETS,
+    rulePresets: M8A_V4_CUSTOMER_F11_RULE_PRESETS,
+    routeOwnedStateOnly: M8A_V4_CUSTOMER_POLICY_RULE_ROUTE_OWNED_STATE_ONLY,
+    liveControlClaimed: M8A_V4_CUSTOMER_POLICY_RULE_LIVE_CONTROL_CLAIMED,
+    backendControlClaimed: M8A_V4_CUSTOMER_POLICY_RULE_BACKEND_CONTROL_CLAIMED,
+    networkControlClaimed: M8A_V4_CUSTOMER_POLICY_RULE_NETWORK_CONTROL_CLAIMED,
     arbitraryRuleEditorClaimed:
-      M8A_V4_ITRI_POLICY_RULE_ARBITRARY_EDITOR_CLAIMED,
+      M8A_V4_CUSTOMER_POLICY_RULE_ARBITRARY_EDITOR_CLAIMED,
     measuredDecisionTruthClaimed:
-      M8A_V4_ITRI_POLICY_RULE_MEASURED_DECISION_TRUTH_CLAIMED
+      M8A_V4_CUSTOMER_POLICY_RULE_MEASURED_DECISION_TRUTH_CLAIMED
   };
 }
 
@@ -6077,8 +6077,8 @@ function buildF16RouteExportBundle(
   const filename = createF16ExportFilename(state, generatedAtUtc);
 
   return {
-    schemaVersion: M8A_V4_ITRI_F16_EXPORT_SCHEMA_VERSION,
-    version: M8A_V4_ITRI_F16_EXPORT_SURFACE_VERSION,
+    schemaVersion: M8A_V4_CUSTOMER_F16_EXPORT_SCHEMA_VERSION,
+    version: M8A_V4_CUSTOMER_F16_EXPORT_SURFACE_VERSION,
     generatedAtUtc,
     routeId: state.simulationHandoverModel.route,
     scenarioId: state.scenarioId,
@@ -6210,7 +6210,7 @@ function buildF16RouteExportBundle(
       truthBoundary: state.relationCues.dataFlowTruthBoundary
     },
     provenance: {
-      exportProvenance: M8A_V4_ITRI_F16_EXPORT_PROVENANCE,
+      exportProvenance: M8A_V4_CUSTOMER_F16_EXPORT_PROVENANCE,
       generatedFromArtifactId: state.generatedFromArtifactId,
       projectionId: state.projectionId,
       projectionRead: state.sourceLineage.projectionRead,
@@ -6220,14 +6220,14 @@ function buildF16RouteExportBundle(
       rawSourcePathsIncluded: state.sourceLineage.rawSourcePathsIncluded
     },
     nonClaims: {
-      explicitNonClaims: M8A_V4_ITRI_F16_EXPLICIT_NON_CLAIMS,
+      explicitNonClaims: M8A_V4_CUSTOMER_F16_EXPLICIT_NON_CLAIMS,
       routeNarrativeNonClaims: state.nonClaims,
-      measuredValuesIncluded: M8A_V4_ITRI_F16_MEASURED_VALUES_INCLUDED,
+      measuredValuesIncluded: M8A_V4_CUSTOMER_F16_MEASURED_VALUES_INCLUDED,
       externalReportSystemTruthClaimed:
-        M8A_V4_ITRI_F16_EXTERNAL_REPORT_TRUTH_CLAIMED
+        M8A_V4_CUSTOMER_F16_EXTERNAL_REPORT_TRUTH_CLAIMED
     },
     exportFile: {
-      format: M8A_V4_ITRI_F16_EXPORT_FORMAT,
+      format: M8A_V4_CUSTOMER_F16_EXPORT_FORMAT,
       filename
     }
   };
@@ -6487,9 +6487,9 @@ export function createM8aV4GroundStationSceneController({
   let latestF16ExportRecord: M8aV4ItriF16ExportRecord | null = null;
   let latestF16ExportBundle: M8aV4ItriF16RouteExportBundle | null = null;
   let activePolicyPresetId: M8aV4ItriF10PolicyPresetId =
-    M8A_V4_ITRI_F10_POLICY_DEFAULT_PRESET_ID;
+    M8A_V4_CUSTOMER_F10_POLICY_DEFAULT_PRESET_ID;
   let activeRulePresetId: M8aV4ItriF11RulePresetId =
-    M8A_V4_ITRI_F11_RULE_DEFAULT_PRESET_ID;
+    M8A_V4_CUSTOMER_F11_RULE_DEFAULT_PRESET_ID;
 
   const reviewerModeStorage: Pick<Storage, "getItem" | "setItem"> | null =
     typeof window !== "undefined" && typeof window.localStorage === "object"

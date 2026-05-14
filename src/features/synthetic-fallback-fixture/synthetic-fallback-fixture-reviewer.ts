@@ -1,11 +1,11 @@
-export const ITRI_SYNTHETIC_FALLBACK_FIXTURE_SCHEMA_VERSION =
+export const CUSTOMER_SYNTHETIC_FALLBACK_FIXTURE_SCHEMA_VERSION =
   "itri.synthetic-fallback-fixture.v1" as const;
-export const ITRI_SYNTHETIC_FALLBACK_FIXTURE_REVIEW_SCHEMA_VERSION =
+export const CUSTOMER_SYNTHETIC_FALLBACK_FIXTURE_REVIEW_SCHEMA_VERSION =
   "itri.s11r1.synthetic-fallback-fixture-review.v1" as const;
-export const ITRI_SYNTHETIC_FALLBACK_FIXTURE_PACKAGE_ROOT =
+export const CUSTOMER_SYNTHETIC_FALLBACK_FIXTURE_PACKAGE_ROOT =
   "output/validation/synthetic-fallback-fixtures" as const;
 
-export const ITRI_SYNTHETIC_FALLBACK_FIXTURE_LANES = [
+export const CUSTOMER_SYNTHETIC_FALLBACK_FIXTURE_LANES = [
   "F-01",
   "F-07",
   "F-08",
@@ -22,7 +22,7 @@ export const ITRI_SYNTHETIC_FALLBACK_FIXTURE_LANES = [
   "V-06"
 ] as const;
 
-export const ITRI_SYNTHETIC_FALLBACK_FIXTURE_INTENDED_CONSUMERS = [
+export const CUSTOMER_SYNTHETIC_FALLBACK_FIXTURE_INTENDED_CONSUMERS = [
   "ui-preview",
   "schema-rehearsal",
   "parser-shape-test",
@@ -31,7 +31,7 @@ export const ITRI_SYNTHETIC_FALLBACK_FIXTURE_INTENDED_CONSUMERS = [
   "demo-placeholder"
 ] as const;
 
-export const ITRI_SYNTHETIC_FALLBACK_FIXTURE_REQUIRED_FORBIDDEN_CONSUMERS = [
+export const CUSTOMER_SYNTHETIC_FALLBACK_FIXTURE_REQUIRED_FORBIDDEN_CONSUMERS = [
   "authority-verdict",
   "acceptance-report-closure",
   "measured-evidence-package",
@@ -41,11 +41,11 @@ export const ITRI_SYNTHETIC_FALLBACK_FIXTURE_REQUIRED_FORBIDDEN_CONSUMERS = [
 ] as const;
 
 export type ItriSyntheticFallbackFixtureLane =
-  (typeof ITRI_SYNTHETIC_FALLBACK_FIXTURE_LANES)[number];
+  (typeof CUSTOMER_SYNTHETIC_FALLBACK_FIXTURE_LANES)[number];
 export type ItriSyntheticFallbackFixtureConsumer =
-  (typeof ITRI_SYNTHETIC_FALLBACK_FIXTURE_INTENDED_CONSUMERS)[number];
+  (typeof CUSTOMER_SYNTHETIC_FALLBACK_FIXTURE_INTENDED_CONSUMERS)[number];
 export type ItriSyntheticFallbackFixtureForbiddenConsumer =
-  (typeof ITRI_SYNTHETIC_FALLBACK_FIXTURE_REQUIRED_FORBIDDEN_CONSUMERS)[number];
+  (typeof CUSTOMER_SYNTHETIC_FALLBACK_FIXTURE_REQUIRED_FORBIDDEN_CONSUMERS)[number];
 
 export type ItriSyntheticFallbackFixtureReviewerState =
   | "bounded-synthetic-fixture-ready"
@@ -118,7 +118,7 @@ export interface ItriSyntheticFallbackFixtureNonClaims {
 }
 
 export interface ItriSyntheticFallbackFixtureReview {
-  schemaVersion: typeof ITRI_SYNTHETIC_FALLBACK_FIXTURE_REVIEW_SCHEMA_VERSION;
+  schemaVersion: typeof CUSTOMER_SYNTHETIC_FALLBACK_FIXTURE_REVIEW_SCHEMA_VERSION;
   reviewedAt: string;
   packagePath: string;
   manifestPath: string;
@@ -341,7 +341,7 @@ export function isAllowedItriSyntheticFallbackFixturePackagePath(
   packagePath: string
 ): boolean {
   const normalized = normalizePackagePath(packagePath);
-  const root = ITRI_SYNTHETIC_FALLBACK_FIXTURE_PACKAGE_ROOT;
+  const root = CUSTOMER_SYNTHETIC_FALLBACK_FIXTURE_PACKAGE_ROOT;
 
   return (
     normalized.startsWith(`${root}/`) &&
@@ -373,7 +373,7 @@ function emptyConsumerBoundary(): ItriSyntheticFallbackFixtureConsumerBoundaryRe
     rejectedIntendedConsumers: [],
     forbiddenConsumers: [],
     missingForbiddenConsumers: [
-      ...ITRI_SYNTHETIC_FALLBACK_FIXTURE_REQUIRED_FORBIDDEN_CONSUMERS
+      ...CUSTOMER_SYNTHETIC_FALLBACK_FIXTURE_REQUIRED_FORBIDDEN_CONSUMERS
     ]
   };
 }
@@ -383,7 +383,7 @@ function closedLaneReviews(
   reviewerState: ItriSyntheticFallbackFixtureReviewerState,
   message: string
 ): ReadonlyArray<ItriSyntheticFallbackFixtureLaneReview> {
-  return ITRI_SYNTHETIC_FALLBACK_FIXTURE_LANES.map((lane) => ({
+  return CUSTOMER_SYNTHETIC_FALLBACK_FIXTURE_LANES.map((lane) => ({
     lane,
     reviewerState,
     evidenceScope:
@@ -419,7 +419,7 @@ function closedReview(
     options.packageState === "rejected" ? "rejected" : "incomplete";
 
   return {
-    schemaVersion: ITRI_SYNTHETIC_FALLBACK_FIXTURE_REVIEW_SCHEMA_VERSION,
+    schemaVersion: CUSTOMER_SYNTHETIC_FALLBACK_FIXTURE_REVIEW_SCHEMA_VERSION,
     reviewedAt,
     packagePath: normalizePackagePath(options.packagePath),
     manifestPath: normalizePackagePath(
@@ -504,7 +504,7 @@ export function reviewRejectedItriSyntheticFallbackFixturePackagePath(
   addGap(
     gaps,
     "package.path-outside-retained-root",
-    `Synthetic fallback fixture package path must be under ${ITRI_SYNTHETIC_FALLBACK_FIXTURE_PACKAGE_ROOT}/.`,
+    `Synthetic fallback fixture package path must be under ${CUSTOMER_SYNTHETIC_FALLBACK_FIXTURE_PACKAGE_ROOT}/.`,
     { path: normalizePackagePath(options.packagePath) }
   );
 
@@ -589,11 +589,11 @@ function reviewSchemaVersion(
 ): string | null {
   const schemaVersion = stringValue(manifest, "schemaVersion");
 
-  if (schemaVersion !== ITRI_SYNTHETIC_FALLBACK_FIXTURE_SCHEMA_VERSION) {
+  if (schemaVersion !== CUSTOMER_SYNTHETIC_FALLBACK_FIXTURE_SCHEMA_VERSION) {
     addGap(
       gaps,
       "manifest.schema-version",
-      `Manifest schemaVersion must be ${ITRI_SYNTHETIC_FALLBACK_FIXTURE_SCHEMA_VERSION}.`,
+      `Manifest schemaVersion must be ${CUSTOMER_SYNTHETIC_FALLBACK_FIXTURE_SCHEMA_VERSION}.`,
       { path: "schemaVersion" }
     );
   }
@@ -611,7 +611,7 @@ function reviewPackagePath(
     addGap(
       gaps,
       "package.path-outside-retained-root",
-      `Package path must be explicitly under ${ITRI_SYNTHETIC_FALLBACK_FIXTURE_PACKAGE_ROOT}/.`,
+      `Package path must be explicitly under ${CUSTOMER_SYNTHETIC_FALLBACK_FIXTURE_PACKAGE_ROOT}/.`,
       { path: "packagePath" }
     );
   }
@@ -619,7 +619,7 @@ function reviewPackagePath(
 
 function laneFromUnknown(value: unknown): ItriSyntheticFallbackFixtureLane | null {
   return typeof value === "string" &&
-    (ITRI_SYNTHETIC_FALLBACK_FIXTURE_LANES as ReadonlyArray<string>).includes(value)
+    (CUSTOMER_SYNTHETIC_FALLBACK_FIXTURE_LANES as ReadonlyArray<string>).includes(value)
     ? (value as ItriSyntheticFallbackFixtureLane)
     : null;
 }
@@ -811,7 +811,7 @@ function intendedConsumerFromUnknown(
   value: unknown
 ): ItriSyntheticFallbackFixtureConsumer | null {
   return typeof value === "string" &&
-    (ITRI_SYNTHETIC_FALLBACK_FIXTURE_INTENDED_CONSUMERS as ReadonlyArray<string>).includes(value)
+    (CUSTOMER_SYNTHETIC_FALLBACK_FIXTURE_INTENDED_CONSUMERS as ReadonlyArray<string>).includes(value)
     ? (value as ItriSyntheticFallbackFixtureConsumer)
     : null;
 }
@@ -863,7 +863,7 @@ function reviewConsumers(
     );
   }
 
-  for (const consumer of ITRI_SYNTHETIC_FALLBACK_FIXTURE_REQUIRED_FORBIDDEN_CONSUMERS) {
+  for (const consumer of CUSTOMER_SYNTHETIC_FALLBACK_FIXTURE_REQUIRED_FORBIDDEN_CONSUMERS) {
     if (!forbiddenConsumers.includes(consumer)) {
       missingForbiddenConsumers.push(consumer);
       addGap(
@@ -1205,7 +1205,7 @@ export function reviewItriSyntheticFallbackFixtureManifest({
   const packageState = packageStateFromGaps(gaps);
 
   return {
-    schemaVersion: ITRI_SYNTHETIC_FALLBACK_FIXTURE_REVIEW_SCHEMA_VERSION,
+    schemaVersion: CUSTOMER_SYNTHETIC_FALLBACK_FIXTURE_REVIEW_SCHEMA_VERSION,
     reviewedAt: resolvedReviewTime,
     packagePath: normalizedPackagePath,
     manifestPath: normalizedManifestPath,

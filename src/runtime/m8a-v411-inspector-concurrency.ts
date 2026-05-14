@@ -401,7 +401,7 @@ export const M8A_V411_DISABLED_METRIC_TILES = [
     id: "report-export-action",
     gap: "External report-system export beyond route JSON",
     hookpoint:
-      "F-16 route JSON exists in ITRI status; backend/PDF/email report truth remains external",
+      "F-16 route JSON exists in customer status; backend/PDF/email report truth remains external",
     reachability: "not reachable from this scene",
     placeholder: "external report"
   },

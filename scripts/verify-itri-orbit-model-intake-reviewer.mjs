@@ -74,7 +74,7 @@ function baseManifest() {
     schemaVersion: "itri.f01.orbit-model-intake.v1",
     packageId: "itri-f01r1-temp-orbit-model-intake",
     owner: {
-      organization: "Temp ITRI orbit-model owner",
+      organization: "Temp customer orbit-model owner",
       role: "orbit model authority package owner",
       authorityScope: ["F-01"],
       contactRef: "owner/contact.md"
@@ -103,7 +103,7 @@ function baseManifest() {
       ]
     },
     modelIdentity: {
-      modelName: "Temp ITRI owner orbit model",
+      modelName: "Temp customer owner orbit model",
       modelVersion: "owner-temp-v1",
       propagationMethod: "owner-defined-propagation-method",
       coordinateFrames: {
@@ -448,7 +448,7 @@ async function main() {
     await expectFailClosed(
       reviewItriOrbitModelIntakeFromPath,
       reviewer,
-      "Public TLE sourceTier promoted as ITRI model authority",
+      "Public TLE sourceTier promoted as customer model authority",
       (manifest) => {
         manifest.sourceTier = "tier-2-public-tle-celestrak";
       },

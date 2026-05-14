@@ -54,10 +54,10 @@ const FORBIDDEN_CLAIMS = [
   ">=500 LEO closure",
   "multi-orbit closure complete",
   "multi-orbit radio-layer handover",
-  "complete ITRI acceptance",
+  "complete customer acceptance",
   "Phase 8 unlocked",
   "M8A-V4 endpoint-pair gate resolved",
-  "ITRI orbit model is integrated",
+  "customer orbit model is integrated",
   "D-03 closed",
   "richer composition closed",
   "presentation convergence closed"

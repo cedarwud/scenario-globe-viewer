@@ -315,7 +315,7 @@ async function waitForRouteReady(client, viewport) {
     await sleep(100);
   }
 
-  throw new Error(`ITRI route did not become ready: ${JSON.stringify(lastState)}`);
+  throw new Error(`customer route did not become ready: ${JSON.stringify(lastState)}`);
 }
 
 async function navigateFresh(client, baseUrl, viewport) {
@@ -563,7 +563,7 @@ function evaluateChecklist(inspections) {
       evidence: "L0 uses modeled-rate language and a no-live-traffic line."
     },
     {
-      item: "Can reviewer find which ITRI requirements remain external?",
+      item: "Can reviewer find which customer requirements remain external?",
       result: everyEvidence(
         (inspection) =>
           expectedExternalFailIds.every((id) =>
@@ -621,7 +621,7 @@ function writeMarkdownArtifacts(outputDir, manifest, checklist) {
       "| --- | --- | --- |",
       screenshotRows,
       "",
-      "## Remaining ITRI Gaps And Boundaries",
+      "## Remaining customer Gaps And Boundaries",
       "",
       "- V-02, V-03, V-04, V-05, and V-06 remain explicit external fail/gap items with no retained pass evidence in this package.",
       `- F-13 is supported only by the separate Phase 7.1 evidence artifact and remains fresh until ${f13FreshUntilUtc} UTC; the V4 route itself remains a 13-actor bounded demo route.`,

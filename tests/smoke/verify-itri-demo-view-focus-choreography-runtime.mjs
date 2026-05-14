@@ -156,7 +156,7 @@ async function waitForBootstrapReady(client) {
 async function navigateAndWait(client, baseUrl) {
   await client.send("Page.navigate", { url: `${baseUrl}${REQUEST_PATH}` });
   await waitForBootstrapReady(client);
-  await waitForGlobeReady(client, "ITRI focus choreography");
+  await waitForGlobeReady(client, "customer focus choreography");
 }
 
 async function seekReplayRatio(client, ratio) {
@@ -536,7 +536,7 @@ async function main() {
   });
 
   console.log(
-    `ITRI demo view focus choreography smoke passed: ${manifest.checks.length} windows`
+    `customer demo view focus choreography smoke passed: ${manifest.checks.length} windows`
   );
 }
 

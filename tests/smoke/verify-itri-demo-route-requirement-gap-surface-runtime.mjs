@@ -116,7 +116,7 @@ function assertExactSet(actual, expected, label) {
 }
 
 function assertGroup(group, expected) {
-  assert(group, `Missing ITRI requirement gap group: ${JSON.stringify(expected)}`);
+  assert(group, `Missing customer requirement gap group: ${JSON.stringify(expected)}`);
   assert(
     group.status === expected.status,
     `Group status mismatch: ${JSON.stringify({ group, expected })}`
@@ -209,7 +209,7 @@ async function waitForRequirementGapReady(client) {
   }
 
   throw new Error(
-    `ITRI requirement gap surface did not become ready: ${JSON.stringify(
+    `customer requirement gap surface did not become ready: ${JSON.stringify(
       lastState
     )}`
   );
@@ -425,7 +425,7 @@ async function main() {
       url: `${baseUrl}${REQUEST_PATH}`
     });
     await waitForRequirementGapReady(client);
-    await waitForGlobeReady(client, "ITRI requirement gap surface");
+    await waitForGlobeReady(client, "customer requirement gap surface");
     await openInspectorForCapture(client);
     await sleep(500);
 
@@ -567,7 +567,7 @@ async function main() {
     assertScreenshot(screenshot);
   });
 
-  console.log(`ITRI requirement gap surface validated. Output: ${outputRoot}`);
+  console.log(`customer requirement gap surface validated. Output: ${outputRoot}`);
 }
 
 main().catch((error) => {

@@ -668,7 +668,7 @@ async function main() {
       url: `${baseUrl}${REQUEST_PATH}`
     });
     await waitForF16Ready(client);
-    await waitForGlobeReady(client, "ITRI F-16 route export disposition");
+    await waitForGlobeReady(client, "customer F-16 route export disposition");
     await openInspectorForCapture(client);
     await sleep(500);
 
@@ -719,7 +719,7 @@ async function main() {
     assertScreenshot(screenshot);
   });
 
-  console.log(`ITRI F-16 route export disposition validated. Output: ${outputRoot}`);
+  console.log(`customer F-16 route export disposition validated. Output: ${outputRoot}`);
 }
 
 main().catch((error) => {

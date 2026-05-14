@@ -24,7 +24,7 @@ export const M8A_V410_INSPECTOR_EVIDENCE_VERSION =
   "m8a-v4.10-inspector-evidence-redesign-slice4-runtime.v1";
 export const M8A_V410_PRODUCT_UX_STRUCTURE_VERSION =
   "m8a-v4.11-product-ux-structure-policy-rule-controls-runtime.v1";
-export const M8A_V4_ITRI_DEMO_VIEW_FOCUS_CHOREOGRAPHY_VERSION =
+export const M8A_V4_CUSTOMER_DEMO_VIEW_FOCUS_CHOREOGRAPHY_VERSION =
   "itri-demo-view-focus-choreography-runtime.v1";
 export const M8A_V47_GUIDED_REVIEW_MULTIPLIER = 30;
 export const M8A_V47_PRODUCT_DEFAULT_MULTIPLIER = 60;
@@ -219,16 +219,16 @@ export const M8A_V49_PRODUCT_COPY = {
     transitionRole: string;
   }
 >;
-export const M8A_V4_ITRI_DEMO_VIEW_FOCUS_VISIBLE_CONTENT = [
+export const M8A_V4_CUSTOMER_DEMO_VIEW_FOCUS_VISIBLE_CONTENT = [
   "single-primary-focus",
   "state-specific-briefing",
   "next-focus-preview",
   "secondary-context-dimmed",
   "truth-boundary-short"
 ] as const;
-export const M8A_V4_ITRI_DEMO_VIEW_FOCUS_TRUTH_BOUNDARY =
+export const M8A_V4_CUSTOMER_DEMO_VIEW_FOCUS_TRUTH_BOUNDARY =
   "modeled replay focus only; not operator log, measured metric, live policy control, or RF handover truth";
-export const M8A_V4_ITRI_DEMO_VIEW_FOCUS_COPY = {
+export const M8A_V4_CUSTOMER_DEMO_VIEW_FOCUS_COPY = {
   "leo-acquisition-context": {
     ordinalLabel: "W1",
     focusId: "w1-leo-primary-focus",
@@ -581,9 +581,9 @@ export interface M8aV49WindowProductCopy {
 }
 
 export interface M8aV4ItriDemoFocusChoreographyRuntime {
-  version: typeof M8A_V4_ITRI_DEMO_VIEW_FOCUS_CHOREOGRAPHY_VERSION;
+  version: typeof M8A_V4_CUSTOMER_DEMO_VIEW_FOCUS_CHOREOGRAPHY_VERSION;
   scope: "L1-per-window-focus-choreography";
-  visibleContent: typeof M8A_V4_ITRI_DEMO_VIEW_FOCUS_VISIBLE_CONTENT;
+  visibleContent: typeof M8A_V4_CUSTOMER_DEMO_VIEW_FOCUS_VISIBLE_CONTENT;
   windowId: M8aV46dSimulationHandoverWindowId;
   ordinalLabel: "W1" | "W2" | "W3" | "W4" | "W5";
   focusId: string;
@@ -605,7 +605,7 @@ export interface M8aV4ItriDemoFocusChoreographyRuntime {
   secondaryActorPolicy: "dim-candidate-fallback-context-keep-next-visible";
   secondaryActorEmphasisRoles: readonly ["candidate", "fallback", "context"];
   nextContextVisible: true;
-  truthBoundary: typeof M8A_V4_ITRI_DEMO_VIEW_FOCUS_TRUTH_BOUNDARY;
+  truthBoundary: typeof M8A_V4_CUSTOMER_DEMO_VIEW_FOCUS_TRUTH_BOUNDARY;
 }
 
 export interface M8aV410FirstViewportCompositionRuntime {
@@ -936,12 +936,12 @@ export function resolveV49WindowProductCopy(
 export function resolveM8aV4ItriDemoFocusChoreography(
   windowId: M8aV46dSimulationHandoverWindowId
 ): M8aV4ItriDemoFocusChoreographyRuntime {
-  const copy = M8A_V4_ITRI_DEMO_VIEW_FOCUS_COPY[windowId];
+  const copy = M8A_V4_CUSTOMER_DEMO_VIEW_FOCUS_COPY[windowId];
 
   return {
-    version: M8A_V4_ITRI_DEMO_VIEW_FOCUS_CHOREOGRAPHY_VERSION,
+    version: M8A_V4_CUSTOMER_DEMO_VIEW_FOCUS_CHOREOGRAPHY_VERSION,
     scope: "L1-per-window-focus-choreography",
-    visibleContent: M8A_V4_ITRI_DEMO_VIEW_FOCUS_VISIBLE_CONTENT,
+    visibleContent: M8A_V4_CUSTOMER_DEMO_VIEW_FOCUS_VISIBLE_CONTENT,
     windowId,
     ordinalLabel: copy.ordinalLabel,
     focusId: copy.focusId,
@@ -958,7 +958,7 @@ export function resolveM8aV4ItriDemoFocusChoreography(
     secondaryActorPolicy: "dim-candidate-fallback-context-keep-next-visible",
     secondaryActorEmphasisRoles: ["candidate", "fallback", "context"],
     nextContextVisible: true,
-    truthBoundary: M8A_V4_ITRI_DEMO_VIEW_FOCUS_TRUTH_BOUNDARY
+    truthBoundary: M8A_V4_CUSTOMER_DEMO_VIEW_FOCUS_TRUTH_BOUNDARY
   };
 }
 

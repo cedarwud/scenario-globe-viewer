@@ -1,19 +1,19 @@
-export const ITRI_F12_DECISION_THRESHOLD_AUTHORITY_PACKAGE_SCHEMA_VERSION =
+export const CUSTOMER_F12_DECISION_THRESHOLD_AUTHORITY_PACKAGE_SCHEMA_VERSION =
   "itri.f12.decision-threshold-authority.v1" as const;
-export const ITRI_F12_DECISION_THRESHOLD_AUTHORITY_REVIEW_SCHEMA_VERSION =
+export const CUSTOMER_F12_DECISION_THRESHOLD_AUTHORITY_REVIEW_SCHEMA_VERSION =
   "itri.f12r1.decision-threshold-authority-review.v1" as const;
-export const ITRI_F12_DECISION_THRESHOLD_AUTHORITY_PACKAGE_ROOT =
+export const CUSTOMER_F12_DECISION_THRESHOLD_AUTHORITY_PACKAGE_ROOT =
   "output/validation/external-f12" as const;
-export const ITRI_F12_MEASURED_TRAFFIC_PACKAGE_ROOT =
+export const CUSTOMER_F12_MEASURED_TRAFFIC_PACKAGE_ROOT =
   "output/validation/external-f07-f09" as const;
 
-export const ITRI_F12_REQUIREMENTS = ["F-12"] as const;
-export const ITRI_F12_MEASURED_REQUIREMENTS = [
+export const CUSTOMER_F12_REQUIREMENTS = ["F-12"] as const;
+export const CUSTOMER_F12_MEASURED_REQUIREMENTS = [
   "F-07",
   "F-08",
   "F-09"
 ] as const;
-export const ITRI_F12_DECISION_INPUTS = [
+export const CUSTOMER_F12_DECISION_INPUTS = [
   "latency",
   "jitter",
   "loss",
@@ -23,10 +23,10 @@ export const ITRI_F12_DECISION_INPUTS = [
   "handoverWindow"
 ] as const;
 
-export type ItriF12RequirementId = (typeof ITRI_F12_REQUIREMENTS)[number];
+export type ItriF12RequirementId = (typeof CUSTOMER_F12_REQUIREMENTS)[number];
 export type ItriF12MeasuredRequirementId =
-  (typeof ITRI_F12_MEASURED_REQUIREMENTS)[number];
-export type ItriF12DecisionInput = (typeof ITRI_F12_DECISION_INPUTS)[number];
+  (typeof CUSTOMER_F12_MEASURED_REQUIREMENTS)[number];
+export type ItriF12DecisionInput = (typeof CUSTOMER_F12_DECISION_INPUTS)[number];
 
 export type ItriF12AuthorityReviewerState =
   | "schema-ready"
@@ -140,7 +140,7 @@ export interface ItriF12AuthorityNonClaims {
 }
 
 export interface ItriF12AuthorityPackageReview {
-  schemaVersion: typeof ITRI_F12_DECISION_THRESHOLD_AUTHORITY_REVIEW_SCHEMA_VERSION;
+  schemaVersion: typeof CUSTOMER_F12_DECISION_THRESHOLD_AUTHORITY_REVIEW_SCHEMA_VERSION;
   reviewedAt: string;
   packagePath: string;
   manifestPath: string;
@@ -303,7 +303,7 @@ export function isAllowedItriF12DecisionThresholdAuthorityPackagePath(
   packagePath: string
 ): boolean {
   const normalized = normalizePackagePath(packagePath);
-  const root = ITRI_F12_DECISION_THRESHOLD_AUTHORITY_PACKAGE_ROOT;
+  const root = CUSTOMER_F12_DECISION_THRESHOLD_AUTHORITY_PACKAGE_ROOT;
 
   return (
     normalized.startsWith(`${root}/`) &&
@@ -317,7 +317,7 @@ export function isAllowedItriF12ReferencedMeasuredTrafficPackagePath(
   packagePath: string
 ): boolean {
   const normalized = normalizePackagePath(packagePath);
-  const root = ITRI_F12_MEASURED_TRAFFIC_PACKAGE_ROOT;
+  const root = CUSTOMER_F12_MEASURED_TRAFFIC_PACKAGE_ROOT;
 
   return (
     normalized.startsWith(`${root}/`) &&
@@ -341,7 +341,7 @@ function closedReview(
   const reviewedAt = parseReviewTime(options.reviewedAt);
 
   return {
-    schemaVersion: ITRI_F12_DECISION_THRESHOLD_AUTHORITY_REVIEW_SCHEMA_VERSION,
+    schemaVersion: CUSTOMER_F12_DECISION_THRESHOLD_AUTHORITY_REVIEW_SCHEMA_VERSION,
     reviewedAt,
     packagePath: normalizePackagePath(options.packagePath),
     manifestPath: options.manifestPath ?? defaultManifestPath(options.packagePath),
@@ -454,7 +454,7 @@ export function reviewRejectedItriF12DecisionThresholdAuthorityPackagePath(
   addGap(
     gaps,
     "package.path-outside-retained-root",
-    `F-12 authority package path must be under ${ITRI_F12_DECISION_THRESHOLD_AUTHORITY_PACKAGE_ROOT}/.`,
+    `F-12 authority package path must be under ${CUSTOMER_F12_DECISION_THRESHOLD_AUTHORITY_PACKAGE_ROOT}/.`,
     { path: normalizePackagePath(options.packagePath) }
   );
 
@@ -544,11 +544,11 @@ function addRequiredRootFieldGaps(manifest: PlainRecord, gaps: ItriF12AuthorityR
 function reviewSchemaVersion(manifest: PlainRecord, gaps: ItriF12AuthorityReviewGap[]): string | null {
   const schemaVersion = stringValue(manifest, "schemaVersion");
 
-  if (schemaVersion !== ITRI_F12_DECISION_THRESHOLD_AUTHORITY_PACKAGE_SCHEMA_VERSION) {
+  if (schemaVersion !== CUSTOMER_F12_DECISION_THRESHOLD_AUTHORITY_PACKAGE_SCHEMA_VERSION) {
     addGap(
       gaps,
       "manifest.schema-version",
-      `Manifest schemaVersion must be ${ITRI_F12_DECISION_THRESHOLD_AUTHORITY_PACKAGE_SCHEMA_VERSION}.`,
+      `Manifest schemaVersion must be ${CUSTOMER_F12_DECISION_THRESHOLD_AUTHORITY_PACKAGE_SCHEMA_VERSION}.`,
       { path: "schemaVersion" }
     );
   }
@@ -567,7 +567,7 @@ function reviewPackagePath(
     addGap(
       gaps,
       "package.path-outside-retained-root",
-      `Package path must be explicitly under ${ITRI_F12_DECISION_THRESHOLD_AUTHORITY_PACKAGE_ROOT}/.`,
+      `Package path must be explicitly under ${CUSTOMER_F12_DECISION_THRESHOLD_AUTHORITY_PACKAGE_ROOT}/.`,
       { path: "packagePath" }
     );
   }
@@ -728,7 +728,7 @@ function reviewerStateFromUnknown(value: unknown): ItriF12AuthorityReviewerState
 
 function measuredRequirementFromUnknown(value: unknown): ItriF12MeasuredRequirementId | null {
   return typeof value === "string" &&
-    (ITRI_F12_MEASURED_REQUIREMENTS as ReadonlyArray<string>).includes(value)
+    (CUSTOMER_F12_MEASURED_REQUIREMENTS as ReadonlyArray<string>).includes(value)
     ? (value as ItriF12MeasuredRequirementId)
     : null;
 }
@@ -910,7 +910,7 @@ function reviewMeasuredPackageRefs(
       addGap(
         refGaps,
         "measured-package.path-outside-retained-root",
-        `Referenced measured package paths must remain under ${ITRI_F12_MEASURED_TRAFFIC_PACKAGE_ROOT}/.`,
+        `Referenced measured package paths must remain under ${CUSTOMER_F12_MEASURED_TRAFFIC_PACKAGE_ROOT}/.`,
         { path: `${refPath}.packagePath` }
       );
     }
@@ -1285,7 +1285,7 @@ function reviewThresholdAuthority(manifest: PlainRecord, gaps: ItriF12AuthorityR
 
 function decisionInputFromUnknown(value: unknown): ItriF12DecisionInput | null {
   return typeof value === "string" &&
-    (ITRI_F12_DECISION_INPUTS as ReadonlyArray<string>).includes(value)
+    (CUSTOMER_F12_DECISION_INPUTS as ReadonlyArray<string>).includes(value)
     ? (value as ItriF12DecisionInput)
     : null;
 }
@@ -1426,7 +1426,7 @@ function reviewDecisionRules(
     const measuredFieldRef = stringValue(rule, "measuredFieldRef");
     const relevantMeasuredRequirements = inputField
       ? MEASURED_REQUIREMENTS_BY_DECISION_INPUT[inputField]
-      : ITRI_F12_MEASURED_REQUIREMENTS;
+      : CUSTOMER_F12_MEASURED_REQUIREMENTS;
 
     for (const key of ["ruleId", "ruleVersion", "comparator", "priority", "missingFieldBehavior"] as const) {
       if (!stringValue(rule, key)) {
@@ -1823,7 +1823,7 @@ export function reviewItriF12DecisionThresholdAuthorityManifest({
   reviewNonClaims(manifest, gaps);
 
   return {
-    schemaVersion: ITRI_F12_DECISION_THRESHOLD_AUTHORITY_REVIEW_SCHEMA_VERSION,
+    schemaVersion: CUSTOMER_F12_DECISION_THRESHOLD_AUTHORITY_REVIEW_SCHEMA_VERSION,
     reviewedAt: resolvedReviewTime,
     packagePath: normalizedPackagePath,
     manifestPath: normalizedManifestPath,

@@ -146,7 +146,7 @@ async function waitForRouteBaselineReady(client) {
     await sleep(100);
   }
 
-  throw new Error(`ITRI demo route did not become ready: ${JSON.stringify(lastState)}`);
+  throw new Error(`customer demo route did not become ready: ${JSON.stringify(lastState)}`);
 }
 
 async function openInspectorForCapture(client) {
@@ -381,7 +381,7 @@ async function main() {
       url: `${baseUrl}${REQUEST_PATH}`
     });
     await waitForRouteBaselineReady(client);
-    await waitForGlobeReady(client, "ITRI demo route baseline legibility");
+    await waitForGlobeReady(client, "customer demo route baseline legibility");
     await openInspectorForCapture(client);
     await sleep(500);
 
@@ -483,7 +483,7 @@ async function main() {
     assertScreenshot(screenshot);
   });
 
-  console.log(`ITRI demo route baseline legibility validated. Output: ${outputRoot}`);
+  console.log(`customer demo route baseline legibility validated. Output: ${outputRoot}`);
 }
 
 main().catch((error) => {

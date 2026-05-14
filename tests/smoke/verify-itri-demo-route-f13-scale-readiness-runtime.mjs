@@ -519,7 +519,7 @@ async function main() {
       url: `${baseUrl}${REQUEST_PATH}`
     });
     await waitForF13ScaleReadinessReady(client);
-    await waitForGlobeReady(client, "ITRI F-13 route-native scale readiness");
+    await waitForGlobeReady(client, "customer F-13 route-native scale readiness");
 
     const inspection = await openEvidenceSurface(client);
     assertInspection(inspection);
@@ -539,7 +539,7 @@ async function main() {
   });
 
   console.log(
-    `ITRI F-13 route-native scale readiness validated. Output: ${outputRoot}`
+    `customer F-13 route-native scale readiness validated. Output: ${outputRoot}`
   );
 }
 

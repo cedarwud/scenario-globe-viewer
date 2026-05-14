@@ -4,13 +4,13 @@ import {
   M8A_V4_GROUND_STATION_RUNTIME_PROJECTION
 } from "./m8a-v4-ground-station-projection";
 import {
-  M8A_V4_ITRI_DEMO_VIEW_DEFAULT_FOCUS_VERSION,
-  M8A_V4_ITRI_DEMO_VIEW_NARROW_VERSION,
-  M8A_V4_ITRI_DEMO_VIEW_DEFAULT_TRUTH_COPY,
+  M8A_V4_CUSTOMER_DEMO_VIEW_DEFAULT_FOCUS_VERSION,
+  M8A_V4_CUSTOMER_DEMO_VIEW_NARROW_VERSION,
+  M8A_V4_CUSTOMER_DEMO_VIEW_DEFAULT_TRUTH_COPY,
   type M8aV4ItriRequirementGroupId
 } from "./m8a-v4-itri-demo-surfaces";
 import {
-  M8A_V4_ITRI_DEMO_VIEW_FOCUS_CHOREOGRAPHY_VERSION,
+  M8A_V4_CUSTOMER_DEMO_VIEW_FOCUS_CHOREOGRAPHY_VERSION,
   resolveTimelineLabel
 } from "./m8a-v4-product-ux-model";
 import {
@@ -241,7 +241,7 @@ export function syncTelemetry(state: M8aV4GroundStationSceneState): void {
     m8aV410FirstViewportComposition:
       state.productUx.productComprehension.firstViewportComposition.version,
     m8aV4ItriDemoViewFocusChoreography:
-      M8A_V4_ITRI_DEMO_VIEW_FOCUS_CHOREOGRAPHY_VERSION,
+      M8A_V4_CUSTOMER_DEMO_VIEW_FOCUS_CHOREOGRAPHY_VERSION,
     m8aV4ItriDemoViewFocusScope: focusChoreography.scope,
     m8aV4ItriDemoViewFocusVisibleContent: serializeList([
       ...focusChoreography.visibleContent
@@ -269,9 +269,9 @@ export function syncTelemetry(state: M8aV4GroundStationSceneState): void {
     m8aV4ItriDemoViewFocusTruthBoundary:
       focusChoreography.truthBoundary,
     m8aV4ItriDemoViewDefaultFocus:
-      M8A_V4_ITRI_DEMO_VIEW_DEFAULT_FOCUS_VERSION,
+      M8A_V4_CUSTOMER_DEMO_VIEW_DEFAULT_FOCUS_VERSION,
     m8aV4ItriDemoViewNarrow:
-      M8A_V4_ITRI_DEMO_VIEW_NARROW_VERSION,
+      M8A_V4_CUSTOMER_DEMO_VIEW_NARROW_VERSION,
     m8aV4ItriDemoViewDefaultLayer:
       "L0-first-read-demo-stage",
     m8aV4ItriDemoViewDefaultInspectorOpen: String(
@@ -289,7 +289,7 @@ export function syncTelemetry(state: M8aV4GroundStationSceneState): void {
     m8aV4ItriDemoViewDefaultRateClass:
       f09RateSurface.currentClassLabel,
     m8aV4ItriDemoViewDefaultTruthBoundary:
-      M8A_V4_ITRI_DEMO_VIEW_DEFAULT_TRUTH_COPY,
+      M8A_V4_CUSTOMER_DEMO_VIEW_DEFAULT_TRUTH_COPY,
     m8aV4ItriDemoViewAcceptanceLayer:
       acceptanceLayer.version,
     m8aV4ItriDemoViewAcceptanceLayerId:

@@ -173,7 +173,7 @@ async function waitForAcceptanceLayerReady(client) {
   }
 
   throw new Error(
-    `ITRI acceptance layer did not become ready: ${JSON.stringify(lastState)}`
+    `customer acceptance layer did not become ready: ${JSON.stringify(lastState)}`
   );
 }
 
@@ -689,7 +689,7 @@ function assertCoverage(inspection) {
       inspection.f13ScaleReadiness.knownGapCount >= 4 &&
       inspection.f13ScaleReadiness.text.includes("fixture/model-backed") &&
       inspection.f13ScaleReadiness.text.includes("not external validation closure") &&
-      inspection.f13ScaleReadiness.text.includes("not ITRI authority") &&
+      inspection.f13ScaleReadiness.text.includes("not customer authority") &&
       inspection.f13ScaleReadiness.text.includes("not measured network truth"),
     `F-13 readiness surface must visibly expose source, boundary, and known gaps: ${JSON.stringify(inspection.f13ScaleReadiness)}`
   );
@@ -741,7 +741,7 @@ async function main() {
       url: `${baseUrl}${REQUEST_PATH}`
     });
     await waitForAcceptanceLayerReady(client);
-    await waitForGlobeReady(client, "ITRI demo view acceptance layer");
+    await waitForGlobeReady(client, "customer demo view acceptance layer");
     await evaluateRuntimeValue(
       client,
       `window.__SCENARIO_GLOBE_VIEWER_CAPTURE__?.m8aV4GroundStationScene?.pause?.()`
@@ -812,7 +812,7 @@ async function main() {
     assertScreenshot(screenshot);
   });
 
-  console.log(`ITRI demo view acceptance layer validated. Output: ${outputRoot}`);
+  console.log(`customer demo view acceptance layer validated. Output: ${outputRoot}`);
 }
 
 main().catch((error) => {

@@ -50,7 +50,7 @@ const FORBIDDEN_CLAIMS = [
   "tunnel verified end-to-end",
   "DUT closed",
   ">=500 LEO closure",
-  "full ITRI acceptance",
+  "full customer acceptance",
   "iperf result",
   "ping-verified",
   "active serving satellite",

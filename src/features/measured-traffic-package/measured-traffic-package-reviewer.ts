@@ -1,18 +1,18 @@
-export const ITRI_MEASURED_TRAFFIC_PACKAGE_SCHEMA_VERSION =
+export const CUSTOMER_MEASURED_TRAFFIC_PACKAGE_SCHEMA_VERSION =
   "itri.f07-f09.measured-traffic-package.v1" as const;
-export const ITRI_MEASURED_TRAFFIC_REVIEW_SCHEMA_VERSION =
+export const CUSTOMER_MEASURED_TRAFFIC_REVIEW_SCHEMA_VERSION =
   "itri.f07r1.measured-traffic-package-review.v1" as const;
-export const ITRI_MEASURED_TRAFFIC_PACKAGE_ROOT =
+export const CUSTOMER_MEASURED_TRAFFIC_PACKAGE_ROOT =
   "output/validation/external-f07-f09" as const;
 
-export const ITRI_MEASURED_TRAFFIC_REQUIREMENTS = [
+export const CUSTOMER_MEASURED_TRAFFIC_REQUIREMENTS = [
   "F-07",
   "F-08",
   "F-09"
 ] as const;
 
 export type ItriMeasuredTrafficRequirementId =
-  (typeof ITRI_MEASURED_TRAFFIC_REQUIREMENTS)[number];
+  (typeof CUSTOMER_MEASURED_TRAFFIC_REQUIREMENTS)[number];
 
 export type ItriRelatedValidationRequirementId =
   | "V-02"
@@ -100,7 +100,7 @@ export interface ItriMeasuredTrafficNonClaims {
 }
 
 export interface ItriMeasuredTrafficPackageReview {
-  schemaVersion: typeof ITRI_MEASURED_TRAFFIC_REVIEW_SCHEMA_VERSION;
+  schemaVersion: typeof CUSTOMER_MEASURED_TRAFFIC_REVIEW_SCHEMA_VERSION;
   reviewedAt: string;
   packagePath: string;
   manifestPath: string;
@@ -275,7 +275,7 @@ function normalizePackagePath(packagePath: string): string {
 
 export function isAllowedItriMeasuredTrafficPackagePath(packagePath: string): boolean {
   const normalized = normalizePackagePath(packagePath);
-  const root = ITRI_MEASURED_TRAFFIC_PACKAGE_ROOT;
+  const root = CUSTOMER_MEASURED_TRAFFIC_PACKAGE_ROOT;
 
   return (
     normalized.startsWith(`${root}/`) &&
@@ -331,7 +331,7 @@ function closedReview(
     "Measured-traffic package import did not reach an importable state.";
 
   return {
-    schemaVersion: ITRI_MEASURED_TRAFFIC_REVIEW_SCHEMA_VERSION,
+    schemaVersion: CUSTOMER_MEASURED_TRAFFIC_REVIEW_SCHEMA_VERSION,
     reviewedAt,
     packagePath: normalizePackagePath(options.packagePath),
     manifestPath: options.manifestPath ?? defaultManifestPath(options.packagePath),
@@ -339,8 +339,8 @@ function closedReview(
     manifestSchemaVersion: options.manifestSchemaVersion ?? null,
     packageId: null,
     runId: null,
-    coveredRequirements: [...ITRI_MEASURED_TRAFFIC_REQUIREMENTS],
-    requirementReviews: ITRI_MEASURED_TRAFFIC_REQUIREMENTS.map((requirementId) =>
+    coveredRequirements: [...CUSTOMER_MEASURED_TRAFFIC_REQUIREMENTS],
+    requirementReviews: CUSTOMER_MEASURED_TRAFFIC_REQUIREMENTS.map((requirementId) =>
       missingRequirementReview(requirementId, reviewedAt, message)
     ),
     gaps: options.gaps,
@@ -423,7 +423,7 @@ export function reviewRejectedItriMeasuredTrafficPackagePath(
   addGap(
     gaps,
     "package.path-outside-retained-root",
-    `Measured-traffic package path must be under ${ITRI_MEASURED_TRAFFIC_PACKAGE_ROOT}/.`,
+    `Measured-traffic package path must be under ${CUSTOMER_MEASURED_TRAFFIC_PACKAGE_ROOT}/.`,
     { path: normalizePackagePath(options.packagePath) }
   );
 
@@ -465,11 +465,11 @@ function addRequiredRootFieldGaps(manifest: PlainRecord, gaps: ItriMeasuredTraff
 function reviewSchemaVersion(manifest: PlainRecord, gaps: ItriMeasuredTrafficReviewGap[]): string | null {
   const schemaVersion = stringValue(manifest, "schemaVersion");
 
-  if (schemaVersion !== ITRI_MEASURED_TRAFFIC_PACKAGE_SCHEMA_VERSION) {
+  if (schemaVersion !== CUSTOMER_MEASURED_TRAFFIC_PACKAGE_SCHEMA_VERSION) {
     addGap(
       gaps,
       "manifest.schema-version",
-      `Manifest schemaVersion must be ${ITRI_MEASURED_TRAFFIC_PACKAGE_SCHEMA_VERSION}.`,
+      `Manifest schemaVersion must be ${CUSTOMER_MEASURED_TRAFFIC_PACKAGE_SCHEMA_VERSION}.`,
       { path: "schemaVersion" }
     );
   }
@@ -489,7 +489,7 @@ function reviewPackagePath(
     addGap(
       gaps,
       "package.path-outside-retained-root",
-      `Package path must be explicitly under ${ITRI_MEASURED_TRAFFIC_PACKAGE_ROOT}/.`,
+      `Package path must be explicitly under ${CUSTOMER_MEASURED_TRAFFIC_PACKAGE_ROOT}/.`,
       { path: "packagePath" }
     );
   }
@@ -602,7 +602,7 @@ function reviewToolVersions(manifest: PlainRecord, gaps: ItriMeasuredTrafficRevi
 
 function requirementFromUnknown(value: unknown): ItriMeasuredTrafficRequirementId | null {
   return typeof value === "string" &&
-    (ITRI_MEASURED_TRAFFIC_REQUIREMENTS as ReadonlyArray<string>).includes(value)
+    (CUSTOMER_MEASURED_TRAFFIC_REQUIREMENTS as ReadonlyArray<string>).includes(value)
     ? (value as ItriMeasuredTrafficRequirementId)
     : null;
 }
@@ -1640,7 +1640,7 @@ export function reviewItriMeasuredTrafficPackageManifest({
   const reviewRequirements =
     coveredRequirements.length > 0
       ? coveredRequirements
-      : [...ITRI_MEASURED_TRAFFIC_REQUIREMENTS];
+      : [...CUSTOMER_MEASURED_TRAFFIC_REQUIREMENTS];
   const requirementReviews = reviewRequirements.map((requirementId) =>
     buildRequirementReview({
       manifest,
@@ -1655,7 +1655,7 @@ export function reviewItriMeasuredTrafficPackageManifest({
   );
 
   return {
-    schemaVersion: ITRI_MEASURED_TRAFFIC_REVIEW_SCHEMA_VERSION,
+    schemaVersion: CUSTOMER_MEASURED_TRAFFIC_REVIEW_SCHEMA_VERSION,
     reviewedAt: resolvedReviewTime,
     packagePath: normalizedPackagePath,
     manifestPath: normalizedManifestPath,

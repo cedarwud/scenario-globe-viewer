@@ -1,18 +1,18 @@
-export const ITRI_PUBLIC_STANDARDS_PROFILE_SCHEMA_VERSION =
+export const CUSTOMER_PUBLIC_STANDARDS_PROFILE_SCHEMA_VERSION =
   "itri.public-standards-profile.v1" as const;
-export const ITRI_PUBLIC_STANDARDS_PROFILE_REVIEW_SCHEMA_VERSION =
+export const CUSTOMER_PUBLIC_STANDARDS_PROFILE_REVIEW_SCHEMA_VERSION =
   "itri.s4r1.public-standards-profile-review.v1" as const;
-export const ITRI_PUBLIC_STANDARDS_PROFILE_PACKAGE_ROOT =
+export const CUSTOMER_PUBLIC_STANDARDS_PROFILE_PACKAGE_ROOT =
   "output/validation/public-standards-profiles" as const;
 
-export const ITRI_PUBLIC_STANDARDS_REQUIREMENTS = [
+export const CUSTOMER_PUBLIC_STANDARDS_REQUIREMENTS = [
   "F-17",
   "P-01",
   "P-02",
   "P-03"
 ] as const;
 
-export const ITRI_PUBLIC_STANDARDS_SELECTED_SOURCE_IDS = [
+export const CUSTOMER_PUBLIC_STANDARDS_SELECTED_SOURCE_IDS = [
   "S4A-ITU-P618",
   "S4A-ITU-P837",
   "S4A-ITU-P838",
@@ -25,9 +25,9 @@ export const ITRI_PUBLIC_STANDARDS_SELECTED_SOURCE_IDS = [
 ] as const;
 
 export type ItriPublicStandardsRequirementId =
-  (typeof ITRI_PUBLIC_STANDARDS_REQUIREMENTS)[number];
+  (typeof CUSTOMER_PUBLIC_STANDARDS_REQUIREMENTS)[number];
 export type ItriPublicStandardsSelectedSourceId =
-  (typeof ITRI_PUBLIC_STANDARDS_SELECTED_SOURCE_IDS)[number];
+  (typeof CUSTOMER_PUBLIC_STANDARDS_SELECTED_SOURCE_IDS)[number];
 
 export type ItriPublicStandardsProfileReviewerState =
   | "bounded-public-profile-ready"
@@ -115,7 +115,7 @@ export interface ItriPublicStandardsProfileNonClaims {
 }
 
 export interface ItriPublicStandardsProfileReview {
-  schemaVersion: typeof ITRI_PUBLIC_STANDARDS_PROFILE_REVIEW_SCHEMA_VERSION;
+  schemaVersion: typeof CUSTOMER_PUBLIC_STANDARDS_PROFILE_REVIEW_SCHEMA_VERSION;
   reviewedAt: string;
   packagePath: string;
   profilePath: string;
@@ -369,7 +369,7 @@ export function isAllowedItriPublicStandardsProfilePackagePath(
   packagePath: string
 ): boolean {
   const normalized = normalizePackagePath(packagePath);
-  const root = ITRI_PUBLIC_STANDARDS_PROFILE_PACKAGE_ROOT;
+  const root = CUSTOMER_PUBLIC_STANDARDS_PROFILE_PACKAGE_ROOT;
 
   return (
     normalized.startsWith(`${root}/`) &&
@@ -434,7 +434,7 @@ function closedReview(
     "Public standards profile review did not reach bounded readiness.";
 
   return {
-    schemaVersion: ITRI_PUBLIC_STANDARDS_PROFILE_REVIEW_SCHEMA_VERSION,
+    schemaVersion: CUSTOMER_PUBLIC_STANDARDS_PROFILE_REVIEW_SCHEMA_VERSION,
     reviewedAt,
     packagePath: normalizePackagePath(options.packagePath),
     profilePath: options.profilePath ?? defaultProfilePath(options.packagePath),
@@ -444,9 +444,9 @@ function closedReview(
     sourceTier: "tier-2-public-authority-candidate",
     acceptanceStatus: null,
     approximationLevel: null,
-    coveredRequirements: [...ITRI_PUBLIC_STANDARDS_REQUIREMENTS],
+    coveredRequirements: [...CUSTOMER_PUBLIC_STANDARDS_REQUIREMENTS],
     selectedSourceIds: [],
-    requirementReviews: ITRI_PUBLIC_STANDARDS_REQUIREMENTS.map((requirementId) =>
+    requirementReviews: CUSTOMER_PUBLIC_STANDARDS_REQUIREMENTS.map((requirementId) =>
       closedRequirementReview(requirementId, reviewedAt, message)
     ),
     gaps: options.gaps,
@@ -533,7 +533,7 @@ export function reviewRejectedItriPublicStandardsProfilePackagePath(
   addGap(
     gaps,
     "package.path-outside-retained-root",
-    `Public standards profile package path must be under ${ITRI_PUBLIC_STANDARDS_PROFILE_PACKAGE_ROOT}/.`,
+    `Public standards profile package path must be under ${CUSTOMER_PUBLIC_STANDARDS_PROFILE_PACKAGE_ROOT}/.`,
     { path: normalizePackagePath(options.packagePath) }
   );
 
@@ -581,11 +581,11 @@ function reviewSchemaVersion(
 ): string | null {
   const schemaVersion = stringValue(profile, "schemaVersion");
 
-  if (schemaVersion !== ITRI_PUBLIC_STANDARDS_PROFILE_SCHEMA_VERSION) {
+  if (schemaVersion !== CUSTOMER_PUBLIC_STANDARDS_PROFILE_SCHEMA_VERSION) {
     addGap(
       gaps,
       "profile.schema-version",
-      `Profile schemaVersion must be ${ITRI_PUBLIC_STANDARDS_PROFILE_SCHEMA_VERSION}.`,
+      `Profile schemaVersion must be ${CUSTOMER_PUBLIC_STANDARDS_PROFILE_SCHEMA_VERSION}.`,
       { path: "schemaVersion" }
     );
   }
@@ -603,7 +603,7 @@ function reviewPackagePath(
     addGap(
       gaps,
       "package.path-outside-retained-root",
-      `Package path must be explicitly under ${ITRI_PUBLIC_STANDARDS_PROFILE_PACKAGE_ROOT}/.`,
+      `Package path must be explicitly under ${CUSTOMER_PUBLIC_STANDARDS_PROFILE_PACKAGE_ROOT}/.`,
       { path: "packagePath" }
     );
   }
@@ -611,7 +611,7 @@ function reviewPackagePath(
 
 function requirementFromUnknown(value: unknown): ItriPublicStandardsRequirementId | null {
   return typeof value === "string" &&
-    (ITRI_PUBLIC_STANDARDS_REQUIREMENTS as ReadonlyArray<string>).includes(value)
+    (CUSTOMER_PUBLIC_STANDARDS_REQUIREMENTS as ReadonlyArray<string>).includes(value)
     ? (value as ItriPublicStandardsRequirementId)
     : null;
 }
@@ -620,7 +620,7 @@ function selectedSourceIdFromUnknown(
   value: unknown
 ): ItriPublicStandardsSelectedSourceId | null {
   return typeof value === "string" &&
-    (ITRI_PUBLIC_STANDARDS_SELECTED_SOURCE_IDS as ReadonlyArray<string>).includes(value)
+    (CUSTOMER_PUBLIC_STANDARDS_SELECTED_SOURCE_IDS as ReadonlyArray<string>).includes(value)
     ? (value as ItriPublicStandardsSelectedSourceId)
     : null;
 }
@@ -1083,7 +1083,7 @@ function reviewAcceptanceAndApproximation(
     retainedAuthorityMaterialAccepted: false,
     notes: [
       "S4R1 is bounded public profile review readiness only.",
-      "No ITRI/V-group acceptance or standards-derived runtime implementation is accepted by this reviewer."
+      "No customer/V-group acceptance or standards-derived runtime implementation is accepted by this reviewer."
     ]
   };
 }
@@ -1431,10 +1431,10 @@ export function reviewItriPublicStandardsProfile({
   const reviewRequirements =
     coveredRequirements.length > 0
       ? coveredRequirements
-      : [...ITRI_PUBLIC_STANDARDS_REQUIREMENTS];
+      : [...CUSTOMER_PUBLIC_STANDARDS_REQUIREMENTS];
 
   return {
-    schemaVersion: ITRI_PUBLIC_STANDARDS_PROFILE_REVIEW_SCHEMA_VERSION,
+    schemaVersion: CUSTOMER_PUBLIC_STANDARDS_PROFILE_REVIEW_SCHEMA_VERSION,
     reviewedAt: resolvedReviewTime,
     packagePath: normalizedPackagePath,
     profilePath: normalizedProfilePath,

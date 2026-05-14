@@ -172,7 +172,7 @@ async function waitForNarrowReady(client) {
     await sleep(100);
   }
 
-  throw new Error(`ITRI narrow view did not become ready: ${JSON.stringify(lastState)}`);
+  throw new Error(`customer narrow view did not become ready: ${JSON.stringify(lastState)}`);
 }
 
 async function inspectNarrowDefault(client) {
@@ -757,7 +757,7 @@ async function main() {
       url: `${baseUrl}${REQUEST_PATH}`
     });
     await waitForNarrowReady(client);
-    await waitForGlobeReady(client, "ITRI demo view narrow");
+    await waitForGlobeReady(client, "customer demo view narrow");
     await evaluateRuntimeValue(
       client,
       `window.__SCENARIO_GLOBE_VIEWER_CAPTURE__?.m8aV4GroundStationScene?.pause?.()`
@@ -821,7 +821,7 @@ async function main() {
     assertScreenshot(evidenceScreenshot);
   });
 
-  console.log(`ITRI demo view narrow validated. Output: ${outputRoot}`);
+  console.log(`customer demo view narrow validated. Output: ${outputRoot}`);
 }
 
 main().catch((error) => {

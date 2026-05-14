@@ -156,7 +156,7 @@ function assertNoRuntimeRawSourceRead() {
 
   assert(
     hits.length === 0,
-    "Slice 5 runtime must not side-read raw ITRI files or live CelesTrak: " +
+    "Slice 5 runtime must not side-read raw customer files or live CelesTrak: " +
       JSON.stringify(hits)
   );
 }
@@ -567,7 +567,7 @@ function assertInvariantState(result, label) {
   );
   assert(
     result.resourceHits.length === 0,
-    `${label} fetched raw ITRI or live CelesTrak resources: ` +
+    `${label} fetched raw customer or live CelesTrak resources: ` +
       JSON.stringify(result.resourceHits)
   );
 }

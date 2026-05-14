@@ -226,7 +226,7 @@ Phase 7.1 multi-orbit viewer gate.
 - GEO uses a deterministic top-${GEO_CAP} active commercial subset from the
   Celestrak \`geo\` catalog.
 
-These files are not ITRI orbit-model data, measured network truth,
+These files are not customer orbit-model data, measured network truth,
 radio-layer handover evidence, or external validation closure.
 `,
     "utf8"
@@ -328,7 +328,7 @@ function main() {
     renderPolicy:
       "one current SGP4-propagated point primitive per copied TLE; no labels, paths, polylines, or orbit-history accumulation in multi-orbit-scale-points mode",
     licenseNote:
-      "Celestrak public GP/TLE data copied for bounded repo validation. This fixture is not ITRI authority data, live network truth, active satellite path truth, or measured performance truth."
+      "Celestrak public GP/TLE data copied for bounded repo validation. This fixture is not customer authority data, live network truth, active satellite path truth, or measured performance truth."
   });
 
   writeJson(path.join(geoOutputDir, "provenance.json"), {
@@ -356,7 +356,7 @@ function main() {
     renderPolicy:
       "one current SGP4-propagated point primitive per copied TLE; no labels, paths, polylines, or orbit-history accumulation in multi-orbit-scale-points mode",
     licenseNote:
-      "Celestrak public GP/TLE data copied for bounded repo validation. This fixture is not ITRI authority data, live network truth, active satellite path truth, or measured performance truth."
+      "Celestrak public GP/TLE data copied for bounded repo validation. This fixture is not customer authority data, live network truth, active satellite path truth, or measured performance truth."
   });
 
   console.log(

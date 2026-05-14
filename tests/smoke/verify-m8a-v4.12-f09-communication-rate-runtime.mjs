@@ -39,7 +39,7 @@ const FORBIDDEN_CLAIMS = [
   "ESTNeT throughput",
   "INET speed",
   ">=500 LEO",
-  "full ITRI acceptance"
+  "full customer acceptance"
 ];
 
 function assert(condition, message) {
