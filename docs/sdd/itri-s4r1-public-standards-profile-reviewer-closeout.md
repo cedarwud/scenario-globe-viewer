@@ -34,6 +34,10 @@ standards-derived behavior.
 - Package command:
   `npm run test:itri-s4r1`
 
+## Landed Chain
+
+- `e4a49f4` implemented the bounded S4R1 public standards profile reviewer.
+
 ## Behavior Locked
 
 - A missing package returns package state `missing` and fails closed.
@@ -86,3 +90,12 @@ F-12R1, and V-02R1 focused verifiers, the new S4R1 focused verifier,
 needed, and forbidden-claim scans scoped to edited files only. The S4R1
 verifier creates only temp package trees and does not mutate retained evidence
 under `output/validation/public-standards-profiles/`.
+The verifier covers missing package, wrong root, missing profile, malformed
+JSON, wrong schema, explicit profile path outside the package, unknown selected
+source ID, method/context source promotion, unofficial URL, missing or true
+nonclaims, synthetic provenance/source tier, authority acceptance without
+retained authority material, implementation-ready approximation without
+retained authority material, missing validation vectors, missing tolerances,
+missing replacement-rule trigger, retained path escaping the package, missing
+`sourceTier` defaulting to Tier 2, and a positive temp-only bounded public
+profile covering F-17/P-01/P-02/P-03.

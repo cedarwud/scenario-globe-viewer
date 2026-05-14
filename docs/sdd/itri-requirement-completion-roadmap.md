@@ -187,6 +187,18 @@ create retained evidence, run live Windows/WSL, tunnel, NAT, DUT, NE-ONE,
 vendor, `ping`, or `iperf` tools, change existing V-02..V-06 runtime verdicts,
 or close V-02..V-06 external-validation authority.
 
+S4R1 close-out: the bounded public standards profile reviewer landed in
+`e4a49f4`. Close-out details are recorded in
+[itri-s4r1-public-standards-profile-reviewer-closeout.md](./itri-s4r1-public-standards-profile-reviewer-closeout.md).
+The reviewer reads only explicitly named local packages under
+`output/validation/public-standards-profiles/`, validates S4-A source-lineage
+IDs, official ITU URLs, nonclaims, validation-vector/tolerance readiness,
+replacement triggers, authority-escalation gates, and package-boundary
+`retainedPath` refs. It does not create retained profile evidence, generate
+synthetic fixtures, fetch standards material, copy ITU tables/equations/
+components, implement numeric standards-derived behavior, change
+`physical-input`, or close F-17/P-01/P-02/P-03 ITRI/V-group authority.
+
 ## Public/Open Source Classification Rules
 
 Before promoting public/open material, classify it in a short source note:
