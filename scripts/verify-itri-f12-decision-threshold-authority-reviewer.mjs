@@ -404,7 +404,15 @@ function measuredManifest({
       dutNatTunnelPathSuccessFromSchemaOnly: false,
       itriOrbitModelIntegration: false,
       radioLayerHandover: false,
-      fullItriAcceptance: false
+      fullItriAcceptance: false,
+      completeItriAcceptance: false,
+      closesF01ItriOrbitModelIntegration: false,
+      arbitraryExternalSourceAcceptance: false,
+      liveRealTimeFeedExecution: false,
+      measuredTrafficNetworkTruth: false,
+      natTunnelDutValidation: false,
+      nativeRfHandoverTruth: false,
+      publicCelesTrakOrSpaceTrackSubstitutesForItriPrivateSourceAuthorityWithoutOwnerEvidence: false
     }
   };
 }
