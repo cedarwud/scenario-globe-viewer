@@ -1,0 +1,34 @@
+export {
+  ITRI_SYNTHETIC_FALLBACK_FIXTURE_INTENDED_CONSUMERS,
+  ITRI_SYNTHETIC_FALLBACK_FIXTURE_LANES,
+  ITRI_SYNTHETIC_FALLBACK_FIXTURE_PACKAGE_ROOT,
+  ITRI_SYNTHETIC_FALLBACK_FIXTURE_REQUIRED_FORBIDDEN_CONSUMERS,
+  ITRI_SYNTHETIC_FALLBACK_FIXTURE_REVIEW_SCHEMA_VERSION,
+  ITRI_SYNTHETIC_FALLBACK_FIXTURE_SCHEMA_VERSION,
+  collectItriSyntheticFallbackFixtureRetainedRefs,
+  isAllowedItriSyntheticFallbackFixturePackagePath,
+  reviewItriSyntheticFallbackFixtureManifest,
+  reviewMalformedItriSyntheticFallbackFixtureManifest,
+  reviewMissingItriSyntheticFallbackFixtureManifest,
+  reviewMissingItriSyntheticFallbackFixturePackage,
+  reviewRejectedItriSyntheticFallbackFixtureManifestPath,
+  reviewRejectedItriSyntheticFallbackFixturePackagePath
+} from "./synthetic-fallback-fixture-reviewer";
+export type {
+  ItriSyntheticFallbackFixtureClosedReviewOptions,
+  ItriSyntheticFallbackFixtureConsumer,
+  ItriSyntheticFallbackFixtureConsumerBoundaryReview,
+  ItriSyntheticFallbackFixtureForbiddenConsumer,
+  ItriSyntheticFallbackFixtureLane,
+  ItriSyntheticFallbackFixtureLaneReview,
+  ItriSyntheticFallbackFixtureMalformedReviewOptions,
+  ItriSyntheticFallbackFixtureNonClaims,
+  ItriSyntheticFallbackFixturePackageReviewState,
+  ItriSyntheticFallbackFixtureProvenanceReview,
+  ItriSyntheticFallbackFixtureRetainedRefCheck,
+  ItriSyntheticFallbackFixtureReview,
+  ItriSyntheticFallbackFixtureReviewGap,
+  ItriSyntheticFallbackFixtureReviewGapSeverity,
+  ItriSyntheticFallbackFixtureReviewOptions,
+  ItriSyntheticFallbackFixtureReviewerState
+} from "./synthetic-fallback-fixture-reviewer";
