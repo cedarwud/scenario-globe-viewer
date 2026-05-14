@@ -740,6 +740,43 @@ async function main() {
       );
     });
 
+    // Explicit manifest path outside the selected package should be rejected
+    await withTempRepo(async (tempRepoForManifestPath) => {
+      const manifest = baseManifest();
+      await writePackageCandidate(tempRepoForManifestPath, manifest);
+      const review = await reviewItriExternalSourcePackageIntakeFromPath({
+        packageInput: packageRelativePath,
+        manifestInput: "output/validation/external-f03-f15/owner-manifest-outside.json",
+        repoRoot: tempRepoForManifestPath
+      });
+      assert.equal(review.packageState, "rejected");
+      assertGap(review, "manifest.path-outside-package");
+    });
+
+    // Missing nonClaims should fail closed
+    await withTempRepo(async (tempRepoForNonClaims) => {
+      const manifest = withMutations([
+        (candidate) => {
+          delete candidate.nonClaims;
+        }
+      ]);
+      await writePackageCandidate(tempRepoForNonClaims, manifest);
+      const review = await runReviewFromTemp(tempRepoForNonClaims);
+      assertGap(review, "nonclaims.missing");
+    });
+
+    // Explicit manifest path inside package should still evaluate owner package readiness
+    await withTempRepo(async (tempRepoForExplicitManifest) => {
+      const manifest = baseManifest();
+      await writePackageCandidate(tempRepoForExplicitManifest, manifest);
+      const review = await reviewItriExternalSourcePackageIntakeFromPath({
+        packageInput: packageRelativePath,
+        manifestInput: `${packageRelativePath}/manifest.json`,
+        repoRoot: tempRepoForExplicitManifest
+      });
+      expectReady(review);
+    });
+
     // Positive ready case
     await withTempRepo(async (tempRepoForReady) => {
       const manifest = baseManifest();
@@ -751,7 +788,7 @@ async function main() {
     });
   });
 
-  console.log("S12-B external-source-package-intake reviewer verifier passed.");
+  console.log("S12-D external-source-package-intake reviewer verifier passed.");
 }
 
 await main();

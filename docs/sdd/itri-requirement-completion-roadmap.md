@@ -109,7 +109,7 @@ authority owner explicitly asks for a single retained package.
 | S9 | V-06 physical DUT / traffic-generator package | V-06 | Lab owner supplies DUT/NE-ONE profile, topology, redaction policy, and run plan. | Retained physical package with raw outputs, logs, redactions, and verdict. | Pass requires physical/lab output with enough retained context for review. |
 | S10 | M8A-V4 endpoint authority preservation and upgrade gate | M8A-V4 endpoint authority | Any request attempts to change endpoint precision, endpoint pair, path semantics, or active service claims. | Authority delta review and, if needed, a new endpoint authority package plus projected artifact update plan. | Existing operator-family bounded closure remains intact unless superseded by a new accepted package. |
 | S11 | Synthetic fallback fixture definitions | Any lane without usable authority or public source | A slice explicitly reaches "no acceptable public/open source" after classification. | A labeled synthetic fixture contract with provenance, intended use, nonclaims, and scan rules. | Closes only fixture readiness; never closes authority truth. |
-| S12 | External scenario-source/TLE package intake | F-03, F-15 | ITRI or a source owner requires source breadth beyond the vendored public fixtures, or supplies authoritative source catalogs/update rules. | Source-package intake contract or retained package plan covering source owner, update cadence, real-time/prerecorded mode rules, redistribution, checksums, scenario mapping, and review gates. S12-A records the docs-only schema in [../data-contracts/itri-external-source-package-intake.schema.json](../data-contracts/itri-external-source-package-intake.schema.json). S12-B adds the bounded reviewer surface and S12-C enforces reviewer readiness boundaries for owner-submitted package material. | Closes only the named source-package readiness lane unless retained source material and owner acceptance are supplied and reviewed. |
+| S12 | External scenario-source/TLE package intake | F-03, F-15 | ITRI or a source owner requires source breadth beyond the vendored public fixtures, or supplies authoritative source catalogs/update rules. | Source-package intake contract or retained package plan covering source owner, update cadence, real-time/prerecorded mode rules, redistribution, checksums, scenario mapping, and review gates. S12-A records the docs-only schema in [../data-contracts/itri-external-source-package-intake.schema.json](../data-contracts/itri-external-source-package-intake.schema.json). S12-B adds the bounded reviewer surface, S12-C enforces owner-submitted package boundary checks, and S12-D reaches the positive owner package `ready-for-intake` state when an explicit package is present and all boundary checks pass. | Closes only the named source-package readiness lane unless retained source material and owner acceptance are supplied and reviewed. |
 
 S4-A close-out pointer: the docs-only public standards source
 classification for F-17/P-01/P-02/P-03 is recorded in
@@ -235,12 +235,12 @@ redistribution policy, checksums, artifact retention, scenario mapping,
 orbit-class coverage, satellite counts, parsed/reviewed field source refs, and
 literal-false nonclaims.
 
-S12-B close-out pointer (bounded readiness reviewer): the source-package
+S12-D close-out pointer (bounded readiness reviewer): the source-package
 intake reviewer, boundary checks, and script entrypoint are implemented with
 the reviewer command in
 [./itri-retained-evidence-request-packet.md](./itri-retained-evidence-request-packet.md).
 Close-out details are recorded in
-[./itri-s12r1-reviewer-closeout.md](./itri-s12r1-reviewer-closeout.md).
+[./itri-s12r3-reviewer-closeout.md](./itri-s12r3-reviewer-closeout.md).
 It does not create retained evidence, fixture JSON, runtime ingestion, public-source
 fetches, or live external execution.
 

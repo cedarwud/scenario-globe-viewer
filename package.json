@@ -31,6 +31,7 @@
     "test:phase7.0:full": "node scripts/run-phase7.0-soak.mjs --profile full",
     "test:phase7.1": "npm run build && node tests/smoke/verify-m7-slice-a-first-intake-active-case-narrative-runtime.mjs",
     "test:itri-s12r1": "node scripts/verify-itri-external-source-package-intake-reviewer.mjs",
+    "test:itri-s12r3": "node scripts/verify-itri-external-source-package-intake-reviewer.mjs",
     "test:r1v.1": "npm run build && node tests/smoke/verify-r1v1-presentation-suppression-runtime.mjs",
     "test:r1v.2": "npm run build && node tests/smoke/verify-r1v2-time-authority-integration-runtime.mjs",
     "test:r1v.3": "npm run build && node tests/smoke/verify-r1v3-animated-cue-and-relation-runtime.mjs",

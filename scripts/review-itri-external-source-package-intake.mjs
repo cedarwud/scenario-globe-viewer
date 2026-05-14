@@ -60,7 +60,7 @@ function isInside(parent, child) {
 }
 
 async function loadReviewerModule() {
-  const tempDir = await mkdtemp(path.join(tmpdir(), "sgv-s12r1-reviewer-"));
+  const tempDir = await mkdtemp(path.join(tmpdir(), "sgv-s12d-reviewer-"));
 
   try {
     const source = await readFile(reviewerSourcePath, "utf8");

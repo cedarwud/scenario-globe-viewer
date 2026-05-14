@@ -7,7 +7,7 @@ export const ITRI_EXTERNAL_SOURCE_PACKAGE_INTAKE_PACKAGE_ROOT =
 export const ITRI_EXTERNAL_SOURCE_PACKAGE_INTAKE_REQUIREMENTS = ["F-03", "F-15"] as const;
 
 export const ITRI_EXTERNAL_SOURCE_PACKAGE_INTAKE_REVIEWER_NAME =
-  "S12-B external source-package-intake reviewer" as const;
+  "S12-D external source-package-intake reviewer" as const;
 
 export type ItriExternalSourcePackageIntakeRequirementId =
   (typeof ITRI_EXTERNAL_SOURCE_PACKAGE_INTAKE_REQUIREMENTS)[number];
@@ -877,21 +877,6 @@ function reviewSourceAuthority(manifest: PlainRecord, gaps: ItriExternalSourcePa
   }
 
   const ownerEvidencePublic = catalog !== null && stringValue(catalog, "catalogType") === "public-tle";
-  if (ownerEvidencePublic && sourceClassification !== null && sourceClassification !== "official-public-source" && sourceClassification !== "bounded-public-profile") {
-    const ownerAuthorityPromotion = isPlainRecord(sourceAuthority.ownerAuthorityPromotion)
-      ? sourceAuthority.ownerAuthorityPromotion
-      : isPlainRecord(manifest.ownerAuthorityPromotion)
-        ? manifest.ownerAuthorityPromotion
-        : null;
-    if (!isPlainRecord(ownerAuthorityPromotion)) {
-      addGap(
-        gaps,
-        "source-authority.missing-owner-promotion",
-        "Public catalog with private/ITRI authority claim must include ownerAuthorityPromotion for explicit scope evidence.",
-        { path: "sourceAuthority.ownerAuthorityPromotion" }
-      );
-    }
-  }
 
   if ((sourceClassification === "itri-private-authority" || sourceClassification === "source-owner-private-authority") && ownerApprovalRequired === false) {
     addGap(
@@ -900,6 +885,75 @@ function reviewSourceAuthority(manifest: PlainRecord, gaps: ItriExternalSourcePa
       "Private authority classification must not mark owner approval as false.",
       { path: "sourceAuthority.ownerApprovalRequiredForAuthorityUse" }
     );
+  }
+
+  const ownerAuthorityPromotion = isPlainRecord(sourceAuthority.ownerAuthorityPromotion)
+    ? sourceAuthority.ownerAuthorityPromotion
+    : null;
+
+  const needsOwnerAuthorityPromotion = ownerEvidencePublic &&
+    sourceClassification !== null &&
+    sourceClassification !== "official-public-source" &&
+    sourceClassification !== "bounded-public-profile";
+
+  if (needsOwnerAuthorityPromotion) {
+    if (!ownerAuthorityPromotion) {
+      addGap(
+        gaps,
+        "source-authority.owner-promotion.missing",
+        "Public catalog with owner/private authority classification must include ownerAuthorityPromotion.",
+        { path: "sourceAuthority.ownerAuthorityPromotion" }
+      );
+    } else {
+      if (booleanValue(ownerAuthorityPromotion, "explicitOwnerEvidence") !== true) {
+        addGap(
+          gaps,
+          "source-authority.owner-promotion.evidence",
+          "ownerAuthorityPromotion.explicitOwnerEvidence must be true for public to private authority promotion.",
+          { path: "sourceAuthority.ownerAuthorityPromotion.explicitOwnerEvidence" }
+        );
+      }
+
+      const approvedBy = stringValue(ownerAuthorityPromotion, "approvedBy");
+      if (!approvedBy) {
+        addGap(
+          gaps,
+          "source-authority.owner-promotion.approved-by",
+          "ownerAuthorityPromotion.approvedBy is required.",
+          { path: "sourceAuthority.ownerAuthorityPromotion.approvedBy" }
+        );
+      }
+
+      const approvedAt = stringValue(ownerAuthorityPromotion, "approvedAt");
+      if (!approvedAt || !Number.isFinite(Date.parse(approvedAt))) {
+        addGap(
+          gaps,
+          "source-authority.owner-promotion.approved-at",
+          "ownerAuthorityPromotion.approvedAt must be ISO-8601.",
+          { path: "sourceAuthority.ownerAuthorityPromotion.approvedAt" }
+        );
+      }
+
+      const promotionScope = stringValue(ownerAuthorityPromotion, "promotionScope");
+      if (!promotionScope) {
+        addGap(
+          gaps,
+          "source-authority.owner-promotion.scope",
+          "ownerAuthorityPromotion.promotionScope is required.",
+          { path: "sourceAuthority.ownerAuthorityPromotion.promotionScope" }
+        );
+      }
+
+      const approvalArtifactRefs = arrayValue(ownerAuthorityPromotion.approvalArtifactRefs);
+      if (approvalArtifactRefs.length === 0) {
+        addGap(
+          gaps,
+          "source-authority.owner-promotion.refs",
+          "ownerAuthorityPromotion.approvalArtifactRefs is required and non-empty.",
+          { path: "sourceAuthority.ownerAuthorityPromotion.approvalArtifactRefs" }
+        );
+      }
+    }
   }
 }
 
@@ -2003,8 +2057,8 @@ function synthesizeRequirementState(
     requirementReviews: ITRI_EXTERNAL_SOURCE_PACKAGE_INTAKE_REQUIREMENTS.map((requirementId) => ({
       requirementId,
       reviewerState: requirementState,
-      evidenceScope:
-        "S12-B source package readiness requires declared boundaries, checksums, scenario mappings, and closed nonclaims.",
+        evidenceScope:
+        "S12-D source package readiness requires declared boundaries, checksums, scenario mappings, and closed nonclaims.",
       sourceArtifactIds: sourceArtifactRefSummary.declaredRefIds,
       reviewer: {
         nameOrRole: ITRI_EXTERNAL_SOURCE_PACKAGE_INTAKE_REVIEWER_NAME,

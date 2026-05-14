@@ -24,7 +24,7 @@ Related data contracts and reviewer close-outs:
 - [itri-v02r1-external-validation-manifest-reviewer-closeout.md](./itri-v02r1-external-validation-manifest-reviewer-closeout.md)
 - [itri-f01r1-orbit-model-intake-reviewer-closeout.md](./itri-f01r1-orbit-model-intake-reviewer-closeout.md)
 - [itri-s4r1-public-standards-profile-reviewer-closeout.md](./itri-s4r1-public-standards-profile-reviewer-closeout.md)
-- [itri-s12r1-reviewer-closeout.md](./itri-s12r1-reviewer-closeout.md)
+- [itri-s12r3-reviewer-closeout.md](./itri-s12r3-reviewer-closeout.md)
 
 ## Overview
 
@@ -80,7 +80,9 @@ Future owner-supplied package material shaped by
 `docs/data-contracts/itri-external-source-package-intake.schema.json` if ITRI
 requires source breadth beyond the current vendored public fixtures. Package
 readiness is validated by the S12-B reviewer implementation; S12-C extends that
-same boundary with stricter owner-source acceptance checks.
+same boundary with stricter owner-source acceptance checks; S12-D keeps the same
+entrypoint and adds explicit positive readiness checks when an owner package is
+available.
 
 Required owner-supplied artifact checklist:
 
@@ -136,7 +138,7 @@ Redaction and redistribution notes:
 Reviewer command after package arrival:
 
 ```text
-S12-B bounded source-package reviewer is available:
+S12-D bounded source-package reviewer is available:
 node scripts/review-itri-external-source-package-intake.mjs --package output/validation/external-f03-f15/<timestamp>-external-source-intake --manifest output/validation/external-f03-f15/<timestamp>-external-source-intake/manifest.json
 ```
 
