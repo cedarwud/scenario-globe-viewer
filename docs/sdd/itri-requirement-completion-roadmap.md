@@ -75,7 +75,7 @@ Hard rules:
 | ID | Requirement lane | Current repo status | Roadmap status | Evidence path to finish honestly | Public/open substitute classification | Synthetic fallback boundary |
 | --- | --- | --- | --- | --- | --- | --- |
 | F-01 | ITRI self-developed orbit-model integration | Scenario contracts, walker fixtures, public-TLE scale profiles, and V4.13 public-TLE multi-orbit runtime evidence exist, but they are not ITRI model integration. | External-authority-only | Request the ITRI orbit-model package/spec, input/output schema, time basis, reference frames, propagator rules, validation vectors, tolerances, redistribution policy, and owner sign-off. Then define an adapter contract and validation package before code. | CelesTrak, Space-Track, ESTNeT, 3GPP, and ITRI public pages are context/proxy candidates only. They may maintain the bounded public-TLE profile, not replace the ITRI model. | Adapter-interface placeholders may exist without orbital truth. Simulated orbit data must be labeled synthetic and cannot close F-01. |
-| F-03/F-15 | External TLE/source scenario breadth and real-time/prerecorded source acceptance | Public CelesTrak fixtures, walker fixtures, scenario mode switching, and V4.13 public-TLE multi-orbit runtime evidence exist. S12-A now defines the owner-supplied source-package intake schema. No retained source package or reviewer exists. Full owner-supplied source breadth remains separate from F-01 orbit-model integration. | Already bounded-closed for repo-owned public fixtures; S12-A intake readiness exists; external retained package/reviewer lane remains open if required by ITRI | Use the S12-A schema to request source-owner package material: catalog owner, source URL or private drop, epoch/update cadence, licensing and redistribution policy, real-time vs prerecorded mode rules, checksum/retention rules, accepted stale-data policy, scenario mapping, and owner sign-off for source use. | CelesTrak and Space-Track can support bounded public-source profiles with lineage and access dates. They do not prove ITRI private source acceptance or arbitrary external scenario coverage by themselves. | Source-shape fixtures may rehearse parser/schema behavior only and cannot replace retained source packages or source-owner acceptance. |
+| F-03/F-15 | External TLE/source scenario breadth and real-time/prerecorded source acceptance | Public CelesTrak fixtures, walker fixtures, scenario mode switching, and V4.13 public-TLE multi-orbit runtime evidence exist. S12-A defines the owner-supplied source-package intake schema and S12-B readiness reviewer is available. Full owner-supplied source breadth remains separate from F-01 orbit-model integration. | Already bounded-closed for repo-owned public fixtures; S12-A/S12-B covers intake readiness when retained package material is present; external retained package/reviewer lane remains open if required by ITRI | Use the S12-A schema to request source-owner package material: catalog owner, source URL or private drop, epoch/update cadence, licensing and redistribution policy, real-time vs prerecorded mode rules, checksum/retention rules, accepted stale-data policy, scenario mapping, and owner sign-off for source use. | CelesTrak and Space-Track can support bounded public-source profiles with lineage and access dates. They do not prove ITRI private source acceptance or arbitrary external scenario coverage by themselves. | Source-shape fixtures may rehearse parser/schema behavior only and cannot replace retained source packages or source-owner acceptance. |
 | F-07 | Communication-time display | Repo-owned communication-time surfaces are already bounded-closed. Values remain proxy/model state, not retained measured traffic. | Already bounded-closed; measured lane is external-authority-only | Use `output/validation/external-f07-f09/<timestamp>-measured-traffic/` with topology, endpoints, raw `ping` or approved logs, timing window, handover events, thresholds, and redaction notes. | INET PingApp, RFC 792, RFC 6349, and iPerf docs are method context only. They can guide parser/runbook fields. | Synthetic ping windows may test parser/UI shape only and must never be labeled measured. |
 | F-08 | Communication-time statistics | Repo-owned summary/report state is already bounded-closed. It is not measurement-backed statistics. | Already bounded-closed; measured lane is external-authority-only | Retain raw logs, parsed distributions, packet loss, jitter source, sample count, duration, computation method, and ITRI thresholds. | INET throughput examples, iPerf docs, and RFC methodology can guide computation fields but cannot supply project results. | Generated statistics may support schema tests only. They cannot produce pass/fail status. |
 | F-09 | Communication-rate display | V4.12 has bounded communication-rate visualization from modeled network-speed classes. | Already bounded-closed; measured throughput lane is external-authority-only | Retain `iperf3` or approved traffic-generator client/server output, endpoints, direction, protocol, duration, interval stats, retransmits/loss where applicable, topology proof, and threshold authority. | iPerf and INET docs are method context. Operator service pages are service context. Neither supplies project Mbps/Gbps truth. | Synthetic throughput samples may test chart/export behavior only and must carry synthetic provenance. |
@@ -224,7 +224,8 @@ synthetic material to authority evidence, or close any measured, external,
 physical, F-01, F-12, V-lane, DUT/NAT/tunnel, native radio handover, active
 gateway/path, or full acceptance by ITRI.
 
-S12-A close-out pointer: the docs-only external source package intake schema is
+S12-A schema close-out pointer (docs-only): the external source package intake
+schema is
 recorded in
 [../data-contracts/itri-external-source-package-intake.schema.json](../data-contracts/itri-external-source-package-intake.schema.json).
 It defines the required owner/source metadata, source tier and authority
@@ -232,9 +233,16 @@ classification, public URL or private drop metadata, catalog type,
 real-time/prerecorded rules, epoch/time/update/stale-data rules, license and
 redistribution policy, checksums, artifact retention, scenario mapping,
 orbit-class coverage, satellite counts, parsed/reviewed field source refs, and
-literal-false nonclaims. It does not create retained source packages, reviewer
-scripts, tests, fixture JSON, runtime ingestion, public-source fetches, or live
-external execution.
+literal-false nonclaims.
+
+S12-B close-out pointer (bounded readiness reviewer): the source-package
+intake reviewer, boundary checks, and script entrypoint are implemented with
+the reviewer command in
+[./itri-retained-evidence-request-packet.md](./itri-retained-evidence-request-packet.md).
+Close-out details are recorded in
+[./itri-s12r1-reviewer-closeout.md](./itri-s12r1-reviewer-closeout.md).
+It does not create retained evidence, fixture JSON, runtime ingestion, public-source
+fetches, or live external execution.
 
 Retained evidence request pointer: remaining authority-gated lanes have a
 docs-only owner request packet in

@@ -24,6 +24,7 @@ Related data contracts and reviewer close-outs:
 - [itri-v02r1-external-validation-manifest-reviewer-closeout.md](./itri-v02r1-external-validation-manifest-reviewer-closeout.md)
 - [itri-f01r1-orbit-model-intake-reviewer-closeout.md](./itri-f01r1-orbit-model-intake-reviewer-closeout.md)
 - [itri-s4r1-public-standards-profile-reviewer-closeout.md](./itri-s4r1-public-standards-profile-reviewer-closeout.md)
+- [itri-s12r1-reviewer-closeout.md](./itri-s12r1-reviewer-closeout.md)
 
 ## Overview
 
@@ -134,9 +135,8 @@ Redaction and redistribution notes:
 Reviewer command after package arrival:
 
 ```text
-No F-03/F-15 source-package reviewer exists yet. The S12-A schema defines only
-the package intake shape. If ITRI requires review for this lane, open a bounded
-source-package reviewer slice before runtime integration.
+S12-B bounded source-package reviewer is available:
+node scripts/review-itri-external-source-package-intake.mjs --package output/validation/external-f03-f15/<timestamp>-external-source-intake --manifest output/validation/external-f03-f15/<timestamp>-external-source-intake/manifest.json
 ```
 
 ## F-07/F-08/F-09 Measured Traffic Package
