@@ -11,7 +11,9 @@ Related phase history: see [delivery-phases.md](../delivery-phases.md).
 Related contract docs: see [scene-preset.md](../data-contracts/scene-preset.md),
 [replay-clock.md](../data-contracts/replay-clock.md),
 [satellite-overlay.md](../data-contracts/satellite-overlay.md), and
-[scenario.md](../data-contracts/scenario.md).
+[scenario.md](../data-contracts/scenario.md). F-03/F-15 owner-supplied source
+package intake is recorded in
+[itri-external-source-package-intake.schema.json](../data-contracts/itri-external-source-package-intake.schema.json).
 
 ## Status
 
@@ -102,7 +104,7 @@ The current repo direction is not wrong, but its next-step priority has drift ri
 | Communication-time display / statistics / export | `r1.docx`: `即時顯示可通訊時間`, `統計報表匯出`.<br>`kickoff.pptx` Slide 5: `iperf` / `ping`-anchored communication-time display | Phase 6.3 and V4.12 F-09/F-16 provide bounded communication-time, communication-rate, statistics/report state, and export surfaces. F-07R1 provides a fail-closed reviewer for future retained traffic packages. | `6.3`, V4.12, F-07R1 | Repo-owned communication-time state, scenario-bounded summaries, report export, and package-review readiness exist independently of showcase overlays | Lower for bounded surfaces; remaining risk is retained external traffic evidence and threshold authority |
 | Handover / link decision logic | `r1.docx`: `換手策略切換`.<br>`kickoff.pptx` Slide 2 and 6: switching by `latency`, `jitter`, `network speed` across orbit classes | Phase 6.4 and V4.12 F-10/F-11 provide deterministic bounded handover decision outputs, policy switching, and rule editing. F-12R1 provides a fail-closed reviewer for future threshold authority packages. | `6.4`, V4.12, F-12R1 | Deterministic decision outputs and reason signals exist and can feed statistics, presentation, and later authority review packages | Lower for bounded decision behavior; remaining risk is retained measured inputs and owner-approved threshold semantics |
 | Physical-layer / antenna / rain attenuation / ITU inputs | `kickoff.pptx` Slide 2 and 6: `physical layer`, antenna parameters, rain attenuation, `ITU` inputs | Phase 6.5 provides bounded physical-input families and projected decision effects. S4-A/S4-B/S4R1 add source classification, profile schema, and fail-closed reviewer readiness for future public standards packages. | `6.5`, S4-A/S4-B/S4R1 | Input families are explicit, provenance-tagged, consumable by the decision layer, and prepared for bounded public standards package review | Lower for bounded inputs; remaining risk is ITRI/V-group selected versions, parameters, approximation level, and validation vectors |
-| Scenario loading / prerecorded vs real-time | `kickoff.pptx` Slide 5 and 6: `real time` vs prerecorded scenario/demo modes | Phase 6.1 provides scenario identity/source/lifecycle coordination, and V4.13 proves bounded public-TLE multi-orbit runtime coverage. External scenario-source breadth for F-03/F-15 remains a successor lane if ITRI requires owner-supplied TLE/source packages beyond the vendored public fixtures. | `6.1`, V4.13; successor F-03/F-15 source lane if required | One plain-data scenario model coordinates identity, source type, load/unload lifecycle, and mode switching | Lower for repo-owned scenario mode switching; remaining risk is external source-package authority and update cadence |
+| Scenario loading / prerecorded vs real-time | `kickoff.pptx` Slide 5 and 6: `real time` vs prerecorded scenario/demo modes | Phase 6.1 provides scenario identity/source/lifecycle coordination, V4.13 proves bounded public-TLE multi-orbit runtime coverage, and S12-A defines the docs-only intake schema for later owner-supplied TLE/source packages. External scenario-source breadth for F-03/F-15 still requires owner material and later review if ITRI requires scope beyond the vendored public fixtures. | `6.1`, V4.13; successor F-03/F-15 source lane if required | One plain-data scenario model coordinates identity, source type, load/unload lifecycle, and mode switching | Lower for repo-owned scenario mode switching; remaining risk is external source-package authority and update cadence |
 | Validation bridge / NAT / tunnel / DUT | `kickoff.pptx` Slide 3 and 6: Windows tunneling, NAT routing, virtual/physical DUT, ESTNeT/INET bridge | Phase 6.6 gives these modes a validation-state home, and V-02R1 adds a fail-closed manifest reviewer for future retained external packages. The repo still does not own real tunnel, NAT, DUT, NE-ONE, or traffic-generator execution. | `6.6`, V-02R1 | Validation modes, DUT boundaries, NAT/tunnel/bridge ownership notes, and package-review readiness are explicit and repo-owned | Lower for repo visibility; remaining risk is retained external run evidence and owner verdicts |
 | 24h soak | `r1.docx` WP1 close-out and `kickoff.pptx` Slide 6: stable for at least `24` hours | Formal soak contract/harness now has retained rehearsal evidence plus a retained `24h` full-run pass artifact from the canonical package entry | `7.0` | Repeatable soak procedure, pass/fail rule, and retained `24h` full-run evidence exist | Lower after close-out: the formal soak gate is now evidenced rather than inferred |
 | 500 LEO validation | `r1.docx`: `支援 ≥ 500 LEO 模擬`.<br>`kickoff.pptx` Slide 5: `支援 ≥ 500 LEO 模擬` | V4.12 closed the route-native LEO leg with `600` public Starlink TLE records; V4.13 carries that count inside the multi-orbit public-TLE gate | `7.1` | `multi-orbit-scale-1000` retained evidence shows `observedLeoCount = 600` with MEO/GEO counts also observed | Lower after V4.13: scale is evidenced for bounded public TLE, not for ITRI orbit-model or measured network truth |
@@ -126,11 +128,12 @@ planning correction recorded here:
   F-17/P-01/P-02/P-03, F-01, and S11 synthetic fallback fixtures.
 - No retained owner evidence has been created by the R1 reviewer chain. The
   reviewers are readiness gates, not requirement pass evidence.
-- The underrepresented planning item is F-03/F-15 external scenario-source
-  breadth: the repo has bounded public-TLE runtime coverage and mode switching,
-  but a future source-package lane is still needed if ITRI requires arbitrary
-  owner-supplied TLE/source catalogs, update cadence, or source-specific
-  real-time/prerecorded acceptance beyond the vendored public fixtures.
+- The formerly underrepresented planning item is now partially bounded:
+  F-03/F-15 external scenario-source breadth has an S12-A docs-only intake
+  schema for owner-supplied TLE/source catalogs, update cadence, and
+  real-time/prerecorded source rules. The repo still has no retained source
+  package, reviewer, or runtime ingestion path for arbitrary owner-supplied
+  source breadth beyond the vendored public fixtures.
 
 ## Preserve / Downgrade / Stop / Consider-Remove
 
@@ -644,7 +647,8 @@ Phases 6.1-7.1.
 
 ## Risks And Open Questions
 
-- The exact formal scenario source set is still unresolved.
+- The exact formal scenario source set is still unresolved; S12-A defines the
+  intake metadata but does not supply owner source material.
 - The exact boundary between repo-owned validation logic and external stack
   ownership still needs to be written down in implementation detail.
 - The final site/AOI delivery dataset is still separate from the current MVP

@@ -1,0 +1,1417 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://scenario-globe-viewer.local/schemas/itri-external-source-package-intake.v1.schema.json",
+  "title": "ITRI F-03/F-15 External Source Package Intake Contract",
+  "description": "Docs-only intake schema for owner-supplied TLE or scenario source packages for F-03/F-15. It defines the package material required before any later reviewer or runtime work may be planned. It does not authorize runtime ingestion, scripts, tests, retained packages, fixture files, public source fetches, or live external execution.",
+  "type": "object",
+  "additionalProperties": false,
+  "x-itriLane": "S12-A",
+  "x-coveredRequirements": [
+    "F-03",
+    "F-15"
+  ],
+  "x-contractStatus": "docs-only-intake-contract",
+  "x-packageReviewRoot": "future owner-supplied package root only; no package root is created by this schema",
+  "x-crossReferenceRule": "Every sourceArtifactRefs[].artifactId used by parsedReviewedFields, scenarioMapping, orbitClassCoverage, satelliteCountDeclarations, catalog derivation, mode rules, or reviewer notes must match one packageArtifacts[].artifactId. Future reviewers must fail closed when a referenced artifact is not listed in packageArtifacts.",
+  "x-failClosedDesignNotes": [
+    "missing package metadata",
+    "wrong schemaVersion",
+    "missing owner/source authority",
+    "public source promoted to private or ITRI authority without explicit owner evidence",
+    "missing license/redistribution policy",
+    "missing epoch/time system/update cadence",
+    "missing real-time/prerecorded mode rules",
+    "missing stale-data policy",
+    "missing scenario mapping",
+    "missing checksums/artifact references",
+    "parsed/reviewed fields that reference artifacts not listed in package artifacts",
+    "retainedPath escaping package root",
+    "synthetic source presented as authority evidence",
+    "any nonClaims value missing or true"
+  ],
+  "required": [
+    "schemaVersion",
+    "packageIdentity",
+    "ownerIdentity",
+    "sourceAuthority",
+    "sourceLocator",
+    "catalog",
+    "modeRules",
+    "temporalRules",
+    "licenseRedistributionPolicy",
+    "checksumPolicy",
+    "retentionPolicy",
+    "packageArtifacts",
+    "scenarioMapping",
+    "orbitClassCoverage",
+    "satelliteCountDeclarations",
+    "parsedReviewedFields",
+    "reviewGate",
+    "nonClaims"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": "itri.f03-f15.external-source-package-intake.v1"
+    },
+    "packageIdentity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "packageId",
+        "packageFamily",
+        "packageVersion",
+        "coveredRequirements",
+        "receivedAt",
+        "declaredScope",
+        "packageStatus"
+      ],
+      "properties": {
+        "packageId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "packageFamily": {
+          "const": "itri-f03-f15-external-source-package"
+        },
+        "packageVersion": {
+          "type": "string",
+          "minLength": 1
+        },
+        "coveredRequirements": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "F-03",
+              "F-15"
+            ]
+          }
+        },
+        "receivedAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "declaredScope": {
+          "type": "string",
+          "minLength": 1
+        },
+        "packageStatus": {
+          "enum": [
+            "owner-supplied-for-intake",
+            "metadata-only-request",
+            "blocked-missing-material",
+            "superseded"
+          ]
+        },
+        "supersedesPackageIds": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "default": []
+        }
+      }
+    },
+    "ownerIdentity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "sourceOwner",
+        "packageOwner",
+        "authorityOwner",
+        "reviewContactRef",
+        "ownerEvidenceRefs"
+      ],
+      "properties": {
+        "sourceOwner": {
+          "$ref": "#/$defs/ownerRef"
+        },
+        "packageOwner": {
+          "$ref": "#/$defs/ownerRef"
+        },
+        "authorityOwner": {
+          "$ref": "#/$defs/ownerRef"
+        },
+        "reviewContactRef": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Retained contact reference or null when contact data cannot be retained."
+        },
+        "ownerEvidenceRefs": {
+          "$ref": "#/$defs/sourceArtifactRefs"
+        }
+      }
+    },
+    "sourceAuthority": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "sourceTier",
+        "sourceAuthorityClassification",
+        "authorityScope",
+        "authorityLimitations",
+        "ownerApprovalRequiredForAuthorityUse",
+        "ownerApprovalRefs"
+      ],
+      "properties": {
+        "sourceTier": {
+          "enum": [
+            "tier-1-itri-or-owner-authority",
+            "tier-2-public-official-source",
+            "tier-3-synthetic-rehearsal",
+            "tier-4-readiness-placeholder"
+          ]
+        },
+        "sourceAuthorityClassification": {
+          "enum": [
+            "itri-private-authority",
+            "source-owner-private-authority",
+            "official-public-source",
+            "bounded-public-profile",
+            "synthetic-rehearsal-only",
+            "owner-defined-source-pending-review"
+          ]
+        },
+        "authorityScope": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "authorityLimitations": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "ownerApprovalRequiredForAuthorityUse": {
+          "type": "boolean"
+        },
+        "ownerApprovalRefs": {
+          "$ref": "#/$defs/sourceArtifactRefs"
+        }
+      }
+    },
+    "ownerAuthorityPromotion": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Required only when a public source is explicitly accepted by an owner for a private or ITRI authority scope.",
+      "required": [
+        "explicitOwnerEvidence",
+        "approvedBy",
+        "approvedAt",
+        "promotionScope",
+        "approvalArtifactRefs"
+      ],
+      "properties": {
+        "explicitOwnerEvidence": {
+          "const": true
+        },
+        "approvedBy": {
+          "type": "string",
+          "minLength": 1
+        },
+        "approvedAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "promotionScope": {
+          "type": "string",
+          "minLength": 1
+        },
+        "approvalArtifactRefs": {
+          "$ref": "#/$defs/sourceArtifactRefs"
+        }
+      }
+    },
+    "sourceLocator": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "locatorType",
+        "networkAccessRequiredForIntakeReview"
+      ],
+      "properties": {
+        "locatorType": {
+          "enum": [
+            "public-url",
+            "private-drop",
+            "mixed-public-and-private",
+            "owner-system-reference"
+          ]
+        },
+        "networkAccessRequiredForIntakeReview": {
+          "const": false
+        },
+        "publicSource": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "sourceUrl",
+            "accessedAt",
+            "accessMethod",
+            "retainedMetadataRefs"
+          ],
+          "properties": {
+            "sourceUrl": {
+              "type": "string",
+              "format": "uri"
+            },
+            "accessedAt": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "accessMethod": {
+              "type": "string",
+              "minLength": 1
+            },
+            "retainedMetadataRefs": {
+              "$ref": "#/$defs/sourceArtifactRefs"
+            }
+          }
+        },
+        "privateDrop": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "ownerSystemRef",
+            "dropId",
+            "receivedAt",
+            "offlineReviewMaterialRefs",
+            "confidentialityNotes"
+          ],
+          "properties": {
+            "ownerSystemRef": {
+              "type": "string",
+              "minLength": 1
+            },
+            "dropId": {
+              "type": "string",
+              "minLength": 1
+            },
+            "receivedAt": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "offlineReviewMaterialRefs": {
+              "$ref": "#/$defs/sourceArtifactRefs"
+            },
+            "confidentialityNotes": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "locatorType": {
+                "const": "public-url"
+              }
+            },
+            "required": [
+              "locatorType"
+            ]
+          },
+          "then": {
+            "required": [
+              "publicSource"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "locatorType": {
+                "const": "private-drop"
+              }
+            },
+            "required": [
+              "locatorType"
+            ]
+          },
+          "then": {
+            "required": [
+              "privateDrop"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "locatorType": {
+                "enum": [
+                  "mixed-public-and-private",
+                  "owner-system-reference"
+                ]
+              }
+            },
+            "required": [
+              "locatorType"
+            ]
+          },
+          "then": {
+            "anyOf": [
+              {
+                "required": [
+                  "publicSource"
+                ]
+              },
+              {
+                "required": [
+                  "privateDrop"
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "catalog": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "catalogType",
+        "catalogName",
+        "catalogVersion",
+        "catalogFormat",
+        "sourceRecordIdentityPolicy",
+        "sourceArtifactRefs"
+      ],
+      "properties": {
+        "catalogType": {
+          "enum": [
+            "public-tle",
+            "private-tle",
+            "derived-catalog",
+            "synthetic-rehearsal-only",
+            "other-owner-defined-source"
+          ]
+        },
+        "catalogName": {
+          "type": "string",
+          "minLength": 1
+        },
+        "catalogVersion": {
+          "type": "string",
+          "minLength": 1
+        },
+        "catalogFormat": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Examples include two-line element set, CSV, JSON, owner database export, or a named owner format."
+        },
+        "sourceRecordIdentityPolicy": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Declares the stable satellite/source record key and duplicate-record handling rule."
+        },
+        "derivation": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "derived",
+            "method",
+            "inputArtifactRefs",
+            "reviewNotes"
+          ],
+          "properties": {
+            "derived": {
+              "type": "boolean"
+            },
+            "method": {
+              "type": "string"
+            },
+            "inputArtifactRefs": {
+              "$ref": "#/$defs/sourceArtifactRefs"
+            },
+            "reviewNotes": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "sourceArtifactRefs": {
+          "$ref": "#/$defs/sourceArtifactRefs"
+        }
+      }
+    },
+    "modeRules": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "realTime",
+        "prerecorded",
+        "defaultMode",
+        "modeSelectionArtifactRefs"
+      ],
+      "properties": {
+        "realTime": {
+          "$ref": "#/$defs/modeRule"
+        },
+        "prerecorded": {
+          "$ref": "#/$defs/modeRule"
+        },
+        "defaultMode": {
+          "enum": [
+            "real-time",
+            "prerecorded",
+            "owner-selected-at-review"
+          ]
+        },
+        "modeSelectionArtifactRefs": {
+          "$ref": "#/$defs/sourceArtifactRefs"
+        }
+      }
+    },
+    "temporalRules": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "epoch",
+        "timeSystem",
+        "updateCadence",
+        "staleDataPolicy",
+        "temporalArtifactRefs"
+      ],
+      "properties": {
+        "epoch": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "epochFormat",
+            "epochStart",
+            "epochEnd",
+            "epochSource"
+          ],
+          "properties": {
+            "epochFormat": {
+              "type": "string",
+              "minLength": 1
+            },
+            "epochStart": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "epochEnd": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "epochSource": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        },
+        "timeSystem": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "name",
+            "leapSecondPolicy",
+            "clockMappingRule"
+          ],
+          "properties": {
+            "name": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Examples include UTC, TAI, GPS time, or an owner-defined simulation clock."
+            },
+            "leapSecondPolicy": {
+              "type": "string",
+              "minLength": 1
+            },
+            "clockMappingRule": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        },
+        "updateCadence": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "cadenceKind",
+            "nominalCadenceSeconds",
+            "maximumGapSeconds",
+            "cadenceSource"
+          ],
+          "properties": {
+            "cadenceKind": {
+              "enum": [
+                "periodic",
+                "event-driven",
+                "owner-drop",
+                "fixed-prerecorded",
+                "unknown-pending-owner"
+              ]
+            },
+            "nominalCadenceSeconds": {
+              "type": [
+                "number",
+                "null"
+              ],
+              "minimum": 0
+            },
+            "maximumGapSeconds": {
+              "type": [
+                "number",
+                "null"
+              ],
+              "minimum": 0
+            },
+            "cadenceSource": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        },
+        "staleDataPolicy": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "maximumAgeSeconds",
+            "staleBehavior",
+            "reviewStateWhenStale",
+            "policyArtifactRefs"
+          ],
+          "properties": {
+            "maximumAgeSeconds": {
+              "type": [
+                "number",
+                "null"
+              ],
+              "minimum": 0
+            },
+            "staleBehavior": {
+              "enum": [
+                "reject-package",
+                "quarantine-records",
+                "mark-incomplete",
+                "owner-review-required"
+              ]
+            },
+            "reviewStateWhenStale": {
+              "enum": [
+                "intake-gap",
+                "rejected",
+                "owner-review-required"
+              ]
+            },
+            "policyArtifactRefs": {
+              "$ref": "#/$defs/sourceArtifactRefs"
+            }
+          }
+        },
+        "temporalArtifactRefs": {
+          "$ref": "#/$defs/sourceArtifactRefs"
+        }
+      }
+    },
+    "licenseRedistributionPolicy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "licenseName",
+        "licenseVersionOrRef",
+        "redistributionAllowed",
+        "repoRetentionAllowed",
+        "derivedArtifactsAllowed",
+        "publicSummaryAllowed",
+        "policyArtifactRefs",
+        "restrictions"
+      ],
+      "properties": {
+        "licenseName": {
+          "type": "string",
+          "minLength": 1
+        },
+        "licenseVersionOrRef": {
+          "type": "string",
+          "minLength": 1
+        },
+        "redistributionAllowed": {
+          "type": "boolean"
+        },
+        "repoRetentionAllowed": {
+          "type": "boolean"
+        },
+        "derivedArtifactsAllowed": {
+          "type": "boolean"
+        },
+        "publicSummaryAllowed": {
+          "type": "boolean"
+        },
+        "policyArtifactRefs": {
+          "$ref": "#/$defs/sourceArtifactRefs"
+        },
+        "restrictions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "checksumPolicy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "requiredAlgorithms",
+        "allRetainedArtifactsRequireChecksum",
+        "checksumManifestRefs"
+      ],
+      "properties": {
+        "requiredAlgorithms": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "enum": [
+              "sha256",
+              "sha384",
+              "sha512",
+              "owner-defined"
+            ]
+          }
+        },
+        "allRetainedArtifactsRequireChecksum": {
+          "const": true
+        },
+        "checksumManifestRefs": {
+          "$ref": "#/$defs/sourceArtifactRefs"
+        }
+      }
+    },
+    "retentionPolicy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "packageRoot",
+        "retentionOwner",
+        "retentionClass",
+        "artifactListRequired",
+        "pathBoundaryRule",
+        "redactionPolicy"
+      ],
+      "properties": {
+        "packageRoot": {
+          "$ref": "#/$defs/retainedPath"
+        },
+        "retentionOwner": {
+          "type": "string",
+          "minLength": 1
+        },
+        "retentionClass": {
+          "enum": [
+            "repo-retainable",
+            "private-owner-retained",
+            "metadata-only",
+            "redacted-retainable"
+          ]
+        },
+        "artifactListRequired": {
+          "const": true
+        },
+        "pathBoundaryRule": {
+          "const": "retainedPath must be package-relative, must not start with '/', and must not contain '..' path segments"
+        },
+        "redactionPolicy": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "redactionLevel",
+            "redactedCategories",
+            "auditability"
+          ],
+          "properties": {
+            "redactionLevel": {
+              "enum": [
+                "none",
+                "partial",
+                "metadata-only",
+                "audit-blocking"
+              ]
+            },
+            "redactedCategories": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "auditability": {
+              "enum": [
+                "full",
+                "reviewable",
+                "blocked"
+              ]
+            }
+          }
+        }
+      }
+    },
+    "packageArtifacts": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "$ref": "#/$defs/packageArtifact"
+      }
+    },
+    "scenarioMapping": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "mappingId",
+        "targetScenarioIds",
+        "routeVisibleScenarioIds",
+        "recordToScenarioRules",
+        "modeMappingRules",
+        "sourceArtifactRefs"
+      ],
+      "properties": {
+        "mappingId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "targetScenarioIds": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "routeVisibleScenarioIds": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "recordToScenarioRules": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/scenarioRule"
+          }
+        },
+        "modeMappingRules": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/scenarioRule"
+          }
+        },
+        "sourceArtifactRefs": {
+          "$ref": "#/$defs/sourceArtifactRefs"
+        }
+      }
+    },
+    "orbitClassCoverage": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "orbitClass",
+          "coverageDeclared",
+          "coverageBasis",
+          "classificationRule",
+          "sourceArtifactRefs"
+        ],
+        "properties": {
+          "orbitClass": {
+            "enum": [
+              "leo",
+              "meo",
+              "geo",
+              "heo",
+              "unknown",
+              "owner-defined"
+            ]
+          },
+          "ownerDefinedLabel": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "coverageDeclared": {
+            "type": "boolean"
+          },
+          "coverageBasis": {
+            "type": "string",
+            "minLength": 1
+          },
+          "classificationRule": {
+            "type": "string",
+            "minLength": 1
+          },
+          "sourceArtifactRefs": {
+            "$ref": "#/$defs/sourceArtifactRefs"
+          }
+        }
+      }
+    },
+    "satelliteCountDeclarations": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "totalDeclared",
+        "countBasis",
+        "byOrbitClass",
+        "duplicateHandling",
+        "uniqueIdentityRule",
+        "sourceArtifactRefs"
+      ],
+      "properties": {
+        "totalDeclared": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "countBasis": {
+          "enum": [
+            "raw-record-count",
+            "unique-satellite-id-count",
+            "reviewer-filtered-count",
+            "owner-declared-count",
+            "unknown-pending-review"
+          ]
+        },
+        "byOrbitClass": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "orbitClass",
+              "declaredCount",
+              "sourceArtifactRefs"
+            ],
+            "properties": {
+              "orbitClass": {
+                "enum": [
+                  "leo",
+                  "meo",
+                  "geo",
+                  "heo",
+                  "unknown",
+                  "owner-defined"
+                ]
+              },
+              "declaredCount": {
+                "type": [
+                  "integer",
+                  "null"
+                ],
+                "minimum": 0
+              },
+              "sourceArtifactRefs": {
+                "$ref": "#/$defs/sourceArtifactRefs"
+              }
+            }
+          }
+        },
+        "duplicateHandling": {
+          "type": "string",
+          "minLength": 1
+        },
+        "uniqueIdentityRule": {
+          "type": "string",
+          "minLength": 1
+        },
+        "sourceArtifactRefs": {
+          "$ref": "#/$defs/sourceArtifactRefs"
+        }
+      }
+    },
+    "parsedReviewedFields": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/parsedReviewedField"
+      }
+    },
+    "reviewGate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "reviewState",
+        "reviewer",
+        "reviewedAt",
+        "failureDisposition",
+        "sourceArtifactRefs"
+      ],
+      "properties": {
+        "reviewState": {
+          "enum": [
+            "not-reviewed",
+            "intake-gap",
+            "structurally-reviewable",
+            "owner-source-scope-approved",
+            "rejected",
+            "superseded"
+          ]
+        },
+        "reviewer": {
+          "type": "string",
+          "minLength": 1
+        },
+        "reviewedAt": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date-time"
+        },
+        "failureDisposition": {
+          "enum": [
+            "fail-closed",
+            "owner-review-required",
+            "not-yet-reviewed"
+          ]
+        },
+        "sourceArtifactRefs": {
+          "$ref": "#/$defs/sourceArtifactRefs"
+        },
+        "reviewNotes": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/reviewerNote"
+          },
+          "default": []
+        }
+      }
+    },
+    "nonClaims": {
+      "$ref": "#/$defs/nonClaims"
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "catalog": {
+            "properties": {
+              "catalogType": {
+                "const": "synthetic-rehearsal-only"
+              }
+            },
+            "required": [
+              "catalogType"
+            ]
+          }
+        },
+        "required": [
+          "catalog"
+        ]
+      },
+      "then": {
+        "properties": {
+          "sourceAuthority": {
+            "properties": {
+              "sourceTier": {
+                "const": "tier-3-synthetic-rehearsal"
+              },
+              "sourceAuthorityClassification": {
+                "const": "synthetic-rehearsal-only"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "catalog": {
+            "properties": {
+              "catalogType": {
+                "const": "public-tle"
+              }
+            },
+            "required": [
+              "catalogType"
+            ]
+          },
+          "sourceAuthority": {
+            "properties": {
+              "sourceAuthorityClassification": {
+                "enum": [
+                  "itri-private-authority",
+                  "source-owner-private-authority"
+                ]
+              }
+            },
+            "required": [
+              "sourceAuthorityClassification"
+            ]
+          }
+        },
+        "required": [
+          "catalog",
+          "sourceAuthority"
+        ]
+      },
+      "then": {
+        "required": [
+          "ownerAuthorityPromotion"
+        ]
+      }
+    }
+  ],
+  "$defs": {
+    "ownerRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "organization",
+        "role",
+        "authorityScope"
+      ],
+      "properties": {
+        "organization": {
+          "type": "string",
+          "minLength": 1
+        },
+        "role": {
+          "type": "string",
+          "minLength": 1
+        },
+        "authorityScope": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "retainedPath": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "^(?!/)(?!.*(?:^|/)\\.\\.(?:/|$))[A-Za-z0-9._@+\\-/]+$"
+    },
+    "checksum": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "algorithm",
+        "value"
+      ],
+      "properties": {
+        "algorithm": {
+          "enum": [
+            "sha256",
+            "sha384",
+            "sha512",
+            "owner-defined"
+          ]
+        },
+        "value": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "packageArtifact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "artifactId",
+        "artifactKind",
+        "retainedPath",
+        "checksum",
+        "retentionClass",
+        "sourceRole"
+      ],
+      "properties": {
+        "artifactId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "artifactKind": {
+          "enum": [
+            "raw-source",
+            "source-metadata",
+            "checksum-manifest",
+            "license-or-redistribution-policy",
+            "owner-approval",
+            "scenario-mapping",
+            "parsed-field-review",
+            "redaction-note",
+            "other"
+          ]
+        },
+        "retainedPath": {
+          "$ref": "#/$defs/retainedPath"
+        },
+        "checksum": {
+          "$ref": "#/$defs/checksum"
+        },
+        "retentionClass": {
+          "enum": [
+            "repo-retainable",
+            "private-owner-retained",
+            "metadata-only",
+            "redacted-retainable"
+          ]
+        },
+        "sourceRole": {
+          "type": "string",
+          "minLength": 1
+        },
+        "notes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": []
+        }
+      }
+    },
+    "sourceArtifactRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "artifactId",
+        "refPurpose"
+      ],
+      "properties": {
+        "artifactId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "refPurpose": {
+          "type": "string",
+          "minLength": 1
+        },
+        "fieldPath": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "sourceArtifactRefs": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/sourceArtifactRef"
+      }
+    },
+    "modeRule": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "supported",
+        "allowedUse",
+        "executionRequiredForIntakeReview",
+        "unavailableBehavior",
+        "malformedDataBehavior",
+        "outsideEpochBehavior",
+        "sourceArtifactRefs"
+      ],
+      "properties": {
+        "supported": {
+          "type": "boolean"
+        },
+        "allowedUse": {
+          "type": "string",
+          "minLength": 1
+        },
+        "executionRequiredForIntakeReview": {
+          "const": false
+        },
+        "unavailableBehavior": {
+          "enum": [
+            "reject-package",
+            "mark-incomplete",
+            "fallback-to-prerecorded-only",
+            "owner-review-required"
+          ]
+        },
+        "malformedDataBehavior": {
+          "enum": [
+            "reject-record",
+            "reject-package",
+            "quarantine-records",
+            "owner-review-required"
+          ]
+        },
+        "outsideEpochBehavior": {
+          "enum": [
+            "reject-record",
+            "reject-package",
+            "mark-stale",
+            "owner-review-required"
+          ]
+        },
+        "sourceArtifactRefs": {
+          "$ref": "#/$defs/sourceArtifactRefs"
+        }
+      }
+    },
+    "scenarioRule": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "ruleId",
+        "sourceField",
+        "targetField",
+        "rule",
+        "sourceArtifactRefs"
+      ],
+      "properties": {
+        "ruleId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "sourceField": {
+          "type": "string",
+          "minLength": 1
+        },
+        "targetField": {
+          "type": "string",
+          "minLength": 1
+        },
+        "rule": {
+          "type": "string",
+          "minLength": 1
+        },
+        "sourceArtifactRefs": {
+          "$ref": "#/$defs/sourceArtifactRefs"
+        }
+      }
+    },
+    "parsedReviewedField": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "fieldPath",
+        "fieldPurpose",
+        "reviewedValueKind",
+        "reviewRule",
+        "sourceArtifactRefs"
+      ],
+      "properties": {
+        "fieldPath": {
+          "type": "string",
+          "minLength": 1
+        },
+        "fieldPurpose": {
+          "type": "string",
+          "minLength": 1
+        },
+        "reviewedValueKind": {
+          "type": "string",
+          "minLength": 1
+        },
+        "reviewRule": {
+          "type": "string",
+          "minLength": 1
+        },
+        "sourceArtifactRefs": {
+          "$ref": "#/$defs/sourceArtifactRefs"
+        }
+      }
+    },
+    "reviewerNote": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "noteId",
+        "note",
+        "sourceArtifactRefs"
+      ],
+      "properties": {
+        "noteId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "note": {
+          "type": "string",
+          "minLength": 1
+        },
+        "sourceArtifactRefs": {
+          "$ref": "#/$defs/sourceArtifactRefs"
+        }
+      }
+    },
+    "nonClaims": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "All fields are literal false. Omission or true must fail closed.",
+      "required": [
+        "closesF01ItriOrbitModelIntegration",
+        "arbitraryExternalSourceAcceptance",
+        "liveRealTimeFeedExecution",
+        "measuredTrafficNetworkTruth",
+        "natTunnelDutValidation",
+        "nativeRfHandoverTruth",
+        "completeItriAcceptance",
+        "publicCelesTrakOrSpaceTrackSubstitutesForItriPrivateSourceAuthorityWithoutOwnerEvidence"
+      ],
+      "properties": {
+        "closesF01ItriOrbitModelIntegration": {
+          "const": false,
+          "description": "The package does not close F-01 ITRI orbit-model integration."
+        },
+        "arbitraryExternalSourceAcceptance": {
+          "const": false,
+          "description": "The package does not approve arbitrary external sources outside the declared owner scope."
+        },
+        "liveRealTimeFeedExecution": {
+          "const": false,
+          "description": "The package does not prove live real-time feed execution."
+        },
+        "measuredTrafficNetworkTruth": {
+          "const": false,
+          "description": "The package does not assert measured traffic or network truth."
+        },
+        "natTunnelDutValidation": {
+          "const": false,
+          "description": "The package does not validate NAT, tunnel, or DUT paths."
+        },
+        "nativeRfHandoverTruth": {
+          "const": false,
+          "description": "The package does not assert native radio-frequency handover truth."
+        },
+        "completeItriAcceptance": {
+          "const": false,
+          "description": "The package does not claim complete acceptance by ITRI."
+        },
+        "publicCelesTrakOrSpaceTrackSubstitutesForItriPrivateSourceAuthorityWithoutOwnerEvidence": {
+          "const": false,
+          "description": "Public CelesTrak or Space-Track material cannot replace ITRI private source authority unless explicit owner evidence is retained for that exact scope."
+        }
+      }
+    }
+  }
+}

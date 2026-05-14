@@ -16,6 +16,7 @@ Related data contracts and reviewer close-outs:
 - [../data-contracts/itri-decision-threshold-authority.md](../data-contracts/itri-decision-threshold-authority.md)
 - [../data-contracts/itri-external-validation-manifest.md](../data-contracts/itri-external-validation-manifest.md)
 - [../data-contracts/itri-orbit-model-intake.md](../data-contracts/itri-orbit-model-intake.md)
+- [../data-contracts/itri-external-source-package-intake.schema.json](../data-contracts/itri-external-source-package-intake.schema.json)
 - [../data-contracts/itri-public-standards-profile.md](../data-contracts/itri-public-standards-profile.md)
 - [../data-contracts/itri-synthetic-fallback-fixtures.md](../data-contracts/itri-synthetic-fallback-fixtures.md)
 - [itri-f07r1-measured-traffic-package-reviewer-closeout.md](./itri-f07r1-measured-traffic-package-reviewer-closeout.md)
@@ -74,11 +75,14 @@ The following submissions are not sufficient for the authority-gated lanes:
 ## F-03/F-15 External TLE And Scenario Source Package
 
 Target package family:
-To be defined by a future F-03/F-15 source-package intake contract if ITRI
-requires source breadth beyond the current vendored public fixtures.
+Future owner-supplied package material shaped by
+`docs/data-contracts/itri-external-source-package-intake.schema.json` if ITRI
+requires source breadth beyond the current vendored public fixtures. No
+retained package directory or reviewer exists for this lane yet.
 
 Required owner-supplied artifact checklist:
 
+- Manifest shaped by the S12-A external source package intake schema.
 - Source package identity, owner, received time, license/use notes,
   redistribution policy, and reviewer record.
 - Source type and scope: public TLE feed, private TLE drop, owner-provided
@@ -95,10 +99,11 @@ Required owner-supplied artifact checklist:
 
 Minimum metadata:
 
-- Package ID, source owner, source family, received time, access time when
-  public, epoch range, update cadence, license/use notes, redistribution
-  limits, checksum list, reviewer, covered requirements, and scenario mapping
-  scope.
+- `schemaVersion`, package ID, source owner, source family, source tier,
+  authority classification, received time, access time when public, epoch
+  range, time system, update cadence, stale-data policy, license/use notes,
+  redistribution limits, checksum list, reviewer, covered requirements, and
+  scenario mapping scope.
 - Mode rules for real-time and prerecorded use, including fallback behavior
   when source data is unavailable, stale, malformed, or outside the accepted
   epoch window.
@@ -129,9 +134,9 @@ Redaction and redistribution notes:
 Reviewer command after package arrival:
 
 ```text
-No F-03/F-15 source-package reviewer exists yet. If ITRI requires this lane,
-open a bounded source-package intake contract/reviewer slice before runtime
-integration.
+No F-03/F-15 source-package reviewer exists yet. The S12-A schema defines only
+the package intake shape. If ITRI requires review for this lane, open a bounded
+source-package reviewer slice before runtime integration.
 ```
 
 ## F-07/F-08/F-09 Measured Traffic Package
