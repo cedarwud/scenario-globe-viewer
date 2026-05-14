@@ -34,6 +34,10 @@ retained orbit-model package fixtures.
 - Package command:
   `npm run test:itri-f01r1`
 
+## Landed Chain
+
+- `fbc36c5` implemented the bounded F-01R1 orbit-model intake reviewer.
+
 ## Behavior Locked
 
 - A missing package returns package state `missing` and fails closed.

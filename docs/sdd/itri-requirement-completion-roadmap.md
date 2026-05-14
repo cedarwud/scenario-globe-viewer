@@ -199,6 +199,17 @@ synthetic fixtures, fetch standards material, copy ITU tables/equations/
 components, implement numeric standards-derived behavior, change
 `physical-input`, or close F-17/P-01/P-02/P-03 ITRI/V-group authority.
 
+F-01R1 close-out: the bounded orbit-model intake reviewer landed in
+`fbc36c5`. Close-out details are recorded in
+[itri-f01r1-orbit-model-intake-reviewer-closeout.md](./itri-f01r1-orbit-model-intake-reviewer-closeout.md).
+The reviewer reads only explicitly named local packages under
+`output/validation/external-f01-orbit-model/`, fails closed for missing/
+malformed/wrong-schema/public-TLE-substitute/synthetic/unresolved-ref packages,
+and can reach only `ready-for-design-review`. It does not create retained
+authority evidence, add an ITRI runtime adapter, implement propagation, change
+satellite/scenario/overlay runtime, promote public TLE/CelesTrak/Space-Track
+output as ITRI model authority, or close F-01 authority completion.
+
 ## Public/Open Source Classification Rules
 
 Before promoting public/open material, classify it in a short source note:
