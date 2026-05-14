@@ -13,6 +13,7 @@ export {
   reviewMalformedItriF12DecisionThresholdAuthorityManifest,
   reviewMissingItriF12DecisionThresholdAuthorityManifest,
   reviewMissingItriF12DecisionThresholdAuthorityPackage,
+  reviewRejectedItriF12DecisionThresholdAuthorityManifestPath,
   reviewRejectedItriF12DecisionThresholdAuthorityPackagePath
 } from "./decision-threshold-authority-reviewer";
 export type {

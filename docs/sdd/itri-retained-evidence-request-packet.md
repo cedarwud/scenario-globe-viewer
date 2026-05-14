@@ -220,6 +220,8 @@ Required owner-supplied artifact checklist:
   a rule.
 - Measured-field mappings that name raw artifact refs, parsed metric refs,
   threshold rule refs, and handover event refs.
+- `measuredPackageRefs[].requirementIds` and each `decisionRules[].measuredFieldRef`
+  must align by explicit mapping before authority-ready is permitted.
 - Redaction notes and use restrictions.
 
 Minimum metadata:
@@ -239,6 +241,8 @@ Raw artifact expectations:
   refs.
 - Every rule input must point back to reviewed measured package fields for the
   exact requirement and sample window.
+- Manifest review is path-bounded: explicit `--manifest` inputs must stay inside
+  the selected `--package` directory.
 - Bounded proxy policy/rule config output is not a substitute unless the
   authority package explicitly approves a mapping and scope.
 

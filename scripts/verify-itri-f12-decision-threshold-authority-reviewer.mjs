@@ -677,10 +677,12 @@ async function writeF12Package(repoRootForTest, manifest) {
 async function runCli(
   reviewItriF12DecisionThresholdAuthorityFromPath,
   repoRootForTest,
-  packagePath = f12PackageRelativePath
+  packagePath = f12PackageRelativePath,
+  manifestInput
 ) {
   const review = await reviewItriF12DecisionThresholdAuthorityFromPath({
     packageInput: packagePath,
+    manifestInput,
     repoRoot: repoRootForTest
   });
 
@@ -1157,12 +1159,36 @@ async function main() {
         "Wrong retained F-12 root must produce a path-boundary gap."
       );
     });
+
+    await withTempRepo(async (tempRepo) => {
+      await writeMeasuredPackage(tempRepo, measuredManifest());
+      await writeF12Package(tempRepo, f12Manifest());
+      const result = await runCli(
+        reviewItriF12DecisionThresholdAuthorityFromPath,
+        tempRepo,
+        f12PackageRelativePath,
+        "output/validation/external-f07-f09/2026-05-13T00-00-00Z-measured-traffic/manifest.json"
+      );
+
+      assert.equal(
+        result.status,
+        1,
+        "Explicit manifest path outside the package directory must fail closed."
+      );
+      assert.equal(result.review.packageState, "rejected");
+      assert(
+        result.review.gaps.some(
+          (gap) => gap.code === "manifest.path-outside-package"
+        ),
+        "Manifest path outside package directory must produce an explicit path-boundary gap."
+      );
+    });
   } finally {
     await cleanup();
   }
 
   console.log(
-    "F-12R1 decision-threshold authority reviewer verifier passed: missing, malformed, incomplete, schema-ready, explicit authority-ready, exhaustive measured refs, rule measuredFieldRef coverage, F-09 omission, rule semantics, synthetic, unresolved-threshold, escaping-ref, and path-boundary cases covered."
+    "F-12R1 decision-threshold authority reviewer verifier passed: missing, malformed, incomplete, schema-ready, explicit authority-ready, exhaustive measured refs, rule measuredFieldRef coverage, F-09 omission, rule semantics, synthetic, unresolved-threshold, escaping-ref, manifest-path, and path-boundary cases covered."
   );
 }
 

@@ -219,6 +219,7 @@ const REQUIRED_ROOT_FIELDS = [
 
 const BLOCKING_REJECT_CODES = [
   "package.path-outside-retained-root",
+  "manifest.path-outside-package",
   "measured-package.path-outside-retained-root",
   "artifact-ref.escapes-package",
   "synthetic-source.rejected",
@@ -409,6 +410,24 @@ export function reviewMissingItriF12DecisionThresholdAuthorityManifest(
   return closedReview({
     ...options,
     packageState: "pending-measured-fields",
+    gaps
+  });
+}
+
+export function reviewRejectedItriF12DecisionThresholdAuthorityManifestPath(
+  options: ItriF12AuthorityClosedReviewOptions
+): ItriF12AuthorityPackageReview {
+  const gaps: ItriF12AuthorityReviewGap[] = [];
+  addGap(
+    gaps,
+    "manifest.path-outside-package",
+    "Explicit manifest path must resolve inside the explicitly named package directory.",
+    { path: options.manifestPath ?? defaultManifestPath(options.packagePath) }
+  );
+
+  return closedReview({
+    ...options,
+    packageState: "rejected",
     gaps
   });
 }

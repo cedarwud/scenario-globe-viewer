@@ -79,6 +79,7 @@ This slice preserves these boundaries:
 - package-review readiness is not F-12 acceptance;
 - package-review readiness is not measured-decision truth;
 - package-review readiness is not complete ITRI acceptance;
+- `--manifest` explicit-path checks require manifest to stay within the selected package directory;
 - no live `ping`, `iperf`, tunnel, NAT, DUT, NE-ONE, vendor tool, or traffic
   generator execution is introduced;
 - no F-12 handover decision behavior is changed;
