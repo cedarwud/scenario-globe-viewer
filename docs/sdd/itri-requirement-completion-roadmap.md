@@ -75,6 +75,7 @@ Hard rules:
 | ID | Requirement lane | Current repo status | Roadmap status | Evidence path to finish honestly | Public/open substitute classification | Synthetic fallback boundary |
 | --- | --- | --- | --- | --- | --- | --- |
 | F-01 | ITRI self-developed orbit-model integration | Scenario contracts, walker fixtures, public-TLE scale profiles, and V4.13 public-TLE multi-orbit runtime evidence exist, but they are not ITRI model integration. | External-authority-only | Request the ITRI orbit-model package/spec, input/output schema, time basis, reference frames, propagator rules, validation vectors, tolerances, redistribution policy, and owner sign-off. Then define an adapter contract and validation package before code. | CelesTrak, Space-Track, ESTNeT, 3GPP, and ITRI public pages are context/proxy candidates only. They may maintain the bounded public-TLE profile, not replace the ITRI model. | Adapter-interface placeholders may exist without orbital truth. Simulated orbit data must be labeled synthetic and cannot close F-01. |
+| F-03/F-15 | External TLE/source scenario breadth and real-time/prerecorded source acceptance | Public CelesTrak fixtures, walker fixtures, scenario mode switching, and V4.13 public-TLE multi-orbit runtime evidence exist. Full owner-supplied source breadth remains separate from F-01 orbit-model integration. | Already bounded-closed for repo-owned public fixtures; external source-package lane is open if required by ITRI | Request source-owner package material: catalog owner, source URL or private drop, epoch/update cadence, licensing and redistribution policy, real-time vs prerecorded mode rules, checksum/retention rules, accepted stale-data policy, scenario mapping, and owner sign-off for source use. | CelesTrak and Space-Track can support bounded public-source profiles with lineage and access dates. They do not prove ITRI private source acceptance or arbitrary external scenario coverage by themselves. | Source-shape fixtures may rehearse parser/schema behavior only and cannot replace retained source packages or source-owner acceptance. |
 | F-07 | Communication-time display | Repo-owned communication-time surfaces are already bounded-closed. Values remain proxy/model state, not retained measured traffic. | Already bounded-closed; measured lane is external-authority-only | Use `output/validation/external-f07-f09/<timestamp>-measured-traffic/` with topology, endpoints, raw `ping` or approved logs, timing window, handover events, thresholds, and redaction notes. | INET PingApp, RFC 792, RFC 6349, and iPerf docs are method context only. They can guide parser/runbook fields. | Synthetic ping windows may test parser/UI shape only and must never be labeled measured. |
 | F-08 | Communication-time statistics | Repo-owned summary/report state is already bounded-closed. It is not measurement-backed statistics. | Already bounded-closed; measured lane is external-authority-only | Retain raw logs, parsed distributions, packet loss, jitter source, sample count, duration, computation method, and ITRI thresholds. | INET throughput examples, iPerf docs, and RFC methodology can guide computation fields but cannot supply project results. | Generated statistics may support schema tests only. They cannot produce pass/fail status. |
 | F-09 | Communication-rate display | V4.12 has bounded communication-rate visualization from modeled network-speed classes. | Already bounded-closed; measured throughput lane is external-authority-only | Retain `iperf3` or approved traffic-generator client/server output, endpoints, direction, protocol, duration, interval stats, retransmits/loss where applicable, topology proof, and threshold authority. | iPerf and INET docs are method context. Operator service pages are service context. Neither supplies project Mbps/Gbps truth. | Synthetic throughput samples may test chart/export behavior only and must carry synthetic provenance. |
@@ -108,6 +109,7 @@ authority owner explicitly asks for a single retained package.
 | S9 | V-06 physical DUT / traffic-generator package | V-06 | Lab owner supplies DUT/NE-ONE profile, topology, redaction policy, and run plan. | Retained physical package with raw outputs, logs, redactions, and verdict. | Pass requires physical/lab output with enough retained context for review. |
 | S10 | M8A-V4 endpoint authority preservation and upgrade gate | M8A-V4 endpoint authority | Any request attempts to change endpoint precision, endpoint pair, path semantics, or active service claims. | Authority delta review and, if needed, a new endpoint authority package plus projected artifact update plan. | Existing operator-family bounded closure remains intact unless superseded by a new accepted package. |
 | S11 | Synthetic fallback fixture definitions | Any lane without usable authority or public source | A slice explicitly reaches "no acceptable public/open source" after classification. | A labeled synthetic fixture contract with provenance, intended use, nonclaims, and scan rules. | Closes only fixture readiness; never closes authority truth. |
+| S12 | External scenario-source/TLE package intake | F-03, F-15 | ITRI or a source owner requires source breadth beyond the vendored public fixtures, or supplies authoritative source catalogs/update rules. | Source-package intake contract or retained package plan covering source owner, update cadence, real-time/prerecorded mode rules, redistribution, checksums, scenario mapping, and review gates. | Closes only the named source-package readiness lane unless retained source material and owner acceptance are supplied and reviewed. |
 
 S4-A close-out pointer: the docs-only public standards source
 classification for F-17/P-01/P-02/P-03 is recorded in
@@ -222,6 +224,13 @@ synthetic material to authority evidence, or close any measured, external,
 physical, F-01, F-12, V-lane, DUT/NAT/tunnel, native radio handover, active
 gateway/path, or full acceptance by ITRI.
 
+Retained evidence request pointer: remaining authority-gated lanes have a
+docs-only owner request packet in
+[itri-retained-evidence-request-packet.md](./itri-retained-evidence-request-packet.md).
+The packet lists required owner-supplied artifacts, metadata, raw artifact
+expectations, redaction notes, and future reviewer commands only; it creates no
+retained evidence, retained packages, fixture JSON, or implementation authority.
+
 ## Public/Open Source Classification Rules
 
 Before promoting public/open material, classify it in a short source note:
@@ -333,19 +342,23 @@ does not self-match.
 
 1. What exact ITRI orbit-model package, schema, vectors, tolerances, and
    redistribution policy are authoritative for F-01?
-2. Which endpoints, topology, tools, directions, durations, sample counts,
+2. Does ITRI require F-03/F-15 source breadth beyond the current vendored
+   public fixtures and bounded scenario modes; if so, what source owner,
+   catalog/update cadence, licensing, retention, and real-time/prerecorded
+   acceptance rules apply?
+3. Which endpoints, topology, tools, directions, durations, sample counts,
    payloads, thresholds, and redaction policy close F-07/F-08/F-09 measured
    traffic?
-3. Which measured fields and thresholds, if any, must drive an F-12 authority
+4. Which measured fields and thresholds, if any, must drive an F-12 authority
    upgrade beyond the current bounded decision seam?
-4. Which ITU recommendations, versions, bands, antenna assumptions, rain-rate
+5. Which ITU recommendations, versions, bands, antenna assumptions, rain-rate
    data, geography, and output units close F-17/P-01/P-02/P-03 beyond bounded
    public profiles?
-5. What Windows/WSL, tunnel/bridge, NAT/ESTNeT/INET, virtual DUT, physical DUT,
+6. What Windows/WSL, tunnel/bridge, NAT/ESTNeT/INET, virtual DUT, physical DUT,
    and traffic-generator topology is authoritative for V-02..V-06?
-6. Is NE-ONE mandatory for V-06, and what model/profile/output is acceptable?
-7. What redaction policy preserves auditability for IPs, hostnames, DUT
+7. Is NE-ONE mandatory for V-06, and what model/profile/output is acceptable?
+8. What redaction policy preserves auditability for IPs, hostnames, DUT
    identifiers, lab screenshots, configs, and packet captures?
-8. For M8A-V4, is operator-family endpoint authority sufficient for the
+9. For M8A-V4, is operator-family endpoint authority sufficient for the
    planned scene, or will any later review require site-level, same-site,
    active-path, or performance authority?

@@ -98,15 +98,39 @@ The current repo direction is not wrong, but its next-step priority has drift ri
 | Requirement-bearing area | Requirement source | Current repo status | Target phase(s) | Closure signal | Current risk if deferred |
 |---|---|---|---|---|---|
 | Orbit scope / TLE / multi-orbit | `r1.docx`: `LEO/MEO/GEO`, `≥ 500 LEO`.<br>`kickoff.pptx` Slide 2: multi-orbit switching plus `TLE` input | V4.13 now has bounded public-TLE LEO/MEO/GEO runtime evidence through `multi-orbit-scale-points`; ITRI orbit-model integration and measured network truth remain successor requirements | `6.1` start, `7.1` closure | Retained Phase 7.1 evidence explicitly covers LEO/MEO/GEO and no longer collapses back to walker-only | Lower after V4.13: remaining risk is external/ITRI-authority integration, not viewer-side public-TLE coverage |
-| Dynamic parameter UI | `r1.docx`: `可動態調整參數介面`.<br>`kickoff.pptx` Slide 5: `模擬速度可調` and parameter-facing UI intent | Query/bootstrap knobs and capture seam exist, but no operator-grade runtime control surface exists | `6.2` | User-visible controls can steer scenario, replay, policy, and bounded model inputs without rebuild or URL editing | High: WP1-facing operator requirement remains uncovered |
-| Communication-time display / statistics / export | `r1.docx`: `即時顯示可通訊時間`, `統計報表匯出`.<br>`kickoff.pptx` Slide 5: `iperf` / `ping`-anchored communication-time display | No live communication-time state, no statistics boundary, no export-ready report structure | `6.3` | Repo-owned communication-time state, scenario-bounded summaries, and export-ready schema exist independently of showcase overlays | High: a named deliverable surface is still absent |
-| Handover / link decision logic | `r1.docx`: `換手策略切換`.<br>`kickoff.pptx` Slide 2 and 6: switching by `latency`, `jitter`, `network speed` across orbit classes | No repo-owned decision layer; current runtime only proves a bounded overlay path and not switching semantics | `6.4` | Deterministic decision outputs and reason signals exist and can feed statistics and later presentation | High: central simulator behavior is still only described by requirement text |
-| Physical-layer / antenna / rain attenuation / ITU inputs | `kickoff.pptx` Slide 2 and 6: `physical layer`, antenna parameters, rain attenuation, `ITU` inputs | No formal model-input seam exists in the delivery repo | `6.5` | Input families are explicit, provenance-tagged, and consumable by the decision layer | Medium-high: proxy logic may drift away from named requirement inputs |
-| Scenario loading / prerecorded vs real-time | `kickoff.pptx` Slide 5 and 6: `real time` vs prerecorded scenario/demo modes | `scene-preset` covers framing only and `replay-clock` covers time only; no repo-owned scenario identity/source/lifecycle contract exists | `6.1` | One plain-data scenario model coordinates identity, source type, load/unload lifecycle, and mode switching | High: prerecorded vs real-time has no stable ownership boundary |
-| Validation bridge / NAT / tunnel / DUT | `kickoff.pptx` Slide 3 and 6: Windows tunneling, NAT routing, virtual/physical DUT, ESTNeT/INET bridge | Site tileset hook exists, but it is only a visual dataset seam and not a validation-environment seam | `6.6` | Validation modes, DUT boundaries, and NAT/tunnel/bridge ownership notes are explicit and repo-owned | High: external validation requirement has no named home in the current delivery repo |
+| Dynamic parameter UI | `r1.docx`: `可動態調整參數介面`.<br>`kickoff.pptx` Slide 5: `模擬速度可調` and parameter-facing UI intent | Phase 6.2, V4.12 F-10/F-11, and D-03 now provide visible scenario, replay, policy, and bounded rule controls in the Operator HUD. These controls remain repo-owned bounded controls, not external authority controls. | `6.2`, V4.12, D-03 | User-visible controls can steer scenario, replay, policy, and bounded model inputs without rebuild or URL editing | Lower for bounded UI; remaining risk is authority-backed external parameter ownership, not absence of controls |
+| Communication-time display / statistics / export | `r1.docx`: `即時顯示可通訊時間`, `統計報表匯出`.<br>`kickoff.pptx` Slide 5: `iperf` / `ping`-anchored communication-time display | Phase 6.3 and V4.12 F-09/F-16 provide bounded communication-time, communication-rate, statistics/report state, and export surfaces. F-07R1 provides a fail-closed reviewer for future retained traffic packages. | `6.3`, V4.12, F-07R1 | Repo-owned communication-time state, scenario-bounded summaries, report export, and package-review readiness exist independently of showcase overlays | Lower for bounded surfaces; remaining risk is retained external traffic evidence and threshold authority |
+| Handover / link decision logic | `r1.docx`: `換手策略切換`.<br>`kickoff.pptx` Slide 2 and 6: switching by `latency`, `jitter`, `network speed` across orbit classes | Phase 6.4 and V4.12 F-10/F-11 provide deterministic bounded handover decision outputs, policy switching, and rule editing. F-12R1 provides a fail-closed reviewer for future threshold authority packages. | `6.4`, V4.12, F-12R1 | Deterministic decision outputs and reason signals exist and can feed statistics, presentation, and later authority review packages | Lower for bounded decision behavior; remaining risk is retained measured inputs and owner-approved threshold semantics |
+| Physical-layer / antenna / rain attenuation / ITU inputs | `kickoff.pptx` Slide 2 and 6: `physical layer`, antenna parameters, rain attenuation, `ITU` inputs | Phase 6.5 provides bounded physical-input families and projected decision effects. S4-A/S4-B/S4R1 add source classification, profile schema, and fail-closed reviewer readiness for future public standards packages. | `6.5`, S4-A/S4-B/S4R1 | Input families are explicit, provenance-tagged, consumable by the decision layer, and prepared for bounded public standards package review | Lower for bounded inputs; remaining risk is ITRI/V-group selected versions, parameters, approximation level, and validation vectors |
+| Scenario loading / prerecorded vs real-time | `kickoff.pptx` Slide 5 and 6: `real time` vs prerecorded scenario/demo modes | Phase 6.1 provides scenario identity/source/lifecycle coordination, and V4.13 proves bounded public-TLE multi-orbit runtime coverage. External scenario-source breadth for F-03/F-15 remains a successor lane if ITRI requires owner-supplied TLE/source packages beyond the vendored public fixtures. | `6.1`, V4.13; successor F-03/F-15 source lane if required | One plain-data scenario model coordinates identity, source type, load/unload lifecycle, and mode switching | Lower for repo-owned scenario mode switching; remaining risk is external source-package authority and update cadence |
+| Validation bridge / NAT / tunnel / DUT | `kickoff.pptx` Slide 3 and 6: Windows tunneling, NAT routing, virtual/physical DUT, ESTNeT/INET bridge | Phase 6.6 gives these modes a validation-state home, and V-02R1 adds a fail-closed manifest reviewer for future retained external packages. The repo still does not own real tunnel, NAT, DUT, NE-ONE, or traffic-generator execution. | `6.6`, V-02R1 | Validation modes, DUT boundaries, NAT/tunnel/bridge ownership notes, and package-review readiness are explicit and repo-owned | Lower for repo visibility; remaining risk is retained external run evidence and owner verdicts |
 | 24h soak | `r1.docx` WP1 close-out and `kickoff.pptx` Slide 6: stable for at least `24` hours | Formal soak contract/harness now has retained rehearsal evidence plus a retained `24h` full-run pass artifact from the canonical package entry | `7.0` | Repeatable soak procedure, pass/fail rule, and retained `24h` full-run evidence exist | Lower after close-out: the formal soak gate is now evidenced rather than inferred |
 | 500 LEO validation | `r1.docx`: `支援 ≥ 500 LEO 模擬`.<br>`kickoff.pptx` Slide 5: `支援 ≥ 500 LEO 模擬` | V4.12 closed the route-native LEO leg with `600` public Starlink TLE records; V4.13 carries that count inside the multi-orbit public-TLE gate | `7.1` | `multi-orbit-scale-1000` retained evidence shows `observedLeoCount = 600` with MEO/GEO counts also observed | Lower after V4.13: scale is evidenced for bounded public TLE, not for ITRI orbit-model or measured network truth |
 | Showcase / presentation work | `kickoff.pptx` Slide 6: demo intent exists, but only after requirement-bearing surfaces are mapped | OSM showcase, orbit/label artifact lines, and handover-demo presentation work already exist as useful but non-authoritative later lines | `8.0` | Presentation work resumes only after Phases `6.1-7.1` close or are explicitly waived | Low if deferred; high only if allowed to keep driving ordering |
+
+## Current Alignment Review 2026-05-14
+
+The repo direction is still aligned with the ITRI requirement spine, with one
+planning correction recorded here:
+
+- The historical drift risk from presentation-heavy M8A work has been bounded.
+  D-03 closes presentation convergence only and does not claim external
+  measurement, native radio handover, ITRI orbit-model integration, NAT/tunnel/
+  DUT validation, or full external authority acceptance.
+- The Phase 6.1-6.6 implementation line now maps to real repo surfaces:
+  scenario coordination, Operator HUD controls, communication-time/report
+  state, deterministic handover decision state, physical-input state, and
+  validation-state boundaries.
+- The R1 reviewer chain now maps the major authority-gated lanes to fail-closed
+  local package review surfaces: F-07/F-08/F-09, F-12, V-02..V-06,
+  F-17/P-01/P-02/P-03, F-01, and S11 synthetic fallback fixtures.
+- No retained owner evidence has been created by the R1 reviewer chain. The
+  reviewers are readiness gates, not requirement pass evidence.
+- The underrepresented planning item is F-03/F-15 external scenario-source
+  breadth: the repo has bounded public-TLE runtime coverage and mode switching,
+  but a future source-package lane is still needed if ITRI requires arbitrary
+  owner-supplied TLE/source catalogs, update cadence, or source-specific
+  real-time/prerecorded acceptance beyond the vendored public fixtures.
 
 ## Preserve / Downgrade / Stop / Consider-Remove
 
@@ -561,8 +585,9 @@ scope/scale signals.
   ADR `0005-perf-budget` was re-reviewed; the retained perf file records the
   bounded point-primitive posture with no labels, paths, polylines, or
   orbit-history accumulation. This closes only the viewer-side bounded
-  public-TLE multi-orbit gate, not ITRI orbit-model integration, measured
-  traffic truth, external validation, or radio-layer handover.
+  public-TLE multi-orbit gate, not ITRI orbit-model integration, truth for
+  retained traffic measurements, external validation, or native radio
+  handover.
 - Next active entry: `Phase 8.0`
 
 ## Phase 8.0
@@ -658,8 +683,8 @@ Phase 6 formal close-out is complete.
 `Phase 7.1` is closed for the viewer-side bounded public-TLE gate via the
 accepted validation-evidence boundary, the V4.12 LEO-scale expansion, and the
 V4.13 public MEO/GEO multi-orbit retained artifact. This does not close ITRI
-orbit-model integration, measured traffic truth, external validation, or native
-RF handover.
+orbit-model integration, truth for retained traffic measurements, external
+validation, or native radio handover.
 
 The next active entry is `Phase 8.0`.
 
