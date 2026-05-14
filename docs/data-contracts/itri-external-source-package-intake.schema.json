@@ -1077,10 +1077,53 @@
           "sourceAuthority"
         ]
       },
-      "then": {
+        "then": {
         "required": [
           "ownerAuthorityPromotion"
         ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "sourceAuthority": {
+            "properties": {
+              "sourceAuthorityClassification": {
+                "const": "synthetic-rehearsal-only"
+              }
+            },
+            "required": [
+              "sourceAuthorityClassification"
+            ]
+          }
+        },
+        "required": [
+          "sourceAuthority"
+        ]
+      },
+      "then": {
+        "properties": {
+          "catalog": {
+            "properties": {
+              "catalogType": {
+                "const": "synthetic-rehearsal-only"
+              }
+            },
+            "required": [
+              "catalogType"
+            ]
+          },
+          "sourceAuthority": {
+            "properties": {
+              "sourceTier": {
+                "const": "tier-3-synthetic-rehearsal"
+              }
+            },
+            "required": [
+              "sourceTier"
+            ]
+          }
+        }
       }
     }
   ],

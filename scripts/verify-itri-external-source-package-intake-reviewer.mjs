@@ -577,6 +577,22 @@ async function main() {
       );
     });
 
+    // Package artifact checksum algorithm must be declared in checksum policy
+    await withTempRepo(async (tempRepoForPolicyAlgorithm) => {
+      const manifest = withMutations([
+        (candidate) => {
+          candidate.checksumPolicy.requiredAlgorithms = ["sha256"];
+          candidate.packageArtifacts[0].checksum.algorithm = "sha384";
+        }
+      ]);
+      await writePackageCandidate(tempRepoForPolicyAlgorithm, manifest);
+      const review = await runReviewFromTemp(tempRepoForPolicyAlgorithm);
+      assert(
+        review.gaps.some((gap) => gap.code === "package-artifacts.checksum-policy-algorithm"),
+        "Expected checksum-policy algorithm gap."
+      );
+    });
+
     // Missing sourceArtifactRefs in parsed/review fields
     await withTempRepo(async (tempRepoForRefs) => {
       const manifest = withMutations([
@@ -591,6 +607,53 @@ async function main() {
         review.gaps.some((gap) => gap.code === "parsed.fields.source-refs") ||
           review.gaps.some((gap) => gap.code === "review-gate.source-refs"),
         "Expected parsed/review sourceArtifactRefs gap."
+      );
+    });
+
+    // Unknown sourceArtifactRefs must fail
+    await withTempRepo(async (tempRepoForUnknownRefs) => {
+      const manifest = withMutations([
+        (candidate) => {
+          candidate.parsedReviewedFields[0].sourceArtifactRefs.push(sourceArtifactRef("no-such-artifact", "scenario-mapping"));
+        }
+      ]);
+      await writePackageCandidate(tempRepoForUnknownRefs, manifest);
+      const review = await runReviewFromTemp(tempRepoForUnknownRefs);
+      assert(
+        review.gaps.some((gap) => gap.code === "source-artifact-refs.unknown"),
+        "Expected unknown sourceArtifactRefs gap."
+      );
+    });
+
+    // Owner identity metadata must be non-empty text
+    await withTempRepo(async (tempRepoForOwnerMetadata) => {
+      const manifest = withMutations([
+        (candidate) => {
+          candidate.ownerIdentity.sourceOwner.organization = "";
+          candidate.ownerIdentity.packageOwner.role = "   ";
+        }
+      ]);
+      await writePackageCandidate(tempRepoForOwnerMetadata, manifest);
+      const review = await runReviewFromTemp(tempRepoForOwnerMetadata);
+      assert(
+        review.gaps.some((gap) => gap.code === "ownerIdentity.sourceOwner.organization") ||
+          review.gaps.some((gap) => gap.code === "ownerIdentity.packageOwner.role"),
+        "Expected owner metadata text gap."
+      );
+    });
+
+    // Wrong retention packageRoot must fail boundary checks
+    await withTempRepo(async (tempRepoForPackageRoot) => {
+      const manifest = withMutations([
+        (candidate) => {
+          candidate.retentionPolicy.packageRoot = "artifacts";
+        }
+      ]);
+      await writePackageCandidate(tempRepoForPackageRoot, manifest);
+      const review = await runReviewFromTemp(tempRepoForPackageRoot);
+      assert(
+        review.gaps.some((gap) => gap.code === "retention.package-root"),
+        "Expected retention packageRoot gap."
       );
     });
 
@@ -656,6 +719,24 @@ async function main() {
       assert(
         review.gaps.some((gap) => gap.code === "synthetic.source-rejected"),
         "Expected synthetic-only rejection gap."
+      );
+    });
+
+    // Synthetic-only data should not be treated as owner authority
+    await withTempRepo(async (tempRepoForSyntheticBoundary) => {
+      const manifest = withMutations([
+        (candidate) => {
+          candidate.catalog.catalogType = "synthetic-rehearsal-only";
+          candidate.sourceAuthority.sourceTier = "tier-1-itri-or-owner-authority";
+          candidate.sourceAuthority.sourceAuthorityClassification = "itri-private-authority";
+        }
+      ]);
+      await writePackageCandidate(tempRepoForSyntheticBoundary, manifest);
+      const review = await runReviewFromTemp(tempRepoForSyntheticBoundary);
+      assert(
+        review.gaps.some((gap) => gap.code === "sourceAuthority.synthetic-boundary") ||
+          review.gaps.some((gap) => gap.code === "synthetic.source-rejected"),
+        "Expected synthetic boundary rejection gap."
       );
     });
 

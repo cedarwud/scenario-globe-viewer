@@ -228,9 +228,11 @@ const REVIEW_FAILURE_DISPOSITION_ENUM = ["fail-closed", "owner-review-required",
 const RETAINED_PATH_PATTERN = /^(?!\/)(?!.*(?:^|\/)\.\.(?:\/|$))[A-Za-z0-9._@+\-/]+$/u;
 const PATH_BOUNDARY_CLAIM =
   "retainedPath must be package-relative, must not start with '/', and must not contain '..' path segments";
+const REQUIRED_PACKAGE_ROOT = ".";
 
 const RETAINED_PATH_BOUNDARY_ERROR =
   "packageArtifactPathSummary.paths-escape-root";
+const SYNTHETIC_SOURCE_BOUNDARY_ERROR = "sourceAuthority.synthetic-boundary";
 
 const EMPTY_SOURCE_ARTIFACT_REF_CHECK: ItriExternalSourcePackageIntakeSourceArtifactRefCheck = {
   declaredRefIds: [],
@@ -273,7 +275,11 @@ function arrayValue(value: unknown): ReadonlyArray<unknown> {
   return Array.isArray(value) ? value : [];
 }
 
-function stringValue(record: PlainRecord, key: string): string | null {
+function stringValue(record: unknown, key: string): string | null {
+  if (!isPlainRecord(record)) {
+    return null;
+  }
+
   const value = record[key];
   return typeof value === "string" ? value : null;
 }
@@ -521,7 +527,7 @@ function collectSourceArtifactRefIdsFromManifest(
   const manifestTemporal = isPlainRecord(manifest.temporalRules) ? manifest.temporalRules : null;
   const stalePolicy = manifestTemporal && isPlainRecord(manifestTemporal.staleDataPolicy) ? manifestTemporal.staleDataPolicy : null;
 
-  const catalog = isPlainRecord(manifest.catalog) ? manifest.catalog : null;
+  const catalog = isPlainRecord(manifest.catalog) ? manifest.catalog : {};
   const catalogDerivation = catalog && isPlainRecord(catalog.derivation) ? catalog.derivation : null;
   const sourceAuthority = isPlainRecord(manifest.sourceAuthority) ? manifest.sourceAuthority : null;
   const ownerIdentity = isPlainRecord(manifest.ownerIdentity) ? manifest.ownerIdentity : null;
@@ -690,6 +696,20 @@ function reviewOwnerRecord(pathName: string, value: unknown, gaps: ItriExternalS
     }
   }
 
+  const organization = stringValue(value, "organization");
+  if (!organization || organization.trim().length === 0) {
+    addGap(gaps, `${pathName}.organization`, `${pathName}.organization must be non-empty text.`, {
+      path: `${pathName}.organization`
+    });
+  }
+
+  const role = stringValue(value, "role");
+  if (!role || role.trim().length === 0) {
+    addGap(gaps, `${pathName}.role`, `${pathName}.role must be non-empty text.`, {
+      path: `${pathName}.role`
+    });
+  }
+
   const authorityScope = nonEmptyStringArray(value.authorityScope);
   if (authorityScope.length === 0) {
     addGap(
@@ -752,6 +772,10 @@ function reviewSourceAuthority(manifest: PlainRecord, gaps: ItriExternalSourcePa
 
   const sourceTier = stringValue(sourceAuthority, "sourceTier");
   const sourceClassification = stringValue(sourceAuthority, "sourceAuthorityClassification");
+  const catalog = isPlainRecord(manifest.catalog) ? manifest.catalog : null;
+  const catalogType = stringValue(catalog, "catalogType");
+  const isSyntheticSourceAuthority = sourceClassification === "synthetic-rehearsal-only";
+  const isSyntheticCatalog = catalogType === "synthetic-rehearsal-only";
 
   if (!inEnum(sourceTier, [...SOURCE_TIER_ENUM])) {
     addGap(gaps, "source-authority.source-tier", "sourceAuthority.sourceTier is required and must be one of the contract enum values.", {
@@ -800,6 +824,27 @@ function reviewSourceAuthority(manifest: PlainRecord, gaps: ItriExternalSourcePa
     }
   }
 
+  if (!isSyntheticSourceAuthority && isSyntheticCatalog) {
+    addGap(
+      gaps,
+      SYNTHETIC_SOURCE_BOUNDARY_ERROR,
+      "synthetic-rehearsal-only catalog must not be used as owner-source authority.",
+      { path: "catalog.catalogType" }
+    );
+  }
+
+  if (isSyntheticSourceAuthority && sourceTier !== "tier-3-synthetic-rehearsal") {
+    addGap(gaps, SYNTHETIC_SOURCE_BOUNDARY_ERROR, "Synthetic authority classification requires tier-3-synthetic-rehearsal.", {
+      path: "sourceAuthority.sourceTier"
+    });
+  }
+
+  if (isSyntheticSourceAuthority && sourceTier === "tier-3-synthetic-rehearsal" && !isSyntheticCatalog) {
+    addGap(gaps, SYNTHETIC_SOURCE_BOUNDARY_ERROR, "Synthetic authority classification requires synthetic-rehearsal-only catalog.", {
+      path: "sourceAuthority.sourceAuthorityClassification"
+    });
+  }
+
   const authorityScope = nonEmptyStringArray(sourceAuthority.authorityScope);
   if (authorityScope.length === 0) {
     addGap(gaps, "source-authority.scope", "sourceAuthority.authorityScope must be a non-empty array.", {
@@ -831,10 +876,13 @@ function reviewSourceAuthority(manifest: PlainRecord, gaps: ItriExternalSourcePa
     });
   }
 
-  const catalog = isPlainRecord(manifest.catalog) ? manifest.catalog : null;
   const ownerEvidencePublic = catalog !== null && stringValue(catalog, "catalogType") === "public-tle";
   if (ownerEvidencePublic && sourceClassification !== null && sourceClassification !== "official-public-source" && sourceClassification !== "bounded-public-profile") {
-    const ownerAuthorityPromotion = sourceAuthority.ownerAuthorityPromotion;
+    const ownerAuthorityPromotion = isPlainRecord(sourceAuthority.ownerAuthorityPromotion)
+      ? sourceAuthority.ownerAuthorityPromotion
+      : isPlainRecord(manifest.ownerAuthorityPromotion)
+        ? manifest.ownerAuthorityPromotion
+        : null;
     if (!isPlainRecord(ownerAuthorityPromotion)) {
       addGap(
         gaps,
@@ -1356,6 +1404,29 @@ function reviewChecksumPolicy(manifest: PlainRecord, gaps: ItriExternalSourcePac
   }
 }
 
+function readChecksumPolicyAlgorithms(
+  manifest: PlainRecord
+): Set<string> | null {
+  const checksumPolicy = isPlainRecord(manifest.checksumPolicy) ? manifest.checksumPolicy : null;
+  if (!checksumPolicy) {
+    return null;
+  }
+
+  const algorithms = nonEmptyStringArray(checksumPolicy.requiredAlgorithms);
+  if (algorithms.length === 0) {
+    return null;
+  }
+
+  const normalized = new Set<string>();
+  for (const algorithm of algorithms) {
+    if (inEnum(algorithm, [...CHECKSUM_ALGORITHMS])) {
+      normalized.add(algorithm);
+    }
+  }
+
+  return normalized.size > 0 ? normalized : null;
+}
+
 function reviewRetentionPolicy(manifest: PlainRecord, gaps: ItriExternalSourcePackageIntakeReviewGap[]): void {
   const retentionPolicy = manifest.retentionPolicy;
   if (!isPlainRecord(retentionPolicy)) {
@@ -1366,6 +1437,14 @@ function reviewRetentionPolicy(manifest: PlainRecord, gaps: ItriExternalSourcePa
   const packageRoot = stringValue(retentionPolicy, "packageRoot");
   if (!packageRoot) {
     addGap(gaps, "retention.package-root", "retentionPolicy.packageRoot is required.", { path: "retentionPolicy.packageRoot" });
+  } else if (packageRoot !== REQUIRED_PACKAGE_ROOT) {
+    addGap(gaps, "retention.package-root", "retentionPolicy.packageRoot must be '.'.", {
+      path: "retentionPolicy.packageRoot"
+    });
+  } else if (!RETAINED_PATH_PATTERN.test(packageRoot)) {
+    addGap(gaps, "retention.package-root", "retentionPolicy.packageRoot must be a package-relative path.", {
+      path: "retentionPolicy.packageRoot"
+    });
   }
 
   const retentionOwner = stringValue(retentionPolicy, "retentionOwner");
@@ -1693,7 +1772,11 @@ function reviewReviewGate(manifest: PlainRecord, gaps: ItriExternalSourcePackage
   }
 }
 
-function reviewPackageArtifacts(manifest: PlainRecord, gaps: ItriExternalSourcePackageIntakeReviewGap[]): Set<string> {
+function reviewPackageArtifacts(
+  manifest: PlainRecord,
+  gaps: ItriExternalSourcePackageIntakeReviewGap[],
+  requiredChecksumAlgorithms: Set<string> | null
+): Set<string> {
   const artifactIds = new Set<string>();
   const packageArtifacts = arrayValue(manifest.packageArtifacts);
 
@@ -1769,6 +1852,13 @@ function reviewPackageArtifacts(manifest: PlainRecord, gaps: ItriExternalSourceP
         addGap(gaps, "package-artifacts.checksum-algorithm", "packageArtifact.checksum.algorithm is invalid.", {
           path: "packageArtifacts.checksum.algorithm"
         });
+      } else if (requiredChecksumAlgorithms !== null && !requiredChecksumAlgorithms.has(algorithm)) {
+        addGap(
+          gaps,
+          "package-artifacts.checksum-policy-algorithm",
+          "packageArtifact.checksum.algorithm must be declared in checksumPolicy.requiredAlgorithms.",
+          { path: "packageArtifacts.checksum.algorithm" }
+        );
       }
 
       const value = stringValue(checksum, "value");
@@ -1882,7 +1972,7 @@ function reviewSyntheticReadiness(manifest: PlainRecord, gaps: ItriExternalSourc
   const sourceAuthorityClassification = stringValue(sourceAuthority ?? {}, "sourceAuthorityClassification");
 
   if (catalogType === "synthetic-rehearsal-only" || sourceAuthorityClassification === "synthetic-rehearsal-only") {
-    detectedPaths.push("catalogType:synthetic" );
+    detectedPaths.push("catalogType:synthetic");
     addGap(gaps, "synthetic.source-rejected", "Synthetic-rehearsal source cannot satisfy F-03/F-15 source-package intake readiness.", {
       path: "sourceAuthority"
     });
@@ -2073,7 +2163,13 @@ export function reviewItriExternalSourcePackageIntakeManifest(
   reviewMissingRootFields(manifest, gaps);
 
   const manifestSchemaVersion = reviewSchemaVersion(manifest, gaps);
-  const declaredRefCheck = reviewSourceArtifactRefs(manifest, reviewPackageArtifacts(manifest, gaps), gaps);
+  reviewChecksumPolicy(manifest, gaps);
+  const requiredChecksumAlgorithms = readChecksumPolicyAlgorithms(manifest);
+  const declaredRefCheck = reviewSourceArtifactRefs(
+    manifest,
+    reviewPackageArtifacts(manifest, gaps, requiredChecksumAlgorithms),
+    gaps
+  );
   reviewArtifactPathSummary(options.artifactPathCheck, gaps);
   reviewPackageIdentity(manifest, gaps);
   reviewOwnerIdentity(manifest, gaps);
@@ -2083,7 +2179,6 @@ export function reviewItriExternalSourcePackageIntakeManifest(
   reviewModeRules(manifest, gaps);
   reviewTemporalRules(manifest, gaps);
   reviewLicenseRedistribution(manifest, gaps);
-  reviewChecksumPolicy(manifest, gaps);
   reviewRetentionPolicy(manifest, gaps);
   reviewScenarioMapping(manifest, gaps);
   reviewOrbitClassCoverage(manifest, gaps);

@@ -78,8 +78,9 @@ The following submissions are not sufficient for the authority-gated lanes:
 Target package family:
 Future owner-supplied package material shaped by
 `docs/data-contracts/itri-external-source-package-intake.schema.json` if ITRI
-requires source breadth beyond the current vendored public fixtures. No
-retained package directory or reviewer exists for this lane yet.
+requires source breadth beyond the current vendored public fixtures. Package
+readiness is validated by the S12-B reviewer implementation; S12-C extends that
+same boundary with stricter owner-source acceptance checks.
 
 Required owner-supplied artifact checklist:
 
@@ -100,11 +101,11 @@ Required owner-supplied artifact checklist:
 
 Minimum metadata:
 
-- `schemaVersion`, package ID, source owner, source family, source tier,
-  authority classification, received time, access time when public, epoch
-  range, time system, update cadence, stale-data policy, license/use notes,
-  redistribution limits, checksum list, reviewer, covered requirements, and
-  scenario mapping scope.
+  - `schemaVersion`, package ID, source owner, source family, source tier,
+    authority classification, received time, access time when public, epoch
+    range, time system, update cadence, stale-data policy, license/use notes,
+    redistribution limits, checksum list, reviewer, covered requirements, and
+    scenario mapping scope.
 - Mode rules for real-time and prerecorded use, including fallback behavior
   when source data is unavailable, stale, malformed, or outside the accepted
   epoch window.
