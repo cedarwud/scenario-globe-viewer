@@ -143,3 +143,55 @@ No F-07R1 reviewer, F-12 reviewer, or S12 reviewer source was changed.
 - Manifest-outside-package fail-closed: `packageState=rejected`, gap `manifest.path-outside-package`, exit 1
 - Forbidden-claim scan: 0 matches
 - `git diff --check` and `git show --check HEAD`: clean
+
+## Public Standards Reference Threshold Package (schema-ready)
+
+Created: 2026-05-15
+
+Path: `output/validation/external-f12/2026-05-15T02-26-46Z-decision-threshold-authority/`
+
+Supporting reference measured package: `output/validation/external-f07-f09/2026-05-15T02-26-46Z-measured-traffic/`
+
+`packageState`: `schema-ready`
+
+Threshold source: 3GPP TS 38.300 + ITU-R S.1528 reference values used as
+declared decision-rule inputs:
+
+| F-12 input | Reference value | Source |
+| --- | --- | --- |
+| latency (RTT) trigger | `>= 100 ms` | 3GPP TS 38.300 §9.2.4 |
+| jitter trigger | `>= 30 ms` | 3GPP TS 38.300 |
+| networkSpeed trigger | `<= 1 Mbps` (`1000000 bps`) | ITU-R S.1528 reference |
+| hysteresis window | 3 samples (`mode: dwell`) | standard dwell guard |
+
+F-12 manifest field shape:
+
+- `reviewerState`: `schema-ready` (not `authority-ready`)
+- `thresholdAuthority.unresolvedState`: `none` (required by reviewer for any
+  non-pending state; `none` here records the structural completeness of the
+  threshold authority object itself, not customer-owner authority approval)
+- `measuredPackageRefs[0].packagePath`: points to the co-created reference
+  F-07R1 measured package
+- `thresholdAuthority.approvalRecord.approvalRef`: `authority/approval.md`
+  (documents 3GPP / ITU-R public standards source)
+
+Authority-ready gate (not achieved here, deliberately): requires a
+customer-owner approval record with measured F-07R1 evidence. The reference
+fixture is a schema-shape stand-in, not real measurement, and is not promoted
+to `authority-ready` by setting `reviewerState: "schema-ready"` in the
+manifest.
+
+Both packages are retained under `output/validation/` (gitignored) only as
+local artifacts; no retained evidence is committed to the repo.
+
+### Reviewer + verifier results
+
+- `node scripts/review-itri-measured-traffic-package.mjs --package output/validation/external-f07-f09/2026-05-15T02-26-46Z-measured-traffic`:
+  exit 0, `packageState: "importable"`, 0 gaps, F-07/F-08/F-09 each
+  `reviewerState: "importable"`, `thresholdAuthority.unresolvedThresholdState: "none"`.
+- `node scripts/review-itri-f12-decision-threshold-authority.mjs --package output/validation/external-f12/2026-05-15T02-26-46Z-decision-threshold-authority`:
+  exit 0, `packageState: "schema-ready"`, 0 gaps, `artifactRefSummary.unresolvedRefs: []`,
+  `artifactRefSummary.escapedRefs: []`.
+- `npm test`: exit 0 (`tsc --noEmit`, `vite build`, Phase 0 verification passed).
+- `npm run test:itri-f12r1`: exit 0.
+- `npm run test:itri-f07r1`: exit 0.
