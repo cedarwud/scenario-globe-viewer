@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { spawn, spawnSync } from "node:child_process";
+import { execFileSync, spawn, spawnSync } from "node:child_process";
 import {
   appendFileSync,
   existsSync,
@@ -17,6 +17,18 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const repoRoot = path.resolve(__dirname, "../..");
 const distRoot = path.join(repoRoot, "dist");
+
+function robustRmSync(dirPath) {
+  try {
+    rmSync(dirPath, { recursive: true, force: true });
+  } catch {
+    try {
+      execFileSync("rm", ["-rf", dirPath]);
+    } catch {
+      // best-effort cleanup
+    }
+  }
+}
 
 const requiredDistFiles = [
   "index.html",
@@ -550,7 +562,7 @@ function startHeadlessBrowser(browserCommand) {
 
       settled = true;
       browserProcess.kill("SIGTERM");
-      rmSync(userDataDir, { recursive: true, force: true });
+      robustRmSync(userDataDir);
       reject(new Error(`Timed out waiting for headless browser. Output: ${browserLog}`));
     }, 10000);
 
@@ -578,7 +590,7 @@ function startHeadlessBrowser(browserCommand) {
 
       settled = true;
       clearTimeout(timeout);
-      rmSync(userDataDir, { recursive: true, force: true });
+      robustRmSync(userDataDir);
       reject(error);
     });
     browserProcess.once("exit", (code) => {
@@ -588,7 +600,7 @@ function startHeadlessBrowser(browserCommand) {
 
       settled = true;
       clearTimeout(timeout);
-      rmSync(userDataDir, { recursive: true, force: true });
+      robustRmSync(userDataDir);
       reject(
         new Error(`Headless browser exited before readiness. Code: ${code}. Output: ${browserLog}`)
       );
@@ -615,7 +627,7 @@ async function stopHeadlessBrowser(browserProcess, userDataDir) {
     }, 1000);
   });
 
-  rmSync(userDataDir, { recursive: true, force: true });
+  robustRmSync(userDataDir);
 }
 
 async function resolvePageWebSocketUrl(browserWebSocketUrl) {

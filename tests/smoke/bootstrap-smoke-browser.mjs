@@ -1,7 +1,19 @@
-import { spawn, spawnSync } from "node:child_process";
+import { execFileSync, spawn, spawnSync } from "node:child_process";
 import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
+
+function robustRmSync(dirPath) {
+  try {
+    rmSync(dirPath, { recursive: true, force: true });
+  } catch {
+    try {
+      execFileSync("rm", ["-rf", dirPath]);
+    } catch {
+      // best-effort cleanup
+    }
+  }
+}
 
 function sleep(ms) {
   return new Promise((resolve) => {
@@ -63,7 +75,7 @@ export function startHeadlessBrowser(browserCommand, extraArgs = []) {
 
       settled = true;
       browserProcess.kill("SIGTERM");
-      rmSync(userDataDir, { recursive: true, force: true });
+      robustRmSync(userDataDir);
       reject(new Error(`Timed out waiting for headless browser. Output: ${browserLog}`));
     }, 10000);
 
@@ -91,7 +103,7 @@ export function startHeadlessBrowser(browserCommand, extraArgs = []) {
 
       settled = true;
       clearTimeout(timeout);
-      rmSync(userDataDir, { recursive: true, force: true });
+      robustRmSync(userDataDir);
       reject(error);
     });
     browserProcess.once("exit", (code) => {
@@ -101,7 +113,7 @@ export function startHeadlessBrowser(browserCommand, extraArgs = []) {
 
       settled = true;
       clearTimeout(timeout);
-      rmSync(userDataDir, { recursive: true, force: true });
+      robustRmSync(userDataDir);
       reject(
         new Error(`Headless browser exited before readiness. Code: ${code}. Output: ${browserLog}`)
       );
@@ -118,7 +130,7 @@ export async function stopHeadlessBrowser(browserOrHandle, userDataDir) {
 
   if (!browserProcess) {
     if (resolvedUserDataDir) {
-      rmSync(resolvedUserDataDir, { recursive: true, force: true });
+      robustRmSync(resolvedUserDataDir);
     }
     return;
   }
@@ -142,7 +154,7 @@ export async function stopHeadlessBrowser(browserOrHandle, userDataDir) {
   });
 
   if (resolvedUserDataDir) {
-    rmSync(resolvedUserDataDir, { recursive: true, force: true });
+    robustRmSync(resolvedUserDataDir);
   }
 }
 
