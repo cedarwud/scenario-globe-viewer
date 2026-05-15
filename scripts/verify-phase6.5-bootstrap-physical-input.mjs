@@ -42,6 +42,14 @@ const bootstrapCompositionPath = new URL(
   "../src/runtime/bootstrap/composition.ts",
   import.meta.url
 );
+const ituRRainAttenuationPath = new URL(
+  "../src/features/itu-r-physics/itu-r-p838-rain-attenuation.ts",
+  import.meta.url
+);
+const ituRLinkBudgetPath = new URL(
+  "../src/features/itu-r-physics/itu-r-p618-link-budget.ts",
+  import.meta.url
+);
 
 function transpileTypeScript(source, fileName) {
   return ts.transpileModule(source, {
@@ -74,6 +82,14 @@ function localizeTempImports(source) {
     .replace(
       /\.\/bootstrap-physical-input-source\.mjs/g,
       "./bootstrap-physical-input-source.mjs"
+    )
+    .replace(
+      /\.\.\/features\/itu-r-physics\/itu-r-p838-rain-attenuation\.mjs/g,
+      "./itu-r-p838-rain-attenuation.mjs"
+    )
+    .replace(
+      /\.\.\/features\/itu-r-physics\/itu-r-p618-link-budget\.mjs/g,
+      "./itu-r-p618-link-budget.mjs"
     );
 }
 
@@ -114,7 +130,9 @@ try {
     handoverDecisionSourceCode,
     operatorHudSource,
     mainSource,
-    bootstrapCompositionSource
+    bootstrapCompositionSource,
+    ituRRainAttenuationSource,
+    ituRLinkBudgetSource
   ] = await Promise.all([
     readFile(physicalInputModulePath, "utf8"),
     readFile(physicalInputPanelPath, "utf8"),
@@ -125,7 +143,9 @@ try {
     readFile(handoverDecisionSourceModulePath, "utf8"),
     readFile(operatorHudModulePath, "utf8"),
     readFile(mainPath, "utf8"),
-    readFile(bootstrapCompositionPath, "utf8")
+    readFile(bootstrapCompositionPath, "utf8"),
+    readFile(ituRRainAttenuationPath, "utf8"),
+    readFile(ituRLinkBudgetPath, "utf8")
   ]);
 
   const requiredPhysicalInputSnippets = [
@@ -200,11 +220,26 @@ try {
       )
     ),
     writeFile(
-      join(tempModuleDir, "bootstrap-physical-input-seeds.mjs"),
+      join(tempModuleDir, "itu-r-p838-rain-attenuation.mjs"),
+      transpileTypeScript(
+        ituRRainAttenuationSource,
+        "itu-r-p838-rain-attenuation.ts"
+      )
+    ),
+    writeFile(
+      join(tempModuleDir, "itu-r-p618-link-budget.mjs"),
       rewriteRelativeImports(
-        transpileTypeScript(
-          physicalInputSeedsCode,
-          "bootstrap-physical-input-seeds.ts"
+        transpileTypeScript(ituRLinkBudgetSource, "itu-r-p618-link-budget.ts")
+      )
+    ),
+    writeFile(
+      join(tempModuleDir, "bootstrap-physical-input-seeds.mjs"),
+      localizeTempImports(
+        rewriteRelativeImports(
+          transpileTypeScript(
+            physicalInputSeedsCode,
+            "bootstrap-physical-input-seeds.ts"
+          )
         )
       )
     ),
