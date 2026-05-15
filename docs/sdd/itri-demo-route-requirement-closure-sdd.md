@@ -1,4 +1,4 @@
-# ITRI Demo Route Requirement Closure SDD
+# customer Demo Route Requirement Closure SDD
 
 Date: 2026-05-11
 
@@ -8,7 +8,7 @@ Canonical route:
 
 ## Status
 
-- Canonical planning SDD for ITRI requirement closure on the V4
+- Canonical planning SDD for customer requirement closure on the V4
   ground-station demo route.
 - Docs-only. This file does not authorize implementation by itself.
 - Scope controller: preserve the V4 truth boundary and separate demo polish,
@@ -87,15 +87,15 @@ handoff notes:
 | `bounded-route-representation` | The route visibly represents the requirement with modeled or projected data, but does not close full external truth. |
 | `bounded-repo-owned-seam` | The repo has a bounded seam elsewhere, but this route does not fully own or mount it. |
 | `external-validation-required` | Closure depends on external validation or measurement surfaces outside this scene. |
-| `demo-polish-no-requirement-closure` | Visual or comprehension improvement only; do not claim ITRI closure. |
+| `demo-polish-no-requirement-closure` | Visual or comprehension improvement only; do not claim customer closure. |
 | `not-in-this-route` | Keep the requirement visible in traceability, but do not implement it on this route without a new decision. |
 | `forbidden-truth` | Any implementation wording or telemetry that claims this truth is a defect. |
 
 ## Requirement Matrix
 
-| ID | ITRI requirement | Current route status | Closure disposition | Route action |
+| ID | customer requirement | Current route status | Closure disposition | Route action |
 | --- | --- | --- | --- | --- |
-| F-01 | 整合 ITRI 自有衛星軌道模型 | Route uses viewer-owned projected artifacts and source-lineaged actors, not an ITRI orbit-model integration. | `external-validation-required` | Do not claim closure. Keep source lineage visible. |
+| F-01 | 整合 customer 自有衛星軌道模型 | Route uses viewer-owned projected artifacts and source-lineaged actors, not an customer orbit-model integration. | `external-validation-required` | Do not claim closure. Keep source lineage visible. |
 | F-02 | 面向 `LEO/MEO/GEO` 多軌道 | Route shows LEO/MEO/GEO display-context actors and operator-family evidence. | `bounded-route-representation` | Preserve 13-actor orbit-class evidence and compact truth labels. |
 | F-03 | 輸入 `TLE` 並追蹤衛星運動 | Route uses source-lineaged display actors; it is not a general TLE input workflow. | `bounded-route-representation` | Keep evidence/archive source summary, but do not claim full TLE input closure. |
 | F-04 | 建立互動式 3D 圖像化模擬系統 | Cesium route is interactive and visual. | `true-route-closure` for visual route baseline | Regression guard only. |
@@ -138,7 +138,7 @@ Goal:
 Why first:
 
 - Requirement close-out screenshots are only useful if the route is legible.
-- Chinese tofu/square text is demo polish, not true ITRI requirement closure,
+- Chinese tofu/square text is demo polish, not true customer requirement closure,
   but it directly affects acceptance evidence quality.
 - This phase gives later F-09/F-16/F-10/F-11 work a stable route regression
   harness.
@@ -206,7 +206,7 @@ Browser evidence:
 
 Goal:
 
-- Make the route's ITRI status honest and inspectable without implying closure
+- Make the route's customer status honest and inspectable without implying closure
   of external or not-mounted requirements.
 
 Scope:
@@ -551,7 +551,7 @@ Final closure checkpoint, 2026-05-12:
 - The V4 demo route is ready for route-local closure handoff.
 - Retained closure package:
   `output/validation/itri-demo-route-final-closure-2026-05-12.md`.
-- Final QA passed `git diff --check`, `npm run build`, raw ITRI side-read scan,
+- Final QA passed `git diff --check`, `npm run build`, raw customer side-read scan,
   runtime source-boundary scan, baseline legibility smoke, link-flow smoke,
   requirement-gap smoke, F-09 smoke, F-16 smoke, and F-10/F-11 policy/rule
   controls smoke.

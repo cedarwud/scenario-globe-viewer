@@ -84,7 +84,7 @@ scenario.
 ## External Reference Patterns
 
 These references are design inputs, not authority surfaces. They do not
-override repo-local SDDs, ADRs, or ITRI truth boundaries.
+override repo-local SDDs, ADRs, or customer truth boundaries.
 
 - NASA Eyes / Eyes on the Earth
   - scene-first interactive 3D exploration

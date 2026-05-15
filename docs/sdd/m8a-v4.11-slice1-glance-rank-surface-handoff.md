@@ -57,7 +57,7 @@ Passed:
 `npm run test:m8a-v4.11:slice1` includes:
 
 - production build
-- V4.3 raw ITRI side-read scan
+- V4.3 raw customer side-read scan
 - V4.6B runtime source-boundary scan
 - V4.11 Slice 1 runtime smoke with 1440x900, 1280x720, and 390x844 captures
 
@@ -69,7 +69,7 @@ V4.8 / V4.9 / V4.10 invariant coverage is green through the Slice 1 runtime smok
 - actor count remains 13 with counts `LEO=6`, `MEO=5`, `GEO=2`
 - V4.6D model id/truth remains unchanged
 - R2 remains read-only / non-selector evidence
-- source boundary remains repo-owned projection only, with no raw ITRI side-read and no live external source-read
+- source boundary remains repo-owned projection only, with no raw customer side-read and no live external source-read
 - Details and Truth default-closed behavior remains unchanged
 - sequence rail and control strip remain visible
 
@@ -87,7 +87,7 @@ Passed in `tests/smoke/verify-m8a-v4.11-slice1-glance-rank-surface-runtime.mjs`:
 - at least four distinct real-data chip types are visible in default 1440x900
 - no Slice 2+ scope leak selectors/text are present for hover popover, inspector concurrency, transition toast, scene cue, Sources role, or R2 listing
 - forbidden measured latency / jitter / throughput / continuity claims are absent
-- raw ITRI package and live external source resources are absent
+- raw customer package and live external source resources are absent
 
 ## Reviewer Status
 
@@ -106,7 +106,7 @@ Confirmed absent:
 - Sources role
 - R2 listing
 - measured latency / jitter / throughput / continuity wording
-- raw ITRI side-read
+- raw customer side-read
 
 ## Unchanged Contract Confirmation
 

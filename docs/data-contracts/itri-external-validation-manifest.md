@@ -1,4 +1,4 @@
-# ITRI External Validation Manifest Contract
+# customer External Validation Manifest Contract
 
 Date: 2026-05-13
 
@@ -55,9 +55,9 @@ This manifest must not be used to infer:
   without retained raw artifacts and owner review;
 - measured traffic truth for F-07/F-08/F-09 without the measured traffic
   package contract;
-- ITRI orbit-model integration;
+- customer orbit-model integration;
 - native radio-frequency handover behavior;
-- full ITRI acceptance.
+- full customer acceptance.
 
 ## Covered Lanes
 
@@ -642,9 +642,9 @@ The manifest schema alone provides no:
 - schema-only pass verdict for V-02 through V-06;
 - NAT, tunnel, bridge, DUT, or traffic-generator validation result;
 - measured traffic truth for F-07/F-08/F-09;
-- ITRI orbit-model integration;
+- customer orbit-model integration;
 - native radio-frequency handover behavior;
-- full ITRI acceptance.
+- full customer acceptance.
 
 A future package may change a reviewer state to `authority-pass` only for the
 named V requirement that has retained evidence, auditability-preserving

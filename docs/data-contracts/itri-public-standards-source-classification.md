@@ -1,4 +1,4 @@
-# ITRI Public Standards Source Classification
+# customer Public Standards Source Classification
 
 Date: 2026-05-13
 
@@ -36,7 +36,7 @@ questions remain before any future profile can be promoted.
 ## Profile Boundary
 
 Public standards may support only a bounded public standards profile unless
-ITRI/V-group accepts selected versions, parameters, vectors, and approximation
+customer/V-group accepts selected versions, parameters, vectors, and approximation
 level as authority.
 
 Allowed S4-A use:
@@ -44,7 +44,7 @@ Allowed S4-A use:
 - source-lineaged standards index for F-17/P-01/P-02/P-03;
 - future input schema planning for recommendation id, version, parameter,
   geography, frequency, polarization, elevation, antenna, and vector fields;
-- authority request framing for ITRI/V-group review;
+- authority request framing for customer/V-group review;
 - nonclaim-backed UI/status wording that says a source is a candidate public
   standard, not accepted project truth.
 
@@ -52,7 +52,7 @@ Disallowed S4-A use:
 
 - creating synthetic fixtures;
 - treating current bounded proxy values as standards-derived values;
-- claiming ITRI/V-group acceptance;
+- claiming customer/V-group acceptance;
 - claiming calibration evidence, route validation, lab validation, or external
   validation closure;
 - embedding copied ITU formula tables, gridded components, or recommendation
@@ -77,11 +77,11 @@ Access date for all retained sources: 2026-05-13.
 | --- | --- | --- | --- | --- | --- | --- |
 | S4A-ITU-P618 | ITU Radiocommunication Sector | https://www.itu.int/rec/R-REC-P.618-14-202308-I/en | ITU-R P.618-14 (08/2023), approved 2023-08-23, in force | F-17, P-02, P-03 | Official ITU-R page marks the recommendation as free download. Use by citation/source lineage only in this repo; ITU copyright and website terms remain applicable. Do not copy method text, equations, tables, or components into fixture data in S4-A. | Public authority candidate |
 | S4A-ITU-P837 | ITU Radiocommunication Sector | https://www.itu.int/rec/R-REC-P.837-8-202509-I/en | ITU-R P.837-8 (09/2025), approved 2025-09-01, in force | P-02, P-03 | Official ITU-R page marks the recommendation and components as free download. Component use must wait for a later license and authority review; S4-A records only source lineage and candidate status. | Public authority candidate |
-| S4A-ITU-P838 | ITU Radiocommunication Sector | https://www.itu.int/rec/R-REC-P.838-3-200503-I/en | ITU-R P.838-3 (03/2005), approved 2005-03-08, in force | P-02, P-03 | Official ITU-R page marks the recommendation as free download and notes incorporation by reference in the Radio Regulations. Use as a standards candidate only until ITRI/V-group selects parameters and version. | Public authority candidate |
+| S4A-ITU-P838 | ITU Radiocommunication Sector | https://www.itu.int/rec/R-REC-P.838-3-200503-I/en | ITU-R P.838-3 (03/2005), approved 2005-03-08, in force | P-02, P-03 | Official ITU-R page marks the recommendation as free download and notes incorporation by reference in the Radio Regulations. Use as a standards candidate only until customer/V-group selects parameters and version. | Public authority candidate |
 | S4A-ITU-P676 | ITU Radiocommunication Sector | https://www.itu.int/rec/R-REC-P.676-13-202208-I/en | ITU-R P.676-13 (08/2022), approved 2022-08-24, in force | F-17, P-03 | Official ITU-R page marks the recommendation as free download. Treat as candidate atmospheric-gas factor support only when the selected profile includes gas attenuation. | Public authority candidate |
 | S4A-ITU-P839 | ITU Radiocommunication Sector | https://www.itu.int/rec/R-REC-P.839-4-201309-I/en | ITU-R P.839-4 (09/2013), approved 2013-09-30, in force | P-02, P-03 | Official ITU-R page marks the recommendation and components as free download. Component use must wait for a later license and authority review; S4-A records only source lineage and candidate status. | Public authority candidate |
-| S4A-ITU-P840 | ITU Radiocommunication Sector | https://www.itu.int/rec/R-REC-P.840-9-202308-I/en | ITU-R P.840-9 (08/2023), approved 2023-08-23, in force | F-17, P-03 | Official ITU-R page marks the recommendation as free download and lists component parts. Treat as optional cloud/fog attenuation support only if ITRI/V-group selects this factor. | Public authority candidate |
-| S4A-ITU-S465 | ITU Radiocommunication Sector | https://www.itu.int/rec/R-REC-S.465-6-201001-I/en | ITU-R S.465-6 (01/2010), approved 2010-01-23, in force | P-01, P-03 | Official ITU-R page marks the recommendation as free download. Use as candidate earth-station antenna-pattern reference only after ITRI/V-group selects antenna geometry, band, and interpretation. | Public authority candidate |
+| S4A-ITU-P840 | ITU Radiocommunication Sector | https://www.itu.int/rec/R-REC-P.840-9-202308-I/en | ITU-R P.840-9 (08/2023), approved 2023-08-23, in force | F-17, P-03 | Official ITU-R page marks the recommendation as free download and lists component parts. Treat as optional cloud/fog attenuation support only if customer/V-group selects this factor. | Public authority candidate |
+| S4A-ITU-S465 | ITU Radiocommunication Sector | https://www.itu.int/rec/R-REC-S.465-6-201001-I/en | ITU-R S.465-6 (01/2010), approved 2010-01-23, in force | P-01, P-03 | Official ITU-R page marks the recommendation as free download. Use as candidate earth-station antenna-pattern reference only after customer/V-group selects antenna geometry, band, and interpretation. | Public authority candidate |
 | S4A-ITU-S580 | ITU Radiocommunication Sector | https://www.itu.int/rec/R-REC-S.580-6-200401-I/en | ITU-R S.580-6 (01/2004), approved 2004-01-06, in force | P-01, P-03 | Official ITU-R page marks the recommendation as free download. Use as candidate GEO earth-station antenna design-objective context only when the profile includes that antenna class. | Public authority candidate |
 | S4A-ITU-S1528 | ITU Radiocommunication Sector | https://www.itu.int/rec/R-REC-S.1528-0-200106-I/en | ITU-R S.1528-0 (06/2001), approved 2001-06-28, in force | P-01, P-03 | Official ITU-R page marks the recommendation as free download. Use as candidate non-GSO satellite antenna-pattern context only if satellite antenna behavior is in scope. | Public authority candidate |
 | S4A-ITU-PUB-ACCESS | ITU Publications / ITU Radiocommunication Sector | https://www.itu.int/pub/R-REC/en | Publication overview, no recommendation version | Source-use context for all retained ITU-R recommendations | ITU states current ITU-R Recommendations and Reports have free online access for the public. This page supports access/use context, not physical model content. | Method/context only |
@@ -92,18 +92,18 @@ Access date for all retained sources: 2026-05-13.
 
 | Requirement | Candidate source stack | S4-A classification result | Remaining authority blocker |
 | --- | --- | --- | --- |
-| F-17 rain-attenuation impact display | Core: P.618. Support candidates: P.837, P.838, P.839, P.676, P.840. | Public authority candidate stack for a bounded public standards profile. | ITRI/V-group must select version set, rain-rate source, geography, frequency bands, path geometry, elevation, polarization, output units, approximation level, and validation vectors before this can be treated as accepted authority. |
-| P-01 antenna parameters | Earth-station candidates: S.465 and S.580. Conditional satellite antenna candidate: S.1528. | Public authority candidate stack for bounded antenna-parameter provenance. | ITRI/V-group must provide antenna geometry, gain/pattern interpretation, pointing assumptions, frequency bands, terminal class, earth-station vs satellite-side scope, and validation vectors. |
-| P-02 rain attenuation / rainy-condition attenuation | Core: P.618, P.837, P.838, P.839. Conditional related factors: P.676 and P.840 if selected. | Public authority candidate stack for bounded rain-attenuation provenance. | ITRI/V-group must select rain model workflow, location/rain-rate data, rain height, path geometry, frequency, polarization, elevation, exceedance/availability interpretation, and accepted output units. |
-| P-03 ITU-related factors | Candidate ITU-R profile index: P.618, P.837, P.838, P.676, P.839, P.840, S.465, S.580, S.1528. | Public authority candidate index. This classifies candidate recommendations only; it does not define a generic ITU compliance claim. | ITRI/V-group must select exact recommendations, versions, parameter values, factor subset, approximation level, and validation vectors. |
+| F-17 rain-attenuation impact display | Core: P.618. Support candidates: P.837, P.838, P.839, P.676, P.840. | Public authority candidate stack for a bounded public standards profile. | customer/V-group must select version set, rain-rate source, geography, frequency bands, path geometry, elevation, polarization, output units, approximation level, and validation vectors before this can be treated as accepted authority. |
+| P-01 antenna parameters | Earth-station candidates: S.465 and S.580. Conditional satellite antenna candidate: S.1528. | Public authority candidate stack for bounded antenna-parameter provenance. | customer/V-group must provide antenna geometry, gain/pattern interpretation, pointing assumptions, frequency bands, terminal class, earth-station vs satellite-side scope, and validation vectors. |
+| P-02 rain attenuation / rainy-condition attenuation | Core: P.618, P.837, P.838, P.839. Conditional related factors: P.676 and P.840 if selected. | Public authority candidate stack for bounded rain-attenuation provenance. | customer/V-group must select rain model workflow, location/rain-rate data, rain height, path geometry, frequency, polarization, elevation, exceedance/availability interpretation, and accepted output units. |
+| P-03 ITU-related factors | Candidate ITU-R profile index: P.618, P.837, P.838, P.676, P.839, P.840, S.465, S.580, S.1528. | Public authority candidate index. This classifies candidate recommendations only; it does not define a generic ITU compliance claim. | customer/V-group must select exact recommendations, versions, parameter values, factor subset, approximation level, and validation vectors. |
 
 ## Explicit Nonclaims
 
 This package does not claim:
 
-- selected ITU versions have been accepted by ITRI/V-group;
+- selected ITU versions have been accepted by customer/V-group;
 - any antenna, rain, or ITU-style bounded proxy is standards-derived;
-- any public standard by itself supplies ITRI/V-group parameters, vectors, or
+- any public standard by itself supplies customer/V-group parameters, vectors, or
   acceptance criteria;
 - any external validation, DUT, NAT, tunnel, lab, or traffic evidence is closed;
 - any physical-layer calibration, measured route behavior, active path, or
@@ -117,7 +117,7 @@ This package does not claim:
 | Third-party mirrors of ITU recommendations | Reject | Official ITU pages are available and are the only retained standards source for this package. |
 | Blogs, tutorials, secondary summaries, screenshots, or AI/search summaries about ITU propagation methods | Reject | They are not first-party standards authority and would add unsupported interpretation. |
 | Operator or service-provider pages | Service/operator context only, not promoted for S4-A | They may support service context in other lanes but do not define public rain, antenna, or ITU parameter authority for F-17/P-01/P-02/P-03. |
-| ITRI public NTN or LEO context pages | Method/context only for stakeholder background, not promoted for S4-A | Public ITRI context does not publish the V-group physical input schema, parameter selections, vectors, or accepted approximation level. |
+| customer public NTN or LEO context pages | Method/context only for stakeholder background, not promoted for S4-A | Public customer context does not publish the V-group physical input schema, parameter selections, vectors, or accepted approximation level. |
 | Inaccessible or expired procurement/spec traces | Hold | Official trace may help route an authority request, but inaccessible content cannot be cited as source authority. |
 
 ## Future Profile Intake Fields
@@ -136,14 +136,14 @@ is materialized, the profile record must name:
 - selected output units and any conversion rules;
 - approximation level and known deviations from the recommendation workflow;
 - validation vectors and tolerances;
-- ITRI/V-group reviewer and acceptance status, if authority beyond bounded
+- customer/V-group reviewer and acceptance status, if authority beyond bounded
   public profile is intended;
 - nonclaims that preserve the difference between public standards lineage,
   bounded repo profile, and external authority truth.
 
 ## Unresolved Authority Questions
 
-1. Which ITU-R recommendations and versions does ITRI/V-group require for
+1. Which ITU-R recommendations and versions does customer/V-group require for
    F-17/P-01/P-02/P-03?
 2. Which frequency bands, elevation angles, polarizations, terminal classes,
    antenna geometries, pointing assumptions, and path roles apply?

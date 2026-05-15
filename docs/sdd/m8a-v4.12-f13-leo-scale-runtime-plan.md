@@ -1,7 +1,7 @@
 # M8A V4.12 F-13 LEO-Scale Runtime Plan
 
 Date: 2026-05-12
-Working phase name: **M8A V4.12 ITRI must-have followup (Phase 7.1 LEO-scale leg)**.
+Working phase name: **M8A V4.12 customer must-have followup (Phase 7.1 LEO-scale leg)**.
 
 ## 0. Status
 
@@ -28,7 +28,7 @@ Hard dependencies:
 - Walker-only runtime path stays as the default; the LEO-scale path is
   toggle-mounted, never default-on.
 
-## 1. ITRI Requirement Reference
+## 1. customer Requirement Reference
 
 Acceptance-report quote:
 
@@ -38,7 +38,7 @@ Acceptance-report quote:
 | F-13 | 支援至少 `500 LEO` | `待完成` | Current live runtime is still bounded to the copied walker proof line. | `7.1` |
 ```
 
-ITRI README §2.7 quote:
+customer README §2.7 quote:
 
 `/home/u24/papers/itri/README.md:267-281`:
 
@@ -69,9 +69,9 @@ That readiness surface is **readiness/demo evidence, not closure/proof**. Per
 the addendum the remaining gap is:
 
 - route-native `>=500 LEO` closure/proof
-- ITRI authority acceptance
+- customer authority acceptance
 - live network truth (out of scope; permanent external dependency)
-- ITRI orbit-model integration (out of scope; needs ITRI data)
+- customer orbit-model integration (out of scope; needs customer data)
 - multi-orbit MEO/GEO live runtime closure (out of scope of this slice)
 
 This plan therefore scopes the next slice as **route-native LEO-scale runtime
@@ -164,7 +164,7 @@ Non-goals:
 - no V-02..V-06 external validation closure;
 - no per-satellite UI;
 - no orbit-pruning, LOD, or animation polish beyond perf-budget compliance;
-- no claim that 500 LEO under viewer runtime is equivalent to ITRI
+- no claim that 500 LEO under viewer runtime is equivalent to customer
   acceptance gate for multi-orbit scope.
 
 ## 5. Forbidden Claims
@@ -178,7 +178,7 @@ Non-goals:
 - `measured throughput at scale`
 - `external network validated`
 - `Phase 8 unlocked by this slice`
-- `ITRI acceptance complete`
+- `customer acceptance complete`
 
 Allowed copy:
 
@@ -304,7 +304,7 @@ touch Operator HUD, V4.11 scene, or any F-09/F-10/F-11/F-16 surface.
 - MEO/GEO rows in `orbitScopeMatrix` remain honest (no false closure).
 - No external NAT / tunnel / DUT claim added.
 - Fixture provenance JSON present and valid.
-- ITRI acceptance row updated honestly.
+- customer acceptance row updated honestly.
 
 ## 11. Open After Planning SDD
 
@@ -313,7 +313,7 @@ touch Operator HUD, V4.11 scene, or any F-09/F-10/F-11/F-16 surface.
 - whether to add an operator-visible LEO-scale toggle to Operator HUD (likely
   defer);
 - whether to add a perf-budget dashboard surface in HUD (defer to D-03);
-- whether F-13 LEO closure unblocks a marketing claim for ITRI demo (defer to
+- whether F-13 LEO closure unblocks a marketing claim for customer demo (defer to
   acceptance package).
 
 ## 12. Implementation Close-Out

@@ -1,4 +1,4 @@
-# ITRI S12-C External Source-Package Intake Reviewer Closeout
+# customer S12-C External Source-Package Intake Reviewer Closeout
 
 Date: 2026-05-14
 
@@ -44,14 +44,14 @@ The positive path remains repository-local and structural: it reaches `ready-for
 
 S12-C keeps the required nonclaim set from the S12-B boundary and does not claim acceptance truth:
 
-- no ITRI orbit-model authority completion,
+- no customer orbit-model authority completion,
 - no arbitrary external source acceptance,
 - no live real-time execution,
 - no measured-traffic/network truth,
 - no NAT/tunnel/DUT validation,
 - no native RF handover truth,
-- no complete ITRI acceptance,
-- no public CelesTrak / Space-Track substitution for ITRI private authority without owner evidence.
+- no complete customer acceptance,
+- no public CelesTrak / Space-Track substitution for customer private authority without owner evidence.
 
 ## Validation commands
 

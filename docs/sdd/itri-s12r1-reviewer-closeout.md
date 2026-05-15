@@ -1,4 +1,4 @@
-# ITRI S12-B External Source-Package Intake Reviewer Closeout
+# customer S12-B External Source-Package Intake Reviewer Closeout
 
 Date: 2026-05-14
 
@@ -54,11 +54,11 @@ nonclaims are present.
 
 This slice preserves these boundaries:
 
-- No ITRI orbit-model authority completion.
+- No customer orbit-model authority completion.
 - No measured traffic truth or runtime network truth.
 - No NAT/tunnel/DUT/physical acceptance closure.
 - No native RF handover truth.
-- No complete ITRI acceptance.
+- No complete customer acceptance.
 - No public CelesTrak/Space-Track replacement for private source authority
   without owner evidence.
 - No retained evidence package upload or fixture JSON creation in this lane.

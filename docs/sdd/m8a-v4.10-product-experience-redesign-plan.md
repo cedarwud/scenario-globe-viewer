@@ -111,7 +111,7 @@ moment before touching `Details`.
 ## External Reference Translation Contract
 
 External references are design inputs only. They do not override the local SDD,
-ITRI truth boundaries, or accepted source evidence. `V4.10` must translate each
+customer truth boundaries, or accepted source evidence. `V4.10` must translate each
 reference pattern into an observable UI requirement.
 
 | Reference pattern | V4.10 hard requirement | Invalid implementation |

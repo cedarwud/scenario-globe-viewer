@@ -30,7 +30,7 @@ Hard dependencies:
   multi-orbit render expected to widen perf footprint beyond the LEO-only
   slice.
 
-## 1. ITRI Requirement Reference
+## 1. customer Requirement Reference
 
 Planning-time acceptance-report quotes before V4.13 closure:
 
@@ -41,10 +41,10 @@ Planning-time acceptance-report quotes before V4.13 closure:
 - F-13 `部分完成` (post-LEO-leg closure): LEO route-native closed; MEO/GEO
   remain `not-implemented`.
 
-ITRI README §2.1:
+customer README §2.1:
 
 ```text
-原始需求明確提到要整合 ITRI 自己開發的軌道模型，並點名：
+原始需求明確提到要整合 customer 自己開發的軌道模型，並點名：
 - `LEO`
 - `MEO`
 - `GEO`
@@ -61,7 +61,7 @@ non-zero live runtime counts.
 
 V4.13 does **not** close:
 
-- F-01 ITRI orbit-model integration (still needs ITRI-supplied model)
+- F-01 customer orbit-model integration (still needs customer-supplied model)
 - F-02 full radio-layer handover at multi-orbit scale (different requirement)
 - F-07/F-08/F-12 measured-truth chain
 - V-02..V-06 external validation
@@ -148,7 +148,7 @@ V4.13 closed requires:
    - `perf-measurement.json` records frame time, memory delta, drop-frame
      rate vs ADR `0005-perf-budget`
 7. Acceptance-report rows updated honestly:
-   - F-02: `部分完成 → 已完成（bounded, public TLE only; no ITRI orbit-model integration）`
+   - F-02: `部分完成 → 已完成（bounded, public TLE only; no customer orbit-model integration）`
    - F-13: `部分完成 (LEO-leg-closed) → 已完成（multi-orbit, bounded, public TLE only）`
 8. Forbidden-claim scan green; no measured-truth, native RF, active path,
    or external validation closure implied.
@@ -167,7 +167,7 @@ Implemented scope:
 
 Non-goals:
 
-- no ITRI orbit-model integration (F-01)
+- no customer orbit-model integration (F-01)
 - no radio-layer handover at multi-orbit scale
 - no F-09 / F-10 / F-11 / F-16 changes
 - no F-07/F-08/F-12 measured throughput
@@ -184,14 +184,14 @@ Non-goals:
 - `multi-orbit radio-layer handover`
 - `multi-orbit measurement-backed truth`
 - `multi-orbit live network validated`
-- `ITRI orbit model is integrated`
+- `customer orbit model is integrated`
 - `Starlink/OneWeb operational parity`
 - `Intelsat/SES production parity`
 - `GPS/Galileo production handover`
 - `V-02 through V-06 closed`
 - `Phase 8 unlocked by this slice`
 - `M8A-V4 endpoint-pair gate resolved`
-- `complete ITRI acceptance`
+- `complete customer acceptance`
 
 Allowed copy:
 
@@ -314,7 +314,7 @@ Assessment: **independent**.
 7. Walker fallback: should the harness still allow walker-points as a
    baseline run for comparison?
 8. Acceptance carve-out: F-02 closure rule — is bounded public TLE alone
-   sufficient, or must the SDD document that "ITRI orbit-model integration"
+   sufficient, or must the SDD document that "customer orbit-model integration"
    is a distinct successor requirement?
 
 ## 10. Acceptance Gates
@@ -338,7 +338,7 @@ Assessment: **independent**.
   UI scope)
 - whether to update D-03 presentation composition once multi-orbit lands
   (M8A-V3 umbrella decision)
-- whether bounded multi-orbit closure unblocks marketing claim for ITRI
+- whether bounded multi-orbit closure unblocks marketing claim for customer
   demo (acceptance package question, not SDD)
 
 ## 12. Dependency / Sequencing With Other Tracks
@@ -349,7 +349,7 @@ Assessment: **independent**.
 | External validation (V-02..V-06) | independent; blocked on OMNeT++/INET | V4.13 does not advance external validation |
 | M8A-V4 product anchor | partial overlap | V4.13 builds the multi-orbit substrate that M8A-V4 will eventually render endpoint-pair handover through; do not adopt M8A-V4 endpoints in V4.13 |
 | D-03 presentation | downstream | richer composition may use V4.13 outputs once landed |
-| F-01 ITRI orbit-model | distinct successor | V4.13 closes public-TLE bounded leg only; F-01 needs ITRI-supplied model |
+| F-01 customer orbit-model | distinct successor | V4.13 closes public-TLE bounded leg only; F-01 needs customer-supplied model |
 
 V4.13 is the cleanest pre-M8A-V4 closure that the project can reach
 without external authority gates.
@@ -390,5 +390,5 @@ headless lower-bound runtime sample and records no ADR 0005 budget exceedance
 or governance checkpoint requirement.
 
 This close-out is bounded public-TLE viewer evidence only. It does not close
-ITRI orbit-model integration, measured traffic truth, external validation,
-M8A-V4 endpoint authority, radio-layer handover, or complete ITRI acceptance.
+customer orbit-model integration, measured traffic truth, external validation,
+M8A-V4 endpoint authority, radio-layer handover, or complete customer acceptance.

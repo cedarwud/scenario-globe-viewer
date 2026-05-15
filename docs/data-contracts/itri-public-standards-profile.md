@@ -1,4 +1,4 @@
-# ITRI Public Standards Profile Contract
+# customer Public Standards Profile Contract
 
 Date: 2026-05-13
 
@@ -152,7 +152,7 @@ interface ItriPublicStandardsProfile {
 | `profileId` | Stable repo-local identifier, for example `itri-f17-p01-p02-p03-public-standards-v1`. |
 | `profileDate` | ISO-8601 date for the profile record. |
 | `coveredRequirements` | Must include at least one of `F-17`, `P-01`, `P-02`, or `P-03`; the combined profile should include all four unless deliberately split. |
-| `profileScope` | Human-readable bounded scope. It must name the profile as public standards lineage, not ITRI/V-group authority truth. |
+| `profileScope` | Human-readable bounded scope. It must name the profile as public standards lineage, not customer/V-group authority truth. |
 | `sourceTier` | Defaults to `tier-2-public-authority-candidate`. Use `tier-1-itri-or-official-authority` only when a retained authority record selects the parameters or vectors. |
 | `selectedRecommendations` | Recommendation records selected from S4-A public authority candidate source IDs only. |
 | `sourceLineage` | Pointer back to S4-A classification date, source IDs, inherited use notes, and any review notes. |
@@ -248,10 +248,10 @@ interface ItriOutputUnitsProfile {
 Field-specific rules:
 
 - `frequencyBands` must not be inferred from current bounded proxy metric
-  names. A band needs a source-lineaged selection or an ITRI/V-group supplied
+  names. A band needs a source-lineaged selection or an customer/V-group supplied
   value.
 - `geography`, `rainRateSource`, and `rainHeightSource` must name whether they
-  come from selected public recommendations, public components, or ITRI/V-group
+  come from selected public recommendations, public components, or customer/V-group
   authority input.
 - `pathGeometry`, `elevationAngle`, `polarization`, `antennaClass`, and
   `pointingAssumptions` must remain explicit even when unknown. Use
@@ -304,12 +304,12 @@ Required validation rules:
   Authority escalation requires `itri-vgroup-owner` or another retained
   authority reviewer role.
 - `acceptanceStatus` must remain `bounded-public-profile-only` unless a
-  retained ITRI/V-group or official authority record explicitly changes it.
+  retained customer/V-group or official authority record explicitly changes it.
 
 ## Nonclaim Fields
 
 The profile must carry machine-readable nonclaims that separate bounded public
-standards lineage from ITRI/V-group authority truth.
+standards lineage from customer/V-group authority truth.
 
 ```ts
 interface ItriPublicStandardsProfileNonClaims {
@@ -334,7 +334,7 @@ to imply unknown, deferred, or consumer-dependent truth.
 
 - This docs-only slice implements no numeric standards-derived behavior. It
   defines record names, review gates, and source-lineage requirements only.
-- Selected public standards do not imply ITRI/V-group acceptance. Selection
+- Selected public standards do not imply customer/V-group acceptance. Selection
   means the source is eligible for a bounded public profile until a retained
   authority record says otherwise.
 - The current Phase 6.5 `physical-input` bounded proxy values are not
@@ -371,10 +371,10 @@ interface ItriPublicStandardsReplacementRule {
 
 Replacement and escalation are mandatory when any of these events occurs:
 
-- ITRI/V-group supplies official parameters for bands, geography, rain-rate
+- customer/V-group supplies official parameters for bands, geography, rain-rate
   source, rain height, path geometry, elevation, polarization, antenna class,
   output units, or approximation level.
-- ITRI/V-group supplies validation vectors, tolerances, reviewer acceptance
+- customer/V-group supplies validation vectors, tolerances, reviewer acceptance
   records, or rejection records.
 - A selected ITU recommendation version is superseded or the retained public
   page status changes.

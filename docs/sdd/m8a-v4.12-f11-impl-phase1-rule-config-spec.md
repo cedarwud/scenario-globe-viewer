@@ -1,7 +1,7 @@
 # M8A V4.12 F-11 Phase 1 Rule Configuration Spec
 
 Date: 2026-05-12
-Working phase name: **M8A V4.12 ITRI must-have followup**.
+Working phase name: **M8A V4.12 customer must-have followup**.
 
 ## 0. Status
 

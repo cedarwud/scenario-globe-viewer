@@ -1,4 +1,4 @@
-# M8A V4.11 Correction A - ITRI Requirement-Driven Details And Layout Plan
+# M8A V4.11 Correction A - customer Requirement-Driven Details And Layout Plan
 
 Date: 2026-05-04
 
@@ -12,7 +12,7 @@ This correction makes the following decisions explicit:
 
 1. `Details` must not remain one dense block. It becomes a right-side inspector with separate `Decision`, `Metrics`, `Boundary`, and `Evidence` sections.
 2. The first-read handover explanation moves out of Details into a left-side Handover Decision Rail, so the user can understand the scene without opening the inspector.
-3. Scenario scope and replay/time state move to a compact top strip, because ITRI requirements include mode, speed, and scale boundaries.
+3. Scenario scope and replay/time state move to a compact top strip, because customer requirements include mode, speed, and scale boundaries.
 4. Footer source chips stay visible, but they are not the only clickable path. A clear disclosure button or info control is required.
 5. The `Details` button must remain visible. Removing it makes the interaction too hidden.
 6. The W4 fast expanding satellite ring must be replaced by a short entry cue plus a stable candidate halo.
@@ -28,19 +28,19 @@ Footer truth/source strip with explicit disclosure control
 
 ## 1. Why This SDD Exists
 
-V4.11 Conv 0-4 improved the scene readability with visual tokens, hover, footer disclosure, Truth removal, and Sources demotion. That work still did not fully solve the core ITRI-facing problem:
+V4.11 Conv 0-4 improved the scene readability with visual tokens, hover, footer disclosure, Truth removal, and Sources demotion. That work still did not fully solve the core customer-facing problem:
 
 1. `Details` is still too dense, too small, and too concentrated.
-2. Important ITRI information is not clearly split by purpose, time, and evidence level.
+2. Important customer information is not clearly split by purpose, time, and evidence level.
 3. The footer chips became ambient disclosure, but the clickable affordance is not obvious enough.
 4. The W4 candidate satellite fast expanding ring is visually loud and semantically unclear.
-5. The design conversation drifted toward generic product comprehension instead of tracing every visible decision back to ITRI's stated needs.
+5. The design conversation drifted toward generic product comprehension instead of tracing every visible decision back to customer's stated needs.
 
 This SDD is the correction plan before any new implementation prompt. It replaces "make Details shorter" with a requirement-driven information architecture.
 
 ## 2. Authority And Inputs
 
-Primary ITRI authority:
+Primary customer authority:
 
 - `/home/u24/papers/itri/README.md`
 - `/home/u24/papers/itri/multi-orbit/README.md`
@@ -71,19 +71,19 @@ Current route and guardrails remain unchanged:
 
 ## 3. Design Principle
 
-Every visible element must answer an ITRI requirement question.
+Every visible element must answer an customer requirement question.
 
 The implementation must use this trace:
 
 ```text
-ITRI requirement -> operator question -> UI region -> data support -> visible wording -> truth boundary
+customer requirement -> operator question -> UI region -> data support -> visible wording -> truth boundary
 ```
 
 If current data does not support a requirement, the UI must show the gap honestly instead of inventing metrics.
 
 ## 4. Requirement-To-UI Traceability
 
-| ITRI requirement | Operator question | Required UI region | Current support | Display rule |
+| customer requirement | Operator question | Required UI region | Current support | Display rule |
 | --- | --- | --- | --- | --- |
 | LEO/MEO/GEO multi-orbit service switching | Which orbit layer is serving, candidate, or fallback now? | Left Handover Decision Rail, scene tokens, Details `Decision` tab | V4.6D five-window projection and 13 actors | Show primary/candidate/fallback as modeled service state, not active satellite truth |
 | Link quality based switching: latency, jitter, speed | Why is it switching or staying? | Details `Metrics` tab and per-window rail summary | Current scene has bounded quality classes, not measured metrics | Show quality class and reason; do not fabricate ms, jitter, or Mbps |
@@ -129,7 +129,7 @@ Content:
 - Primary orbit class.
 - Candidate orbit class.
 - Fallback orbit class, when relevant.
-- One short ITRI-facing decision sentence.
+- One short customer-facing decision sentence.
 - One compact time/quality line.
 
 Example for W4:
@@ -220,7 +220,7 @@ Rules:
 
 ### 6.2 Metrics Tab
 
-Purpose: show ITRI-required communication quantities and distinguish available projection from missing measurement.
+Purpose: show customer-required communication quantities and distinguish available projection from missing measurement.
 
 Required modules:
 
@@ -308,7 +308,7 @@ Forbidden interaction assumptions:
 
 - Do not require users to know that a footer chip/block is clickable.
 - Do not remove the only obvious entry point into Details.
-- Do not use hidden hover-only access for critical ITRI information.
+- Do not use hidden hover-only access for critical customer information.
 
 ## 10. Visual Design Requirements
 
@@ -329,7 +329,7 @@ Avoid:
 - Tiny source text mixed with decision text.
 - Card-inside-card layouts.
 - Fast repetitive pulses.
-- Decorative visuals that do not map to ITRI requirements.
+- Decorative visuals that do not map to customer requirements.
 - Claim-like metric numbers without measurement support.
 
 ## 11. Implementation Phases
@@ -342,7 +342,7 @@ No code changes.
 
 Acceptance:
 
-- ITRI requirement-to-UI traceability exists.
+- customer requirement-to-UI traceability exists.
 - Details is explicitly redesigned as multiple sections, not one block.
 - W4 fast pulse correction is specified.
 - Footer click-affordance issue is specified.
@@ -362,7 +362,7 @@ Acceptance:
 - Footer has an obvious disclosure control.
 - Rail and inspector do not overlap key satellite/endpoint view at 1440x900 and 1280x720.
 
-### Phase C - ITRI Content Split
+### Phase C - customer Content Split
 
 Implement per-window content modules:
 
@@ -431,7 +431,7 @@ Lock-in L hardware-GPU validation remains separate and cannot be claimed from WS
 ## 12. Open Questions Before Implementation
 
 1. Should the left decision rail be permanently visible on desktop, or collapsible after first comprehension is proven?
-2. Should unavailable ITRI metrics be shown as disabled rows, or grouped under one `Not connected in this scene` module?
+2. Should unavailable customer metrics be shown as disabled rows, or grouped under one `Not connected in this scene` module?
 3. Should the physical-layer/rain/antenna gap be visible in the main Metrics tab, or only inside Boundary?
 4. What is the maximum acceptable Details inspector width before it harms the globe view?
 5. Should report/export and 24h stability be represented in this route at all, or deferred to a separate validation view?
@@ -476,7 +476,7 @@ Requirements:
 Return only:
 - Changed files
 - What was implemented
-- ITRI requirement mapping covered
+- customer requirement mapping covered
 - Smoke results
 - Screenshots
 - Deviations from SDD

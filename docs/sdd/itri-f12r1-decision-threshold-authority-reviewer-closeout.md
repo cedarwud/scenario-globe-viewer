@@ -1,4 +1,4 @@
-# ITRI F-12R1 Decision-Threshold Authority Reviewer Closeout
+# customer F-12R1 Decision-Threshold Authority Reviewer Closeout
 
 Date: 2026-05-13
 
@@ -78,7 +78,7 @@ This slice preserves these boundaries:
 - package-review readiness is not runtime control;
 - package-review readiness is not F-12 acceptance;
 - package-review readiness is not measured-decision truth;
-- package-review readiness is not complete ITRI acceptance;
+- package-review readiness is not complete customer acceptance;
 - `--manifest` explicit-path checks require manifest to stay within the selected package directory;
 - no live `ping`, `iperf`, tunnel, NAT, DUT, NE-ONE, vendor tool, or traffic
   generator execution is introduced;

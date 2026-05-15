@@ -1,7 +1,7 @@
 # M8A V4.12 F-16 Statistics Report Export Plan
 
 Date: 2026-05-06
-Working phase name: **M8A V4.12 ITRI must-have followup**.
+Working phase name: **M8A V4.12 customer must-have followup**.
 
 ## 0. Status
 
@@ -13,9 +13,9 @@ of this planning task.
 
 Recommended candidate: **F-16 statistics report export**.
 
-## 1. ITRI Requirement Reference
+## 1. customer Requirement Reference
 
-ITRI must-have reference:
+customer must-have reference:
 
 - `/home/u24/papers/itri/README.md:565` lists `統計報表可匯出` in §8.1.
 - `/home/u24/papers/itri/itri-acceptance-report-2026-04-20/00-external-acceptance-summary.md:101-108`
@@ -163,7 +163,7 @@ The export workflow must not claim:
 - native RF handover;
 - external NAT/tunnel/bridge/DUT completion;
 - `>=500 LEO` scale validation;
-- full ITRI acceptance completion.
+- full customer acceptance completion.
 
 V4.11 boundary reference:
 
@@ -171,7 +171,7 @@ V4.11 boundary reference:
   no active satellite/gateway/path, no measured latency/jitter/throughput, and
   no native RF handover.
 - `docs/sdd/m8a-v4.11-content-and-visual-followup-spec.md:625-638` says V4.11
-  does not add new ITRI must-haves, measured truth, or `>=500 LEO` delivery.
+  does not add new customer must-haves, measured truth, or `>=500 LEO` delivery.
 - `docs/sdd/m8a-v4.11-content-and-visual-followup-spec.md:249` states F-16 is
   still only export-ready structures with no end-user export action in V4.11.
 
@@ -336,7 +336,7 @@ Default implementation route:
 4. Where should the export control live: operator controls, report panel footer,
    or a small report actions row?
 5. What filename timestamp format should be canonical for reviewer artifacts?
-6. Will ITRI reviewers accept bounded/proxy report export as F-16 closure while
+6. Will customer reviewers accept bounded/proxy report export as F-16 closure while
    external `iperf/ping` truth remains outside this repo?
 
 Implementation prompt readiness:

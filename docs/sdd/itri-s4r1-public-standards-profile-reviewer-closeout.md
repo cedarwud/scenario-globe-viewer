@@ -1,4 +1,4 @@
-# ITRI S4R1 Public Standards Profile Reviewer Closeout
+# customer S4R1 Public Standards Profile Reviewer Closeout
 
 Date: 2026-05-14
 
@@ -71,13 +71,13 @@ standards-derived behavior.
 
 This slice preserves these boundaries:
 
-- public standards profile readiness is not ITRI/V-group authority truth;
-- selected public ITU recommendations do not imply ITRI/V-group acceptance;
+- public standards profile readiness is not customer/V-group authority truth;
+- selected public ITU recommendations do not imply customer/V-group acceptance;
 - no numeric standards-derived runtime behavior is implemented;
 - current bounded proxy physical-input values are not standards-derived;
 - no calibrated physical authority truth is asserted;
 - no measured traffic, external validation, DUT, NAT, tunnel, native RF
-  handover, active satellite/gateway/path, or complete ITRI acceptance claim is
+  handover, active satellite/gateway/path, or complete customer acceptance claim is
   asserted;
 - no synthetic fixture is created or promoted;
 - no retained output package or checked-in profile fixture is created.

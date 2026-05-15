@@ -1,7 +1,7 @@
 # M8A V4.12 F-16 Implementation Phase 1 Export Spec
 
 Date: 2026-05-12
-Working phase name: **M8A V4.12 ITRI must-have followup**.
+Working phase name: **M8A V4.12 customer must-have followup**.
 
 Status: Phase 1 contract/spec lock-in only. This document does not authorize
 component implementation, styling, smoke work, V4.11 scene changes, or commits.
@@ -267,7 +267,7 @@ Export workflow, UI copy, JSON bundle, and CSV cells must not include:
 - `ESTNeT throughput`, `INET speed`, `NAT validated`
 - `tunnel verified end-to-end`, `DUT closed`
 - `>=500 LEO`, `500 LEO closure`, `multi-orbit closure`
-- `full ITRI acceptance`, `acceptance complete`
+- `full customer acceptance`, `acceptance complete`
 
 A forbidden-claim scan runs at Phase 4 against:
 
@@ -277,7 +277,7 @@ A forbidden-claim scan runs at Phase 4 against:
 
 ## 13. Reviewer-Acceptance Note
 
-Parent §9 open question 6 (will ITRI reviewers accept bounded export as F-16
+Parent §9 open question 6 (will customer reviewers accept bounded export as F-16
 closure while external `iperf/ping` truth remains external) is resolved as
 **bounded closure accepted** for repo-side F-16, conditional on:
 
@@ -286,7 +286,7 @@ closure while external `iperf/ping` truth remains external) is resolved as
 - acceptance report row F-16 narrative says `部分完成 → 已完成（bounded）`
   with explicit external-truth carve-out preserved.
 
-If ITRI later requests measured-truth export, that becomes a separate slice
+If customer later requests measured-truth export, that becomes a separate slice
 gated by `itri-f07-f09-measured-traffic-evidence-package-plan.md`, not by
 F-16 reopening.
 

@@ -1,7 +1,7 @@
 # M8A V4.12 F-10 Handover Policy Selector Plan
 
 Date: 2026-05-12
-Working phase name: **M8A V4.12 ITRI must-have followup**.
+Working phase name: **M8A V4.12 customer must-have followup**.
 
 ## 0. Status
 
@@ -25,7 +25,7 @@ Sibling planning SDDs:
 Sequencing note: F-10 must close before F-11. F-11 rule editor depends on the
 policy contract surface added here.
 
-## 1. ITRI Requirement Reference
+## 1. customer Requirement Reference
 
 Acceptance-report quote:
 
@@ -35,7 +35,7 @@ Acceptance-report quote:
 | F-10 | 換手策略可切換 | `部分完成` | Repo already has a deterministic decision layer, but it still stays on a fixed repo-owned bootstrap policy id instead of an operator-switchable policy surface. | `尚未排入目前 phase` |
 ```
 
-ITRI README §2.4 link-switching context:
+customer README §2.4 link-switching context:
 
 `/home/u24/papers/itri/README.md:195-216`:
 
@@ -153,7 +153,7 @@ Non-goals:
 - `policy applied to real satellite`
 - `policy verified by iperf/ping`
 - `production handover controller`
-- `policy ratified by ITRI`
+- `policy ratified by customer`
 - `policy meets 3GPP specification`
 - `policy enforces operator SLA`
 - `policy ensures `>=500 LEO` closure`
@@ -295,8 +295,8 @@ Assessment: **independent**.
 
 ## 9. Open Questions For Planning / Control
 
-1. Should the 3 default variants be the canonical ITRI deliverable set, or
-   should one variant name reference a specific ITRI test case?
+1. Should the 3 default variants be the canonical customer deliverable set, or
+   should one variant name reference a specific customer test case?
 2. Should policy id persist across page reload (localStorage), or reset to
    `bootstrap-balanced-v1` each session?
 3. Should switching policy emit a polite live-region announcement

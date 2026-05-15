@@ -48,7 +48,7 @@ Preserved:
 - precision: `operator-family-only`
 - actor set: `6` LEO, `5` MEO, `2` GEO
 - source boundary: repo-owned `M8A_V4_GROUND_STATION_RUNTIME_PROJECTION`
-- raw ITRI package side-read: forbidden
+- raw customer package side-read: forbidden
 - raw source paths in runtime: false
 - `R2`: read-only evidence/catalog support, not runtime selector
 - V4.6D model id:

@@ -1,4 +1,4 @@
-# ITRI S12-D External Source-Package Intake Reviewer Closeout
+# customer S12-D External Source-Package Intake Reviewer Closeout
 
 Date: 2026-05-14
 
@@ -13,7 +13,7 @@ S12-D refines the external source-package intake reviewer to verify the `ready-f
 - Reuses the same reviewer module entrypoint and CLI as S12-B/C:
   - `src/features/external-source-package-intake/external-source-package-intake-reviewer.ts`
   - `scripts/review-itri-external-source-package-intake.mjs`
-- Added explicit owner-promotion boundary checks when a public catalog is claimed under private/ITRI authority intent.
+- Added explicit owner-promotion boundary checks when a public catalog is claimed under private/customer authority intent.
 - Kept fail-closed behavior for:
   - missing package, malformed JSON, wrong schemaVersion, missing owner/source authority,
   - missing temporal controls (`epoch`, `timeSystem`, `updateCadence`, `staleDataPolicy`),

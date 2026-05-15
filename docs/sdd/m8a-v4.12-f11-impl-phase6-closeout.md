@@ -1,7 +1,7 @@
 # M8A V4.12 F-11 Implementation Phase 6 Close-Out
 
 Date: 2026-05-12
-Working phase name: **M8A V4.12 ITRI must-have followup**.
+Working phase name: **M8A V4.12 customer must-have followup**.
 
 Status: **已完成（bounded）**.
 

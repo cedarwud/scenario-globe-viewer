@@ -1,7 +1,7 @@
 # M8A V4.12 F-09 Communication-Rate Visualization Plan
 
 Date: 2026-05-06
-Working phase name: **M8A V4.12 ITRI must-have followup**.
+Working phase name: **M8A V4.12 customer must-have followup**.
 
 ## 0. Status
 
@@ -16,7 +16,7 @@ dedicated communication-rate visualization** under the "best result, no
 time/budget constraint" framing.
 
 F-09 is picked over F-16/F-10/F-11 because the audit ranks it as the highest
-ITRI demo-impact candidate. The audit §1 table is reused by reference, especially
+customer demo-impact candidate. The audit §1 table is reused by reference, especially
 `docs/sdd/m8a-v4.12-itri-must-have-candidate-audit.md:18-23`; the full table is
 not duplicated here. The audit §2 ranking already places F-09 first for demo
 impact (`docs/sdd/m8a-v4.12-itri-must-have-candidate-audit.md:29-34`), even
@@ -34,7 +34,7 @@ network-speed class/proxy surface on
 Phase 6 / Operator HUD F-09 plan below and does not close live `iperf` /
 `ping`, measured throughput, ESTNeT/INET, or external validation truth.
 
-## 1. ITRI Requirement Reference
+## 1. customer Requirement Reference
 
 Acceptance-report quote:
 
@@ -44,7 +44,7 @@ Acceptance-report quote:
 | F-09 | 顯示通訊速率 | `待完成` | `networkSpeedMbps` already exists inside the physical-input and handover-decision model, but there is no dedicated communication-rate visualization surface yet. | `尚未排入目前 phase` |
 ```
 
-ITRI README §2.6 communication-time / rate / reporting context:
+customer README §2.6 communication-time / rate / reporting context:
 
 `/home/u24/papers/itri/README.md:246-264`:
 
@@ -70,14 +70,14 @@ Kickoff 的 UI 功能需求圖還補了一個很關鍵的括號說明：
 - 並且通訊時間不是純理論數值，原文明確暗示可用 `iperf` / `ping` 類測試方式驗證
 ```
 
-ITRI README §8.1 must-have checklist quote:
+customer README §8.1 must-have checklist quote:
 
 `/home/u24/papers/itri/README.md:547-560`:
 
 ```text
 ### 8.1 Must-Have Functional Requirements
 
-- 整合 ITRI 自有衛星軌道模型
+- 整合 customer 自有衛星軌道模型
 - 明確支援或至少面向多軌道型態：`LEO/MEO/GEO`
 - 輸入 `TLE` 並追蹤衛星運動
 - 建立互動式 3D 圖像化模擬系統
@@ -294,7 +294,7 @@ The F-09 surface and any evidence docs must not claim:
 - external physical-layer truth;
 - ESTNeT / INET end-to-end network truth;
 - NAT, tunnel, bridge, virtual DUT, physical DUT, or traffic generator closure;
-- full ITRI acceptance completion.
+- full customer acceptance completion.
 
 V4.11 boundary references:
 
@@ -302,7 +302,7 @@ V4.11 boundary references:
   active path, measured throughput, native RF handover, and live `ping/iPerf`
   claims in the V4.11 scene.
 - `docs/sdd/m8a-v4.11-content-and-visual-followup-spec.md:632-638` excludes
-  new source data, raw ITRI side-read, live external fetch, native RF handover,
+  new source data, raw customer side-read, live external fetch, native RF handover,
   measured throughput, and `>=500 LEO` runtime scale delivery.
 
 ## 6. Phase Plan

@@ -251,7 +251,7 @@ Preserved:
 - precision: `operator-family-only`
 - actor set: `6` OneWeb LEO, `5` O3b mPOWER MEO, `2` GEO display-context actors
 - source boundary: repo-owned runtime projection/module only
-- raw ITRI package side-read remains forbidden
+- raw customer package side-read remains forbidden
 - raw source paths in runtime remain absent
 - `R2` remains read-only evidence/catalog support, not a runtime selector
 - model id: `m8a-v4.6d-simulation-handover-model.v1`

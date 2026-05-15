@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "urn:scenario-globe-viewer:itri:external-validation-evidence-summary:v2-draft",
-  "title": "ITRI V-02..V-06 External Validation Evidence Summary",
+  "title": "customer V-02..V-06 External Validation Evidence Summary",
   "description": "Parseable schema sketch for retained external validation summary.json packages. It is a readiness contract, not proof that validation has passed.",
   "type": "object",
   "additionalProperties": true,

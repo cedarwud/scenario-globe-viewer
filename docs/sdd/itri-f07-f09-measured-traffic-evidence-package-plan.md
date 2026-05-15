@@ -1,4 +1,4 @@
-# ITRI F-07/F-08/F-09 Measured Traffic Evidence Package Plan
+# customer F-07/F-08/F-09 Measured Traffic Evidence Package Plan
 
 Date: 2026-05-12
 
@@ -50,7 +50,7 @@ Non-scope:
 - No parser implementation, no source changes, no test changes, no route UI
   changes, and no overwrite of existing output evidence.
 - No hardcoded pass threshold. Latency, jitter, throughput, packet-loss,
-  duration, and continuity thresholds require ITRI authority.
+  duration, and continuity thresholds require customer authority.
 - No conversion of modeled route windows, modeled rate classes, or bounded
   `networkSpeedMbps` values into measured truth.
 
@@ -141,7 +141,7 @@ Optional normalized files must not replace raw logs.
 ## Raw Command Capture Guidance
 
 This is a runbook template only. Do not run external tests from this plan.
-Replace all placeholders with ITRI/testbed-owner approved values.
+Replace all placeholders with customer/testbed-owner approved values.
 
 ### Baseline inventory
 
@@ -232,7 +232,7 @@ Notes:
 - TCP `iperf3` is throughput-oriented; UDP `iperf3` is the usual `iperf3`
   source for jitter and packet-loss fields.
 - Direction, duration, stream count, protocol, port, bandwidth target, and
-  acceptable packet loss must come from ITRI/testbed authority.
+  acceptable packet loss must come from customer/testbed authority.
 - Keep raw client JSON and raw server output. Do not summarize only.
 
 ### Route, interface, NAT, tunnel, and packet path capture
@@ -244,7 +244,7 @@ are allowed, record owner-approved bounded captures such as:
 tcpdump -i <interface> -nn -s 0 host <source-ip> and host <target-ip>
 ```
 
-Packet captures are optional unless ITRI/testbed authority requires them. If
+Packet captures are optional unless customer/testbed authority requires them. If
 captures are not allowed, `packet-captures/README.md` must explain the policy
 and identify the alternate path evidence.
 
@@ -263,7 +263,7 @@ validator implementation and not pass evidence by itself.
   "authority": {
     "docsRead": [],
     "thresholdAuthority": null,
-    "thresholdNotes": "Latency, jitter, throughput, packet-loss, duration, sample-count, and continuity pass thresholds require ITRI authority."
+    "thresholdNotes": "Latency, jitter, throughput, packet-loss, duration, sample-count, and continuity pass thresholds require customer authority."
   },
   "requirements": [
     {
@@ -323,7 +323,7 @@ Required per-result fields:
 
 - `requirementId`: `F-07`, `F-08`, or `F-09`.
 - `verdict`: `pass`, `fail`, `gap`, or `unreviewed`. `pass` is forbidden
-  unless retained raw artifacts exist and ITRI authority supplies the threshold
+  unless retained raw artifacts exist and customer authority supplies the threshold
   or interpretation for that requirement.
 - `evidenceFiles`: package-relative paths to raw logs and review artifacts.
 - `timeWindow`: measured run interval, with timezone context.
@@ -339,7 +339,7 @@ Threshold rule:
 
 - Thresholds are not defined in this repo-local plan. Do not hardcode pass
   values for latency, jitter, throughput, packet loss, sample count, traffic
-  duration, or handover outage. Only ITRI authority may define or change those
+  duration, or handover outage. Only customer authority may define or change those
   pass/fail criteria.
 
 ## Parser / Normalizer Feasibility
@@ -366,7 +366,7 @@ Current repo pattern:
 - No explicit existing `ping`/`iperf3` parser tooling pattern was found that
   should be extended in this docs-only task.
 - Therefore this plan records parser feasibility only and leaves implementation
-  for a later prompt after retained raw logs and ITRI thresholds exist.
+  for a later prompt after retained raw logs and customer thresholds exist.
 
 ## Pending External Source Delta
 
@@ -377,7 +377,7 @@ they change any claim:
 - Public method/context source: may update the public source register or the
   runbook rationale only. It must not become closure evidence for F-07, F-08,
   or F-09.
-- ITRI authority source: may change schema requirements, thresholds,
+- customer authority source: may change schema requirements, thresholds,
   requirement interpretation, accepted endpoints, traffic directions, or
   verdict rules.
 - Retained testbed artifact: may support measured pass/fail verdicts if raw
@@ -389,7 +389,7 @@ they change any claim:
 The existence of external public material does not mean this project has
 completed F-07, F-08, or F-09.
 
-## Open Questions For ITRI / Testbed Owner
+## Open Questions For customer / Testbed Owner
 
 1. Which source and target endpoints are authoritative for F-07/F-08/F-09?
 2. What topology should be used: direct host-to-host, ESTNeT/INET, NAT bridge,

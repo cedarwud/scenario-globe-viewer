@@ -8,7 +8,7 @@ Status: locked for Phases 2..6 execution.
 This spec locks the Phase 1 choices for the F-13 LEO-scale route-native
 closure slice only. It builds on the F-13 readiness package shipped on
 2026-05-12 and does not widen scope into F-09/F-10/F-11/F-16, MEO/GEO
-closure, ITRI authority acceptance, or measured network truth.
+closure, customer authority acceptance, or measured network truth.
 
 ## Locked Decisions
 

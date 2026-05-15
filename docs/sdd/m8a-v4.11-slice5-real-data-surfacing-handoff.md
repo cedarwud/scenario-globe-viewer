@@ -62,7 +62,7 @@ Covered checks:
 - Sources role can coexist with State Evidence and Truth Boundary.
 - R2 candidate listing is read-only and has no button, select, input, or action.
 - Source URLs are from repo-owned projection data.
-- No raw ITRI side-read or live external source read.
+- No raw customer side-read or live external source read.
 - All 13 TLE record names appear.
 - All five R2 candidate endpoints appear and are marked blocked/read-only.
 - Inspector size budget remains within 320px by `calc(100vh - 9.5rem)`.
@@ -113,7 +113,7 @@ Reviewer status: reviewer-pending.
 - No new endpoint pair was added.
 - No new source data was added.
 - No live external source read was added.
-- No raw ITRI side-read was added.
+- No raw customer side-read was added.
 - R2 remains read-only and non-promotable to runtime.
 - Measured-metric text does not enter the Sources role.
 

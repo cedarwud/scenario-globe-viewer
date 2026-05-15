@@ -1,8 +1,8 @@
-# ITRI Synthetic Fallback Fixture Contract
+# customer Synthetic Fallback Fixture Contract
 
 Date: 2026-05-13
 
-Status: docs-only data contract for ITRI roadmap S11. This document defines
+Status: docs-only data contract for customer roadmap S11. This document defines
 fixture rules only. It does not authorize runtime implementation, test changes,
 package changes, retained output evidence, or checked-in JSON fixture files.
 
@@ -18,7 +18,7 @@ Related evidence plans:
 
 ## Purpose
 
-This contract defines the Tier 3 synthetic fallback fixture boundary for ITRI
+This contract defines the Tier 3 synthetic fallback fixture boundary for customer
 residual lanes when Tier 1 authority evidence and Tier 2 public/open substitute
 sources are unavailable or rejected for the bounded deliverable.
 
@@ -48,7 +48,7 @@ this metadata before any future runtime or test consumer is allowed to read it:
 | `forbiddenConsumers` | Consumers that must not read the fixture, such as authority verdicts, acceptance reports, measured evidence packages, external package verdicts, or runtime paths that imply live traffic truth. |
 | `maximumClaim` | Highest claim allowed. Default: `deterministic synthetic readiness fixture for UI/schema/parser rehearsal`. |
 | `knownGaps` | Explicit missing authority, missing source, missing calibration, or missing testbed facts. |
-| `replacementTrigger` | Event that retires the synthetic fixture, such as ITRI authority package arrival, public profile approval, retained external run, selected standards parameters, or owner rejection. |
+| `replacementTrigger` | Event that retires the synthetic fixture, such as customer authority package arrival, public profile approval, retained external run, selected standards parameters, or owner rejection. |
 | `nonClaims` | Machine-readable nonclaim fields described below. |
 
 `syntheticProvenance` must be specific enough to regenerate or review the
@@ -93,13 +93,13 @@ Synthetic fixtures cannot be cited as closure evidence for:
 
 - external validation truth;
 - measured traffic truth;
-- ITRI orbit-model integration;
+- customer orbit-model integration;
 - DUT, NAT, or tunnel pass status;
 - native radio-frequency (RF) handover;
-- full ITRI acceptance;
+- full customer acceptance;
 - physical-layer truth;
 - active satellite, gateway, or path truth;
-- standards-backed physical calibration unless a later public profile or ITRI
+- standards-backed physical calibration unless a later public profile or customer
   authority package replaces the synthetic fixture.
 
 If a future consumer needs one of these claims, the consumer must use Tier 1
@@ -114,21 +114,21 @@ Allowed synthetic categories:
 
 - adapter-envelope shape fixture with input/output field names only;
 - timestamp, frame, and tolerance placeholder records for schema rehearsal;
-- negative fixtures for missing ITRI model package, missing vectors, or missing
+- negative fixtures for missing customer model package, missing vectors, or missing
   redistribution policy;
 - renderer placeholder orbit samples that are visibly labeled synthetic.
 
 Required gaps:
 
-- no ITRI-supplied orbit model package;
+- no customer-supplied orbit model package;
 - no accepted propagator, reference frame, time basis, vectors, or tolerance;
 - no owner sign-off on equivalence.
 
 Forbidden consumers:
 
 - F-01 authority closure;
-- acceptance-report rows that imply ITRI model adoption;
-- multi-orbit runtime evidence gates that require real public TLE or ITRI model
+- acceptance-report rows that imply customer model adoption;
+- multi-orbit runtime evidence gates that require real public TLE or customer model
   artifacts.
 
 Maximum claim:
@@ -137,7 +137,7 @@ Maximum claim:
 
 Replacement trigger:
 
-Retire or quarantine the fixture when ITRI supplies the model package, schema,
+Retire or quarantine the fixture when customer supplies the model package, schema,
 validation vectors, tolerances, redistribution policy, or written owner
 rejection of the synthetic adapter shape.
 
@@ -187,7 +187,7 @@ Allowed synthetic categories:
 
 Required gaps:
 
-- no ITRI-approved threshold set;
+- no customer-approved threshold set;
 - no accepted rule semantics;
 - no trace proving that decisions affect external traffic or simulator state.
 
@@ -203,7 +203,7 @@ Maximum claim:
 
 Replacement trigger:
 
-Retire the fixture when ITRI supplies thresholds, rule semantics, validation
+Retire the fixture when customer supplies thresholds, rule semantics, validation
 traces, and the accepted relationship between measured fields and decision
 inputs.
 
@@ -239,7 +239,7 @@ Maximum claim:
 
 Replacement trigger:
 
-Retire or downgrade the fixture when an ITRI/V-group owner selects standards,
+Retire or downgrade the fixture when an customer/V-group owner selects standards,
 versions, parameters, approximation level, and validation vectors, or when a
 bounded public standards profile is approved.
 

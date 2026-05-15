@@ -35,7 +35,7 @@ and
 - the close-out preserves the M8A-V2/V3 truth boundary and the V4.12/V4.13
   bounded repo-owned/public-TLE surfaces
 - it does not convert presentation convergence into external measured network
-  truth, native/RF handover, ITRI orbit-model integration, NAT/tunnel/DUT
+  truth, native/RF handover, customer orbit-model integration, NAT/tunnel/DUT
   validation, or full external authority acceptance
 
 2026-04-25 note:

@@ -88,7 +88,7 @@ Confirmed absent:
 - Sources role
 - R2 listing
 - measured latency / jitter / throughput / continuity wording
-- raw ITRI side-read
+- raw customer side-read
 
 ## Remaining Refactor Candidates
 

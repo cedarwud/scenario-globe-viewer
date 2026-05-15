@@ -1,10 +1,10 @@
-# ITRI F-13 LEO-Scale Runtime Closure Evidence
+# customer F-13 LEO-Scale Runtime Closure Evidence
 
 Date: 2026-05-12
 
-Scope: F-13 LEO leg only. This note does not claim MEO/GEO closure, ITRI
+Scope: F-13 LEO leg only. This note does not claim MEO/GEO closure, customer
 authority acceptance, measured traffic truth, active satellite/gateway/path
-truth, ITRI orbit-model integration, or full Phase 7.1 closure.
+truth, customer orbit-model integration, or full Phase 7.1 closure.
 
 ## Closed Bounded Slice
 
@@ -65,7 +65,7 @@ not Tier 1/Tier 2 formal machine evidence.
 ## Remaining Gaps
 
 - MEO/GEO live runtime coverage remains open for a later Phase 7.1 slice.
-- ITRI authority acceptance remains external and is not claimed here.
+- customer authority acceptance remains external and is not claimed here.
 - Measured throughput, latency, jitter, packet loss, `ping`, and `iperf`
   truth remain out of scope.
-- ITRI orbit-model integration remains open pending ITRI-provided data.
+- customer orbit-model integration remains open pending customer-provided data.

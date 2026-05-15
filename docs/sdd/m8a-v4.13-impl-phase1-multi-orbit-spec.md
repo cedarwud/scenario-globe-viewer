@@ -9,8 +9,8 @@ This spec locks the Phase 1 choices for the V4.13 Phase 7.1
 multi-orbit gate closure slice only. It builds on the V4.12 F-13 LEO leg
 and widens that route-native bounded overlay path to public MEO and GEO
 TLE fixtures. It does not adopt M8A-V4 ground-station endpoints, does not
-  integrate an ITRI orbit model, and does not claim measured network truth,
-  radio-layer handover, external validation completion, or complete ITRI
+  integrate an customer orbit model, and does not claim measured network truth,
+  radio-layer handover, external validation completion, or complete customer
   acceptance.
 
 ## Locked Decisions
@@ -59,7 +59,7 @@ TLE fixtures. It does not adopt M8A-V4 ground-station endpoints, does not
    requirement gate and must not weaken the multi-orbit pass/fail rules.
 8. F-02 carve-out wording: close F-02 only as a bounded public-TLE
    multi-orbit runtime visualization. The acceptance copy must state:
-   `bounded public TLE only; ITRI orbit-model integration is a distinct
+   `bounded public TLE only; customer orbit-model integration is a distinct
    successor requirement`.
 9. ADR 0005 re-review timing: ADR `0005-perf-budget` is re-read before
    implementation and re-reviewed in Phase 6 against the retained

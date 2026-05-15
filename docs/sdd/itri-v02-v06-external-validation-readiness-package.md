@@ -1,4 +1,4 @@
-# ITRI V-02..V-06 External Validation Readiness Package
+# customer V-02..V-06 External Validation Readiness Package
 
 Date: 2026-05-12
 
@@ -40,7 +40,7 @@ This package covers only external validation readiness for:
 Nonclaims that must remain true until a later retained external evidence
 package exists:
 
-- no claim that all original ITRI requirements are complete;
+- no claim that all original customer requirements are complete;
 - no claim that the V4 demo route closes external validation;
 - no claim that V-02 through V-06 pass;
 - no claim that F-13 is route-native 13-actor closure; the current `>=500 LEO`

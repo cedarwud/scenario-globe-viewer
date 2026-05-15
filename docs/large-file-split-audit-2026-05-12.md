@@ -11,7 +11,7 @@ pure data, renderer, telemetry, and stylesheet seams have now been extracted.
 
 ## Splits Completed
 
-- `src/runtime/m8a-v4-itri-demo-surfaces.ts`: ITRI demo constants, requirement
+- `src/runtime/m8a-v4-itri-demo-surfaces.ts`: customer demo constants, requirement
   status data, policy/rule presets, acceptance-layer records, and route export
   surface types.
 - `src/runtime/m8a-v4-ground-station-telemetry-keys.ts`: document telemetry key
@@ -19,7 +19,7 @@ pure data, renderer, telemetry, and stylesheet seams have now been extracted.
 - `src/runtime/m8a-v4-product-ux-model.ts`: V4.7-V4.10 product UX constants,
   view-model types, timeline labels, playback helpers, sequence-rail builders,
   boundary-affordance builders, and transition-event builders.
-- `src/runtime/m8a-v4-itri-demo-renderers.ts`: ITRI requirement-gap,
+- `src/runtime/m8a-v4-itri-demo-renderers.ts`: customer requirement-gap,
   acceptance-layer, F-09 table, F-10/F-11 preset, and F-16 non-claim HTML
   fragment renderers.
 - `src/runtime/m8a-v4-ground-station-telemetry-sync.ts`: scene-state to document

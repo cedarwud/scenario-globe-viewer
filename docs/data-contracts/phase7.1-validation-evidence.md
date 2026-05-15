@@ -228,7 +228,7 @@ boundary and the retained artifact shows all of:
 - non-zero `leo/meo/geo` live runtime counts
 - `observedRuntimeVariant.overlayRenderMode = "multi-orbit-scale-points"`
 
-This profile does not close ITRI orbit-model integration, external
+This profile does not close customer orbit-model integration, external
 validation, measured traffic truth, or radio-layer handover.
 
 `--enforce-pass` converts a failing requirement gate into a non-zero process

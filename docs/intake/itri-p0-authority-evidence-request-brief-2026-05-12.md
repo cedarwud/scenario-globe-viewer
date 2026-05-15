@@ -1,4 +1,4 @@
-# ITRI P0 Authority And Evidence Request Brief
+# customer P0 Authority And Evidence Request Brief
 
 Date: 2026-05-12
 
@@ -9,7 +9,7 @@ Scope:
 - Working repo:
   `/home/u24/papers/scenario-globe-viewer`
 - Brief purpose:
-  outbound request and response tracker for ITRI / testbed-owner inputs that
+  outbound request and response tracker for customer / testbed-owner inputs that
   block P0 evidence closure.
 - Edit boundary:
   docs-only. This brief does not modify source, tests, runtime behavior, or
@@ -23,9 +23,9 @@ presentation, bounded route-local requirement-gap surfacing, modeled F-09 rate
 class/proxy display, modeled F-10/F-11 policy and rule presets, and bounded
 F-16 JSON export.
 
-The V4 route is not full ITRI external validation closure. It does not prove
-the complete original ITRI requirement set, and it does not replace authority
-from ITRI model owners, traffic/testbed owners, report-system owners, or repo
+The V4 route is not full customer external validation closure. It does not prove
+the complete original customer requirement set, and it does not replace authority
+from customer model owners, traffic/testbed owners, report-system owners, or repo
 validation owners.
 
 Public sources have filled in context, method, standards, tool-capability, and
@@ -38,37 +38,37 @@ external report-system closure.
 
 The immediate P0 outbound asks are therefore narrow:
 
-1. Obtain F-07/F-08/F-09 measured traffic logs plus ITRI-approved thresholds.
+1. Obtain F-07/F-08/F-09 measured traffic logs plus customer-approved thresholds.
 2. Obtain a fresh V-02..V-06 external testbed package.
 3. Obtain the F-16 external report-system contract and accepted-submission
    evidence path.
 4. Obtain an F-13 decision on freshness and whether the fixture/model-backed
    readiness/demo surface is acceptable for review, and whether acceptance
-   requires separate harness evidence, route-native `>=500 LEO`, ITRI-approved
+   requires separate harness evidence, route-native `>=500 LEO`, customer-approved
    source input, or some combination.
 
-F-01 ITRI orbit/model authority remains an authority gate for any orbit-model
+F-01 customer orbit/model authority remains an authority gate for any orbit-model
 integration claim. It is included below as an owner request block so the
 outbound package is complete, but the existing intake packet classifies it
-outside the P0 execution table unless ITRI asks to close orbit-model
+outside the P0 execution table unless customer asks to close orbit-model
 integration in this same review window.
 
 ## P0 Request Table
 
 | P0 ask | Owner | Exact outbound request | Required artifact | Expected retained path | Claim it would unlock | Claim still forbidden without it |
 | --- | --- | --- | --- | --- | --- | --- |
-| F-07/F-08/F-09 measured traffic logs and thresholds | ITRI/testbed traffic owner | Provide raw measured traffic evidence, topology, endpoints, command transcripts, handover timing, redaction policy, and pass/fail thresholds for communication time, statistics, and throughput. | Raw `ping` logs, raw `iperf3` or approved traffic-generator logs, topology, environment, interface/route/NAT/tunnel/bridge inventory, handover timeline, threshold authority, and verdict notes. | `output/validation/external-f07-f09/<timestamp>-measured-traffic/` | Measured F-07 communication time, F-08 measured statistics, and F-09 measured throughput verdicts for the retained path only. | Measured throughput, latency, jitter, packet loss, continuity, live `ping`, live `iperf`, and external measured closure. |
+| F-07/F-08/F-09 measured traffic logs and thresholds | customer/testbed traffic owner | Provide raw measured traffic evidence, topology, endpoints, command transcripts, handover timing, redaction policy, and pass/fail thresholds for communication time, statistics, and throughput. | Raw `ping` logs, raw `iperf3` or approved traffic-generator logs, topology, environment, interface/route/NAT/tunnel/bridge inventory, handover timeline, threshold authority, and verdict notes. | `output/validation/external-f07-f09/<timestamp>-measured-traffic/` | Measured F-07 communication time, F-08 measured statistics, and F-09 measured throughput verdicts for the retained path only. | Measured throughput, latency, jitter, packet loss, continuity, live `ping`, live `iperf`, and external measured closure. |
 | V-02..V-06 external testbed package | External testbed owner | Provide a fresh external validation package proving or failing Windows/WSL, tunnel/bridge, NAT/ESTNeT/INET, virtual DUT, and physical DUT or traffic-generator evidence. | `summary.json`, `review.md`, topology, environment, interface, route, NAT, bridge, command, traffic, DUT, NE-ONE, and redaction artifacts, with raw logs where applicable. | `output/validation/external-v02-v06/<timestamp>-external-validation/` | Per-ID V-02..V-06 pass/fail/gap verdicts tied to retained external artifacts. | Live ESTNeT, INET, NAT, tunnel, bridge, virtual DUT, physical DUT, traffic-generator, or NE-ONE validation. |
-| F-16 external report-system contract | ITRI report-system owner | Provide the target external report-system contract, submission process, schema, auth/redaction rules, required attachments, and accepted-submission evidence path. | Contract or submission instructions, schema, example accepted report, sandbox or file-exchange process, redaction/attachment policy, and future submission receipt or validation log. | `docs/intake/authority-supplied/f16-report-system/<date-or-package-id>/` and `output/validation/external-f16/<timestamp>-report-system-submission/` | External report-system integration and accepted measured-report export, after a retained accepted submission exists. | External report-system closure, accepted submission, and measured-report export from route-local JSON alone. |
-| F-13 freshness / route-native acceptance decision | Repo validation owner with ITRI validation owner | Decide whether the fixture/model-backed readiness/demo surface is acceptable for review, and whether F-13 acceptance requires fresh separate Phase 7.1 evidence, route-native `>=500 LEO`, ITRI-approved source input, or some combination; rerun freshness evidence when needed. | ITRI acceptance note, approved constellation/source input, readiness addendum, fresh Phase 7.1 or successor package, observed counts, harness params, known gaps, and retention policy. | `docs/intake/itri-f13-scale-readiness-evidence-addendum-2026-05-12.md`, `output/itri-demo-route-f13-scale-readiness/`, `output/validation/phase7.1/<timestamp>-phase7-1-first-slice/`, and/or `output/validation/external-f13/<timestamp>-scale-authority/` | Current F-13 acceptance through an approved fresh evidence boundary, or an explicit route-native implementation requirement decision. | Route-native `>=500 LEO`, current F-13 acceptance after evidence expiry, ITRI authority acceptance from fixture/model-backed input alone, and acceptance of public constellation context as project proof. |
+| F-16 external report-system contract | customer report-system owner | Provide the target external report-system contract, submission process, schema, auth/redaction rules, required attachments, and accepted-submission evidence path. | Contract or submission instructions, schema, example accepted report, sandbox or file-exchange process, redaction/attachment policy, and future submission receipt or validation log. | `docs/intake/authority-supplied/f16-report-system/<date-or-package-id>/` and `output/validation/external-f16/<timestamp>-report-system-submission/` | External report-system integration and accepted measured-report export, after a retained accepted submission exists. | External report-system closure, accepted submission, and measured-report export from route-local JSON alone. |
+| F-13 freshness / route-native acceptance decision | Repo validation owner with customer validation owner | Decide whether the fixture/model-backed readiness/demo surface is acceptable for review, and whether F-13 acceptance requires fresh separate Phase 7.1 evidence, route-native `>=500 LEO`, customer-approved source input, or some combination; rerun freshness evidence when needed. | customer acceptance note, approved constellation/source input, readiness addendum, fresh Phase 7.1 or successor package, observed counts, harness params, known gaps, and retention policy. | `docs/intake/itri-f13-scale-readiness-evidence-addendum-2026-05-12.md`, `output/itri-demo-route-f13-scale-readiness/`, `output/validation/phase7.1/<timestamp>-phase7-1-first-slice/`, and/or `output/validation/external-f13/<timestamp>-scale-authority/` | Current F-13 acceptance through an approved fresh evidence boundary, or an explicit route-native implementation requirement decision. | Route-native `>=500 LEO`, current F-13 acceptance after evidence expiry, customer authority acceptance from fixture/model-backed input alone, and acceptance of public constellation context as project proof. |
 
 ## Per-Owner Request Blocks
 
-### ITRI Orbit / Model Owner
+### customer Orbit / Model Owner
 
 Exact question:
 
-What is the authoritative ITRI orbit-model package, API, schema, time basis,
+What is the authoritative customer orbit-model package, API, schema, time basis,
 reference frame, propagator, fixture set, validation vector set, tolerance
 rule, and redistribution/redaction policy for this project?
 
@@ -91,16 +91,16 @@ output/validation/external-f01/<timestamp>-orbit-model-validation/
 
 What claim it would unlock:
 
-It could unlock an ITRI orbit-model integration claim after the supplied model
+It could unlock an customer orbit-model integration claim after the supplied model
 or contract is implemented and validated against the retained vectors.
 
 What claim remains forbidden without it:
 
-ITRI orbit-model integration, native orbit closure, active satellite truth, and
+customer orbit-model integration, native orbit closure, active satellite truth, and
 TLE/ephemeris acceptance beyond bounded repo fixture or demo scope remain
 forbidden.
 
-### ITRI / Testbed Traffic Owner
+### customer / Testbed Traffic Owner
 
 Exact question:
 
@@ -178,7 +178,7 @@ Live ESTNeT, INET, NAT, tunnel, bridge, simulated-to-real path, virtual DUT,
 physical DUT, traffic-generator, NE-ONE, live `ping`, and live `iperf`
 validation remain forbidden.
 
-### ITRI Report-System Owner
+### customer Report-System Owner
 
 Exact question:
 
@@ -221,7 +221,7 @@ Exact question:
 
 Does F-13 acceptance rely on a fresh separate Phase 7.1 evidence boundary,
 route-native `>=500 LEO`, fixture/model-backed readiness/demo evidence,
-ITRI-approved source input, or some combination, and what rerun command, source
+customer-approved source input, or some combination, and what rerun command, source
 constellation, freshness window, retention policy, and reviewer wording should
 be used before formal review?
 
@@ -236,11 +236,11 @@ Current repo status:
 - Built/freshness timestamp is `2026-05-12T09:53:20Z`.
 - Evidence artifacts are retained under `output/itri-demo-route-f13-scale-readiness/`.
 - This is readiness/demo evidence only. It is not route-native `>=500 LEO`
-  closure/proof and not ITRI authority acceptance.
+  closure/proof and not customer authority acceptance.
 
 Required artifact:
 
-- ITRI or reviewer acceptance note for separate-harness versus route-native
+- customer or reviewer acceptance note for separate-harness versus route-native
   scale closure.
 - Explicit note on whether fixture/model-backed readiness/demo input is
   acceptable for review and what it does not close.
@@ -268,17 +268,17 @@ before acceptance.
 What claim remains forbidden without it:
 
 Route-native `>=500 LEO`, current F-13 acceptance after retained evidence
-freshness expires, ITRI authority acceptance from fixture/model-backed input
+freshness expires, customer authority acceptance from fixture/model-backed input
 alone, and public constellation context as project scale proof remain forbidden.
 
 ## Response Tracker
 
 | Owner | Due date | Response status | Artifact received | Redaction status | Reviewer verdict | Follow-up needed |
 | --- | --- | --- | --- | --- | --- | --- |
-| ITRI orbit/model owner | TBD by delivery owner | Not sent | No | Unreviewed | Pending | Confirm whether F-01 is in this review window or remains a later authority gate. |
-| ITRI/testbed traffic owner | TBD by delivery owner | Not sent | No | Unreviewed | Pending | Request thresholds and raw F-07/F-08/F-09 traffic package. |
+| customer orbit/model owner | TBD by delivery owner | Not sent | No | Unreviewed | Pending | Confirm whether F-01 is in this review window or remains a later authority gate. |
+| customer/testbed traffic owner | TBD by delivery owner | Not sent | No | Unreviewed | Pending | Request thresholds and raw F-07/F-08/F-09 traffic package. |
 | External testbed owner | TBD by delivery owner | Not sent | No | Unreviewed | Pending | Request fresh V-02..V-06 package and per-ID verdict sign-off. |
-| ITRI report-system owner | TBD by delivery owner | Not sent | No | Unreviewed | Pending | Request F-16 schema, destination, redaction, and accepted-submission proof. |
+| customer report-system owner | TBD by delivery owner | Not sent | No | Unreviewed | Pending | Request F-16 schema, destination, redaction, and accepted-submission proof. |
 | Repo validation owner | Before formal review or before Phase 7.1 freshness expiry | Not sent | No | Unreviewed | Pending | Decide readiness-surface acceptance, Phase 7.1 rerun timing, and route-native scale requirement. |
 
 ## Forbidden Claims
@@ -292,9 +292,9 @@ brief preserves the existing forbidden-claim boundary. Do not claim:
   validation;
 - active satellite truth, active gateway truth, or active path truth;
 - route-native `>=500 LEO` closure from the 13-actor V4 route;
-- ITRI authority acceptance or external F-13 closure from fixture/model-backed
+- customer authority acceptance or external F-13 closure from fixture/model-backed
   readiness/demo evidence alone;
-- ITRI orbit-model integration;
+- customer orbit-model integration;
 - external report-system closure or accepted measured-report export.
 
 ## Source Basis

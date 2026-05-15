@@ -1,4 +1,4 @@
-# ITRI V4.13 Multi-Orbit Runtime Closure Evidence
+# customer V4.13 Multi-Orbit Runtime Closure Evidence
 
 Date: 2026-05-13
 
@@ -7,9 +7,9 @@ Date: 2026-05-13
 This note records the V4.13 Phase 7.1 bounded public-TLE multi-orbit gate
 closure. It covers viewer-side LEO/MEO/GEO runtime observation only.
 
-It does not close ITRI orbit-model integration, measured network truth,
+It does not close customer orbit-model integration, measured network truth,
 external validation, M8A-V4 endpoint authority, radio-layer handover, or
-complete ITRI acceptance.
+complete customer acceptance.
 
 ## Fixture Provenance
 

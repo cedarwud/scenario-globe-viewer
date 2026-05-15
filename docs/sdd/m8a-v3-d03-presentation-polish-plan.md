@@ -5,7 +5,7 @@ Working phase name: **M8A-V3 D-03 presentation composition polish**.
 
 ## 0. Purpose
 
-The V4.12 + V4.13 ITRI must-have chain landed five new bounded surfaces inside
+The V4.12 + V4.13 customer must-have chain landed five new bounded surfaces inside
 the bootstrap Operator HUD:
 
 - F-09 Communication Rate section (inside the Communication Time panel)
@@ -79,10 +79,10 @@ D-03 polish is scoped to default-visible **composition** of the Operator HUD
 and its parent `hud-panel--status` container, plus the truth-boundary copy
 that already lives inside the V4.12 panels. It is not scoped to:
 
-- new ITRI must-have closure (F-01, F-02 measured, F-07/F-08/F-12 measured,
+- new customer must-have closure (F-01, F-02 measured, F-07/F-08/F-12 measured,
   F-17, V-02..V-06)
 - new endpoint authority (M8A-V4 ground-station / second operator pair)
-- new ITRI orbit-model integration
+- new customer orbit-model integration
 - measurement-backed truth substitution
 - entry/discovery layer (first-impression and homepage CTA are scoped to
   M8A-V3.1; not reopened here)
@@ -406,9 +406,9 @@ slice:
   `tunnel verified end-to-end`, `DUT closed`
 - `>=500 LEO closure`, `multi-orbit closure complete`,
   `multi-orbit radio-layer handover`
-- `complete ITRI acceptance`, `Phase 8 unlocked`,
+- `complete customer acceptance`, `Phase 8 unlocked`,
   `M8A-V4 endpoint-pair gate resolved`
-- `ITRI orbit model is integrated`
+- `customer orbit model is integrated`
 - `D-03 closed`, `D-03 已完成`, `richer composition closed`,
   `presentation convergence closed`
 - `V-02 closed`, `V-03 closed`, `V-04 closed`, `V-05 closed`,
@@ -420,7 +420,7 @@ commit):
 
 ```bash
 git diff --staged --name-only -z | xargs -0 grep -EHIin \
-  'measured throughput|measured latency|measured jitter|measured truth|live iperf|live ping|iperf result|ping-verified|iperf-backed|ping-backed|active satellite|active gateway|active path|pair-specific path|pair-specific GEO teleport|radio-layer handover|native RF handover|ESTNeT throughput|INET speed|NAT validated|tunnel verified end-to-end|DUT closed|>=500 LEO closure|multi-orbit closure complete|multi-orbit radio-layer handover|complete ITRI acceptance|Phase 8 unlocked|M8A-V4 endpoint-pair gate resolved|ITRI orbit model is integrated|D-03 closed|richer composition closed|presentation convergence closed|V-0[2-6] closed|iperf throughput|ping latency' || true
+  'measured throughput|measured latency|measured jitter|measured truth|live iperf|live ping|iperf result|ping-verified|iperf-backed|ping-backed|active satellite|active gateway|active path|pair-specific path|pair-specific GEO teleport|radio-layer handover|native RF handover|ESTNeT throughput|INET speed|NAT validated|tunnel verified end-to-end|DUT closed|>=500 LEO closure|multi-orbit closure complete|multi-orbit radio-layer handover|complete customer acceptance|Phase 8 unlocked|M8A-V4 endpoint-pair gate resolved|customer orbit model is integrated|D-03 closed|richer composition closed|presentation convergence closed|V-0[2-6] closed|iperf throughput|ping latency' || true
 ```
 
 Scan must return empty for each commit. The script above is a probe, not
@@ -1218,9 +1218,9 @@ Slice 3 must not:
   `radio-layer handover`, `native RF handover`, `ESTNeT throughput`,
   `INET speed`, `NAT validated`, `tunnel verified end-to-end`,
   `DUT closed`, `>=500 LEO closure`, `multi-orbit closure complete`,
-  `multi-orbit radio-layer handover`, `complete ITRI acceptance`,
+  `multi-orbit radio-layer handover`, `complete customer acceptance`,
   `Phase 8 unlocked`, `M8A-V4 endpoint-pair gate resolved`,
-  `ITRI orbit model is integrated`, `D-03 closed`, `D-03 已完成`,
+  `customer orbit model is integrated`, `D-03 closed`, `D-03 已完成`,
   `richer composition closed`, `presentation convergence closed`,
   `V-02 closed`, `V-03 closed`, `V-04 closed`, `V-05 closed`,
   `V-06 closed`, `iperf throughput`, `ping latency`
@@ -1700,9 +1700,9 @@ Slice 4 must not:
   `native RF handover`, `ESTNeT throughput`, `INET speed`,
   `NAT validated`, `tunnel verified end-to-end`, `DUT closed`,
   `>=500 LEO closure`, `multi-orbit closure complete`,
-  `multi-orbit radio-layer handover`, `complete ITRI acceptance`,
+  `multi-orbit radio-layer handover`, `complete customer acceptance`,
   `Phase 8 unlocked`, `M8A-V4 endpoint-pair gate resolved`,
-  `ITRI orbit model is integrated`, `D-03 closed`, `D-03 已完成`,
+  `customer orbit model is integrated`, `D-03 closed`, `D-03 已完成`,
   `richer composition closed`, `presentation convergence closed`,
   `V-02 closed`, `V-03 closed`, `V-04 closed`, `V-05 closed`,
   `V-06 closed`, `iperf throughput`, `ping latency`
@@ -1951,7 +1951,7 @@ Truth boundary preserved:
 
 - V4.12 and V4.13 remain bounded repo-owned/public-TLE surfaces.
 - The close-out does not claim external measured network truth, native/RF
-  handover, ITRI orbit-model integration, NAT/tunnel/DUT validation, or
+  handover, customer orbit-model integration, NAT/tunnel/DUT validation, or
   full external authority acceptance.
 - F-01, F-07/F-08/F-12, F-17, P-01..P-03, V-02..V-06, and M8A-V4 second
   endpoint lanes remain governed by their existing bounded or blocked

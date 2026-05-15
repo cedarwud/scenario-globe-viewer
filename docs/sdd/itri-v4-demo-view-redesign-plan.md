@@ -1,4 +1,4 @@
-# ITRI V4 Demo View Redesign Plan
+# customer V4 Demo View Redesign Plan
 
 Date: 2026-05-12
 
@@ -8,7 +8,7 @@ Canonical route:
 
 ## Status
 
-- Planning-control SDD for the post-closure ITRI V4 demo view redesign.
+- Planning-control SDD for the post-closure customer V4 demo view redesign.
 - Docs-only. This file does not authorize runtime implementation by itself.
 - Written after the route-local requirement closure work proved the route can
   be demonstrated and regression-tested, but the actual demo view still fails
@@ -62,7 +62,7 @@ at once:
 - F-16 export state;
 - route claims, nonclaims, IDs, and validation status.
 
-The result is a data-complete debug surface, not an ITRI demonstration surface.
+The result is a data-complete debug surface, not an customer demonstration surface.
 The current route can be explained by an engineer who already knows the truth
 boundary. It does not yet guide a cold reviewer toward the one thing they should
 care about at the current moment.
@@ -86,7 +86,7 @@ not part of the first-read task.
 ### High: No Focal Priority
 
 The retained `1440x900` screenshot shows the right inspector open by default
-with ITRI status, F-16 export, F-10/F-11 controls, and F-09 rate sections all
+with customer status, F-16 export, F-10/F-11 controls, and F-09 rate sections all
 expanded inside the same sheet. The main globe and handover sequence become
 secondary even though they are the reason the route exists.
 
@@ -144,7 +144,7 @@ seconds:
 3. Which orbit/service path is primary now?
 4. Why is the next handover candidate relevant?
 5. What is modeled versus measured?
-6. Which ITRI requirements are covered here, and which remain external?
+6. Which customer requirements are covered here, and which remain external?
 
 The sixth question does not need the full matrix in the default viewport. It
 does need a clear path to the acceptance evidence.
@@ -203,7 +203,7 @@ Opened by an explicit Evidence or Acceptance action.
 
 Contents:
 
-- full ITRI requirement matrix;
+- full customer requirement matrix;
 - requirement status labels from the closure SDD;
 - F-13 Phase 7.1 evidence pointer and freshness status;
 - V-02 to V-06 external validation package status;
@@ -215,7 +215,7 @@ Contents:
 Display rule:
 
 - optimized for audit, not first-read drama;
-- every ITRI ID must appear exactly once in the coverage matrix;
+- every customer ID must appear exactly once in the coverage matrix;
 - failed external requirements are explicit fail/gap, not "pending";
 - separate route-owned closure from external validation evidence.
 
@@ -239,11 +239,11 @@ Display rule:
 - hidden behind an Archive disclosure inside Evidence;
 - allowed to be dense because it is not the demo surface.
 
-## ITRI Requirement Placement
+## customer Requirement Placement
 
 | ID | Current route reality | Proposed layer | Display rule |
 | --- | --- | --- | --- |
-| F-01 | No live ITRI orbit-model integration. | L2 | Show as external/integration gap. Do not imply route closure. |
+| F-01 | No live customer orbit-model integration. | L2 | Show as external/integration gap. Do not imply route closure. |
 | F-02 | LEO/MEO/GEO actor representation exists. | L0, L1, L2 | L0 shows active orbit/service path; L1/L2 show counts and status. |
 | F-03 | Source-lineaged display actors exist; not a general TLE input workflow. | L1, L2, L3 | L1 shows source-lineage summary; L3 holds raw TLE/source details. |
 | F-04 | Interactive 3D route exists. | L0 | Globe remains the visual center. |
@@ -324,9 +324,9 @@ Default mobile/narrow composition:
 
 ## Data Completeness Rule
 
-The redesign must not hide ITRI truth. It must place it.
+The redesign must not hide customer truth. It must place it.
 
-Each ITRI datum must be one of:
+Each customer datum must be one of:
 
 - visible in L0 by default;
 - one interaction away in L1;
@@ -344,7 +344,7 @@ This redesign is not:
 - a new measured-throughput implementation;
 - live `ping` or `iperf`;
 - NAT, ESTNeT, INET, tunnel, bridge, DUT, or NE-ONE validation;
-- ITRI orbit-model live integration;
+- customer orbit-model live integration;
 - expansion of the 13-actor route into the Phase 7.1 `>=500 LEO` scale case;
 - a full F-11 arbitrary rule editor;
 - an external reporting system;
@@ -356,7 +356,7 @@ This redesign is not:
 Default viewport:
 
 - At `1440x900`, the right inspector is closed on route load.
-- At `1440x900`, no full ITRI matrix is visible on route load.
+- At `1440x900`, no full customer matrix is visible on route load.
 - At `1440x900`, there is exactly one primary handover briefing surface.
 - Body copy in first-read surfaces is at least `14px`.
 - Primary state text is at least `18px`.
@@ -374,7 +374,7 @@ Comprehension:
 
 Requirement traceability:
 
-- Every ITRI ID from the closure SDD maps to exactly one primary layer.
+- Every customer ID from the closure SDD maps to exactly one primary layer.
 - V-02 through V-06 remain explicit fail/gap until retained pass evidence
   exists.
 - F-13 is shown as separate Phase 7.1 evidence with freshness status, not as
@@ -386,7 +386,7 @@ Requirement traceability:
 Validation:
 
 - Add a default-focus runtime smoke for L0.
-- Add a coverage-layer runtime smoke that checks every ITRI ID has a layer and
+- Add a coverage-layer runtime smoke that checks every customer ID has a layer and
   status.
 - Keep existing truth-boundary, F-09, F-10/F-11, F-16, and requirement-gap
   smokes passing.
@@ -402,7 +402,7 @@ This document.
 Deliverables:
 
 - current UI failure statement;
-- ITRI requirement layer mapping;
+- customer requirement layer mapping;
 - first implementable slice;
 - acceptance criteria that can fail when the product still fails.
 
@@ -439,9 +439,9 @@ Goal:
 Implementation scope:
 
 - create an Evidence/Acceptance mode or tab;
-- move ITRI matrix, F-16 export, F-09 detail, and F-10/F-11 limitations into
+- move customer matrix, F-16 export, F-09 detail, and F-10/F-11 limitations into
   L2;
-- add layer/status metadata for every ITRI ID;
+- add layer/status metadata for every customer ID;
 - make V-02 through V-06 explicit fail/gap;
 - show F-13 Phase 7.1 artifact freshness.
 
@@ -455,7 +455,7 @@ Implementation note:
 
 - Implemented as `itri-demo-view-acceptance-layer-runtime.v1`.
 - `Details` opens L1 decision context; `Evidence` opens L2 acceptance evidence.
-- L2 carries every ITRI ID with primary layer/status metadata.
+- L2 carries every customer ID with primary layer/status metadata.
 - F-13 is represented as separate Phase 7.1 evidence with freshness boundary,
   not native route scale closure.
 - V-02 through V-06 are explicit external fail/gap until retained pass evidence
@@ -530,7 +530,7 @@ Implementation scope:
 - screenshot matrix;
 - first-read checklist;
 - smoke artifacts for layer/status coverage;
-- concise handoff note that states which ITRI requirements remain external.
+- concise handoff note that states which customer requirements remain external.
 
 ## First Implementation Slice
 
@@ -544,7 +544,7 @@ Definition of done:
 - L0 handover briefing card is the dominant text surface;
 - current state, next state, active orbit/service path, modeled rate class, and
   one-line truth boundary are visible without opening Details;
-- full ITRI matrix and F-16 export are absent from the default viewport but
+- full customer matrix and F-16 export are absent from the default viewport but
   still reachable;
 - no first-read text below `14px`;
 - existing route truth smokes still pass;

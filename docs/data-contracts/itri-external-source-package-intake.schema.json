@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://scenario-globe-viewer.local/schemas/itri-external-source-package-intake.v1.schema.json",
-  "title": "ITRI F-03/F-15 External Source Package Intake Contract",
+  "title": "customer F-03/F-15 External Source Package Intake Contract",
   "description": "Docs-only intake schema for owner-supplied TLE or scenario source packages for F-03/F-15. It defines the package material required before any later reviewer or runtime work may be planned. It does not authorize runtime ingestion, scripts, tests, retained packages, fixture files, public source fetches, or live external execution.",
   "type": "object",
   "additionalProperties": false,
@@ -17,7 +17,7 @@
     "missing package metadata",
     "wrong schemaVersion",
     "missing owner/source authority",
-    "public source promoted to private or ITRI authority without explicit owner evidence",
+    "public source promoted to private or customer authority without explicit owner evidence",
     "missing license/redistribution policy",
     "missing epoch/time system/update cadence",
     "missing real-time/prerecorded mode rules",
@@ -203,7 +203,7 @@
     "ownerAuthorityPromotion": {
       "type": "object",
       "additionalProperties": false,
-      "description": "Required only when a public source is explicitly accepted by an owner for a private or ITRI authority scope.",
+      "description": "Required only when a public source is explicitly accepted by an owner for a private or customer authority scope.",
       "required": [
         "explicitOwnerEvidence",
         "approvedBy",
@@ -1424,7 +1424,7 @@
       "properties": {
         "closesF01ItriOrbitModelIntegration": {
           "const": false,
-          "description": "The package does not close F-01 ITRI orbit-model integration."
+          "description": "The package does not close F-01 customer orbit-model integration."
         },
         "arbitraryExternalSourceAcceptance": {
           "const": false,
@@ -1448,11 +1448,11 @@
         },
         "completeItriAcceptance": {
           "const": false,
-          "description": "The package does not claim complete acceptance by ITRI."
+          "description": "The package does not claim complete acceptance by customer."
         },
         "publicCelesTrakOrSpaceTrackSubstitutesForItriPrivateSourceAuthorityWithoutOwnerEvidence": {
           "const": false,
-          "description": "Public CelesTrak or Space-Track material cannot replace ITRI private source authority unless explicit owner evidence is retained for that exact scope."
+          "description": "Public CelesTrak or Space-Track material cannot replace customer private source authority unless explicit owner evidence is retained for that exact scope."
         }
       }
     }

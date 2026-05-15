@@ -1,12 +1,12 @@
-# ITRI Orbit-Model Intake Contract
+# customer Orbit-Model Intake Contract
 
 Date: 2026-05-13
 
-Status: docs-only data contract for ITRI roadmap slice S1 / F-01. This
-document defines the intake requirements for a future ITRI self-developed
+Status: docs-only data contract for customer roadmap slice S1 / F-01. This
+document defines the intake requirements for a future customer self-developed
 orbit-model authority package. It does not authorize runtime implementation,
 test changes, package changes, retained output evidence, fixture JSON files, or
-any claim that an ITRI model package is present in this repo.
+any claim that an customer model package is present in this repo.
 
 Related roadmap:
 [../sdd/itri-requirement-completion-roadmap.md](../sdd/itri-requirement-completion-roadmap.md).
@@ -21,15 +21,15 @@ Related contracts and plans:
 
 ## Purpose
 
-F-01 remains an external-authority-only lane until an ITRI or owner-approved
+F-01 remains an external-authority-only lane until an customer or owner-approved
 orbit-model package is received, reviewed, and paired with validation vectors.
 This contract defines the minimum plain-data intake envelope that future work
 must require before any adapter implementation can be planned.
 
 The contract is intentionally stricter than the existing public-TLE viewer
 profile. Public CelesTrak or other public TLE sources can support bounded
-repo-owned public profiles, but they do not replace the ITRI model package,
-ITRI-selected propagation rules, or owner-approved validation vectors required
+repo-owned public profiles, but they do not replace the customer model package,
+customer-selected propagation rules, or owner-approved validation vectors required
 for F-01.
 
 ## Intake Preconditions
@@ -59,7 +59,7 @@ adapter planning:
 
 | Field | Required rule |
 | --- | --- |
-| `packageId` | Stable package identifier assigned by the ITRI/model owner or by the repo intake reviewer if the owner has no identifier. |
+| `packageId` | Stable package identifier assigned by the customer/model owner or by the repo intake reviewer if the owner has no identifier. |
 | `owner` | Human, team, or role that owns the model package and can answer authority questions. |
 | `receivedAt` | ISO-8601 timestamp when the repo received the package or authority extract. |
 | `redistributionPolicy` | Explicit policy for retaining, copying, projecting, redacting, or excluding package contents from the repo. |
@@ -331,9 +331,9 @@ Public TLE material may support:
 
 Public TLE material must not be treated as:
 
-- the ITRI self-developed model package;
+- the customer self-developed model package;
 - owner-approved propagation-method equivalence;
-- a substitute for ITRI validation vectors;
+- a substitute for customer validation vectors;
 - authority evidence for F-01 model adoption;
 - measured traffic, physical testbed, DUT, NAT, tunnel, active gateway, active
   path, or radio-layer handover truth.
@@ -341,7 +341,7 @@ Public TLE material must not be treated as:
 If a future owner explicitly accepts a public TLE source as authority for a
 bounded scope, that acceptance must be recorded as a separate authority decision
 with package metadata and limitations. It still must not be silently promoted
-to the ITRI self-developed model lane.
+to the customer self-developed model lane.
 
 ## Synthetic Fallback Boundary
 
@@ -356,7 +356,7 @@ Any synthetic F-01 record must carry the S11 maximum claim:
 `F-01 adapter/schema readiness only; no orbital truth.`
 
 Synthetic fallback artifacts must be retired, quarantined, or reclassified when
-ITRI supplies the model package, schema, validation vectors, tolerances,
+customer supplies the model package, schema, validation vectors, tolerances,
 redistribution policy, or written rejection of the synthetic adapter shape.
 
 ## Forbidden Claims
@@ -365,11 +365,11 @@ Future docs, code comments, UI labels, validation summaries, commits, and
 acceptance rows must not state or imply that this intake contract itself proves:
 
 - F-01 authority completion;
-- ITRI model adoption by runtime code;
-- model equivalence between public TLE output and ITRI-owned propagation;
+- customer model adoption by runtime code;
+- model equivalence between public TLE output and customer-owned propagation;
 - measured traffic or physical testbed truth;
 - DUT, NAT, tunnel, active gateway, active path, or radio-layer pass verdicts;
-- complete ITRI acceptance;
+- complete customer acceptance;
 - exact serving-satellite identity or gateway assignment;
 - native radio-layer handover behavior.
 
@@ -435,7 +435,7 @@ For this docs-only contract, the status is:
   "adapterPlanningStatus": "blocked-on-package",
   "implementationStatus": "not-authorized",
   "acceptanceLimitations": [
-    "ITRI model package is not present in this repo",
+    "customer model package is not present in this repo",
     "owner-approved validation vectors are not retained in this repo",
     "public TLE profiles and synthetic fallback rules remain separate boundaries"
   ],
@@ -467,7 +467,7 @@ reviewer must confirm:
 5. Validation vectors include reference cases, expected outputs, tolerances,
    comparison method, and failure handling.
 6. Redistribution policy allows the planned adapter review or projection.
-7. Public-TLE and synthetic fallback boundaries remain separate from the ITRI
+7. Public-TLE and synthetic fallback boundaries remain separate from the customer
    model lane.
 8. Status and nonclaim fields are present and machine-readable.
 

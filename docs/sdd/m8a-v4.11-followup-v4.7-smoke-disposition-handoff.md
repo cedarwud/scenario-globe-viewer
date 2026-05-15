@@ -96,7 +96,7 @@ Preserved without softening:
 - precision `operator-family-only`
 - actor counts `6` LEO, `5` MEO, `2` GEO
 - V4.6D model id and model truth
-- raw ITRI side-read and runtime source-boundary scans
+- raw customer side-read and runtime source-boundary scans
 - forbidden positive claim and measured-unit scans
 - truth disclosure lines and truth badge inventory
 - details body text at least `14px`

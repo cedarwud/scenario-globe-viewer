@@ -1,4 +1,4 @@
-# ITRI F-07R1 Measured-Traffic Package Reviewer Closeout
+# customer F-07R1 Measured-Traffic Package Reviewer Closeout
 
 Date: 2026-05-13
 
@@ -61,7 +61,7 @@ This slice preserves these boundaries:
 - F-12 decision behavior is unchanged;
 - F-01 orbit-model behavior is unchanged;
 - S4 physical/standards runtime behavior is unchanged;
-- no complete ITRI acceptance is asserted.
+- no complete customer acceptance is asserted.
 - close-path external-source provenance, live real-time-feed execution truth,
   measured-network-truth, NAT/tunnel/DUT validation closure, arbitrary native-RF
   handover and orbit-model substitution claims are preserved as `false` via

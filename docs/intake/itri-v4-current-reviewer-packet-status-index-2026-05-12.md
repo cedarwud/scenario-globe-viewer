@@ -1,4 +1,4 @@
-# ITRI V4 Current Reviewer Packet Status Index
+# customer V4 Current Reviewer Packet Status Index
 
 Date: 2026-05-12
 
@@ -11,9 +11,9 @@ bounded demo state. It links the current reviewer-ready artifacts, the F-13
 fixture/model-backed readiness evidence, the current route status document, and
 the remaining external authority requests.
 
-Non-purpose: This index is not full ITRI external validation closure, not
-route-native `>=500 LEO` closure/proof, not measured traffic closure, not ITRI
-authority acceptance, not ITRI orbit-model integration, and not external
+Non-purpose: This index is not full customer external validation closure, not
+route-native `>=500 LEO` closure/proof, not measured traffic closure, not customer
+authority acceptance, not customer orbit-model integration, and not external
 report-system closure.
 
 All paths below are repo-relative.
@@ -30,11 +30,11 @@ Completed for current reviewer packet:
 
 Not completed by this packet:
 
-- Full ITRI external validation closure.
+- Full customer external validation closure.
 - Route-native `>=500 LEO` closure/proof.
 - Measured traffic closure for F-07/F-08/F-09.
-- ITRI authority acceptance for F-13 or the broader external package.
-- ITRI orbit-model integration.
+- customer authority acceptance for F-13 or the broader external package.
+- customer orbit-model integration.
 - External report-system closure.
 
 The route remains a 13-actor ground-station handover demo. F-13 now has a
@@ -103,20 +103,20 @@ not convert Phase 7.1 evidence into route-native closure/proof.
 
 The current reviewer packet does not claim:
 
-- Full ITRI external validation closure.
+- Full customer external validation closure.
 - Route-native `>=500 LEO` closure/proof.
-- ITRI authority acceptance.
+- customer authority acceptance.
 - Live network truth.
 - Active satellite, active gateway, active route, active path, or pair-specific
   teleport path truth.
 - Measured throughput, latency, jitter, packet loss, continuity, live `ping`,
   or live `iperf` truth.
-- ITRI orbit-model integration.
+- customer orbit-model integration.
 - External report-system closure or accepted measured-report export.
 - Virtual DUT, physical DUT, traffic-generator, NE-ONE, ESTNeT/INET, NAT,
   tunnel, or bridge pass evidence.
 
-External closure still requires ITRI/testbed controlled artifacts or explicit
+External closure still requires customer/testbed controlled artifacts or explicit
 authority acceptance.
 
 ## Remaining External Authority Artifacts Required
@@ -142,12 +142,12 @@ Source context registers, for traceability only:
 Remaining artifacts needed before external closure can be claimed:
 
 - F-07/F-08/F-09 raw measured traffic logs, topology, command transcripts, and
-  ITRI-approved thresholds.
+  customer-approved thresholds.
 - Fresh V-02 through V-06 external testbed package with retained pass/fail/gap
   artifacts.
 - F-13 authority decision on fixture/model-backed readiness, separate Phase 7.1
   freshness, route-native `>=500 LEO`, approved source input, or a combination.
-- F-01 ITRI orbit-model package/specification and validation vectors if orbit
+- F-01 customer orbit-model package/specification and validation vectors if orbit
   integration is required in this review window.
 - F-16 external report-system contract and accepted-submission evidence path.
 

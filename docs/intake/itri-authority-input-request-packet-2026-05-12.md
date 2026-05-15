@@ -1,4 +1,4 @@
-# ITRI Authority Input Request Packet
+# customer Authority Input Request Packet
 
 Date: 2026-05-12
 
@@ -9,7 +9,7 @@ Scope:
 - Working repo:
   `/home/u24/papers/scenario-globe-viewer`
 - Packet purpose:
-  request ITRI / external testbed owner authority inputs that cannot be closed
+  request customer / external testbed owner authority inputs that cannot be closed
   from public sources or the current repo-local demo.
 - Packet status:
   docs-only request baseline. This file does not modify source, tests, runtime
@@ -22,9 +22,9 @@ reviewing the current 13-actor ground-station multi-orbit handover presentation,
 route-local requirement-gap surfacing, bounded F-09 rate-class/proxy display,
 bounded F-10/F-11 modeled policy/rule presets, and bounded F-16 JSON export.
 
-The V4 route is not full ITRI external validation closure. It does not prove the
-complete original ITRI requirement set, and it does not replace external
-authority from ITRI model owners, V-group / physical-model owners, report-system
+The V4 route is not full customer external validation closure. It does not prove the
+complete original customer requirement set, and it does not replace external
+authority from customer model owners, V-group / physical-model owners, report-system
 owners, or testbed owners.
 
 Until a later retained authority package proves otherwise, the project must not
@@ -35,13 +35,13 @@ claim:
 - live ESTNeT, INET, NAT, tunnel, bridge, real-network, active satellite,
   active gateway, pair-specific teleport path, or native RF handover truth;
 - route-native `>=500 LEO` closure from the 13-actor V4 route;
-- ITRI self-developed orbit-model integration;
+- customer self-developed orbit-model integration;
 - external report-system integration or measured-report export;
 - virtual DUT, physical DUT, traffic-generator, or NE-ONE pass.
 
 Public official sources are useful as context, method, standards, or service
 references. They are not closure evidence for this repo unless a later retained
-package ties them to ITRI-approved parameters, raw project artifacts, and
+package ties them to customer-approved parameters, raw project artifacts, and
 explicit acceptance criteria.
 
 ## Authority Read
@@ -83,17 +83,17 @@ Current repo status:
 
 - The route uses viewer-owned projected artifacts and source-lineaged display
   actors.
-- It is not integrated with ITRI's self-developed orbit model.
+- It is not integrated with customer's self-developed orbit model.
 - F-01 remains `external-validation-required` for full closure.
 
 Why public data is insufficient:
 
-- ITRI public NTN / LEO pages establish context only.
+- customer public NTN / LEO pages establish context only.
 - No public source found in the retained research register publishes the
-  authoritative ITRI orbit-model package, API, schema, reference frames,
+  authoritative customer orbit-model package, API, schema, reference frames,
   propagator, time basis, validation vectors, or acceptance criteria.
 
-Questions for ITRI orbit-model owner:
+Questions for customer orbit-model owner:
 
 1. What is the authoritative orbit-model package, repository, API, or file
    bundle for this project?
@@ -127,7 +127,7 @@ output/validation/external-f01/<timestamp>-orbit-model-validation/
 
 Claims still forbidden until artifacts arrive:
 
-- ITRI orbit-model integration.
+- customer orbit-model integration.
 - Active satellite truth.
 - Native orbit closure.
 - TLE or ephemeris acceptance beyond bounded repo fixture/demo scope.
@@ -151,7 +151,7 @@ Why public data is insufficient:
 - Operator/service public pages do not prove project-specific Mbps/Gbps,
   latency, jitter, packet loss, or continuity.
 
-Questions for ITRI / testbed traffic owner:
+Questions for customer / testbed traffic owner:
 
 1. Which endpoints are authoritative for F-07/F-08/F-09 measurement?
 2. Which topology is required: direct host-to-host, ESTNeT/INET, NAT bridge,
@@ -206,13 +206,13 @@ Current repo status:
 
 Why public data is insufficient:
 
-- Public sources do not define ITRI handover policy semantics, allowed
+- Public sources do not define customer handover policy semantics, allowed
   parameters, operator permissions, persistence rules, rollback behavior, or
   simulator/testbed side effects.
-- INET method docs can inform simulator behavior, but they do not define ITRI
+- INET method docs can inform simulator behavior, but they do not define customer
   policy/rule authority.
 
-Questions for ITRI product / simulator-control owner:
+Questions for customer product / simulator-control owner:
 
 1. Which policy families and rule parameters are mandatory for F-10/F-11?
 2. Are operator choices expected to affect UI replay only, simulator state, or
@@ -280,12 +280,12 @@ Why public data is insufficient:
 - Public constellation pages can show that real LEO constellations exceed
   500 satellites.
 - They do not prove this route's runtime scale, the freshness of retained local
-  evidence, ITRI acceptance of a source constellation, or whether route-native
+  evidence, customer acceptance of a source constellation, or whether route-native
   scale is required.
 - The new readiness surface did not use public-source retrieval and does not
   convert public constellation context into project proof.
 
-Questions for ITRI / validation owner:
+Questions for customer / validation owner:
 
 1. Does F-13 require route-native `>=500 LEO`, separate viewer-side validation
    evidence, or both?
@@ -300,7 +300,7 @@ Questions for ITRI / validation owner:
 
 Required artifacts:
 
-- ITRI acceptance note for route-native vs separate-harness scale closure.
+- customer acceptance note for route-native vs separate-harness scale closure.
 - Approved constellation/source input.
 - Explicit decision on whether repo-local fixture/model-backed readiness/demo
   input is acceptable for review and what it does not close.
@@ -322,8 +322,8 @@ Claims still forbidden until artifacts arrive:
   fixture/model-backed readiness input alone.
 - Current F-13 acceptance after retained evidence freshness expires.
 - Acceptance of any public constellation source as project scale proof without
-  ITRI approval.
-- Full ITRI external validation closure from the readiness surface.
+  customer approval.
+- Full customer external validation closure from the readiness surface.
 
 ### F-16 External Report System Authority
 
@@ -336,12 +336,12 @@ Current repo status:
 
 Why public data is insufficient:
 
-- No public source defines the ITRI target report system, destination, schema,
+- No public source defines the customer target report system, destination, schema,
   authentication, accepted fields, attachment model, provenance rules, or
   redaction policy.
 - Existing route export can inform local schema only.
 
-Questions for ITRI report-system owner:
+Questions for customer report-system owner:
 
 1. What is the target report system or file-exchange destination?
 2. Which formats are accepted: JSON, CSV, PDF, signed archive, portal upload, or
@@ -352,7 +352,7 @@ Questions for ITRI report-system owner:
    required?
 6. What redaction policy applies to endpoint IDs, IPs, DUT identifiers,
    operators, screenshots, configs, and packet captures?
-7. Does ITRI accept bounded/proxy route export as partial F-16 review material,
+7. Does customer accept bounded/proxy route export as partial F-16 review material,
    or only external measured report-system submission?
 
 Required artifacts:
@@ -395,10 +395,10 @@ Why public data is insufficient:
   rain-rate source, geography, antenna parameters, polarization, elevation
   angles, link-budget assumptions, validation vectors, or acceptable
   approximation level for this project.
-- Public ITRI pages do not publish the V-group input format or physical-model
+- Public customer pages do not publish the V-group input format or physical-model
   parameter set.
 
-Questions for ITRI V-group / physical-model owner:
+Questions for customer V-group / physical-model owner:
 
 1. What is the authoritative V-group input format and interface?
 2. Which ITU-R recommendations and versions are mandatory?
@@ -453,7 +453,7 @@ Current repo status:
 Why public data is insufficient:
 
 - INET/OMNeT++ docs can support testbed planning and terminology.
-- They do not prove the ITRI Windows/WSL host, tunnel endpoints, NAT rules,
+- They do not prove the customer Windows/WSL host, tunnel endpoints, NAT rules,
   ESTNeT/INET topology, DUT identity, NE-ONE profile, or traffic results.
 - The kickoff examples provide topology direction, but current addresses and
   acceptance status still require testbed owner confirmation.
@@ -508,20 +508,20 @@ Claims still forbidden until artifacts arrive:
 
 | Priority | Input | Required before | Owner | Expected artifact path |
 | --- | --- | --- | --- | --- |
-| P0 | F-07/F-08/F-09 raw measured traffic logs, topology, thresholds, and verdict authority | Any measured communication-time, statistics, latency, jitter, throughput, packet-loss, continuity, `ping`, or `iperf` pass/fail claim | ITRI/testbed traffic owner | `output/validation/external-f07-f09/<timestamp>-measured-traffic/` |
+| P0 | F-07/F-08/F-09 raw measured traffic logs, topology, thresholds, and verdict authority | Any measured communication-time, statistics, latency, jitter, throughput, packet-loss, continuity, `ping`, or `iperf` pass/fail claim | customer/testbed traffic owner | `output/validation/external-f07-f09/<timestamp>-measured-traffic/` |
 | P0 | V-02..V-06 fresh external validation package with raw topology, NAT, tunnel/bridge, DUT, NE-ONE, and traffic evidence | Any Windows/WSL, ESTNeT/INET, NAT, tunnel, bridge, virtual DUT, physical DUT, traffic-generator, or NE-ONE pass/fail claim | External testbed owner | `output/validation/external-v02-v06/<timestamp>-external-validation/` |
-| P0 | F-16 external report-system contract and accepted submission evidence | Any external report-system integration or accepted measured-report export claim | ITRI report-system owner | `output/validation/external-f16/<timestamp>-report-system-submission/` |
-| P0 | F-13 readiness-surface acceptance decision, fresh scale evidence, or explicit ITRI acceptance of a separate-harness artifact | Any current `>=500 LEO` acceptance claim after freshness review, any route-native scale claim, or any ITRI authority acceptance claim from fixture/model-backed readiness input | Repo validation owner / ITRI validation owner | `docs/intake/itri-f13-scale-readiness-evidence-addendum-2026-05-12.md`, `output/itri-demo-route-f13-scale-readiness/`, and/or `output/validation/phase7.1/<timestamp>-phase7-1-first-slice/` |
-| P1 | F-01 orbit-model package, schema, frames, vectors, and tolerances | Any implementation/prototype that claims ITRI model integration rather than placeholder adapter work | ITRI orbit-model owner | `docs/intake/authority-supplied/f01-orbit-model/<date-or-package-id>/` |
-| P1 | F-10/F-11 policy/rule model, allowed parameters, validation traces, and safety constraints | Any implementation/prototype beyond bounded route-local replay presets | ITRI product owner / simulator-control owner | `docs/intake/authority-supplied/f10-f11-policy-rules/<date-or-package-id>/` |
-| P1 | F-17/P-01/P-02/P-03 V-group schema, selected ITU versions, physical parameters, and validation vectors | Any implementation/prototype that claims standards-backed physical modeling or V-group integration | ITRI V-group / physical-model owner | `docs/intake/authority-supplied/f17-p-group-physical-model/<date-or-package-id>/` |
-| P2 | Report naming, CSV-vs-JSON preference, and reviewer packaging polish | Cleaner handoff material after authority and pass/fail blockers are settled | ITRI reviewer / report owner | `docs/intake/authority-supplied/f16-report-system/<date-or-package-id>/` |
-| P2 | Visual wording preferences for bounded demo labels and nonclaim copy | UI/documentation polish, not evidence closure | ITRI reviewer / product owner | `docs/intake/authority-supplied/reviewer-copy/<date-or-package-id>/` |
+| P0 | F-16 external report-system contract and accepted submission evidence | Any external report-system integration or accepted measured-report export claim | customer report-system owner | `output/validation/external-f16/<timestamp>-report-system-submission/` |
+| P0 | F-13 readiness-surface acceptance decision, fresh scale evidence, or explicit customer acceptance of a separate-harness artifact | Any current `>=500 LEO` acceptance claim after freshness review, any route-native scale claim, or any customer authority acceptance claim from fixture/model-backed readiness input | Repo validation owner / customer validation owner | `docs/intake/itri-f13-scale-readiness-evidence-addendum-2026-05-12.md`, `output/itri-demo-route-f13-scale-readiness/`, and/or `output/validation/phase7.1/<timestamp>-phase7-1-first-slice/` |
+| P1 | F-01 orbit-model package, schema, frames, vectors, and tolerances | Any implementation/prototype that claims customer model integration rather than placeholder adapter work | customer orbit-model owner | `docs/intake/authority-supplied/f01-orbit-model/<date-or-package-id>/` |
+| P1 | F-10/F-11 policy/rule model, allowed parameters, validation traces, and safety constraints | Any implementation/prototype beyond bounded route-local replay presets | customer product owner / simulator-control owner | `docs/intake/authority-supplied/f10-f11-policy-rules/<date-or-package-id>/` |
+| P1 | F-17/P-01/P-02/P-03 V-group schema, selected ITU versions, physical parameters, and validation vectors | Any implementation/prototype that claims standards-backed physical modeling or V-group integration | customer V-group / physical-model owner | `docs/intake/authority-supplied/f17-p-group-physical-model/<date-or-package-id>/` |
+| P2 | Report naming, CSV-vs-JSON preference, and reviewer packaging polish | Cleaner handoff material after authority and pass/fail blockers are settled | customer reviewer / report owner | `docs/intake/authority-supplied/f16-report-system/<date-or-package-id>/` |
+| P2 | Visual wording preferences for bounded demo labels and nonclaim copy | UI/documentation polish, not evidence closure | customer reviewer / product owner | `docs/intake/authority-supplied/reviewer-copy/<date-or-package-id>/` |
 | P2 | Optional packet-capture permission and screenshot redaction preferences | Richer diagnostics where raw command logs already satisfy minimum evidence | Testbed owner / security owner | Relevant external validation package `redactions.md` |
 
 ## Response Template
 
-ITRI / testbed owner may copy this form once per request group or artifact.
+customer / testbed owner may copy this form once per request group or artifact.
 
 ```text
 Request group:
@@ -529,7 +529,7 @@ Requirement IDs:
 Owner / organization:
 Technical contact:
 Authority source:
-  [ ] ITRI internal spec
+  [ ] customer internal spec
   [ ] Testbed run artifact
   [ ] External system contract
   [ ] Standards selection
@@ -560,7 +560,7 @@ Claims still forbidden:
 
 This packet does not claim:
 
-- the original ITRI requirement set is fully closed;
+- the original customer requirement set is fully closed;
 - the V4 route is more than a route-local bounded reviewer-ready demo;
 - the V4 route has measured throughput, measured latency, measured jitter,
   measured packet loss, measured handover continuity, live `ping`, or live
@@ -570,13 +570,13 @@ This packet does not claim:
 - the V4 route has active satellite truth, active gateway truth, pair-specific
   teleport path truth, or native RF handover truth;
 - the 13-actor V4 route is route-native `>=500 LEO` scale validation;
-- fixture/model-backed F-13 readiness/demo input is ITRI authority acceptance
+- fixture/model-backed F-13 readiness/demo input is customer authority acceptance
   or route-native `>=500 LEO` closure/proof;
-- public ITRI pages publish the private ITRI orbit-model implementation;
+- public customer pages publish the private customer orbit-model implementation;
 - public operator/service pages prove project-specific throughput or endpoint
   path truth;
 - ITU recommendations alone close physical/rain/antenna requirements without
-  ITRI-selected parameters and validation vectors;
+  customer-selected parameters and validation vectors;
 - bounded F-10/F-11 route presets are live policy/rule control;
 - bounded F-16 route JSON export is an external report-system submission;
 - the retained V-02..V-06 package passed external validation.

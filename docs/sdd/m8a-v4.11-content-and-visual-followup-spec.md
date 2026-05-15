@@ -30,7 +30,7 @@ spec acceptance.
 ### 1.1 Density and layering are both problems
 
 V4.11 mixes six concern types into similar visual weight:
-- ITRI requirement readouts
+- customer requirement readouts
 - Truth boundary disclosures
 - Source provenance / evidence
 - Operator decision context
@@ -96,7 +96,7 @@ work with modal/drawer/focus contracts (§8).
 ### 1.6 Boundary content has separate subtypes
 
 Boundary tab's entries are not co-equal:
-- Scale boundary: valuable ITRI scope context.
+- Scale boundary: valuable customer scope context.
 - Endpoint boundary: valuable precision context.
 - Simulation boundary: ambient disclosure.
 - Service-layer boundary: ambient disclosure.
@@ -105,9 +105,9 @@ Boundary tab's entries are not co-equal:
 V2 removes the standalone Boundary tab and assigns one owner per
 boundary subtype (§4.4).
 
-## 2. Scope, ITRI alignment, and non-claims
+## 2. Scope, customer alignment, and non-claims
 
-ITRI requirements include LEO/MEO/GEO switching, link quality,
+customer requirements include LEO/MEO/GEO switching, link quality,
 latency/jitter/network speed, communication time/rate, physical layer /
 rain / antenna / ITU, >=500 LEO, real-time/prerecorded TLE switching,
 report export, strategy/rule configuration, and 24h stability.
@@ -233,7 +233,7 @@ Not connected in this scene:
 | Report export action | Export-ready report structures exist; no completed end-user export button here | (not reachable from this scene) |
 | Real-time vs prerecorded TLE full scenario-space switching | Existing replay mode is bounded; full multi-source TLE scenario switching closes downstream | (not reachable from this scene) |
 
-ITRI acceptance-ID gap map for V4.11 representation:
+customer acceptance-ID gap map for V4.11 representation:
 
 | ID(s) | Acceptance status source | V4.11 representation |
 |---|---|---|
@@ -487,7 +487,7 @@ Implementation must model:
 | any active mode | final window end | `final-hold` | hold final frame; show restart cue |
 
 Default policy:
-- Review mode is default-on for ITRI review/demo/capture contexts.
+- Review mode is default-on for customer review/demo/capture contexts.
 - User choice persists.
 - Inspector close resumes from pinned ratio by default.
 - "Resume from current clock" is an explicit advanced toggle, not the
@@ -626,11 +626,11 @@ Decision body or left rail.
 
 - Lock-in L hardware GPU validation.
 - New phase opening (V4.12).
-- Adding new ITRI must-haves.
+- Adding new customer must-haves.
 - R2 promotion to runtime selector.
 - New endpoint pair.
 - New source data.
-- Raw ITRI side-read.
+- Raw customer side-read.
 - Live external CelesTrak fetch.
 - Native RF handover claim.
 - Measured latency/jitter/throughput or live ping/iPerf.
@@ -685,7 +685,7 @@ implementation phasing:
 
 1. **Content and hookpoint reconciliation**
    - Replace copy with actual panel names and reachability qualifiers.
-   - Build disabled tile inventory and ITRI gap map.
+   - Build disabled tile inventory and customer gap map.
    - Reconcile against acceptance report and source grep before moving on.
 
 2. **Inspector and Boundary restructure**

@@ -1,4 +1,4 @@
-# ITRI V-02R1 External Validation Manifest Reviewer Closeout
+# customer V-02R1 External Validation Manifest Reviewer Closeout
 
 Date: 2026-05-14
 
@@ -81,7 +81,7 @@ This slice preserves these boundaries:
 - no runtime demo validation verdict, UI surface, F-12 decision behavior,
   F-07/F-08/F-09 measured-truth behavior, F-01 behavior, or S4 behavior is
   changed;
-- no complete ITRI acceptance is asserted.
+- no complete customer acceptance is asserted.
 
 ## Validation
 

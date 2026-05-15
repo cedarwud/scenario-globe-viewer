@@ -1,4 +1,4 @@
-# ITRI F-01R1 Orbit-Model Intake Reviewer Closeout
+# customer F-01R1 Orbit-Model Intake Reviewer Closeout
 
 Date: 2026-05-14
 
@@ -50,7 +50,7 @@ retained orbit-model package fixtures.
   `redistributionPolicy`, `licenseUseNotes`, and `reviewer`.
 - `redistributionPolicy` must explicitly state whether projected artifacts are
   allowed.
-- `sourceTier` must be retained Tier 1 ITRI or owner-approved orbit-model
+- `sourceTier` must be retained Tier 1 customer or owner-approved orbit-model
   authority context. Public TLE, CelesTrak, Space-Track, and Tier 3 synthetic
   source tiers fail closed.
 - `modelIdentity` must include model name/version, propagation method,
@@ -77,14 +77,14 @@ retained orbit-model package fixtures.
 This slice preserves these boundaries:
 
 - intake readiness is not F-01 authority completion;
-- no ITRI orbit-model package is checked into the repo by this slice;
+- no customer orbit-model package is checked into the repo by this slice;
 - no runtime adapter, propagation implementation, or scenario/overlay runtime
   integration is added;
-- public TLE, CelesTrak, or Space-Track output is not a substitute for the ITRI
+- public TLE, CelesTrak, or Space-Track output is not a substitute for the customer
   model or validation vectors;
 - synthetic data is not orbital truth;
 - no measured traffic, external stack verdict, DUT, NAT, tunnel,
-  gateway/path truth, native radio-frequency handover, or full ITRI acceptance
+  gateway/path truth, native radio-frequency handover, or full customer acceptance
   is asserted;
 - no retained authority package or checked-in orbit-model fixture is created.
 

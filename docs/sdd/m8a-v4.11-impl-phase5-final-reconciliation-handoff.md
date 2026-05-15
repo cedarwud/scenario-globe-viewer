@@ -97,7 +97,7 @@ Verdict: Pass.
 - Actor set preserved from fixture: 13 actors total, with 6 LEO, 5 MEO, and 2 GEO.
 - V4.6D model id preserved: `m8a-v4.6d-simulation-handover-model.v1`.
 - R2 status preserved as read-only catalog/candidate evidence, not a runtime selector.
-- Source-boundary scan passed in V4.9/V4.8/V4.7.1 and matrix runs: no raw ITRI package side-read and no live CelesTrak source-read code in runtime surfaces.
+- Source-boundary scan passed in V4.9/V4.8/V4.7.1 and matrix runs: no raw customer package side-read and no live CelesTrak source-read code in runtime surfaces.
 - Forbidden-claim invariants preserved: no native RF handover claim, no measured latency/jitter/throughput values, and no claimed Lock-in L hardware validation.
 - Slice 6 artifacts remain present, including reviewer transcripts `v4.11-r1.md`, `v4.11-r2.md`, `v4.11-r3.md`, the reviewer matrix, checklist, and before/after comparison.
 - Correction A layout architecture remained intact; Phase 5 added captures/docs and one smoke assertion alignment only.
@@ -109,7 +109,7 @@ Verdict: Pass.
 
 - Lock-in L hardware GPU validation was not claimed.
 - V4.12 phase was not opened by Phase 5.
-- New ITRI must-haves were not promoted into V4.11 runtime scope.
+- New customer must-haves were not promoted into V4.11 runtime scope.
 - R2 was not promoted to runtime selector.
 - No new endpoint pair was introduced.
 - No live external CelesTrak fetch was added.
@@ -194,10 +194,10 @@ Rationale: The desktop review path now reads as a coherent review product, with 
 
 - Lock-in L hardware GPU validation remains out of V4.11 scope.
 - Designer pass is still needed for panel border calibration, glyph/font fallback cleanup, top-control rhythm, and dense Metrics/Evidence typography.
-- ITRI gap follow-ups remain V4.12+ work, including F-09 and related must-have follow-up items.
+- customer gap follow-ups remain V4.12+ work, including F-09 and related must-have follow-up items.
 - R2 remains read-only catalog/evidence and is not a runtime selector.
 - No measured latency/jitter/throughput truth is added; disabled tiles remain unavailable by design.
 
 ## 9. Closeout statement
 
-V4.11 polish track is at LLM ceiling for this repo state. It is ready for designer/ITRI feedback or V4.12 continuation, with Phase 5 limited to reconciliation, captures, rubric scoring, smoke-disclosure cleanup, acceptance verification, and this handoff.
+V4.11 polish track is at LLM ceiling for this repo state. It is ready for designer/customer feedback or V4.12 continuation, with Phase 5 limited to reconciliation, captures, rubric scoring, smoke-disclosure cleanup, acceptance verification, and this handoff.

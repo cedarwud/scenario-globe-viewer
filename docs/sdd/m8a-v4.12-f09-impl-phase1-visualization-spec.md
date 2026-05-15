@@ -1,7 +1,7 @@
 # M8A V4.12 F-09 Implementation Phase 1 Visualization Spec
 
 Date: 2026-05-06
-Working phase name: **M8A V4.12 ITRI must-have followup**.
+Working phase name: **M8A V4.12 customer must-have followup**.
 
 Status: Phase 1 contract/spec lock-in only. This document does not authorize
 component implementation, styling, smoke work, V4.11 scene changes, or commits.
@@ -565,7 +565,7 @@ The F-09 surface must obey these display rules:
   network truth.
 - Do not claim active satellite, gateway, teleport path, native RF handover,
   endpoint-pair promotion, R2 promotion, F-10/F-11/F-16 closure, F-13 `>=500 LEO`
-  closure, or full ITRI acceptance completion.
+  closure, or full customer acceptance completion.
 - Do not mount or describe this as a V4.11 ground-station scene feature.
 
 Allowed copy examples:

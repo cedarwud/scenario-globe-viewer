@@ -67,7 +67,7 @@ Passed:
 - `npm run test:m8a-v4.9`
 - `npm run test:m8a-v4.8`
 
-Each package smoke includes the production build plus the V4.3 raw ITRI side-read scan and V4.6B runtime source-boundary scan.
+Each package smoke includes the production build plus the V4.3 raw customer side-read scan and V4.6B runtime source-boundary scan.
 
 Slice 3 negative smoke passed:
 

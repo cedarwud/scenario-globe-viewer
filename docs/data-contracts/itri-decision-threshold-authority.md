@@ -1,4 +1,4 @@
-# ITRI F-12 Decision Threshold Authority Data Contract
+# customer F-12 Decision Threshold Authority Data Contract
 
 Date: 2026-05-13
 
@@ -41,14 +41,14 @@ authority-backed F-12 lane.
 
 Authority ordering:
 
-1. Tier 1 ITRI, lab, testbed, or owner-approved threshold/rule packages may
+1. Tier 1 customer, lab, testbed, or owner-approved threshold/rule packages may
    support an F-12 authority review only for the exact retained scope.
 2. Retained F-07/F-08/F-09 measured traffic packages may supply measured
    latency, jitter, loss, throughput, network-speed, continuity, and
    handover-window context only when their raw artifacts and reviewer states are
    valid for the referenced fields.
 3. Public method/context sources may inform vocabulary and field naming, but
-   they do not define ITRI thresholds or operator rule policy.
+   they do not define customer thresholds or operator rule policy.
 4. S11 synthetic fallback material may rehearse schema or negative gaps only.
 
 This document must not be used to infer authority rules from:
@@ -58,7 +58,7 @@ This document must not be used to infer authority rules from:
 - modeled route windows, modeled speed classes, or deterministic candidate
   metrics;
 - synthetic fallback rows;
-- public standards or method/context text without an explicit ITRI or owner
+- public standards or method/context text without an explicit customer or owner
   approval record.
 
 ## Bounded Proxy Separation
@@ -521,8 +521,8 @@ following claims remain outside this docs-only contract:
   rows;
 - no native radio-frequency or radio-layer handover behavior;
 - no external traffic control or packet-path actuation;
-- no complete ITRI acceptance;
+- no complete customer acceptance;
 - no external validation verdict from F-12 rule schema alone;
 - no DUT, NAT, tunnel, or bridge verdict from F-12 rule schema alone;
-- no ITRI orbit-model integration;
+- no customer orbit-model integration;
 - no claim that bounded proxy F-12 is the measured authority rule lane.

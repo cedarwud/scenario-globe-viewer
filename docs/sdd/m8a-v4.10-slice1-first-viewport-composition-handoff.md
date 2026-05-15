@@ -69,7 +69,7 @@ Visible-difference evidence from the manifest:
 ## Tests Run
 
 - `node --check tests/smoke/verify-m8a-v4.10-slice1-first-viewport-composition-runtime.mjs` - passed.
-- `npm run test:m8a-v4.10:slice1` - passed. Includes build, forbidden raw ITRI/source-boundary scans, desktop/narrow screenshot capture, Details-default-closed assertion, first-viewport narrative assertions, preserved-invariant assertions, and forbidden-claim scan.
+- `npm run test:m8a-v4.10:slice1` - passed. Includes build, forbidden raw customer/source-boundary scans, desktop/narrow screenshot capture, Details-default-closed assertion, first-viewport narrative assertions, preserved-invariant assertions, and forbidden-claim scan.
 - `npm run test:m8a-v4.8` - passed.
 - `npm run test:m8a-v4.9` - passed after the runtime/CSS/test updates and before adding the Slice 1-only smoke/handoff surfaces.
 

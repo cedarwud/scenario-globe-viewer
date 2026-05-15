@@ -76,7 +76,7 @@ Passed:
 `npm run test:m8a-v4.11:slice2` covers:
 
 - production build
-- V4.3 raw ITRI side-read scan
+- V4.3 raw customer side-read scan
 - V4.6B runtime source-boundary scan
 - Slice 2 hover timing, size, target coverage, keyboard focus, fade/dismiss, click-to-pin, and screenshot capture
 

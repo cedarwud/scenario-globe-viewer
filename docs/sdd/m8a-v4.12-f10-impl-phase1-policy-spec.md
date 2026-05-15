@@ -1,7 +1,7 @@
 # M8A V4.12 F-10 Implementation Phase 1 Policy Spec
 
 Date: 2026-05-12
-Working phase name: **M8A V4.12 ITRI must-have followup**.
+Working phase name: **M8A V4.12 customer must-have followup**.
 
 Status: Phase 1 contract/spec lock-in only. This document resolves the
 planning SDD open questions before runtime implementation. It does not widen
@@ -44,7 +44,7 @@ Decision: ship exactly three canonical bounded variants for F-10.
 Rationale:
 
 - Three variants satisfy the planning SDD without inventing a rule editor.
-- The names stay repo-owned and bounded. No variant references a specific ITRI
+- The names stay repo-owned and bounded. No variant references a specific customer
   test case until a later authority document provides that mapping.
 - `bootstrap-balanced-v1` preserves the current equal metric-win behavior.
 - Priority policies alter only deterministic bounded ranking weights.
@@ -152,7 +152,7 @@ Forbidden copy remains:
 - `policy applied to real satellite`
 - `policy verified by iperf/ping`
 - `production handover controller`
-- `policy ratified by ITRI`
+- `policy ratified by customer`
 - `policy meets 3GPP specification`
 - `policy enforces operator SLA`
 - `policy ensures >=500 LEO closure`

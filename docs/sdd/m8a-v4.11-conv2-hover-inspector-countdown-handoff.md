@@ -41,7 +41,7 @@ Items explicitly **not** touched (locked for Conv 3 / 4):
 - Slice 0 reviewer-protocol (Conv 4)
 - V4.8 / V4.9 / V4.10 invariant smoke (Conv 4 / never)
 - R2 read-only catalog promotion
-- Raw ITRI side-read
+- Raw customer side-read
 
 ## Changed and added files
 
@@ -248,7 +248,7 @@ this transition explicitly (`opens-state-evidence-with-truth-tail-visible`).
   existing `replayRatio` + `window.{startRatioInclusive,
   stopRatioExclusive}` inputs and the V4.6A baseline
   `FULL_REPLAY_SIMULATED_SECONDS`
-- ✅ No raw ITRI side-read added
+- ✅ No raw customer side-read added
 - ✅ No `Cesium.Viewer` instantiation outside the existing controller
 
 ## Runtime seam summary

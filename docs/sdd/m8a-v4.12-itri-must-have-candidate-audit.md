@@ -1,9 +1,9 @@
-# M8A V4.12 ITRI Must-Have Candidate Audit
+# M8A V4.12 customer Must-Have Candidate Audit
 
 Date: 2026-05-06
 Status: planning audit, doc-only. No implementation authority, no runtime change, no smoke, no commit.
 
-Working phase name: **M8A V4.12 ITRI must-have followup**.
+Working phase name: **M8A V4.12 customer must-have followup**.
 
 Canonical planning SDD for the recommended candidate:
 [m8a-v4.12-f16-statistics-report-export-plan.md](./m8a-v4.12-f16-statistics-report-export-plan.md).
@@ -15,9 +15,9 @@ Required `ui-ux-pro-max` searches were run from the installed skill path
 `.codex` path is a file in this workspace. The exact required query strings were
 used.
 
-| ID | ITRI demo impact | Implementation footprint | Risk of over-claim | V4.11 / Phase 7.1 dependency | Acceptance criteria | Skill rationale |
+| ID | customer demo impact | Implementation footprint | Risk of over-claim | V4.11 / Phase 7.1 dependency | Acceptance criteria | Skill rationale |
 |---|---|---|---|---|---|---|
-| F-09 dedicated communication-rate visualization | Highest visible delta because acceptance status says there is no dedicated surface yet. A new rate surface would be obvious in an ITRI WP review. | Tier 2, about 3-4 implementation conversations: new visualization component, source wiring from bounded `networkSpeedMbps`, copy/claim reconciliation, smoke. | Medium-high. Numeric Mbps can look like measured throughput. Any closure must label values as modeled/proxy class, not live `iperf` / measured throughput. | Independent from V4.11 and Phase 7.1 if scoped to the existing bounded physical/decision metrics. Must not pretend to solve Phase 7.1 scale. | F-09 closure requires a visible communication-rate visualization surface for the existing bounded model, with provenance and no measured throughput claim. | Required chart query returned `Trend Over Time` line chart and `Performance vs Target` gauge/bullet options. Use a simple trend/bullet/class readout, with visible labels, legend, data-table fallback, and color-not-only treatment. |
+| F-09 dedicated communication-rate visualization | Highest visible delta because acceptance status says there is no dedicated surface yet. A new rate surface would be obvious in an customer WP review. | Tier 2, about 3-4 implementation conversations: new visualization component, source wiring from bounded `networkSpeedMbps`, copy/claim reconciliation, smoke. | Medium-high. Numeric Mbps can look like measured throughput. Any closure must label values as modeled/proxy class, not live `iperf` / measured throughput. | Independent from V4.11 and Phase 7.1 if scoped to the existing bounded physical/decision metrics. Must not pretend to solve Phase 7.1 scale. | F-09 closure requires a visible communication-rate visualization surface for the existing bounded model, with provenance and no measured throughput claim. | Required chart query returned `Trend Over Time` line chart and `Performance vs Target` gauge/bullet options. Use a simple trend/bullet/class readout, with visible labels, legend, data-table fallback, and color-not-only treatment. |
 | F-10 operator-switchable handover policy | Medium-high. It improves the existing Handover Decision panel and lets reviewers see policy choice rather than fixed bootstrap behavior. | Tier 2-3, about 4-5 conversations: policy contract, operator selector, state propagation, persistence/replay behavior, smoke. | Medium. "Switch policy" can sound like live network control. UI must say bounded simulation policy / service-layer decision policy. | Independent from V4.11 if kept in the Bootstrap Operator HUD seam. Can become entangled if someone tries to retrofit it into the V4.11 review scene. | F-10 closure requires an end-user policy selector whose selected bounded policy changes the repo-owned handover decision/report state and is visible in the panel/export, without live RF/network claims. | Required UX query returned no direct rows. Fallback skill rules still apply: native/system controls, visible labels, keyboard focus, disabled/loading feedback, and no ambiguous disabled state. |
 | F-11 configurable handover rules / dynamic parameters | Medium. It gives operator interaction and would make the simulator feel more configurable, but it is less instantly reviewable than F-09 or F-16 unless carefully staged. | Tier 3, 5+ conversations: rule schema, validation, UI editor, state integration, persistence/undo, smoke and forbidden-claim checks. | Highest of the small candidates. A rule editor can look like a real network controller unless all controls are bounded simulation parameters. | Mostly independent from V4.11 and Phase 7.1, but it depends on stronger handover-rule contracts and likely follows F-10. | F-11 closure requires user-configurable bounded handover rules/parameters, validation and error handling, deterministic effect on simulation reports, and copy that prevents real controller claims. | Required UX query returned no direct rows. Supplemental skill searches support form labels, helper text, inline validation, focus states, keyboard navigation, and ARIA labels. That points to a larger form/configuration workflow rather than a quick panel patch. |
 | F-16 statistics report export | High deliverable credibility. It produces an artifact reviewers can inspect, attach, and archive. It is less visually dramatic than F-09 but more closure-oriented. | Tier 1-2, about 2-3 conversations: export contract, one end-user action, CSV/JSON serialization, smoke/download validation. | Lowest. Exporting the repo-owned bounded reports is honest if the exported payload preserves schemaVersion, provenance, and "not measured truth" disclaimers. | Independent from V4.11 and Phase 7.1. It can use existing Phase 6 report structures and does not require the V4.11 scene. | F-16 closure requires an end-user export workflow/button that downloads statistics report data from existing communication-time, handover, physical-input, and validation-state report structures, with provenance and bounded truth labels. | Required UX query returned no direct rows, but the skill file's chart/data guidance includes export options for data-heavy products, and supplemental searches emphasize loading feedback, focus states, keyboard navigation, and ARIA labels. This maps cleanly to a compact export workflow. |
@@ -26,7 +26,7 @@ used.
 
 Recommended pick: **F-16 statistics report export**.
 
-ITRI demo impact ranking:
+customer demo impact ranking:
 
 1. F-09: highest visual delta because there is no rate surface.
 2. F-16: strongest deliverable artifact because it creates downloadable report evidence.
@@ -63,7 +63,7 @@ The full planning SDD is:
 Summary:
 
 - §0 status: planning only, doc-only, no implementation authorized.
-- §1 ITRI requirement: F-16, `統計報表可匯出`, currently `部分完成`.
+- §1 customer requirement: F-16, `統計報表可匯出`, currently `部分完成`.
 - §2 current reality: Phase 6 has report structures for communication-time,
   handover-decision, physical-input, and validation-state; the Operator HUD has
   scenario/replay/speed controls and panel slots, but no export action.

@@ -1,9 +1,9 @@
-# ITRI Runtime Readiness Decision
+# customer Runtime Readiness Decision
 
 Date: 2026-05-13
 
 Status: docs-only readiness decision. This document selects the first
-runtime-facing implementation lane after the ITRI roadmap/data-contract layer.
+runtime-facing implementation lane after the customer roadmap/data-contract layer.
 It does not authorize runtime implementation by itself.
 
 Related roadmap:
@@ -40,7 +40,7 @@ candidate because:
 - it has a complete docs/data-contract surface;
 - it can fail closed when no retained package exists;
 - it can validate structure without requiring live network access, Windows/WSL,
-  ESTNeT/INET, NAT, tunnels, DUTs, NE-ONE, or ITRI orbit-model data;
+  ESTNeT/INET, NAT, tunnels, DUTs, NE-ONE, or customer orbit-model data;
 - it creates useful reviewer plumbing for F-07, F-08, F-09, F-12, and V-02..V-06
   without changing their authority status;
 - it can use explicitly retained local package paths instead of fetching or
@@ -149,7 +149,7 @@ F-07R1 can close only when the implementation child demonstrates:
 - reviewer states are per requirement, not a global pass;
 - threshold authority is treated as external input;
 - raw artifact refs are required for authority-eligible states;
-- no live testbed, DUT, NAT/tunnel, radio-layer handover, or ITRI orbit-model
+- no live testbed, DUT, NAT/tunnel, radio-layer handover, or customer orbit-model
   behavior is implied.
 
 ## Validation Expectations

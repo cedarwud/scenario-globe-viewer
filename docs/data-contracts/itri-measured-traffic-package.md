@@ -1,4 +1,4 @@
-# ITRI Measured Traffic Package Data Contract
+# customer Measured Traffic Package Data Contract
 
 Date: 2026-05-13
 
@@ -55,9 +55,9 @@ This schema must not be used to infer:
 - V-02..V-06 authority verdicts from F-07/F-08/F-09 traffic results alone;
 - DUT, NAT, tunnel, bridge, traffic-generator, or packet-path success without
   retained topology and raw artifacts;
-- ITRI orbit-model integration;
+- customer orbit-model integration;
 - radio-layer handover;
-- full ITRI acceptance.
+- full customer acceptance.
 
 ## Covered Requirements
 

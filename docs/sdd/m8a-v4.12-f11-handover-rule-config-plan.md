@@ -1,7 +1,7 @@
 # M8A V4.12 F-11 Handover Rule Configuration Plan
 
 Date: 2026-05-12
-Working phase name: **M8A V4.12 ITRI must-have followup**.
+Working phase name: **M8A V4.12 customer must-have followup**.
 
 ## 0. Status
 
@@ -27,7 +27,7 @@ Sibling planning SDDs:
 - [m8a-v4.12-f10-handover-policy-selector-plan.md](./m8a-v4.12-f10-handover-policy-selector-plan.md)
 - [m8a-v4.12-f16-statistics-report-export-plan.md](./m8a-v4.12-f16-statistics-report-export-plan.md)
 
-## 1. ITRI Requirement Reference
+## 1. customer Requirement Reference
 
 Acceptance-report quote:
 
@@ -37,7 +37,7 @@ Acceptance-report quote:
 | F-11 | 換手規則與相關參數可設定/模擬 | `部分完成` | Simulation-side decision logic exists, but end-user configuration of handover rules/parameters is not yet a completed runtime control surface. | `尚未排入目前 phase` |
 ```
 
-ITRI README §3.1 dynamic-parameter UI:
+customer README §3.1 dynamic-parameter UI:
 
 `/home/u24/papers/itri/README.md:294-302`:
 

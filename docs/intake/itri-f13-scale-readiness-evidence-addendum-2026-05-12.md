@@ -1,4 +1,4 @@
-# ITRI F-13 Scale Readiness Evidence Addendum
+# customer F-13 Scale Readiness Evidence Addendum
 
 Date: 2026-05-12
 
@@ -8,9 +8,9 @@ Canonical route:
 
 Status: documentation/evidence status addendum for the F-13 readiness surface.
 This addendum records completed readiness/demo evidence only. It does not claim
-F-13 external closure, route-native `>=500 LEO` closure/proof, ITRI authority
+F-13 external closure, route-native `>=500 LEO` closure/proof, customer authority
 acceptance, live network truth, active satellite/gateway/path truth, measured
-traffic truth, ITRI orbit-model integration, or external report-system closure.
+traffic truth, customer orbit-model integration, or external report-system closure.
 
 ## Completed Readiness Surface
 
@@ -55,7 +55,7 @@ addendum into route-native closure/proof.
 | Freshness timestamp UTC | `2026-05-12T09:53:20Z` |
 
 The readiness data uses repo-local fixture/model-backed input. It is not an
-ITRI authority source and not a public-source authority. No broad public-source
+customer authority source and not a public-source authority. No broad public-source
 research or public-source retrieval was added for this readiness surface.
 
 ## Validation Commands
@@ -72,16 +72,16 @@ The implementation results reported for the F-13 readiness surface are:
 
 ## Remaining F-13 Gap
 
-F-13 still has no route-native `>=500 LEO` closure/proof and no ITRI authority
-acceptance. External closure still requires ITRI/testbed controlled artifacts or
+F-13 still has no route-native `>=500 LEO` closure/proof and no customer authority
+acceptance. External closure still requires customer/testbed controlled artifacts or
 explicit authority acceptance.
 
 Forbidden positive claims remain:
 
 - Route-native `>=500 LEO` closure/proof.
-- ITRI authority acceptance or full ITRI external validation closure.
+- customer authority acceptance or full customer external validation closure.
 - Live network truth, active satellite/gateway/path, or pair-specific path
   truth.
 - Measured throughput, latency, jitter, packet-loss, `ping`, or `iperf` truth.
-- ITRI orbit-model integration.
+- customer orbit-model integration.
 - External report-system closure.

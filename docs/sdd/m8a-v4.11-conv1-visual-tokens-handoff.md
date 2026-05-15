@@ -183,7 +183,7 @@ independently.
 - ✅ No footer / Truth / sequence-rail / state-strip changes (Conv 3)
 - ✅ No Slice 5 Sources affordance changes (Conv 4)
 - ✅ No measured-metric / latency / jitter / throughput text added
-- ✅ No raw ITRI side-read added
+- ✅ No raw customer side-read added
 - ✅ No `Cesium.Viewer` instantiation outside the existing controller
 
 ## Runtime seam summary

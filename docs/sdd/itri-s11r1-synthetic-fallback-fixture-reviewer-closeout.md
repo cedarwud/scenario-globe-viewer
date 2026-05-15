@@ -1,4 +1,4 @@
-# ITRI S11R1 Synthetic Fallback Fixture Reviewer Closeout
+# customer S11R1 Synthetic Fallback Fixture Reviewer Closeout
 
 Date: 2026-05-14
 
@@ -75,9 +75,9 @@ This slice preserves these boundaries:
 - synthetic fixture readiness is not truth for V-02..V-06 external validation;
 - synthetic fixture readiness is not F-07/F-08/F-09 traffic measurement truth;
 - synthetic fixture readiness is not calibrated physical truth;
-- synthetic fixture readiness is not ITRI orbit-model integration;
+- synthetic fixture readiness is not customer orbit-model integration;
 - synthetic fixture readiness is not DUT, NAT, tunnel, gateway/path, native
-  radio handover, or full acceptance by ITRI;
+  radio handover, or full acceptance by customer;
 - no retained evidence package or checked-in fixture JSON is created;
 - no live `ping`, `iperf`, network fetch, tunnel, NAT, DUT, NE-ONE, vendor
   tool, or traffic-generator execution is introduced.

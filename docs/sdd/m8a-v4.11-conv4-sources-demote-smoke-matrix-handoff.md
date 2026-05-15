@@ -107,7 +107,7 @@ by the footer disclosure model and the State Evidence truth tail.
 - V4.6D model id and window order remain unchanged.
 - Source-boundary scans remain hard requirements.
 - R2 remains read-only and non-promotable.
-- No raw ITRI side-read or live CelesTrak fetch is introduced.
+- No raw customer side-read or live CelesTrak fetch is introduced.
 - No measured latency, jitter, throughput, continuity, RF handover, active
   gateway, active path, or real operator handover claim is introduced.
 - No Slice 6 reviewer validation or Lock-in I batch reviewer was started.

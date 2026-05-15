@@ -1,4 +1,4 @@
-# ITRI V-02..V-06 External Validation Evidence Package Plan
+# customer V-02..V-06 External Validation Evidence Package Plan
 
 ## Status
 
@@ -7,7 +7,7 @@ runtime ownership is changed by this plan.
 
 ## Purpose
 
-Define the evidence package needed to close ITRI V-02 through V-06 outside the
+Define the evidence package needed to close customer V-02 through V-06 outside the
 V4 demo route.
 
 The V4 route `/?scenePreset=regional&m8aV4GroundStationScene=1` may name these

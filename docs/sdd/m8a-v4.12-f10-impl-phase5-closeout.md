@@ -1,7 +1,7 @@
 # M8A V4.12 F-10 Implementation Phase 5 Close-Out
 
 Date: 2026-05-12
-Working phase name: **M8A V4.12 ITRI must-have followup**.
+Working phase name: **M8A V4.12 customer must-have followup**.
 
 Status: F-10 implementation close-out for the bounded operator-switchable
 handover policy selector. Scope is F-10 only.

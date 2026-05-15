@@ -38,7 +38,7 @@ Not done:
 - No amend, rebase, commit, push, or force push.
 - No Correction A layout restoration.
 - No new product claim text or metric claim text.
-- No raw ITRI side-read or live source-read path.
+- No raw customer side-read or live source-read path.
 
 ## Runtime Correction
 

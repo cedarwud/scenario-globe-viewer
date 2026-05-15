@@ -1,8 +1,8 @@
-# ITRI Retained Evidence Request Packet
+# customer Retained Evidence Request Packet
 
 Date: 2026-05-14
 
-Status: docs-only evidence request packet for remaining authority-gated ITRI
+Status: docs-only evidence request packet for remaining authority-gated customer
 lanes. This file is a request for owner-supplied retained material. It is not
 retained evidence, a package manifest, a fixture, a reviewer result, or an
 implementation authorization.
@@ -29,7 +29,7 @@ Related data contracts and reviewer close-outs:
 ## Overview
 
 This packet tells external owners what retained artifacts must be supplied
-before the remaining ITRI authority lanes can move beyond request/review
+before the remaining customer authority lanes can move beyond request/review
 readiness. It does not collect data, run tools, create retained packages under
 `output/`, or author fixture JSON.
 
@@ -57,7 +57,7 @@ This request packet preserves these boundaries:
 - It does not assert radio-frequency handover at the native layer.
 - It does not assert active service assignment for satellites, gateways, or
   packet paths.
-- It does not assert ITRI acceptance as complete.
+- It does not assert customer acceptance as complete.
 
 ## Packet-Wide Not Sufficient Examples
 
@@ -77,7 +77,7 @@ The following submissions are not sufficient for the authority-gated lanes:
 
 Target package family:
 Future owner-supplied package material shaped by
-`docs/data-contracts/itri-external-source-package-intake.schema.json` if ITRI
+`docs/data-contracts/itri-external-source-package-intake.schema.json` if customer
 requires source breadth beyond the current vendored public fixtures. Package
 readiness is validated by the S12-B reviewer implementation; S12-C extends that
 same boundary with stricter owner-source acceptance checks; S12-D keeps the same
@@ -99,7 +99,7 @@ Required owner-supplied artifact checklist:
   IDs.
 - Raw source files or private owner-system refs, plus manifest/checksum refs.
 - Owner notes that state whether the package is intended only for bounded
-  public-source review or for ITRI/source-owner acceptance.
+  public-source review or for customer/source-owner acceptance.
 
 Minimum metadata:
 
@@ -112,7 +112,7 @@ Minimum metadata:
   when source data is unavailable, stale, malformed, or outside the accepted
   epoch window.
 - Explicit relationship to F-01: whether this source package is independent of
-  the ITRI orbit-model package or only a public/source-profile fallback.
+  the customer orbit-model package or only a public/source-profile fallback.
 
 Raw artifact expectations:
 
@@ -487,7 +487,7 @@ Reviewer command after package arrival:
 node scripts/review-itri-external-validation-manifest.mjs --package output/validation/external-v02-v06/<timestamp>-external-validation
 ```
 
-## F-01 ITRI Orbit-Model Intake Package
+## F-01 customer Orbit-Model Intake Package
 
 Target package family:
 `output/validation/external-f01-orbit-model/<timestamp>-orbit-model-intake/`.
@@ -546,7 +546,7 @@ Target package family:
 Required owner-supplied artifact checklist:
 
 - Public standards profile package using the S4-B contract, or a retained
-  ITRI/V-group authority package that supersedes the bounded public profile.
+  customer/V-group authority package that supersedes the bounded public profile.
 - Selected ITU recommendations, version IDs, access dates, URLs, source-lineage
   records, and license/use notes.
 - Selected frequency bands, geography, rain-rate source, rain-height source,
@@ -574,7 +574,7 @@ Raw artifact expectations:
 - Source-lineage refs back to the classified official ITU sources used by the
   profile.
 - Owner-supplied parameter/vector/tolerance refs when the profile depends on
-  ITRI/V-group selection.
+  customer/V-group selection.
 - License/use notes that avoid copying restricted recommendation prose, tables,
   equations, or component data without later review.
 

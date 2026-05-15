@@ -1,7 +1,7 @@
-# M8A V4.12 ITRI Must-Have Followup Index
+# M8A V4.12 customer Must-Have Followup Index
 
 Date: 2026-05-12
-Working phase name: **M8A V4.12 ITRI must-have followup**.
+Working phase name: **M8A V4.12 customer must-have followup**.
 
 Status refresh: 2026-05-13. The V4.12 bounded followup chain is closed, and
 the V4.13 public-TLE multi-orbit follow-on is also closed for viewer-side
@@ -9,7 +9,7 @@ bounded runtime evidence.
 
 ## 0. Purpose
 
-Single entry point for the V4.12 chain of ITRI must-have followup SDDs.
+Single entry point for the V4.12 chain of customer must-have followup SDDs.
 A reader landing here should not need to re-discover which F-IDs have
 which planning/spec docs, what the execution ordering is, or what each
 slice is allowed to claim.
@@ -24,10 +24,10 @@ Source authority chain (Tier 1 → 5):
 
 ## 1. Scope Boundary
 
-V4.12 covers only **immediately-actionable** ITRI requirement closures that
+V4.12 covers only **immediately-actionable** customer requirement closures that
 do **not** require:
 
-- new ITRI-supplied orbit model data (F-01)
+- new customer-supplied orbit model data (F-01)
 - new V組-supplied physical model data (P-01..P-03, F-17)
 - external OMNeT++ / INET / ESTNeT stack (F-07/F-08/F-12 measured truth,
   V-02..V-06 end-to-end)
@@ -43,11 +43,11 @@ V4.12 explicitly closes:
 
 V4.12 explicitly does **not** close:
 
-- F-01 (needs ITRI orbit model)
-- F-02 full ITRI/radio/endpoint authority. V4.13 separately closes only the
+- F-01 (needs customer orbit model)
+- F-02 full customer/radio/endpoint authority. V4.13 separately closes only the
   bounded public-TLE LEO/MEO/GEO viewer gate.
-- F-03 full external-source/ITRI-model TLE breadth. V4.13 covers bounded
-  public-TLE runtime evidence, not ITRI source-model intake.
+- F-03 full external-source/customer-model TLE breadth. V4.13 covers bounded
+  public-TLE runtime evidence, not customer source-model intake.
 - F-07/F-08/F-12 measured-truth upgrades
 - F-17 / P-01..P-03 real physical model
 - V-02..V-06 external validation end-to-end
@@ -61,7 +61,7 @@ V4.12 explicitly does **not** close:
 | F-09 | 已完成（bounded） | [m8a-v4.12-f09-communication-rate-visualization-plan.md](./m8a-v4.12-f09-communication-rate-visualization-plan.md) | [m8a-v4.12-f09-impl-phase1-visualization-spec.md](./m8a-v4.12-f09-impl-phase1-visualization-spec.md) | closed — [m8a-v4.12-f09-impl-phase5-closeout.md](./m8a-v4.12-f09-impl-phase5-closeout.md) |
 | F-10 | 已完成（bounded） | [m8a-v4.12-f10-handover-policy-selector-plan.md](./m8a-v4.12-f10-handover-policy-selector-plan.md) | [m8a-v4.12-f10-impl-phase1-policy-spec.md](./m8a-v4.12-f10-impl-phase1-policy-spec.md) | closed — [Phase 5 evidence](./m8a-v4.12-f10-impl-phase5-closeout.md) |
 | F-11 | 已完成（bounded） | [m8a-v4.12-f11-handover-rule-config-plan.md](./m8a-v4.12-f11-handover-rule-config-plan.md) | [m8a-v4.12-f11-impl-phase1-rule-config-spec.md](./m8a-v4.12-f11-impl-phase1-rule-config-spec.md) | closed — [Phase 6 evidence](./m8a-v4.12-f11-impl-phase6-closeout.md) |
-| F-13 | 已完成（multi-orbit bounded public TLE after V4.13） | [m8a-v4.12-f13-leo-scale-runtime-plan.md](./m8a-v4.12-f13-leo-scale-runtime-plan.md); V4.13 follow-on: [m8a-v4.13-multi-orbit-scale-runtime-plan.md](./m8a-v4.13-multi-orbit-scale-runtime-plan.md) | [m8a-v4.12-f13-impl-phase1-leo-scale-spec.md](./m8a-v4.12-f13-impl-phase1-leo-scale-spec.md); V4.13 lock: [m8a-v4.13-impl-phase1-multi-orbit-spec.md](./m8a-v4.13-impl-phase1-multi-orbit-spec.md) | LEO leg complete in V4.12; public MEO/GEO bounded runtime gate closed in V4.13 with `multi-orbit-scale-1000` retained evidence. ITRI orbit-model integration and measured network truth remain successor requirements. |
+| F-13 | 已完成（multi-orbit bounded public TLE after V4.13） | [m8a-v4.12-f13-leo-scale-runtime-plan.md](./m8a-v4.12-f13-leo-scale-runtime-plan.md); V4.13 follow-on: [m8a-v4.13-multi-orbit-scale-runtime-plan.md](./m8a-v4.13-multi-orbit-scale-runtime-plan.md) | [m8a-v4.12-f13-impl-phase1-leo-scale-spec.md](./m8a-v4.12-f13-impl-phase1-leo-scale-spec.md); V4.13 lock: [m8a-v4.13-impl-phase1-multi-orbit-spec.md](./m8a-v4.13-impl-phase1-multi-orbit-spec.md) | LEO leg complete in V4.12; public MEO/GEO bounded runtime gate closed in V4.13 with `multi-orbit-scale-1000` retained evidence. customer orbit-model integration and measured network truth remain successor requirements. |
 | F-16 | 已完成（bounded） | [m8a-v4.12-f16-statistics-report-export-plan.md](./m8a-v4.12-f16-statistics-report-export-plan.md) | [m8a-v4.12-f16-impl-phase1-export-spec.md](./m8a-v4.12-f16-impl-phase1-export-spec.md) | closed — Operator HUD `Report Export` action downloads bounded JSON+CSV report bundles; smoke/screenshot evidence in `output/m8a-v4.12-f16-report-export/` |
 
 Supporting / sibling docs:
@@ -79,7 +79,7 @@ Historical execution order:
 
 ```text
 F-09 Phase 2..5    ──┐
-                     ├──> F-10 Phase 1..5 ──> F-11 Phase 1..6 ──> ITRI demo cut
+                     ├──> F-10 Phase 1..5 ──> F-11 Phase 1..6 ──> customer demo cut
 F-16 Phase 2..4    ──┘
 F-13 Phase 1..6  (independent track; needs ADR 0005 re-review)
 ```
@@ -107,10 +107,10 @@ Every V4.12 slice must obey:
 - no `radio-layer handover`
 - no `ESTNeT throughput`, `INET speed`, `NAT validated`,
   `tunnel verified end-to-end`, `DUT closed`
-- no external-truth `>=500 LEO` or ITRI orbit-model closure. V4.12 F-13 may
+- no external-truth `>=500 LEO` or customer orbit-model closure. V4.12 F-13 may
   claim the bounded public-TLE LEO leg; V4.13 may claim the bounded public-TLE
   LEO/MEO/GEO viewer gate.
-- no `complete ITRI acceptance`
+- no `complete customer acceptance`
 - no `Phase 8 unlocked`
 
 Each slice provenance copy stays bounded-proxy / modeled-bounded-class
@@ -159,7 +159,7 @@ For other immediately-actionable items not covered by V4.12:
   and locked by
   [m8a-v4.13-impl-phase1-multi-orbit-spec.md](./m8a-v4.13-impl-phase1-multi-orbit-spec.md).
   It closes the bounded public-TLE LEO/MEO/GEO viewer gate only; it does not
-  integrate ITRI orbit-model data or measured network truth.
+  integrate customer orbit-model data or measured network truth.
 - **Multi-orbit second endpoint authority**: covered by
   [m8a-v4-ground-station-multi-orbit-handover-plan.md](./m8a-v4-ground-station-multi-orbit-handover-plan.md)
   and ADR
@@ -186,5 +186,5 @@ Current closeout:
 
 - V4.12 chain is closed.
 - V4.13 bounded public-TLE LEO/MEO/GEO viewer gate is closed.
-- Remaining successors are ITRI orbit-model intake, measured traffic truth,
+- Remaining successors are customer orbit-model intake, measured traffic truth,
   and external NAT/tunnel/DUT validation packages.
