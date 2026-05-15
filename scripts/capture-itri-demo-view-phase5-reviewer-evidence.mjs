@@ -54,12 +54,12 @@ const expectedBoundedRouteIds = ["F-09", "F-10", "F-11", "F-16"];
 const expectedExternalValidationStatus = "explicit-fail-no-retained-pass";
 const f13FreshUntilUtc = "2026-05-25T16:43:23.879Z";
 const forbiddenPositiveClaims = [
-  "完整驗證",
-  "完整多軌道驗證",
-  "完整 ≥500",
-  "外部驗測完成",
-  "全部需求完成",
-  "所有需求完成",
+  "full validation",
+  "full multi-orbit validation",
+  "complete ≥500",
+  "external test complete",
+  "all requirements complete",
+  "all requirements completed",
   "measured throughput passed",
   "live iperf",
   "live ping",
