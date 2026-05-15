@@ -26,6 +26,10 @@ const bootstrapCompositionPath = new URL(
   "../src/runtime/bootstrap/composition.ts",
   import.meta.url
 );
+const handoverDecisionPath = new URL(
+  "../src/features/handover-decision/handover-decision.ts",
+  import.meta.url
+);
 
 function transpileTypeScript(source, fileName) {
   return ts.transpileModule(source, {
@@ -35,6 +39,13 @@ function transpileTypeScript(source, fileName) {
     },
     fileName
   }).outputText;
+}
+
+function localizeControllerImports(source) {
+  return source.replace(
+    /from "\.\.\/features\/handover-decision"/g,
+    'from "./handover-decision.mjs"'
+  );
 }
 
 function resolveScenarioInputs(definition) {
@@ -121,14 +132,16 @@ try {
     bootstrapScenarioSessionSource,
     bootstrapOperatorHudSource,
     mainSource,
-    bootstrapCompositionSource
+    bootstrapCompositionSource,
+    handoverDecisionSource
   ] = await Promise.all([
     readFile(bootstrapScenarioModulePath, "utf8"),
     readFile(bootstrapOperatorControllerPath, "utf8"),
     readFile(bootstrapScenarioSessionPath, "utf8"),
     readFile(bootstrapOperatorHudPath, "utf8"),
     readFile(mainPath, "utf8"),
-    readFile(bootstrapCompositionPath, "utf8")
+    readFile(bootstrapCompositionPath, "utf8"),
+    readFile(handoverDecisionPath, "utf8")
   ]);
 
   const requiredScenarioSnippets = [
@@ -204,10 +217,16 @@ try {
       )
     ),
     writeFile(
+      join(tempModuleDir, "handover-decision.mjs"),
+      transpileTypeScript(handoverDecisionSource, "handover-decision.ts")
+    ),
+    writeFile(
       join(tempModuleDir, "bootstrap-operator-controller.mjs"),
-      transpileTypeScript(
-        bootstrapOperatorControllerSource,
-        "bootstrap-operator-controller.ts"
+      localizeControllerImports(
+        transpileTypeScript(
+          bootstrapOperatorControllerSource,
+          "bootstrap-operator-controller.ts"
+        )
       )
     )
   ]);

@@ -176,7 +176,7 @@ try {
   );
   assert(
     bootstrapCompositionSource.includes(
-      "physicalInput: controllerGraph.physicalInputController"
+      "physicalInput: activePhysicalInputController"
     ),
     "Bootstrap composition capture seam must expose physical-input state for bounded verification."
   );
