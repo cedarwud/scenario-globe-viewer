@@ -195,3 +195,20 @@ local artifacts; no retained evidence is committed to the repo.
 - `npm test`: exit 0 (`tsc --noEmit`, `vite build`, Phase 0 verification passed).
 - `npm run test:itri-f12r1`: exit 0.
 - `npm run test:itri-f07r1`: exit 0.
+
+## Standards-Referenced Threshold Manifest (schema-ready, 2026-05-15)
+
+- packagePath: `output/validation/external-f12/2026-05-15T02-26-46Z-decision-threshold-authority/`
+- packageState: `schema-ready` (reviewer exit 0)
+- Threshold source: 3GPP TS 38.300 + ITU-R S.1528 published reference values
+  (`thresholdAuthority.approvalRecord.approvalRef: authority/approval.md`)
+- `thresholdAuthority.unresolvedState`: `none` records structural completeness
+  of the threshold-authority object only. The package is **not** authority-ready;
+  `useNotes` and `reviewer.notes` retain the explicit non-authority disclaimer.
+- Authority-ready: blocked — requires customer-owner approval record over real
+  measured F-07R1 packages (owner-supplied). The co-created reference F-07R1
+  package is a schema-shape stand-in, not real measurement.
+- Re-verified 2026-05-15:
+  `node scripts/review-itri-f12-decision-threshold-authority.mjs --package
+  output/validation/external-f12/2026-05-15T02-26-46Z-decision-threshold-authority`
+  → `packageState: "schema-ready"`, exit 0, 0 gaps. `npm test` exit 0.
