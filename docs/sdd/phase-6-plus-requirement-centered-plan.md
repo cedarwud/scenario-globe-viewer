@@ -335,8 +335,13 @@ turning the app into a decorative shell rewrite.
 
 ### Closure Note
 
-- Close-out accepted on `2026-04-19`
-- `npm run test:phase6.2` passed
+- Close-out **regressed** on `2026-05-15`: independent audit
+  (`INDEPENDENT-AUDIT-results.md`) reproduced `npm run test:phase6.2` exiting
+  with `ERR_MODULE_NOT_FOUND: /tmp/features/handover-decision` from the
+  transpiled `bootstrap-operator-controller.mjs` temp module. Verify script
+  is currently broken; the previously recorded `2026-04-19` close-out is
+  no longer supported by a green test run. Repair required before this row
+  can re-close.
 - Next active entry: `Phase 6.3`
 
 ## Phase 6.3
@@ -450,8 +455,12 @@ Add the requirement-bearing model inputs that the decision layer depends on.
 
 ### Closure Note
 
-- Close-out accepted on `2026-04-19`
-- `npm run test:phase6.5` passed
+- Close-out **regressed** on `2026-05-15`: independent audit
+  (`INDEPENDENT-AUDIT-results.md`) reproduced `npm run test:phase6.5` exiting
+  with `AssertionError: Bootstrap composition capture seam must expose
+  physical-input state for bounded verification`. Verify script is currently
+  broken; the previously recorded `2026-04-19` close-out is no longer supported
+  by a green test run. Repair required before this row can re-close.
 - Next active entry: `Phase 6.6`
 
 ## Phase 6.6
