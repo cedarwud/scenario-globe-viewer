@@ -121,7 +121,7 @@ Current acceptance-report facts used by v2:
 - V-02 through V-06 remain partial/external for WSL, tunnel/bridge, NAT,
   virtual DUT, physical DUT, traffic generator, ping, and iPerf truth.
 - F-13 >=500 LEO remains `待完成` and is a Phase 7.1 gate.
-- F-18 24h stability is closed by Phase 7.0 retained full-run artifact.
+- F-18 24h stability requires Phase 7.0 retained full-run artifact; soak harness is landed but the full 24h run has not completed — gate remains open.
 
 V4.11 ground-station scene boundary remains unchanged:
 - 13 actors.
