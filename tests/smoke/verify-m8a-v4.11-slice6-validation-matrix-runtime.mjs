@@ -66,7 +66,7 @@ const finalHandoffText = readText(finalHandoff, failures);
 
 expectIncludes(matrixText, "| Reviewer | Window | Q1 | Q2 | Q3 | Q4 | Q5 | Total |", matrixPath, failures);
 expectIncludes(matrixText, "Lock-in I batch reviewer reconciliation", matrixPath, failures);
-expectIncludes(checklistText, "[模擬展示]", checklistPath, failures);
+expectIncludes(checklistText, "[Simulation view]", checklistPath, failures);
 expectIncludes(checklistText, "TLE: CelesTrak NORAD GP", checklistPath, failures);
 expectIncludes(checklistText, "Source provenance", checklistPath, failures);
 expectIncludes(checklistText, "accepted design evolution", checklistPath, failures);

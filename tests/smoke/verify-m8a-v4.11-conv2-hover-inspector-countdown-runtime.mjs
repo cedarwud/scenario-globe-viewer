@@ -33,7 +33,7 @@ const EXPECTED_INSPECTOR_CONV2_BEHAVIOR =
   "single-state-evidence-role-truth-button-shows-state-evidence";
 const EXPECTED_COUNTDOWN_VERSION =
   "m8a-v4.11-countdown-surface-conv2-runtime.v1";
-const EXPECTED_COUNTDOWN_FOOTNOTE = "~ 為模擬推演值";
+const EXPECTED_COUNTDOWN_FOOTNOTE = "~ = simulated value";
 const EXPECTED_COUNTDOWN_DERIVATION_TAG = "addendum-1.1";
 
 const VIEWPORT = {
@@ -47,9 +47,9 @@ const HOVER_CASES = {
     ratio: 0.1,
     roleToken: "focus",
     expectedFocusLines: [
-      "OneWeb LEO · 現在看這顆",
-      "連線品質：強",
-      "服務時間:~22 分鐘"
+      "OneWeb LEO · in focus now",
+      "Link quality: strong",
+      "Service time: ~22 min"
     ],
     screenshot: "v4.11-conv2-w1-hover-1440x900.png"
   },
@@ -57,9 +57,9 @@ const HOVER_CASES = {
     ratio: 0.3,
     roleToken: "pressure",
     expectedFocusLines: [
-      "OneWeb LEO · 訊號減弱中",
-      "切換在 ~10 分鐘",
-      "位置條件變差"
+      "OneWeb LEO · signal degrading",
+      "Switch in ~10 min",
+      "Geometry degrading"
     ],
     screenshot: "v4.11-conv2-w2-countdown-1440x900.png"
   },
@@ -67,9 +67,9 @@ const HOVER_CASES = {
     ratio: 0.5,
     roleToken: "continuity-hold",
     expectedFocusLines: [
-      "SES O3b mPOWER MEO · 暫時接住",
-      "暫時接住 ~22 分鐘",
-      "新 LEO 即將回來"
+      "SES O3b mPOWER MEO · continuity hold",
+      "Continuity hold ~22 min",
+      "New LEO returning soon"
     ],
     screenshot: "v4.11-conv2-w3-hover-1440x900.png"
   },
@@ -77,9 +77,9 @@ const HOVER_CASES = {
     ratio: 0.7,
     roleToken: "re-entry",
     expectedFocusLines: [
-      "OneWeb LEO · 候選",
-      "候選品質:強",
-      "若切回:~22 分鐘"
+      "OneWeb LEO · candidate",
+      "Candidate quality: strong",
+      "If switching back: ~22 min"
     ],
     screenshot: "v4.11-conv2-w4-hover-candidate-1440x900.png"
   },
@@ -87,9 +87,9 @@ const HOVER_CASES = {
     ratio: 0.9,
     roleToken: "guard",
     expectedFocusLines: [
-      "Singtel/SES GEO · 保底覆蓋",
-      "永遠連得到",
-      "序列即將結束"
+      "Singtel/SES GEO · guard coverage",
+      "Always reachable",
+      "Sequence ending soon"
     ],
     screenshot: "v4.11-conv2-w5-hover-1440x900.png"
   }
@@ -462,8 +462,8 @@ function assertCountdownDerivation(result, label) {
       JSON.stringify({ remainingFromDataset, expectedRemaining, surface })
   );
   assert(
-    /^~\d+\s+(分鐘|秒)$/.test(surface.dataset.approximateDisplay),
-    `${label} countdown approximate display must be Chinese ~N 分鐘 / 秒: ` +
+    /^~\d+\s+(min|s)$/.test(surface.dataset.approximateDisplay),
+    `${label} countdown approximate display must be English ~N min / s: ` +
       surface.dataset.approximateDisplay
   );
   assert(
@@ -613,9 +613,9 @@ async function captureInspectorScreenshot(client) {
   );
   assert(
     result.stateRole.copy.includes(
-      "目前由 MEO 暫時接住，覆蓋面廣但延遲略高。模擬預期約 14 分鐘後會有新的候選 LEO 出現。"
+      "MEO is currently holding continuity with wider coverage and slightly higher latency. The simulation expects a new candidate LEO in ~14 min."
     ),
-    "Conv 2 W3 State Evidence copy must include Addendum §1.2 中文修正: " +
+    "Conv 2 W3 State Evidence copy must include Addendum §1.2 (formerly Chinese rewording): " +
       JSON.stringify(result.stateRole)
   );
   const screenshotPath = await captureWindowScreenshot(
@@ -804,14 +804,14 @@ async function run() {
     );
     assert(
       afterDetails.stateRole.copy.includes(
-        "剛接上 OneWeb LEO，連線品質強。約 22 分鐘後，因為位置條件變化會進入訊號減弱階段。"
+        "Just connected to OneWeb LEO with strong link quality. In ~22 min, geometry change triggers signal degradation."
       ) &&
-        afterDetails.stateRole.title === "剛接上 OneWeb LEO · LEO review focus" &&
+        afterDetails.stateRole.title === "Just connected OneWeb LEO · LEO review focus" &&
         afterDetails.stateRole.detail.includes(
           "Endpoint precision remains operator-family only and no active gateway is being claimed."
         ) &&
         afterDetails.stateRole.detail.includes("window 1 of 5"),
-      "Conv 2 W1 State Evidence must show Addendum §1.2 中文修正 paragraph + title + V4.10 backward-compat English detail: " +
+      "Conv 2 W1 State Evidence must show Addendum §1.2 (formerly Chinese rewording) paragraph + title + V4.10 backward-compat English detail: " +
         JSON.stringify(afterDetails.stateRole)
     );
     captures.push({

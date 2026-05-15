@@ -226,7 +226,7 @@ async function main() {
     );
     assert(
       layout.validationBadge?.visible &&
-        layout.validationBadge.text.includes("驗證狀態：待補"),
+        layout.validationBadge.text.includes("Validation status: TBD"),
       "Inspector validation badge must be visible in sheet header: " +
         JSON.stringify(layout.validationBadge)
     );

@@ -35,7 +35,7 @@ Acceptance-report quote:
 `/home/u24/papers/itri/itri-acceptance-report-2026-04-20/01-itri-requirement-inventory-and-status.md:26`:
 
 ```text
-| F-13 | 支援至少 `500 LEO` | `待完成` | Current live runtime is still bounded to the copied walker proof line. | `7.1` |
+| F-13 | Support at least `500 LEO` | `Pending` | Current live runtime is still bounded to the copied walker proof line. | `7.1` |
 ```
 
 customer README §2.7 quote:
@@ -43,10 +43,10 @@ customer README §2.7 quote:
 `/home/u24/papers/itri/README.md:267-281`:
 
 ```text
-- 支援 `>= 500 LEO` 模擬
-  - kickoff 功能需求圖還直接舉例：`Starlink`、`OneWeb`
-- 模擬速度可調
-- 可在 `real time` 與預錄 `TLE` 情境間切換
+- Support `>= 500 LEO` simulation
+  - the kickoff capability-requirement diagram cites examples directly: `Starlink`, `OneWeb`
+- Adjustable simulation speed
+- Switch between `real time` and prerecorded `TLE` scenarios
 ```
 
 Interpretation:
@@ -108,8 +108,8 @@ What is missing for F-13 route-native closure (post-readiness):
    `requirementGatePassed = true` for the LEO leg and **observed runtime
    variant** showing `overlayRenderMode = "leo-scale-points"` (not the
    walker-derived readiness fixture mode).
-6. Acceptance-report row update from `部分完成` to
-   `已完成（LEO leg, route-native, bounded overlay）`.
+6. Acceptance-report row update from `Partial` to
+   `Complete (LEO leg, route-native, bounded overlay)`.
 
 ## 3. Goal / Acceptance Criteria
 
@@ -254,7 +254,7 @@ node tests/validation/run-phase7.1-viewer-scope-validation.mjs \
 ### Phase 6 — Close-Out Doc + Acceptance Note
 
 - update `01-itri-requirement-inventory-and-status.md` F-13 row:
-  `部分完成 → 已完成（LEO leg, bounded overlay, multi-orbit MEO/GEO still open）`;
+  `Partial → Complete (LEO leg, bounded overlay, multi-orbit MEO/GEO still open)`;
 - update Phase 7.1 evidence contract narrative if observed runtime variants
   diverged from spec;
 - record acceptance note: scope, fixture source, fixture count, perf delta,

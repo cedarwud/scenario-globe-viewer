@@ -8,10 +8,10 @@ component implementation, styling, smoke work, V4.11 scene changes, or commits.
 
 Authority context:
 
-- F-09 acceptance status remains `待完成`: `networkSpeedMbps` already exists
+- F-09 acceptance status remains `pending`: `networkSpeedMbps` already exists
   inside physical-input and handover-decision models, but no dedicated
   communication-rate visualization surface exists.
-- F-12 is already `已完成（bounded）` for the repo-owned handover decision seam:
+- F-12 is already `completed (bounded)` for the repo-owned handover decision seam:
   latency, jitter, and network speed are deterministic bounded/proxy metrics,
   not measured truth.
 - F-09 therefore closes only a bounded visualization seam. It must not promote

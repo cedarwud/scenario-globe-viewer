@@ -2,7 +2,7 @@
 
 Date: 2026-05-12
 
-Status: **已完成（bounded）**.
+Status: **completed (bounded)**.
 
 ## Close-Out Note
 

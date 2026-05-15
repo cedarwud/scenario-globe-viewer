@@ -52,7 +52,7 @@ Not implemented:
 | Smoke | Old assertion | New assertion | Reason |
 | --- | --- | --- | --- |
 | `tests/smoke/verify-m8a-v4.11-slice1-glance-rank-surface-runtime.mjs` | Ground short-chip LEO/MEO/GEO tokens had `data-m8a-v47-action="open-sources"`, `data-m8a-v411-sources-trigger="ground-orbit-evidence"`, and per-orbit source filters. | Ground short-chip tokens remain visible strength tokens but have no direct Sources action, trigger, endpoint, or orbit filter attributes. | Conv 4 demotes Sources out of glance evidence. The short chip stays as first-read evidence only. |
-| `tests/smoke/verify-m8a-v4.11-slice2-hover-popover-runtime.mjs` | Click-to-pin expected the old Truth affordance state through `[data-m8a-v47-control-id="truth-affordance"]`. | Click-to-pin asserts no Truth button exists and the footer boundary chip remains closed. | Conv 3 removed the Truth button; footer `[模擬展示]` chip owns `toggle-boundary`. |
+| `tests/smoke/verify-m8a-v4.11-slice2-hover-popover-runtime.mjs` | Click-to-pin expected the old Truth affordance state through `[data-m8a-v47-control-id="truth-affordance"]`. | Click-to-pin asserts no Truth button exists and the footer boundary chip remains closed. | Conv 3 removed the Truth button; footer `[Simulation view]` chip owns `toggle-boundary`. |
 | `tests/smoke/verify-m8a-v4.11-slice5-real-data-surfacing-runtime.mjs` | Corner provenance badge click opened full Sources. | Corner placeholder click keeps Sources closed; badge is invisible, non-focusable, non-clickable, and has no Sources trigger. | Corner provenance is now selector-compatible placeholder only; footer carries ambient TLE disclosure. |
 | `tests/smoke/verify-m8a-v4.11-slice5-real-data-surfacing-runtime.mjs` | Ground orbit-evidence chip click opened Sources with a LEO filter. | Ground short-chip click does not open Sources. Full Sources is opened from Details → advanced `Source provenance`. | Conv 4 removes direct ground-chip Sources triggers; Sources is an inspector advanced path only. |
 | `tests/smoke/verify-m8a-v4.11-slice5-real-data-surfacing-runtime.mjs` | Slice 5 asserted three-role Sources + State Evidence + Truth Boundary concurrency in the same smoke. | Slice 5 asserts Sources opens from the advanced toggle with full 13/2/5 counts, repo-owned URL set, no forbidden claims, and R2 read-only. State Evidence + truth-tail behavior remains covered by Conv 3 and Slice 3 smokes. | The original concurrent Truth/Details concept evolved into single State Evidence + footer disclosure + truth tail. Keeping the old Slice 5 concurrency flow would preserve a deprecated reviewer path. |
@@ -69,8 +69,8 @@ advanced source-provenance toggle. The current design is:
 
 - State Evidence is the primary inspector role.
 - Footer chips provide ambient disclosure:
-  `[模擬展示] [operator-family precision] [TLE: CelesTrak NORAD GP · 2026-04-26] [13 actors]`.
-- W5 adds high-salience `不是實際備援切換證據`.
+  `[Simulation view] [operator-family precision] [TLE: CelesTrak NORAD GP · 2026-04-26] [13 actors]`.
+- W5 adds high-salience `Not actual failover evidence`.
 - Truth content survives as a truth tail when the footer boundary chip is
   opened, preserving the boundary state machine without restoring a Truth
   button.
@@ -85,13 +85,13 @@ Updated:
 
 The acceptable-answer examples now include:
 
-- `現在看這顆`
-- `位置條件變差`
-- `暫時接住`
-- `候選`
-- `保底覆蓋`
-- `模擬展示`
-- `不是實際備援切換證據`
+- `Currently viewing this one`
+- `Position conditions worsening`
+- `Temporarily holding`
+- `Candidate`
+- `Guard coverage`
+- `Simulation view`
+- `Not actual failover evidence`
 - `TLE / CelesTrak NORAD GP`
 
 Obsolete assumptions about opening Details and Truth together are superseded

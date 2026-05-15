@@ -496,7 +496,7 @@ function assertAdvancedSourcesOpen(result, projectionUrls) {
   );
   assert(
     result.validationBadge.visible &&
-      result.validationBadge.text.includes("驗證狀態：待補"),
+      result.validationBadge.text.includes("Validation status: TBD"),
     "Conv 4 validation badge must be visible in inspector header per v2 §4.5: " +
       JSON.stringify(result.validationBadge)
   );

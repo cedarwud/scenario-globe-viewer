@@ -52,9 +52,9 @@ const M8A_V411_W5_LEGACY_DETAIL =
 
 const M8A_V411_STATE_EVIDENCE_COPY = {
   "leo-acquisition-context": {
-    title: "剛接上 OneWeb LEO · LEO review focus",
+    title: "Just connected OneWeb LEO · LEO review focus",
     paragraph:
-      "剛接上 OneWeb LEO，連線品質強。約 22 分鐘後，因為位置條件變化會進入訊號減弱階段。",
+      "Just connected to OneWeb LEO with strong link quality. In ~22 min, geometry change triggers signal degradation.",
     now: "Now: LEO is the modeled primary service state for this window.",
     why: "Why: position conditions support low-latency LEO review focus.",
     next: "Next: watch for LEO aging pressure before the MEO hold window.",
@@ -64,9 +64,9 @@ const M8A_V411_STATE_EVIDENCE_COPY = {
     truthTailLines: M8A_V411_TRUTH_TAIL_LINES
   },
   "leo-aging-pressure": {
-    title: "LEO 訊號減弱中 · LEO pressure",
+    title: "LEO signal degrading · LEO pressure",
     paragraph:
-      "LEO 的位置條件正在變差。約 10 分鐘後，連線會切到較廣覆蓋的 MEO 暫時接住。",
+      "LEO geometry is degrading. In ~10 min the link switches to wider-coverage MEO for continuity hold.",
     now: "Now: LEO remains primary but is under modeled pressure.",
     why: "Why: the replay window says position conditions are worsening.",
     next: "Next: MEO is the modeled continuity hold candidate.",
@@ -76,9 +76,9 @@ const M8A_V411_STATE_EVIDENCE_COPY = {
     truthTailLines: M8A_V411_TRUTH_TAIL_LINES
   },
   "meo-continuity-hold": {
-    title: "MEO 暫時接住 · MEO continuity hold",
+    title: "MEO continuity hold · MEO continuity hold",
     paragraph:
-      "目前由 MEO 暫時接住，覆蓋面廣但延遲略高。模擬預期約 14 分鐘後會有新的候選 LEO 出現。",
+      "MEO is currently holding continuity with wider coverage and slightly higher latency. The simulation expects a new candidate LEO in ~14 min.",
     now: "Now: MEO is the modeled primary hold state.",
     why: "Why: wider coverage carries continuity while LEO is not primary.",
     next: "Next: a LEO re-entry candidate appears in the following window.",
@@ -88,9 +88,9 @@ const M8A_V411_STATE_EVIDENCE_COPY = {
     truthTailLines: M8A_V411_TRUTH_TAIL_LINES
   },
   "leo-reentry-candidate": {
-    title: "LEO 候選回來 · LEO re-entry",
+    title: "LEO candidate returning · LEO re-entry",
     paragraph:
-      "有新的 LEO 進入候選範圍。依位置條件預測，切回後可有約 22 分鐘低延遲。MEO 仍在接住，沒有立即必須切的壓力。",
+      "A new LEO enters the candidate set. Geometry predicts ~22 min low-latency after switching back. MEO is still holding, so there is no immediate switch pressure.",
     now: "Now: MEO remains primary while LEO is only a candidate.",
     why: "Why: position conditions recovered enough for LEO evaluation.",
     next: "Next: the sequence closes on GEO guard coverage.",
@@ -100,9 +100,9 @@ const M8A_V411_STATE_EVIDENCE_COPY = {
     truthTailLines: M8A_V411_TRUTH_TAIL_LINES
   },
   "geo-continuity-guard": {
-    title: "GEO 保底覆蓋 · GEO guard context",
+    title: "GEO guard coverage · GEO guard context",
     paragraph:
-      "GEO 作為保底覆蓋角色，永遠連得到，但這只是模擬展示，不是實際備援切換證據。序列在這裡結束。",
+      "GEO acts as guard coverage and is always reachable, but this is simulation only, not actual failover evidence. The sequence ends here.",
     now: "Now: GEO is shown as the modeled guard coverage state.",
     why: "Why: the replay closes on a coverage boundary, not failover proof.",
     next: "Next: restart returns to the LEO acquisition window.",
@@ -153,8 +153,8 @@ const M8A_V411_PHASE_C_RAIL_COPY = {
     currentToken: "Current: LEO",
     candidateToken: "Candidate: none",
     fallbackToken: "Fallback: MEO/GEO",
-    nextPreview: "下一步：進入品質下降階段",
-    evidenceHook: "modeled quality strong; 服務時長：~22 分鐘"
+    nextPreview: "Next: entering quality drop",
+    evidenceHook: "modeled quality strong; service window: ~22 min"
   },
   "leo-aging-pressure": {
     ordinalLabel: "W2",
@@ -165,8 +165,8 @@ const M8A_V411_PHASE_C_RAIL_COPY = {
     currentToken: "Current: LEO",
     candidateToken: "Candidate: MEO",
     fallbackToken: "Fallback: GEO",
-    nextPreview: "下一步：MEO 暫時接住連續性",
-    evidenceHook: "modeled quality dropping; 切換倒數：~10 分鐘"
+    nextPreview: "Next: MEO continuity hold",
+    evidenceHook: "modeled quality dropping; switch countdown: ~10 min"
   },
   "meo-continuity-hold": {
     ordinalLabel: "W3",
@@ -177,8 +177,8 @@ const M8A_V411_PHASE_C_RAIL_COPY = {
     currentToken: "Current: MEO",
     candidateToken: "Candidate: LEO",
     fallbackToken: "Fallback: GEO",
-    nextPreview: "下一步：新 LEO 候選回到",
-    evidenceHook: "modeled continuity hold; LEO ETA：~14 分鐘"
+    nextPreview: "Next: new LEO candidate returning",
+    evidenceHook: "modeled continuity hold; LEO ETA: ~14 min"
   },
   "leo-reentry-candidate": {
     ordinalLabel: "W4",
@@ -189,8 +189,8 @@ const M8A_V411_PHASE_C_RAIL_COPY = {
     currentToken: "Current: MEO",
     candidateToken: "Candidate: LEO",
     fallbackToken: "Fallback: GEO",
-    nextPreview: "下一步：GEO 收尾為 guard",
-    evidenceHook: "candidate quality strong; 若切回：~22 分鐘"
+    nextPreview: "Next: GEO closes as guard",
+    evidenceHook: "candidate quality strong; if switching back: ~22 min"
   },
   "geo-continuity-guard": {
     ordinalLabel: "W5",
@@ -201,8 +201,8 @@ const M8A_V411_PHASE_C_RAIL_COPY = {
     currentToken: "Current: GEO",
     candidateToken: "Candidate: none",
     fallbackToken: "Fallback: GEO guard",
-    nextPreview: "下一步：重新開始（回到 W1）",
-    evidenceHook: "guard context only; 序列結束：~5 分鐘"
+    nextPreview: "Next: restart (back to W1)",
+    evidenceHook: "guard context only; sequence ends: ~5 min"
   }
 } satisfies Record<M8aV46dSimulationHandoverWindowId, M8aV411PhaseCRailCopy>;
 
@@ -319,14 +319,14 @@ export const M8A_V411_DISABLED_METRIC_TILES = [
     gap: "Numeric communication time and availability detail",
     hookpoint: "Communication Time panel",
     reachability: "Phase 6 acceptance route, separate",
-    placeholder: "未連接"
+    placeholder: "Not connected"
   },
   {
     id: "handover-decision-proxy-inputs",
     gap: "Handover decision proxy inputs over latency/jitter/network-speed dimensions",
     hookpoint: "Handover Decision panel",
     reachability: "Phase 6 acceptance route, separate",
-    placeholder: "未連接"
+    placeholder: "Not connected"
   },
   {
     id: "communication-rate-visualization",
@@ -338,17 +338,17 @@ export const M8A_V411_DISABLED_METRIC_TILES = [
   },
   {
     id: "physical-factor-projection",
-    gap: "Rain / antenna / ITU / V 組 physical factor projection",
+    gap: "Rain / antenna / ITU / V-group physical factor projection",
     hookpoint: "Physical Inputs panel",
     reachability: "Phase 6 acceptance route, separate",
-    placeholder: "未連接"
+    placeholder: "Not connected"
   },
   {
     id: "validation-environment-state",
     gap: "Bounded validation environment / DUT / transport state",
     hookpoint: "Validation State panel",
     reachability: "Phase 6 acceptance route, separate",
-    placeholder: "未連接"
+    placeholder: "Not connected"
   },
   {
     id: "external-network-truth",
@@ -364,7 +364,7 @@ export const M8A_V411_DISABLED_METRIC_TILES = [
     hookpoint:
       "Validation State shows bounded modes; real tunnel/bridge/NAT remains external",
     reachability: "Phase 6 acceptance route, separate",
-    placeholder: "未連接"
+    placeholder: "Not connected"
   },
   {
     id: "dut-traffic-generator",
@@ -372,7 +372,7 @@ export const M8A_V411_DISABLED_METRIC_TILES = [
     hookpoint:
       "Validation State names bounded DUT modes; real DUT/traffic generator chain remains external",
     reachability: "Phase 6 acceptance route, separate",
-    placeholder: "未連接"
+    placeholder: "Not connected"
   },
   {
     id: "leo-scale",
@@ -411,6 +411,6 @@ export const M8A_V411_DISABLED_METRIC_TILES = [
     hookpoint:
       "Existing replay mode is bounded; full multi-source TLE scenario switching closes downstream",
     reachability: "not reachable from this scene",
-    placeholder: "未連接"
+    placeholder: "Not connected"
   }
 ] as const satisfies readonly M8aV411DisabledMetricTileCopy[];

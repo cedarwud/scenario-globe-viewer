@@ -50,9 +50,9 @@ const VIEWPORT = {
 // element that the V4.10 Slice 4 smoke continues to read via
 // primarySections["current-state"].
 const EXPECTED_W1_STATE_EVIDENCE =
-  "剛接上 OneWeb LEO，連線品質強。約 22 分鐘後，因為位置條件變化會進入訊號減弱階段。";
+  "Just connected to OneWeb LEO with strong link quality. In ~22 min, geometry change triggers signal degradation.";
 const EXPECTED_W1_STATE_EVIDENCE_TITLE =
-  "剛接上 OneWeb LEO · LEO review focus";
+  "Just connected OneWeb LEO · LEO review focus";
 const EXPECTED_W1_STATE_EVIDENCE_DETAIL_FRAGMENT =
   "The simulation review is currently anchored on the OneWeb LEO context marked as the focus role.";
 const FORBIDDEN_POSITIVE_PHRASES = [
@@ -616,7 +616,7 @@ function assertConcurrencyOpen(result) {
   );
   assert(
     result.validationBadge.visible &&
-      result.validationBadge.text.includes("驗證狀態：待補"),
+      result.validationBadge.text.includes("Validation status: TBD"),
     "Slice 3 validation badge must be visible in inspector header per v2 §4.5: " +
       JSON.stringify(result.validationBadge)
   );

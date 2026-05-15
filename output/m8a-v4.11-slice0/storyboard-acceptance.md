@@ -1,13 +1,13 @@
 # M8A-V4.11 Slice 0 Storyboard Acceptance
 
-Acceptance source for every window: "總控對話 round-1 §1 Current Phase,
+Acceptance source for every window: "Control conversation round-1 §1 Current Phase,
 2026-05-02".
 
 ## W1 `leo-acquisition-context`
 
 Status: accepted (provisional, pending reviewer transcript).
 
-Storyboard text acceptance source: "總控對話 round-1 §1 Current Phase,
+Storyboard text acceptance source: "Control conversation round-1 §1 Current Phase,
 2026-05-02".
 
 Open dependency: reviewer-transcript outstanding; Slice 0 cannot close until
@@ -21,7 +21,7 @@ V4.10 baseline alignment: yes. The default 1440x900 PNG is active on
 
 Status: accepted (provisional, pending reviewer transcript).
 
-Storyboard text acceptance source: "總控對話 round-1 §1 Current Phase,
+Storyboard text acceptance source: "Control conversation round-1 §1 Current Phase,
 2026-05-02".
 
 Open dependency: reviewer-transcript outstanding; Slice 0 cannot close until
@@ -36,7 +36,7 @@ and the unchanged V4.6D model maps W2 to
 
 Status: accepted (provisional, pending reviewer transcript).
 
-Storyboard text acceptance source: "總控對話 round-1 §1 Current Phase,
+Storyboard text acceptance source: "Control conversation round-1 §1 Current Phase,
 2026-05-02".
 
 Open dependency: reviewer-transcript outstanding; Slice 0 cannot close until
@@ -50,7 +50,7 @@ V4.10 baseline alignment: yes. The Slice 5 sequence rail includes W3 as
 
 Status: accepted (provisional, pending reviewer transcript).
 
-Storyboard text acceptance source: "總控對話 round-1 §1 Current Phase,
+Storyboard text acceptance source: "Control conversation round-1 §1 Current Phase,
 2026-05-02".
 
 Open dependency: reviewer-transcript outstanding; Slice 0 cannot close until
@@ -64,7 +64,7 @@ V4.10 baseline alignment: yes. The Slice 5 sequence rail includes W4 as
 
 Status: accepted (provisional, pending reviewer transcript).
 
-Storyboard text acceptance source: "總控對話 round-1 §1 Current Phase,
+Storyboard text acceptance source: "Control conversation round-1 §1 Current Phase,
 2026-05-02".
 
 Open dependency: reviewer-transcript outstanding; Slice 0 cannot close until

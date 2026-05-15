@@ -7,6 +7,7 @@
   ],
   "checks": [
     "normal-motion-entry-and-steady-w4-candidate-token",
+    "smoke-softening-v2-5-w4-rail-next-evidence-cjk-probe",
     "reduced-motion-stable-w4-candidate-token",
     "cjk-glyph-runtime-probe-no-tofu"
   ]

@@ -21,19 +21,19 @@ The Metrics tab now renders 13 disabled tiles in the `Not connected in this scen
 
 | # | Disabled tile copy | Hookpoint / qualifier | Placeholder |
 |---|---|---|---|
-| 1 | Numeric communication time and availability detail | `Communication Time panel` / `Phase 6 acceptance route, separate` | `未連接` |
-| 2 | Handover decision proxy inputs over latency/jitter/network-speed dimensions | `Handover Decision panel` / `Phase 6 acceptance route, separate` | `未連接` |
-| 3 | Dedicated communication-rate visualization | `No dedicated communication-rate surface yet; F-09 remains 待完成` / `not reachable from this scene` | `未連接` |
-| 4 | Rain / antenna / ITU / V 組 physical factor projection | `Physical Inputs panel` / `Phase 6 acceptance route, separate` | `未連接` |
-| 5 | Bounded validation environment / DUT / transport state | `Validation State panel` / `Phase 6 acceptance route, separate` | `未連接` |
+| 1 | Numeric communication time and availability detail | `Communication Time panel` / `Phase 6 acceptance route, separate` | `Not connected` |
+| 2 | Handover decision proxy inputs over latency/jitter/network-speed dimensions | `Handover Decision panel` / `Phase 6 acceptance route, separate` | `Not connected` |
+| 3 | Dedicated communication-rate visualization | `No dedicated communication-rate surface yet; F-09 remains incomplete` / `not reachable from this scene` | `Not connected` |
+| 4 | Rain / antenna / ITU / V-band group physical factor projection | `Physical Inputs panel` / `Phase 6 acceptance route, separate` | `Not connected` |
+| 5 | Bounded validation environment / DUT / transport state | `Validation State panel` / `Phase 6 acceptance route, separate` | `Not connected` |
 | 6 | ESTNeT / INET end-to-end network truth | `External validation gap: ESTNeT/INET, ping/iPerf, NAT/tunnel, traffic generator are not owned by this repo scene` / `not reachable from this scene` | `external validation` |
-| 7 | WSL tunnel / bridging / NAT routing | `Validation State shows bounded modes; real tunnel/bridge/NAT remains external` / `Phase 6 acceptance route, separate` | `未連接` |
-| 8 | Virtual / physical DUT and NE-ONE traffic generator | `Validation State names bounded DUT modes; real DUT/traffic generator chain remains external` / `Phase 6 acceptance route, separate` | `未連接` |
+| 7 | WSL tunnel / bridging / NAT routing | `Validation State shows bounded modes; real tunnel/bridge/NAT remains external` / `Phase 6 acceptance route, separate` | `Not connected` |
+| 8 | Virtual / physical DUT and NE-ONE traffic generator | `Validation State names bounded DUT modes; real DUT/traffic generator chain remains external` / `Phase 6 acceptance route, separate` | `Not connected` |
 | 9 | >=500 LEO scale | `Phase 7.1 open gate; this scene remains 13-actor demo` / `not reachable from this scene` | `Phase 7.1 gate` |
-| 10 | Operator-switchable handover strategy | `Fixed repo-owned bootstrap policy only; no runtime strategy selector here` / `not reachable from this scene` | `未連接` |
-| 11 | Configurable handover rules / dynamic parameters beyond scenario/replay controls | `Bounded replay/scenario controls exist; no user rule editor in this scene` / `not reachable from this scene` | `未連接` |
-| 12 | Report export action | `Export-ready report structures exist; no completed end-user export button here` / `not reachable from this scene` | `未連接` |
-| 13 | Real-time vs prerecorded TLE full scenario-space switching | `Existing replay mode is bounded; full multi-source TLE scenario switching closes downstream` / `not reachable from this scene` | `未連接` |
+| 10 | Operator-switchable handover strategy | `Fixed repo-owned bootstrap policy only; no runtime strategy selector here` / `not reachable from this scene` | `Not connected` |
+| 11 | Configurable handover rules / dynamic parameters beyond scenario/replay controls | `Bounded replay/scenario controls exist; no user rule editor in this scene` / `not reachable from this scene` | `Not connected` |
+| 12 | Report export action | `Export-ready report structures exist; no completed end-user export button here` / `not reachable from this scene` | `Not connected` |
+| 13 | Real-time vs prerecorded TLE full scenario-space switching | `Existing replay mode is bounded; full multi-source TLE scenario switching closes downstream` / `not reachable from this scene` | `Not connected` |
 
 Verified panel names from source grep:
 

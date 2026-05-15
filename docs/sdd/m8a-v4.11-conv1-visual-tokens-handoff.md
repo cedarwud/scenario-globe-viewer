@@ -15,7 +15,7 @@ leaked in. Specifically:
   `simulationHandoverModel.window.windowId` so each token is shown only in
   its assigned window
 - Scene-context chip (top-center, 14 px, ≤380×28, copy
-  `13 顆衛星模擬展示 · 完整 ≥500 LEO 多軌道驗證見後續階段`)
+  `13-satellite simulation demo - full ≥500 LEO multi-orbit validation in later phases`)
 - Ground-station short chip per Addendum 1.5 (≤96×18, 11 px, with
   `LEO MEO GEO ✓` content). Replaces the previous two-line precision +
   triplet pair on each ground station. Per-orbit-class sources triggers
@@ -161,7 +161,7 @@ below).
 target). This pre-existing failure was confirmed by stashing all Conv 1
 changes and rerunning, then unstashing. **Not a Conv 1 regression.** Out of
 the Conv 1 closeout scope per the brief (`V4.10 / V4.9 / V4.8 + Slice
-1 / 2 / 3 / 4 / 5 invariant smoke 全綠`); should be picked up
+1 / 2 / 3 / 4 / 5 invariant smoke all green`); should be picked up
 independently.
 
 ## Conv 1 invariants explicitly confirmed
@@ -197,7 +197,7 @@ smoke and downstream conversations):
 - `data-m8a-v411-visual-token-w{1..5}-max-distance-meters` (DistanceDisplayCondition seams)
 - `data-m8a-v411-visual-token-data-source-name="m8a-v4.11-visual-tokens-conv1"`
 - `data-m8a-v411-scene-context-chip="m8a-v4.11-scene-context-chip-conv1-runtime.v1"`
-- `data-m8a-v411-scene-context-chip-copy="13 顆衛星模擬展示 · 完整 ≥500 LEO 多軌道驗證見後續階段"`
+- `data-m8a-v411-scene-context-chip-copy="13-satellite simulation demo - full ≥500 LEO multi-orbit validation in later phases"`
 - `data-m8a-v411-ground-station-short-chip="true"` on each ground-station chip
 - `data-m8a-v411-ground-short-chip-copy="LEO MEO GEO ✓"`
 - `data-m8a-v411-ground-short-chip-max-width-px="96"`, `…-max-height-px="18"`, `…-font-size-px="11"`

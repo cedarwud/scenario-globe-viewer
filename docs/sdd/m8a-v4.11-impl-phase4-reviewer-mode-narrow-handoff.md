@@ -43,7 +43,10 @@ Phase 3 token assignment was changed.
 - Regenerated `public/fonts/noto-sans-tc-m8a-v411-subset.ttf` from
   `NotoSansTC-VF` to cover every CJK codepoint that appears in V4.11
   source files (159 unique CJK chars + ASCII / common punctuation =
-  247 codepoints), closing the 狀 / 態 / 補 / 成 / 未 / 組 fallback gap
+  247 codepoints), closing the validation-badge glyph fallback gap (CJK
+  codepoints U+72C0, U+614B, U+88DC, U+6210, U+672A, U+7D44 — these glyphs
+  back the "Validation status: TBD" badge and related rail copy in the
+  prior subset)
   observed in the Phase 2 inspector-header capture.
 
 ## §2 Files changed
@@ -262,9 +265,13 @@ All six landed in `output/m8a-v4.11-impl-phase4/`:
 The Phase 2 inspector-header crop
 (`output/m8a-v4.11-impl-phase2/inspector-header-detail-1440x900.png`)
 was inspected and **did show** glyph-fallback artifacts: the validation
-badge text rendered as `驗證⋆⋆：待⋆` because the Phase 2-era subset font
-(`public/fonts/noto-sans-tc-m8a-v411-subset.ttf`) was missing 狀 / 態 /
-補 / 成 / 未 / 組. A Python `fontTools.ttLib` cmap inspection
+badge text rendered with tofu replacements where the "Validation status: TBD"
+glyphs should have been (the badge string fell back to placeholder stars
+for the missing CJK codepoints) because the Phase 2-era subset font
+(`public/fonts/noto-sans-tc-m8a-v411-subset.ttf`) was missing CJK
+codepoints U+72C0, U+614B, U+88DC, U+6210, U+672A, U+7D44 (the glyphs
+that complete the "Validation status: TBD" badge). A Python
+`fontTools.ttLib` cmap inspection
 confirmed the gap and a project-wide CJK scan
 (`grep` over `src/runtime/*.ts` and `src/features/**/*.ts`) found
 exactly 159 unique CJK codepoints used in V4.11 source.
@@ -274,8 +281,8 @@ Resolution: regenerated the subset from `NotoSansTC-VF.ttf` using
 source CJK codepoints) ∪ (CJK punctuation) ∪ (basic Latin). The new
 subset covers 247 codepoints (155 → 247 CJK + ASCII / punctuation).
 The Phase 4 `narrow-modal-390x844.png` capture confirms the fix
-visually: the badge now reads `驗證狀態：待補` correctly, and the
-`連續性` / `位置條件` / `訊號減弱` body text render without tofu glyphs.
+visually: the badge now reads `Validation status: TBD` correctly, and the
+`Continuity hold` / `Geometry degrading` / `Signal degrading` body text render without tofu glyphs.
 
 The V4.11 font stack already chains through
 `var(--m8a-v411-cjk-font-family, ...)` to "Noto Sans TC" → "Source Han
@@ -401,7 +408,7 @@ Confirmed unchanged for Phase 4:
   no `Boundary` tab).
 - Phase 2 boundary header strip selector / chip content (`13-actor
   demo` + `operator-family precision`); validation badge text
-  (`驗證狀態：待補`); only the subset font was extended to render the
+  (`Validation status: TBD`); only the subset font was extended to render the
   same text glyphs without fallback tofu.
 - Phase 3 token assignments (orbit identity tokens unchanged; state
   family preserved; raw hex outside the central token file remains

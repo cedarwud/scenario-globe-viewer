@@ -53,9 +53,9 @@ const HOVER_SCREENSHOTS = [
     screenshot: "v4.11-w1-hover-leo-1440x900.png",
     metadata: "v4.11-w1-hover-leo-1440x900.metadata.json",
     expectedLines: [
-      "OneWeb LEO · 現在看這顆",
-      "連線品質：強",
-      "服務時間:~22 分鐘"
+      "OneWeb LEO · in focus now",
+      "Link quality: strong",
+      "Service time: ~22 min"
     ]
   },
   {
@@ -65,9 +65,9 @@ const HOVER_SCREENSHOTS = [
     screenshot: "v4.11-w3-hover-meo-1440x900.png",
     metadata: "v4.11-w3-hover-meo-1440x900.metadata.json",
     expectedLines: [
-      "SES O3b mPOWER MEO · 暫時接住",
-      "暫時接住 ~22 分鐘",
-      "新 LEO 即將回來"
+      "SES O3b mPOWER MEO · continuity hold",
+      "Continuity hold ~22 min",
+      "New LEO returning soon"
     ]
   },
   {
@@ -77,9 +77,9 @@ const HOVER_SCREENSHOTS = [
     screenshot: "v4.11-w4-hover-leo-1440x900.png",
     metadata: "v4.11-w4-hover-leo-1440x900.metadata.json",
     expectedLines: [
-      "OneWeb LEO · 候選",
-      "候選品質:強",
-      "若切回:~22 分鐘"
+      "OneWeb LEO · candidate",
+      "Candidate quality: strong",
+      "If switching back: ~22 min"
     ]
   },
   {
@@ -89,9 +89,9 @@ const HOVER_SCREENSHOTS = [
     screenshot: "v4.11-w5-hover-geo-1440x900.png",
     metadata: "v4.11-w5-hover-geo-1440x900.metadata.json",
     expectedLines: [
-      "Singtel/SES GEO · 保底覆蓋",
-      "永遠連得到",
-      "序列即將結束"
+      "Singtel/SES GEO · guard coverage",
+      "Always reachable",
+      "Sequence ending soon"
     ]
   }
 ];
@@ -109,9 +109,9 @@ const TARGET_KIND_CASES = [
       "[data-m8a-v411-hover-target-kind='ground-station'][data-m8a-v411-hover-target-id='tw-cht-multi-orbit-ground-infrastructure']",
     expectedKind: "ground-station",
     expectedLines: [
-      "Chunghwa Telecom 地面站",
+      "Chunghwa Telecom ground station",
       "operator-family precision",
-      "LEO MEO GEO 三軌道資料"
+      "LEO MEO GEO three-orbit coverage"
     ]
   },
   {
@@ -120,9 +120,9 @@ const TARGET_KIND_CASES = [
       "[data-m8a-v411-hover-target-kind='sequence-rail'][data-m8a-v411-hover-target-id='leo-acquisition-context']",
     expectedKind: "sequence-rail",
     expectedLines: [
-      "剛接上 LEO",
-      "服務時間長:~22 分鐘",
-      "下一段:訊號減弱"
+      "Just connected LEO",
+      "Service window: ~22 min",
+      "Next: signal degrading"
     ]
   }
 ];

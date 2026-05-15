@@ -9,10 +9,10 @@ the scope beyond F-10 and does not authorize F-09, F-11, F-13, or F-16 work.
 
 Authority context:
 
-- F-10 acceptance status remains `部分完成`: the repo already has a
+- F-10 acceptance status remains `partial`: the repo already has a
   deterministic handover-decision layer, but the policy id is fixed instead of
   operator switchable.
-- F-12 remains `已完成（bounded）` for the repo-owned latency, jitter, and
+- F-12 remains `completed (bounded)` for the repo-owned latency, jitter, and
   network-speed decision seam. F-10 must not promote those metrics into
   measured truth.
 - F-10 therefore closes only a bounded, service-layer policy selector. It must

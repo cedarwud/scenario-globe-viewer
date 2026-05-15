@@ -8,9 +8,9 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  max-width: 380px;
+  max-width: 600px;
   height: 28px;
-  padding: 0 12px;
+  padding: 0 14px;
   border: 1px solid var(--m8a-v411-state-active);
   border-radius: var(--m8a-v411-radius-md);
   background: var(--m8a-v411-state-neutral);
@@ -22,6 +22,8 @@
   letter-spacing: 0;
   white-space: nowrap;
   pointer-events: none;
+  text-overflow: ellipsis;
+  overflow: hidden;
   box-shadow:
     var(--m8a-v411-shadow-inner),
     var(--m8a-v411-shadow-callout);
@@ -31,11 +33,22 @@
   display: none !important;
 }
 
-@media (max-width: 720px) {
+@media (max-width: 960px) {
   .m8a-v411-product-ux__scene-context-chip {
     max-width: calc(100vw - 32px);
+    font-size: 13px;
+    padding: 0 12px;
+  }
+}
+
+@media (max-width: 720px) {
+  .m8a-v411-product-ux__scene-context-chip {
     font-size: 12px;
     height: 26px;
     padding: 0 10px;
+    white-space: normal;
+    line-height: 1.2;
+    height: auto;
+    max-height: 48px;
   }
 }

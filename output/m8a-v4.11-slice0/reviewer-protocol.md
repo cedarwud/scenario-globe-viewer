@@ -5,8 +5,8 @@ current V4.11 route:
 `/?scenePreset=regional&m8aV4GroundStationScene=1`.
 
 Conv 4 revision: the current V4.11 route has no standalone Truth button.
-Disclosure is the footer `[模擬展示]` chip, W5
-`不是實際備援切換證據`, and the State Evidence truth tail. Reviewers should
+Disclosure is the footer `[Simulation view]` chip, W5
+`Not actual failover evidence`, and the State Evidence truth tail. Reviewers should
 not open Details for the five cold questions; Sources is an advanced
 source-provenance toggle inside Details, not a first-read affordance.
 
@@ -15,7 +15,7 @@ source-provenance toggle inside Details, not a first-read affordance.
 - [ ] I have not previously seen this route.
 - [ ] I have not read any V4 SDD before this session.
 - [ ] I know what "satellite handover" means at a layperson level.
-- [ ] I can read the visible Chinese chips and the retained terms
+- [ ] I can read the visible English chips and the retained terms
       `TLE / CelesTrak NORAD GP`.
 - [ ] I agree to think aloud during the session.
 
@@ -51,14 +51,14 @@ window.
 
 Q1. What is happening right now?
 
-- Acceptable: "現在看這顆 LEO", "位置條件變差", "MEO 暫時接住",
-  "新的 LEO 是候選", "GEO 是保底覆蓋"
+- Acceptable: "in focus now LEO", "Geometry degrading", "MEO continuity hold",
+  "New LEO is candidate", "GEO is guard coverage"
 - Unacceptable: silence ≥10s, "I don't know", or asking the moderator for context
 
 Q2. Which satellite or orbit should I be looking at?
 
 - Acceptable: pointing at the active satellite, its orbit chip, or saying
-  "現在看這顆"
+  "in focus now"
 - Unacceptable: pointing at the wrong orbit, pointing at a control panel, or asking moderator
 
 Q3. Where does the next moment go?
@@ -68,8 +68,8 @@ Q3. Where does the next moment go?
 
 Q4. Is this real operator data or simulation?
 
-- Acceptable: reading `[模擬展示]`, saying "這是模擬展示", or on W5
-  reading "不是實際備援切換證據"
+- Acceptable: reading `[Simulation view]`, saying "This is a simulation view", or on W5
+  reading "Not actual failover evidence"
 - Unacceptable: "I think it's real" / unsure
 
 Q5. Where do the satellite positions come from?

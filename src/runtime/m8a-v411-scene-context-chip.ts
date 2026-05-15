@@ -2,9 +2,9 @@ export const M8A_V411_SCENE_CONTEXT_CHIP_VERSION =
   "m8a-v4.11-scene-context-chip-conv1-runtime.v1";
 
 export const M8A_V411_SCENE_CONTEXT_CHIP_COPY =
-  "≥500 LEO 規模證據另見 Phase 7.1；本路由仍為 13-actor bounded demo";
+  "Scale evidence (≥500 LEO) lives in Phase 7.1; this route remains a 13-actor bounded demo";
 
-export const M8A_V411_SCENE_CONTEXT_CHIP_MAX_WIDTH_PX = 380;
+export const M8A_V411_SCENE_CONTEXT_CHIP_MAX_WIDTH_PX = 600;
 export const M8A_V411_SCENE_CONTEXT_CHIP_MAX_HEIGHT_PX = 28;
 export const M8A_V411_SCENE_CONTEXT_CHIP_FONT_SIZE_PX = 14;
 

@@ -21,7 +21,7 @@ Verified by `node /tmp/m8a_v411_phase2_capture.mjs`:
 - Boundary strip selector: `data-m8a-v411-inspector-boundary-strip="true"`.
 - Boundary strip chips: `13-actor demo` and `operator-family precision`.
 - Validation badge selector: `data-m8a-v411-inspector-validation-badge="true"`.
-- Validation badge text: `驗證狀態：待補`.
+- Validation badge text: `Validation status: TBD`.
 - Evidence summary lines:
   - `TLE: CelesTrak NORAD GP · 13 actors · fetched 2026-04-26`
   - `R2: 5 candidate endpoints (read-only catalog)`

@@ -2125,7 +2125,7 @@ function ensureProductUxStructure(root: HTMLElement): void {
           <strong data-m8a-v410-inspector-title="true" data-m8a-v48-info-class="fixed">Evidence inspector</strong>
         </div>
         <span class="m8a-v411-inspector__mode-label" data-m8a-v411-inspector-mode-label="true" data-m8a-v411-replay-clock-mode="running" data-m8a-v48-info-class="dynamic" hidden></span>
-        <span class="m8a-v411-inspector__validation-badge" data-m8a-v411-inspector-validation-badge="true" data-m8a-v411-validation-status-badge="true" data-m8a-v48-info-class="fixed">驗證狀態：待補</span>
+        <span class="m8a-v411-inspector__validation-badge" data-m8a-v411-inspector-validation-badge="true" data-m8a-v411-validation-status-badge="true" data-m8a-v48-info-class="fixed">Validation status: TBD</span>
         <button type="button" data-m8a-v47-action="close-disclosure" data-m8a-v47-control-id="details-close" data-m8a-v48-info-class="control">Close</button>
       </div>
       <div class="m8a-v411-inspector__boundary-strip" data-m8a-v411-inspector-boundary-strip="true" data-m8a-v48-info-class="fixed" aria-label="Inspector boundary scope">

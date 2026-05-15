@@ -63,7 +63,7 @@ The full planning SDD is:
 Summary:
 
 - §0 status: planning only, doc-only, no implementation authorized.
-- §1 customer requirement: F-16, `統計報表可匯出`, currently `部分完成`.
+- §1 customer requirement: F-16, `Statistics report export`, currently `Partial`.
 - §2 current reality: Phase 6 has report structures for communication-time,
   handover-decision, physical-input, and validation-state; the Operator HUD has
   scenario/replay/speed controls and panel slots, but no export action.

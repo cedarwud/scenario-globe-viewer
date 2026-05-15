@@ -223,8 +223,8 @@ const FORBIDDEN_UNIT_PATTERNS = [
 // Decision/Metrics/Boundary/Evidence tab model. Forbidden claims, metadata
 // demotion, and non-blocking transition invariants remain unchanged.
 const V411_CORRECTION_A_AMBIENT_DISCLOSURE_PATTERNS = [
-  /≥500 LEO 規模證據另見 Phase 7\.1；本路由仍為 13-actor bounded demo/g,
-  /模擬展示/g,
+  /Scale evidence \(≥500 LEO\) lives in Phase 7\.1; this route remains a 13-actor bounded demo/g,
+  /Simulation view/g,
   /operator-family precision/g,
   /TLE: CelesTrak NORAD GP · fetched 2026-04-26 · 13 actors/g,
   /TLE: CelesTrak NORAD GP · 2026-04-26/g,

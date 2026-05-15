@@ -28,7 +28,7 @@ V4.12 covers only **immediately-actionable** customer requirement closures that
 do **not** require:
 
 - new customer-supplied orbit model data (F-01)
-- new V組-supplied physical model data (P-01..P-03, F-17)
+- new V-group-supplied physical model data (P-01..P-03, F-17)
 - external OMNeT++ / INET / ESTNeT stack (F-07/F-08/F-12 measured truth,
   V-02..V-06 end-to-end)
 - new multi-orbit second-endpoint authority gate (M8A-V4 product anchor)
@@ -58,11 +58,11 @@ V4.12 explicitly does **not** close:
 
 | F-ID | Status | Planning SDD | Phase 1 spec | Implementation start? |
 |---|---|---|---|---|
-| F-09 | 已完成（bounded） | [m8a-v4.12-f09-communication-rate-visualization-plan.md](./m8a-v4.12-f09-communication-rate-visualization-plan.md) | [m8a-v4.12-f09-impl-phase1-visualization-spec.md](./m8a-v4.12-f09-impl-phase1-visualization-spec.md) | closed — [m8a-v4.12-f09-impl-phase5-closeout.md](./m8a-v4.12-f09-impl-phase5-closeout.md) |
-| F-10 | 已完成（bounded） | [m8a-v4.12-f10-handover-policy-selector-plan.md](./m8a-v4.12-f10-handover-policy-selector-plan.md) | [m8a-v4.12-f10-impl-phase1-policy-spec.md](./m8a-v4.12-f10-impl-phase1-policy-spec.md) | closed — [Phase 5 evidence](./m8a-v4.12-f10-impl-phase5-closeout.md) |
-| F-11 | 已完成（bounded） | [m8a-v4.12-f11-handover-rule-config-plan.md](./m8a-v4.12-f11-handover-rule-config-plan.md) | [m8a-v4.12-f11-impl-phase1-rule-config-spec.md](./m8a-v4.12-f11-impl-phase1-rule-config-spec.md) | closed — [Phase 6 evidence](./m8a-v4.12-f11-impl-phase6-closeout.md) |
-| F-13 | 已完成（multi-orbit bounded public TLE after V4.13） | [m8a-v4.12-f13-leo-scale-runtime-plan.md](./m8a-v4.12-f13-leo-scale-runtime-plan.md); V4.13 follow-on: [m8a-v4.13-multi-orbit-scale-runtime-plan.md](./m8a-v4.13-multi-orbit-scale-runtime-plan.md) | [m8a-v4.12-f13-impl-phase1-leo-scale-spec.md](./m8a-v4.12-f13-impl-phase1-leo-scale-spec.md); V4.13 lock: [m8a-v4.13-impl-phase1-multi-orbit-spec.md](./m8a-v4.13-impl-phase1-multi-orbit-spec.md) | LEO leg complete in V4.12; public MEO/GEO bounded runtime gate closed in V4.13 with `multi-orbit-scale-1000` retained evidence. customer orbit-model integration and measured network truth remain successor requirements. |
-| F-16 | 已完成（bounded） | [m8a-v4.12-f16-statistics-report-export-plan.md](./m8a-v4.12-f16-statistics-report-export-plan.md) | [m8a-v4.12-f16-impl-phase1-export-spec.md](./m8a-v4.12-f16-impl-phase1-export-spec.md) | closed — Operator HUD `Report Export` action downloads bounded JSON+CSV report bundles; smoke/screenshot evidence in `output/m8a-v4.12-f16-report-export/` |
+| F-09 | Complete (bounded) | [m8a-v4.12-f09-communication-rate-visualization-plan.md](./m8a-v4.12-f09-communication-rate-visualization-plan.md) | [m8a-v4.12-f09-impl-phase1-visualization-spec.md](./m8a-v4.12-f09-impl-phase1-visualization-spec.md) | closed — [m8a-v4.12-f09-impl-phase5-closeout.md](./m8a-v4.12-f09-impl-phase5-closeout.md) |
+| F-10 | Complete (bounded) | [m8a-v4.12-f10-handover-policy-selector-plan.md](./m8a-v4.12-f10-handover-policy-selector-plan.md) | [m8a-v4.12-f10-impl-phase1-policy-spec.md](./m8a-v4.12-f10-impl-phase1-policy-spec.md) | closed — [Phase 5 evidence](./m8a-v4.12-f10-impl-phase5-closeout.md) |
+| F-11 | Complete (bounded) | [m8a-v4.12-f11-handover-rule-config-plan.md](./m8a-v4.12-f11-handover-rule-config-plan.md) | [m8a-v4.12-f11-impl-phase1-rule-config-spec.md](./m8a-v4.12-f11-impl-phase1-rule-config-spec.md) | closed — [Phase 6 evidence](./m8a-v4.12-f11-impl-phase6-closeout.md) |
+| F-13 | Complete (multi-orbit bounded public TLE after V4.13) | [m8a-v4.12-f13-leo-scale-runtime-plan.md](./m8a-v4.12-f13-leo-scale-runtime-plan.md); V4.13 follow-on: [m8a-v4.13-multi-orbit-scale-runtime-plan.md](./m8a-v4.13-multi-orbit-scale-runtime-plan.md) | [m8a-v4.12-f13-impl-phase1-leo-scale-spec.md](./m8a-v4.12-f13-impl-phase1-leo-scale-spec.md); V4.13 lock: [m8a-v4.13-impl-phase1-multi-orbit-spec.md](./m8a-v4.13-impl-phase1-multi-orbit-spec.md) | LEO leg complete in V4.12; public MEO/GEO bounded runtime gate closed in V4.13 with `multi-orbit-scale-1000` retained evidence. customer orbit-model integration and measured network truth remain successor requirements. |
+| F-16 | Complete (bounded) | [m8a-v4.12-f16-statistics-report-export-plan.md](./m8a-v4.12-f16-statistics-report-export-plan.md) | [m8a-v4.12-f16-impl-phase1-export-spec.md](./m8a-v4.12-f16-impl-phase1-export-spec.md) | closed — Operator HUD `Report Export` action downloads bounded JSON+CSV report bundles; smoke/screenshot evidence in `output/m8a-v4.12-f16-report-export/` |
 
 Supporting / sibling docs:
 
@@ -137,7 +137,7 @@ After each F-ID close-out:
 
 1. update
    `/home/u24/papers/itri/itri-acceptance-report-2026-04-20/01-itri-requirement-inventory-and-status.md`
-   row narrative honestly (e.g. `部分完成 → 已完成（bounded）`).
+   row narrative honestly (e.g. `Partial → Complete (bounded)`).
 2. update
    `/home/u24/papers/itri/itri-acceptance-report-2026-04-20/02-completed-capability-bundles.md`
    with the new bundle entry.
@@ -176,7 +176,7 @@ For other immediately-actionable items not covered by V4.12:
 
 V4.12 chain may be marked closed when:
 
-- F-09, F-10, F-11, F-13 (LEO leg), F-16 all show `已完成（bounded）` in
+- F-09, F-10, F-11, F-13 (LEO leg), F-16 all show `Complete (bounded)` in
   acceptance report
 - forbidden-claim scans green across all five slices
 - one consolidated demo path exercises all five

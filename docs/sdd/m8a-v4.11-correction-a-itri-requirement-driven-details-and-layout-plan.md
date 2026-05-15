@@ -135,11 +135,11 @@ Content:
 Example for W4:
 
 ```text
-W4 / 候選 LEO 回來
+W4 / Candidate LEO returning
 Primary: MEO
 Candidate: LEO
-Decision: 位置條件恢復，正在評估切回 LEO
-Time: 模擬倒數 ~03:10
+Decision: Geometry recovering; evaluating switch back to LEO
+Time: simulated countdown ~03:10
 ```
 
 The rail must not become another large prose panel. It is a scan surface.
@@ -187,7 +187,7 @@ Footer chips should be ambient disclosure, not the only interaction.
 
 Required change:
 
-- Keep chips such as `模擬展示`, `TLE: CelesTrak NORAD GP`, `13 actors`, `operator-family precision`.
+- Keep chips such as `Simulation view`, `TLE: CelesTrak NORAD GP`, `13 actors`, `operator-family precision`.
 - Add a clearly visible disclosure affordance, such as an info icon button or `Boundary` button.
 - Do not rely on a generic block/chip click as the only way to open truth/source information.
 
@@ -209,14 +209,14 @@ Required modules:
 Rules:
 
 - Keep this tab readable without scrolling for normal desktop height.
-- Use the layperson Chinese vocabulary already approved in Conv 4 protocol:
-  - `現在看這顆`
-  - `位置條件變差`
-  - `暫時接住`
-  - `候選`
-  - `保底覆蓋`
-  - `模擬展示`
-  - `不是實際備援切換證據`
+- Use the layperson Chinese-language vocabulary already approved in Conv 4 protocol:
+  - `in focus now`
+  - `Geometry degrading`
+  - `Continuity hold`
+  - `Candidate`
+  - `Guard coverage`
+  - `Simulation view`
+  - `Not actual failover evidence`
 
 ### 6.2 Metrics Tab
 
@@ -286,7 +286,7 @@ Replace it with a two-state candidate token:
 
 2. Steady candidate halo:
    - A small stable outline around the candidate satellite.
-   - Pair with a `候選 LEO` label or chip.
+   - Pair with a `Candidate LEO` label or chip.
    - Do not use alarm colors unless the state is actually a warning.
    - Do not imply active serving state.
 

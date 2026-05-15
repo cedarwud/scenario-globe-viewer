@@ -12,9 +12,9 @@ Conv 3 moves the always-on disclosure from a compact `Truth` button into a
 footer chip row:
 
 - Footer row now renders the four ambient chips:
-  `[模擬展示] [operator-family precision] [TLE: CelesTrak NORAD GP · 2026-04-26] [13 actors]`.
+  `[Simulation view] [operator-family precision] [TLE: CelesTrak NORAD GP · 2026-04-26] [13 actors]`.
 - W5 renders the additional high-salience chip
-  `[⚠ 不是實際備援切換證據]` with `#ff6b3d` outline and 14px font.
+  `[⚠ Not actual failover evidence]` with `#ff6b3d` outline and 14px font.
 - The old Truth button DOM is removed. The compatible
   `[data-m8a-v47-action='toggle-boundary']` action now lives on the footer
   chip and opens the existing `boundaryDisclosureOpen` path.

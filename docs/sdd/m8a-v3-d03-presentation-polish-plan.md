@@ -60,7 +60,7 @@ Related authority chain:
 
 Acceptance-report row to update on close-out of the full D-03 slice chain:
 [`itri-acceptance-report-2026-04-20/01-itri-requirement-inventory-and-status.md`](../../../itri/itri-acceptance-report-2026-04-20/01-itri-requirement-inventory-and-status.md)
-row D-03 (currently `部分完成`).
+row D-03 (currently `partially complete`).
 
 ## 1. Status
 
@@ -409,7 +409,7 @@ slice:
 - `complete customer acceptance`, `Phase 8 unlocked`,
   `M8A-V4 endpoint-pair gate resolved`
 - `customer orbit model is integrated`
-- `D-03 closed`, `D-03 已完成`, `richer composition closed`,
+- `D-03 closed`, `D-03 complete`, `richer composition closed`,
   `presentation convergence closed`
 - `V-02 closed`, `V-03 closed`, `V-04 closed`, `V-05 closed`,
   `V-06 closed`
@@ -509,7 +509,7 @@ After slice 1, the D-03 row in
 itself close D-03.
 
 When slice 5 runs and all umbrella Hard Gates are satisfied, the D-03 row
-narrative will move from `部分完成` to a bounded close-out wording that
+narrative will move from `partially complete` to a bounded close-out wording that
 explicitly preserves:
 
 - the M8A-V2/V3 truth boundary
@@ -613,7 +613,7 @@ What did **not** change:
   first-intake addressed-route surfaces, R1V cleanup path,
   scene-preset / replay-clock logic, camera, or measurement-truth copy.
 
-D-03 acceptance row remains `部分完成`. Slice 1 does not close D-03.
+D-03 acceptance row remains `partially complete`. Slice 1 does not close D-03.
 
 ## 14. Slice 2 (D-03.S2) — F-11 Rule Config Default-Closed Disclosure
 
@@ -931,7 +931,7 @@ What did **not** change:
   measurement-truth copy, the D-03 acceptance-report row, the
   umbrella plan status, or the v4.12-followup-index §7 D-03 pointer.
 
-D-03 acceptance row remains `部分完成`. Slice 2 does not close D-03.
+D-03 acceptance row remains `partially complete`. Slice 2 does not close D-03.
 
 ### 14.6 Amendment Trail
 
@@ -1220,7 +1220,7 @@ Slice 3 must not:
   `DUT closed`, `>=500 LEO closure`, `multi-orbit closure complete`,
   `multi-orbit radio-layer handover`, `complete customer acceptance`,
   `Phase 8 unlocked`, `M8A-V4 endpoint-pair gate resolved`,
-  `customer orbit model is integrated`, `D-03 closed`, `D-03 已完成`,
+  `customer orbit model is integrated`, `D-03 closed`, `D-03 complete`,
   `richer composition closed`, `presentation convergence closed`,
   `V-02 closed`, `V-03 closed`, `V-04 closed`, `V-05 closed`,
   `V-06 closed`, `iperf throughput`, `ping latency`
@@ -1401,7 +1401,7 @@ What did **not** change:
   logic, measurement-truth copy, the D-03 acceptance-report row, the
   umbrella plan status, or the v4.12-followup-index §7 D-03 pointer.
 
-D-03 acceptance row remains `部分完成`. Slice 3 does not close D-03.
+D-03 acceptance row remains `partially complete`. Slice 3 does not close D-03.
 Slice 4 later landed in `b02be72` and is recorded in §16.7.
 
 ## 16. Slice 4 (D-03.S4) — Primary Surface Rank + Cross-Panel Truth Chip
@@ -1702,7 +1702,7 @@ Slice 4 must not:
   `>=500 LEO closure`, `multi-orbit closure complete`,
   `multi-orbit radio-layer handover`, `complete customer acceptance`,
   `Phase 8 unlocked`, `M8A-V4 endpoint-pair gate resolved`,
-  `customer orbit model is integrated`, `D-03 closed`, `D-03 已完成`,
+  `customer orbit model is integrated`, `D-03 closed`, `D-03 complete`,
   `richer composition closed`, `presentation convergence closed`,
   `V-02 closed`, `V-03 closed`, `V-04 closed`, `V-05 closed`,
   `V-06 closed`, `iperf throughput`, `ping latency`
@@ -1926,7 +1926,7 @@ What did **not** change:
   the umbrella plan status, or the v4.12-followup-index §7 D-03
   pointer.
 
-D-03 acceptance row remains `部分完成`. Slice 4 does not update the
+D-03 acceptance row remains `partially complete`. Slice 4 does not update the
 acceptance row. Slice 5 is now unblocked and remains the only slice
 allowed to perform the final D-03 acceptance-route update.
 
@@ -1940,7 +1940,7 @@ package, or visual implementation changes.
 Updated records:
 
 - `/home/u24/papers/itri/itri-acceptance-report-2026-04-20/01-itri-requirement-inventory-and-status.md`
-  moves the D-03 row from `部分完成` to bounded presentation completion
+  moves the D-03 row from `partially complete` to bounded presentation completion
   wording only.
 - `m8a-v3-presentation-convergence-umbrella-plan.md` records the D-03
   acceptance-route close-out while preserving the M8A-V2/V3 truth boundary.

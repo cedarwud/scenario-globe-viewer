@@ -34,11 +34,11 @@ const WINDOW_CHECKS = [
     ratio: 0.1,
     windowId: "leo-acquisition-context",
     focusId: "w1-leo-primary-focus",
-    primaryLabel: "W1 · LEO 主服務",
+    primaryLabel: "W1 · LEO primary service",
     orbit: "LEO",
     role: "primary-service",
-    briefing: "只看 LEO",
-    next: "下一焦點：LEO 品質下降。",
+    briefing: "Focus on LEO",
+    next: "Next focus: LEO quality drop.",
     visualCue: "representative-leo-focus"
   },
   {
@@ -46,11 +46,11 @@ const WINDOW_CHECKS = [
     ratio: 0.3,
     windowId: "leo-aging-pressure",
     focusId: "w2-leo-pressure-focus",
-    primaryLabel: "W2 · LEO 壓力",
+    primaryLabel: "W2 · LEO pressure",
     orbit: "LEO",
     role: "pressure",
-    briefing: "只看 LEO 壓力",
-    next: "下一焦點：MEO 暫時接住。",
+    briefing: "Focus on LEO pressure",
+    next: "Next focus: MEO continuity hold.",
     visualCue: "leo-pressure-cue"
   },
   {
@@ -58,11 +58,11 @@ const WINDOW_CHECKS = [
     ratio: 0.5,
     windowId: "meo-continuity-hold",
     focusId: "w3-meo-hold-focus",
-    primaryLabel: "W3 · MEO 接續",
+    primaryLabel: "W3 · MEO continuity",
     orbit: "MEO",
     role: "continuity-hold",
-    briefing: "只看 MEO",
-    next: "下一焦點：LEO 回到候選。",
+    briefing: "Focus on MEO",
+    next: "Next focus: LEO returns as candidate.",
     visualCue: "representative-meo-hold"
   },
   {
@@ -70,11 +70,11 @@ const WINDOW_CHECKS = [
     ratio: 0.7,
     windowId: "leo-reentry-candidate",
     focusId: "w4-leo-candidate-focus",
-    primaryLabel: "W4 · LEO 候選",
+    primaryLabel: "W4 · LEO candidate",
     orbit: "LEO",
     role: "candidate-review",
-    briefing: "只看候選 LEO",
-    next: "下一焦點：GEO guard 收尾。",
+    briefing: "Focus on candidate LEO",
+    next: "Next focus: GEO guard closes the sequence.",
     visualCue: "returning-leo-candidate"
   },
   {
@@ -82,11 +82,11 @@ const WINDOW_CHECKS = [
     ratio: 0.9,
     windowId: "geo-continuity-guard",
     focusId: "w5-geo-guard-focus",
-    primaryLabel: "W5 · GEO 保底",
+    primaryLabel: "W5 · GEO guard",
     orbit: "GEO",
     role: "guard-context",
-    briefing: "只看 GEO guard",
-    next: "重新開始：回到 W1 LEO 主服務。",
+    briefing: "Focus on GEO guard",
+    next: "Restart: back to W1 LEO primary service.",
     visualCue: "geo-guard-boundary"
   }
 ];

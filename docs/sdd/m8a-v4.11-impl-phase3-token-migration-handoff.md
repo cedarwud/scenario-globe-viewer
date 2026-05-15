@@ -132,7 +132,7 @@ Phase 2 re-capture:
 
 - `output/m8a-v4.11-impl-phase2/inspector-header-detail-1440x900.png`
 
-The Phase 2 crop now shows the boundary header strip (`13-actor demo` + `operator-family precision`), validation badge (`驗證狀態：待補`), and 3 tabs (`Decision` / `Metrics` / `Evidence`).
+The Phase 2 crop now shows the boundary header strip (`13-actor demo` + `operator-family precision`), validation badge (`Validation status: TBD`), and 3 tabs (`Decision` / `Metrics` / `Evidence`).
 
 ## §6 Smoke Softening Disclosure
 

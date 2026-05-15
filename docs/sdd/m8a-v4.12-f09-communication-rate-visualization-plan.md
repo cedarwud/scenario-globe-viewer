@@ -41,7 +41,7 @@ Acceptance-report quote:
 `/home/u24/papers/itri/itri-acceptance-report-2026-04-20/01-itri-requirement-inventory-and-status.md:22`:
 
 ```text
-| F-09 | 顯示通訊速率 | `待完成` | `networkSpeedMbps` already exists inside the physical-input and handover-decision model, but there is no dedicated communication-rate visualization surface yet. | `尚未排入目前 phase` |
+| F-09 | Display communication rate | `pending` | `networkSpeedMbps` already exists inside the physical-input and handover-decision model, but there is no dedicated communication-rate visualization surface yet. | `not yet scheduled into a phase` |
 ```
 
 customer README §2.6 communication-time / rate / reporting context:
@@ -51,23 +51,23 @@ customer README §2.6 communication-time / rate / reporting context:
 ```text
 ### 2.6 Communication-Time / Rate / Reporting
 
-原始功能需求與里程碑中明確提到：
+The original functional requirements and milestones explicitly mention:
 
-- 即時顯示可通訊時間
-- 通訊速率可視化
-- 可產生通訊時間統計
-- 統計報表匯出
+- Live display of available communication time
+- Communication-rate visualization
+- Ability to generate communication-time statistics
+- Statistics report export
 
-Kickoff 的 UI 功能需求圖還補了一個很關鍵的括號說明：
+The kickoff UI functional-requirements diagram also adds an important parenthetical note:
 
-- 即時顯示可通訊時間，可利用 `iperf`、`ping` 等功能測試
+- Live display of available communication time, verifiable using tools such as `iperf` and `ping`
 
-因此最小需求不是只有即時畫面，還包括：
+So the minimum requirement is not only a live view, but also includes:
 
-- 即時顯示
-- 可回顧的統計
-- 可交付/可匯出的報表
-- 並且通訊時間不是純理論數值，原文明確暗示可用 `iperf` / `ping` 類測試方式驗證
+- Live display
+- Reviewable statistics
+- Deliverable / exportable reports
+- And communication time is not a pure theoretical value; the original wording explicitly hints that `iperf` / `ping` style testing can be used for verification
 ```
 
 customer README §8.1 must-have checklist quote:
@@ -77,18 +77,18 @@ customer README §8.1 must-have checklist quote:
 ```text
 ### 8.1 Must-Have Functional Requirements
 
-- 整合 customer 自有衛星軌道模型
-- 明確支援或至少面向多軌道型態：`LEO/MEO/GEO`
-- 輸入 `TLE` 並追蹤衛星運動
-- 建立互動式 3D 圖像化模擬系統
-- 有 UI 操作介面
-- 有可動態調整參數的 UI
-- 顯示可通訊時間/通訊時間統計
-  - kickoff 圖上明確提到可用 `iperf` / `ping` 類測試方式驗證
-- 顯示通訊速率
-- 換手策略可切換
-- 換手規則與相關參數可設定/模擬
-- 根據 `latency/jitter/network speed` 等條件切換鏈路
+- Integrate the customer's own satellite orbit model
+- Explicitly support or at least target multi-orbit types: `LEO/MEO/GEO`
+- Take `TLE` input and track satellite motion
+- Build an interactive 3D graphical simulation system
+- Provide a UI control interface
+- Provide a UI with dynamically adjustable parameters
+- Display available communication time / communication-time statistics
+  - The kickoff diagram explicitly mentions verification via `iperf` / `ping` style testing
+- Display communication rate
+- Switchable handover strategy
+- Handover rules and related parameters are configurable / simulatable
+- Switch links based on conditions such as `latency/jitter/network speed`
 ```
 
 Interpretation:
@@ -180,13 +180,13 @@ The only source matches were the V4.11 disabled/gap metadata:
 - `src/runtime/m8a-v411-inspector-concurrency.ts:301-303` has
   `communication-rate-visualization`, `Dedicated communication-rate
   visualization`, and `No dedicated communication-rate surface yet; F-09 remains
-  待完成`.
+  pending`.
 
 V4.11 spec v2 says the same:
 
 - `docs/sdd/m8a-v4.11-content-and-visual-followup-spec.md:222-224` marks
   `Dedicated communication-rate visualization` as not connected and says F-09
-  remains `待完成`.
+  remains `pending`.
 - `docs/sdd/m8a-v4.11-content-and-visual-followup-spec.md:243-244` maps F-09
   to a disabled tile, not a completed surface.
 
@@ -721,7 +721,7 @@ Reasons:
   handover decision, physical input, and validation state
   (`docs/sdd/m8a-v4.11-content-and-visual-followup-spec.md:115-123`).
 - The V4.11 metrics table marks `Dedicated communication-rate visualization` as
-  not reachable from the scene and says F-09 remains `待完成`
+  not reachable from the scene and says F-09 remains `pending`
   (`docs/sdd/m8a-v4.11-content-and-visual-followup-spec.md:220-224`).
 - The Bootstrap Operator HUD and V4.11 ground-station scene are mounted through
   separate route/runtime branches (`src/runtime/bootstrap/composition.ts:512-520`
@@ -731,7 +731,7 @@ Post-F-09 note:
 
 Once F-09 is closed, the V4.11 disabled tile in spec v2 §4.3 should reference
 the completed Phase 6 communication-rate surface instead of saying F-09 remains
-`待完成`. That should be handled as post-V4.11 copy coordination or a separate
+`pending`. That should be handled as post-V4.11 copy coordination or a separate
 V4.11 hookpoint-copy update, not as part of the F-09 implementation unless
 planning/control explicitly includes it.
 

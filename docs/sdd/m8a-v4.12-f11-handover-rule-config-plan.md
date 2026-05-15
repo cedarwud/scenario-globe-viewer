@@ -34,7 +34,7 @@ Acceptance-report quote:
 `/home/u24/papers/itri/itri-acceptance-report-2026-04-20/01-itri-requirement-inventory-and-status.md:24`:
 
 ```text
-| F-11 | 換手規則與相關參數可設定/模擬 | `部分完成` | Simulation-side decision logic exists, but end-user configuration of handover rules/parameters is not yet a completed runtime control surface. | `尚未排入目前 phase` |
+| F-11 | Handover rules and related parameters are configurable/simulatable | `partial` | Simulation-side decision logic exists, but end-user configuration of handover rules/parameters is not yet a completed runtime control surface. | `not yet scheduled into a phase` |
 ```
 
 customer README §3.1 dynamic-parameter UI:
@@ -42,13 +42,13 @@ customer README §3.1 dynamic-parameter UI:
 `/home/u24/papers/itri/README.md:294-302`:
 
 ```text
-明確需求包括：
+Explicit requirements include:
 
-- 互動式 3D 圖像化系統
-- UI 互動介面
-- 可動態調整參數介面
-- 通訊狀態/通訊時間/通訊速率可視化
-- 換手策略切換
+- Interactive 3D graphical system
+- UI interaction interface
+- Dynamically adjustable parameter interface
+- Communication status / communication time / communication rate visualization
+- Handover strategy switching
 ```
 
 Interpretation:

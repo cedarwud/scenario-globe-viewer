@@ -49,7 +49,7 @@ Important split:
 | Command | Result | First failure message |
 | --- | --- | --- |
 | `npm run test:m8a-v4.8` | fail | `Error: Browser Runtime.evaluate threw (line 4, column 11): Error: Every visible V4.8 product text node must have a valid info class: [{"text":"Current: W1 LEO primary review","parent":"div","infoClass":null}, ...]` |
-| `npm run test:m8a-v4.9` | fail | `Error: V4.9 default-visible product text exposed denied metadata or long badges: {"visibleProductText":"13 顆衛星模擬展示 · 完整 ≥500 LEO 多軌道驗證見後續階段 ...` |
+| `npm run test:m8a-v4.9` | fail | `Error: V4.9 default-visible product text exposed denied metadata or long badges: {"visibleProductText":"13-satellite simulation view · Scale evidence (≥500 LEO) lives in Phase 7.1; this route remains a 13-actor bounded demo ...` |
 | `npm run test:m8a-v4.10:slice1` | fail | `Error: Default desktop screenshot must visibly differ from the accepted V4.9 baseline: {"baselineStrip":{"left":736.96875,...},"currentStrip":{"left":340,...},"currentText":"focus · LEO"}` |
 | `npm run test:m8a-v4.10:slice2` | fail | `Error: Default desktop screenshot must visibly differ from the accepted V4.9 baseline: {"baselineStrip":{"left":736.96875,...},"currentStrip":{"left":340,...},"currentText":"focus · LEO"}` |
 | `npm run test:m8a-v4.11:conv3` | fail | `npm error Missing script: "test:m8a-v4.11:conv3"` |

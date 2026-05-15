@@ -11,9 +11,9 @@
       "windowId": "leo-acquisition-context",
       "roleToken": "focus",
       "lines": [
-        "OneWeb LEO · 現在看這顆",
-        "連線品質：強",
-        "服務時間:~22 分鐘"
+        "OneWeb LEO · in focus now",
+        "Link quality: strong",
+        "Service time: ~22 min"
       ]
     },
     {
@@ -21,9 +21,9 @@
       "windowId": "leo-aging-pressure",
       "roleToken": "pressure",
       "lines": [
-        "OneWeb LEO · 訊號減弱中",
-        "切換在 ~10 分鐘",
-        "位置條件變差"
+        "OneWeb LEO · signal degrading",
+        "Switch in ~10 min",
+        "Geometry degrading"
       ]
     },
     {
@@ -31,9 +31,9 @@
       "windowId": "meo-continuity-hold",
       "roleToken": "continuity-hold",
       "lines": [
-        "SES O3b mPOWER MEO · 暫時接住",
-        "暫時接住 ~22 分鐘",
-        "新 LEO 即將回來"
+        "SES O3b mPOWER MEO · continuity hold",
+        "Continuity hold ~22 min",
+        "New LEO returning soon"
       ]
     },
     {
@@ -41,9 +41,9 @@
       "windowId": "leo-reentry-candidate",
       "roleToken": "re-entry",
       "lines": [
-        "OneWeb LEO · 候選",
-        "候選品質:強",
-        "若切回:~22 分鐘"
+        "OneWeb LEO · candidate",
+        "Candidate quality: strong",
+        "If switching back: ~22 min"
       ]
     },
     {
@@ -51,9 +51,9 @@
       "windowId": "geo-continuity-guard",
       "roleToken": "guard",
       "lines": [
-        "Singtel/SES GEO · 保底覆蓋",
-        "永遠連得到",
-        "序列即將結束"
+        "Singtel/SES GEO · guard coverage",
+        "Always reachable",
+        "Sequence ending soon"
       ]
     },
     {
@@ -97,35 +97,35 @@
       "kind": "countdown-derivation",
       "windowId": "leo-acquisition-context",
       "replayRatio": "0.100000",
-      "approximate": "~11 分鐘",
+      "approximate": "~11 min",
       "remainingSimulatedSec": "689.35"
     },
     {
       "kind": "countdown-derivation",
       "windowId": "leo-aging-pressure",
       "replayRatio": "0.300000",
-      "approximate": "~11 分鐘",
+      "approximate": "~11 min",
       "remainingSimulatedSec": "689.35"
     },
     {
       "kind": "countdown-derivation",
       "windowId": "meo-continuity-hold",
       "replayRatio": "0.500000",
-      "approximate": "~11 分鐘",
+      "approximate": "~11 min",
       "remainingSimulatedSec": "689.35"
     },
     {
       "kind": "countdown-derivation",
       "windowId": "leo-reentry-candidate",
       "replayRatio": "0.700000",
-      "approximate": "~14 分鐘",
+      "approximate": "~14 min",
       "remainingSimulatedSec": "827.22"
     },
     {
       "kind": "countdown-derivation",
       "windowId": "geo-continuity-guard",
       "replayRatio": "0.900000",
-      "approximate": "~11 分鐘",
+      "approximate": "~11 min",
       "remainingSimulatedSec": "689.35"
     },
     {
@@ -146,10 +146,10 @@
         "remainingFraction": "0.500000",
         "remainingSimulatedSec": "689.35",
         "fullReplaySimulatedSec": "6893.53",
-        "approximateDisplay": "~11 分鐘",
-        "primaryText": "切換到 MEO：~11 分鐘",
-        "appendixText": "位置條件變差",
-        "footnoteText": "~ 為模擬推演值",
+        "approximateDisplay": "~11 min",
+        "primaryText": "Switch to MEO: ~11 min",
+        "appendixText": "Geometry degrading",
+        "footnoteText": "~ = simulated value",
         "fontSizePx": "14",
         "gapFromMicroCuePx": "8"
       },

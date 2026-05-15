@@ -80,16 +80,16 @@ const M8A_V411_WINDOW_SATELLITE_COPY: Record<
     focusOrbitToken: "LEO",
     focusRoleToken: "focus",
     focusLines: [
-      "OneWeb LEO · 現在看這顆",
-      "連線品質：強",
-      "服務時間:~22 分鐘"
+      "OneWeb LEO · in focus now",
+      "Link quality: strong",
+      "Service time: ~22 min"
     ],
     candidateLines: null,
     fallbackLines: null,
     sequenceLines: [
-      "剛接上 LEO",
-      "服務時間長:~22 分鐘",
-      "下一段:訊號減弱"
+      "Just connected LEO",
+      "Service window: ~22 min",
+      "Next: signal degrading"
     ]
   },
   "leo-aging-pressure": {
@@ -97,20 +97,20 @@ const M8A_V411_WINDOW_SATELLITE_COPY: Record<
     focusOrbitToken: "LEO",
     focusRoleToken: "pressure",
     focusLines: [
-      "OneWeb LEO · 訊號減弱中",
-      "切換在 ~10 分鐘",
-      "位置條件變差"
+      "OneWeb LEO · signal degrading",
+      "Switch in ~10 min",
+      "Geometry degrading"
     ],
     candidateLines: [
-      "SES O3b mPOWER MEO · 即將接手",
-      "暫時接住 ~22 分鐘",
-      "覆蓋廣 · 延遲略高"
+      "SES O3b mPOWER MEO · taking over soon",
+      "Continuity hold ~22 min",
+      "Wide coverage · slightly higher latency"
     ],
     fallbackLines: null,
     sequenceLines: [
-      "LEO 訊號減弱",
-      "位置條件變差",
-      "下一段:MEO 暫時接住"
+      "LEO signal degrading",
+      "Geometry degrading",
+      "Next: MEO continuity hold"
     ]
   },
   "meo-continuity-hold": {
@@ -118,16 +118,16 @@ const M8A_V411_WINDOW_SATELLITE_COPY: Record<
     focusOrbitToken: "MEO",
     focusRoleToken: "continuity-hold",
     focusLines: [
-      "SES O3b mPOWER MEO · 暫時接住",
-      "暫時接住 ~22 分鐘",
-      "新 LEO 即將回來"
+      "SES O3b mPOWER MEO · continuity hold",
+      "Continuity hold ~22 min",
+      "New LEO returning soon"
     ],
     candidateLines: null,
     fallbackLines: null,
     sequenceLines: [
-      "MEO 暫時接住",
-      "覆蓋廣 · 延遲略高",
-      "下一段:新 LEO 候選"
+      "MEO continuity hold",
+      "Wide coverage · slightly higher latency",
+      "Next: new LEO candidate"
     ]
   },
   "leo-reentry-candidate": {
@@ -135,20 +135,20 @@ const M8A_V411_WINDOW_SATELLITE_COPY: Record<
     focusOrbitToken: "LEO",
     focusRoleToken: "re-entry",
     focusLines: [
-      "OneWeb LEO · 候選",
-      "候選品質:強",
-      "若切回:~22 分鐘"
+      "OneWeb LEO · candidate",
+      "Candidate quality: strong",
+      "If switching back: ~22 min"
     ],
     candidateLines: [
-      "SES O3b mPOWER MEO · 還在接住",
-      "可以等決定",
-      "MEO 仍 backstop"
+      "SES O3b mPOWER MEO · still holding",
+      "Decision can wait",
+      "MEO still backstops"
     ],
     fallbackLines: null,
     sequenceLines: [
-      "新 LEO 候選回來",
-      "切回後可有 ~22 分鐘低延遲",
-      "MEO 仍接住可緩決定"
+      "New LEO candidate returning",
+      "After switch back: ~22 min low-latency",
+      "MEO still holds; decision can wait"
     ]
   },
   "geo-continuity-guard": {
@@ -156,30 +156,30 @@ const M8A_V411_WINDOW_SATELLITE_COPY: Record<
     focusOrbitToken: "GEO",
     focusRoleToken: "guard",
     focusLines: [
-      "Singtel/SES GEO · 保底覆蓋",
-      "永遠連得到",
-      "序列即將結束"
+      "Singtel/SES GEO · guard coverage",
+      "Always reachable",
+      "Sequence ending soon"
     ],
     candidateLines: null,
     fallbackLines: null,
     sequenceLines: [
-      "GEO 保底覆蓋",
-      "永遠連得到",
-      "序列在這裡結束"
+      "GEO guard coverage",
+      "Always reachable",
+      "Sequence ends here"
     ]
   }
 };
 
 const M8A_V411_GROUND_STATION_HOVER_LINES = {
   "tw-cht-multi-orbit-ground-infrastructure": [
-    "Chunghwa Telecom 地面站",
+    "Chunghwa Telecom ground station",
     "operator-family precision",
-    "LEO MEO GEO 三軌道資料"
+    "LEO MEO GEO three-orbit coverage"
   ],
   "sg-speedcast-singapore-teleport": [
     "Speedcast Singapore Teleport",
     "operator-family precision",
-    "LEO MEO GEO 三軌道資料"
+    "LEO MEO GEO three-orbit coverage"
   ]
 } satisfies Record<M8aV4EndpointId, readonly [string, string, string]>;
 
@@ -271,7 +271,7 @@ function resolveSatelliteHoverLines(
   const roleLine = resolveAmbientRoleLine(roleToken);
   const ambientHint = resolveAmbientHint(actor.orbitClass, activeWindow);
 
-  return [`${operator} ${orbitToken} · ${roleLine}`, ambientHint, "模擬展示"];
+  return [`${operator} ${orbitToken} · ${roleLine}`, ambientHint, "Simulation view"];
 }
 
 function resolveAmbientRoleLine(
@@ -279,19 +279,19 @@ function resolveAmbientRoleLine(
 ): string {
   switch (roleToken) {
     case "focus":
-      return "焦點角色";
+      return "Focus role";
     case "pressure":
-      return "訊號減弱中";
+      return "Signal degrading";
     case "continuity-hold":
-      return "暫時接住";
+      return "Continuity hold";
     case "re-entry":
-      return "候選";
+      return "Candidate";
     case "candidate":
-      return "候選";
+      return "Candidate";
     case "guard":
-      return "保底覆蓋";
+      return "Guard coverage";
     case "fallback":
-      return "保底覆蓋";
+      return "Guard coverage";
   }
 }
 
@@ -300,18 +300,18 @@ function resolveAmbientHint(
   activeWindow: M8aV46dSimulationHandoverWindow
 ): string {
   if (orbitClass === "geo") {
-    return "保底覆蓋待命";
+    return "Guard coverage standby";
   }
 
   if (orbitClass === "meo") {
     if (activeWindow.windowId === "leo-aging-pressure") {
-      return "即將接手";
+      return "Taking over soon";
     }
     return "ambient context";
   }
 
   if (activeWindow.windowId === "leo-reentry-candidate") {
-    return "候選品質依位置條件";
+    return "Candidate quality depends on geometry";
   }
 
   return "ambient context";

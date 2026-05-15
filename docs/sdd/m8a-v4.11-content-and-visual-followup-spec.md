@@ -115,12 +115,12 @@ report export, strategy/rule configuration, and 24h stability.
 Current acceptance-report facts used by v2:
 - Phase 6 owns bounded/proxy seams for communication time, handover
   decision, physical input, and validation state.
-- F-09 dedicated communication-rate visualization is still `待完成`.
+- F-09 dedicated communication-rate visualization is still `pending`.
 - F-12 handover based on latency/jitter/network speed is closed only as
   bounded/proxy decision logic, not measured truth.
 - V-02 through V-06 remain partial/external for WSL, tunnel/bridge, NAT,
   virtual DUT, physical DUT, traffic generator, ping, and iPerf truth.
-- F-13 >=500 LEO remains `待完成` and is a Phase 7.1 gate.
+- F-13 >=500 LEO remains `pending` and is a Phase 7.1 gate.
 - F-18 24h stability requires Phase 7.0 retained full-run artifact; soak harness is landed but the full 24h run has not completed — gate remains open.
 
 V4.11 ground-station scene boundary remains unchanged:
@@ -156,11 +156,11 @@ not live-control instructions.
 
 | Window | Role label | Main question | Supporting question |
 |---|---|---|---|
-| W1 `leo-acquisition-context` | focus | LEO 品質夠不夠、能用多久？ | 服務時長 + 品質類別 |
-| W2 `leo-aging-pressure` | pressure | 品質在掉，何時切 MEO？ | 切換時點 + 品質下降趨勢 |
-| W3 `meo-continuity-hold` | continuity-hold | MEO 能撐多久？新 LEO 何時回？ | 持續時間 + LEO ETA + 覆蓋類別 |
-| W4 `leo-reentry-candidate` | candidate | 新 LEO 回來，是否夠切回？ | 候選品質 + 切回後預期服務 |
-| W5 `geo-continuity-guard` | guard | GEO 為何只是保底？序列何時結束？ | guard 角色 + sequence-end + boundary |
+| W1 `leo-acquisition-context` | focus | Is LEO quality good enough, and for how long? | Service duration + quality class |
+| W2 `leo-aging-pressure` | pressure | Quality is dropping; when do we switch to MEO? | Switch timing + quality degradation trend |
+| W3 `meo-continuity-hold` | continuity-hold | How long can MEO hold? When does the new LEO return? | Hold duration + LEO ETA + coverage class |
+| W4 `leo-reentry-candidate` | candidate | The new LEO is back; is it good enough to switch back to? | Candidate quality + expected service after switch-back |
+| W5 `geo-continuity-guard` | guard | Why is GEO only a guard? When does the sequence end? | guard role + sequence-end + boundary |
 
 Viewer-facing body copy is pure Chinese. Small English technical tags
 may remain only where they identify stable model concepts, for example
@@ -191,9 +191,9 @@ Default tab by window:
 ### 4.2 Decision tab keeps a clean 3-section structure
 
 Decision tab content has exactly three sections:
-- 現在: 1-2 sentence Chinese state explanation.
-- 為什麼: 1-2 sentence reason / pressure source.
-- 下一步: 1 sentence next-state preview.
+- Now: 1-2 sentence Chinese state explanation.
+- Why: 1-2 sentence reason / pressure source.
+- Next: 1 sentence next-state preview.
 
 Remove:
 - English keys such as `Now`, `Why`, `Watch` in body rows.
@@ -221,8 +221,8 @@ Not connected in this scene:
 |---|---|---|
 | Numeric communication time and availability detail | `Communication Time` panel | (Phase 6 acceptance route, separate) |
 | Handover decision proxy inputs over latency/jitter/network-speed dimensions | `Handover Decision` panel | (Phase 6 acceptance route, separate) |
-| Dedicated communication-rate visualization | No dedicated communication-rate surface yet; F-09 remains `待完成` | (not reachable from this scene) |
-| Rain / antenna / ITU / V 組 physical factor projection | `Physical Inputs` panel | (Phase 6 acceptance route, separate) |
+| Dedicated communication-rate visualization | No dedicated communication-rate surface yet; F-09 remains `pending` | (not reachable from this scene) |
+| Rain / antenna / ITU / V-group physical factor projection | `Physical Inputs` panel | (Phase 6 acceptance route, separate) |
 | Bounded validation environment / DUT / transport state | `Validation State` panel | (Phase 6 acceptance route, separate) |
 | ESTNeT / INET end-to-end network truth | External validation gap: ESTNeT/INET, ping/iPerf, NAT/tunnel, traffic generator are not owned by this repo scene | (not reachable from this scene) |
 | WSL tunnel / bridging / NAT routing | `Validation State` shows bounded modes; real tunnel/bridge/NAT remains external | (Phase 6 acceptance route, separate) |
@@ -237,20 +237,20 @@ customer acceptance-ID gap map for V4.11 representation:
 
 | ID(s) | Acceptance status source | V4.11 representation |
 |---|---|---|
-| F-01/F-02/F-03 | `部分完成`; full orbit-model / multi-orbit / TLE closure remains Phase 7.1 | Shows bounded 13-actor LEO/MEO/GEO review scene; no full requirement closure claim |
-| F-04/F-05 | `已完成` foundation / Phase 6.2 | V4.11 builds on Cesium globe and visible UI; not a new closure claim |
-| F-06/F-14 | `已完成（bounded）` / `已完成` | Replay mode and speed controls remain visible; no rule-parameter editor claim |
-| F-07/F-08 | `已完成（bounded）` | Disabled hookpoint to `Communication Time` for accepted bounded seam |
-| F-09 | `待完成` | Disabled tile says no dedicated communication-rate visualization yet |
-| F-10/F-11 | `部分完成` | Disabled tiles state no operator-switchable strategy or end-user rules editor here |
-| F-12 | `已完成（bounded）` | Disabled hookpoint to `Handover Decision`; no measured decision truth |
-| F-13 | `待完成` | `13-actor demo`; >=500 LEO Phase 7.1 gate |
-| F-15 | `部分完成` | Bounded replay mode visible; full multi-source TLE scenario switching not represented here |
-| F-16 | `部分完成` | Export-ready structures acknowledged; no end-user export action here |
-| F-17/P-01/P-02/P-03 | `已完成（bounded）` | Disabled hookpoint to `Physical Inputs`; no full external physical truth |
-| F-18 | `已完成` by Phase 7.0 | Validation status may mention readiness; V4.11 must not restate this as GPU lock-in work |
-| V-01 | `已完成（foundation）` | No special tile; environment support stays foundation context |
-| V-02/V-03/V-04/V-05/V-06 | `部分完成`; repo seam closed but external validation open | Split `Validation State` bounded seam from external ESTNeT/INET/DUT/NAT/tunnel/ping/iPerf gap |
+| F-01/F-02/F-03 | `partially complete`; full orbit-model / multi-orbit / TLE closure remains Phase 7.1 | Shows bounded 13-actor LEO/MEO/GEO review scene; no full requirement closure claim |
+| F-04/F-05 | `complete` foundation / Phase 6.2 | V4.11 builds on Cesium globe and visible UI; not a new closure claim |
+| F-06/F-14 | `complete (bounded)` / `complete` | Replay mode and speed controls remain visible; no rule-parameter editor claim |
+| F-07/F-08 | `complete (bounded)` | Disabled hookpoint to `Communication Time` for accepted bounded seam |
+| F-09 | `pending` | Disabled tile says no dedicated communication-rate visualization yet |
+| F-10/F-11 | `partially complete` | Disabled tiles state no operator-switchable strategy or end-user rules editor here |
+| F-12 | `complete (bounded)` | Disabled hookpoint to `Handover Decision`; no measured decision truth |
+| F-13 | `pending` | `13-actor demo`; >=500 LEO Phase 7.1 gate |
+| F-15 | `partially complete` | Bounded replay mode visible; full multi-source TLE scenario switching not represented here |
+| F-16 | `partially complete` | Export-ready structures acknowledged; no end-user export action here |
+| F-17/P-01/P-02/P-03 | `complete (bounded)` | Disabled hookpoint to `Physical Inputs`; no full external physical truth |
+| F-18 | `complete` by Phase 7.0 | Validation status may mention readiness; V4.11 must not restate this as GPU lock-in work |
+| V-01 | `complete (foundation)` | No special tile; environment support stays foundation context |
+| V-02/V-03/V-04/V-05/V-06 | `partially complete`; repo seam closed but external validation open | Split `Validation State` bounded seam from external ESTNeT/INET/DUT/NAT/tunnel/ping/iPerf gap |
 | D-01/D-02/D-03 | completed/bounded/partial presentation requirements | V4.11 improves integrated presentation only; it does not create new acceptance authority |
 
 Do not compress validation/network gaps into one "validation" tile. Use
@@ -271,7 +271,7 @@ Contract:
 - Reduced opacity alone is insufficient; include an unavailable label,
   muted state token, and hookpoint copy.
 - Placeholder values must be realistic and explicit, for example
-  `未連接`, `Phase 7.1 gate`, or `external validation`.
+  `Not connected`, `Phase 7.1 gate`, or `external validation`.
 - If a future route link is added, it must be a separate focusable link
   inside or below the tile, not the disabled tile itself. The link label
   must include the reachability qualifier.
@@ -340,7 +340,7 @@ When Details is open:
 - render a compact badge in the inspector sheet header, near but not
   replacing the title or Close button;
 - text budget: <=28 characters Chinese or <=32 ASCII characters;
-- example copy: `Validation: pending` or `驗證狀態：待補`;
+- example copy: `Validation: pending` or `Validation status: TBD`;
 - do not use the top strip.
 
 When Details is closed:
@@ -369,9 +369,9 @@ Replace the current 5-equal-weight rows with three layers per window:
 
 | Layer | Content | Visual weight |
 |---|---|---|
-| 主判斷 | orbit + role chip, for example `LEO · pressure` | Largest |
-| 下一步 | next-state preview, one line | Medium |
-| 依據 / 缺口 | modeled quality / real measurement hookpoint | Small |
+| Main judgment | orbit + role chip, for example `LEO · pressure` | Largest |
+| Next step | next-state preview, one line | Medium |
+| Basis / Gap | modeled quality / real measurement hookpoint | Small |
 
 Current/Candidate/Fallback become compact tokens inside the main
 judgment row, not each their own large row.
@@ -587,13 +587,13 @@ visual acceptance.
 Decision body examples are Chinese-first. English technical tags are
 small annotations only.
 
-| Window | Decision: 現在 | Decision: 為什麼 | Decision: 下一步 | Metrics focus | Evidence default |
+| Window | Decision: Now | Decision: Why | Decision: Next | Metrics focus | Evidence default |
 |---|---|---|---|---|---|
-| W1 | 目前展示焦點是 LEO，模擬品質類別仍可支撐服務。 | 連續性壓力尚低，MEO/GEO 只作為後續脈絡。 | 觀察 LEO 品質老化，以及何時需要 MEO 接手。 | latency class, continuity class, countdown to W2 | TLE + R2 summary; Archive collapsed |
-| W2 | LEO 仍在畫面焦點，但品質正在下降。 | 模擬壓力累積，切換時點接近。 | 下一個窗口由 MEO 暫時接住連續性。 | pressure trend, handover state, countdown to W3 | TLE + R2 summary; Archive collapsed |
-| W3 | MEO 目前接住服務連續性。 | 新 LEO 尚未回到可切回條件，MEO 承擔中段維持。 | 觀察 LEO ETA 與候選品質是否回升。 | continuity class, LEO ETA, modeled hold state | TLE + R2 summary; Archive collapsed |
-| W4 | 新 LEO 回到候選位置。 | 候選品質回升，具備切回檢查價值。 | 下一步確認切回後的預期服務時間。 | candidate quality, handover candidate state, countdown to W5 | TLE + R2 summary; Archive collapsed |
-| W5 | GEO 是 guard / fallback，不是主要性能路徑。 | 序列接近結束，GEO 只保留連續性脈絡。 | 顯示 final hold 與 restart cue，回到 W1 重看序列。 | guard state, final-hold status, restart cue | TLE + R2 summary; Archive expanded |
+| W1 | The current display focus is LEO; the modeled quality class can still support service. | Continuity pressure is still low; MEO/GEO are only follow-on context. | Watch LEO quality aging and when MEO needs to take over. | latency class, continuity class, countdown to W2 | TLE + R2 summary; Archive collapsed |
+| W2 | LEO remains the on-screen focus, but quality is declining. | Simulated pressure is accumulating; the switch point is near. | The next window has MEO temporarily hold continuity. | pressure trend, handover state, countdown to W3 | TLE + R2 summary; Archive collapsed |
+| W3 | MEO is currently holding service continuity. | The new LEO has not yet returned to switch-back conditions; MEO carries mid-sequence hold. | Watch LEO ETA and whether candidate quality recovers. | continuity class, LEO ETA, modeled hold state | TLE + R2 summary; Archive collapsed |
+| W4 | The new LEO has returned to candidate position. | Candidate quality has recovered, making a switch-back check worthwhile. | Next, confirm the expected service time after the switch-back. | candidate quality, handover candidate state, countdown to W5 | TLE + R2 summary; Archive collapsed |
+| W5 | GEO is guard / fallback, not the primary performance path. | The sequence is nearing its end; GEO only retains continuity context. | Show final hold and restart cue, returning to W1 to replay the sequence. | guard state, final-hold status, restart cue | TLE + R2 summary; Archive expanded |
 
 Metrics unavailable rows are shared across W1-W5 but can sort by
 window relevance:

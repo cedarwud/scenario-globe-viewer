@@ -47,7 +47,7 @@ Checklist artifact:
 
 The checklist was revised for Conv 4:
 
-- simulation disclosure uses footer `[模擬展示]`, not a Truth button
+- simulation disclosure uses footer `[Simulation view]`, not a Truth button
 - source provenance uses footer `TLE: CelesTrak NORAD GP`, not a corner badge
 - Sources is Details advanced `Source provenance`, not a cold-question path
 - stale SDD wording is recorded as `accepted design evolution`

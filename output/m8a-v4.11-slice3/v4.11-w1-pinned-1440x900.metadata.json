@@ -166,9 +166,9 @@
       "hidden": false,
       "rect": {
         "left": 1029.96875,
-        "top": -37.859375,
+        "top": -36.859375,
         "right": 1388.96875,
-        "bottom": -9.859375,
+        "bottom": -8.859375,
         "width": 359,
         "height": 28
       },
@@ -179,14 +179,14 @@
       "visible": true,
       "hidden": false,
       "rect": {
-        "left": 1296.84375,
-        "top": -125.9375,
+        "left": 1259.390625,
+        "top": -124.9375,
         "right": 1388.96875,
-        "bottom": -103.9375,
-        "width": 92.125,
+        "bottom": -102.9375,
+        "width": 129.578125,
         "height": 22
       },
-      "text": "驗證狀態：待補"
+      "text": "Validation status: TBD"
     },
     "sheet": {
       "exists": true,
@@ -200,7 +200,7 @@
         "width": 400,
         "height": 676
       },
-      "text": "Details Inspector Pinned to W1 驗證狀態：待補 Close 13-actor demo operator-family precision Decision Metrics Evidence Selected replay window LEO review focus State 1 of 5 Replay UTC 2026-04-28T08:56:47.252Z Sim replay 00:05 / 01:54 Source provenance Decision · State Evidence 剛接上 OneWeb LEO · LEO review focus 剛接上 OneWeb LEO，連線品質強。約 22 分鐘後，因為位置條件變化會進入訊號減弱階段。 NowNow: LEO is the modeled primary service state for this window. WhyWhy: position conditions support low-latency LEO review focus. NextNext: watch for LEO aging pressure before the MEO hold window. WatchWatch: simulated service time and modeled quality class only. The simulation review is currently anchored on the OneWeb LEO context marked as the focus role. The five-state V4.6D model is in window 1 of 5. Watch the LEO actor for the early pressure signal — the next modeled state is LEO pressure. Endpoint precision remains operator-family only and no active gateway is being claimed. Boundary · Truth Boundary Truth boundary Simulation boundary: 13-actor demo, repo-owned projection, not measured truth. Service-layer boundary: modeled service handover, not native RF handover. Endpoint boundary: operator-family precision, not site-level gateway claim. Scale boundary: not >=500 LEO validation and not 24h hardware-GPU closeout. simulation output operator-family precision display-context actors Simulated display-context state, not an operator handover log. Source-lineaged display-context actors, not active serving satellites. Endpoint precision stays operator-family only. No active gateway assignment is claimed. No pair-specific teleport path is claimed. No measured latency, jitter, throughput, or continuity values are shown. No native RF handover is claimed. Implementation evidence",
+      "text": "Details Inspector Pinned to W1 Validation status: TBD Close 13-actor demo operator-family precision Decision Metrics Evidence Selected replay window LEO review focus State 1 of 5 Replay UTC 2026-04-28T08:58:54.236Z Sim replay 00:07 / 01:54 Source provenance Decision · State Evidence Just connected OneWeb LEO · LEO review focus Just connected to OneWeb LEO with strong link quality. In ~22 min, geometry change triggers signal degradation. NowLEO is the sole primary focus in this window. WhyGeometry supports LEO; pressure window has not started. NextNext focus: LEO quality drop. WatchWatch the LEO focus cue and simulated service time, not measured throughput. The simulation review is currently anchored on the OneWeb LEO context marked as the focus role. The five-state V4.6D model is in window 1 of 5. Watch the LEO actor for the early pressure signal — the next modeled state is LEO pressure. Endpoint precision remains operator-family only and no active gateway is being claimed. Boundary · Truth Boundary Truth boundary Simulation boundary: 13-actor demo, repo-owned projection, not measured truth. Service-layer boundary: modeled service handover, not native RF handover. Endpoint boundary: operator-family precision, not site-level gateway claim. Scale boundary: not >=500 LEO validation and not 24h hardware-GPU closeout. simulation output operator-family precision display-context actors Simulated display-context state, not an operator handover log. Source-lineaged display-context actors, not active serving satellites. Endpoint precision stays operator-family only. No active gateway assignment is claimed. No pair-specific teleport path is claimed. No measured latency, jitter, throughput, or continuity values are shown. No native RF handover is claimed. Implementation evidence",
       "dataset": {
         "concurrency": "m8a-v4.11-inspector-concurrency-slice3-runtime.v1",
         "stateRole": "open",
@@ -214,16 +214,16 @@
       "hidden": false,
       "rect": {
         "left": 1029.96875,
-        "top": 224.15625,
+        "top": 225.15625,
         "right": 1388.96875,
-        "bottom": 722.609375,
+        "bottom": 722.859375,
         "width": 359,
-        "height": 498.453125
+        "height": 497.703125
       },
-      "text": "Decision · State Evidence 剛接上 OneWeb LEO · LEO review focus 剛接上 OneWeb LEO，連線品質強。約 22 分鐘後，因為位置條件變化會進入訊號減弱階段。 NowNow: LEO is the modeled primary service state for this window. WhyWhy: position conditions support low-latency LEO review focus. NextNext: watch for LEO aging pressure before the MEO hold window. WatchWatch: simulated service time and modeled quality class only. The simulation review is currently anchored on the OneWeb LEO context marked as the focus role. The five-state V4.6D model is in window 1 of 5. Watch the LEO actor for the early pressure signal — the next modeled state is LEO pressure. Endpoint precision remains operator-family only and no active gateway is being claimed.",
+      "text": "Decision · State Evidence Just connected OneWeb LEO · LEO review focus Just connected to OneWeb LEO with strong link quality. In ~22 min, geometry change triggers signal degradation. NowLEO is the sole primary focus in this window. WhyGeometry supports LEO; pressure window has not started. NextNext focus: LEO quality drop. WatchWatch the LEO focus cue and simulated service time, not measured throughput. The simulation review is currently anchored on the OneWeb LEO context marked as the focus role. The five-state V4.6D model is in window 1 of 5. Watch the LEO actor for the early pressure signal — the next modeled state is LEO pressure. Endpoint precision remains operator-family only and no active gateway is being claimed.",
       "roleState": "open",
-      "title": "剛接上 OneWeb LEO · LEO review focus",
-      "copy": "剛接上 OneWeb LEO，連線品質強。約 22 分鐘後，因為位置條件變化會進入訊號減弱階段。",
+      "title": "Just connected OneWeb LEO · LEO review focus",
+      "copy": "Just connected to OneWeb LEO with strong link quality. In ~22 min, geometry change triggers signal degradation.",
       "detail": "The simulation review is currently anchored on the OneWeb LEO context marked as the focus role. The five-state V4.6D model is in window 1 of 5. Watch the LEO actor for the early pressure signal — the next modeled state is LEO pressure. Endpoint precision remains operator-family only and no active gateway is being claimed.",
       "triggeredByDetails": "true",
       "triggeredByTruth": "true",
@@ -235,9 +235,9 @@
       "hidden": false,
       "rect": {
         "left": 1029.96875,
-        "top": 732.84375,
+        "top": 733.09375,
         "right": 1388.96875,
-        "bottom": 1409.40625,
+        "bottom": 1409.65625,
         "width": 359,
         "height": 676.5625
       },
@@ -261,9 +261,9 @@
       "hidden": false,
       "rect": {
         "left": 1029.96875,
-        "top": 732.84375,
+        "top": 733.09375,
         "right": 1388.96875,
-        "bottom": 1409.40625,
+        "bottom": 1409.65625,
         "width": 359,
         "height": 676.5625
       },
@@ -276,9 +276,9 @@
       "hidden": false,
       "rect": {
         "left": 1029.96875,
-        "top": 1419.3125,
+        "top": 1419.5625,
         "right": 1388.96875,
-        "bottom": 1448.4375,
+        "bottom": 1448.6875,
         "width": 359,
         "height": 29.125
       },
@@ -290,12 +290,12 @@
       "visible": true,
       "hidden": false,
       "rect": {
-        "left": 1344.96875,
-        "top": 770.40625,
+        "left": 1334.96875,
+        "top": 766.40625,
         "right": 1416.96875,
         "bottom": 806.40625,
-        "width": 72,
-        "height": 36
+        "width": 82,
+        "height": 40
       },
       "text": "Details",
       "ariaExpanded": "true"
@@ -314,13 +314,13 @@
       "hidden": false,
       "rect": {
         "left": 187.03125,
-        "top": 785.40625,
-        "right": 253.046875,
-        "bottom": 803.40625,
-        "width": 66.015625,
-        "height": 18
+        "top": 784.90625,
+        "right": 303.234375,
+        "bottom": 803.90625,
+        "width": 116.203125,
+        "height": 19
       },
-      "text": "模擬展示",
+      "text": "Simulation view",
       "ariaExpanded": "true"
     },
     "close": {
@@ -329,10 +329,10 @@
       "hidden": false,
       "rect": {
         "left": 1029.96875,
-        "top": -89.859375,
-        "right": 1196.46875,
-        "bottom": -45.859375,
-        "width": 166.5,
+        "top": -88.859375,
+        "right": 1149.875,
+        "bottom": -44.859375,
+        "width": 119.90625,
         "height": 44
       },
       "text": "Close"
@@ -371,11 +371,11 @@
       "hidden": false,
       "rect": {
         "left": 304,
-        "top": 704,
+        "top": 688,
         "right": 1136,
         "bottom": 760,
         "width": 832,
-        "height": 56
+        "height": 72
       },
       "text": "Handover sequence State 1 of 5: LEO review focus Next: State 2 of 5 LEO pressure 1 LEO review LEO 2 LEO pressure LEO 3 MEO hold MEO 4 LEO re-entry LEO 5 GEO guard GEO",
       "marks": [
@@ -422,7 +422,7 @@
       "sourcesRole": true,
       "r2Listing": false
     },
-    "visibleText": "13 顆衛星模擬展示 · 完整 ≥500 LEO 多軌道驗證見後續階段 LEO MEO GEO ✓ LEO MEO GEO ✓ LEO LEO LEO LEO LEO LEO MEO MEO MEO MEO MEO GEO GEO Scenario Scope Scope: 13-actor demo · LEO/MEO/GEO (6/5/2) Time: Sim replay 00:05 / 01:54 · replay · 60x Precision: operator-family precision Boundary: repo-owned projection · not measured truth Current: W1 LEO primary review Candidate: none promoted in W1 Fallback: MEO/GEO observed only Decision: LEO is usable now; watch service time Time/Quality: simulated remaining time; modeled quality strong focus · LEO Handover sequence State 1 of 5: LEO review focus Next: State 2 of 5 LEO pressure 1 LEO review LEO 2 LEO pressure LEO 3 MEO hold MEO 4 LEO re-entry LEO 5 GEO guard GEO Current state LEO review focus State 1 of 5 Play Restart 30x 60x 120x Review mode · on Details Reviewer pinned to W1 Details Inspector Pinned to W1 驗證狀態：待補 Close 13-actor demo operator-family precision Decision Metrics Evidence Selected replay window LEO review focus State 1 of 5 Replay UTC 2026-04-28T08:56:47.252Z Sim replay 00:05 / 01:54 Source provenance Decision · State Evidence 剛接上 OneWeb LEO · LEO review focus 剛接上 OneWeb LEO，連線品質強。約 22 分鐘後，因為位置條件變化會進入訊號減弱階段。 NowNow: LEO is the modeled primary service state for this window. WhyWhy: position conditions support low-latency LEO review focus. NextNext: watch for LEO aging pressure before the MEO hold window. WatchWatch: simulated service time and modeled quality class only. The simulation review is currently anchored on the OneWeb LEO context marked as the focus role. The five-state V4.6D model is in window 1 of 5. Watch the LEO actor for the early pressure signal — the next modeled state is LEO pressure. Endpoint precision remains operator-family only and no active gateway is being claimed. Boundary · Truth Boundary Truth boundary Simulation boundary: 13-actor demo, repo-owned projection, not measured truth. Service-layer boundary: modeled service handover, not native RF handover. Endpoint boundary: operator-family precision, not site-level gateway claim. Scale boundary: not >=500 LEO validation and not 24h hardware-GPU closeout. simulation output operator-family precision display-context actors Simulated display-context state, not an operator handover log. Source-lineaged display-context actors, not active serving satellites. Endpoint precision stays operator-family only. No active gateway assignment is claimed. No pair-specific teleport path is claimed. No measured latency, jitter, throughput, or continuity values are shown. No native RF handover is claimed. Implementation evidence 模擬展示 operator-family precision TLE: CelesTrak NORAD GP · 2026-04-26 13 actors Boundary & Sources 服務時間：~17 分鐘 下一段：訊號減弱 ~ 為模擬推演值",
+    "visibleText": "Scale evidence (≥500 LEO) lives in Phase 7.1; this route remains a 13-actor bounded demo LEO MEO GEO ✓ LEO MEO GEO ✓ LEO LEO LEO LEO LEO LEO MEO MEO MEO MEO MEO GEO GEO Scope: 13-actor demo · LEO/MEO/GEO (6/5/2) Time: Sim replay 00:07 / 01:54 · replay · 60x Precision: operator-family precision Boundary: repo-owned projection · not measured truth Now W1 · LEO primary service Focus on LEO: low-latency service is active; MEO/GEO are background only. F LEO · focus Current: LEO Candidate: none Fallback: MEO/GEO Active orbit: LEO focus Modeled rate: Candidate capacity context Next: entering quality drop modeled quality strong; service window: ~22 min Modeled route review; no live traffic metric. focus · LEO Handover sequence State 1 of 5: LEO review focus Next: State 2 of 5 LEO pressure 1 LEO review LEO 2 LEO pressure LEO 3 MEO hold MEO 4 LEO re-entry LEO 5 GEO guard GEO Play Restart 30x 60x 120x Review mode · on Details Evidence Reviewer pinned to W1 Details Inspector Pinned to W1 Validation status: TBD Close 13-actor demo operator-family precision Decision Metrics Evidence Selected replay window LEO review focus State 1 of 5 Replay UTC 2026-04-28T08:58:54.236Z Sim replay 00:07 / 01:54 Source provenance Decision · State Evidence Just connected OneWeb LEO · LEO review focus Just connected to OneWeb LEO with strong link quality. In ~22 min, geometry change triggers signal degradation. NowLEO is the sole primary focus in this window. WhyGeometry supports LEO; pressure window has not started. NextNext focus: LEO quality drop. WatchWatch the LEO focus cue and simulated service time, not measured throughput. The simulation review is currently anchored on the OneWeb LEO context marked as the focus role. The five-state V4.6D model is in window 1 of 5. Watch the LEO actor for the early pressure signal — the next modeled state is LEO pressure. Endpoint precision remains operator-family only and no active gateway is being claimed. Boundary · Truth Boundary Truth boundary Simulation boundary: 13-actor demo, repo-owned projection, not measured truth. Service-layer boundary: modeled service handover, not native RF handover. Endpoint boundary: operator-family precision, not site-level gateway claim. Scale boundary: not >=500 LEO validation and not 24h hardware-GPU closeout. simulation output operator-family precision display-context actors Simulated display-context state, not an operator handover log. Source-lineaged display-context actors, not active serving satellites. Endpoint precision stays operator-family only. No active gateway assignment is claimed. No pair-specific teleport path is claimed. No measured latency, jitter, throughput, or continuity values are shown. No native RF handover is claimed. Implementation evidence Simulation view operator-family precision TLE: CelesTrak NORAD GP · 2026-04-26 13 actors Boundary & Sources Service time: ~15 min Next: signal degrading ~ = simulated value",
     "resourceHits": []
   }
 }

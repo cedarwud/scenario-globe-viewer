@@ -1099,7 +1099,7 @@ function assertBoundaryAffordanceDefaultVisible(result) {
   );
   assert(
     result.truth.visible &&
-      /模擬展示/.test(result.truth.text),
+      /Simulation view/.test(result.truth.text),
     "Default view must retain footer chip boundary affordance after Conv 3 Truth removal: " +
       JSON.stringify(result.truth)
   );

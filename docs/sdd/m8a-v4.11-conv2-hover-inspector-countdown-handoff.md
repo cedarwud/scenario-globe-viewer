@@ -29,8 +29,8 @@ leaked in. Specifically:
   open.
 - **Countdown surface** (new) wired to V4.6D `replayRatio` + active
   `window.{startRatioInclusive, stopRatioExclusive}` per Addendum §1.1
-  derivation rule. Per-window phrase + `~N 分鐘 / ~N 秒` approximate
-  display + `~ 為模擬推演值` footnote.
+  derivation rule. Per-window phrase + `~N minutes / ~N seconds` approximate
+  display + `~ = simulated value` footnote.
 
 Items explicitly **not** touched (locked for Conv 3 / 4):
 
@@ -99,7 +99,7 @@ V4.7 was already failing on `main` before Conv 1 (pre-existing provenance
 badge / details-close target overlap, see Conv 1 handoff). This pre-existing
 failure is **not** a Conv 2 regression. Out of Conv 2 closeout scope per
 the brief (`V4.10 / V4.9 / V4.8 + Slice 1 / 2 / 3 / 4 / 5 invariant smoke
-全綠`); should be picked up independently.
+all green`); should be picked up independently.
 
 ## §Smoke Softening Disclosure (Lock-in J)
 
@@ -110,13 +110,13 @@ smoke surfaces were softened by Conv 2:
 
 | Smoke | Old assertion | New assertion (Conv 2) | Justification |
 | --- | --- | --- | --- |
-| `tests/smoke/verify-m8a-v4.11-slice2-hover-popover-runtime.mjs` | 5-line satellite popover keyed on `Eutelsat OneWeb`, `LEO · focus role`, `TLE source: …`, `low-latency context class`, `display context, not active serving`. Ground-station 4 lines including triplet `LEO strong · MEO strong · GEO strong` + sources count. Sequence-rail 3 lines using the V4.11 baseline storyboard tokens. `lineCount >= 3` was permissive. | 3-line satellite popover keyed on phase-specific Chinese (e.g. W1 `OneWeb LEO · 現在看這顆 / 連線品質：強 / 服務時間:~22 分鐘`). Ground-station 3-line layperson Chinese. Sequence-rail 3-line layperson Chinese. `lineCount === 3` is now exact-match. | Storyboard rewrite proposal §Per-window rewrite + Addendum §1.2 require phase-specific 3-line layperson copy across all hover targets. The old tokens were engineering vocabulary that did not answer per-window operator concerns. |
+| `tests/smoke/verify-m8a-v4.11-slice2-hover-popover-runtime.mjs` | 5-line satellite popover keyed on `Eutelsat OneWeb`, `LEO · focus role`, `TLE source: …`, `low-latency context class`, `display context, not active serving`. Ground-station 4 lines including triplet `LEO strong · MEO strong · GEO strong` + sources count. Sequence-rail 3 lines using the V4.11 baseline storyboard tokens. `lineCount >= 3` was permissive. | 3-line satellite popover keyed on phase-specific Chinese-language copy (e.g. W1 `OneWeb LEO · Currently viewing this one / Connection quality: strong / Service time: ~22 minutes`). Ground-station 3-line layperson Chinese-language copy. Sequence-rail 3-line layperson Chinese-language copy. `lineCount === 3` is now exact-match. | Storyboard rewrite proposal §Per-window rewrite + Addendum §1.2 require phase-specific 3-line layperson copy across all hover targets. The old tokens were engineering vocabulary that did not answer per-window operator concerns. |
 
 ### §2 — Slice 3 inspector role structure (per Conv 2 brief allowance + Addendum §1.7 design switch)
 
 | Smoke | Old assertion | New assertion (Conv 2) | Justification |
 | --- | --- | --- | --- |
-| `tests/smoke/verify-m8a-v4.11-slice3-inspector-concurrency-runtime.mjs` | After Details + Truth click sequence: state-evidence visible AND truth-boundary visible (concurrent two-role spec). `result.stateRole.title === "LEO review focus"` and `result.stateRole.copy === EXPECTED_W1_STATE_EVIDENCE` (V4.11 baseline English W1 paragraph). | After Details + Truth click sequence: state-evidence visible (single-role primary), and the Truth-tail section (still named `truth-boundary` in DOM for V4.10 / V4.11 Slice 5 backward compat) declares `data-m8a-v411-inspector-conv2-tail-of-state-evidence='true'`. State Evidence W1 title = `"剛接上 OneWeb LEO · LEO review focus"`, copy = Addendum §1.2 layperson Chinese, detail = V4.11 baseline W1 English paragraph (kept as backward-compat detail block). | Storyboard rewrite proposal §Inspector becomes single-role + Addendum §1.7 explicitly acknowledges the design switch from concurrency (V4.11 SDD §Slice 3) to single-role with Truth content merged. The Truth-boundary `<section>` element survives as a tail container so V4.10 Slice 4 (`fullTruth.visible === true` after Truth click) and V4.11 Slice 5 three-role concurrency continue to pass. |
+| `tests/smoke/verify-m8a-v4.11-slice3-inspector-concurrency-runtime.mjs` | After Details + Truth click sequence: state-evidence visible AND truth-boundary visible (concurrent two-role spec). `result.stateRole.title === "LEO review focus"` and `result.stateRole.copy === EXPECTED_W1_STATE_EVIDENCE` (V4.11 baseline English W1 paragraph). | After Details + Truth click sequence: state-evidence visible (single-role primary), and the Truth-tail section (still named `truth-boundary` in DOM for V4.10 / V4.11 Slice 5 backward compat) declares `data-m8a-v411-inspector-conv2-tail-of-state-evidence='true'`. State Evidence W1 title = `"Just connected to OneWeb LEO · LEO review focus"`, copy = Addendum §1.2 layperson Chinese-language text, detail = V4.11 baseline W1 English paragraph (kept as backward-compat detail block). | Storyboard rewrite proposal §Inspector becomes single-role + Addendum §1.7 explicitly acknowledges the design switch from concurrency (V4.11 SDD §Slice 3) to single-role with Truth content merged. The Truth-boundary `<section>` element survives as a tail container so V4.10 Slice 4 (`fullTruth.visible === true` after Truth click) and V4.11 Slice 5 three-role concurrency continue to pass. |
 
 The Truth content visible-text invariants required by V4.10 Slice 3 / 4
 (sheet contains `Truth Boundary` / `Truth boundary` / `Simulation review`
@@ -149,8 +149,8 @@ remainingSimulatedSec = remainingFraction
                         × (window.stopRatioExclusive - window.startRatioInclusive)
                         × FULL_REPLAY_SIMULATED_SECONDS
 displayString = formatApproximate(remainingSimulatedSec)
-              = "~N 分鐘"  if remainingSimulatedSec  >  60
-              = "~N 秒"    if remainingSimulatedSec  ≤  60
+              = "~N minutes" if remainingSimulatedSec  >  60
+              = "~N seconds" if remainingSimulatedSec  ≤  60
 ```
 
 `FULL_REPLAY_SIMULATED_SECONDS` is derived from
@@ -164,7 +164,7 @@ measured / claimed metric, and the
 not touch the listed `numericLatencyAllowed / JitterAllowed /
 ThroughputAllowed` keys.
 
-The countdown surface always renders the `~ 為模擬推演值` footnote so
+The countdown surface always renders the `~ = simulated value` footnote so
 reviewers do not mistake the value for a measured countdown.
 
 ### Worked example — W2, replayRatio = 0.30
@@ -182,7 +182,7 @@ remainingSimulatedSec = 0.50 × 0.20 × 6900
                       = 0.10 × 6900
                       = 690 s
                       = 11.5 min
-displayString         = "~12 分鐘"   (formatApproximate rounds to nearest minute when seconds > 60)
+displayString         = "~12 minutes"  (formatApproximate rounds to nearest minute when seconds > 60)
 ```
 
 Equivalently, the simplified form `(stopRatioExclusive - replayRatio) ×
@@ -285,7 +285,7 @@ smoke and downstream conversations):
   `data-m8a-v411-countdown-approximate-display`
 - `data-m8a-v411-countdown-primary-text`,
   `data-m8a-v411-countdown-appendix-text`,
-  `data-m8a-v411-countdown-footnote-text="~ 為模擬推演值"`
+  `data-m8a-v411-countdown-footnote-text="~ = simulated value"`
 - `data-m8a-v411-countdown-font-size-px="14"`,
   `data-m8a-v411-countdown-gap-from-micro-cue-px="8"`
 
@@ -330,7 +330,7 @@ total reconciliation:
   open the inspector to State Evidence; Truth additionally exposes the
   Truth tail. Conv 3 will remove the button.
 - Countdown surface live, derived from V4.6D `replayRatio` + window
-  range per Addendum §1.1 with `~ 為模擬推演值` footnote
+  range per Addendum §1.1 with `~ = simulated value` footnote
 - Two Smoke Softening Disclosures applied (Slice 2 hover schema, Slice 3
   inspector role structure); all V4.10 / V4.9 / V4.8 invariant smokes
   unchanged and green

@@ -32,7 +32,7 @@ Acceptance-report quote:
 `/home/u24/papers/itri/itri-acceptance-report-2026-04-20/01-itri-requirement-inventory-and-status.md:23`:
 
 ```text
-| F-10 | 換手策略可切換 | `部分完成` | Repo already has a deterministic decision layer, but it still stays on a fixed repo-owned bootstrap policy id instead of an operator-switchable policy surface. | `尚未排入目前 phase` |
+| F-10 | Switchable handover strategy | `partial` | Repo already has a deterministic decision layer, but it still stays on a fixed repo-owned bootstrap policy id instead of an operator-switchable policy surface. | `not yet scheduled into a phase` |
 ```
 
 customer README §2.4 link-switching context:
@@ -42,21 +42,21 @@ customer README §2.4 link-switching context:
 ```text
 ### 2.4 Link Switching / Handover Logic
 
-Kickoff deck 明確要求：
+The kickoff deck explicitly requires:
 
-- 可於低軌、中軌、高軌衛星訊號之間切換
-- 根據當前鏈路品質進行切換
+- Switching between LEO, MEO, and GEO satellite signals
+- Switching based on current link quality
 
-被明確列出的鏈路品質參數包括：
+The explicitly listed link-quality parameters include:
 
 - `latency`
 - `jitter`
 - `network speed`
 
-另外，原始功能需求與 UI 規格也明確提到：
+Additionally, the original functional requirements and UI spec explicitly mention:
 
-- 通訊換手規則模擬
-- 換手策略切換
+- Communication handover rule simulation
+- Handover strategy switching
 ```
 
 Interpretation:

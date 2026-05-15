@@ -22,7 +22,7 @@ const REQUEST_PATH = "/?scenePreset=regional&m8aV4GroundStationScene=1";
 const EXPECTED_VISUAL_TOKEN_DATA_SOURCE =
   "m8a-v4.11-visual-tokens-conv1";
 const W4_WINDOW_ID = "leo-reentry-candidate";
-const W4_LABEL = "候選 LEO";
+const W4_LABEL = "Candidate LEO";
 const CJK_FONT_FACE = "Noto Sans TC M8A V411 Subset";
 
 const VIEWPORT_DESKTOP = {
@@ -574,7 +574,7 @@ async function inspectCjkGlyphRendering(client) {
     `(async () => {
       const fontFace = ${JSON.stringify(CJK_FONT_FACE)};
       const fontStack = '"' + fontFace + '", "Noto Sans TC", sans-serif';
-      const text = "候選 位置條件恢復 模擬展示";
+      const text = "Candidate Geometry recovered Simulation view";
       const loadFont = document.fonts?.load
         ? await document.fonts.load("600 24px " + fontStack, text)
         : [];
@@ -607,7 +607,7 @@ async function inspectCjkGlyphRendering(client) {
         return { inkPixels, hash: hash.toString(16), alphas };
       };
 
-      const target = signature("候選");
+      const target = signature("Candidate");
       const tofu = signature("□□");
       let pixelDiffFromTofu = 0;
       for (let index = 0; index < target.alphas.length; index += 1) {
@@ -672,9 +672,9 @@ function assertCoreDesktopLayout(layout, label) {
   assert(layout.leftRail.text.length > 90, `${label} left rail must remain readable`);
   assertVisible(layout.railPanel, `${label} left rail decision-first panel`, 220, 120);
   assert(layout.railMainChip.text.includes("·"), `${label} left rail must expose orbit-role chip`);
-  assert(layout.railNext.text.includes("下一步："), `${label} left rail must expose next-state layer`);
+  assert(layout.railNext.text.includes("Next:"), `${label} left rail must expose next-state layer`);
   assert(layout.railEvidence.text.length > 20, `${label} left rail must expose evidence/gap layer`);
-  assert(layout.footerRow.text.includes("模擬展示"), `${label} footer must keep simulation disclosure`);
+  assert(layout.footerRow.text.includes("Simulation view"), `${label} footer must keep simulation disclosure`);
   assert(layout.footerRow.text.includes("CelesTrak"), `${label} footer must keep TLE disclosure`);
   assert(layout.footerRow.text.includes("13 actors"), `${label} footer must keep actor count`);
 }
@@ -701,7 +701,7 @@ function assertInspectorTabsFit(layout, label) {
   );
   assert(
     layout.validationBadge.visible &&
-      layout.validationBadge.text.includes("驗證狀態：待補"),
+      layout.validationBadge.text.includes("Validation status: TBD"),
     `${label} validation badge must be visible in inspector header: ` +
       JSON.stringify(layout.validationBadge)
   );

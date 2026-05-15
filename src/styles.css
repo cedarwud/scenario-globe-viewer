@@ -40,6 +40,25 @@ body {
   height: 100%;
 }
 
+/* Suppress Cesium default-token warning banner in the demo route.
+   Full provider credits remain available via the "Data attribution" lightbox link.
+   This affects only the inline notice; the lightbox text and "Data attribution"
+   anchor are untouched. */
+.cesium-widget-credits .cesium-credit-textContainer {
+  display: none !important;
+}
+
+/* Enlarge Cesium widget control buttons (toolbar) to meet 44px touch target.
+   Original Cesium sprites stay at 32px; we widen the click region via padding. */
+.cesium-viewer-toolbar > .cesium-button,
+.cesium-viewer-toolbar .cesium-toolbar-button {
+  min-width: 44px;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .app-shell {
   position: relative;
   width: 100%;

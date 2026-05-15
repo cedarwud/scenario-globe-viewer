@@ -43,7 +43,7 @@ const WINDOW_CHECKS = [
     railCurrent: "Current: LEO",
     railCandidate: "Candidate: none",
     railFallback: "Fallback: MEO/GEO",
-    railNext: "下一步：進入品質下降階段",
+    railNext: "Next: entering quality drop",
     railEvidence: "modeled quality strong"
   },
   {
@@ -56,7 +56,7 @@ const WINDOW_CHECKS = [
     railCurrent: "Current: LEO",
     railCandidate: "Candidate: MEO",
     railFallback: "Fallback: GEO",
-    railNext: "下一步：MEO 暫時接住連續性",
+    railNext: "Next: MEO continuity hold",
     railEvidence: "modeled quality dropping"
   },
   {
@@ -69,7 +69,7 @@ const WINDOW_CHECKS = [
     railCurrent: "Current: MEO",
     railCandidate: "Candidate: LEO",
     railFallback: "Fallback: GEO",
-    railNext: "下一步：新 LEO 候選回到",
+    railNext: "Next: new LEO candidate returning",
     railEvidence: "modeled continuity hold"
   },
   {
@@ -82,7 +82,7 @@ const WINDOW_CHECKS = [
     railCurrent: "Current: MEO",
     railCandidate: "Candidate: LEO",
     railFallback: "Fallback: GEO",
-    railNext: "下一步：GEO 收尾為 guard",
+    railNext: "Next: GEO closes as guard",
     railEvidence: "candidate quality strong"
   },
   {
@@ -95,7 +95,7 @@ const WINDOW_CHECKS = [
     railCurrent: "Current: GEO",
     railCandidate: "Candidate: none",
     railFallback: "Fallback: GEO guard",
-    railNext: "下一步：重新開始（回到 W1）",
+    railNext: "Next: restart (back to W1)",
     railEvidence: "guard context only"
   }
 ];
@@ -462,7 +462,7 @@ async function main() {
     );
     assert(
       layout.validationBadge.visible &&
-        layout.validationBadge.text.includes("驗證狀態：待補"),
+        layout.validationBadge.text.includes("Validation status: TBD"),
       "Validation badge must be present in inspector header: " +
         JSON.stringify(layout.validationBadge)
     );

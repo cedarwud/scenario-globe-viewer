@@ -62,7 +62,7 @@ const forbiddenClaims = [
   dashed("M8A", "V4") + words("", dashed("endpoint", "pair"), "gate", "resolved"),
   words("customer", "orbit", "model", "is", "integrated"),
   dashed("D", "03") + words("", "closed"),
-  dashed("D", "03") + words("", ["已", "完成"].join("")),
+  dashed("D", "03") + words("", "completed"),
   words("richer", "composition", "closed"),
   words("presentation", "convergence", "closed"),
   ...[2, 3, 4, 5, 6].map((number) =>

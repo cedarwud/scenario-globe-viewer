@@ -36,15 +36,15 @@ Planning-time acceptance-report quotes before V4.13 closure:
 
 `/home/u24/papers/itri/itri-acceptance-report-2026-04-20/01-itri-requirement-inventory-and-status.md`:
 
-- F-02 multi-orbit `部分完成`: contract carries orbit-class intent but no
+- F-02 multi-orbit `Partial`: contract carries orbit-class intent but no
   multi-orbit live runtime validation.
-- F-13 `部分完成` (post-LEO-leg closure): LEO route-native closed; MEO/GEO
+- F-13 `Partial` (post-LEO-leg closure): LEO route-native closed; MEO/GEO
   remain `not-implemented`.
 
 customer README §2.1:
 
 ```text
-原始需求明確提到要整合 customer 自己開發的軌道模型，並點名：
+The original requirement explicitly calls for integrating the customer's own orbit model and names:
 - `LEO`
 - `MEO`
 - `GEO`
@@ -102,8 +102,8 @@ Planning-time missing work, now implemented by the close-out in Section 13:
    `requiredOrbitClasses = ["leo", "meo", "geo"]` and per-class minimum
    count targets
 6. Perf evidence captured at multi-orbit render
-7. Acceptance-report row updates: F-02 `部分完成 → 已完成（bounded）`,
-   F-13 `部分完成 → 已完成（bounded）`
+7. Acceptance-report row updates: F-02 `Partial → Complete (bounded)`,
+   F-13 `Partial → Complete (bounded)`
 
 ## 3. Goal / Acceptance Criteria
 
@@ -148,8 +148,8 @@ V4.13 closed requires:
    - `perf-measurement.json` records frame time, memory delta, drop-frame
      rate vs ADR `0005-perf-budget`
 7. Acceptance-report rows updated honestly:
-   - F-02: `部分完成 → 已完成（bounded, public TLE only; no customer orbit-model integration）`
-   - F-13: `部分完成 (LEO-leg-closed) → 已完成（multi-orbit, bounded, public TLE only）`
+   - F-02: `Partial → Complete (bounded, public TLE only; no customer orbit-model integration)`
+   - F-13: `Partial (LEO-leg-closed) → Complete (multi-orbit, bounded, public TLE only)`
 8. Forbidden-claim scan green; no measured-truth, native RF, active path,
    or external validation closure implied.
 

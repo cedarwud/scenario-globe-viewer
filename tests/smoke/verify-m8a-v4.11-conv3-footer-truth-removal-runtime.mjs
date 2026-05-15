@@ -501,7 +501,7 @@ function assertDefaultFooter(result) {
   );
   assert(
     result.ambientChips.map((chip) => chip.text).join("|") ===
-      "模擬展示|operator-family precision|TLE: CelesTrak NORAD GP · 2026-04-26|13 actors",
+      "Simulation view|operator-family precision|TLE: CelesTrak NORAD GP · 2026-04-26|13 actors",
     "Footer ambient chip text must match Addendum footer chip system: " +
       JSON.stringify(result.ambientChips)
   );
@@ -546,7 +546,7 @@ function assertW5OnlyWarning(defaultResult, w5Result) {
   );
   assert(
       w5Result.w5Warning.visible &&
-      w5Result.w5Warning.text === "⚠ 不是實際備援切換證據" &&
+      w5Result.w5Warning.text === "⚠ Not actual failover evidence" &&
       w5Result.w5Warning.warningFontSize === "14" &&
       w5Result.stateTokens.warningName === "--m8a-v411-state-warning" &&
       w5Result.stateTokens.warning.length > 0 &&

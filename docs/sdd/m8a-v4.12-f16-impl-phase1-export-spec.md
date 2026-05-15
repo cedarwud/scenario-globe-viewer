@@ -14,7 +14,7 @@ Sibling reference:
 
 Authority context:
 
-- F-16 acceptance status remains `部分完成`: export-ready report structures
+- F-16 acceptance status remains `Partial`: export-ready report structures
   exist for communication-time, handover-decision, physical-input, and
   validation-state, but there is no completed end-user export workflow/button.
 - F-16 closure only covers the repo-owned bounded report export seam. It does
@@ -283,7 +283,7 @@ closure while external `iperf/ping` truth remains external) is resolved as
 
 - bundle disclaimer §6 present in every artifact
 - forbidden-claim scan green
-- acceptance report row F-16 narrative says `部分完成 → 已完成（bounded）`
+- acceptance report row F-16 narrative says `Partial → Complete (bounded)`
   with explicit external-truth carve-out preserved.
 
 If customer later requests measured-truth export, that becomes a separate slice

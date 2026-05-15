@@ -65,7 +65,7 @@ const W4_RING_SPRITE_SIZE = 256;
 export const M8A_V411_W4_CANDIDATE_ENTRY_CUE_DURATION_MS = 1500;
 export const M8A_V411_W4_CANDIDATE_ENTRY_MAX_RADIUS_PX = 120;
 export const M8A_V411_W4_CANDIDATE_HALO_RADIUS_PX = 54;
-export const M8A_V411_W4_CANDIDATE_LABEL_COPY = "候選 LEO";
+export const M8A_V411_W4_CANDIDATE_LABEL_COPY = "Candidate LEO";
 export const M8A_V411_CJK_FONT_FACE = "Noto Sans TC M8A V411 Subset";
 export const M8A_V411_CJK_FONT_FAMILY =
   `"${M8A_V411_CJK_FONT_FACE}", "Noto Sans TC", "Source Han Sans TC", ` +

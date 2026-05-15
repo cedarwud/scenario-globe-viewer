@@ -26,7 +26,7 @@ const EXPECTED_VISUAL_TOKEN_DATA_SOURCE =
 const W4_WINDOW_ID = "leo-reentry-candidate";
 const W4_TOKEN_ID = "W4";
 const W4_RATIO = 0.71;
-const W4_LABEL = "候選 LEO";
+const W4_LABEL = "Candidate LEO";
 const CJK_FONT_FACE = "Noto Sans TC M8A V411 Subset";
 const ENTRY_MIN_DURATION_MS = 1000;
 const ENTRY_MAX_DURATION_MS = 2000;
@@ -301,8 +301,8 @@ async function inspectCjkGlyphRendering(client) {
     `(async () => {
       const fontFace = ${JSON.stringify(CJK_FONT_FACE)};
       const candidateText = ${JSON.stringify(W4_LABEL)};
-      const railNextText = "下一步：GEO 收尾為 guard";
-      const railEvidenceText = "candidate quality strong; 若切回：~22 分鐘";
+      const railNextText = "Next: GEO closes as guard";
+      const railEvidenceText = "candidate quality strong; if switching back: ~22 min";
       const fontStack = '"' + fontFace + '", "Noto Sans TC", sans-serif';
       const loadFont = document.fonts?.load
         ? await document.fonts.load("600 24px " + fontStack, candidateText + railNextText + railEvidenceText)
@@ -341,7 +341,7 @@ async function inspectCjkGlyphRendering(client) {
         };
       };
 
-      const target = renderSignature("候選");
+      const target = renderSignature("Candidate");
       const tofu = renderSignature("□□");
       let pixelDiffFromTofu = 0;
       for (let index = 0; index < target.alphas.length; index += 1) {
@@ -408,9 +408,9 @@ function assertCjkGlyphRendering(result, label) {
     `${label}: Phase C/D DOM surfaces must use CJK-capable font stack: ${JSON.stringify(result)}`
   );
   assert(
-    result.railNextText.includes("下一步") &&
-      result.railEvidenceText.includes("若切回"),
-    `${label}: W4 rail decision-first layers must remain Chinese-primary per spec v2 §5: ${JSON.stringify(result)}`
+    result.railNextText.includes("Next:") &&
+      result.railEvidenceText.includes("if switching back"),
+    `${label}: W4 rail decision-first layers must remain English-primary per spec v2 §5: ${JSON.stringify(result)}`
   );
   assert(
     typeof result.labelFont === "string" && result.labelFont.includes(CJK_FONT_FACE),

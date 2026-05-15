@@ -90,7 +90,7 @@ A valid reviewer for the protocol:
 - has not read any V4 SDD before the session
 - knows what "satellite handover" means at a layperson level (no need
   to know LEO/MEO/GEO acronyms — see Q1)
-- can read the visible Chinese chips and the retained source terms
+- can read the visible English chips and the retained source terms
   `TLE / CelesTrak NORAD GP`
 - agrees to think aloud during the session
 
@@ -113,15 +113,16 @@ valid Slice 6 reviewer for that slice's acceptance.
 
 1. **What is happening right now?** — Reviewer should describe the active
    handover state in their own words.
-   - Acceptable: "現在看這顆 LEO", "位置條件變差", "MEO 暫時接住",
-     "新的 LEO 是候選", "GEO 是保底覆蓋"
+   - Acceptable: "now looking at this LEO", "geometry is degrading", "MEO
+     is holding briefly", "new LEO is a candidate", "GEO is the guard
+     coverage"
    - Unacceptable: silence ≥10s, "I don't know", or asking the moderator
      for context
 
 2. **Which satellite or orbit should I be looking at?** — Reviewer must
    point to the focus actor or its orbit class on the screen.
    - Acceptable: pointing at the active satellite, its orbit chip, or saying
-     "現在看這顆"
+     "looking at this one"
    - Unacceptable: pointing at the wrong orbit, pointing at a control
      panel, or asking moderator
 
@@ -132,8 +133,8 @@ valid Slice 6 reviewer for that slice's acceptance.
 
 4. **Is this real operator data or simulation?** — Reviewer must call out
    that this is a simulation review, not a live operator log.
-   - Acceptable: reading `[模擬展示]`, saying "這是模擬展示", or on W5
-     reading "不是實際備援切換證據"
+   - Acceptable: reading `[Simulation view]`, saying "this is a simulation
+     view", or on W5 reading "Not actual failover evidence"
    - Unacceptable: "I think it's real" / unsure
 
 5. **Where do the satellite positions come from?** — Reviewer should be

@@ -155,7 +155,7 @@
       "pinnedHoverTargetKind": "satellite",
       "pinnedHoverTargetId": "oneweb-0386-leo-display-context"
     },
-    "visibleProductText": "13 顆衛星模擬展示 · 完整 ≥500 LEO 多軌道驗證見後續階段 LEO MEO GEO ✓ LEO MEO GEO ✓ LEO LEO LEO LEO LEO LEO MEO MEO MEO MEO MEO GEO GEO Scenario Scope Scope: 13-actor demo · LEO/MEO/GEO (6/5/2) Time: Sim replay 01:20 / 01:54 · replay · 60x Precision: operator-family precision Boundary: repo-owned projection · not measured truth Current: W4 MEO primary hold Candidate: LEO under modeled evaluation Fallback: GEO guard coverage available Decision: 位置條件恢復，正在評估切回 LEO Time/Quality: evaluation time; candidate quality class re-entry · LEO Handover sequence State 4 of 5: LEO re-entry Next: State 5 of 5 GEO guard context 1 LEO review LEO 2 LEO pressure LEO 3 MEO hold MEO 4 LEO re-entry LEO 5 GEO guard GEO Current state LEO re-entry State 4 of 5 Play Restart 30x 60x 120x Details 模擬展示 operator-family precision TLE: CelesTrak NORAD GP · 2026-04-26 13 actors Boundary & Sources LEO re-entry. GEO will close the sequence as guard context. OneWeb LEO · 候選 候選品質:強 若切回:~22 分鐘 若切回：~14 分鐘 MEO 仍接住可緩決定 ~ 為模擬推演值",
+    "visibleProductText": "Scale evidence (≥500 LEO) lives in Phase 7.1; this route remains a 13-actor bounded demo LEO MEO GEO ✓ LEO MEO GEO ✓ LEO LEO LEO LEO LEO LEO MEO MEO MEO MEO MEO GEO GEO Scope: 13-actor demo · LEO/MEO/GEO (6/5/2) Time: Sim replay 01:20 / 01:54 · replay · 60x Precision: operator-family precision Boundary: repo-owned projection · not measured truth Now W4 · LEO candidate Focus on candidate LEO: MEO is still holding; LEO is an evaluable return candidate. C LEO · candidate Current: MEO Candidate: LEO Fallback: GEO Active orbit: LEO focus Modeled rate: Candidate capacity context Next: GEO closes as guard candidate quality strong; if switching back: ~22 min Modeled route review; no live traffic metric. re-entry · LEO Handover sequence State 4 of 5: LEO re-entry Next: State 5 of 5 GEO guard context 1 LEO review LEO 2 LEO pressure LEO 3 MEO hold MEO 4 LEO re-entry LEO 5 GEO guard GEO Play Restart 30x 60x 120x Review mode · on Details Evidence Paused by user Simulation view operator-family precision TLE: CelesTrak NORAD GP · 2026-04-26 13 actors Boundary & Sources LEO re-entry. GEO will close the sequence as guard context. OneWeb LEO · candidate Candidate quality: strong If switching back: ~22 min If switching back: ~14 min MEO still holds; decision can wait ~ = simulated value",
     "annotation": {
       "exists": true,
       "visible": true,
@@ -163,9 +163,9 @@
       "rect": {
         "left": 340,
         "top": 429.296875,
-        "right": 451.359375,
+        "right": 445.46875,
         "bottom": 453.296875,
-        "width": 111.359375,
+        "width": 105.46875,
         "height": 24
       },
       "text": "re-entry · LEO",
@@ -191,11 +191,11 @@
       "hidden": false,
       "rect": {
         "left": 304,
-        "top": 704,
+        "top": 688,
         "right": 1136,
         "bottom": 760,
         "width": 832,
-        "height": 56
+        "height": 72
       },
       "text": "Handover sequence State 4 of 5: LEO re-entry Next: State 5 of 5 GEO guard context 1 LEO review LEO 2 LEO pressure LEO 3 MEO hold MEO 4 LEO re-entry LEO 5 GEO guard GEO"
     },
@@ -204,12 +204,12 @@
       "visible": true,
       "hidden": false,
       "rect": {
-        "left": 1344.96875,
-        "top": 770.40625,
+        "left": 1334.96875,
+        "top": 766.40625,
         "right": 1416.96875,
         "bottom": 806.40625,
-        "width": 72,
-        "height": 36
+        "width": 82,
+        "height": 40
       },
       "text": "Details",
       "ariaExpanded": "false"
@@ -228,13 +228,13 @@
       "hidden": false,
       "rect": {
         "left": 187.03125,
-        "top": 785.40625,
-        "right": 253.046875,
-        "bottom": 803.40625,
-        "width": 66.015625,
-        "height": 18
+        "top": 784.90625,
+        "right": 303.234375,
+        "bottom": 803.90625,
+        "width": 116.203125,
+        "height": 19
       },
-      "text": "模擬展示",
+      "text": "Simulation view",
       "ariaExpanded": "false"
     },
     "sheet": {
@@ -249,7 +249,7 @@
         "width": 0,
         "height": 0
       },
-      "text": "Details Inspector 驗證狀態：待補 Close 13-actor demo operator-family precision Decision Metrics Evidence Selected replay window LEO re-entry State 4 of 5 Replay UTC 2026-04-28T10:11:42.472Z Sim replay 01:20 / 01:54 Source provenance Evidence for the selected replay window. The scene narrative and sequence rail remain primary. Decision · State Evidence LEO 候選回來 · LEO re-entry 有新的 LEO 進入候選範圍。依位置條件預測，切回後可有約 22 分鐘低延遲。MEO 仍在接住，沒有立即必須切的壓力。 NowNow: MEO remains primary while LEO is only a candidate. WhyWhy: position conditions recovered enough for LEO evaluation. NextNext: the sequence closes on GEO guard coverage. WatchWatch: candidate quality class and evaluation time, not active service truth. LEO returns as a candidate review focus in window 4 of 5. The next state closes the sequence on GEO guard context. Continuity here is modeled, not measured. Metrics Available in this scene Modeled latency class candidate LEO modeled class Candidate quality is a projection, not service proof. Modeled continuity class MEO still holds modeled continuity The candidate can be evaluated without urgent switch pressure. Modeled handover state evaluate return modeled state The scene shows candidate review, not an operator command. Replay timing / countdown ~14 分鐘 simulated countdown Countdown to W5 GEO guard context. Not connected in this scene UnavailableNumeric communication time and availability detail未連接HookpointCommunication Time panelReachabilityPhase 6 acceptance route, separateUnavailableHandover decision proxy inputs over latency/jitter/network-speed dimensions未連接HookpointHandover Decision panelReachabilityPhase 6 acceptance route, separateUnavailableDedicated communication-rate visualization未連接HookpointNo dedicated communication-rate surface yet; F-09 remains 待完成Reachabilitynot reachable from this sceneUnavailableRain / antenna / ITU / V 組 physical factor projection未連接HookpointPhysical Inputs panelReachabilityPhase 6 acceptance route, separateUnavailableBounded validation environment / DUT / transport state未連接HookpointValidation State panelReachabilityPhase 6 acceptance route, separateUnavailableESTNeT / INET end-to-end network truthexternal validationHookpointExternal validation gap: ESTNeT/INET, ping/iPerf, NAT/tunnel, traffic generator are not owned by this repo sceneReachabilitynot reachable from this sceneUnavailableWSL tunnel / bridging / NAT routing未連接HookpointValidation State shows bounded modes; real tunnel/bridge/NAT remains externalReachabilityPhase 6 acceptance route, separateUnavailableVirtual / physical DUT and NE-ONE traffic generator未連接HookpointValidation State names bounded DUT modes; real DUT/traffic generator chain remains externalReachabilityPhase 6 acceptance route, separateUnavailable>=500 LEO scalePhase 7.1 gateHookpointPhase 7.1 open gate; this scene remains 13-actor demoReachabilitynot reachable from this sceneUnavailableOperator-switchable handover strategy未連接HookpointFixed repo-owned bootstrap policy only; no runtime strategy selector hereReachabilitynot reachable from this sceneUnavailableConfigurable handover rules / dynamic parameters beyond scenario/replay controls未連接HookpointBounded replay/scenario controls exist; no user rule editor in this sceneReachabilitynot reachable from this sceneUnavailableReport export action未連接HookpointExport-ready report structures exist; no completed end-user export button hereReachabilitynot reachable from this sceneUnavailableReal-time vs prerecorded TLE full scenario-space switching未連接HookpointExisting replay mode is bounded; full multi-source TLE scenario switching closes downstreamReachabilitynot reachable from this scene Boundary · Truth Boundary Truth boundary Simulation boundary: 13-actor demo, repo-owned projection, not measured truth. Service-layer boundary: modeled service handover, not native RF handover. Endpoint boundary: operator-family precision, not site-level gateway claim. Scale boundary: not >=500 LEO validation and not 24h hardware-GPU closeout. simulation outputoperator-family precisiondisplay-context actors Simulated display-context state, not an operator handover log.Source-lineaged display-context actors, not active serving satellites.Endpoint precision stays operator-family only.No active gateway assignment is claimed.No pair-specific teleport path is claimed.No measured latency, jitter, throughput, or continuity values are shown.No native RF handover is claimed. Evidence Evidence summary TLE: CelesTrak NORAD GP · 13 actors · fetched 2026-04-26 R2: 5 candidate endpoints (read-only catalog) Archive All repo-owned projection sources. Satellite TLE provenance Eutelsat OneWeb · LEO · ONEWEB-0386 · fetched 2026-04-28T08:51:17ZEutelsat OneWeb · LEO · ONEWEB-0537 · fetched 2026-04-28T08:51:17ZEutelsat OneWeb · LEO · ONEWEB-0701 · fetched 2026-04-28T08:51:17ZEutelsat OneWeb · LEO · ONEWEB-0012 · fetched 2026-04-28T08:51:17ZEutelsat OneWeb · LEO · ONEWEB-0249 · fetched 2026-04-28T08:51:17ZEutelsat OneWeb · LEO · ONEWEB-0702 · fetched 2026-04-28T08:51:17ZSES O3b mPOWER · MEO · O3B MPOWER F6 · fetched 2026-04-28T08:51:17ZSES O3b mPOWER · MEO · O3B MPOWER F1 · fetched 2026-04-28T08:51:17ZSES O3b mPOWER · MEO · O3B MPOWER F2 · fetched 2026-04-28T08:51:17ZSES O3b mPOWER · MEO · O3B MPOWER F4 · fetched 2026-04-28T08:51:17ZSES O3b mPOWER · MEO · O3B MPOWER F3 · fetched 2026-04-28T08:51:17ZST-2 CHT/Singtel GEO service context · GEO · ST-2 · fetched 2026-04-28T08:51:17ZSES GEO display context; not endpoint-pair path or active service claim · GEO · SES-9 · fetched 2026-04-28T08:51:17Z Ground-station evidence URLs Taiwan / Chunghwa Telecom multi-orbit ground infrastructureLEO strong · https://www.cht.com.tw/zh-tw/home/cht/messages/2025/1103-1000 · operator press releaseLEO strong · https://www.cht.com.tw/en/home/cht/messages/2023/1115-1530 · operator press releaseMEO strong · https://www.cht.com.tw/zh-tw/home/cht/messages/2025/1103-1000 · operator press releaseMEO strong · https://www.cht.com.tw/en/home/cht/messages/2026/0122-1410 · operator press releaseGEO strong · https://www.cht.com.tw/zh-tw/home/cht/messages/2025/1103-1000 · operator press releaseGEO strong · https://www.cht.com.tw/en/home/cht/messages/2023/1115-1530 · operator press releaseSingapore / Speedcast Singapore TeleportLEO strong · https://www.speedcast.com/our-solution/product/vsat-satellite/ngso-leo-meo/ · operator sourceMEO strong · https://www.speedcast.com/our-solution/product/vsat-satellite/ngso-leo-meo/ · operator sourceGEO strong · https://www.speedcast.com/newsroom/press-releases/2024/speedcasts-teleport-in-singapore-joins-wtas-growing-list-of-tier-4-certified-teleports/ · third-party certificationGEO strong · https://www.speedcast.com/about-us/teleports/ · operator source R2 read-only candidate catalog Taiwan site-level CHT earth-station family · blocked: site-family upgrade lacks accepted LEO/MEO site mapping · blocked · R2 read-only - not promotable to runtimeThailand NT Sirindhorn OneWeb SNP Gateway · blocked: MEO evidence gap · blocked · R2 read-only - not promotable to runtimeSingapore Singtel Bukit Timah Satellite Earth Station · blocked: MEO evidence gap and site-family split · blocked · R2 read-only - not promotable to runtimeJapan KDDI Yamaguchi / SoftBank OneWeb country family · blocked: MEO gap and split operator-family evidence · blocked · R2 read-only - not promotable to runtimeKorea KT SAT Kumsan / OneWeb terminal ecosystem · blocked: MEO remains partial/planned evidence · blocked · R2 read-only - not promotable to runtime Implementation evidence Raw ids, selected cue ids, anchor metadata, and full candidate/fallback arrays. This evidence supports tests and implementation review; it is not the primary product explanation. Representative actor id ONEWEB-0702 LEO context (oneweb-0702-leo-display-context) Candidate actor ids ONEWEB-0012 LEO context (oneweb-0012-leo-display-context), ONEWEB-0249 LEO context (oneweb-0249-leo-display-context), ONEWEB-0386 LEO context (oneweb-0386-leo-display-context), O3b mPOWER F4 MEO context (o3b-mpower-f4-meo-display-context) Fallback actor ids ST-2 GEO guard (st-2-geo-continuity-anchor), SES-9 GEO guard (ses-9-geo-display-context) Scene cue ids displayRepresentative primary; candidateContext secondary; scene anchor display-representative-actor; selected actor oneweb-0702-leo-display-context; selected cue m8a-v46e-simulation-displayRepresentative-context-ribbon."
+      "text": "Details Inspector Validation status: TBD Close 13-actor demo operator-family precision Decision Metrics Evidence Selected replay window LEO re-entry State 4 of 5 Replay UTC 2026-04-28T10:11:42.472Z Sim replay 01:20 / 01:54 Source provenance Evidence for the selected replay window. The scene narrative and sequence rail remain primary. Decision · State Evidence LEO candidate returning · LEO re-entry A new LEO enters the candidate set. Geometry predicts ~22 min low-latency after switching back. MEO is still holding, so there is no immediate switch pressure. NowLEO returns to candidate focus; MEO continues to hold continuity. WhyGeometry has recovered to evaluable, but this is not an operator command. NextNext focus: GEO guard closes the sequence. WatchWatch the candidate LEO cue contrast with the MEO hold. LEO returns as a candidate review focus in window 4 of 5. The next state closes the sequence on GEO guard context. Continuity here is modeled, not measured. Metrics Available in this scene Modeled latency class candidate LEO modeled class Candidate quality is a projection, not service proof. Modeled continuity class MEO still holds modeled continuity The candidate can be evaluated without urgent switch pressure. Modeled handover state evaluate return modeled state The scene shows candidate review, not an operator command. Replay timing / countdown ~14 min simulated countdown Countdown to W5 GEO guard context. Not connected in this scene UnavailableNumeric communication time and availability detailNot connectedHookpointCommunication Time panelReachabilityPhase 6 acceptance route, separateUnavailableHandover decision proxy inputs over latency/jitter/network-speed dimensionsNot connectedHookpointHandover Decision panelReachabilityPhase 6 acceptance route, separateUnavailableMeasured communication-rate visualization beyond route F-09 classexternal validationHookpointF-09 modeled class is mounted; Mbps/Gbps measurement truth remains externalReachabilitynot reachable from this sceneUnavailableRain / antenna / ITU / V-group physical factor projectionNot connectedHookpointPhysical Inputs panelReachabilityPhase 6 acceptance route, separateUnavailableBounded validation environment / DUT / transport stateNot connectedHookpointValidation State panelReachabilityPhase 6 acceptance route, separateUnavailableESTNeT / INET end-to-end network truthexternal validationHookpointExternal validation gap: ESTNeT/INET, ping/iPerf, NAT/tunnel, traffic generator are not owned by this repo sceneReachabilitynot reachable from this sceneUnavailableWSL tunnel / bridging / NAT routingNot connectedHookpointValidation State shows bounded modes; real tunnel/bridge/NAT remains externalReachabilityPhase 6 acceptance route, separateUnavailableVirtual / physical DUT and NE-ONE traffic generatorNot connectedHookpointValidation State names bounded DUT modes; real DUT/traffic generator chain remains externalReachabilityPhase 6 acceptance route, separateUnavailable>=500 LEO scalePhase 7.1 gateHookpointPhase 7.1 open gate; this scene remains 13-actor demoReachabilitynot reachable from this sceneUnavailableLive/operator handover strategy beyond F-10 modeled replay presetpreset onlyHookpointF-10 route control is a modeled replay preset selector only; not live controlReachabilitynot reachable from this sceneUnavailableArbitrary handover rule editor beyond F-11 bounded replay presetpreset onlyHookpointF-11 route control is a bounded replay rule/parameter preset only; not live controlReachabilitynot reachable from this sceneUnavailableExternal report-system export beyond route JSONexternal reportHookpointF-16 route JSON exists in customer status; backend/PDF/email report truth remains externalReachabilitynot reachable from this sceneUnavailableReal-time vs prerecorded TLE full scenario-space switchingNot connectedHookpointExisting replay mode is bounded; full multi-source TLE scenario switching closes downstreamReachabilitynot reachable from this scene Boundary · Truth Boundary Truth boundary Simulation boundary: 13-actor demo, repo-owned projection, not measured truth. Service-layer boundary: modeled service handover, not native RF handover. Endpoint boundary: operator-family precision, not site-level gateway claim. Scale boundary: not >=500 LEO validation and not 24h hardware-GPU closeout. simulation outputoperator-family precisiondisplay-context actors Simulated display-context state, not an operator handover log.Source-lineaged display-context actors, not active serving satellites.Endpoint precision stays operator-family only.No active gateway assignment is claimed.No pair-specific teleport path is claimed.No measured latency, jitter, throughput, or continuity values are shown.No native RF handover is claimed. Evidence Evidence summary L2 Acceptance Evidence All customer IDs mapped; route-local truth only This layer separates the V4 route-local demo closure from external validation, Phase 7.1 scale evidence, DUT/ESTNeT/INET/NAT/tunnel gaps, and bounded route representations. F-13 Route-native readiness surface 540 LEO / 549 total fixture/model-backed scale points; >=500 LEO readiness target reached in route runtime. Not external validation closure. built 2026-05-12T09:53:20Z V-02..V-06 Explicit external fail/gap Windows/WSL, tunnel/bridge, NAT/ESTNeT/INET, virtual DUT, and physical DUT/NE-ONE have no retained pass evidence. explicit-fail-no-retained-pass F-09/F-10/F-11/F-16 Bounded route representation Modeled rate class, preset controls, bounded rules, and JSON export are demonstrable route state, not measured traffic, live control, full editor, or external report truth. bounded-route-representation F-13 Scale Readiness fixture/model-backed · not external validation closure Current route actors136 LEO / 5 MEO / 2 GEO Readiness fixture actors549540 LEO / 6 MEO / 3 GEO >=500 LEO readiness targetreached540 / 500 LEO Data/source typefixture/model-backed Source modemulti-orbit-scale-points Source URLnot-applicable-repo-local-fixture Source inputrepo-local walker-derived multi-orbit scale fixture Built at2026-05-12T09:53:20Z Freshness timestamp2026-05-12T09:53:20Z License/freshness notesUses the repo-local bundled walker TLE fixture as model input; not customer authority and not public-source authority. Static fixture/model-backed demo input; no public-source retrieval was used for this implementation. This is a route-native readiness/demo surface. It is not external validation closure, not customer authority, not an active satellite/gateway/path claim, and not measured network truth. Readiness surface only; not route-native >=500 LEO closure/proof.The handover scene remains the 13-actor service demonstration.No customer orbit-model integration or external validation closure.No live network truth, active satellite, active gateway, pair-specific path, or network performance samples.If customer requires authority-backed constellation input, controlled customer/testbed artifacts are still required. not external validation closurenot customer orbit-model integrationnot live network truthnot active satellite/gateway/pathnot measured network-performance samples F-01external-gapNo live customer orbit-model integration in this route.Integration remains outside route-local demo closure.F-02boundedLEO, MEO, and GEO display-context actors are present.Representation is the 13-actor route set, not fleet truth.F-03boundedDisplay actors carry source lineage.No general TLE upload or live source workflow is mounted.F-04closedInteractive 3D route is the visual center.Closure is route-local visual/demo behavior.F-05closedDefault view is staged as a readable briefing.UI closure does not close external validation.F-06boundedPause, restart, speed, and review-mode controls are present.Controls operate route replay only.F-07seam-openModeled replay timing exists.Measured communication time is not claimed.F-08seam-openModeled timing context exists.Communication-time statistics are not route-owned closure.F-09boundedModeled network-speed class/proxy is displayed.No throughput sample, ping result, or iperf truth.F-10boundedModeled policy preset selector is mounted.Preset-only; no live policy control.F-11boundedBounded rule/parameter preset surface is mounted.No arbitrary rule editor or backend rule engine.F-12boundedModeled latency, continuity, rate, and state classes exist.No latency, jitter, or throughput sample values.F-13readinessRoute-native readiness surface reports 540 LEO / 549 total fixture/model-backed scale points.Readiness only; not route-native >=500 LEO closure/proof or external validation closure.F-14closedReplay speed controls are visible in the default route.Replay speed is demo playback, not network timing truth.F-15boundedBounded prerecorded/replay demo mode exists.No full source switching workflow is mounted.F-16boundedBounded route JSON export is available.Not external report-system or measured-result truth.F-17seam-openRain attenuation remains a named seam.Not mounted as physical-layer truth in this route.F-18seam-openStability evidence is retained outside this route.No route-native 24h hardware/GPU proof.V-01closedLinux/dev baseline is retained for the demo route.This does not imply Windows/WSL or DUT closure.V-02external-failWindows/WSL retained pass evidence is missing.Current retained package records fail/gap.V-03external-failTunnel/bridge retained pass evidence is missing.Current retained package records fail/gap.V-04external-failNAT/ESTNeT/INET retained pass evidence is missing.Current retained package records fail/gap.V-05external-failVirtual DUT retained pass evidence is missing.Current retained package records fail/gap.V-06external-failPhysical DUT/NE-ONE retained pass evidence is missing.Current retained package records fail/gap.P-01seam-openAntenna parameters are a named seam.Not physical-layer truth in this route.P-02seam-openRain attenuation is a named seam.Not physical-layer truth in this route.P-03seam-openITU factors are a named seam.Not physical-layer truth in this route.D-01closedVisual/demo value is staged as the primary route view.Demo quality does not close external validation.D-02boundedBounded replay demo is present.Replay is not live network truth.D-03boundedCommunication, switch, satellite, and link state are expressed.Expression is staged route context, not measured state. customer status groups Demo polish: no closure claim Route baselineclosedF-04 F-05 F-14 V-01 D-01scene UI and replay baseline onlyBounded routeboundedF-02 F-03 F-06 F-09 F-10 F-11 F-12 F-15 F-16 D-02 D-03modeled route context, F-09 class, F-10/F-11 replay presets, and F-16 JSON export; no route-native measurement or live controlRepo seamopenF-07 F-08 F-17 F-18 P-01 P-02 P-03named gap, not mounted hereNot mountedopennoneno F-10/F-11 route gap after Phase 5; live control remains out of scopeExternal validationopenF-01 F-09 F-10 F-11 F-13 F-16 V-02 V-03 V-04 V-05 V-06outside this scene or external/live truth not claimed F-16 Bounded Route Export JSON only · not external measurement/report truth Exports route-owned bounded state only: scenario, endpoint pair, actor counts, modeled window, requirement groups, F-09 class disposition, link-flow cue metadata, provenance, and non-claims. Export bounded JSON Ready: bounded route export only. No external measurement report truth is claimed.No live iperf or ping truth is claimed.No active gateway, active serving satellite, or pair-specific teleport path is claimed.No native RF handover or >=500 LEO validation is claimed.F-09 rate fields are modeled classes only; no Mbps or Gbps values are exported.Latency and jitter are not exported as measured ms values. F-10/F-11 Modeled Replay Presets Preset-only · not live control Route-local modeled replay preset controls. They update preview state and telemetry only; no backend side effect, rule engine, or measured decision truth. F-10 policy preset Balanced continuity reviewCandidate-first reviewContinuity guard review F-11 rule preset Standard window thresholdsEarly candidate reviewGuard hold review Modeled replay preview keeps candidate and continuity review balanced. Preset only; not live control. Bounded replay rule preset keeps standard review windows. Preset only; not live control. candidate review preset: standardcontinuity guard preset: standardreplay hold preset: standard Modeled replay presets: F-10 Balanced continuity review; F-11 Standard window thresholds. Preset-only, not live control. F-09 Communication Rate Modeled, not measured. Modeled network-speed class Candidate capacity context Candidate class LEO candidate capacity proxy. Source: modeled bounded proxy. Truth: modeled-bounded-class-not-measured. Class table fallback Route-local F-09 modeled communication-rate class fallback Window State Orbit Class Bucket Source Truth State 1 of 5LEO review focusLEOCandidate capacity contextCandidate classmodeled bounded proxymodeled-bounded-class-not-measuredState 2 of 5LEO pressureLEOCandidate capacity contextCandidate classmodeled bounded proxymodeled-bounded-class-not-measuredState 3 of 5MEO continuity holdMEOContinuity contextContinuity classmodeled bounded proxymodeled-bounded-class-not-measuredState 4 of 5LEO re-entryLEOCandidate capacity contextCandidate classmodeled bounded proxymodeled-bounded-class-not-measuredState 5 of 5GEO guard contextGEOGuard contextGuard classmodeled bounded proxymodeled-bounded-class-not-measured TLE: CelesTrak NORAD GP · 13 actors · fetched 2026-04-26 R2: 5 candidate endpoints (read-only catalog) Archive All repo-owned projection sources. Satellite TLE provenance Eutelsat OneWeb · LEO · ONEWEB-0386 · fetched 2026-04-28T08:51:17ZEutelsat OneWeb · LEO · ONEWEB-0537 · fetched 2026-04-28T08:51:17ZEutelsat OneWeb · LEO · ONEWEB-0701 · fetched 2026-04-28T08:51:17ZEutelsat OneWeb · LEO · ONEWEB-0012 · fetched 2026-04-28T08:51:17ZEutelsat OneWeb · LEO · ONEWEB-0249 · fetched 2026-04-28T08:51:17ZEutelsat OneWeb · LEO · ONEWEB-0702 · fetched 2026-04-28T08:51:17ZSES O3b mPOWER · MEO · O3B MPOWER F6 · fetched 2026-04-28T08:51:17ZSES O3b mPOWER · MEO · O3B MPOWER F1 · fetched 2026-04-28T08:51:17ZSES O3b mPOWER · MEO · O3B MPOWER F2 · fetched 2026-04-28T08:51:17ZSES O3b mPOWER · MEO · O3B MPOWER F4 · fetched 2026-04-28T08:51:17ZSES O3b mPOWER · MEO · O3B MPOWER F3 · fetched 2026-04-28T08:51:17ZST-2 CHT/Singtel GEO service context · GEO · ST-2 · fetched 2026-04-28T08:51:17ZSES GEO display context; not endpoint-pair path or active service claim · GEO · SES-9 · fetched 2026-04-28T08:51:17Z Ground-station evidence URLs Taiwan / Chunghwa Telecom multi-orbit ground infrastructureLEO strong · https://www.cht.com.tw/zh-tw/home/cht/messages/2025/1103-1000 · operator press releaseLEO strong · https://www.cht.com.tw/en/home/cht/messages/2023/1115-1530 · operator press releaseMEO strong · https://www.cht.com.tw/zh-tw/home/cht/messages/2025/1103-1000 · operator press releaseMEO strong · https://www.cht.com.tw/en/home/cht/messages/2026/0122-1410 · operator press releaseGEO strong · https://www.cht.com.tw/zh-tw/home/cht/messages/2025/1103-1000 · operator press releaseGEO strong · https://www.cht.com.tw/en/home/cht/messages/2023/1115-1530 · operator press releaseSingapore / Speedcast Singapore TeleportLEO strong · https://www.speedcast.com/our-solution/product/vsat-satellite/ngso-leo-meo/ · operator sourceMEO strong · https://www.speedcast.com/our-solution/product/vsat-satellite/ngso-leo-meo/ · operator sourceGEO strong · https://www.speedcast.com/newsroom/press-releases/2024/speedcasts-teleport-in-singapore-joins-wtas-growing-list-of-tier-4-certified-teleports/ · third-party certificationGEO strong · https://www.speedcast.com/about-us/teleports/ · operator source R2 read-only candidate catalog Taiwan site-level CHT earth-station family · blocked: site-family upgrade lacks accepted LEO/MEO site mapping · blocked · R2 read-only - not promotable to runtimeThailand NT Sirindhorn OneWeb SNP Gateway · blocked: MEO evidence gap · blocked · R2 read-only - not promotable to runtimeSingapore Singtel Bukit Timah Satellite Earth Station · blocked: MEO evidence gap and site-family split · blocked · R2 read-only - not promotable to runtimeJapan KDDI Yamaguchi / SoftBank OneWeb country family · blocked: MEO gap and split operator-family evidence · blocked · R2 read-only - not promotable to runtimeKorea KT SAT Kumsan / OneWeb terminal ecosystem · blocked: MEO remains partial/planned evidence · blocked · R2 read-only - not promotable to runtime Implementation evidence Raw ids, selected cue ids, anchor metadata, and full candidate/fallback arrays. This evidence supports tests and implementation review; it is not the primary product explanation. Representative actor id ONEWEB-0702 LEO context (oneweb-0702-leo-display-context) Candidate actor ids ONEWEB-0012 LEO context (oneweb-0012-leo-display-context), ONEWEB-0249 LEO context (oneweb-0249-leo-display-context), ONEWEB-0386 LEO context (oneweb-0386-leo-display-context), O3b mPOWER F4 MEO context (o3b-mpower-f4-meo-display-context) Fallback actor ids ST-2 GEO guard (st-2-geo-continuity-anchor), SES-9 GEO guard (ses-9-geo-display-context) Scene cue ids displayRepresentative primary; candidateContext secondary; scene anchor display-representative-actor; selected actor oneweb-0702-leo-display-context; selected cue m8a-v46e-simulation-displayRepresentative-context-ribbon."
     },
     "boundarySurface": {
       "exists": true,
@@ -286,21 +286,21 @@
       "rect": {
         "left": 815.796875,
         "top": 512.296875,
-        "right": 953.90625,
+        "right": 979.375,
         "bottom": 575.828125,
-        "width": 138.109375,
+        "width": 163.578125,
         "height": 63.53125
       },
-      "text": "OneWeb LEO · 候選 候選品質:強 若切回:~22 分鐘",
+      "text": "OneWeb LEO · candidate Candidate quality: strong If switching back: ~22 min",
       "state": "visible",
       "kind": "satellite",
       "targetId": "oneweb-0702-leo-display-context",
       "windowId": "leo-reentry-candidate",
       "roleToken": "re-entry",
       "lines": [
-        "OneWeb LEO · 候選",
-        "候選品質:強",
-        "若切回:~22 分鐘"
+        "OneWeb LEO · candidate",
+        "Candidate quality: strong",
+        "If switching back: ~22 min"
       ]
     },
     "hoverTargets": [
@@ -309,11 +309,11 @@
         "visible": true,
         "hidden": false,
         "rect": {
-          "left": 727.796875,
+          "left": 727.3515625,
           "top": 487.296875,
-          "right": 820.796875,
+          "right": 821.2421875,
           "bottom": 505.296875,
-          "width": 93,
+          "width": 93.890625,
           "height": 18
         },
         "text": "LEO MEO GEO ✓",
@@ -323,24 +323,24 @@
         "roleToken": null,
         "lineCount": 3,
         "lines": [
-          "Chunghwa Telecom 地面站",
+          "Chunghwa Telecom ground station",
           "operator-family precision",
-          "LEO MEO GEO 三軌道資料"
+          "LEO MEO GEO three-orbit coverage"
         ],
         "tabIndex": 0,
         "role": "button",
-        "ariaLabel": "Chunghwa Telecom 地面站 ground-station hover evidence"
+        "ariaLabel": "Chunghwa Telecom ground station ground-station hover evidence"
       },
       {
         "exists": true,
         "visible": true,
         "hidden": false,
         "rect": {
-          "left": 573.296875,
+          "left": 572.8515625,
           "top": 589.796875,
-          "right": 666.296875,
+          "right": 666.7421875,
           "bottom": 607.796875,
-          "width": 93,
+          "width": 93.890625,
           "height": 18
         },
         "text": "LEO MEO GEO ✓",
@@ -352,7 +352,7 @@
         "lines": [
           "Speedcast Singapore Teleport",
           "operator-family precision",
-          "LEO MEO GEO 三軌道資料"
+          "LEO MEO GEO three-orbit coverage"
         ],
         "tabIndex": 0,
         "role": "button",
@@ -377,13 +377,13 @@
         "roleToken": "candidate",
         "lineCount": 3,
         "lines": [
-          "Eutelsat OneWeb LEO · 候選",
-          "候選品質依位置條件",
-          "模擬展示"
+          "Eutelsat OneWeb LEO · Candidate",
+          "Candidate quality depends on geometry",
+          "Simulation view"
         ],
         "tabIndex": 0,
         "role": "button",
-        "ariaLabel": "Eutelsat OneWeb LEO · 候選 hover evidence"
+        "ariaLabel": "Eutelsat OneWeb LEO · Candidate hover evidence"
       },
       {
         "exists": true,
@@ -404,13 +404,13 @@
         "roleToken": "candidate",
         "lineCount": 3,
         "lines": [
-          "Eutelsat OneWeb LEO · 候選",
-          "候選品質依位置條件",
-          "模擬展示"
+          "Eutelsat OneWeb LEO · Candidate",
+          "Candidate quality depends on geometry",
+          "Simulation view"
         ],
         "tabIndex": 0,
         "role": "button",
-        "ariaLabel": "Eutelsat OneWeb LEO · 候選 hover evidence"
+        "ariaLabel": "Eutelsat OneWeb LEO · Candidate hover evidence"
       },
       {
         "exists": true,
@@ -431,13 +431,13 @@
         "roleToken": "candidate",
         "lineCount": 3,
         "lines": [
-          "Eutelsat OneWeb LEO · 候選",
-          "候選品質依位置條件",
-          "模擬展示"
+          "Eutelsat OneWeb LEO · Candidate",
+          "Candidate quality depends on geometry",
+          "Simulation view"
         ],
         "tabIndex": 0,
         "role": "button",
-        "ariaLabel": "Eutelsat OneWeb LEO · 候選 hover evidence"
+        "ariaLabel": "Eutelsat OneWeb LEO · Candidate hover evidence"
       },
       {
         "exists": true,
@@ -458,13 +458,13 @@
         "roleToken": "candidate",
         "lineCount": 3,
         "lines": [
-          "Eutelsat OneWeb LEO · 候選",
-          "候選品質依位置條件",
-          "模擬展示"
+          "Eutelsat OneWeb LEO · Candidate",
+          "Candidate quality depends on geometry",
+          "Simulation view"
         ],
         "tabIndex": 0,
         "role": "button",
-        "ariaLabel": "Eutelsat OneWeb LEO · 候選 hover evidence"
+        "ariaLabel": "Eutelsat OneWeb LEO · Candidate hover evidence"
       },
       {
         "exists": true,
@@ -485,13 +485,13 @@
         "roleToken": "candidate",
         "lineCount": 3,
         "lines": [
-          "Eutelsat OneWeb LEO · 候選",
-          "候選品質依位置條件",
-          "模擬展示"
+          "Eutelsat OneWeb LEO · Candidate",
+          "Candidate quality depends on geometry",
+          "Simulation view"
         ],
         "tabIndex": 0,
         "role": "button",
-        "ariaLabel": "Eutelsat OneWeb LEO · 候選 hover evidence"
+        "ariaLabel": "Eutelsat OneWeb LEO · Candidate hover evidence"
       },
       {
         "exists": true,
@@ -512,13 +512,13 @@
         "roleToken": "re-entry",
         "lineCount": 3,
         "lines": [
-          "OneWeb LEO · 候選",
-          "候選品質:強",
-          "若切回:~22 分鐘"
+          "OneWeb LEO · candidate",
+          "Candidate quality: strong",
+          "If switching back: ~22 min"
         ],
         "tabIndex": 0,
         "role": "button",
-        "ariaLabel": "OneWeb LEO · 候選 hover evidence"
+        "ariaLabel": "OneWeb LEO · candidate hover evidence"
       },
       {
         "exists": true,
@@ -539,13 +539,13 @@
         "roleToken": "candidate",
         "lineCount": 3,
         "lines": [
-          "SES O3b mPOWER MEO · 候選",
+          "SES O3b mPOWER MEO · Candidate",
           "ambient context",
-          "模擬展示"
+          "Simulation view"
         ],
         "tabIndex": 0,
         "role": "button",
-        "ariaLabel": "SES O3b mPOWER MEO · 候選 hover evidence"
+        "ariaLabel": "SES O3b mPOWER MEO · Candidate hover evidence"
       },
       {
         "exists": true,
@@ -566,13 +566,13 @@
         "roleToken": "candidate",
         "lineCount": 3,
         "lines": [
-          "SES O3b mPOWER MEO · 候選",
+          "SES O3b mPOWER MEO · Candidate",
           "ambient context",
-          "模擬展示"
+          "Simulation view"
         ],
         "tabIndex": 0,
         "role": "button",
-        "ariaLabel": "SES O3b mPOWER MEO · 候選 hover evidence"
+        "ariaLabel": "SES O3b mPOWER MEO · Candidate hover evidence"
       },
       {
         "exists": true,
@@ -593,13 +593,13 @@
         "roleToken": "candidate",
         "lineCount": 3,
         "lines": [
-          "SES O3b mPOWER MEO · 候選",
+          "SES O3b mPOWER MEO · Candidate",
           "ambient context",
-          "模擬展示"
+          "Simulation view"
         ],
         "tabIndex": 0,
         "role": "button",
-        "ariaLabel": "SES O3b mPOWER MEO · 候選 hover evidence"
+        "ariaLabel": "SES O3b mPOWER MEO · Candidate hover evidence"
       },
       {
         "exists": true,
@@ -620,13 +620,13 @@
         "roleToken": "candidate",
         "lineCount": 3,
         "lines": [
-          "SES O3b mPOWER MEO · 還在接住",
-          "可以等決定",
-          "MEO 仍 backstop"
+          "SES O3b mPOWER MEO · still holding",
+          "Decision can wait",
+          "MEO still backstops"
         ],
         "tabIndex": 0,
         "role": "button",
-        "ariaLabel": "SES O3b mPOWER MEO · 還在接住 hover evidence"
+        "ariaLabel": "SES O3b mPOWER MEO · still holding hover evidence"
       },
       {
         "exists": true,
@@ -647,13 +647,13 @@
         "roleToken": "candidate",
         "lineCount": 3,
         "lines": [
-          "SES O3b mPOWER MEO · 候選",
+          "SES O3b mPOWER MEO · Candidate",
           "ambient context",
-          "模擬展示"
+          "Simulation view"
         ],
         "tabIndex": 0,
         "role": "button",
-        "ariaLabel": "SES O3b mPOWER MEO · 候選 hover evidence"
+        "ariaLabel": "SES O3b mPOWER MEO · Candidate hover evidence"
       },
       {
         "exists": true,
@@ -674,13 +674,13 @@
         "roleToken": "guard",
         "lineCount": 3,
         "lines": [
-          "Singtel / SES GEO · 保底覆蓋",
-          "保底覆蓋待命",
-          "模擬展示"
+          "Singtel / SES GEO · Guard coverage",
+          "Guard coverage standby",
+          "Simulation view"
         ],
         "tabIndex": 0,
         "role": "button",
-        "ariaLabel": "Singtel / SES GEO · 保底覆蓋 hover evidence"
+        "ariaLabel": "Singtel / SES GEO · Guard coverage hover evidence"
       },
       {
         "exists": true,
@@ -701,25 +701,25 @@
         "roleToken": "fallback",
         "lineCount": 3,
         "lines": [
-          "SES GEO GEO · 保底覆蓋",
-          "保底覆蓋待命",
-          "模擬展示"
+          "SES GEO GEO · Guard coverage",
+          "Guard coverage standby",
+          "Simulation view"
         ],
         "tabIndex": 0,
         "role": "button",
-        "ariaLabel": "SES GEO GEO · 保底覆蓋 hover evidence"
+        "ariaLabel": "SES GEO GEO · Guard coverage hover evidence"
       },
       {
         "exists": true,
         "visible": true,
         "hidden": false,
         "rect": {
-          "left": 518.9375,
-          "top": 713,
-          "right": 635.796875,
-          "bottom": 751,
-          "width": 116.859375,
-          "height": 38
+          "left": 540.640625,
+          "top": 702.5625,
+          "right": 652.75,
+          "bottom": 752.5625,
+          "width": 112.109375,
+          "height": 50
         },
         "text": "1 LEO review LEO",
         "kind": "sequence-rail",
@@ -728,25 +728,25 @@
         "roleToken": null,
         "lineCount": 3,
         "lines": [
-          "剛接上 LEO",
-          "服務時間長:~22 分鐘",
-          "下一段:訊號減弱"
+          "Just connected LEO",
+          "Service window: ~22 min",
+          "Next: signal degrading"
         ],
         "tabIndex": 0,
         "role": "button",
-        "ariaLabel": "剛接上 LEO sequence hover evidence"
+        "ariaLabel": "Just connected LEO sequence hover evidence"
       },
       {
         "exists": true,
         "visible": true,
         "hidden": false,
         "rect": {
-          "left": 641.234375,
-          "top": 713,
-          "right": 758.09375,
-          "bottom": 751,
-          "width": 116.859375,
-          "height": 38
+          "left": 658.1875,
+          "top": 700.15625,
+          "right": 770.3125,
+          "bottom": 754.984375,
+          "width": 112.125,
+          "height": 54.828125
         },
         "text": "2 LEO pressure LEO",
         "kind": "sequence-rail",
@@ -755,25 +755,25 @@
         "roleToken": null,
         "lineCount": 3,
         "lines": [
-          "LEO 訊號減弱",
-          "位置條件變差",
-          "下一段:MEO 暫時接住"
+          "LEO signal degrading",
+          "Geometry degrading",
+          "Next: MEO continuity hold"
         ],
         "tabIndex": 0,
         "role": "button",
-        "ariaLabel": "LEO 訊號減弱 sequence hover evidence"
+        "ariaLabel": "LEO signal degrading sequence hover evidence"
       },
       {
         "exists": true,
         "visible": true,
         "hidden": false,
         "rect": {
-          "left": 763.53125,
-          "top": 713,
-          "right": 880.390625,
-          "bottom": 751,
-          "width": 116.859375,
-          "height": 38
+          "left": 775.75,
+          "top": 702.5625,
+          "right": 887.859375,
+          "bottom": 752.5625,
+          "width": 112.109375,
+          "height": 50
         },
         "text": "3 MEO hold MEO",
         "kind": "sequence-rail",
@@ -782,25 +782,25 @@
         "roleToken": null,
         "lineCount": 3,
         "lines": [
-          "MEO 暫時接住",
-          "覆蓋廣 · 延遲略高",
-          "下一段:新 LEO 候選"
+          "MEO continuity hold",
+          "Wide coverage · slightly higher latency",
+          "Next: new LEO candidate"
         ],
         "tabIndex": 0,
         "role": "button",
-        "ariaLabel": "MEO 暫時接住 sequence hover evidence"
+        "ariaLabel": "MEO continuity hold sequence hover evidence"
       },
       {
         "exists": true,
         "visible": true,
         "hidden": false,
         "rect": {
-          "left": 885.828125,
-          "top": 713,
-          "right": 1002.6875,
-          "bottom": 751,
-          "width": 116.859375,
-          "height": 38
+          "left": 893.296875,
+          "top": 700.15625,
+          "right": 1005.421875,
+          "bottom": 754.984375,
+          "width": 112.125,
+          "height": 54.828125
         },
         "text": "4 LEO re-entry LEO",
         "kind": "sequence-rail",
@@ -809,25 +809,25 @@
         "roleToken": null,
         "lineCount": 3,
         "lines": [
-          "新 LEO 候選回來",
-          "切回後可有 ~22 分鐘低延遲",
-          "MEO 仍接住可緩決定"
+          "New LEO candidate returning",
+          "After switch back: ~22 min low-latency",
+          "MEO still holds; decision can wait"
         ],
         "tabIndex": 0,
         "role": "button",
-        "ariaLabel": "新 LEO 候選回來 sequence hover evidence"
+        "ariaLabel": "New LEO candidate returning sequence hover evidence"
       },
       {
         "exists": true,
         "visible": true,
         "hidden": false,
         "rect": {
-          "left": 1008.125,
-          "top": 713,
-          "right": 1125,
-          "bottom": 751,
-          "width": 116.875,
-          "height": 38
+          "left": 1010.859375,
+          "top": 702.5625,
+          "right": 1122.984375,
+          "bottom": 752.5625,
+          "width": 112.125,
+          "height": 50
         },
         "text": "5 GEO guard GEO",
         "kind": "sequence-rail",
@@ -836,13 +836,13 @@
         "roleToken": null,
         "lineCount": 3,
         "lines": [
-          "GEO 保底覆蓋",
-          "永遠連得到",
-          "序列在這裡結束"
+          "GEO guard coverage",
+          "Always reachable",
+          "Sequence ends here"
         ],
         "tabIndex": 0,
         "role": "button",
-        "ariaLabel": "GEO 保底覆蓋 sequence hover evidence"
+        "ariaLabel": "GEO guard coverage sequence hover evidence"
       }
     ],
     "hoverTargetCounts": {

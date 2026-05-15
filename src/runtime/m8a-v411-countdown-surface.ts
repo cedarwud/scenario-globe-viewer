@@ -5,7 +5,7 @@ import type {
 
 export const M8A_V411_COUNTDOWN_SURFACE_VERSION =
   "m8a-v4.11-countdown-surface-conv2-runtime.v1";
-export const M8A_V411_COUNTDOWN_FOOTNOTE_TEXT = "~ 為模擬推演值";
+export const M8A_V411_COUNTDOWN_FOOTNOTE_TEXT = "~ = simulated value";
 export const M8A_V411_COUNTDOWN_FONT_SIZE_PX = 14;
 export const M8A_V411_COUNTDOWN_GAP_FROM_MICRO_CUE_PX = 8;
 
@@ -29,24 +29,24 @@ export interface M8aV411CountdownPhraseCopy {
 
 const M8A_V411_COUNTDOWN_PHRASE_COPY = {
   "leo-acquisition-context": {
-    prefix: "服務時間",
-    appendix: "下一段：訊號減弱"
+    prefix: "Service time",
+    appendix: "Next: signal degrading"
   },
   "leo-aging-pressure": {
-    prefix: "切換到 MEO",
-    appendix: "位置條件變差"
+    prefix: "Switch to MEO",
+    appendix: "Geometry degrading"
   },
   "meo-continuity-hold": {
-    prefix: "暫時接住",
-    appendix: "新 LEO 即將回來"
+    prefix: "Continuity hold",
+    appendix: "New LEO returning soon"
   },
   "leo-reentry-candidate": {
-    prefix: "若切回",
-    appendix: "MEO 仍接住可緩決定"
+    prefix: "If switching back",
+    appendix: "MEO still holds; decision can wait"
   },
   "geo-continuity-guard": {
-    prefix: "序列結束",
-    appendix: "重新開始可以再看一次"
+    prefix: "Sequence ended",
+    appendix: "Restart to view again"
   }
 } satisfies Record<M8aV46dSimulationHandoverWindowId, M8aV411CountdownPhraseCopy>;
 
@@ -62,12 +62,12 @@ export function formatApproximateRemainingDuration(
   const safeSeconds = Math.max(0, seconds);
 
   if (safeSeconds <= 60) {
-    const display = `~${Math.max(1, Math.round(safeSeconds))} 秒`;
+    const display = `~${Math.max(1, Math.round(safeSeconds))} s`;
     return { display, unit: "second" };
   }
 
   const minutes = Math.max(1, Math.round(safeSeconds / 60));
-  return { display: `~${minutes} 分鐘`, unit: "minute" };
+  return { display: `~${minutes} min`, unit: "minute" };
 }
 
 export function deriveM8aV411CountdownRemaining({
@@ -164,7 +164,7 @@ export function renderM8aV411CountdownSurface({
 }): M8aV411CountdownSurfaceRenderState {
   const surface = ensureM8aV411CountdownSurfaceStructure(root);
   const phrase = resolveM8aV411CountdownPhraseCopy(derivation.windowId);
-  const primaryText = `${phrase.prefix}：${derivation.approximateDisplay}`;
+  const primaryText = `${phrase.prefix}: ${derivation.approximateDisplay}`;
   const appendixText = phrase.appendix;
 
   const primary = surface.querySelector<HTMLElement>(

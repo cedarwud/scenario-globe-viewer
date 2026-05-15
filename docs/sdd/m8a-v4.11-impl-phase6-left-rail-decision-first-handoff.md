@@ -8,19 +8,19 @@ Scope: mini follow-up Phase 6 for spec v2 §5 only. This is not V4.12 and does n
 
 Phase 6 replaces the old five equal-weight left rail prose rows with the spec v2 §5 decision-first rail:
 
-- Layer 1 主判斷: orbit + role chip, role glyph, orbit swatch, and compact current/candidate/fallback tokens.
-- Layer 2 下一步: one-line next-state preview.
-- Layer 3 依據 / 缺口: modeled-quality or real-measurement hookpoint line.
+- Layer 1 primary judgment: orbit + role chip, role glyph, orbit swatch, and compact current/candidate/fallback tokens.
+- Layer 2 next step: one-line next-state preview.
+- Layer 3 evidence / gap: modeled-quality or real-measurement hookpoint line.
 - Active rail panel: 3px solid left border using `--m8a-v411-state-active`.
 - Channel ownership preserved: orbit color only owns chip/swatch identity; state owns active border, active fill, warning/candidate emphasis.
 
 Per-window rail copy:
 
-- W1: `LEO · focus`; `下一步：進入品質下降階段`; `modeled quality strong; 服務時長：~22 分鐘`
-- W2: `LEO · pressure`; `下一步：MEO 暫時接住連續性`; `modeled quality dropping; 切換倒數：~10 分鐘`
-- W3: `MEO · continuity-hold`; `下一步：新 LEO 候選回到`; `modeled continuity hold; LEO ETA：~14 分鐘`
-- W4: `LEO · candidate`; `下一步：GEO 收尾為 guard`; `candidate quality strong; 若切回：~22 分鐘`
-- W5: `GEO · guard`; `下一步：重新開始（回到 W1）`; `guard context only; 序列結束：~5 分鐘`
+- W1: `LEO · focus`; `Next: entering quality-degradation phase`; `modeled quality strong; service time: ~22 min`
+- W2: `LEO · pressure`; `Next: MEO continuity hold takes over`; `modeled quality dropping; switch countdown: ~10 min`
+- W3: `MEO · continuity-hold`; `Next: new LEO candidate returns`; `modeled continuity hold; LEO ETA: ~14 min`
+- W4: `LEO · candidate`; `Next: GEO wraps as guard`; `candidate quality strong; if switching back: ~22 min`
+- W5: `GEO · guard`; `Next: restart (back to W1)`; `guard context only; sequence ends: ~5 min`
 
 ## Skill Query Grounding
 
@@ -51,7 +51,7 @@ Required skill queries were run from `.codex/skills/ui-ux-pro-max/scripts/search
 - `public/fonts/noto-sans-tc-m8a-v411-subset.ttf`
 - `docs/sdd/m8a-v4.11-impl-phase6-left-rail-decision-first-handoff.md`
 
-The font subset asset was regenerated only to cover new required §5 rail glyphs such as `步`, `降`, `性`, `收`, and `尾`. No font stack, token values, measured metrics, or unrelated typography behavior changed.
+The font subset asset was regenerated only to cover new required §5 rail glyphs (CJK codepoints U+6B65, U+964D, U+6027, U+6536, U+5C3E — the additional glyphs used by the new Chinese-language rail copy). No font stack, token values, measured metrics, or unrelated typography behavior changed.
 
 ## Captures
 

@@ -17,14 +17,14 @@ Recommended candidate: **F-16 statistics report export**.
 
 customer must-have reference:
 
-- `/home/u24/papers/itri/README.md:565` lists `統計報表可匯出` in §8.1.
+- `/home/u24/papers/itri/README.md:565` lists `Statistics report export` in §8.1.
 - `/home/u24/papers/itri/itri-acceptance-report-2026-04-20/00-external-acceptance-summary.md:101-108`
   says `end-user report export flow` is still not separately phased.
 
 Acceptance-report quote:
 
 > `/home/u24/papers/itri/itri-acceptance-report-2026-04-20/01-itri-requirement-inventory-and-status.md:29`:
-> `| F-16 | 統計報表可匯出 | 部分完成 | Export-ready report structures exist for communication-time, handover, physical-input, and validation-state, but there is no completed end-user export workflow/button yet. | 尚未排入目前 phase |`
+> `| F-16 | Statistics report export | Partial | Export-ready report structures exist for communication-time, handover, physical-input, and validation-state, but there is no completed end-user export workflow/button yet. | Not yet scheduled in current phase |`
 
 Interpretation:
 

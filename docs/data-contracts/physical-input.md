@@ -2,19 +2,20 @@
 
 ## Purpose
 
-`physical-input` 是 `Phase 6.5` 的 repo-owned plain-data seam。它的責任是把
-scenario-bounded 的 antenna / rain attenuation / ITU-style requirement-bearing
-inputs，以明確 provenance 與 deterministic projection materialize 成既有
-decision layer 可消費的 candidate metrics。
+`physical-input` is the `Phase 6.5` repo-owned plain-data seam. Its responsibility
+is to take scenario-bounded antenna / rain attenuation / ITU-style
+requirement-bearing inputs and materialize them, with explicit provenance and
+deterministic projection, into candidate metrics consumable by the existing
+decision layer.
 
-這個 boundary 存在的原因是：
+This boundary exists because:
 
-- `scenario` 只管 scenario identity / source / time coordination
-- `replay-clock` 只管 evaluated time 與 active range
-- `handover-decision` 只管 decision semantics 與 repo-owned outputs
+- `scenario` only handles scenario identity / source / time coordination
+- `replay-clock` only handles evaluated time and active range
+- `handover-decision` only handles decision semantics and repo-owned outputs
 
-因此 `physical-input` 必須獨立存在，不能被塞回 `ScenarioDefinition.sources`
-或 UI-only readout。
+Therefore `physical-input` must exist independently and cannot be folded back
+into `ScenarioDefinition.sources` or a UI-only readout.
 
 ## Current Public Source Of Truth
 

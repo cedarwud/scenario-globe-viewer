@@ -3,7 +3,7 @@
 Date: 2026-05-12
 Working phase name: **M8A V4.12 customer must-have followup**.
 
-Status: **已完成（bounded）**.
+Status: **Complete (bounded)**.
 
 ## 1. Closed Capability
 
