@@ -1,191 +1,103 @@
-# Independent Audit — Phase 1: ITRI Requirement Inventory
+# Independent Audit Requirements Inventory
 
-> Authority: only `/home/u24/papers/itri/` raw sources count as ITRI requirement
-> truth. Project-side reports (e.g. `itri-acceptance-report-2026-04-20/`) and any
-> `docs/sdd/*-closeout/*-handoff/*-plan` are **out-of-scope** for this inventory.
->
-> Sources used (allowed):
-> - `itri/README.md` (ITRI requirement summary authored against original sources)
-> - `itri/r1.docx` via `itri/mineru-pilot-2026-05-13/raw/r1/office/r1.md` and
->   `itri/markitdown-2026-04-13/r1.md`
-> - `itri/kickoff.pptx` via `itri/mineru-pilot-2026-05-13/raw/kickoff/office/kickoff.md`
->   and `itri/markitdown-2026-04-13/kickoff.md`
-> - `itri/multi-orbit/README.md` (research baseline orientation)
->
-> Quote excerpts are ≤2 lines verbatim from those sources.
+Audit date: 2026-05-15
 
-Audit date: 2026-05-15.
-Auditor mode: read-only, no project-self-claims trusted, no `closeout/handoff/plan`
-docs read.
+Scope note: this file records Phase 1 only. Source truth was limited to `/home/u24/papers/itri/` original ITRI materials and their conversion/support outputs. I did not use `/home/u24/papers/itri/itri-acceptance-report-2026-04-20/` or any `scenario-globe-viewer/docs/sdd` closeout, handoff, plan, delivery, or completion-status document.
 
-ID prefixes:
-- `F-*` Functional requirement (WP1 contract, r1.docx)
-- `T-*` Technical scope (WP1, r1.docx + kickoff slide 5)
-- `K-*` Kickoff explicit direction (kickoff.pptx slides 2/3/4/5/6)
-- `D-*` Deliverable / milestone gate
-- `V-*` Validation / DUT mode
-- `E-*` Environment (OS)
-- `P-*` Physical-layer / channel factor
-- `N-*` Network / tunneling / NAT scenario
-- `S-*` Stakeholder / external collaboration
+## Non-Report Source Inventory
 
----
+Top-level ITRI material:
 
-## A. WP1 Contract Gates (`r1.docx`)
+- `/home/u24/papers/itri/README.md`
+- `/home/u24/papers/itri/r1.docx`
+- `/home/u24/papers/itri/kickoff.pptx`
+- `/home/u24/papers/itri/demo.png`
+- `/home/u24/papers/itri/sat.png`
+- `/home/u24/papers/itri/markitdown-2026-04-13/r1.md`
+- `/home/u24/papers/itri/markitdown-2026-04-13/kickoff.md`
+- `/home/u24/papers/itri/mineru-pilot-2026-05-13/closeout.md`
+- `/home/u24/papers/itri/mineru-pilot-2026-05-13/raw/r1/office/r1.md`
+- `/home/u24/papers/itri/mineru-pilot-2026-05-13/raw/r1/office/r1_content_list.json`
+- `/home/u24/papers/itri/mineru-pilot-2026-05-13/raw/r1/office/r1_content_list_v2.json`
+- `/home/u24/papers/itri/mineru-pilot-2026-05-13/raw/r1/office/r1_middle.json`
+- `/home/u24/papers/itri/mineru-pilot-2026-05-13/raw/kickoff/office/kickoff.md`
+- `/home/u24/papers/itri/mineru-pilot-2026-05-13/raw/kickoff/office/kickoff_content_list.json`
+- `/home/u24/papers/itri/mineru-pilot-2026-05-13/raw/kickoff/office/kickoff_content_list_v2.json`
+- `/home/u24/papers/itri/mineru-pilot-2026-05-13/raw/kickoff/office/kickoff_middle.json`
+- `/home/u24/papers/itri/mineru-pilot-2026-05-13/raw/kickoff/office/images/*`
 
-| ID | 需求描述 | 來源檔案:位置 | 驗收條件 |
-| --- | --- | --- | --- |
-| F-WP1-A | 成功匯入軌道模型 | mineru-pilot-2026-05-13/raw/r1/office/r1.md L30 | 軌道模型可被匯入並驅動衛星位置（與 F-01 / T-01 對應）；引文：「成功匯入軌道模型、可動態調整參數介面、可產生通訊時間流計、畫面穩定運行至少24小時。」 |
-| F-WP1-B | 可動態調整參數介面 | mineru-pilot-2026-05-13/raw/r1/office/r1.md L30 | UI 提供動態參數調整能力；引文同上 |
-| F-WP1-C | 可產生通訊時間統計（原文「通訊時間流計」） | mineru-pilot-2026-05-13/raw/r1/office/r1.md L30 | 系統能輸出通訊時間統計值/報表（與 F-05 報表匯出共用） |
-| F-WP1-D | 畫面穩定運行至少 24 小時 | mineru-pilot-2026-05-13/raw/r1/office/r1.md L30 | 連續運行 ≥ 24h 不崩潰、不退化 |
-| D-WP1-DATE | 2025/11/30 完成日期 | mineru-pilot-2026-05-13/raw/r1/office/r1.md L30 | A 項交付物在該日期前完成 |
-| D-WP1-DOC | 交付項目：技術 WP1 評估分析報告一式 | mineru-pilot-2026-05-13/raw/r1/office/r1.md L30 | 交付一份 WP1 評估分析報告 |
+`multi-orbit/` non-report ITRI material reviewed as research/story authority, excluding `.venv-aircraft-acquisition/`, `.local-config/`, and any `report/` subtree:
 
----
+- Top-level and baseline: `README.md`, `north-star.md`, `handoff-overview.md`, `research-and-planning-index.md`, `m8-expansion-authority.md`, `baseline/current-state-summary.md`
+- Prep and contract translation files: `prep/README.md`, `prep/app-facing-contract-draft.md`, `prep/research-to-app-mapping.md`, `prep/viewer-contract-widening-proposal.md`, `prep/metric-projection-handoff-boundary.md`, `prep/oneweb-intelsat-geo-aviation-intake.md`, `prep/endpoint-overlay-seed-draft.md`, `prep/position-resolution-strategy.md`, `prep/pre-code-readiness-ledger.md`, `prep/aircraft-corridor-freeze-criteria.md`, `prep/aircraft-corridor-artifact-package-spec.md`, `prep/intelsat-ground-anchor-representation-decision.md`, `prep/oneweb-gateway-pool-selection-decision.md`, `prep/adapter-split-draft.md`, `prep/seed-readiness-matrix.md`, plus the remaining non-report prep templates, plans, local env examples, seed JSON files, and unresolved-input register
+- Canonical data: `data/multi-orbit-operator-baseline.json`, `data/endpoint-taxonomy-baseline.json`, `data/oneweb-gateway-position-baseline.json`
+- Accepted/download packages: `download/aircraft-corridors/**` non-report package files and retained artifacts, `download/nearby-second-endpoints/**`, `download/ground-station-endpoint-candidates/2026-04-25/**`, `download/ground-station-endpoint-pairs/taiwan-cht-speedcast-singapore-operator-family-2026-04-26/**`
+- Prompt files under `prompt/*.md` were listed as non-report ITRI material but treated as execution prompts, not as independent customer requirements unless their content restated an authority constraint also present in the documents above.
 
-## B. WP1 Technical Scope (`r1.docx` + kickoff slide 5)
+## Requirements Table
 
 | ID | 需求描述 | 來源檔案:位置 | 驗收條件 |
 | --- | --- | --- | --- |
-| T-01 | 衛星模型軌道資料整合 | mineru .../r1.md L18-22；kickoff.md L65 | 軌道資料來源被整合且驅動畫面 |
-| T-02 | 視覺化呈現（如 Blender 工具或等效） | mineru .../r1.md L19；kickoff.md L66 | 具備一定質感之圖像化呈現，不僅數據面板 |
-| T-03 | UI 互動介面 | r1.md L20；kickoff.md L67 | 提供可操作 UI |
-| T-04 | 通訊換手規則模擬等參數設計 | r1.md L21；kickoff.md L68 | 提供 handover rule 參數設計/模擬 |
-| T-05 | 通訊速率可視化設計 | r1.md L22；kickoff.md L69 | 通訊速率可被視覺化 |
-| F-01 | 整合 ITRI 軌道模型（LEO/MEO/GEO 等），建立可互動式 3D 圖像化模擬系統 | r1.md L16；引文：「整合本單位所開發之軌道模型(如LEO/MEO/GEO等)，建立可互動式3D圖像化模擬系統」 | 多軌道型態被涵蓋；不能簡化為單一 LEO |
-| F-02 | 支援 ≥ 500 LEO 模擬 | r1.md L24；kickoff.md L73 | 同時模擬 ≥ 500 LEO 顆衛星 |
-| F-03 | 模擬速度可調 | r1.md L25；kickoff.md L74 | UI 可改變模擬速度 |
-| F-04 | 即時顯示可通訊時間 | r1.md L26；kickoff.md L75 | 即時呈現「可通訊時間」資訊 |
-| F-05 | 換手策略切換 | r1.md L27；kickoff.md L76 | 提供換手策略切換能力 |
-| F-06 | 統計報表匯出 | r1.md L28；kickoff.md L77 | 報表能匯出 |
+| F-01 | 建置「衛星軌跡模型圖像化模擬環境」。 | `/home/u24/papers/itri/markitdown-2026-04-13/r1.md:1-9`<br>引文：「衛星軌跡模型圖像化模擬環境評估」採購案；「依據本單位所開發之衛星軌跡模型進行圖象化模擬環境建置」 | 專案提供可執行的衛星軌跡圖像化環境，且資料來源可追溯到軌跡/軌道模型，不是靜態截圖。 |
+| F-02 | 整合 ITRI 所開發的軌道模型，且面向 `LEO/MEO/GEO` 多軌道。 | `/home/u24/papers/itri/markitdown-2026-04-13/r1.md:15-16`<br>引文：「整合本單位所開發之軌道模型(如LEO/MEO/GEO等)，建立可互動式3D圖像化模擬系統。」 | 原始碼/資料契約能載入或表示 ITRI 軌道模型；至少有 LEO/MEO/GEO 三類軌道語意與測試。 |
+| F-03 | 建立可互動式 3D 圖像化模擬系統。 | `/home/u24/papers/itri/markitdown-2026-04-13/r1.md:15-16`<br>引文：「建立可互動式3D圖像化模擬系統。」 | 本地可開啟 3D viewer，支援使用者互動；測試/截圖證明 3D 場景非空白且可操作。 |
+| F-04 | 支援衛星模型軌道資料整合。 | `/home/u24/papers/itri/markitdown-2026-04-13/r1.md:17-18`<br>引文：「技術範疇：衛星模型軌道資料整合」 | 有軌道資料 ingestion/adapter/fixture，且測試證明資料會進入 viewer 或 runtime 模型。 |
+| F-05 | 具備視覺化呈現，工具可用 Blender 或等效方案。 | `/home/u24/papers/itri/markitdown-2026-04-13/r1.md:17-20`<br>引文：「視覺化呈現(如Blender工具或等效)」 | 交付品提供圖像化/視覺化展示，不限 Blender；artifact 或截圖能證明視覺化品質與功能。 |
+| F-06 | 提供 UI 互動介面。 | `/home/u24/papers/itri/markitdown-2026-04-13/r1.md:17-20`<br>引文：「UI互動介面」 | UI 有可點選/調整/切換的控制元件，且測試覆蓋主要互動流程。 |
+| F-07 | 支援通訊換手規則模擬與相關參數設計。 | `/home/u24/papers/itri/markitdown-2026-04-13/r1.md:20-22`<br>引文：「通訊換手規則模擬等參數設計」 | 原始碼存在 handover rule/policy/parameter model；測試能驗證至少一種換手規則。 |
+| F-08 | 通訊速率需可視化。 | `/home/u24/papers/itri/markitdown-2026-04-13/r1.md:20-22`<br>引文：「通訊速率可視化設計」 | UI 顯示 throughput/network speed 或等效速率指標；測試或 retained artifact 證明畫面存在。 |
+| F-09 | 支援 `>= 500 LEO` 模擬，kickoff 舉例 Starlink/OneWeb。 | `/home/u24/papers/itri/mineru-pilot-2026-05-13/raw/kickoff/office/kickoff.md:71-74`<br>引文：「支援 >= 500 LEO模擬(Starlink, Oneweb...)」 | 本地測試或產出證明可建立/渲染/處理至少 500 顆 LEO 物件或等效資料集，且不只單顆示範。 |
+| F-10 | 模擬速度可調。 | `/home/u24/papers/itri/markitdown-2026-04-13/r1.md:23-25`<br>引文：「模擬速度可調」 | UI 或 runtime API 提供速度控制；測試證明不同速度會改變模擬時間推進。 |
+| F-11 | 即時顯示可通訊時間，並能以 `iperf`/`ping` 類功能測試。 | `/home/u24/papers/itri/mineru-pilot-2026-05-13/raw/kickoff/office/kickoff.md:73-75`<br>引文：「即時顯示可通訊時間(利用iperf，ping等功能測試)」 | UI 顯示通訊時間/可用窗口；若用 proxy，也需明示；測試或 artifact 保留 ping/iperf 或模擬結果。 |
+| F-12 | 換手策略可切換。 | `/home/u24/papers/itri/markitdown-2026-04-13/r1.md:23-28`<br>引文：「換手策略切換」 | UI/API 可切換至少兩種策略或策略狀態；測試證明策略改變會影響決策或展示。 |
+| F-13 | 統計報表可匯出。 | `/home/u24/papers/itri/markitdown-2026-04-13/r1.md:26-28`<br>引文：「統計報表匯出」 | 有 export 功能與 retained report artifact；測試驗證輸出檔非空且內容含統計欄位。 |
+| F-14 | WP1 需在 `2025/11/30` 前成功匯入軌道模型。 | `/home/u24/papers/itri/mineru-pilot-2026-05-13/raw/r1/office/r1.md:30`<br>引文：「2025/11/30...成功匯入軌道模型」 | 驗收需看到軌道模型匯入功能、測試與證據；日期是交付門檻，不作本地功能測試條件。 |
+| F-15 | WP1 需提供可動態調整參數介面。 | `/home/u24/papers/itri/mineru-pilot-2026-05-13/raw/r1/office/r1.md:30`<br>引文：「可動態調整參數介面」 | UI 參數控制可即時改變模擬/展示；測試覆蓋至少一個參數調整。 |
+| F-16 | WP1 需可產生通訊時間統計。 | `/home/u24/papers/itri/mineru-pilot-2026-05-13/raw/r1/office/r1.md:30`<br>引文：「可產生通訊時間流計」 | 系統產出可回顧的通訊時間統計資料；若原文「流計」為 OCR/用字問題，驗收以通訊時間統計處理。 |
+| F-17 | 畫面穩定運行至少 24 小時。 | `/home/u24/papers/itri/mineru-pilot-2026-05-13/raw/r1/office/r1.md:30`<br>引文：「畫面穩定運行至少24小時。」 | 需要長時間 soak/log artifact，證明 viewer 連續運作 24 小時且無 fatal error。 |
+| F-18 | 交付技術 WP1 評估分析報告一式。 | `/home/u24/papers/itri/markitdown-2026-04-13/r1.md:30-33`<br>引文：「交付項目...技術WP1評估分析報告一式」 | 專案需保留可交付的 WP1 技術評估分析報告或對應 export artifact；不得只靠口頭聲明。 |
+| V-01 | 輸入 `TLE` 資料並追蹤衛星行進。 | `/home/u24/papers/itri/mineru-pilot-2026-05-13/raw/kickoff/office/kickoff.md:7-11`<br>引文：「輸入TLE資料，追蹤星系中衛星之行進」 | 有 TLE parser/source 或等價軌道資料入口；測試證明時間推進會更新衛星位置。 |
+| V-02 | 衛星模擬器需能於低軌、中軌、高軌衛星訊號間切換。 | `/home/u24/papers/itri/markitdown-2026-04-13/kickoff.md:5-8`<br>引文：「開發可於低軌，中軌，高軌衛星訊號之間切換之衛星模擬器。」 | 有 LEO/MEO/GEO 候選訊號或服務路徑；切換行為有測試與畫面/資料證據。 |
+| V-03 | 鏈路切換需根據 `latency`、`jitter`、`network speed` 等鏈路品質。 | `/home/u24/papers/itri/markitdown-2026-04-13/kickoff.md:7-9`<br>引文：「根据當前鏈路品質(latency，jitter，network speed)等參數進行鏈路之切換」 | handover decision 輸入含 latency/jitter/network speed；測試覆蓋品質改變導致候選變更或決策理由改變。 |
+| V-04 | 需納入 physical layer 模擬、天線參數、雨天衰減情境。 | `/home/u24/papers/itri/markitdown-2026-04-13/kickoff.md:8-10`<br>引文：「physical layer模擬，考慮不同天線參數，雨天衰減等情境」 | 模型或 bounded proxy 至少有 antenna/rain attenuation 參數；UI/測試能看出參數影響。 |
+| V-05 | 需整合 V 組模擬程式，並考慮天線參數、雨衰、ITU 規範。 | `/home/u24/papers/itri/mineru-pilot-2026-05-13/raw/kickoff/office/kickoff.md:90-95`<br>引文：「整合V組模擬程式...天線參數...雨衰，ITU規範」 | 若本地無 V 組外部程式，至少需有 integration seam/adapter 與 cannot-verify 標示；可驗證時需有接入測試。 |
+| V-06 | UI 需展示雨衰情境所帶來之影響。 | `/home/u24/papers/itri/mineru-pilot-2026-05-13/raw/kickoff/office/kickoff.md:73-78`<br>引文：「展示雨衰情境所帶來之影響」 | UI 或 retained screenshot 顯示 rain fade/attenuation impact；測試證明雨衰情境會影響指標或狀態。 |
+| V-07 | 模擬速度需支援 `real time` 與預錄 `TLE` 情境切換。 | `/home/u24/papers/itri/mineru-pilot-2026-05-13/raw/kickoff/office/kickoff.md:73-75`<br>引文：「模擬速度可調 (real time跟預錄TLE情境中切換)」 | runtime/UI 能切換即時與預錄 TLE/scenario 模式；測試覆蓋模式切換。 |
+| V-08 | 展示 demo 可採預先錄製 scenario 或 real time 模擬。 | `/home/u24/papers/itri/markitdown-2026-04-13/kickoff.md:66-68`<br>引文：「製作展示demo: 預先錄製scenario，或者real time模擬」 | 有 demo entry；可載入預錄 scenario 或跑 real-time 模式，並有 retained artifact 證明。 |
+| S-01 | 主要執行環境為 Linux，Windows + WSL 為備案。 | `/home/u24/papers/itri/markitdown-2026-04-13/kickoff.md:10-11`<br>引文：「目前以Linux環境為主，Windows + WSL為備案」 | 開發/測試命令可在 Linux 跑通；若宣稱 WSL 支援，需有 WSL 指令或文件/測試證據。 |
+| S-02 | Windows tunneling scenario 需呈現/支援 ESTNeT real-traffic satellite bridge 拓樸。 | `/home/u24/papers/itri/mineru-pilot-2026-05-13/raw/kickoff/office/images/a19f00ca3ea2e5ce6cfa1513084613b07f434b5bb5f871484b49795ddc5e8b03.svg:1`<br>引文：「ESTNeT Real-Traffic Satellite Bridge... ping 10.2.0.1 -> tun0 -> GS-A -> Satellite -> GS-B -> tun1」 | 若專案涵蓋此範圍，需有 tun bridge/拓樸表示、GEO satellite bridge 路徑與 ping-like retained evidence；純前端不可宣稱已完成真流量橋接。 |
+| S-03 | NAT routing 需使用 INET NAT、`veth0`/`veth1`，連通模擬網路與真實網路介面。 | `/home/u24/papers/itri/mineru-pilot-2026-05-13/raw/kickoff/office/kickoff.md:23-26`<br>引文：「使用INET內部之NAT routing 功能，架設兩個虛擬網路介面(veth0,veth1)，將內部模擬網路連通真實網路介面」 | 存在 NAT/veth/INET integration 或明確 external dependency；驗收需跑出 ping/iPerf 或 retained network evidence。 |
+| S-04 | ESTNeT 應透過 INET 與外部網路連結；kickoff 將此列為已達成基線。 | `/home/u24/papers/itri/mineru-pilot-2026-05-13/raw/kickoff/office/kickoff.md:82-85`<br>引文：「利用INET內建之網路模擬器，將ESTNeT與外部網路連結(達成)」 | 專案不得把此需求誤解成純 UI；若驗證連線能力，需使用 ESTNeT/INET 或保留 cannot-verify 外部依賴。 |
+| S-05 | 虛擬待測物情境需撰寫 `testbench` 測試程式。 | `/home/u24/papers/itri/mineru-pilot-2026-05-13/raw/kickoff/office/kickoff.md:124-129`<br>引文：「虛擬待測物 - 撰寫testbench測試程式」 | 存在 testbench 或測試程式，可驅動虛擬 DUT 情境；本地測試需可執行。 |
+| S-06 | 實體待測物情境需使用 `NE-ONE Traffic generator` 進行情境模擬。 | `/home/u24/papers/itri/mineru-pilot-2026-05-13/raw/kickoff/office/kickoff.md:128-130`<br>引文：「實體待測物 - 使用NE-ONE Traffic generator 進行情境模擬」 | 若無實體設備，標為 cannot-verify；若宣稱完成，需有 NE-ONE 指令/log/artifact。 |
+| D-01 | [CLAIM-UNCERTAIN] `sat.png` 顯示大量 sat 節點、軌跡與綠色鏈路，暗示視覺化需表達衛星與鏈路關係。 | `/home/u24/papers/itri/sat.png` visual observation<br>引文：「sat[19]」「sat[25]」「sat[49]」 | 若採納為需求，viewer 截圖需能同時表達多衛星、軌跡/弧線與鏈路；否則僅作 baseline visual reference。 |
+| D-02 | [CLAIM-UNCERTAIN] `demo.png` 顯示 beam/HO/operator UI，暗示展示可包含速度控制、serving/pending beam、SNIR delta、HO count 等操作面板。 | `/home/u24/papers/itri/demo.png` visual observation<br>引文：「Speed: 5x」「SERVING BEAM」「SNIR Delta」「HO Count」 | 若採納為需求，UI 需保留相關 beam/handover 狀態面板與速度/暫停控制；若無正式文字支撐，Phase 2 應標為 claim-uncertain。 |
+| M-01 | `multi-orbit` 目標是在 viewer 中落地有真實世界依據、可 defend 的 multi-orbit service handover，不是 generic orbit demo。 | `/home/u24/papers/itri/multi-orbit/north-star.md:21-24`<br>引文：「有真實世界依據、可 defend 的 multi-orbit service handover 展示，而不是只做抽象的 LEO/MEO/GEO 模擬。」 | 驗收需看到真實案例、source/evidence trace、truth boundary；只有抽象軌道動畫不算完成。 |
+| M-02 | 歷史第一主案例固定為 `OneWeb LEO + Intelsat GEO aviation`，語意是 service-layer switching，`isNativeRfHandover = false`。 | `/home/u24/papers/itri/multi-orbit/north-star.md:59-68`<br>引文：「isNativeRfHandover = false」「OneWeb LEO + Intelsat GEO aviation」 | 場景/資料/測試需保留此案例與非 RF handover 標示；不得把它說成 native RF handover。 |
+| M-03 | 使用者需看得出 endpoint-side entity、provider-side infrastructure semantics、candidate path semantics、active service interpretation。 | `/home/u24/papers/itri/multi-orbit/north-star.md:145-169`<br>引文：「viewer 能載入第一個真實案例」「畫面上能表達 endpoint-side entity... candidate path semantics... active service interpretation」 | UI 截圖/測試需證明這些語意可見，且能回溯到 canonical baseline、accepted package、repo-owned contract/adapter。 |
+| M-04 | runtime metrics 必須是 bounded proxy，不得聲稱 measurement truth。 | `/home/u24/papers/itri/multi-orbit/north-star.md:77-80`<br>引文：「repo 可以做 bounded metric projection... 必須明確標示是 repo-owned proxy，而不是 measurement truth」 | UI/資料需顯示 proxy/truth-boundary；測試避免把 proxy latency/jitter/throughput 標成真實量測。 |
+| M-05 | app-facing seed 是 research baseline 與 viewer 間的中介層，不得直接等同原始 research JSON 或現有 `ScenarioDefinition`。 | `/home/u24/papers/itri/multi-orbit/prep/app-facing-contract-draft.md:3-19`<br>引文：「app-facing scenario seed 是 research baseline 與 scenario-globe-viewer 之間的中介層... 它不直接等於... ScenarioDefinition」 | 有 app-facing seed/adapter 或等效中介；runtime 不直接吃 raw research baseline。 |
+| M-06 | app-facing seed/contract 需保留 evidence、endpoints、infrastructure nodes、candidate paths、handover policy、metric projection plan、unresolved inputs。 | `/home/u24/papers/itri/multi-orbit/prep/app-facing-contract-draft.md:41-79`<br>引文：「interface AppFacingScenarioSeed... evidence... endpoints... knownInfrastructureNodes... candidatePaths... handoverPolicy... metricProjectionPlan... unresolvedInputs」 | 對應資料結構/fixtures 包含這些欄位或可映射欄位，且測試驗證必要欄位。 |
+| M-07 | `isNativeRfHandover` 必須固定為 `false`，truth boundary label 固定為 `real-pairing-bounded-runtime-projection`。 | `/home/u24/papers/itri/multi-orbit/prep/metric-projection-handoff-boundary.md:36-45`<br>引文：「truthBoundaryLabel = real-pairing-bounded-runtime-projection」「isNativeRfHandover = false」 | 資料與 UI/測試保留這兩個 invariant；不得出現 native RF handover claim。 |
+| M-08 | latency/jitter/throughput 不可寫成 research truth；必須由 adapter-side bounded projection 產生。 | `/home/u24/papers/itri/multi-orbit/prep/metric-projection-handoff-boundary.md:24-34`<br>引文：「latency / jitter / throughput 這類 runtime 指標，仍然只能是 adapter-side bounded projection」 | 原始 research/seed 不硬編真值；repo-owned static profile/adapter 產生 proxy，並有測試。 |
+| M-09 | `ScenarioDefinition` 第一版只應新增窄的 top-level `context`，含 `vertical`、truth boundary、endpoint/infrastructure profile refs。 | `/home/u24/papers/itri/multi-orbit/prep/viewer-contract-widening-proposal.md:69-97`<br>引文：「建議只加一個窄的 context block」「這個 context 應明確是 ScenarioDefinition 的 top-level optional field」 | 原始碼 type/schema 有 context 欄位，且不把 endpoint/gateway/candidate path 整包塞進 scenario。 |
+| M-10 | `CandidatePhysicalInputs` 需支援 `pathRole`、`pathControlMode`、`infrastructureSelectionMode`。 | `/home/u24/papers/itri/multi-orbit/prep/viewer-contract-widening-proposal.md:114-141`<br>引文：「建議在 CandidatePhysicalInputs 增加... pathRole... pathControlMode... infrastructureSelectionMode」 | type、fixture、adapter、測試能處理這三個欄位。 |
+| M-11 | endpoint overlay 與 infrastructure overlay 必須是獨立 plain-data seed，不塞回 `scenario` 或 `physical-input`。 | `/home/u24/papers/itri/multi-orbit/prep/endpoint-overlay-seed-draft.md:3-12`<br>引文：「目的不是把 endpoint 硬塞回 scenario 或 physical-input... endpoint render bundle 保持獨立」 | 存在獨立 overlay seed/adapter 或等效模組；測試驗證 profile ID resolution。 |
+| M-12 | adapter 需拆成 scenario-seed、path-projection、handover-policy、endpoint-overlay、infrastructure-overlay 五類責任。 | `/home/u24/papers/itri/multi-orbit/prep/adapter-split-draft.md:9-18`<br>引文：「建議拆成五個 adapter family... scenario-seed-adapter... infrastructure-overlay-adapter」 | 原始碼或設計至少分離 scenario/path/decision/endpoint/infra 職責；測試不依賴巨型混合 adapter。 |
+| M-13 | mobile snapshot endpoint 可暫缺座標；provider-managed anchor 可保持 coordinate-free，不得捏造固定站點。 | `/home/u24/papers/itri/multi-orbit/prep/endpoint-overlay-seed-draft.md:37-60`<br>引文：「coordinates 可以暫時缺省」「不應因為想讓 scene 比較好畫，就捏造一個 public fixed ground site」 | endpoint seed/schema 支援 optional coordinates 與 logical anchor；測試/fixture 不硬填假座標。 |
+| M-14 | OneWeb 端第一版使用 6 個 canonical exact sites 作為 eligible gateway pool，不得宣稱 active gateway assignment。 | `/home/u24/papers/itri/multi-orbit/prep/oneweb-gateway-pool-selection-decision.md:17-24`<br>引文：「eligible-pool」「no public active gateway assignment claim」 | UI/資料可呈現 pool；不得將任一站點標成該 case 的已知 active gateway。 |
+| M-15 | Intelsat GEO provider-side ground anchor 第一版固定為 logical/provider-managed anchor，無 pinned public teleport coordinate。 | `/home/u24/papers/itri/multi-orbit/prep/intelsat-ground-anchor-representation-decision.md:19-27`<br>引文：「provider-managed-anchor... logical-anchor... no pinned public teleport coordinate」 | endpoint B/anchor 顯示為 logical/provider-managed；沒有任意 teleport/office/airport 假座標。 |
+| M-16 | aviation corridor freeze 需符合真實歷史軌跡、可重播、`>=10` 分鐘、`>=60` waypoints、max gap `<=60s`、machine-readable artifact、且不宣稱 tail-level equipage。 | `/home/u24/papers/itri/multi-orbit/prep/aircraft-corridor-freeze-criteria.md:35-58`<br>引文：「預設 corridor window >= 10 分鐘... waypoint 數 >= 60... 最大 trace gap <= 60 秒」「至少有一份可以保存的 machine-readable artifact」 | retained aircraft corridor package 符合門檻；artifact 非空、可重播、有 truth-boundary note。 |
+| M-17 | formal aircraft corridor package 需固定目錄形狀，包含 raw、normalized replay artifact、`.sha256`、review checklist。 | `/home/u24/papers/itri/multi-orbit/prep/aircraft-corridor-artifact-package-spec.md:27-44`<br>引文：「download/aircraft-corridors/<record_id>/... artifacts/raw... artifacts/normalized... <replay-artifact>.sha256... checks/review-checklist.md」 | output/source package 中有指定檔案與 hash；review outcome 為 accepted 或 accepted-with-open-metadata-gaps 才能升格。 |
+| M-18 | 下一個 current product target 是 ground-station / ground-infrastructure endpoint pair near Taiwan，不是 aircraft + YKA，也不是 ordinary handset UE。 | `/home/u24/papers/itri/multi-orbit/handoff-overview.md:19-25`<br>引文：「not aircraft + YKA」「two ground-station or ground-infrastructure endpoints... LEO/MEO/GEO evidence must be explicit before runtime promotion」 | V4/M8A 場景不得沿用 aircraft/YKA 作為 current endpoint pair；需有兩個地面/基礎設施 endpoint 與明確軌道證據。 |
+| M-19 | V4 accepted endpoint pair 是 Taiwan/CHT 與 Singapore/Speedcast，僅限 operator-family precision。 | `/home/u24/papers/itri/multi-orbit/download/ground-station-endpoint-pairs/taiwan-cht-speedcast-singapore-operator-family-2026-04-26/authority-package.md:3-10`<br>引文：「Endpoint A: Taiwan / Chunghwa Telecom... Endpoint B: Singapore / Speedcast Singapore Teleport... Accepted precision: operator-family precision only」 | 場景/資料若實作 V4 pair，需使用這兩個 endpoint family，並標示 operator-family precision only。 |
+| M-20 | V4 pair 不接受 site-level/same-site LEO/MEO/GEO proof、active gateway、active satellite、pair-specific teleport path、measured performance、native RF handover。 | `/home/u24/papers/itri/multi-orbit/download/ground-station-endpoint-pairs/taiwan-cht-speedcast-singapore-operator-family-2026-04-26/authority-package.md:22-25`<br>引文：「does not accept site-level precision... active gateway assignment... measured performance truth, or native RF handover」 | UI/資料/文案不得出現上述 claims；測試可搜尋禁止字串或 metadata flags。 |
+| M-21 | V4 runtime/frontend 實作不得 side-read raw ITRI package；需先有 viewer-owned projected artifact 與 implementation phase。 | `/home/u24/papers/itri/multi-orbit/download/ground-station-endpoint-pairs/taiwan-cht-speedcast-singapore-operator-family-2026-04-26/authority-package.md:41-49`<br>引文：「does not authorize application, runtime, or frontend implementation by itself... blocked until a viewer-owned projected artifact」 | 專案 runtime 只能讀 repo-owned projected artifact/fixture，不直接讀 `/home/u24/papers/itri/...` raw authority package。 |
+| M-22 | V4 markers 必須是 bounded operator-family markers，附 precision label、LEO/MEO/GEO evidence chips，並分離 display marker position 與 source truth。 | `/home/u24/papers/itri/multi-orbit/download/ground-station-endpoint-pairs/taiwan-cht-speedcast-singapore-operator-family-2026-04-26/authority-package.md:130-145`<br>引文：「show endpoint markers as bounded operator-family markers」「attach orbit evidence chips for LEO, MEO, and GEO」 | retained screenshot/DOM/text 證明 marker、precision label、orbit chips 存在；source truth 與 display position 有不同欄位。 |
+| M-23 | R2 evidence catalog 只能 read-only，不得成為 runtime endpoint selector 或 runtime promotion。 | `/home/u24/papers/itri/multi-orbit/download/ground-station-endpoint-candidates/2026-04-25/r2-endpoint-evidence-catalog-2026-04-28.md:6-14`<br>引文：「read-only R2 evidence surface」「no runtime endpoint selector」 | UI 不提供 R2 runtime selector；程式不把 R2 candidates 當可互相通信的 runtime endpoints。 |
+| M-24 | 任何 alternate endpoint B promotion 需要 primary-source LEO/MEO/GEO evidence、coordinate/marker precision、non-claims、明確 user approval、viewer-owned projection。 | `/home/u24/papers/itri/multi-orbit/download/ground-station-endpoint-candidates/2026-04-25/r2-endpoint-evidence-catalog-2026-04-28.md:148-156`<br>引文：「Before any alternate endpoint B can be promoted, it needs... primary-source LEO/MEO/GEO evidence... explicit user approval... viewer-owned projection」 | 若專案有其他 endpoint B，需有獨立 authority package 與 projected artifact；否則標缺失/越權。 |
+| M-25 | V4 evidence gate 後續需有 viewer-owned V4 projection contract、continuous multi-orbit handover scene、homepage/direct-demo entry、visual acceptance/regression。 | `/home/u24/papers/itri/multi-orbit/handoff-overview.md:97-105`<br>引文：「viewer-owned V4 projection contract」「continuous multi-orbit handover scene」「homepage/direct-demo entry」「visual acceptance and regression」 | 有 projected contract、可直接開啟的 demo entry、連續 handover scene，以及 visual regression/acceptance artifact。 |
+| M-26 | MEO 只能透過 accepted endpoint-pair evidence gate 與 source-lineaged actor projection 打開；不得用 walker fixture 或想像 operator 資料填洞。 | `/home/u24/papers/itri/multi-orbit/handoff-overview.md:127-130`<br>引文：「MEO...只能透過 accepted endpoint-pair evidence gate 和 source-lineaged actor projection，不能用 walker-derived fixture 或想像 operator 資料填洞。」 | MEO actor/資料需有 source-lineage；測試或 fixture metadata 證明不是 walker-derived placeholder。 |
+| M-27 | satcom information 應用 badges/chips/mini-glyph/stage strip/scene labels/truth badge 視覺化，不應是 prose-heavy panel。 | `/home/u24/papers/itri/multi-orbit/handoff-overview.md:130`<br>引文：「satcom 資訊一律視覺化（badges / chips / mini-glyph / stage strip / scene-anchored labels / truth badge），不是 prose-heavy panel。」 | UI 截圖/DOM 證明 satcom 資訊為視覺標籤/徽章/階段條；不得只是一大段說明文字。 |
+| M-28 | 不得在沒有新 planning authority 下做 arbitrary global endpoint selection、third runtime endpoint、second operator pair implementation、MEO runtime、或宣稱所有點可 live communication。 | `/home/u24/papers/itri/multi-orbit/research-and-planning-index.md:235-247`<br>引文：「Do not proceed without new planning authority for... arbitrary global endpoint selection... any feature that implies all listed points can communicate live」 | Phase 2 若發現全球 selector/第三 endpoint/MEO runtime 等功能，需檢查是否有 authority；無則視為超出需求或錯誤 claim。 |
 
----
-
-## C. Kickoff Architecture Slide (slide 2)
-
-| ID | 需求描述 | 來源檔案:位置 | 驗收條件 |
-| --- | --- | --- | --- |
-| K-01 | 開發可於低軌、中軌、高軌衛星訊號之間切換之衛星模擬器 | kickoff.md L7；引文：「開發可於低軌，中軌，高軌衛星訊號之間切換之衛星模擬器。」 | 系統允許 LEO/MEO/GEO 訊號間切換 |
-| K-02 | 根據當前鏈路品質（latency、jitter、network speed）等參數進行鏈路之切換 | kickoff.md L8；引文：「根据當前鏈路品質(latency，jitter，network speed)等參數進行鏈路之切換」 | 決策邏輯吃 latency/jitter/network-speed |
-| K-03 | physical layer 模擬，考慮不同天線參數、雨天衰減等情境 | kickoff.md L9 | 系統涵蓋天線參數與雨衰情境 |
-| K-04 | 輸入 TLE 資料，追蹤星系中衛星之行進 | kickoff.md L10 | TLE 驅動衛星位置可隨時間推進 |
-| E-01 | Linux 為主要環境，Windows + WSL 為備案 | kickoff.md L11；引文：「目前以Linux環境為主，Windows + WSL為備案」 | Linux 主要支援，WSL 為備援情境 |
-
----
-
-## D. Kickoff Windows Tunneling Scenario (slide 3)
-
-| ID | 需求描述 | 來源檔案:位置 | 驗收條件 |
-| --- | --- | --- | --- |
-| N-01 | Windows Tunneling Scenario：WSL2 內 gs_a / gs_b、tun0=10.1.0.1/24、tun1=10.2.0.1/24、tun_bridge.py :9001 :9002 | kickoff.md L17-19；itri/README.md L391-403 | 系統需面向此驗測拓樸；ESTNeT real-traffic satellite bridge |
-| N-02 | OMNeT++ / ESTNeT Simulation 跑於 Windows，與 WSL Linux 端橋接 | itri/README.md L398 | bridge 含 TunBridgeApp / SatRelayApp |
-| N-03 | 拓樸端點：GS-A (Wuerzburg) / GS-B (Munich)，Satellite (GEO)，UHF radio 連結 | itri/README.md L399-403 | 具體 GEO 端點對情境 |
-| N-04 | `ping 10.2.0.1 -> tun0 -> GS-A -> Satellite -> GS-B -> tun1` 流量路徑可走通 | itri/README.md L403 | end-to-end real traffic via tunnel |
-
----
-
-## E. Kickoff NAT Routing Scenario (slide 4)
-
-| ID | 需求描述 | 來源檔案:位置 | 驗收條件 |
-| --- | --- | --- | --- |
-| N-05 | 使用 INET 內部之 NAT routing 功能 | kickoff.md L25；引文：「使用INET內部之NAT routing 功能，架設兩個虛擬網路介面(veth0,veth1)，將內部模擬網路連通真實網路介面」 | INET NAT routing 為對外橋接基礎 |
-| N-06 | 架設兩個虛擬網路介面 veth0=192.168.2.1, veth1=192.168.2.2 | kickoff.md L29-52 | 虛擬介面拓樸可被建立 |
-| N-07 | Host machine eno1=140.96.29.40、實體介面虛擬 IP=140.96.29.100、Network Router=140.96.29.1 | kickoff.md L29-41 | 真實網路側對接被支援 |
-| N-08 | ESTNeT Gateway=192.168.2.1，virtual cable 連 INET 模擬與真實網路 | kickoff.md L53-59 | ESTNeT gateway 對接 |
-| V-01 | Ping / iPerf 流量測試於 NAT routing 拓樸中可用 | kickoff.md L43 | 用 ping / iPerf 驗測流量 |
-
----
-
-## F. Kickoff UI Spec (slide 5)
-
-slide 5 重複 T-01..T-05、F-02..F-06，但對 F-02..F-06 進行了關鍵補充：
-
-| ID | 需求描述 | 來源檔案:位置 | 驗收條件 |
-| --- | --- | --- | --- |
-| F-02a | 支援 ≥ 500 LEO 模擬（舉例：Starlink、OneWeb） | kickoff.md L73；引文：「支援 $\geq$ 500 LEO模擬(Starlink, Oneweb…)」 | 需覆蓋多個 LEO constellation 模擬規模 |
-| F-03a | 模擬速度可調（可在 real time 與預錄 TLE 情境中切換） | kickoff.md L74；引文：「模擬速度可調 (real time跟預錄TLE情境中切換)」 | 提供 real-time / pre-recorded TLE scenario 切換 |
-| F-04a | 即時顯示可通訊時間（利用 iperf、ping 等功能測試） | kickoff.md L75；引文：「即時顯示可通訊時間(利用iperf，ping等功能測試)」 | 可通訊時間可被 iperf/ping 驗證 |
-| F-07 | 展示雨衰情境所帶來之影響 | kickoff.md L78；引文：「展示雨衰情境所帶來之影響」 | UI 能呈現雨衰對通訊之影響 |
-
----
-
-## G. Kickoff KPI Timeline (slide 6)
-
-| ID | 需求描述 | 來源檔案:位置 | 驗收條件 |
-| --- | --- | --- | --- |
-| N-09 | 連接實體網路：利用 INET 內建之網路模擬器，將 ESTNeT 與外部網路連結（達成 baseline） | kickoff.md L82-84；引文：「利用INET內建之網路模擬器，將ESTNeT與外部網路連結(達成)」 | kickoff 時點此項已達成；後續工作建構其上 |
-| P-01 | 整合 V 組模擬程式：天線參數 | kickoff.md L90-92 | V 組天線參數被整合 |
-| P-02 | 整合 V 組模擬程式：雨衰 | kickoff.md L90-94 | V 組雨衰被整合 |
-| P-03 | 整合 V 組模擬程式：ITU 規範 | kickoff.md L94 | 涉及 ITU 規範相關因素被整合 |
-| K-05 | 鏈路切換：根據 jitter、latency、network speed 等參數，在高、低、中軌衛星之間切換 | kickoff.md L124-126；引文：「根據jitter, latency, network speed等參數，在高，低，中軌衛星之間切換」 | handover 決策由這三項驅動 |
-| V-02 | 虛擬待測物：撰寫 testbench 測試程式 | kickoff.md L128；引文：「虛擬待測物 – 撰寫testbench測試程式」 | 提供 virtual DUT testbench |
-| V-03 | 實體待測物：使用 NE-ONE Traffic generator 進行情境模擬 | kickoff.md L130；引文：「實體待測物 – 使用NE-ONE Traffic generator 進行情境模擬」 | 對接實體待測物與 traffic generator |
-| D-02 | 製作展示 demo：預先錄製 scenario 或 real time 模擬 | kickoff.md L106-108 | 兩種 demo 模式都可被支援 |
-| D-03 | 期末報告撰寫（9–12 月） | kickoff.md L110-118 | 期末報告產出 |
-| D-04 | 視覺化 UI 開發：委託台北大學進行開發（3 月起 kickoff） | kickoff.md L120-122 | NTPU 為合作 UI 開發方 |
-| D-05 | 整合 V 組模擬程式：5 月起 | kickoff.md L96 | 5 月起 V 組 input 整合啟動 |
-| D-06 | 11/30：成功匯入軌道模型、可動態調整參數介面、可產生通訊時間流計、畫面穩定運行至少 24 小時 | kickoff.md L132 | 與 F-WP1-A..D + D-WP1-DATE 對齊 |
-| S-01 | Stakeholder anchor：陳衡安 / 工業技術研究院 / 南分院 | kickoff.md L138-140 | kickoff 對接人 |
-
----
-
-## H. Multi-Orbit Research Direction (`itri/multi-orbit/README.md`)
-
-multi-orbit/ 不引入新的 ITRI 合約義務，但補充了 ITRI 軸線下對「LEO/MEO/GEO 多軌道
-service handover 真實化」的研究方向；此區塊以 `[CLAIM-UNCERTAIN]` 標示，避免將
-研究計畫誤升格為 ITRI 硬需求。
-
-| ID | 需求描述 | 來源檔案:位置 | 驗收條件 |
-| --- | --- | --- | --- |
-| M-01 `[CLAIM-UNCERTAIN]` | multi-orbit service handover 在 scenario-globe-viewer 內被「真實化」 | multi-orbit/README.md L3-8 | 對應產品敘事需站得住公開證據（非僅展示視覺） |
-| M-02 `[CLAIM-UNCERTAIN]` | LEO/MEO/GEO handover 情境的現實可行性核對 | multi-orbit/README.md L5 | endpoint / gateway / SNP / earth station 型別與位置資料有可驗證來源 |
-| M-03 `[CLAIM-UNCERTAIN]` | 已收斂之第一情境：`OneWeb LEO <-> GEO` | multi-orbit/README.md L124-134 | 第一案以該情境為基準 |
-| M-04 `[CLAIM-UNCERTAIN]` | 下一條產品敘事改為 ground-station endpoint pair；不走 aircraft / handset UE | multi-orbit/README.md L136-148 | runtime endpoint = 地面站對 |
-
----
-
-## I. Reference / Visual Baseline
-
-| ID | 需求描述 | 來源檔案:位置 | 驗收條件 |
-| --- | --- | --- | --- |
-| R-01 | `sat.png` 為既有模擬/視覺化輸出 baseline 截圖，不是最終美術目標 | itri/README.md L361-368 | 不能直接作為功能規格；屬參考層 |
-| R-02 | `demo.png` 為 demo 示意圖 | itri/README.md L101 (Source Files list) | 屬參考層 |
-| R-03 | kickoff slide 2 `image6.png`：端到端驗測環境圖 Terrestrial network -> Ground station -> Satellite Network models -> Ground station -> Testing Application | itri/README.md L348-353 | 顯示 operator/demo 取向多面板 UI 與端到端驗測語境 |
-
----
-
-## J. Ambiguities (per `itri/README.md` §9)
-
-ITRI source 內未鎖死的開放項目；不算硬合約，但任何宣稱「已完成」均不應以這類項目
-作為遮蔽工具：
-
-- LEO/MEO/GEO 是同時完整支援，或至少面向可擴充
-- physical-layer 模擬精度等級
-- ITU 規範哪一版 / 哪一層級
-- V 組資料格式 / 接口
-- testbench 的具體型態
-- NE-ONE Traffic generator 整合深度
-- real-time vs 預錄 scenario 切換方式
-- 圖像化系統最終視覺密度與操作層級
-
-來源：`itri/README.md` L626-637。
-
----
-
-## Phase 1 Summary
-
-抽取需求總數：**55** 條 ID（含 4 條 `[CLAIM-UNCERTAIN]` multi-orbit 研究方向與
-3 條參考圖層）。分區計數：
-
-- §A WP1 contract gates: 6
-- §B WP1 技術範疇 + 功能需求: 11
-- §C Kickoff slide 2 + E-01: 5
-- §D Windows Tunneling: 4
-- §E NAT Routing: 5
-- §F Kickoff UI Spec slide 5 補述: 4
-- §G KPI 時程 / V 組 / DUT: 13
-- §H Multi-orbit (`[CLAIM-UNCERTAIN]`): 4
-- §I 參考圖層: 3
-
-進入 Phase 2 獨立稽核。
