@@ -3,6 +3,7 @@ import type {
   PhysicalInputProvenance
 } from "../features/physical-input/physical-input";
 import { computeTotalPathAttenuation } from "../features/itu-r-physics/itu-r-p618-link-budget";
+import { computeAntennaGain } from "../features/itu-r-physics/itu-r-f699-antenna-pattern";
 
 export interface BootstrapPhysicalWindowSeed {
   startRatio: number;
@@ -20,6 +21,16 @@ function rainAttDb(rainRateMmPerHr: number): number {
     polarization: "circular"
   }).totalDb;
 }
+
+// ITU-R F.699-8 boresight gain and 0.5° pointing-error loss per terminal type.
+// Small terminal: D=0.9m, 1.5 GHz (portable/mobile LEO ground terminal).
+// Medium terminal: D=2.4m, 12 GHz (fixed MEO/GEO ground terminal).
+const F699_SMALL_GAIN_DB = computeAntennaGain({ diameterM: 0.9, frequencyGHz: 1.5, offAxisDeg: 0 });
+const F699_SMALL_POINTING_LOSS_DB =
+  F699_SMALL_GAIN_DB - computeAntennaGain({ diameterM: 0.9, frequencyGHz: 1.5, offAxisDeg: 0.5 });
+const F699_MEDIUM_GAIN_DB = computeAntennaGain({ diameterM: 2.4, frequencyGHz: 12, offAxisDeg: 0 });
+const F699_MEDIUM_POINTING_LOSS_DB =
+  F699_MEDIUM_GAIN_DB - computeAntennaGain({ diameterM: 2.4, frequencyGHz: 12, offAxisDeg: 0.5 });
 
 function createCandidate(
   candidateId: string,
@@ -113,7 +124,7 @@ export const BOOTSTRAP_PHYSICAL_SOURCE_SEEDS: Record<
       createCandidate(
         "global-leo-primary",
         "leo",
-        { gainDb: 37.2, pointingLossDb: 1 },
+        { gainDb: F699_SMALL_GAIN_DB, pointingLossDb: F699_SMALL_POINTING_LOSS_DB },
         { attenuationDb: rainAttDb(7), rainRateMmPerHr: 7 },
         { frequencyGHz: 20.4, elevationDeg: 47, availabilityPercent: 99.94 },
         { latencyMs: 29, jitterMs: 4, networkSpeedMbps: 242 }
@@ -121,7 +132,7 @@ export const BOOTSTRAP_PHYSICAL_SOURCE_SEEDS: Record<
       createCandidate(
         "global-meo-bridge",
         "meo",
-        { gainDb: 34.6, pointingLossDb: 1.7 },
+        { gainDb: F699_MEDIUM_GAIN_DB, pointingLossDb: F699_MEDIUM_POINTING_LOSS_DB },
         { attenuationDb: rainAttDb(15), rainRateMmPerHr: 15 },
         { frequencyGHz: 19.2, elevationDeg: 36, availabilityPercent: 99.82 },
         { latencyMs: 43, jitterMs: 7, networkSpeedMbps: 188 }
@@ -129,7 +140,7 @@ export const BOOTSTRAP_PHYSICAL_SOURCE_SEEDS: Record<
       createCandidate(
         "global-geo-anchor",
         "geo",
-        { gainDb: 38.1, pointingLossDb: 1.2 },
+        { gainDb: F699_MEDIUM_GAIN_DB, pointingLossDb: F699_MEDIUM_POINTING_LOSS_DB },
         { attenuationDb: rainAttDb(10), rainRateMmPerHr: 10 },
         { frequencyGHz: 12.6, elevationDeg: 50, availabilityPercent: 99.9 },
         { latencyMs: 102, jitterMs: 15, networkSpeedMbps: 94 }
@@ -139,7 +150,7 @@ export const BOOTSTRAP_PHYSICAL_SOURCE_SEEDS: Record<
       createCandidate(
         "global-leo-primary",
         "leo",
-        { gainDb: 34.3, pointingLossDb: 2.2 },
+        { gainDb: F699_SMALL_GAIN_DB, pointingLossDb: F699_SMALL_POINTING_LOSS_DB },
         { attenuationDb: rainAttDb(28), rainRateMmPerHr: 28 },
         { frequencyGHz: 25.8, elevationDeg: 25, availabilityPercent: 99.56 },
         { latencyMs: 44, jitterMs: 8, networkSpeedMbps: 174 }
@@ -147,7 +158,7 @@ export const BOOTSTRAP_PHYSICAL_SOURCE_SEEDS: Record<
       createCandidate(
         "global-meo-bridge",
         "meo",
-        { gainDb: 36.4, pointingLossDb: 0.9 },
+        { gainDb: F699_MEDIUM_GAIN_DB, pointingLossDb: F699_MEDIUM_POINTING_LOSS_DB },
         { attenuationDb: rainAttDb(11), rainRateMmPerHr: 11 },
         { frequencyGHz: 19.8, elevationDeg: 42, availabilityPercent: 99.87 },
         { latencyMs: 33, jitterMs: 5, networkSpeedMbps: 224 }
@@ -155,7 +166,7 @@ export const BOOTSTRAP_PHYSICAL_SOURCE_SEEDS: Record<
       createCandidate(
         "global-geo-anchor",
         "geo",
-        { gainDb: 38.5, pointingLossDb: 1.1 },
+        { gainDb: F699_MEDIUM_GAIN_DB, pointingLossDb: F699_MEDIUM_POINTING_LOSS_DB },
         { attenuationDb: rainAttDb(16), rainRateMmPerHr: 16 },
         { frequencyGHz: 12.7, elevationDeg: 49, availabilityPercent: 99.91 },
         { latencyMs: 99, jitterMs: 14, networkSpeedMbps: 96 }
@@ -165,7 +176,7 @@ export const BOOTSTRAP_PHYSICAL_SOURCE_SEEDS: Record<
       createCandidate(
         "global-leo-primary",
         "leo",
-        { gainDb: 36.7, pointingLossDb: 1.1 },
+        { gainDb: F699_SMALL_GAIN_DB, pointingLossDb: F699_SMALL_POINTING_LOSS_DB },
         { attenuationDb: rainAttDb(9), rainRateMmPerHr: 9 },
         { frequencyGHz: 20.5, elevationDeg: 44, availabilityPercent: 99.93 },
         { latencyMs: 31, jitterMs: 5, networkSpeedMbps: 236 }
@@ -173,7 +184,7 @@ export const BOOTSTRAP_PHYSICAL_SOURCE_SEEDS: Record<
       createCandidate(
         "global-geo-anchor",
         "geo",
-        { gainDb: 38.6, pointingLossDb: 1 },
+        { gainDb: F699_MEDIUM_GAIN_DB, pointingLossDb: F699_MEDIUM_POINTING_LOSS_DB },
         { attenuationDb: rainAttDb(9), rainRateMmPerHr: 9 },
         { frequencyGHz: 12.4, elevationDeg: 51, availabilityPercent: 99.93 },
         { latencyMs: 98, jitterMs: 14, networkSpeedMbps: 99 }
@@ -185,7 +196,7 @@ export const BOOTSTRAP_PHYSICAL_SOURCE_SEEDS: Record<
       createCandidate(
         "global-leo-primary",
         "leo",
-        { gainDb: 37.5, pointingLossDb: 0.9 },
+        { gainDb: F699_SMALL_GAIN_DB, pointingLossDb: F699_SMALL_POINTING_LOSS_DB },
         { attenuationDb: rainAttDb(6), rainRateMmPerHr: 6 },
         { frequencyGHz: 20.3, elevationDeg: 48, availabilityPercent: 99.95 },
         { latencyMs: 27, jitterMs: 4, networkSpeedMbps: 251 }
@@ -193,7 +204,7 @@ export const BOOTSTRAP_PHYSICAL_SOURCE_SEEDS: Record<
       createCandidate(
         "global-meo-bridge",
         "meo",
-        { gainDb: 35.1, pointingLossDb: 1.4 },
+        { gainDb: F699_MEDIUM_GAIN_DB, pointingLossDb: F699_MEDIUM_POINTING_LOSS_DB },
         { attenuationDb: rainAttDb(12), rainRateMmPerHr: 12 },
         { frequencyGHz: 19, elevationDeg: 39, availabilityPercent: 99.86 },
         { latencyMs: 39, jitterMs: 6, networkSpeedMbps: 204 }
@@ -201,7 +212,7 @@ export const BOOTSTRAP_PHYSICAL_SOURCE_SEEDS: Record<
       createCandidate(
         "global-geo-anchor",
         "geo",
-        { gainDb: 38.3, pointingLossDb: 1 },
+        { gainDb: F699_MEDIUM_GAIN_DB, pointingLossDb: F699_MEDIUM_POINTING_LOSS_DB },
         { attenuationDb: rainAttDb(8), rainRateMmPerHr: 8 },
         { frequencyGHz: 12.4, elevationDeg: 51, availabilityPercent: 99.92 },
         { latencyMs: 100, jitterMs: 15, networkSpeedMbps: 101 }
@@ -211,7 +222,7 @@ export const BOOTSTRAP_PHYSICAL_SOURCE_SEEDS: Record<
       createCandidate(
         "global-leo-primary",
         "leo",
-        { gainDb: 34.8, pointingLossDb: 1.9 },
+        { gainDb: F699_SMALL_GAIN_DB, pointingLossDb: F699_SMALL_POINTING_LOSS_DB },
         { attenuationDb: rainAttDb(24), rainRateMmPerHr: 24 },
         { frequencyGHz: 24.8, elevationDeg: 28, availabilityPercent: 99.62 },
         { latencyMs: 40, jitterMs: 7, networkSpeedMbps: 186 }
@@ -219,7 +230,7 @@ export const BOOTSTRAP_PHYSICAL_SOURCE_SEEDS: Record<
       createCandidate(
         "global-meo-bridge",
         "meo",
-        { gainDb: 36.1, pointingLossDb: 1 },
+        { gainDb: F699_MEDIUM_GAIN_DB, pointingLossDb: F699_MEDIUM_POINTING_LOSS_DB },
         { attenuationDb: rainAttDb(12), rainRateMmPerHr: 12 },
         { frequencyGHz: 19.7, elevationDeg: 41, availabilityPercent: 99.86 },
         { latencyMs: 34, jitterMs: 5, networkSpeedMbps: 218 }
@@ -227,7 +238,7 @@ export const BOOTSTRAP_PHYSICAL_SOURCE_SEEDS: Record<
       createCandidate(
         "global-geo-anchor",
         "geo",
-        { gainDb: 38.6, pointingLossDb: 1 },
+        { gainDb: F699_MEDIUM_GAIN_DB, pointingLossDb: F699_MEDIUM_POINTING_LOSS_DB },
         { attenuationDb: rainAttDb(14), rainRateMmPerHr: 14 },
         { frequencyGHz: 12.5, elevationDeg: 50, availabilityPercent: 99.92 },
         { latencyMs: 96, jitterMs: 13, networkSpeedMbps: 106 }
@@ -237,7 +248,7 @@ export const BOOTSTRAP_PHYSICAL_SOURCE_SEEDS: Record<
       createCandidate(
         "global-leo-primary",
         "leo",
-        { gainDb: 37, pointingLossDb: 1 },
+        { gainDb: F699_SMALL_GAIN_DB, pointingLossDb: F699_SMALL_POINTING_LOSS_DB },
         { attenuationDb: rainAttDb(8), rainRateMmPerHr: 8 },
         { frequencyGHz: 20.2, elevationDeg: 46, availabilityPercent: 99.94 },
         { latencyMs: 29, jitterMs: 4, networkSpeedMbps: 244 }
@@ -245,7 +256,7 @@ export const BOOTSTRAP_PHYSICAL_SOURCE_SEEDS: Record<
       createCandidate(
         "global-meo-bridge",
         "meo",
-        { gainDb: 35.6, pointingLossDb: 1.2 },
+        { gainDb: F699_MEDIUM_GAIN_DB, pointingLossDb: F699_MEDIUM_POINTING_LOSS_DB },
         { attenuationDb: rainAttDb(10), rainRateMmPerHr: 10 },
         { frequencyGHz: 19.1, elevationDeg: 40, availabilityPercent: 99.88 },
         { latencyMs: 37, jitterMs: 6, networkSpeedMbps: 211 }
@@ -253,7 +264,7 @@ export const BOOTSTRAP_PHYSICAL_SOURCE_SEEDS: Record<
       createCandidate(
         "global-geo-anchor",
         "geo",
-        { gainDb: 38.7, pointingLossDb: 0.9 },
+        { gainDb: F699_MEDIUM_GAIN_DB, pointingLossDb: F699_MEDIUM_POINTING_LOSS_DB },
         { attenuationDb: rainAttDb(8), rainRateMmPerHr: 8 },
         { frequencyGHz: 12.3, elevationDeg: 51, availabilityPercent: 99.94 },
         { latencyMs: 97, jitterMs: 14, networkSpeedMbps: 102 }
@@ -265,7 +276,7 @@ export const BOOTSTRAP_PHYSICAL_SOURCE_SEEDS: Record<
       createCandidate(
         "regional-leo-primary",
         "leo",
-        { gainDb: 37.8, pointingLossDb: 0.8 },
+        { gainDb: F699_SMALL_GAIN_DB, pointingLossDb: F699_SMALL_POINTING_LOSS_DB },
         { attenuationDb: rainAttDb(6), rainRateMmPerHr: 6 },
         { frequencyGHz: 20, elevationDeg: 50, availabilityPercent: 99.96 },
         { latencyMs: 24, jitterMs: 3, networkSpeedMbps: 278 }
@@ -273,7 +284,7 @@ export const BOOTSTRAP_PHYSICAL_SOURCE_SEEDS: Record<
       createCandidate(
         "regional-meo-bridge",
         "meo",
-        { gainDb: 35.7, pointingLossDb: 1.1 },
+        { gainDb: F699_MEDIUM_GAIN_DB, pointingLossDb: F699_MEDIUM_POINTING_LOSS_DB },
         { attenuationDb: rainAttDb(9), rainRateMmPerHr: 9 },
         { frequencyGHz: 18.7, elevationDeg: 41, availabilityPercent: 99.9 },
         { latencyMs: 36, jitterMs: 5, networkSpeedMbps: 221 }
@@ -281,7 +292,7 @@ export const BOOTSTRAP_PHYSICAL_SOURCE_SEEDS: Record<
       createCandidate(
         "regional-geo-anchor",
         "geo",
-        { gainDb: 38.9, pointingLossDb: 0.9 },
+        { gainDb: F699_MEDIUM_GAIN_DB, pointingLossDb: F699_MEDIUM_POINTING_LOSS_DB },
         { attenuationDb: rainAttDb(7), rainRateMmPerHr: 7 },
         { frequencyGHz: 12.1, elevationDeg: 53, availabilityPercent: 99.95 },
         { latencyMs: 91, jitterMs: 12, networkSpeedMbps: 110 }
@@ -291,7 +302,7 @@ export const BOOTSTRAP_PHYSICAL_SOURCE_SEEDS: Record<
       createCandidate(
         "regional-leo-primary",
         "leo",
-        { gainDb: 35.3, pointingLossDb: 1.6 },
+        { gainDb: F699_SMALL_GAIN_DB, pointingLossDb: F699_SMALL_POINTING_LOSS_DB },
         { attenuationDb: rainAttDb(20), rainRateMmPerHr: 20 },
         { frequencyGHz: 22.5, elevationDeg: 34, availabilityPercent: 99.73 },
         { latencyMs: 35, jitterMs: 6, networkSpeedMbps: 192 }
@@ -299,7 +310,7 @@ export const BOOTSTRAP_PHYSICAL_SOURCE_SEEDS: Record<
       createCandidate(
         "regional-meo-bridge",
         "meo",
-        { gainDb: 36.8, pointingLossDb: 0.8 },
+        { gainDb: F699_MEDIUM_GAIN_DB, pointingLossDb: F699_MEDIUM_POINTING_LOSS_DB },
         { attenuationDb: rainAttDb(8), rainRateMmPerHr: 8 },
         { frequencyGHz: 18.9, elevationDeg: 44, availabilityPercent: 99.91 },
         { latencyMs: 29, jitterMs: 4, networkSpeedMbps: 238 }
@@ -307,7 +318,7 @@ export const BOOTSTRAP_PHYSICAL_SOURCE_SEEDS: Record<
       createCandidate(
         "regional-geo-anchor",
         "geo",
-        { gainDb: 39, pointingLossDb: 0.9 },
+        { gainDb: F699_MEDIUM_GAIN_DB, pointingLossDb: F699_MEDIUM_POINTING_LOSS_DB },
         { attenuationDb: rainAttDb(9), rainRateMmPerHr: 9 },
         { frequencyGHz: 12.2, elevationDeg: 53, availabilityPercent: 99.95 },
         { latencyMs: 89, jitterMs: 12, networkSpeedMbps: 112 }
@@ -317,7 +328,7 @@ export const BOOTSTRAP_PHYSICAL_SOURCE_SEEDS: Record<
       createCandidate(
         "regional-leo-primary",
         "leo",
-        { gainDb: 37, pointingLossDb: 0.9 },
+        { gainDb: F699_SMALL_GAIN_DB, pointingLossDb: F699_SMALL_POINTING_LOSS_DB },
         { attenuationDb: rainAttDb(8), rainRateMmPerHr: 8 },
         { frequencyGHz: 20.1, elevationDeg: 47, availabilityPercent: 99.94 },
         { latencyMs: 25, jitterMs: 3, networkSpeedMbps: 269 }
@@ -325,7 +336,7 @@ export const BOOTSTRAP_PHYSICAL_SOURCE_SEEDS: Record<
       createCandidate(
         "regional-meo-bridge",
         "meo",
-        { gainDb: 36.4, pointingLossDb: 0.9 },
+        { gainDb: F699_MEDIUM_GAIN_DB, pointingLossDb: F699_MEDIUM_POINTING_LOSS_DB },
         { attenuationDb: rainAttDb(8), rainRateMmPerHr: 8 },
         { frequencyGHz: 18.8, elevationDeg: 43, availabilityPercent: 99.92 },
         { latencyMs: 33, jitterMs: 4, networkSpeedMbps: 228 }
@@ -333,7 +344,7 @@ export const BOOTSTRAP_PHYSICAL_SOURCE_SEEDS: Record<
       createCandidate(
         "regional-geo-anchor",
         "geo",
-        { gainDb: 39.1, pointingLossDb: 0.8 },
+        { gainDb: F699_MEDIUM_GAIN_DB, pointingLossDb: F699_MEDIUM_POINTING_LOSS_DB },
         { attenuationDb: rainAttDb(7), rainRateMmPerHr: 7 },
         { frequencyGHz: 12, elevationDeg: 54, availabilityPercent: 99.96 },
         { latencyMs: 88, jitterMs: 11, networkSpeedMbps: 114 }
@@ -345,7 +356,7 @@ export const BOOTSTRAP_PHYSICAL_SOURCE_SEEDS: Record<
       createCandidate(
         "regional-leo-primary",
         "leo",
-        { gainDb: 38, pointingLossDb: 0.8 },
+        { gainDb: F699_SMALL_GAIN_DB, pointingLossDb: F699_SMALL_POINTING_LOSS_DB },
         { attenuationDb: rainAttDb(5), rainRateMmPerHr: 5 },
         { frequencyGHz: 20, elevationDeg: 51, availabilityPercent: 99.97 },
         { latencyMs: 23, jitterMs: 3, networkSpeedMbps: 282 }
@@ -353,7 +364,7 @@ export const BOOTSTRAP_PHYSICAL_SOURCE_SEEDS: Record<
       createCandidate(
         "regional-meo-bridge",
         "meo",
-        { gainDb: 36, pointingLossDb: 1 },
+        { gainDb: F699_MEDIUM_GAIN_DB, pointingLossDb: F699_MEDIUM_POINTING_LOSS_DB },
         { attenuationDb: rainAttDb(8), rainRateMmPerHr: 8 },
         { frequencyGHz: 18.6, elevationDeg: 43, availabilityPercent: 99.92 },
         { latencyMs: 35, jitterMs: 5, networkSpeedMbps: 227 }
@@ -361,7 +372,7 @@ export const BOOTSTRAP_PHYSICAL_SOURCE_SEEDS: Record<
       createCandidate(
         "regional-geo-anchor",
         "geo",
-        { gainDb: 39, pointingLossDb: 0.8 },
+        { gainDb: F699_MEDIUM_GAIN_DB, pointingLossDb: F699_MEDIUM_POINTING_LOSS_DB },
         { attenuationDb: rainAttDb(6), rainRateMmPerHr: 6 },
         { frequencyGHz: 12, elevationDeg: 54, availabilityPercent: 99.96 },
         { latencyMs: 90, jitterMs: 11, networkSpeedMbps: 115 }
@@ -371,7 +382,7 @@ export const BOOTSTRAP_PHYSICAL_SOURCE_SEEDS: Record<
       createCandidate(
         "regional-leo-primary",
         "leo",
-        { gainDb: 35.6, pointingLossDb: 1.5 },
+        { gainDb: F699_SMALL_GAIN_DB, pointingLossDb: F699_SMALL_POINTING_LOSS_DB },
         { attenuationDb: rainAttDb(18), rainRateMmPerHr: 18 },
         { frequencyGHz: 21.8, elevationDeg: 36, availabilityPercent: 99.78 },
         { latencyMs: 34, jitterMs: 5, networkSpeedMbps: 198 }
@@ -379,7 +390,7 @@ export const BOOTSTRAP_PHYSICAL_SOURCE_SEEDS: Record<
       createCandidate(
         "regional-meo-bridge",
         "meo",
-        { gainDb: 37, pointingLossDb: 0.8 },
+        { gainDb: F699_MEDIUM_GAIN_DB, pointingLossDb: F699_MEDIUM_POINTING_LOSS_DB },
         { attenuationDb: rainAttDb(7), rainRateMmPerHr: 7 },
         { frequencyGHz: 18.7, elevationDeg: 45, availabilityPercent: 99.93 },
         { latencyMs: 28, jitterMs: 4, networkSpeedMbps: 242 }
@@ -387,7 +398,7 @@ export const BOOTSTRAP_PHYSICAL_SOURCE_SEEDS: Record<
       createCandidate(
         "regional-geo-anchor",
         "geo",
-        { gainDb: 39.2, pointingLossDb: 0.8 },
+        { gainDb: F699_MEDIUM_GAIN_DB, pointingLossDb: F699_MEDIUM_POINTING_LOSS_DB },
         { attenuationDb: rainAttDb(7), rainRateMmPerHr: 7 },
         { frequencyGHz: 12.1, elevationDeg: 54, availabilityPercent: 99.96 },
         { latencyMs: 87, jitterMs: 11, networkSpeedMbps: 118 }
@@ -397,7 +408,7 @@ export const BOOTSTRAP_PHYSICAL_SOURCE_SEEDS: Record<
       createCandidate(
         "regional-leo-primary",
         "leo",
-        { gainDb: 37.6, pointingLossDb: 0.8 },
+        { gainDb: F699_SMALL_GAIN_DB, pointingLossDb: F699_SMALL_POINTING_LOSS_DB },
         { attenuationDb: rainAttDb(6), rainRateMmPerHr: 6 },
         { frequencyGHz: 20, elevationDeg: 49, availabilityPercent: 99.96 },
         { latencyMs: 24, jitterMs: 3, networkSpeedMbps: 276 }
@@ -405,7 +416,7 @@ export const BOOTSTRAP_PHYSICAL_SOURCE_SEEDS: Record<
       createCandidate(
         "regional-meo-bridge",
         "meo",
-        { gainDb: 36.6, pointingLossDb: 0.8 },
+        { gainDb: F699_MEDIUM_GAIN_DB, pointingLossDb: F699_MEDIUM_POINTING_LOSS_DB },
         { attenuationDb: rainAttDb(7), rainRateMmPerHr: 7 },
         { frequencyGHz: 18.6, elevationDeg: 44, availabilityPercent: 99.94 },
         { latencyMs: 31, jitterMs: 4, networkSpeedMbps: 234 }
@@ -413,7 +424,7 @@ export const BOOTSTRAP_PHYSICAL_SOURCE_SEEDS: Record<
       createCandidate(
         "regional-geo-anchor",
         "geo",
-        { gainDb: 39.2, pointingLossDb: 0.8 },
+        { gainDb: F699_MEDIUM_GAIN_DB, pointingLossDb: F699_MEDIUM_POINTING_LOSS_DB },
         { attenuationDb: rainAttDb(6), rainRateMmPerHr: 6 },
         { frequencyGHz: 12, elevationDeg: 55, availabilityPercent: 99.97 },
         { latencyMs: 86, jitterMs: 11, networkSpeedMbps: 119 }
@@ -425,7 +436,7 @@ export const BOOTSTRAP_PHYSICAL_SOURCE_SEEDS: Record<
       createCandidate(
         "site-leo-primary",
         "leo",
-        { gainDb: 38.6, pointingLossDb: 0.7 },
+        { gainDb: F699_SMALL_GAIN_DB, pointingLossDb: F699_SMALL_POINTING_LOSS_DB },
         { attenuationDb: rainAttDb(5), rainRateMmPerHr: 5 },
         { frequencyGHz: 20.1, elevationDeg: 53, availabilityPercent: 99.97 },
         { latencyMs: 18, jitterMs: 3, networkSpeedMbps: 304 }
@@ -433,7 +444,7 @@ export const BOOTSTRAP_PHYSICAL_SOURCE_SEEDS: Record<
       createCandidate(
         "site-meo-bridge",
         "meo",
-        { gainDb: 36.1, pointingLossDb: 0.9 },
+        { gainDb: F699_MEDIUM_GAIN_DB, pointingLossDb: F699_MEDIUM_POINTING_LOSS_DB },
         { attenuationDb: rainAttDb(8), rainRateMmPerHr: 8 },
         { frequencyGHz: 18.7, elevationDeg: 44, availabilityPercent: 99.92 },
         { latencyMs: 33, jitterMs: 5, networkSpeedMbps: 214 }
@@ -441,7 +452,7 @@ export const BOOTSTRAP_PHYSICAL_SOURCE_SEEDS: Record<
       createCandidate(
         "site-geo-anchor",
         "geo",
-        { gainDb: 39, pointingLossDb: 0.8 },
+        { gainDb: F699_MEDIUM_GAIN_DB, pointingLossDb: F699_MEDIUM_POINTING_LOSS_DB },
         { attenuationDb: rainAttDb(6), rainRateMmPerHr: 6 },
         { frequencyGHz: 11.9, elevationDeg: 56, availabilityPercent: 99.96 },
         { latencyMs: 86, jitterMs: 11, networkSpeedMbps: 123 }
@@ -451,7 +462,7 @@ export const BOOTSTRAP_PHYSICAL_SOURCE_SEEDS: Record<
       createCandidate(
         "site-leo-primary",
         "leo",
-        { gainDb: 35.8, pointingLossDb: 1.5 },
+        { gainDb: F699_SMALL_GAIN_DB, pointingLossDb: F699_SMALL_POINTING_LOSS_DB },
         { attenuationDb: rainAttDb(17), rainRateMmPerHr: 17 },
         { frequencyGHz: 21.9, elevationDeg: 37, availabilityPercent: 99.79 },
         { latencyMs: 27, jitterMs: 5, networkSpeedMbps: 224 }
@@ -459,7 +470,7 @@ export const BOOTSTRAP_PHYSICAL_SOURCE_SEEDS: Record<
       createCandidate(
         "site-meo-bridge",
         "meo",
-        { gainDb: 37.4, pointingLossDb: 0.7 },
+        { gainDb: F699_MEDIUM_GAIN_DB, pointingLossDb: F699_MEDIUM_POINTING_LOSS_DB },
         { attenuationDb: rainAttDb(6), rainRateMmPerHr: 6 },
         { frequencyGHz: 18.5, elevationDeg: 47, availabilityPercent: 99.95 },
         { latencyMs: 22, jitterMs: 4, networkSpeedMbps: 246 }
@@ -467,7 +478,7 @@ export const BOOTSTRAP_PHYSICAL_SOURCE_SEEDS: Record<
       createCandidate(
         "site-geo-anchor",
         "geo",
-        { gainDb: 39.2, pointingLossDb: 0.8 },
+        { gainDb: F699_MEDIUM_GAIN_DB, pointingLossDb: F699_MEDIUM_POINTING_LOSS_DB },
         { attenuationDb: rainAttDb(6), rainRateMmPerHr: 6 },
         { frequencyGHz: 11.9, elevationDeg: 57, availabilityPercent: 99.97 },
         { latencyMs: 84, jitterMs: 11, networkSpeedMbps: 126 }
@@ -477,7 +488,7 @@ export const BOOTSTRAP_PHYSICAL_SOURCE_SEEDS: Record<
       createCandidate(
         "site-leo-primary",
         "leo",
-        { gainDb: 38.4, pointingLossDb: 0.7 },
+        { gainDb: F699_SMALL_GAIN_DB, pointingLossDb: F699_SMALL_POINTING_LOSS_DB },
         { attenuationDb: rainAttDb(5), rainRateMmPerHr: 5 },
         { frequencyGHz: 20, elevationDeg: 52, availabilityPercent: 99.97 },
         { latencyMs: 19, jitterMs: 3, networkSpeedMbps: 296 }
@@ -485,7 +496,7 @@ export const BOOTSTRAP_PHYSICAL_SOURCE_SEEDS: Record<
       createCandidate(
         "site-geo-anchor",
         "geo",
-        { gainDb: 39.3, pointingLossDb: 0.8 },
+        { gainDb: F699_MEDIUM_GAIN_DB, pointingLossDb: F699_MEDIUM_POINTING_LOSS_DB },
         { attenuationDb: rainAttDb(5), rainRateMmPerHr: 5 },
         { frequencyGHz: 11.8, elevationDeg: 57, availabilityPercent: 99.97 },
         { latencyMs: 83, jitterMs: 10, networkSpeedMbps: 128 }
@@ -497,7 +508,7 @@ export const BOOTSTRAP_PHYSICAL_SOURCE_SEEDS: Record<
       createCandidate(
         "site-leo-primary",
         "leo",
-        { gainDb: 38.8, pointingLossDb: 0.6 },
+        { gainDb: F699_SMALL_GAIN_DB, pointingLossDb: F699_SMALL_POINTING_LOSS_DB },
         { attenuationDb: rainAttDb(4), rainRateMmPerHr: 4 },
         { frequencyGHz: 20, elevationDeg: 54, availabilityPercent: 99.98 },
         { latencyMs: 17, jitterMs: 3, networkSpeedMbps: 311 }
@@ -505,7 +516,7 @@ export const BOOTSTRAP_PHYSICAL_SOURCE_SEEDS: Record<
       createCandidate(
         "site-meo-bridge",
         "meo",
-        { gainDb: 36.5, pointingLossDb: 0.8 },
+        { gainDb: F699_MEDIUM_GAIN_DB, pointingLossDb: F699_MEDIUM_POINTING_LOSS_DB },
         { attenuationDb: rainAttDb(7), rainRateMmPerHr: 7 },
         { frequencyGHz: 18.6, elevationDeg: 46, availabilityPercent: 99.94 },
         { latencyMs: 31, jitterMs: 5, networkSpeedMbps: 221 }
@@ -513,7 +524,7 @@ export const BOOTSTRAP_PHYSICAL_SOURCE_SEEDS: Record<
       createCandidate(
         "site-geo-anchor",
         "geo",
-        { gainDb: 39.3, pointingLossDb: 0.7 },
+        { gainDb: F699_MEDIUM_GAIN_DB, pointingLossDb: F699_MEDIUM_POINTING_LOSS_DB },
         { attenuationDb: rainAttDb(5), rainRateMmPerHr: 5 },
         { frequencyGHz: 11.8, elevationDeg: 57, availabilityPercent: 99.97 },
         { latencyMs: 84, jitterMs: 10, networkSpeedMbps: 129 }
@@ -523,7 +534,7 @@ export const BOOTSTRAP_PHYSICAL_SOURCE_SEEDS: Record<
       createCandidate(
         "site-leo-primary",
         "leo",
-        { gainDb: 36, pointingLossDb: 1.4 },
+        { gainDb: F699_SMALL_GAIN_DB, pointingLossDb: F699_SMALL_POINTING_LOSS_DB },
         { attenuationDb: rainAttDb(15), rainRateMmPerHr: 15 },
         { frequencyGHz: 21.4, elevationDeg: 39, availabilityPercent: 99.82 },
         { latencyMs: 28, jitterMs: 5, networkSpeedMbps: 218 }
@@ -531,7 +542,7 @@ export const BOOTSTRAP_PHYSICAL_SOURCE_SEEDS: Record<
       createCandidate(
         "site-meo-bridge",
         "meo",
-        { gainDb: 37.8, pointingLossDb: 0.7 },
+        { gainDb: F699_MEDIUM_GAIN_DB, pointingLossDb: F699_MEDIUM_POINTING_LOSS_DB },
         { attenuationDb: rainAttDb(5), rainRateMmPerHr: 5 },
         { frequencyGHz: 18.4, elevationDeg: 48, availabilityPercent: 99.96 },
         { latencyMs: 21, jitterMs: 4, networkSpeedMbps: 251 }
@@ -539,7 +550,7 @@ export const BOOTSTRAP_PHYSICAL_SOURCE_SEEDS: Record<
       createCandidate(
         "site-geo-anchor",
         "geo",
-        { gainDb: 39.4, pointingLossDb: 0.7 },
+        { gainDb: F699_MEDIUM_GAIN_DB, pointingLossDb: F699_MEDIUM_POINTING_LOSS_DB },
         { attenuationDb: rainAttDb(5), rainRateMmPerHr: 5 },
         { frequencyGHz: 11.8, elevationDeg: 58, availabilityPercent: 99.98 },
         { latencyMs: 82, jitterMs: 10, networkSpeedMbps: 131 }
@@ -549,7 +560,7 @@ export const BOOTSTRAP_PHYSICAL_SOURCE_SEEDS: Record<
       createCandidate(
         "site-leo-primary",
         "leo",
-        { gainDb: 38.7, pointingLossDb: 0.6 },
+        { gainDb: F699_SMALL_GAIN_DB, pointingLossDb: F699_SMALL_POINTING_LOSS_DB },
         { attenuationDb: rainAttDb(4), rainRateMmPerHr: 4 },
         { frequencyGHz: 19.9, elevationDeg: 53, availabilityPercent: 99.98 },
         { latencyMs: 18, jitterMs: 3, networkSpeedMbps: 303 }
@@ -557,7 +568,7 @@ export const BOOTSTRAP_PHYSICAL_SOURCE_SEEDS: Record<
       createCandidate(
         "site-geo-anchor",
         "geo",
-        { gainDb: 39.4, pointingLossDb: 0.7 },
+        { gainDb: F699_MEDIUM_GAIN_DB, pointingLossDb: F699_MEDIUM_POINTING_LOSS_DB },
         { attenuationDb: rainAttDb(5), rainRateMmPerHr: 5 },
         { frequencyGHz: 11.7, elevationDeg: 58, availabilityPercent: 99.98 },
         { latencyMs: 81, jitterMs: 10, networkSpeedMbps: 133 }

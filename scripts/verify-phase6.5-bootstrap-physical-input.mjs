@@ -50,6 +50,10 @@ const ituRLinkBudgetPath = new URL(
   "../src/features/itu-r-physics/itu-r-p618-link-budget.ts",
   import.meta.url
 );
+const ituRF699AntennaPatternPath = new URL(
+  "../src/features/itu-r-physics/itu-r-f699-antenna-pattern.ts",
+  import.meta.url
+);
 
 function transpileTypeScript(source, fileName) {
   return ts.transpileModule(source, {
@@ -90,6 +94,10 @@ function localizeTempImports(source) {
     .replace(
       /\.\.\/features\/itu-r-physics\/itu-r-p618-link-budget\.mjs/g,
       "./itu-r-p618-link-budget.mjs"
+    )
+    .replace(
+      /\.\.\/features\/itu-r-physics\/itu-r-f699-antenna-pattern\.mjs/g,
+      "./itu-r-f699-antenna-pattern.mjs"
     );
 }
 
@@ -132,7 +140,8 @@ try {
     mainSource,
     bootstrapCompositionSource,
     ituRRainAttenuationSource,
-    ituRLinkBudgetSource
+    ituRLinkBudgetSource,
+    ituRF699AntennaPatternSource
   ] = await Promise.all([
     readFile(physicalInputModulePath, "utf8"),
     readFile(physicalInputPanelPath, "utf8"),
@@ -145,7 +154,8 @@ try {
     readFile(mainPath, "utf8"),
     readFile(bootstrapCompositionPath, "utf8"),
     readFile(ituRRainAttenuationPath, "utf8"),
-    readFile(ituRLinkBudgetPath, "utf8")
+    readFile(ituRLinkBudgetPath, "utf8"),
+    readFile(ituRF699AntennaPatternPath, "utf8")
   ]);
 
   const requiredPhysicalInputSnippets = [
@@ -230,6 +240,13 @@ try {
       join(tempModuleDir, "itu-r-p618-link-budget.mjs"),
       rewriteRelativeImports(
         transpileTypeScript(ituRLinkBudgetSource, "itu-r-p618-link-budget.ts")
+      )
+    ),
+    writeFile(
+      join(tempModuleDir, "itu-r-f699-antenna-pattern.mjs"),
+      transpileTypeScript(
+        ituRF699AntennaPatternSource,
+        "itu-r-f699-antenna-pattern.ts"
       )
     ),
     writeFile(
