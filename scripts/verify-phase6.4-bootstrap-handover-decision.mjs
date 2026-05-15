@@ -42,6 +42,18 @@ const bootstrapCompositionPath = new URL(
   "../src/runtime/bootstrap/composition.ts",
   import.meta.url
 );
+const ituRRainAttenuationPath = new URL(
+  "../src/features/itu-r-physics/itu-r-p838-rain-attenuation.ts",
+  import.meta.url
+);
+const ituRLinkBudgetPath = new URL(
+  "../src/features/itu-r-physics/itu-r-p618-link-budget.ts",
+  import.meta.url
+);
+const ituRF699AntennaPatternPath = new URL(
+  "../src/features/itu-r-physics/itu-r-f699-antenna-pattern.ts",
+  import.meta.url
+);
 
 function transpileTypeScript(source, fileName) {
   return ts.transpileModule(source, {
@@ -78,6 +90,18 @@ function localizeTempImports(source) {
     .replace(
       /\.\/bootstrap-handover-decision-source\.mjs/g,
       "./bootstrap-handover-decision-source.mjs"
+    )
+    .replace(
+      /\.\.\/features\/itu-r-physics\/itu-r-p838-rain-attenuation\.mjs/g,
+      "./itu-r-p838-rain-attenuation.mjs"
+    )
+    .replace(
+      /\.\.\/features\/itu-r-physics\/itu-r-p618-link-budget\.mjs/g,
+      "./itu-r-p618-link-budget.mjs"
+    )
+    .replace(
+      /\.\.\/features\/itu-r-physics\/itu-r-f699-antenna-pattern\.mjs/g,
+      "./itu-r-f699-antenna-pattern.mjs"
     );
 }
 
@@ -118,7 +142,10 @@ try {
     handoverDecisionControllerCode,
     operatorHudSource,
     mainSource,
-    bootstrapCompositionSource
+    bootstrapCompositionSource,
+    ituRRainAttenuationSource,
+    ituRLinkBudgetSource,
+    ituRF699AntennaPatternSource
   ] = await Promise.all([
     readFile(handoverDecisionModulePath, "utf8"),
     readFile(physicalInputModulePath, "utf8"),
@@ -129,7 +156,10 @@ try {
     readFile(handoverDecisionControllerModulePath, "utf8"),
     readFile(operatorHudModulePath, "utf8"),
     readFile(mainPath, "utf8"),
-    readFile(bootstrapCompositionPath, "utf8")
+    readFile(bootstrapCompositionPath, "utf8"),
+    readFile(ituRRainAttenuationPath, "utf8"),
+    readFile(ituRLinkBudgetPath, "utf8"),
+    readFile(ituRF699AntennaPatternPath, "utf8")
   ]);
 
   const requiredDecisionSnippets = [
@@ -218,11 +248,33 @@ try {
       )
     ),
     writeFile(
-      join(tempModuleDir, "bootstrap-physical-input-seeds.mjs"),
+      join(tempModuleDir, "itu-r-p838-rain-attenuation.mjs"),
+      transpileTypeScript(
+        ituRRainAttenuationSource,
+        "itu-r-p838-rain-attenuation.ts"
+      )
+    ),
+    writeFile(
+      join(tempModuleDir, "itu-r-p618-link-budget.mjs"),
       rewriteRelativeImports(
-        transpileTypeScript(
-          physicalInputSeedsCode,
-          "bootstrap-physical-input-seeds.ts"
+        transpileTypeScript(ituRLinkBudgetSource, "itu-r-p618-link-budget.ts")
+      )
+    ),
+    writeFile(
+      join(tempModuleDir, "itu-r-f699-antenna-pattern.mjs"),
+      transpileTypeScript(
+        ituRF699AntennaPatternSource,
+        "itu-r-f699-antenna-pattern.ts"
+      )
+    ),
+    writeFile(
+      join(tempModuleDir, "bootstrap-physical-input-seeds.mjs"),
+      localizeTempImports(
+        rewriteRelativeImports(
+          transpileTypeScript(
+            physicalInputSeedsCode,
+            "bootstrap-physical-input-seeds.ts"
+          )
         )
       )
     ),
