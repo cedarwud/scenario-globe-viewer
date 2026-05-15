@@ -1,0 +1,197 @@
+# Independent Audit — Phase 2: Per-Requirement Verification
+
+Audit date: 2026-05-15. Auditor mode: read-only, no commit. Project self-claims
+(`itri-acceptance-report-2026-04-20/`, `docs/sdd/*closeout/*handoff/*plan`,
+`docs/delivery-phases.md`) were **not** read. All verdicts derived from:
+
+- `grep` over `src/`
+- `grep` over `tests/`
+- `ls` / inspection over `output/` retained artifacts
+- Live execution of `npm run test:*` and `node scripts/verify-*.mjs`
+
+Verdict legend:
+- `verified-complete`: code + test + retained artifact, test ran green now
+- `code-only`: code exists, no green test/no artifact today
+- `partial`: subset met
+- `missing`: no implementation
+- `cannot-verify`: needs external hardware / external simulator / time outside audit
+
+---
+
+## A. WP1 Contract Gates
+
+| ID | 需求 | 判定 | 證據 | 與專案自述差異 |
+| --- | --- | --- | --- | --- |
+| F-WP1-A | 成功匯入軌道模型 | `verified-complete` | src: `src/features/orbit-model-intake/orbit-model-intake-reviewer.ts` (1 KB+), `src/features/satellites/bulk-tle-adapter.ts` 載入 SGP4 SatRec；test: `npm run test:itri-f01r1` exit 0；artifact: `output/validation/phase7.1/*-leo-scale-500/orbit-scope-matrix.json` 與 `*-multi-orbit-scale-1000/` 含 leoCount=600+ | 與專案宣稱「F-01 done」一致 |
+| F-WP1-B | 可動態調整參數介面 | `partial` | src: `src/runtime/bootstrap-operator-controller.ts`、`src/features/operator/`；test: `npm run test:phase6.2` **exit 1** — `ERR_MODULE_NOT_FOUND: /tmp/features/handover-decision` from `/tmp/sgv-phase6.2-wojTFN/bootstrap-operator-controller.mjs`；F-10/F-11 互動截圖在 `output/m8a-v4.12-f10-policy-selector/` 與 `output/m8a-v4.12-f11-rule-config/` 存在；test:m8a-v4.12:f10/f11 exit 0；test:m8a-v3-d03:s2/s3 提供 row grouping 證據 | 專案宣稱 phase6.2 closed；實測現在跑不過。回歸或環境依賴破損 |
+| F-WP1-C | 可產生通訊時間統計 | `verified-complete` | src: `src/features/communication-time/communication-time.ts`、`src/runtime/bootstrap-communication-time-*.ts`；test: `npm run test:phase6.3` exit 0，回傳 `totalCommunicatingMs:2124000`；artifact: F-16 export 內容含 `desktop-1440x900-downloaded-json-summary.json`、`desktop-1440x900-inspection.json` | 一致 |
+| F-WP1-D | 畫面穩定運行至少 24 小時 | `missing` | scripts: `scripts/run-phase7.0-soak.mjs`；artifact: `output/soak/2026-05-14T12-04-40-432Z-phase7-0-full/summary.json` 顯示 `passed:false`, `sampleCount:4`, `startedAt 12:04:40 / endedAt 12:08:10`（**3 分 30 秒中斷**），`errors.ndjson` 寫「Soak harness received SIGTERM before completion」；其他 phase7.0-rehearsal 全為 180000ms (3 分) 與 120000ms (2 分) 短跑；**全 repo 找不到任何 24h passed=true 的 soak run** | 專案以「24h-ready harness」描述；實際 24h soak 從未成功跑完一次 |
+| D-WP1-DATE | 2025/11/30 完成日期 | `cannot-verify` | 時程性條件，與 audit 無關 | n/a |
+| D-WP1-DOC | 技術 WP1 評估分析報告一式 | `cannot-verify` | 受審範圍內無法判定是否已對外交付 ITRI；本 audit 不讀 closeout 文 | n/a |
+
+---
+
+## B. WP1 Technical Scope
+
+| ID | 需求 | 判定 | 證據 | 差異 |
+| --- | --- | --- | --- | --- |
+| T-01 | 衛星模型軌道資料整合 | `verified-complete` | src: `src/features/satellites/adapter.ts`, `bulk-tle-adapter.ts`, `walker-fixture-adapter.ts`；test: `npm run test:phase4.1` exit 0；artifact: `output/validation/phase7.1/*-leo-scale-500/orbit-scope-matrix.json` 含 LEO 600/MEO 65/GEO 30 觀測 | 一致 |
+| T-02 | 視覺化呈現（Blender 或等效） | `verified-complete` | src: `src/core/cesium/viewer-factory.ts`、`src/features/globe/*`；Cesium 1.140.0 + satellite.js 7.0 in `package.json`；artifact: `output/m8a-v4.11-impl-phase5/v4.11-final-*.png` 多視口；smoke artifacts in `output/m8a-v4.12-f0*` | 一致 |
+| T-03 | UI 互動介面 | `verified-complete` | src: `src/features/app/*`, `src/features/operator/*`；多個 m8a-v4.11/v4.12 smoke runtime tests；artifact: `output/m8a-v4.11-slice*/`、`output/m8a-v4.11-conv*/` 含交互後截圖 | 一致 |
+| T-04 | 通訊換手規則模擬等參數設計 | `verified-complete` | src: `src/features/handover-decision/`、`src/features/decision-threshold-authority/`；test: `npm run test:m8a-v4.12:f11` exit 0；test: `npm run test:itri-f12r1` exit 0；artifact: `output/m8a-v4.12-f11-rule-config/f11-rule-config-smoke.json` + 5 截圖含 dwell-hold / hysteresis / reset / validation-error | 一致 |
+| T-05 | 通訊速率可視化設計 | `verified-complete` | src: `src/features/communication-rate/`；test: `npm run test:m8a-v4.12:f09` exit 0；artifact: `output/m8a-v4.12-f09-communication-rate/phase6-acceptance-communication-rate.png` + smoke-manifest.json | 一致 |
+| F-01 | 整合 LEO/MEO/GEO，建立可互動式 3D 圖像化系統 | `verified-complete` | src: `src/runtime/first-intake-oneweb-intelsat-geo-aviation-seed.ts`、`src/runtime/m8a-v4-ground-station-handover-scene-controller.ts`；test: `npm run test:m8a-v4.6a` / `test:m8a-v4.6b` 系列；artifact: `output/validation/phase7.1/2026-05-13T08-05-32.254Z-multi-orbit-scale-1000/` 含 leoCount/meoCount/geoCount 同時觀測 | 一致 |
+| F-02 | 支援 ≥ 500 LEO 模擬 | `verified-complete` | scripts: `scripts/build-f13-leo-scale-fixture.mjs`, `build-v4.13-multi-orbit-fixture.mjs`；artifact: `output/validation/phase7.1/2026-05-13T01-44-31.146Z-leo-scale-500/perf-measurement.json` 與 `2026-05-13T08-05-32.254Z-multi-orbit-scale-1000/perf-measurement.json` 顯示 `observedLeoCount: 600` `targetLeoCount: 500`, `adr0005BudgetExceeded:false` | 一致；但檔案自註：「headless lower-bound runtime check, not formal Tier 1/Tier 2 hardware evidence」 |
+| F-03 | 模擬速度可調 | `verified-complete` | src: `src/features/time/cesium-replay-clock.ts`、`replay-clock.ts`，含 `"real-time" \| "prerecorded"` mode；test: `npm run test:phase3.2` exit 0, `test:phase3.3`/`3.4` 涵蓋 real-time vs prerecorded | 一致 |
+| F-04 | 即時顯示可通訊時間 | `verified-complete` | 同 F-WP1-C；live runtime 端有 `communicationStatus` 欄位（見 soak samples 與 v4.12-f09 smoke） | 一致 |
+| F-05 | 換手策略切換 | `verified-complete` | src: `src/runtime/bootstrap-handover-decision-controller.ts`；test: `npm run test:phase6.4` exit 0；test: `test:m8a-v4.12:f10` exit 0 (含 balanced/latency/throughput 三策略)；artifact: `output/m8a-v4.12-f10-policy-selector/` 三策略各一截圖 + `f10-policy-selector-smoke.json` | 一致 |
+| F-06 | 統計報表匯出 | `verified-complete` | src: `src/features/report-export/report-export.ts`、`bootstrap-report-export-action.ts`；test: `npm run test:m8a-v4.12:f16` exit 0；artifact: `output/m8a-v4.12-f16-report-export/desktop-1440x900-downloaded-json-summary.json` (實際下載產物) + `downloads/` | 一致 |
+
+---
+
+## C. Kickoff Architecture Slide
+
+| ID | 需求 | 判定 | 證據 | 差異 |
+| --- | --- | --- | --- | --- |
+| K-01 | 低/中/高軌訊號切換 | `verified-complete` | F-01/F-05 已涵蓋；multi-orbit-scale-1000 同時觀測三層 | 一致 |
+| K-02 | 鏈路品質 latency/jitter/network-speed 切換 | `verified-complete` | src: `src/features/decision-threshold-authority/decision-threshold-authority-reviewer.ts`；test: `npm run test:itri-f12r1` exit 0 covers F-09 omission、measuredFieldRef、rule semantics；F-10 smoke 三 policy 含 `network-speed-better`、`policy-weighted-override` reasons | 一致 |
+| K-03 | physical-layer 天線 + 雨衰情境 | `partial` | src: `src/features/physical-input/static-bounded-metric-profile.ts` (rain-attenuation + antenna + itu-style 三族群)；test: `npm run test:phase6.5` **exit 1** — AssertionError「Bootstrap composition capture seam must expose physical-input state for bounded verification」；artifact: `output/validation/external-f07-f09/2026-05-15T02-26-46Z-measured-traffic/` 存在 | 專案宣稱 phase6.5 closed；實測失敗 |
+| K-04 | TLE 驅動衛星追蹤 | `verified-complete` | src: `src/features/satellites/bulk-tle-adapter.ts` import `satellite.js` (twoline2satrec/propagate/eciToEcf)；test: `test:phase4.1` exit 0；artifact: `src/runtime/fixtures/first-intake-aircraft-corridor/`、phase7.1 perf evidence | 一致 |
+| E-01 | Linux 主環境，Windows+WSL 備案 | `partial` | src: `src/runtime/bootstrap-validation-state-seeds.ts` 編碼 `linux-direct`/`windows-wsl-tunnel`/`inet-nat-bridge`；test: `test:phase6.6` exit 0；artifact: 對應截圖在 m8a-v4.11 narrow tablet desktop 多分辨率；但 Linux 為主執行平台、WSL 實機驗測無 retained pass evidence | 三種 environment-mode 為**標籤資料**，非真實平台跨機驗測 |
+
+---
+
+## D. Windows Tunneling Scenario
+
+| ID | 需求 | 判定 | 證據 | 差異 |
+| --- | --- | --- | --- | --- |
+| N-01 | Windows Tunneling Scenario WSL2 + tun0/tun1 + tun_bridge.py | `cannot-verify` | viewer src 內無 `tun_bridge`、`gs_a`、`gs_b`、`tun0`、`tun1` 實作；UI 提示「Windows/WSL, tunnel/bridge, NAT/ESTNeT/INET, virtual DUT, and physical DUT/NE-ONE have no retained pass evidence」(`src/runtime/m8a-v4-itri-demo-renderers.ts:216`) | 與 ITRI scope 邊界一致；屬 ESTNeT/OMNeT++ 外部依賴 |
+| N-02 | OMNeT++ / ESTNeT bridge | `cannot-verify` | 無 ESTNeT/OMNeT++ runner；viewer 自承「no retained pass evidence」 | 同上，需外部驗測 |
+| N-03 | GS-A Wuerzburg / GS-B Munich + Satellite GEO + UHF | `missing` | 全 repo grep 無 Wuerzburg / Munich / UHF；ITRI Tunneling slide 端點對未在 viewer 對應 | viewer scope 未涵蓋；專案敘事重點為 OneWeb LEO-GEO，非 Wuerzburg-Munich UHF |
+| N-04 | `ping 10.2.0.1 → tun0 → GS-A → Satellite → GS-B → tun1` | `cannot-verify` | viewer 內無 ping/tun 驗證 runner；屬外部 ESTNeT 驗測情境 | 同上 |
+
+---
+
+## E. NAT Routing Scenario
+
+| ID | 需求 | 判定 | 證據 | 差異 |
+| --- | --- | --- | --- | --- |
+| N-05 | INET NAT routing | `cannot-verify` | viewer 內無 INET 模擬器；屬 ESTNeT 外部依賴 | scope 邊界一致 |
+| N-06 | veth0=192.168.2.1 / veth1=192.168.2.2 | `missing` | grep `veth0`/`veth1`/`192.168.2.1`/`192.168.2.2` 在 src/ 為 0 命中 | viewer 不負責 |
+| N-07 | eno1=140.96.29.40 / Router=140.96.29.1 | `missing` | 同上，grep 為 0 命中 | viewer 不負責 |
+| N-08 | ESTNeT Gateway 對接 | `cannot-verify` | 同 N-05 | 同上 |
+| V-01 | Ping / iPerf 流量測試於 NAT routing 拓樸 | `cannot-verify` | viewer 內無 ping/iperf runner；唯一相關為 `src/features/measured-traffic-package/measured-traffic-package-reviewer.ts` 接受 trafficGeneratorOutputs ref；artifact `output/validation/external-f07-f09/...` 為 reviewer 殼層 | 外部驗測；reviewer 只能接收他人測量 |
+
+---
+
+## F. Kickoff UI Spec (slide 5)
+
+| ID | 需求 | 判定 | 證據 | 差異 |
+| --- | --- | --- | --- | --- |
+| F-02a | ≥ 500 LEO（Starlink/OneWeb） | `verified-complete` | 同 F-02；OneWeb seed 已在 `first-intake-oneweb-intelsat-geo-aviation-seed.ts`；Starlink scope 由 walker fixture / bulk TLE adapter 涵蓋 | 一致 |
+| F-03a | real-time 與預錄 TLE 情境切換 | `verified-complete` | src: `src/runtime/resolve-bootstrap-scenario.ts` 含 `"real-time" \| "prerecorded"`；seeds: `bootstrap-global-real-time`、`bootstrap-site-prerecorded` 等；test: `test:phase3.3`/`3.4`、`test:phase6.3` 觀察兩種 mode 切換 | 一致 |
+| F-04a | 即時通訊時間可用 iperf/ping 驗 | `partial` | 即時 communication-time UI 已 verified-complete；但 iperf/ping 端對接由 measured-traffic-package reviewer 殼處理，**未見實際 iperf/ping 跑過的 retained measurement** | reviewer 只驗證收稿格式，非 viewer 自跑 iperf |
+| F-07 | 雨衰展示 | `partial` | 同 K-03；src 有 rain-attenuation profile + UI 提示；test:phase6.5 fails；artifact `output/validation/external-f07-f09/` 為 reviewer 殼 | 專案宣稱 phase6.5 closed；實測失敗 |
+
+---
+
+## G. KPI Timeline / V 組 / DUT / Demo
+
+| ID | 需求 | 判定 | 證據 | 差異 |
+| --- | --- | --- | --- | --- |
+| N-09 | ESTNeT 對外部網路連結（達成 baseline） | `cannot-verify` | viewer 不負責 ESTNeT；標記為 ITRI 端 baseline | scope 一致 |
+| P-01 | 天線參數整合 | `code-only` | src: `static-bounded-metric-profile.ts` 含 antenna family（gainDb, pointingLossDb）；test:phase6.5 fails | bounded-proxy；非 V 組真實 input |
+| P-02 | 雨衰整合 | `code-only` | 同 K-03/F-07；test fail | 同上 |
+| P-03 | ITU 規範整合 | `code-only` | src: itu-style profile + `S4A-ITU-P618/P837/P838/P676/P839/P840/S465/S580` ID 編碼；test: `test:itri-s4r1` exit 0 但僅驗證 reviewer 殼 schema | reviewer 殼，非真實規範參數整合 |
+| K-05 | jitter/latency/network-speed 跨軌切換 | `verified-complete` | 同 K-02/F-05 | 一致 |
+| V-02 | 虛擬待測物 testbench | `partial` | src: `src/features/measured-traffic-package/`、`src/features/synthetic-fallback-fixture/`；test: `test:itri-f07r1`、`test:itri-s11r1`、`test:itri-v02r1` exit 0；artifact: `output/validation/external-f07-f09/`, `external-v02-v06/`；UI 自承「virtual DUT…no retained pass evidence」 | reviewer 殼存在，**testbench 程式本身未交付 retained pass** |
+| V-03 | NE-ONE Traffic generator | `missing` | grep 全 src 唯二命中為 demo UI 提示與 reviewer ref 接受欄位 (`trafficGeneratorOutputs`)；無 NE-ONE 真實 driver | viewer 自承無 retained evidence |
+| D-02 | 預錄 scenario 或 real time demo | `verified-complete` | 同 F-03a；seeds 含 prerecorded/real-time 兩模式；artifact 大量 `output/m8a-v4.*` 截圖 | 一致 |
+| D-03 | 期末報告撰寫 | `cannot-verify` | 屬時程，audit 不讀 closeout | n/a |
+| D-04 | NTPU 委外 UI 開發 | `cannot-verify` | 受審範圍內無法判定外部委辦關係 | n/a |
+| D-05 | V 組整合（5 月起） | `cannot-verify` | 受審範圍內無 V 組真實輸入交接證據 | reviewer 殼存在；V 組 input 真實格式/接口仍 open |
+| D-06 | 11/30 milestone | `cannot-verify` | 屬時程；技術項已分項拆解到 F-WP1-A..D | n/a |
+| S-01 | Stakeholder anchor | `cannot-verify` | 不適用 | n/a |
+
+---
+
+## H. Multi-Orbit Research Direction (`[CLAIM-UNCERTAIN]`)
+
+| ID | 需求 | 判定 | 證據 | 差異 |
+| --- | --- | --- | --- | --- |
+| M-01 | scenario-globe-viewer 內 multi-orbit handover 真實化 | `partial` | src: `m8a-v4-ground-station-handover-scene-controller.ts`、`first-intake-oneweb-intelsat-geo-aviation-seed.ts`；artifact: `output/m8a-v4.7*`、`v4.10-slice*`、`v4.11-*`、`v4.12-*` 完整 sequence | 多軌道 service handover scene 已存在；「真實化」是研究方向，無客觀 pass/fail |
+| M-02 | LEO/MEO/GEO 現實可行性核對 | `verified-complete` (within scope) | phase7.1 multi-orbit-scale-1000 retained evidence 同時觀測三層；orbit-scope-matrix LEO observed / MEO declared+observed / GEO declared+observed | 一致 |
+| M-03 | OneWeb LEO ↔ GEO 第一情境 | `verified-complete` | src: `first-intake-oneweb-intelsat-geo-aviation-seed.ts` (檔名直接點名)；多個 m8a-v4 系列 smoke runtime 跑此 seed | 一致 |
+| M-04 | ground-station endpoint pair 第二敘事 | `code-only` | src: `m8a-v4-ground-station-projection.ts`、`m8a-v4-ground-station-telemetry-keys.ts`、`m8a-v4-ground-station-telemetry-sync.ts`；test: `test:m8a-v4.3`/`v4.4` smoke；但 endpoint authority package 真實證據未在 retained artifact 內可獨立查證 | scope 一致；evidence 等級未到第一情境水準 |
+
+---
+
+## I. Reference / Visual Baseline
+
+| ID | 需求 | 判定 | 證據 | 差異 |
+| --- | --- | --- | --- | --- |
+| R-01 | sat.png baseline 升級為可讀產品 UI | `verified-complete` (interpretation) | 大量 v4.7/v4.10/v4.11 截圖明顯較 sat.png 工程節點圖更可讀 | 一致 |
+| R-02 | demo.png 參考圖 | `cannot-verify` | 屬參考層 | n/a |
+| R-03 | end-to-end 驗測環境圖（slide 2 image6） | `partial` | viewer 已有 ground-station endpoint pair scene；但 image6 拓樸的 Terrestrial→Ground→Sat-network→Ground→Testing-Application 端對端走通屬 ESTNeT 範圍 | viewer 涵蓋表現層；driver 層需外部 |
+
+---
+
+## Verdict Tally
+
+抽取 55 條 ID（含 4 條 `[CLAIM-UNCERTAIN]` + 3 條參考）。逐 row 計數：
+
+| 判定 | 計數 | IDs |
+| --- | --- | --- |
+| verified-complete | 23 | F-WP1-A, F-WP1-C, T-01, T-02, T-03, T-04, T-05, F-01, F-02, F-03, F-04, F-05, F-06, K-01, K-02, K-04, F-02a, F-03a, K-05, D-02, M-02, M-03, R-01 |
+| code-only | 4 | P-01, P-02, P-03, M-04 |
+| partial | 8 | F-WP1-B, K-03, E-01, F-04a, F-07, V-02, M-01, R-03 |
+| missing | 5 | F-WP1-D, N-03, N-06, N-07, V-03 |
+| cannot-verify | 15 | D-WP1-DATE, D-WP1-DOC, N-01, N-02, N-04, N-05, N-08, V-01, N-09, D-03, D-04, D-05, D-06, S-01, R-02 |
+| **Total** | **55** | |
+
+---
+
+## Run Log
+
+獨立執行指令與 exit code（live 2026-05-15）：
+
+| Command | Exit | Note |
+| --- | --- | --- |
+| `npm run test:itri-f01r1` | 0 | orbit-model intake reviewer |
+| `npm run test:itri-f07r1` | 0 | measured-traffic reviewer |
+| `npm run test:itri-f12r1` | 0 | decision-threshold authority reviewer |
+| `npm run test:itri-v02r1` | 0 | external-validation manifest reviewer |
+| `npm run test:itri-s4r1` | 0 | public-standards profile reviewer |
+| `npm run test:itri-s11r1` | 0 | synthetic-fallback fixture reviewer |
+| `node scripts/verify-m8a-v4.12-f10-handover-policy-selector.mjs` | 0 | F-10 contract |
+| `node scripts/verify-m8a-v4.12-f11-handover-rule-config.mjs` | 0 | F-11 contract |
+| `node scripts/verify-phase3.2-replay-clock-contract.mjs` | 0 | replay clock |
+| `node scripts/verify-phase4.1-walker-fixture-adapter.mjs` | 0 | walker fixture |
+| `node scripts/verify-phase6.1-scenario-coordination.mjs` | 0 | scenario coordination |
+| `npm run test:phase6.3` | 0 | bootstrap comm-time |
+| `npm run test:phase6.4` | 0 | bootstrap handover-decision |
+| `node scripts/verify-phase6.6-bootstrap-validation-state.mjs` | 0 | validation-state modes |
+| `npm run test:m8a-v4.12:f09` | 0 | communication-rate smoke |
+| `npm run test:m8a-v4.12:f11` | 0 | rule-config smoke |
+| `npm run test:m8a-v4.12:f16` | 0 | report-export smoke |
+| `npm run test:phase6.2` | **1** | `ERR_MODULE_NOT_FOUND: /tmp/features/handover-decision` |
+| `npm run test:phase6.5` | **1** | `AssertionError: Bootstrap composition capture seam must expose physical-input state for bounded verification.` |
+
+---
+
+## 與專案自述的主要差異
+
+1. **24h soak 從未真正跑完** — phase7-0-full 最新一次 (2026-05-14) durationMs 設
+   86400000 但 3 分 30 秒後 SIGTERM，passed=false，sampleCount=4。其餘 soak 全
+   為 2–3 分 rehearsal/gate-probe。任何「24h stability gate ready」自述都缺乏
+   實際 24h retained run。
+2. **phase6.2 / phase6.5 verify 今天跑不過** — 對應 F-WP1-B 與 F-07/K-03 雨衰雨
+   情境兩條 ITRI 硬要求。若專案有「closed/handoff」自述聲稱兩 phase 已通過，與
+   現況不符。可能為（a）verify script 對 /tmp 路徑硬編碼漂移；（b）composition
+   capture seam 已偷拆。任一情況都會讓對應驗收條件失效。
+3. **物理層整合屬 bounded proxy** — antenna / rain / itu 三 family 僅有 repo-
+   owned bounded profile，未見 V 組真實 input 與 ITU 規範實參數整合的 retained
+   pass evidence。對應 P-01/P-02/P-03 為 code-only。
+4. **ESTNeT/INET/NAT/Tunneling/NE-ONE/虛實 DUT** — viewer 自承「no retained
+   pass evidence」(src/runtime/m8a-v4-itri-demo-renderers.ts:216)；屬 ITRI 外部
+   驗測，scope 邊界一致，但 ITRI requirement 角度仍未對應交付。
