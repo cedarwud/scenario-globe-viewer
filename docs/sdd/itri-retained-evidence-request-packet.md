@@ -543,6 +543,24 @@ node scripts/review-itri-orbit-model-intake.mjs --package output/validation/exte
 Target package family:
 `output/validation/public-standards-profiles/<profile-id>/`.
 
+Bounded-public-source-only formulae status (2026-05-15): public-source-only
+ITU-R formulae have landed under `src/features/itu-r-physics/` and back
+F-17/P-01/P-02/P-03 demo seeds with computed values:
+
+- P.838-3 rain specific attenuation (`itu-r-p838-rain-attenuation.ts`,
+  commit `01a3820`);
+- P.618-14 §2.4 total path attenuation composing rain + gas + cloud +
+  scintillation components (`itu-r-p618-link-budget.ts`, commit `be8c042`);
+- F.699-8 antenna sidelobe envelope and boresight `G_max`
+  (`itu-r-f699-antenna-pattern.ts`, commit `23f4314`).
+
+This status does not change the authority gate: customer/V-group selected
+parameters, validation vectors, tolerances, and acceptance still gate
+F-17/P-01/P-02/P-03 closure beyond bounded-public-source-only readiness. The
+checklist below remains the owner-supplied artifact set required to move past
+the bounded-public-source-only state into customer/V-group-accepted authority
+closure.
+
 Required owner-supplied artifact checklist:
 
 - Public standards profile package using the S4-B contract, or a retained

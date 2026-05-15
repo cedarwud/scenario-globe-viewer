@@ -1,6 +1,8 @@
 # customer Requirement Completion Roadmap
 
-Date: 2026-05-13
+Date: 2026-05-15 (S4 follow-on amendment: ITU-R public-formula module landed
+under `src/features/itu-r-physics/`; see ITU-R Physics Module close-out pointer
+below).
 
 Status: docs-only SDD roadmap. This file defines evidence ordering,
 remaining authority gates, and execution slices. It does not authorize runtime
@@ -80,10 +82,10 @@ Hard rules:
 | F-08 | Communication-time statistics | Repo-owned summary/report state is already bounded-closed. It is not measurement-backed statistics. | Already bounded-closed; measured lane is external-authority-only | Retain raw logs, parsed distributions, packet loss, jitter source, sample count, duration, computation method, and customer thresholds. | INET throughput examples, iPerf docs, and RFC methodology can guide computation fields but cannot supply project results. | Generated statistics may support schema tests only. They cannot produce pass/fail status. |
 | F-09 | Communication-rate display | V4.12 has bounded communication-rate visualization from modeled network-speed classes. | Already bounded-closed; measured throughput lane is external-authority-only | Retain `iperf3` or approved traffic-generator client/server output, endpoints, direction, protocol, duration, interval stats, retransmits/loss where applicable, topology proof, and threshold authority. | iPerf and INET docs are method context. Operator service pages are service context. Neither supplies project Mbps/Gbps truth. | Synthetic throughput samples may test chart/export behavior only and must carry synthetic provenance. |
 | F-12 | Decision switching from latency/jitter/network-speed-style inputs | Repo-owned deterministic handover-decision logic is already bounded-closed over proxy metric classes. | Already bounded-closed; live/authority rule lane is external-authority-only | If customer requires authority upgrade, request accepted metric definitions, thresholds, rule semantics, validation traces, and whether decisions affect replay, simulator state, or external traffic. | 3GPP/NR NTN documents can provide taxonomy and vocabulary. They do not define customer decision thresholds or operator policy. | Synthetic candidate metrics may support deterministic ranking tests only. They cannot imply live control or measured decision truth. |
-| F-17 | Rain-attenuation impact display | Phase 6.5 has bounded physical-input rain families and visible projected impact on decision metrics. | Already bounded-closed; standards-backed public profile is an open-source candidate | Ask customer/V-group owner for required rain-rate source, bands, elevation, polarization, geography, output units, accepted approximations, selected ITU versions, and validation vectors. | ITU-R P.618, P.837, P.838, P.676, P.839, and P.840 are candidate standards sources once versions and parameters are selected. Public standards may close only a bounded public standards profile unless customer accepts them as authority. | Synthetic rain profiles may demonstrate UI deltas only and must not be represented as standards-backed physical truth. |
-| P-01 | Antenna parameters | Phase 6.5 has a bounded antenna input family. | Already bounded-closed; standards-backed public profile is an open-source candidate | Request customer antenna geometry, pattern, gain, frequency bands, pointing/elevation assumptions, and validation vectors. | ITU-R S.465, S.580, and S.1528 are candidate standards/context sources, subject to customer selection. | Synthetic antenna profiles may test field flow only. |
-| P-02 | Rain attenuation / rainy-condition attenuation | Phase 6.5 has a bounded rain input family. | Already bounded-closed; standards-backed public profile is an open-source candidate | Request customer rain model selection, location/rain-rate data, path geometry, frequency, polarization, and accepted output units. | ITU-R P.618, P.837, P.838, and P.839 are candidate sources after version selection. | Synthetic rain-rate fixtures remain UI/parser fixtures. |
-| P-03 | ITU-related factors | Phase 6.5 includes an `itu-style` bounded proxy family. | Already bounded-closed; standards-backed public profile is an open-source candidate | Request exact ITU-R recommendations, versions, parameter values, approximation level, and validation vectors from customer/V-group owner. | ITU recommendations are high-authority public standards, but still incomplete without customer parameter and version choices. | Synthetic `itu-style` values can remain placeholders only. |
+| F-17 | Rain-attenuation impact display | Phase 6.5 plus ITU-R-physics module (`src/features/itu-r-physics/`) backs demo seeds with public-source-only P.618-14 total-path attenuation (rain via P.838-3, gas via simplified P.676, cloud bounded, scintillation bounded). 51 rain seeds in `bootstrap-physical-input-seeds.ts` now flow through `computeTotalPathAttenuation()`. Repo-owned values remain Tier-2 bounded-public-source-only; demo frequency/elevation/polarization are repo-chosen, not customer/V-group selected. | Already bounded-closed (public-source-only formulae); standards-backed public profile is also already bounded-closed via S4R1; customer/V-group authority truth remains external-authority-only | Ask customer/V-group owner for required rain-rate source, bands, elevation, polarization, geography, output units, accepted approximations, selected ITU versions, and validation vectors. | ITU-R P.618, P.837, P.838, P.676, P.839, and P.840 are candidate standards sources once versions and parameters are selected. Public-source-only formulae are now implemented in `src/features/itu-r-physics/`; they remain bounded-public-source-only and do not assert customer/V-group authority acceptance. | Synthetic rain profiles may demonstrate UI deltas only and must not be represented as standards-backed physical truth. |
+| P-01 | Antenna parameters | Phase 6.5 plus ITU-R-physics module backs demo antenna seeds with ITU-R F.699-8 three-region sidelobe envelope (main-beam parabolic, near-sidelobe `G₁` plateau, far-sidelobe `52 − 10·log10(D/λ) − 25·log10(φ)`). Small-terminal `D=0.9 m / 1.5 GHz / G_max=20.79 dBi`, medium-terminal `D=2.4 m / 12 GHz / G_max=47.38 dBi`, pointing-loss `0.5°` off-axis. Repo-owned demo geometry/frequencies are not customer/V-group selected. | Already bounded-closed (public-source-only formulae); standards-backed public profile is also already bounded-closed via S4R1; customer/V-group authority truth remains external-authority-only | Request customer antenna geometry, pattern, gain, frequency bands, pointing/elevation assumptions, and validation vectors. | ITU-R F.699, S.465, S.580, and S.1528 are candidate standards/context sources, subject to customer selection. F.699-8 is now implemented in `src/features/itu-r-physics/itu-r-f699-antenna-pattern.ts` as bounded-public-source-only. | Synthetic antenna profiles may test field flow only. |
+| P-02 | Rain attenuation / rainy-condition attenuation | Phase 6.5 plus ITU-R-physics module backs demo rain seeds with ITU-R P.838-3 Table 5 specific-attenuation coefficients (1–100 GHz, `k_H`/`α_H`/`k_V`/`α_V`) plus log-log `k` interpolation and semi-log `α` interpolation. Repo-owned demo frequency/polarization are not customer/V-group selected. | Already bounded-closed (public-source-only formulae); standards-backed public profile is also already bounded-closed via S4R1; customer/V-group authority truth remains external-authority-only | Request customer rain model selection, location/rain-rate data, path geometry, frequency, polarization, and accepted output units. | ITU-R P.618, P.837, P.838, and P.839 are candidate sources after version selection. P.838-3 is now implemented in `src/features/itu-r-physics/itu-r-p838-rain-attenuation.ts` as bounded-public-source-only. | Synthetic rain-rate fixtures remain UI/parser fixtures. |
+| P-03 | ITU-related factors | Phase 6.5 plus ITU-R-physics module backs the `itu-style` family with ITU-R P.618-14 §2.4 total path attenuation (`A_rain` via P.838-3, `A_gas` via simplified P.676 oxygen+water-vapor at 1.5 GHz with bounded scaling, `A_cloud` bounded from P.840, `A_scint` bounded from P.618 §2.5.2). Customer/V-group selected parameters, approximation level, and validation vectors remain external authority inputs. | Already bounded-closed (public-source-only formulae); standards-backed public profile is also already bounded-closed via S4R1; customer/V-group authority truth remains external-authority-only | Request exact ITU-R recommendations, versions, parameter values, approximation level, and validation vectors from customer/V-group owner. | ITU recommendations are high-authority public standards, but still incomplete without customer parameter and version choices. P.618-14/P.676/P.840 link-budget composition is now implemented in `src/features/itu-r-physics/itu-r-p618-link-budget.ts` as bounded-public-source-only. | Synthetic `itu-style` values can remain placeholders only. |
 | V-02 | Windows + WSL support evidence | Validation-state seam names the mode. No retained successful external run exists. | External-authority-only | Fresh external package with Windows/WSL host details, distro, network mode, interfaces, routes, tools, command transcripts, and successful traffic proof. | Microsoft WSL/Hyper-V docs are platform-method context only. | Synthetic environment JSON may rehearse schema only. |
 | V-03 | Tunnel / bridge evidence | Repo can represent validation mode, but not the real tunnel/bridge runtime. | External-authority-only | Retain tunnel endpoint config, bridge process command/config/logs, interfaces, packet path evidence, and successful traffic crossing the expected path. | INET emulation/TUN docs are method context only. | Synthetic bridge logs may test package validation only. |
 | V-04 | NAT / ESTNeT / INET bridge evidence | Repo has `inet-nat-bridge` as a validation boundary mode. Actual NAT rules/topology are external. | External-authority-only | Retain ESTNeT/OMNeT++ scenario identity, INET NAT/gateway mapping, host interface mapping, route tables, NAT rules, raw traffic logs, and topology proof. | INET NAT/routing docs and Microsoft NAT docs are method context only. | Synthetic NAT tables may support schema shape only. |
@@ -211,6 +213,47 @@ and can reach only `ready-for-design-review`. It does not create retained
 authority evidence, add an customer runtime adapter, implement propagation, change
 satellite/scenario/overlay runtime, promote public TLE/CelesTrak/Space-Track
 output as customer model authority, or close F-01 authority completion.
+
+ITU-R Physics Module close-out pointer (post-S4R1 public-source-only formulae):
+the public-source-only ITU-R formulae backing the bounded F-17/P-01/P-02/P-03
+demo seeds landed under `src/features/itu-r-physics/` across three commits:
+
+- `01a3820` adds `itu-r-p838-rain-attenuation.ts` implementing ITU-R P.838-3
+  Table 5 specific-attenuation coefficients with log-log `k` and semi-log
+  `α` interpolation. Reference cases pass at 0.0% deviation
+  (`node scripts/verify-itu-r-p838-rain-attenuation.mjs`).
+- `be8c042` adds `itu-r-p618-link-budget.ts` implementing ITU-R P.618-14 §2.4
+  total path attenuation (`A_rain` + simplified `A_gas` + bounded `A_cloud` +
+  bounded `A_scint`). Component reference cases pass
+  (`node scripts/verify-itu-r-p618-link-budget.mjs`).
+- `23f4314` adds `itu-r-f699-antenna-pattern.ts` implementing ITU-R F.699-8
+  three-region sidelobe envelope plus boresight `G_max`. Reference cases pass
+  within published tolerance bands
+  (`node scripts/verify-itu-r-f699-antenna-pattern.mjs`).
+
+The module is consumed by `src/runtime/bootstrap-physical-input-seeds.ts` so
+that all 51 rain seeds plus antenna gain/pointing values flow through the
+public formulae instead of repo-chosen constants. The module is intentionally
+public-source-only: frequency, polarization, elevation, antenna geometry, and
+selected approximations are repo-chosen demo defaults, not customer/V-group
+selected. This module does not promote any public-source-only computation to
+customer/V-group authority truth, change S4R1 reviewer scope, change
+F-WP1-B/K-03/F-07 retained acceptance, run live external traffic, or
+substitute for customer/V-group validation vectors, tolerances, or owner
+sign-off. Customer/V-group selected parameters, validation vectors,
+tolerances, and acceptance still gate F-17/P-01/P-02/P-03 closure beyond
+bounded-public-source-only readiness.
+
+Cross-references for the post-S4R1 public-source-only state:
+
+- audit: `INDEPENDENT-AUDIT-results.md` rows F-07, K-03, P-01, P-02, P-03;
+- runtime: `src/features/itu-r-physics/`,
+  `src/runtime/bootstrap-physical-input-seeds.ts`;
+- verifiers: `scripts/verify-itu-r-p838-rain-attenuation.mjs`,
+  `scripts/verify-itu-r-p618-link-budget.mjs`,
+  `scripts/verify-itu-r-f699-antenna-pattern.mjs`;
+- phase plan: `docs/sdd/phase-6-plus-requirement-centered-plan.md`
+  Phase 6.5 closure note.
 
 S11R1 close-out: the bounded synthetic fallback fixture reviewer landed in
 `0d0074b`. Close-out details are recorded in

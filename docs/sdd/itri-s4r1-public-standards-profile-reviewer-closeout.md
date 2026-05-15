@@ -1,6 +1,7 @@
 # customer S4R1 Public Standards Profile Reviewer Closeout
 
-Date: 2026-05-14
+Date: 2026-05-14 (post-S4R1 ITU-R public-formula module amendment recorded
+2026-05-15; see "ITU-R Physics Module Follow-On" section below).
 
 Status: bounded public-profile review readiness reviewer implemented.
 
@@ -73,8 +74,14 @@ This slice preserves these boundaries:
 
 - public standards profile readiness is not customer/V-group authority truth;
 - selected public ITU recommendations do not imply customer/V-group acceptance;
-- no numeric standards-derived runtime behavior is implemented;
-- current bounded proxy physical-input values are not standards-derived;
+- the S4R1 reviewer itself implements no numeric standards-derived runtime
+  behavior — see the "ITU-R Physics Module Follow-On" section for the
+  bounded-public-source-only formulae that landed under
+  `src/features/itu-r-physics/` after S4R1;
+- public-source-only ITU-R formulae now back demo seeds for F-17/P-01/P-02/P-03
+  via `src/features/itu-r-physics/` but remain bounded-public-source-only —
+  they are not calibrated physical authority truth and do not assert
+  customer/V-group acceptance;
 - no calibrated physical authority truth is asserted;
 - no measured traffic, external validation, DUT, NAT, tunnel, native RF
   handover, active satellite/gateway/path, or complete customer acceptance claim is
@@ -121,3 +128,53 @@ derived runtime implementation remain explicitly nonclaimed. Rain-height
 (P.839), gas/cloud (P.676/P.840), and additional antenna candidates
 (S.580/S.1528) remain visible as S4-A lineage but are not promoted into
 this bounded subset.
+
+## ITU-R Physics Module Follow-On (2026-05-15)
+
+After S4R1 landed, a bounded-public-source-only ITU-R physics module landed
+under `src/features/itu-r-physics/` to back demo physical-input seeds with
+public-formula values instead of repo-chosen constants:
+
+- `itu-r-p838-rain-attenuation.ts` (`01a3820`) implements ITU-R P.838-3
+  Table 5 specific-attenuation coefficients with log-log `k` and semi-log
+  `α` interpolation. Reference cases verified by
+  `node scripts/verify-itu-r-p838-rain-attenuation.mjs` at 0.0% deviation.
+- `itu-r-p618-link-budget.ts` (`be8c042`) implements ITU-R P.618-14 §2.4
+  total path attenuation composing `A_rain` (P.838-3) + `A_gas` (simplified
+  P.676) + `A_cloud` (bounded P.840) + `A_scint` (bounded P.618 §2.5.2).
+  Reference cases verified by
+  `node scripts/verify-itu-r-p618-link-budget.mjs`.
+- `itu-r-f699-antenna-pattern.ts` (`23f4314`) implements ITU-R F.699-8
+  three-region sidelobe envelope plus boresight `G_max` and pointing-loss
+  helper. Reference cases verified by
+  `node scripts/verify-itu-r-f699-antenna-pattern.mjs` within published
+  tolerance bands.
+
+The module is consumed only by `src/runtime/bootstrap-physical-input-seeds.ts`
+so that demo seeds carry public-source-only computed values. The module is
+intentionally public-source-only:
+
+- frequency, polarization, elevation, antenna geometry, and selected
+  approximations are repo-chosen demo defaults rather than customer/V-group
+  selected parameters;
+- validation vectors and tolerances remain `not-yet-supplied` until
+  customer/V-group authority is recorded;
+- no `physical-input` runtime acceptance, S4R1 reviewer scope, F-WP1-B/K-03/F-07
+  retained acceptance, or `output/validation/public-standards-profiles/`
+  retained package state is changed by this module;
+- no measured traffic, external validation, DUT, NAT, tunnel, native RF
+  handover, active satellite/gateway/path, or complete customer acceptance
+  is asserted by this module.
+
+Customer/V-group selected parameters, validation vectors, tolerances, and
+acceptance still gate F-17/P-01/P-02/P-03 closure beyond
+bounded-public-source-only readiness.
+
+Cross-references:
+
+- audit rows: `INDEPENDENT-AUDIT-results.md` F-07, K-03, P-01, P-02, P-03;
+- roadmap pointer:
+  `docs/sdd/itri-requirement-completion-roadmap.md` ITU-R Physics Module
+  close-out pointer;
+- phase plan: `docs/sdd/phase-6-plus-requirement-centered-plan.md` Phase 6.5
+  closure note.

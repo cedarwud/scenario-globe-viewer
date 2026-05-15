@@ -458,6 +458,23 @@ Add the requirement-bearing model inputs that the decision layer depends on.
   match composition.ts active alias `activePhysicalInputController`.
 - `npm run test:phase6.5` passes (exit 0) as of `51965e0`.
 - Audit reference: `INDEPENDENT-AUDIT-results.md` F-WP1-B / P-01..P-03 rows.
+- Public-source-only ITU-R physics module follow-on (2026-05-15): the
+  bounded-public-source-only physics module landed under
+  `src/features/itu-r-physics/` and now backs demo physical-input seeds:
+  P.838-3 rain specific attenuation (`01a3820`), P.618-14 §2.4 total path
+  attenuation (`be8c042`), and F.699-8 antenna sidelobe envelope plus
+  boresight `G_max` (`23f4314`). Reference cases pass via
+  `scripts/verify-itu-r-p838-rain-attenuation.mjs`,
+  `scripts/verify-itu-r-p618-link-budget.mjs`, and
+  `scripts/verify-itu-r-f699-antenna-pattern.mjs`. The module is
+  intentionally bounded-public-source-only: demo frequency/elevation/
+  polarization/antenna-geometry remain repo-chosen, customer/V-group
+  selected parameters/vectors/tolerances/acceptance still gate authority
+  closure beyond bounded-public-source-only readiness. Roadmap pointer:
+  `docs/sdd/itri-requirement-completion-roadmap.md` ITU-R Physics Module
+  close-out pointer. S4R1 cross-reference:
+  `docs/sdd/itri-s4r1-public-standards-profile-reviewer-closeout.md`
+  ITU-R Physics Module Follow-On section.
 - Next active entry: `Phase 6.6`
 
 ## Phase 6.6
