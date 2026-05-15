@@ -335,13 +335,11 @@ turning the app into a decorative shell rewrite.
 
 ### Closure Note
 
-- Close-out **regressed** on `2026-05-15`: independent audit
-  (`INDEPENDENT-AUDIT-results.md`) reproduced `npm run test:phase6.2` exiting
-  with `ERR_MODULE_NOT_FOUND: /tmp/features/handover-decision` from the
-  transpiled `bootstrap-operator-controller.mjs` temp module. Verify script
-  is currently broken; the previously recorded `2026-04-19` close-out is
-  no longer supported by a green test run. Repair required before this row
-  can re-close.
+- Close-out re-accepted on `2026-05-15` after `51965e0` repaired
+  `scripts/verify-phase6.2-bootstrap-operator-controls.mjs` to localize the
+  `features/handover-decision` import inside the transpile temp dir.
+- `npm run test:phase6.2` passes (exit 0) as of `51965e0`.
+- Audit reference: `INDEPENDENT-AUDIT-results.md` F-WP1-B row.
 - Next active entry: `Phase 6.3`
 
 ## Phase 6.3
@@ -455,12 +453,11 @@ Add the requirement-bearing model inputs that the decision layer depends on.
 
 ### Closure Note
 
-- Close-out **regressed** on `2026-05-15`: independent audit
-  (`INDEPENDENT-AUDIT-results.md`) reproduced `npm run test:phase6.5` exiting
-  with `AssertionError: Bootstrap composition capture seam must expose
-  physical-input state for bounded verification`. Verify script is currently
-  broken; the previously recorded `2026-04-19` close-out is no longer supported
-  by a green test run. Repair required before this row can re-close.
+- Close-out re-accepted on `2026-05-15` after `51965e0` repaired
+  `scripts/verify-phase6.5-bootstrap-physical-input.mjs` assertion target to
+  match composition.ts active alias `activePhysicalInputController`.
+- `npm run test:phase6.5` passes (exit 0) as of `51965e0`.
+- Audit reference: `INDEPENDENT-AUDIT-results.md` F-WP1-B / P-01..P-03 rows.
 - Next active entry: `Phase 6.6`
 
 ## Phase 6.6

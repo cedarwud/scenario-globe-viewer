@@ -23,7 +23,7 @@ Verdict legend:
 | ID | 需求 | 判定 | 證據 | 與專案自述差異 |
 | --- | --- | --- | --- | --- |
 | F-WP1-A | 成功匯入軌道模型 | `verified-complete` | src: `src/features/orbit-model-intake/orbit-model-intake-reviewer.ts` (1 KB+), `src/features/satellites/bulk-tle-adapter.ts` 載入 SGP4 SatRec；test: `npm run test:itri-f01r1` exit 0；artifact: `output/validation/phase7.1/*-leo-scale-500/orbit-scope-matrix.json` 與 `*-multi-orbit-scale-1000/` 含 leoCount=600+ | 與專案宣稱「F-01 done」一致 |
-| F-WP1-B | 可動態調整參數介面 | `partial` | src: `src/runtime/bootstrap-operator-controller.ts`、`src/features/operator/`；test: `npm run test:phase6.2` **exit 1** — `ERR_MODULE_NOT_FOUND: /tmp/features/handover-decision` from `/tmp/sgv-phase6.2-wojTFN/bootstrap-operator-controller.mjs`；F-10/F-11 互動截圖在 `output/m8a-v4.12-f10-policy-selector/` 與 `output/m8a-v4.12-f11-rule-config/` 存在；test:m8a-v4.12:f10/f11 exit 0；test:m8a-v3-d03:s2/s3 提供 row grouping 證據 | 專案宣稱 phase6.2 closed；實測現在跑不過。回歸或環境依賴破損 |
+| F-WP1-B | 可動態調整參數介面 | `verified-complete` (updated 2026-05-15 after `51965e0`) | src: `src/runtime/bootstrap-operator-controller.ts`、`src/features/operator/`；test: `npm run test:phase6.2` **exit 0** after `51965e0` localized `features/handover-decision` import inside transpile temp dir；F-10/F-11 互動截圖在 `output/m8a-v4.12-f10-policy-selector/` 與 `output/m8a-v4.12-f11-rule-config/` 存在；test:m8a-v4.12:f10/f11 exit 0；test:m8a-v3-d03:s2/s3 提供 row grouping 證據 | Audit 初判 `partial` 因 verify script 破損；`51965e0` 修復後 re-verify 通過 |
 | F-WP1-C | 可產生通訊時間統計 | `verified-complete` | src: `src/features/communication-time/communication-time.ts`、`src/runtime/bootstrap-communication-time-*.ts`；test: `npm run test:phase6.3` exit 0，回傳 `totalCommunicatingMs:2124000`；artifact: F-16 export 內容含 `desktop-1440x900-downloaded-json-summary.json`、`desktop-1440x900-inspection.json` | 一致 |
 | F-WP1-D | 畫面穩定運行至少 24 小時 | `missing` | scripts: `scripts/run-phase7.0-soak.mjs`；artifact: `output/soak/2026-05-14T12-04-40-432Z-phase7-0-full/summary.json` 顯示 `passed:false`, `sampleCount:4`, `startedAt 12:04:40 / endedAt 12:08:10`（**3 分 30 秒中斷**），`errors.ndjson` 寫「Soak harness received SIGTERM before completion」；其他 phase7.0-rehearsal 全為 180000ms (3 分) 與 120000ms (2 分) 短跑；**全 repo 找不到任何 24h passed=true 的 soak run** | 專案以「24h-ready harness」描述；實際 24h soak 從未成功跑完一次 |
 | D-WP1-DATE | 2025/11/30 完成日期 | `cannot-verify` | 時程性條件，與 audit 無關 | n/a |
@@ -55,7 +55,7 @@ Verdict legend:
 | --- | --- | --- | --- | --- |
 | K-01 | 低/中/高軌訊號切換 | `verified-complete` | F-01/F-05 已涵蓋；multi-orbit-scale-1000 同時觀測三層 | 一致 |
 | K-02 | 鏈路品質 latency/jitter/network-speed 切換 | `verified-complete` | src: `src/features/decision-threshold-authority/decision-threshold-authority-reviewer.ts`；test: `npm run test:itri-f12r1` exit 0 covers F-09 omission、measuredFieldRef、rule semantics；F-10 smoke 三 policy 含 `network-speed-better`、`policy-weighted-override` reasons | 一致 |
-| K-03 | physical-layer 天線 + 雨衰情境 | `partial` | src: `src/features/physical-input/static-bounded-metric-profile.ts` (rain-attenuation + antenna + itu-style 三族群)；test: `npm run test:phase6.5` **exit 1** — AssertionError「Bootstrap composition capture seam must expose physical-input state for bounded verification」；artifact: `output/validation/external-f07-f09/2026-05-15T02-26-46Z-measured-traffic/` 存在 | 專案宣稱 phase6.5 closed；實測失敗 |
+| K-03 | physical-layer 天線 + 雨衰情境 | `code-only` (updated 2026-05-15 after `51965e0`) | src: `src/features/physical-input/static-bounded-metric-profile.ts` (rain-attenuation + antenna + itu-style 三族群)；test: `npm run test:phase6.5` **exit 0** after `51965e0` aligned assertion target with `activePhysicalInputController` alias；artifact: `output/validation/external-f07-f09/2026-05-15T02-26-46Z-measured-traffic/` 存在；**但 src 數值仍為 hardcoded bounded constants (attenuationDb=1.8/4.6/8.2)，無 ITU-R P.838/P.618 真實物理計算鏈** | Audit 初判 `partial` 因 verify 破損；`51965e0` 修復後 verify 通過，仍為 bounded proxy，故升為 `code-only` 而非 `verified-complete` |
 | K-04 | TLE 驅動衛星追蹤 | `verified-complete` | src: `src/features/satellites/bulk-tle-adapter.ts` import `satellite.js` (twoline2satrec/propagate/eciToEcf)；test: `test:phase4.1` exit 0；artifact: `src/runtime/fixtures/first-intake-aircraft-corridor/`、phase7.1 perf evidence | 一致 |
 | E-01 | Linux 主環境，Windows+WSL 備案 | `partial` | src: `src/runtime/bootstrap-validation-state-seeds.ts` 編碼 `linux-direct`/`windows-wsl-tunnel`/`inet-nat-bridge`；test: `test:phase6.6` exit 0；artifact: 對應截圖在 m8a-v4.11 narrow tablet desktop 多分辨率；但 Linux 為主執行平台、WSL 實機驗測無 retained pass evidence | 三種 environment-mode 為**標籤資料**，非真實平台跨機驗測 |
 
@@ -142,12 +142,17 @@ Verdict legend:
 
 | 判定 | 計數 | IDs |
 | --- | --- | --- |
-| verified-complete | 23 | F-WP1-A, F-WP1-C, T-01, T-02, T-03, T-04, T-05, F-01, F-02, F-03, F-04, F-05, F-06, K-01, K-02, K-04, F-02a, F-03a, K-05, D-02, M-02, M-03, R-01 |
-| code-only | 4 | P-01, P-02, P-03, M-04 |
-| partial | 8 | F-WP1-B, K-03, E-01, F-04a, F-07, V-02, M-01, R-03 |
+| verified-complete | 24 | F-WP1-A, F-WP1-B**¹**, F-WP1-C, T-01, T-02, T-03, T-04, T-05, F-01, F-02, F-03, F-04, F-05, F-06, K-01, K-02, K-04, F-02a, F-03a, K-05, D-02, M-02, M-03, R-01 |
+| code-only | 5 | P-01, P-02, P-03, K-03**¹**, M-04 |
+| partial | 6 | E-01, F-04a, F-07, V-02, M-01, R-03 |
 | missing | 5 | F-WP1-D, N-03, N-06, N-07, V-03 |
 | cannot-verify | 15 | D-WP1-DATE, D-WP1-DOC, N-01, N-02, N-04, N-05, N-08, V-01, N-09, D-03, D-04, D-05, D-06, S-01, R-02 |
 | **Total** | **55** | |
+
+**¹** Updated 2026-05-15 after `51965e0` repaired `test:phase6.2` + `test:phase6.5`.
+F-WP1-B promoted `partial` → `verified-complete`.
+K-03 promoted `partial` → `code-only` (verify passes, but src remains bounded
+proxy without ITU-R real physics integration).
 
 ---
 
@@ -174,8 +179,8 @@ Verdict legend:
 | `npm run test:m8a-v4.12:f09` | 0 | communication-rate smoke |
 | `npm run test:m8a-v4.12:f11` | 0 | rule-config smoke |
 | `npm run test:m8a-v4.12:f16` | 0 | report-export smoke |
-| `npm run test:phase6.2` | **1** | `ERR_MODULE_NOT_FOUND: /tmp/features/handover-decision` |
-| `npm run test:phase6.5` | **1** | `AssertionError: Bootstrap composition capture seam must expose physical-input state for bounded verification.` |
+| `npm run test:phase6.2` | 0 (after `51965e0`) | originally exit 1 (`ERR_MODULE_NOT_FOUND: /tmp/features/handover-decision`); fixed by localizing `features/handover-decision` import inside transpile temp dir |
+| `npm run test:phase6.5` | 0 (after `51965e0`) | originally exit 1 (`AssertionError: Bootstrap composition capture seam must expose physical-input state for bounded verification.`); fixed by aligning assertion string with `activePhysicalInputController` alias |
 
 ---
 
@@ -185,10 +190,11 @@ Verdict legend:
    86400000 但 3 分 30 秒後 SIGTERM，passed=false，sampleCount=4。其餘 soak 全
    為 2–3 分 rehearsal/gate-probe。任何「24h stability gate ready」自述都缺乏
    實際 24h retained run。
-2. **phase6.2 / phase6.5 verify 今天跑不過** — 對應 F-WP1-B 與 F-07/K-03 雨衰雨
-   情境兩條 ITRI 硬要求。若專案有「closed/handoff」自述聲稱兩 phase 已通過，與
-   現況不符。可能為（a）verify script 對 /tmp 路徑硬編碼漂移；（b）composition
-   capture seam 已偷拆。任一情況都會讓對應驗收條件失效。
+2. **phase6.2 / phase6.5 verify 原本破損已修復**（updated 2026-05-15）— 對應 F-WP1-B
+   與 K-03。Root cause 確認為（a）transpile temp dir 對 `features/handover-decision`
+   relative import 解析失敗；（b）composition.ts 使用 `activePhysicalInputController`
+   ternary alias，verify script 仍 assert 舊字串。`51965e0` 兩處最小修補，現都 exit 0。
+   注意：K-03 verify 通過不代表物理層整合完成，src 仍為 bounded proxy（見第 3 點）。
 3. **物理層整合屬 bounded proxy** — antenna / rain / itu 三 family 僅有 repo-
    owned bounded profile，未見 V 組真實 input 與 ITU 規範實參數整合的 retained
    pass evidence。對應 P-01/P-02/P-03 為 code-only。
