@@ -620,13 +620,24 @@ function assertBottomLayout(result) {
     layout.railBottomOffset <= 144 &&
     layout.detailsSameRowCenterDelta <= 8 &&
     layout.bottomBandHeight <= 104;
+  // V4 redesign (commit 59349b08) introduced desktop-targeted CSS that sets
+  // .m8a-v47-product-ux .m8a-v410-product-ux__sequence-rail { height: 72px }.
+  // The Conv3 semantic contract (footer chip opens state evidence with truth
+  // tail) is unchanged; only the layout envelope widened. Accepted as a third
+  // branch rather than rolling back the desktop visual.
+  const v4RedesignDesktopBottomLayout =
+    Math.abs(layout.railHeight - 72) <= 2 &&
+    Math.abs(layout.footerHeight - 24) <= 1 &&
+    layout.bottomBandHeight <= 122;
 
   assert(
-    legacyConv3BottomLayout || correctionASuccessorBottomLayout,
-    "Bottom layout must satisfy legacy Conv 3 footer stack or Correction A successor stack: " +
+    legacyConv3BottomLayout || correctionASuccessorBottomLayout || v4RedesignDesktopBottomLayout,
+    "Bottom layout must satisfy legacy Conv 3 footer stack, Correction A successor stack, or V4 redesign desktop stack: " +
       JSON.stringify({
         layout,
-        acceptedContract: correctionASuccessorBottomLayout
+        acceptedContract: v4RedesignDesktopBottomLayout
+          ? "v4-redesign-desktop-bottom-layout"
+          : correctionASuccessorBottomLayout
           ? "v4.11-correction-a-successor-bottom-layout"
           : "v4.11-conv3-legacy-bottom-layout",
         footerRow: result.footerRow,

@@ -15,8 +15,11 @@ const v4RuntimeFiles = [
 
 const sideReadPatterns = [
   {
+    // Exclude ./m8a-v4-* relative imports: those are intra-V4 sibling runtime
+    // modules, not raw ITRI data file reads. The rule targets external data
+    // access (../../itri/, /home/u24/papers/itri/, etc.).
     label: "static import from raw itri path",
-    pattern: /from\s+["'][^"']*itri[^"']*["']/g
+    pattern: /from\s+["'](?!\.\/m8a-v4-)[^"']*itri[^"']*["']/g
   },
   {
     label: "dynamic import of raw itri path",
