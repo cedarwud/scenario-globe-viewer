@@ -99,3 +99,25 @@ retained authority material, missing validation vectors, missing tolerances,
 missing replacement-rule trigger, retained path escaping the package, missing
 `sourceTier` defaulting to Tier 2, and a positive temp-only bounded public
 profile covering F-17/P-01/P-02/P-03.
+
+## ITU-R Public Standards Profile v1 (bounded-public-profile-ready)
+
+Created: 2026-05-15
+profileId: `itri-s4-itu-rain-antenna-v1`
+packageState: `bounded-public-profile-ready`
+Sources: ITU-R P.618 / P.837 / P.838 / S.465
+Covered: F-17, P-01, P-02, P-03
+acceptanceStatus: `bounded-public-profile-only`
+
+The retained package lives under
+`output/validation/public-standards-profiles/itri-s4-itu-rain-antenna-v1/`
+(gitignored). The S4R1 reviewer
+(`scripts/review-itri-public-standards-profile.mjs`) exits 0 with zero gaps,
+all four requirement reviews resolving to `bounded-public-profile-ready`,
+`validationReadiness.notYetSuppliedValidationVectorsPresent: true`, and
+`validationReadiness.notYetSuppliedTolerancesPresent: true`. Customer
+V-group authority truth, calibrated physical authority truth, and standards-
+derived runtime implementation remain explicitly nonclaimed. Rain-height
+(P.839), gas/cloud (P.676/P.840), and additional antenna candidates
+(S.580/S.1528) remain visible as S4-A lineage but are not promoted into
+this bounded subset.
