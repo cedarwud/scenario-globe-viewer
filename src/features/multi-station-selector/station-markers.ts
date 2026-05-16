@@ -101,7 +101,6 @@ export function mountGroundStationMarkers(
         color: style.color,
         outlineColor: style.outlineColor,
         outlineWidth: style.outlineWidth,
-        disableDepthTestDistance: Number.POSITIVE_INFINITY,
         id: `ground-station-marker:${station.id}`
       });
 
@@ -115,9 +114,7 @@ export function mountGroundStationMarkers(
         style: LabelStyle.FILL_AND_OUTLINE,
         verticalOrigin: VerticalOrigin.BOTTOM,
         pixelOffset: new Cartesian3(0, -10, 0),
-        show: false,
-        disableDepthTestDistance: Number.POSITIVE_INFINITY,
-        eyeOffset: new Cartesian3(0, 0, -1)
+        show: false
       });
 
       pointById.set(station.id, point);
