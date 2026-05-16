@@ -10,6 +10,7 @@ import { createSelectionStore } from "../../features/multi-station-selector/sele
 import { mountSelectionChips } from "../../features/multi-station-selector/selection-chips";
 import { mountMarkerHoverTooltip } from "../../features/multi-station-selector/marker-hover-tooltip";
 import { mountMarkerFilterChips } from "../../features/multi-station-selector/marker-filter-chips";
+import { mountV4ProjectionSidePanel } from "../../features/multi-station-selector/v4-projection-side-panel";
 import {
   mountOptionalOsmBuildingsShowcase,
   resolveBuildingShowcaseSelection
@@ -673,6 +674,12 @@ export function startBootstrapComposition(app: HTMLDivElement): BootstrapComposi
         replayClock: firstIntakeReplayClock
       })
     : undefined;
+  const m8aV4ProjectionSidePanel = isM8aV4RuntimeRequest
+    ? mountV4ProjectionSidePanel(viewer.container as HTMLElement, {
+        stationAId: new URLSearchParams(window.location.search).get("stationA"),
+        stationBId: new URLSearchParams(window.location.search).get("stationB")
+      })
+    : null;
   const satelliteOverlay = createSatelliteOverlayController({
     viewer,
     replayClock
@@ -807,6 +814,7 @@ export function startBootstrapComposition(app: HTMLDivElement): BootstrapComposi
       disposeLightingRefresh();
       unmountOsmBuildingsShowcase();
       unmountLightingToggle();
+      m8aV4ProjectionSidePanel?.dispose();
       m8aV4GroundStationScene?.dispose();
       firstIntakeOrbitContextActors?.dispose();
       firstIntakeSatcomContextOverlay?.dispose();

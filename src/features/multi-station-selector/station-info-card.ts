@@ -13,6 +13,10 @@ import type {
   SelectionSnapshot,
   SelectionStore
 } from "./selection-store";
+import {
+  inferPairSourceTierById,
+  type PairSourceTierAttribution
+} from "./tier-inference";
 
 const MARKER_PICK_ID_PREFIX = "ground-station-marker:";
 
@@ -175,6 +179,27 @@ function buildActionRow(
   return wrapper;
 }
 
+function resolvePairTierForCard(
+  station: RegistryStation,
+  snapshot: SelectionSnapshot
+): PairSourceTierAttribution | null {
+  if (!snapshot.stationA || !snapshot.stationB) {
+    return null;
+  }
+  if (snapshot.stationA !== station.id && snapshot.stationB !== station.id) {
+    return null;
+  }
+  return inferPairSourceTierById(snapshot.stationA, snapshot.stationB);
+}
+
+function buildTierBadge(attribution: PairSourceTierAttribution): HTMLElement {
+  const badge = document.createElement("p");
+  badge.className = "ground-station-info-card__tier-badge";
+  badge.dataset.tier = attribution.sourceTier;
+  badge.textContent = attribution.badgeLabel;
+  return badge;
+}
+
 function renderCard(
   root: HTMLElement,
   station: RegistryStation,
@@ -202,6 +227,12 @@ function renderCard(
 
   const body = document.createElement("div");
   body.className = "ground-station-info-card__body";
+
+  const tierAttribution = resolvePairTierForCard(station, snapshot);
+  if (tierAttribution) {
+    body.append(buildTierBadge(tierAttribution));
+  }
+
   body.append(buildFieldList(station));
 
   if (station.primaryUseCase) {
