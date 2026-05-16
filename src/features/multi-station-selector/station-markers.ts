@@ -67,6 +67,8 @@ export interface GroundStationMarkersHandle {
   setVisible(visible: boolean): void;
   isVisible(): boolean;
   setHighlightedStation(stationId: string | null): void;
+  setOrbitFilter(allowedOrbits: ReadonlyArray<OrbitClass>): void;
+  getOrbitFilter(): ReadonlyArray<OrbitClass>;
   getStationCount(): number;
   dispose(): void;
 }
@@ -81,8 +83,10 @@ export function mountGroundStationMarkers(
   const labelById = new Map<string, Label>();
 
   const baseStyleById = new Map<string, MarkerStyle>();
+  const stationById = new Map<string, RegistryStation>();
 
   let visible = options.initiallyVisible ?? true;
+  let allowedOrbits: ReadonlySet<OrbitClass> = new Set<OrbitClass>(["LEO", "MEO", "GEO"]);
   let highlightedId: string | null = null;
   let attached = false;
   let disposed = false;
@@ -128,6 +132,23 @@ export function mountGroundStationMarkers(
       pointById.set(station.id, point);
       labelById.set(station.id, label);
       baseStyleById.set(station.id, style);
+      stationById.set(station.id, station);
+    }
+  }
+
+  function stationPassesFilter(station: RegistryStation): boolean {
+    for (const orbit of station.supportedOrbits) {
+      if (allowedOrbits.has(orbit)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  function applyFilterToMarkers(): void {
+    for (const [stationId, point] of pointById) {
+      const station = stationById.get(stationId);
+      point.show = station ? stationPassesFilter(station) : false;
     }
   }
 
@@ -157,18 +178,34 @@ export function mountGroundStationMarkers(
 
   attach();
   populate();
+  applyFilterToMarkers();
   viewer.scene.requestRender();
 
   return {
     setVisible(next: boolean): void {
       visible = next;
       if (attached) {
-        points.show = next;
+        if (next) {
+          points.show = true;
+          applyFilterToMarkers();
+        } else {
+          points.show = false;
+        }
         viewer.scene.requestRender();
       }
     },
     isVisible(): boolean {
       return visible;
+    },
+    setOrbitFilter(next: ReadonlyArray<OrbitClass>): void {
+      allowedOrbits = new Set<OrbitClass>(next);
+      applyFilterToMarkers();
+      if (attached) {
+        viewer.scene.requestRender();
+      }
+    },
+    getOrbitFilter(): ReadonlyArray<OrbitClass> {
+      return Array.from(allowedOrbits);
     },
     setHighlightedStation(stationId: string | null): void {
       if (highlightedId === stationId) {
@@ -197,6 +234,7 @@ export function mountGroundStationMarkers(
       pointById.clear();
       labelById.clear();
       baseStyleById.clear();
+      stationById.clear();
       points.removeAll();
       labels.removeAll();
       if (attached && !viewer.isDestroyed()) {

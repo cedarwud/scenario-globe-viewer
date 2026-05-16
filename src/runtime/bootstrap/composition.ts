@@ -8,6 +8,8 @@ import { mountGroundStationMarkerToggle } from "../../features/multi-station-sel
 import { mountGroundStationInfoCard } from "../../features/multi-station-selector/station-info-card";
 import { createSelectionStore } from "../../features/multi-station-selector/selection-store";
 import { mountSelectionChips } from "../../features/multi-station-selector/selection-chips";
+import { mountMarkerHoverTooltip } from "../../features/multi-station-selector/marker-hover-tooltip";
+import { mountMarkerFilterChips } from "../../features/multi-station-selector/marker-filter-chips";
 import {
   mountOptionalOsmBuildingsShowcase,
   resolveBuildingShowcaseSelection
@@ -760,6 +762,12 @@ export function startBootstrapComposition(app: HTMLDivElement): BootstrapComposi
           selectionStore: groundStationSelectionStore
         })
       : null;
+  const groundStationMarkerHoverTooltip = groundStationMarkers
+    ? mountMarkerHoverTooltip(viewer, groundStationMarkers)
+    : null;
+  const groundStationMarkerFilterChips = groundStationMarkers
+    ? mountMarkerFilterChips(viewer.container as HTMLElement, groundStationMarkers)
+    : null;
 
   const unmountHomepageEntryCta =
     adoptFirstIntakeAsActiveOwner || isM8aV4RuntimeRequest
@@ -789,6 +797,8 @@ export function startBootstrapComposition(app: HTMLDivElement): BootstrapComposi
     dispose() {
       delete window.__SCENARIO_GLOBE_VIEWER_CAPTURE__;
       unmountHomepageEntryCta();
+      groundStationMarkerFilterChips?.dispose();
+      groundStationMarkerHoverTooltip?.dispose();
       groundStationInfoCard?.dispose();
       groundStationSelectionChips?.dispose();
       groundStationSelectionStore?.dispose();
