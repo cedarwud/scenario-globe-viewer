@@ -6,6 +6,8 @@ import { mountLightingToggle } from "../../features/globe/lighting-toggle";
 import { mountGroundStationMarkers } from "../../features/multi-station-selector/station-markers";
 import { mountGroundStationMarkerToggle } from "../../features/multi-station-selector/marker-toggle";
 import { mountGroundStationInfoCard } from "../../features/multi-station-selector/station-info-card";
+import { createSelectionStore } from "../../features/multi-station-selector/selection-store";
+import { mountSelectionChips } from "../../features/multi-station-selector/selection-chips";
 import {
   mountOptionalOsmBuildingsShowcase,
   resolveBuildingShowcaseSelection
@@ -745,9 +747,19 @@ export function startBootstrapComposition(app: HTMLDivElement): BootstrapComposi
   const unmountGroundStationMarkerToggle = groundStationMarkers
     ? mountGroundStationMarkerToggle(viewer, groundStationMarkers)
     : () => {};
-  const groundStationInfoCard = groundStationMarkers
-    ? mountGroundStationInfoCard(viewer, groundStationMarkers)
+  const groundStationSelectionStore = groundStationMarkers
+    ? createSelectionStore()
     : null;
+  const groundStationSelectionChips =
+    groundStationMarkers && groundStationSelectionStore
+      ? mountSelectionChips(viewer.container as HTMLElement, groundStationSelectionStore)
+      : null;
+  const groundStationInfoCard =
+    groundStationMarkers && groundStationSelectionStore
+      ? mountGroundStationInfoCard(viewer, groundStationMarkers, {
+          selectionStore: groundStationSelectionStore
+        })
+      : null;
 
   const unmountHomepageEntryCta =
     adoptFirstIntakeAsActiveOwner || isM8aV4RuntimeRequest
@@ -778,6 +790,8 @@ export function startBootstrapComposition(app: HTMLDivElement): BootstrapComposi
       delete window.__SCENARIO_GLOBE_VIEWER_CAPTURE__;
       unmountHomepageEntryCta();
       groundStationInfoCard?.dispose();
+      groundStationSelectionChips?.dispose();
+      groundStationSelectionStore?.dispose();
       unmountGroundStationMarkerToggle();
       groundStationMarkers?.dispose();
       disposeLightingRefresh();

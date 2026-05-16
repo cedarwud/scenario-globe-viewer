@@ -8,6 +8,11 @@ import {
 import registry from "../../../public/fixtures/ground-stations/multi-orbit-public-registry.json";
 
 import type { GroundStationMarkersHandle } from "./station-markers";
+import type {
+  SelectionSlot,
+  SelectionSnapshot,
+  SelectionStore
+} from "./selection-store";
 
 const MARKER_PICK_ID_PREFIX = "ground-station-marker:";
 
@@ -50,6 +55,11 @@ const DISCLOSURE_LABEL: Readonly<Record<string, string>> = {
   "exact-coords": "Exact coordinates (operator-published)",
   "operator-family-region": "Operator-family region",
   "region-only": "Region only"
+};
+
+const SLOT_LABEL: Readonly<Record<SelectionSlot, string>> = {
+  stationA: "Station A",
+  stationB: "Station B"
 };
 
 function formatRegion(region: string): string {
@@ -133,7 +143,43 @@ function buildFieldList(station: RegistryStation): HTMLElement {
   return list;
 }
 
-function renderCard(root: HTMLElement, station: RegistryStation): void {
+function buildActionRow(
+  station: RegistryStation,
+  snapshot: SelectionSnapshot
+): HTMLElement {
+  const wrapper = document.createElement("div");
+  wrapper.className = "ground-station-info-card__actions";
+
+  for (const slot of ["stationA", "stationB"] as ReadonlyArray<SelectionSlot>) {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "ground-station-info-card__action";
+    button.dataset.groundStationInfoCardAction = slot;
+    button.dataset.stationId = station.id;
+
+    const isThisStationInSlot = snapshot[slot] === station.id;
+    button.dataset.active = String(isThisStationInSlot);
+    button.setAttribute("aria-pressed", String(isThisStationInSlot));
+
+    if (isThisStationInSlot) {
+      button.textContent = `✓ ${SLOT_LABEL[slot]} · click to clear`;
+      button.title = `${station.name} is currently ${SLOT_LABEL[slot]}. Click to clear.`;
+    } else {
+      button.textContent = `Select as ${SLOT_LABEL[slot]}`;
+      button.title = `Set ${station.name} as ${SLOT_LABEL[slot]}.`;
+    }
+
+    wrapper.append(button);
+  }
+
+  return wrapper;
+}
+
+function renderCard(
+  root: HTMLElement,
+  station: RegistryStation,
+  snapshot: SelectionSnapshot
+): void {
   root.replaceChildren();
   root.dataset.activeStationId = station.id;
 
@@ -172,6 +218,8 @@ function renderCard(root: HTMLElement, station: RegistryStation): void {
     body.append(notes);
   }
 
+  body.append(buildActionRow(station, snapshot));
+
   const footer = document.createElement("footer");
   footer.className = "ground-station-info-card__footer";
 
@@ -194,6 +242,10 @@ function renderCard(root: HTMLElement, station: RegistryStation): void {
   root.append(header, body, footer);
 }
 
+export interface GroundStationInfoCardOptions {
+  readonly selectionStore: SelectionStore;
+}
+
 export interface GroundStationInfoCardHandle {
   open(stationId: string): void;
   close(): void;
@@ -202,8 +254,11 @@ export interface GroundStationInfoCardHandle {
 
 export function mountGroundStationInfoCard(
   viewer: Viewer,
-  markers: GroundStationMarkersHandle
+  markers: GroundStationMarkersHandle,
+  options: GroundStationInfoCardOptions
 ): GroundStationInfoCardHandle {
+  const { selectionStore } = options;
+
   const root = createCardRoot();
   viewer.container.appendChild(root);
 
@@ -215,9 +270,9 @@ export function mountGroundStationInfoCard(
     if (!station) {
       return;
     }
-    renderCard(root, station);
-    root.hidden = false;
     activeStationId = stationId;
+    renderCard(root, station, selectionStore.getSnapshot());
+    root.hidden = false;
     markers.setHighlightedStation(stationId);
     viewer.scene.requestRender();
   }
@@ -242,6 +297,26 @@ export function mountGroundStationInfoCard(
     if (target.closest("[data-ground-station-info-card-close]")) {
       event.preventDefault();
       close();
+      return;
+    }
+    const actionButton = target.closest<HTMLButtonElement>(
+      "[data-ground-station-info-card-action]"
+    );
+    if (actionButton) {
+      event.preventDefault();
+      const slot = actionButton.dataset.groundStationInfoCardAction as
+        | SelectionSlot
+        | undefined;
+      const stationId = actionButton.dataset.stationId;
+      if (!slot || !stationId) {
+        return;
+      }
+      const snapshot = selectionStore.getSnapshot();
+      if (snapshot[slot] === stationId) {
+        selectionStore.clear(slot);
+      } else {
+        selectionStore.setStation(slot, stationId);
+      }
     }
   }
 
@@ -257,6 +332,17 @@ export function mountGroundStationInfoCard(
 
   root.addEventListener("click", handleRootClick);
   window.addEventListener("keydown", handleKeydown);
+
+  const unsubscribeStore = selectionStore.subscribe((snapshot) => {
+    if (activeStationId === null) {
+      return;
+    }
+    const station = STATIONS_BY_ID.get(activeStationId);
+    if (!station) {
+      return;
+    }
+    renderCard(root, station, snapshot);
+  });
 
   const eventHandler = new ScreenSpaceEventHandler(viewer.scene.canvas);
   eventHandler.setInputAction((movement: { position: Cartesian2 }) => {
@@ -284,6 +370,7 @@ export function mountGroundStationInfoCard(
       }
       disposed = true;
       eventHandler.destroy();
+      unsubscribeStore();
       root.removeEventListener("click", handleRootClick);
       window.removeEventListener("keydown", handleKeydown);
       if (root.parentElement) {
