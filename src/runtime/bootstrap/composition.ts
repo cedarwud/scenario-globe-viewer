@@ -483,6 +483,12 @@ export function startBootstrapComposition(app: HTMLDivElement): BootstrapComposi
   const adoptFirstIntakeAsActiveOwner =
     shouldAdoptFirstIntakeAsActiveOwner(firstIntakeScenarioSurface);
   const mountBootstrapOperatorStatusHud = !isM8aV4RuntimeRequest;
+  syncDocumentTelemetry({
+    viewerMode:
+      !isM8aV4RuntimeRequest && !adoptFirstIntakeAsActiveOwner
+        ? "clean-home"
+        : undefined
+  });
   const firstIntakeMobileEndpointTrajectory = adoptFirstIntakeAsActiveOwner
     ? createFirstIntakeMobileEndpointTrajectoryController({
         scenarioSurface: firstIntakeScenarioSurface

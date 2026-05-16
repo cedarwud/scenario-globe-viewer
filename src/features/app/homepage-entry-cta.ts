@@ -199,15 +199,9 @@ export function mountHomepageEntryCta(
   const toolbar = viewerShell.querySelector<HTMLElement>(".cesium-viewer-toolbar");
 
   if (toolbar) {
-    const homeButton = toolbar.querySelector<HTMLElement>(".cesium-home-button");
     root.dataset.homepageEntryMount = "cesium-toolbar";
-    if (homeButton?.parentNode === toolbar) {
-      root.dataset.homepageEntryPlacement = "before-home-button";
-      toolbar.insertBefore(root, homeButton);
-    } else {
-      root.dataset.homepageEntryPlacement = "toolbar-end";
-      toolbar.appendChild(root);
-    }
+    root.dataset.homepageEntryPlacement = "toolbar-end";
+    toolbar.appendChild(root);
   } else {
     root.dataset.homepageEntryMount = "viewer-shell";
     viewerShell.appendChild(root);

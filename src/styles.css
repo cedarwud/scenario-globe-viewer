@@ -93,6 +93,18 @@ body {
   display: none;
 }
 
+html[data-viewer-mode="clean-home"] .hud-panel--status,
+html[data-viewer-mode="clean-home"] .hud-panel--left,
+html[data-viewer-mode="clean-home"] .hud-panel--right {
+  opacity: 0;
+  pointer-events: none;
+}
+
+html[data-viewer-mode="clean-home"] .hud-frame::before,
+html[data-viewer-mode="clean-home"] .hud-frame::after {
+  opacity: 0;
+}
+
 .hud-frame[data-r1v-visual-acceptance-hud-cleanup="addressed-route"]
   .hud-panel--status,
 .hud-frame[data-r1v-visual-acceptance-hud-cleanup="addressed-route"]
