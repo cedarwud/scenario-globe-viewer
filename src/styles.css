@@ -59,6 +59,15 @@ body {
   justify-content: center;
 }
 
+/* Restore Cesium default inline-block on the scene-mode-picker wrapper so its
+   internal dropdown buttons stack vertically (Cesium's expected layout)
+   instead of being centered horizontally as flex children, which made the
+   visible 3D/2D/Columbus icons overflow the wrapper's left edge and overlap
+   adjacent toolbar buttons. */
+.cesium-viewer-toolbar > .cesium-sceneModePicker-wrapper {
+  display: inline-block;
+}
+
 .app-shell {
   position: relative;
   width: 100%;
