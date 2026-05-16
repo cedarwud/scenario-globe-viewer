@@ -9,6 +9,9 @@ output/*
 !output/validation/
 output/soak/*
 !output/soak/.gitkeep
+!output/soak/*-phase7-0-full/
+!output/soak/*-phase7-0-full/summary.json
+!output/soak/*-phase7-0-full/harness-params.json
 output/validation/*
 !output/validation/.gitkeep
 

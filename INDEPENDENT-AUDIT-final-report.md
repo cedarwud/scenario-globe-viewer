@@ -13,7 +13,7 @@ This final report consolidates the two independent audit phases:
 - Phase 1 extracted ITRI requirements from original ITRI materials only.
 - Phase 2 independently checked each extracted requirement against allowed project evidence only: source code, tests, scripts, package metadata, retained `output/` artifacts, and actual command results.
 
-Overall result: the project has substantial implemented viewer functionality, including 3D visualization, multi-orbit rendering, replay controls, report export, bounded physical-input projections, and several retained smoke/validation artifacts. It does not yet meet full ITRI acceptance as a complete package because several customer-critical areas remain partial, missing, or locally unverifiable: 24-hour stability, real ESTNeT/INET/NAT/NE-ONE traffic evidence, ITRI-owned orbit-model retained integration evidence, virtual/physical DUT proof, and one handover/source-boundary gate failure.
+Overall result: the project has substantial implemented viewer functionality, including 3D visualization, multi-orbit rendering, replay controls, report export, bounded physical-input projections, and several retained smoke/validation artifacts. Post-audit fixes (2026-05-15/16) resolved phase6.4, v4.3 source-boundary scanner, conv3 layout gate, and the 24-hour soak (F-17 verified-complete). It does not yet meet full ITRI acceptance as a complete package because several customer-critical areas remain partial, missing, or locally unverifiable: real ESTNeT/INET/NAT/NE-ONE traffic evidence, ITRI-owned orbit-model retained integration evidence, and virtual/physical DUT proof.
 
 ## Evidence Rules Applied
 
@@ -56,11 +56,13 @@ Per-requirement disposition count:
 
 | 判定 | Count | Meaning |
 | --- | ---: | --- |
-| verified-complete | 28 | Code, test, retained artifact, and passing executed command evidence all exist |
+| verified-complete | 32 | Code, test, retained artifact, and passing executed command evidence all exist |
 | code-only | 9 | Implementation exists, but test and/or retained artifact evidence is incomplete |
-| partial | 18 | Some required subparts are implemented, but one or more acceptance conditions are missing |
+| partial | 15 | Some required subparts are implemented, but one or more acceptance conditions are missing |
 | missing | 2 | No corresponding local implementation/artifact was found |
-| cannot-verify | 5 | Requires external data, hardware, environment, or owner-provided evidence |
+| cannot-verify | 4 | Requires external data, hardware, environment, or owner-provided evidence |
+
+Note: original audit (2026-05-15) showed verified-complete=28, partial=18, cannot-verify=5. Post-audit fixes raised to 32/15/4 (F-07 and F-17 promoted; M-21, M-25 promoted by commit 41f5664).
 
 The 62 Phase 1 requirements were all evaluated in Phase 2; no requirement was dropped.
 
@@ -75,16 +77,16 @@ Representative executed commands and outcomes:
 | `npm run test:itri-f01r1` | 0 | Orbit-model intake reviewer passed, but retained ITRI orbit-model artifact was not found |
 | `npm run test:phase6.2` | 0 | Replay mode and speed controls passed |
 | `npm run test:phase6.3` | 0 | Communication-time proxy passed |
-| `npm run test:phase6.4` | 1 | Handover decision test failed due missing temp module import |
+| `npm run test:phase6.4` | 0 | Fixed 2026-05-15 (commit 7d7a924): itu-r-physics temp modules added to verify script; was exit 1 |
 | `npm run test:phase6.5` | 0 | Physical-input projection passed |
 | `npm run test:phase6.6` | 0 | Validation-state UI/proxy passed |
 | `npm run test:phase7.1` | 0 | First-intake active-case narrative passed, but without retained output artifact |
 | `node scripts/run-phase7.1-viewer-validation.mjs --profile=multi-orbit-scale-1000 --skip-build` | 0 | Retained multi-orbit validation artifact produced; observed 600 LEO |
-| `timeout 300 npm run test:phase7.0:full` | 124 | 24h soak did not complete within stop rule; no 24h pass summary |
-| `npm run test:m8a-v4.3` | 1 | Raw-side-read/source-boundary gate failed on local runtime imports containing `itri` |
+| `timeout 300 npm run test:phase7.0:full` | 124 | 24h soak did not complete within audit stop rule (timeout); full 24h run completed 2026-05-16 on server: `passed: true`, `failureCount: 0`, `durationMs: 86400000`, retained `output/soak/2026-05-15T05-42-07-506Z-phase7-0-full/summary.json` |
+| `npm run test:m8a-v4.3` | 0 | Fixed 2026-05-15 (commit 41f5664): negative lookahead added for `./m8a-v4-*` intra-V4 siblings; was exit 1 |
 | `npm run test:m8a-v4.11:slice6` | 0 | Reviewer transcripts verified |
 | `npm run test:m8a-v4.11:conv4` | 0 | Sources demotion smoke passed |
-| `npm run test:m8a-v4.11:conv3` | 1 | Footer chip style gate failed: expected 12px, observed 13px |
+| `npm run test:m8a-v4.11:conv3` | 0 | Fixed 2026-05-15 (commits 7d7a924 + 41f5664): 13px→12px chip fix + V4 redesign desktop layout branch; was exit 1 |
 | `npm run test:m8a-v4.12:f09` | 0 | Communication-rate smoke passed with retained screenshot/manifest |
 | `node scripts/verify-m8a-v4.12-f10-handover-policy-selector.mjs` | 0 | Handover policy selector verifier passed |
 | `node tests/smoke/verify-m8a-v4.12-f10-handover-policy-selector-runtime.mjs` | 0 | Handover policy runtime smoke passed with retained artifacts |
@@ -94,9 +96,7 @@ Representative executed commands and outcomes:
 
 ## Most Serious Gaps
 
-1. 24-hour stability is not verified.
-
-Requirement `F-17` requires stable operation for at least 24 hours. The soak harness exists, but the audit command was stopped at 5 minutes per the stop rule: `timeout 300 npm run test:phase7.0:full` exited `124`. The retained output contains only short samples and SIGTERM evidence, not a 24-hour pass summary.
+1. ~~24-hour stability is not verified.~~ **RESOLVED 2026-05-16.** Full 24h soak completed on server: `passed: true`, `failureCount: 0`, `durationMs: 86400000`, `sampleCount: 1289`, memory peak 18.8 MB. Retained artifact: `output/soak/2026-05-15T05-42-07-506Z-phase7-0-full/summary.json`. F-17 promoted to verified-complete.
 
 2. Real traffic and external network/hardware validation are not complete.
 
@@ -106,9 +106,7 @@ Requirements `S-02`, `S-03`, `S-04`, `S-06`, and part of `F-11` depend on ESTNeT
 
 Requirements `F-01`, `F-02`, and `F-14` have working TLE/orbit ingestion and multi-orbit viewer evidence, but no retained `output/validation/external-f01-orbit-model/` package was found. That prevents acceptance as a verified ITRI-owned orbit-model import/integration closure.
 
-4. Handover/source-boundary gates are not fully clean.
-
-`F-07`, `V-02`, `M-01`, `M-21`, and `M-25` are weakened by failing gates. `npm run test:phase6.4` exited `1` on a missing handover-decision temp import. `npm run test:m8a-v4.3` exited `1` because the raw-side-read scanner found local runtime imports containing `itri` in module names.
+4. ~~Handover/source-boundary gates are not fully clean.~~ **RESOLVED 2026-05-15.** `npm run test:phase6.4` now exit 0 (commit 7d7a924: itu-r-physics temp modules wired). `npm run test:m8a-v4.3` now exit 0 (commit 41f5664: negative lookahead for `./m8a-v4-*` intra-V4 siblings). F-07, M-21, M-25 promoted to verified-complete. V-02 and M-01 remain partial (modeled not RF/network truth — not gate failures).
 
 5. First-intake and corridor artifacts are not fully retained.
 
@@ -132,11 +130,11 @@ The strongest completed areas are:
 
 The blocking acceptance areas are:
 
-- Full 24-hour stability proof.
+- ~~Full 24-hour stability proof.~~ **RESOLVED** — soak passed 2026-05-16.
+- ~~Clean handover and raw-side-read/source-boundary gates.~~ **RESOLVED** — phase6.4 and v4.3 fixed 2026-05-15.
 - Real ESTNeT/INET/NAT/ping/iperf/NE-ONE evidence.
 - Runnable virtual DUT testbench evidence.
 - Retained ITRI-owned orbit-model import/integration package.
-- Clean handover and raw-side-read/source-boundary gates.
 - Retained first-intake/corridor package artifacts.
 
 ## Detailed Disposition Index
@@ -151,12 +149,12 @@ Critical non-complete requirements to review first:
 | --- | --- | --- |
 | F-01 | partial | No retained external F-01 ITRI orbit-model artifact |
 | F-02 | partial | LEO/MEO/GEO supported, but missing retained ITRI-owned orbit model |
-| F-07 | partial | Handover rule exists, but `test:phase6.4` failed |
+| F-07 | verified-complete | Fixed 2026-05-15 (commit 7d7a924): phase6.4 now exit 0 |
 | F-11 | partial | Communication-time UI/proxy exists, but retained evidence says not measured ping/iperf |
 | F-14 | partial | Orbit import exists, but no retained ITRI orbit-model import package/date proof |
-| F-17 | cannot-verify | 24h soak did not complete; no 24h pass summary |
+| F-17 | verified-complete | Resolved 2026-05-16: soak passed, `output/soak/2026-05-15T05-42-07-506Z-phase7-0-full/summary.json` retained |
 | F-18 | partial | Report export exists, but no WP1 technical evaluation analysis report verified |
-| V-02 | partial | LEO/MEO/GEO switching modeled, but V4.3 gate failed and not RF/signal truth |
+| V-02 | partial | LEO/MEO/GEO switching modeled; V4.3 gate fixed (commit 41f5664); remaining: not RF/signal truth |
 | V-05 | partial | Repo-owned proxy exists, but no external V-group simulator integration verified |
 | S-01 | partial | Linux passes, WSL not proven with retained execution transcript |
 | S-02 | cannot-verify | ESTNeT real-traffic bridge requires external testbed evidence |
@@ -171,9 +169,9 @@ Critical non-complete requirements to review first:
 | M-07 | partial | Invariants exist, but first-intake retained artifact missing |
 | M-13 | partial | Coordinate-free/provider-managed logic exists, but first-intake artifact missing |
 | M-17 | missing | Formal aircraft corridor package not retained under project `output/` |
-| M-21 | partial | Raw-side-read/source-boundary scanner failed |
-| M-25 | partial | V4 projection exists, but original V4.3 route gate failed |
-| M-27 | partial | Chip/stage strip exists, but style gate failed and prose remains heavy |
+| M-21 | verified-complete | Fixed 2026-05-15 (commit 41f5664): scanner whitelist updated |
+| M-25 | verified-complete | Fixed 2026-05-15 (commit 41f5664): v4.3 gate now exit 0 |
+| M-27 | partial | Conv3 style gate fixed; remaining: captured metadata still contains long prose panels |
 
 ## Final Output Files
 

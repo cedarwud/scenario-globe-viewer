@@ -1,0 +1,24 @@
+{
+  "params": {
+    "runId": "phase7-0-full",
+    "profile": "full",
+    "durationMs": 86400000,
+    "sampleIntervalMs": 60000,
+    "maxFailures": 0,
+    "retentionDays": 30,
+    "screenshotOnFailure": false
+  },
+  "policy": {
+    "memoryThresholdMb": 512,
+    "staleWindowMs": 180000,
+    "staleRuleArmCondition": "replayPlaying === true"
+  },
+  "runtimeVariant": {
+    "bootstrapState": "ready",
+    "scenePreset": "global",
+    "buildingShowcase": "off",
+    "buildingShowcaseSource": "default-off",
+    "buildingShowcaseState": "disabled",
+    "siteTilesetState": "dormant"
+  }
+}

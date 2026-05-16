@@ -1,0 +1,13 @@
+{
+  "schemaVersion": "phase7.0-soak-evidence.v1",
+  "runId": "phase7-0-full",
+  "profile": "full",
+  "durationMs": 86400000,
+  "sampleIntervalMs": 60000,
+  "passed": true,
+  "failureCount": 0,
+  "sampleCount": 1289,
+  "startedAt": "2026-05-15T05:42:07.996Z",
+  "endedAt": "2026-05-16T05:42:11.069Z",
+  "outputDir": "output/soak/2026-05-15T05-42-07-506Z-phase7-0-full"
+}

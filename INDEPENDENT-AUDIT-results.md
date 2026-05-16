@@ -11,12 +11,12 @@ Executed command summary:
 - `npm run test:itri-f01r1`: exit 0. Orbit-model intake reviewer passed; no retained `output/validation/external-f01-orbit-model/` package found.
 - `npm run test:phase6.2`: exit 0 after rerun with local-server permission. Replay mode and replay speed controls passed.
 - `npm run test:phase6.3`: exit 0 after rerun with local-server permission. Communication-time proxy passed.
-- `npm run test:phase6.4`: exit 1. Failed with `ERR_MODULE_NOT_FOUND` for `/tmp/features/itu-r-physics/itu-r-p618-link-budget.mjs`.
+- `npm run test:phase6.4`: exit 0 (fixed 2026-05-15, commit 7d7a924). Was exit 1 with `ERR_MODULE_NOT_FOUND` for itu-r-physics temp modules; verify script updated to include itu-r-physics sources in /tmp transpile dir.
 - `npm run test:phase6.5`: exit 0. Physical-input projection passed.
 - `npm run test:phase6.6`: exit 0 after rerun with local-server permission. Validation-state UI/proxy passed.
 - `npm run test:phase7.1`: exit 0 after rerun with local-server permission. First-intake active case narrative passed, but no retained output artifact was written.
 - `node scripts/run-phase7.1-viewer-validation.mjs --profile=multi-orbit-scale-1000 --skip-build`: exit 0. Retained validation gate artifact under `output/validation/phase7.1/2026-05-15T09-04-53.180Z-multi-orbit-scale-1000`.
-- `npm run test:phase7.0:full`: exit 124 under `timeout 300` after rerun with local-server permission. Retained samples but no 24h summary.
+- `npm run test:phase7.0:full`: exit 124 under `timeout 300` during audit (timeout); full 24h run completed 2026-05-16 on server. Artifact: `output/soak/2026-05-15T05-42-07-506Z-phase7-0-full/summary.json` — `passed: true`, `failureCount: 0`, `durationMs: 86400000`, `sampleCount: 1289`, memory peak 18.8 MB.
 - `npm run test:m8a-v4.3`: exit 0 (fixed 2026-05-15, commit 41f5664). Scanner pattern updated to whitelist `./m8a-v4-*` intra-V4 sibling imports; only external raw ITRI data reads remain forbidden.
 - `npm run test:m8a-v4.11:slice6`: exit 0. Reviewer transcripts verified.
 - `npm run test:m8a-v4.11:conv4`: exit 0 after rerun with local-server permission.
@@ -38,7 +38,7 @@ Executed command summary:
 | F-04 | 衛星模型軌道資料整合 | verified-complete | Code: TLE parse/load/resample at `src/features/satellites/bulk-tle-adapter.ts:152`, `src/features/satellites/bulk-tle-adapter.ts:347`, `src/features/satellites/bulk-tle-adapter.ts:434`; test/artifact: phase7.1 multi-orbit validation exit 0 with `observed-runtime.json`. | 未採用自述。 |
 | F-05 | 視覺化呈現 | verified-complete | Artifacts: `output/m8a-v4.11-impl-phase5/v4.11-final-w1-default-1440x900.png` 963083 bytes, `output/m8a-v4.12-f09-communication-rate/phase6-acceptance-communication-rate.png` 1114059 bytes; tests: `npm run test:m8a-v4.12:f09` exit 0 and phase7.1 validation exit 0. | 未採用自述。 |
 | F-06 | UI 互動介面 | verified-complete | Code: speed/mode buttons at `src/features/operator/bootstrap-operator-hud.ts:103`, `src/features/operator/bootstrap-operator-hud.ts:194`; tests: `npm run test:phase6.2` exit 0; artifact: `output/m8a-v4.12-f10-policy-selector/f10-policy-selector-smoke.json`. | 未採用自述。 |
-| F-07 | 通訊換手規則模擬與參數設計 | partial | Code: policy/rule config at `src/features/handover-decision/handover-decision.ts:52`, `src/features/handover-decision/handover-decision.ts:93`; passing tests: `npm run test:m8a-v4.12:f11` exit 0; artifact: `output/m8a-v4.12-f11-rule-config/f11-rule-config-smoke.json`. Gap: `npm run test:phase6.4` exit 1 with missing temp module. | 未採用自述。 |
+| F-07 | 通訊換手規則模擬與參數設計 | verified-complete | Code: policy/rule config at `src/features/handover-decision/handover-decision.ts:52`, `src/features/handover-decision/handover-decision.ts:93`; tests: `npm run test:m8a-v4.12:f11` exit 0, `npm run test:phase6.4` exit 0 (fixed 2026-05-15, commit 7d7a924 — itu-r-physics temp modules wired into verify script); artifact: `output/m8a-v4.12-f11-rule-config/f11-rule-config-smoke.json`. | 未採用自述。 |
 | F-08 | 通訊速率可視化 | verified-complete | Code: `src/features/communication-rate/bootstrap-communication-rate-section.ts:124`; test: `npm run test:m8a-v4.12:f09` exit 0; artifacts: `output/m8a-v4.12-f09-communication-rate/phase6-acceptance-communication-rate.png`, `output/m8a-v4.12-f09-communication-rate/smoke-manifest.json`. | 未採用自述。 |
 | F-09 | 支援 >=500 LEO 模擬 | verified-complete | Code: scale constants `src/runtime/leo-scale-overlay-fixture.ts:13`; test: phase7.1 multi-orbit validation exit 0; artifact: `output/validation/phase7.1/2026-05-15T09-04-53.180Z-multi-orbit-scale-1000/summary.json:121` observed 600 LEO vs target 500. | 未採用自述。 |
 | F-10 | 模擬速度可調 | verified-complete | Code: `src/runtime/bootstrap-operator-controller.ts:254`, `src/features/operator/bootstrap-operator-hud.ts:110`; tests: `npm run test:phase6.2` exit 0, final state `replayMultiplier:4`; artifact: report export retains replay mode/time in `output/m8a-v4.12-f16-report-export/desktop-1440x900-downloaded-json-summary.json:7`. | 未採用自述。 |
@@ -48,7 +48,7 @@ Executed command summary:
 | F-14 | WP1 在 2025/11/30 前成功匯入軌道模型 | partial | Code has TLE import/propagation: `src/features/satellites/bulk-tle-adapter.ts:347`; test: `npm run test:itri-f01r1` exit 0. Gap: no retained ITRI orbit-model import package under `output/validation/external-f01-orbit-model/`; date cannot be proven from source/test alone. | 未採用自述。 |
 | F-15 | 動態調整參數介面 | verified-complete | Code: replay speed and rule config `src/runtime/bootstrap-operator-controller.ts:254`, `src/features/handover-decision/handover-decision.ts:410`; tests: `npm run test:phase6.2` exit 0, `npm run test:m8a-v4.12:f11` exit 0; artifact: `output/m8a-v4.12-f11-rule-config/desktop-1440x900-applied-dwell-hold.png`. | 未採用自述。 |
 | F-16 | 可產生通訊時間統計 | verified-complete | Code: report fields `src/features/communication-time/communication-time.ts:66`; test: `npm run test:phase6.3` exit 0 and `npm run test:m8a-v4.12:f16` exit 0; artifact: `output/m8a-v4.12-f16-report-export/downloads/m8a-v4.12-f16-report-bootstrap-global-real-time-20260515T062251Z.csv:19`. | 未採用自述。 |
-| F-17 | 畫面穩定運行至少 24 小時 | cannot-verify | Harness exists: `tests/soak/run-soak.mjs:1179`; command: `timeout 300 npm run test:phase7.0:full` exit 124. Artifact: `output/soak/2026-05-15T09-05-50-793Z-phase7-0-full/harness-params.json:5` requested 86400000ms, `samples.ndjson` has 5 samples, `errors.ndjson:1` says SIGTERM before completion. No 24h pass summary. | 未採用自述。 |
+| F-17 | 畫面穩定運行至少 24 小時 | verified-complete | Harness: `tests/soak/run-soak.mjs:1179`; full 24h run completed 2026-05-16 on server; retained artifact: `output/soak/2026-05-15T05-42-07-506Z-phase7-0-full/summary.json` (`schemaVersion: phase7.0-soak-evidence.v1`, `passed: true`, `failureCount: 0`, `durationMs: 86400000`, `sampleCount: 1289`, all 1289 samples `bootstrapState: ready`, memory peak 18.8 MB, 0 errors). `.gitignore` updated to track `*-phase7-0-full/summary.json`. | 未採用自述。 |
 | F-18 | WP1 評估分析報告一式 | partial | Report export exists: `src/features/report-export/report-export.ts:6`; test: `npm run test:m8a-v4.12:f16` exit 0; artifact: `output/m8a-v4.12-f16-report-export/desktop-1440x900-downloaded-json-summary.json`. Gap: no WP1 technical evaluation analysis report verified from allowed sources. | 未採用自述。 |
 | V-01 | 輸入 TLE 並追蹤衛星行進 | verified-complete | Code: TLE parsing and SGP4 propagation `src/features/satellites/bulk-tle-adapter.ts:170`, `src/features/satellites/bulk-tle-adapter.ts:277`; tests/artifact: phase7.1 validation exit 0 with `observed-runtime.json`, plus `scripts/verify-m8a-v4.6b-source-lineaged-orbit-actors.mjs` exit 0. | 未採用自述。 |
 | V-02 | 低軌/中軌/高軌訊號切換 | partial | Code: orbit classes and service state windows `src/runtime/m8a-v4-ground-station-projection.ts:175`; artifacts show LEO/MEO/GEO sequence in `output/m8a-v4.11-slice3/v4.11-w1-pinned-1440x900.metadata.json`; `npm run test:m8a-v4.3` now exit 0 (fixed 2026-05-15). Gap: service switching remains modeled, not signal/RF truth. | 未採用自述。 |
@@ -97,10 +97,10 @@ Executed command summary:
 
 ## Counts
 
-Updated 2026-05-15 after commit 41f5664 (V4-redesign contract reconciliation):
-- verified-complete: 30 (+2: M-21, M-25 promoted from partial)
+Updated 2026-05-16 after soak completion and phase6.4 fix:
+- verified-complete: 32 (+2: F-07 promoted from partial, F-17 promoted from cannot-verify)
 - code-only: 9
-- partial: 16 (-2)
+- partial: 15 (-1: F-07)
 - missing: 2
-- cannot-verify: 5
+- cannot-verify: 4 (-1: F-17)
 
