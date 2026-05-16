@@ -5,6 +5,7 @@ import { refreshLightingForSceneMode } from "../../features/globe/lighting";
 import { mountLightingToggle } from "../../features/globe/lighting-toggle";
 import { mountGroundStationMarkers } from "../../features/multi-station-selector/station-markers";
 import { mountGroundStationMarkerToggle } from "../../features/multi-station-selector/marker-toggle";
+import { mountGroundStationInfoCard } from "../../features/multi-station-selector/station-info-card";
 import {
   mountOptionalOsmBuildingsShowcase,
   resolveBuildingShowcaseSelection
@@ -744,6 +745,9 @@ export function startBootstrapComposition(app: HTMLDivElement): BootstrapComposi
   const unmountGroundStationMarkerToggle = groundStationMarkers
     ? mountGroundStationMarkerToggle(viewer, groundStationMarkers)
     : () => {};
+  const groundStationInfoCard = groundStationMarkers
+    ? mountGroundStationInfoCard(viewer, groundStationMarkers)
+    : null;
 
   const unmountHomepageEntryCta =
     adoptFirstIntakeAsActiveOwner || isM8aV4RuntimeRequest
@@ -773,6 +777,7 @@ export function startBootstrapComposition(app: HTMLDivElement): BootstrapComposi
     dispose() {
       delete window.__SCENARIO_GLOBE_VIEWER_CAPTURE__;
       unmountHomepageEntryCta();
+      groundStationInfoCard?.dispose();
       unmountGroundStationMarkerToggle();
       groundStationMarkers?.dispose();
       disposeLightingRefresh();
