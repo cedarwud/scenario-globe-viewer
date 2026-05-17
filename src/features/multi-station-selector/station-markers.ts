@@ -1,12 +1,12 @@
 import {
+  BillboardCollection,
   Cartesian3,
   Color,
   LabelCollection,
   LabelStyle,
-  PointPrimitiveCollection,
   VerticalOrigin,
+  type Billboard,
   type Label,
-  type PointPrimitive,
   type Viewer
 } from "cesium";
 
@@ -29,36 +29,52 @@ interface RegistryStation {
   readonly primaryUseCase: string;
 }
 
-interface MarkerStyle {
-  pixelSize: number;
-  color: Color;
-  outlineColor: Color;
-  outlineWidth: number;
+interface ImageSet {
+  readonly normal: string;
+  readonly highlight: string;
+}
+
+function drawInvertedTriangle(
+  size: number,
+  fillCss: string,
+  outlineCss: string,
+  outlineWidth: number
+): string {
+  const pad = Math.ceil(outlineWidth) + 1;
+  const total = size + pad * 2;
+  const canvas = document.createElement("canvas");
+  canvas.width = total;
+  canvas.height = total;
+  const ctx = canvas.getContext("2d")!;
+  ctx.clearRect(0, 0, total, total);
+  ctx.beginPath();
+  ctx.moveTo(pad, pad);
+  ctx.lineTo(total - pad, pad);
+  ctx.lineTo(total / 2, total - pad);
+  ctx.closePath();
+  ctx.fillStyle = fillCss;
+  ctx.fill();
+  ctx.strokeStyle = outlineCss;
+  ctx.lineWidth = outlineWidth;
+  ctx.stroke();
+  return canvas.toDataURL();
+}
+
+const TRI_ORBIT_IMAGES: ImageSet = {
+  normal: drawInvertedTriangle(18, "rgba(126,226,184,0.92)", "rgba(2,20,31,0.94)", 1.5),
+  highlight: drawInvertedTriangle(22, "rgba(126,226,184,0.92)", "rgba(255,209,102,0.98)", 3)
+};
+
+const DUAL_ORBIT_IMAGES: ImageSet = {
+  normal: drawInvertedTriangle(14, "rgba(155,196,232,0.86)", "rgba(2,20,31,0.90)", 1.25),
+  highlight: drawInvertedTriangle(18, "rgba(155,196,232,0.86)", "rgba(255,209,102,0.98)", 3)
+};
+
+function resolveImageSetForStation(station: RegistryStation): ImageSet {
+  return station.supportedOrbits.length >= 3 ? TRI_ORBIT_IMAGES : DUAL_ORBIT_IMAGES;
 }
 
 const STATIONS = registry.stations as ReadonlyArray<RegistryStation>;
-
-const STYLE_TRI_ORBIT: MarkerStyle = {
-  pixelSize: 9,
-  color: Color.fromCssColorString("#7ee2b8").withAlpha(0.92),
-  outlineColor: Color.fromCssColorString("#02141f").withAlpha(0.94),
-  outlineWidth: 1.5
-};
-
-const STYLE_DUAL_ORBIT: MarkerStyle = {
-  pixelSize: 7,
-  color: Color.fromCssColorString("#9bc4e8").withAlpha(0.86),
-  outlineColor: Color.fromCssColorString("#02141f").withAlpha(0.9),
-  outlineWidth: 1.25
-};
-
-const HIGHLIGHT_OUTLINE_COLOR = Color.fromCssColorString("#ffd166").withAlpha(0.98);
-const HIGHLIGHT_OUTLINE_WIDTH = 3;
-const HIGHLIGHT_PIXEL_SIZE_BONUS = 5;
-
-function resolveStyleForStation(station: RegistryStation): MarkerStyle {
-  return station.supportedOrbits.length >= 3 ? STYLE_TRI_ORBIT : STYLE_DUAL_ORBIT;
-}
 
 function toCartesian(station: RegistryStation): Cartesian3 {
   return Cartesian3.fromDegrees(station.lon, station.lat, 0);
@@ -116,12 +132,12 @@ export function mountGroundStationMarkers(
   viewer: Viewer,
   options: { initiallyVisible?: boolean } = {}
 ): GroundStationMarkersHandle {
-  const points = new PointPrimitiveCollection({ show: true });
+  const billboards = new BillboardCollection();
   const labels = new LabelCollection({ show: false });
-  const pointById = new Map<string, PointPrimitive>();
+  const billboardById = new Map<string, Billboard>();
   const labelById = new Map<string, Label>();
 
-  const baseStyleById = new Map<string, MarkerStyle>();
+  const imageSetById = new Map<string, ImageSet>();
   const stationById = new Map<string, RegistryStation>();
 
   let visible = options.initiallyVisible ?? true;
@@ -137,24 +153,21 @@ export function mountGroundStationMarkers(
     if (disposed || attached) {
       return;
     }
-    viewer.scene.primitives.add(points);
+    viewer.scene.primitives.add(billboards);
     viewer.scene.primitives.add(labels);
     attached = true;
-    points.show = visible;
+    billboards.show = visible;
     labels.show = false;
   }
 
   function populate(): void {
     for (const station of STATIONS) {
       const position = toCartesian(station);
-      const style = resolveStyleForStation(station);
+      const imageSet = resolveImageSetForStation(station);
 
-      const point = points.add({
+      const billboard = billboards.add({
         position,
-        pixelSize: style.pixelSize,
-        color: style.color,
-        outlineColor: style.outlineColor,
-        outlineWidth: style.outlineWidth,
+        image: imageSet.normal,
         id: `ground-station-marker:${station.id}`
       });
 
@@ -171,9 +184,9 @@ export function mountGroundStationMarkers(
         show: false
       });
 
-      pointById.set(station.id, point);
+      billboardById.set(station.id, billboard);
       labelById.set(station.id, label);
-      baseStyleById.set(station.id, style);
+      imageSetById.set(station.id, imageSet);
       stationById.set(station.id, station);
     }
   }
@@ -205,34 +218,28 @@ export function mountGroundStationMarkers(
   }
 
   function applyFilterToMarkers(): void {
-    for (const [stationId, point] of pointById) {
+    for (const [stationId, billboard] of billboardById) {
       const station = stationById.get(stationId);
-      point.show = station ? stationPassesFilter(station) : false;
+      billboard.show = station ? stationPassesFilter(station) : false;
     }
   }
 
   function applyBaseStyle(stationId: string): void {
-    const point = pointById.get(stationId);
-    const base = baseStyleById.get(stationId);
-    if (!point || !base) {
+    const billboard = billboardById.get(stationId);
+    const imageSet = imageSetById.get(stationId);
+    if (!billboard || !imageSet) {
       return;
     }
-    point.pixelSize = base.pixelSize;
-    point.color = base.color;
-    point.outlineColor = base.outlineColor;
-    point.outlineWidth = base.outlineWidth;
+    billboard.image = imageSet.normal;
   }
 
   function applyHighlightStyle(stationId: string): void {
-    const point = pointById.get(stationId);
-    const base = baseStyleById.get(stationId);
-    if (!point || !base) {
+    const billboard = billboardById.get(stationId);
+    const imageSet = imageSetById.get(stationId);
+    if (!billboard || !imageSet) {
       return;
     }
-    point.pixelSize = base.pixelSize + HIGHLIGHT_PIXEL_SIZE_BONUS;
-    point.color = base.color;
-    point.outlineColor = HIGHLIGHT_OUTLINE_COLOR;
-    point.outlineWidth = HIGHLIGHT_OUTLINE_WIDTH;
+    billboard.image = imageSet.highlight;
   }
 
   attach();
@@ -245,10 +252,10 @@ export function mountGroundStationMarkers(
       visible = next;
       if (attached) {
         if (next) {
-          points.show = true;
+          billboards.show = true;
           applyFilterToMarkers();
         } else {
-          points.show = false;
+          billboards.show = false;
         }
         viewer.scene.requestRender();
       }
@@ -312,7 +319,7 @@ export function mountGroundStationMarkers(
       }
     },
     getStationCount(): number {
-      return pointById.size;
+      return billboardById.size;
     },
     dispose(): void {
       if (disposed) {
@@ -320,14 +327,14 @@ export function mountGroundStationMarkers(
       }
       disposed = true;
       highlightedId = null;
-      pointById.clear();
+      billboardById.clear();
       labelById.clear();
-      baseStyleById.clear();
+      imageSetById.clear();
       stationById.clear();
-      points.removeAll();
+      billboards.removeAll();
       labels.removeAll();
       if (attached && !viewer.isDestroyed()) {
-        viewer.scene.primitives.remove(points);
+        viewer.scene.primitives.remove(billboards);
         viewer.scene.primitives.remove(labels);
         viewer.scene.requestRender();
       }
