@@ -326,7 +326,7 @@ export function mountGroundStationMarkers(
     },
     findNearestVisible(windowPosition: Cartesian2, tolerancePx: number): string | null {
       const cameraPos = viewer.scene.camera.positionWC;
-      const EARTH_RADIUS_SQ = 6378137 * 6378137;
+      const EARTH_RADIUS_SQ = 6378137 * 6378137 * 0.85;
       const scratchScreen = new Cartesian2();
       const threshold = tolerancePx * tolerancePx;
       let bestId: string | null = null;
