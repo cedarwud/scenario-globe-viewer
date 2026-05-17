@@ -102,8 +102,16 @@ export function mountMarkerRegionChips(
     container.appendChild(chip);
   }
 
+  const group = document.createElement("div");
+  group.className = "gs-filter-group";
+  const groupLabel = document.createElement("span");
+  groupLabel.className = "gs-filter-group__label";
+  groupLabel.textContent = "Region";
+  group.appendChild(groupLabel);
+  group.appendChild(container);
+
   syncActiveAttribute();
-  viewerContainer.appendChild(container);
+  viewerContainer.appendChild(group);
 
   return {
     dispose(): void {
@@ -112,8 +120,8 @@ export function mountMarkerRegionChips(
       }
       listeners.length = 0;
       chipById.clear();
-      if (container.parentNode) {
-        container.parentNode.removeChild(container);
+      if (group.parentNode) {
+        group.parentNode.removeChild(group);
       }
     }
   };

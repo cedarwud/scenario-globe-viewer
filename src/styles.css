@@ -3202,6 +3202,29 @@ html[data-viewer-mode="clean-home"] .hud-frame::after {
   max-width: none;
 }
 
+.gs-filter-panel__body .ground-station-region-filter {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.3rem;
+}
+
+.gs-filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  pointer-events: none;
+}
+
+.gs-filter-group__label {
+  font-size: 0.62rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: rgba(157, 196, 232, 0.55);
+  pointer-events: none;
+  user-select: none;
+}
+
 .ground-station-orbit-filter {
   position: absolute;
   top: 4rem;

@@ -97,8 +97,16 @@ export function mountMarkerBandChips(
     container.appendChild(chip);
   }
 
+  const group = document.createElement("div");
+  group.className = "gs-filter-group";
+  const groupLabel = document.createElement("span");
+  groupLabel.className = "gs-filter-group__label";
+  groupLabel.textContent = "Band";
+  group.appendChild(groupLabel);
+  group.appendChild(container);
+
   syncActiveAttribute();
-  viewerContainer.appendChild(container);
+  viewerContainer.appendChild(group);
 
   return {
     dispose(): void {
@@ -107,8 +115,8 @@ export function mountMarkerBandChips(
       }
       listeners.length = 0;
       chipById.clear();
-      if (container.parentNode) {
-        container.parentNode.removeChild(container);
+      if (group.parentNode) {
+        group.parentNode.removeChild(group);
       }
     }
   };
