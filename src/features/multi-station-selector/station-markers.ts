@@ -2,6 +2,7 @@ import {
   BillboardCollection,
   Cartesian3,
   Color,
+  HorizontalOrigin,
   LabelCollection,
   LabelStyle,
   VerticalOrigin,
@@ -34,24 +35,42 @@ interface ImageSet {
   readonly highlight: string;
 }
 
-function drawInvertedTriangle(
-  size: number,
+function drawLocationPin(
+  circleRadius: number,
   fillCss: string,
   outlineCss: string,
   outlineWidth: number
 ): string {
   const pad = Math.ceil(outlineWidth) + 1;
-  const total = size + pad * 2;
+  const r = circleRadius;
+  const cx = r + pad;
+  const cy = r + pad;
+  const totalWidth = (r + pad) * 2;
+  const tailLength = Math.round(r * 1.1);
+  const totalHeight = cy + r + tailLength + pad;
+  const tipY = totalHeight - pad;
+
   const canvas = document.createElement("canvas");
-  canvas.width = total;
-  canvas.height = total;
+  canvas.width = totalWidth;
+  canvas.height = totalHeight;
   const ctx = canvas.getContext("2d")!;
-  ctx.clearRect(0, 0, total, total);
+  ctx.clearRect(0, 0, totalWidth, totalHeight);
+
   ctx.beginPath();
-  ctx.moveTo(pad, pad);
-  ctx.lineTo(total - pad, pad);
-  ctx.lineTo(total / 2, total - pad);
+  ctx.moveTo(cx, tipY);
+  ctx.bezierCurveTo(
+    cx - r * 0.85, tipY - tailLength * 0.35,
+    cx - r, cy + r * 0.55,
+    cx - r, cy
+  );
+  ctx.arc(cx, cy, r, Math.PI, 0, false);
+  ctx.bezierCurveTo(
+    cx + r, cy + r * 0.55,
+    cx + r * 0.85, tipY - tailLength * 0.35,
+    cx, tipY
+  );
   ctx.closePath();
+
   ctx.fillStyle = fillCss;
   ctx.fill();
   ctx.strokeStyle = outlineCss;
@@ -61,13 +80,13 @@ function drawInvertedTriangle(
 }
 
 const TRI_ORBIT_IMAGES: ImageSet = {
-  normal: drawInvertedTriangle(18, "rgba(126,226,184,0.92)", "rgba(2,20,31,0.94)", 1.5),
-  highlight: drawInvertedTriangle(22, "rgba(126,226,184,0.92)", "rgba(255,209,102,0.98)", 3)
+  normal: drawLocationPin(7, "rgba(126,226,184,0.92)", "rgba(2,20,31,0.94)", 1.5),
+  highlight: drawLocationPin(9, "rgba(126,226,184,0.92)", "rgba(255,209,102,0.98)", 2.5)
 };
 
 const DUAL_ORBIT_IMAGES: ImageSet = {
-  normal: drawInvertedTriangle(14, "rgba(155,196,232,0.86)", "rgba(2,20,31,0.90)", 1.25),
-  highlight: drawInvertedTriangle(18, "rgba(155,196,232,0.86)", "rgba(255,209,102,0.98)", 3)
+  normal: drawLocationPin(5, "rgba(155,196,232,0.86)", "rgba(2,20,31,0.90)", 1.25),
+  highlight: drawLocationPin(7, "rgba(155,196,232,0.86)", "rgba(255,209,102,0.98)", 2.5)
 };
 
 function resolveImageSetForStation(station: RegistryStation): ImageSet {
@@ -168,6 +187,8 @@ export function mountGroundStationMarkers(
       const billboard = billboards.add({
         position,
         image: imageSet.normal,
+        verticalOrigin: VerticalOrigin.BOTTOM,
+        horizontalOrigin: HorizontalOrigin.CENTER,
         id: `ground-station-marker:${station.id}`
       });
 
