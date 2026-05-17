@@ -163,8 +163,20 @@ const M8A_V3_1_CTA_SCENE_PRESET = "global";
 const M8A_V4_GROUND_STATION_CTA_SCENE_PRESET = "regional";
 
 function resolveBootstrapScenePreset(): ScenePresetKey {
-  const request = new URLSearchParams(window.location.search).get("scenePreset");
-  return resolveScenePresetKey(request);
+  const search = new URLSearchParams(window.location.search);
+  const request = search.get("scenePreset");
+  if (request !== null) {
+    return resolveScenePresetKey(request);
+  }
+  // Implicit V4 activation: when only stationA + stationB are present in the
+  // URL (short demo link), default the scene preset to the V4 ground-station
+  // CTA preset so the regional scene loads automatically.
+  const stationA = search.get("stationA")?.trim();
+  const stationB = search.get("stationB")?.trim();
+  if (stationA && stationB) {
+    return resolveScenePresetKey(M8A_V4_GROUND_STATION_CTA_SCENE_PRESET);
+  }
+  return resolveScenePresetKey(null);
 }
 
 function resolveFirstIntakeRequestedScenarioId(): string | undefined {

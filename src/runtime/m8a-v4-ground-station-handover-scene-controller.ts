@@ -875,11 +875,21 @@ interface M8aV4ReplayProfile {
 }
 
 export function isM8aV4GroundStationRuntimeRequested(search: URLSearchParams): boolean {
-  return (
+  if (
     search.get(M8A_V4_GROUND_STATION_QUERY_PARAM) ===
-      M8A_V4_GROUND_STATION_QUERY_VALUE ||
-    search.get("firstIntakeScenarioId") === M8A_V4_GROUND_STATION_SCENARIO_ID
-  );
+    M8A_V4_GROUND_STATION_QUERY_VALUE
+  ) {
+    return true;
+  }
+  if (search.get("firstIntakeScenarioId") === M8A_V4_GROUND_STATION_SCENARIO_ID) {
+    return true;
+  }
+  // Implicit V4 activation: a short URL with both stationA and stationB present
+  // resolves into the V4 ground-station scene without requiring the explicit
+  // m8aV4GroundStationScene=1 flag. Lets reviewers share short demo links.
+  const stationA = search.get("stationA")?.trim();
+  const stationB = search.get("stationB")?.trim();
+  return Boolean(stationA && stationB);
 }
 
 function serializeList(values: ReadonlyArray<string>): string {
