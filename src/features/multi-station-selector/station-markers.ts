@@ -168,6 +168,7 @@ export function mountGroundStationMarkers(
         image: imageSet.normal,
         heightReference: HeightReference.CLAMP_TO_GROUND,
         verticalOrigin: VerticalOrigin.CENTER,
+        disableDepthTestDistance: Number.POSITIVE_INFINITY,
         id: `ground-station-marker:${station.id}`
       });
 
