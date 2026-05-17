@@ -61,7 +61,7 @@ function resolveStyleForStation(station: RegistryStation): MarkerStyle {
 }
 
 function toCartesian(station: RegistryStation): Cartesian3 {
-  return Cartesian3.fromDegrees(station.lon, station.lat, 0);
+  return Cartesian3.fromDegrees(station.lon, station.lat, 1000);
 }
 
 export interface GroundStationMarkersHandle {
@@ -155,7 +155,6 @@ export function mountGroundStationMarkers(
         color: style.color,
         outlineColor: style.outlineColor,
         outlineWidth: style.outlineWidth,
-        disableDepthTestDistance: Number.POSITIVE_INFINITY,
         id: `ground-station-marker:${station.id}`
       });
 
