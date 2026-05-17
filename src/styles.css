@@ -3033,7 +3033,7 @@ html[data-viewer-mode="clean-home"] .hud-frame::after {
 
 .gs-filter-panel {
   position: absolute;
-  top: 2.8rem;
+  top: 3.6rem;
   right: 0.5rem;
   z-index: 4;
   display: flex;
@@ -3047,6 +3047,7 @@ html[data-viewer-mode="clean-home"] .hud-frame::after {
   flex-direction: column;
   gap: 0.25rem;
   pointer-events: none;
+  align-items: flex-end;
 }
 
 .gs-filter-panel__controls {
