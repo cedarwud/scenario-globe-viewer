@@ -99,9 +99,40 @@ Communication style for this repo defaults to caveman-compressed; switch to
 normal mode only when the user requests it explicitly or when the task
 requires multi-step safety prose.
 
-(See the individual `.agent-memory/` entries for full rationale and how-to-
-apply text. This snapshot may be slightly stale; the memory entries are
-authoritative.)
+### R4. Multi-station selector — development state snapshot (2026-05-17)
+
+**Completed and committed to `main`:**
+- Collapsible filter panel (`src/features/multi-station-selector/marker-filter-panel.ts`):
+  `aside.gs-filter-panel` at `top:3.6rem; right:0.5rem` below Cesium toolbar.
+  Header row 1 = "Ground Stations" label; row 2 = vis toggle + "Filters▾".
+  Body: Orbit + Region (2-col grid) + Band chips, each group in `gs-filter-group` with label.
+- Band filter (`marker-band-chips.ts`): Ka/Ku/C/X/S/L, gold `#ffd166` accent.
+  `setBandFilter`/`getBandFilter` + `allowedBands` predicate in `station-markers.ts`.
+- Station markers: **BillboardCollection** + canvas circles + `HeightReference.CLAMP_TO_GROUND`.
+  Tri-orbit r=4.5px green `#7ee2b8`; dual-orbit r=3.5px blue `#9bc4e8`.
+  `findNearestVisible(windowPosition: Cartesian2, tolerancePx: number): string | null`
+  added to `GroundStationMarkersHandle` — screen-space proximity fallback for clicking.
+- `station-info-card.ts` pick: `scene.pick()` → fallback `markers.findNearestVisible(pos,22)`.
+  Hemisphere check: `dot(worldPos, cameraPos) > R²×0.85`.
+- `composition.ts`: single mount `mountMarkerFilterPanel`. `marker-toggle.ts` on disk, not imported.
+- Filter logic: orbit ∧ region ∧ band (AND across, OR within). Search removed from UI.
+
+**Unresolved: edge station pick still unreliable.**
+Some stations at the globe limb still unclickable. Root cause: `scene.pick()` depth-fails;
+proximity fallback with 22px + dot>R²×0.85 still misses some. Suggested fix:
+make proximity search the primary path (not fallback), snap-to-nearest within 30px always,
+use `scene.pick()` only to confirm. Removes depth dependency entirely.
+
+**Pending blocks:**
+- **Block B — A11y**: focus trap on info-card open, global ESC, ARIA labels,
+  `aria-live` on selection store, keyboard nav for station list.
+- **Block D — Hover detail**: show orbit class badges + band chips in
+  `marker-hover-tooltip.ts` (currently shows name+operator only).
+- **Block A — V4 compute** (high risk, deferred): replace fixture-driven compute
+  in `m8a-v4-ground-station-handover-scene-controller.ts:~6444` with
+  `computeRuntimeProjection` from `runtime-projection.ts`.
+
+(Memory entries in `.agent-memory/` are authoritative; this snapshot may lag.)
 
 ## 6. Sync Rule
 
