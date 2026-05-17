@@ -3091,6 +3091,159 @@ html[data-viewer-mode="clean-home"] .hud-frame::after {
   }
 }
 
+.ground-station-search {
+  position: absolute;
+  top: 6.7rem;
+  left: 1rem;
+  z-index: 4;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.3rem 0.55rem;
+  border-radius: 999px;
+  background: rgba(6, 18, 28, 0.88);
+  border: 1px solid rgba(126, 226, 184, 0.35);
+  pointer-events: auto;
+  font-family: "IBM Plex Sans", system-ui, -apple-system, sans-serif;
+}
+
+.ground-station-search__label {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.ground-station-search__input {
+  width: 14rem;
+  background: transparent;
+  border: none;
+  color: #dde9f1;
+  font-size: 0.78rem;
+  font-family: inherit;
+  outline: none;
+  padding: 0.15rem 0.1rem;
+}
+
+.ground-station-search__input::placeholder {
+  color: rgba(157, 196, 232, 0.55);
+}
+
+.ground-station-search__input:focus-visible {
+  outline: 2px solid #ffd166;
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+.ground-station-search__input::-webkit-search-cancel-button {
+  display: none;
+}
+
+.ground-station-search__clear {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.25rem;
+  height: 1.25rem;
+  padding: 0;
+  border: none;
+  border-radius: 999px;
+  background: rgba(126, 226, 184, 0.18);
+  color: #7ee2b8;
+  cursor: pointer;
+  font-size: 0.95rem;
+  line-height: 1;
+}
+
+.ground-station-search__clear[hidden] {
+  display: none;
+}
+
+.ground-station-search__clear:hover,
+.ground-station-search__clear:focus-visible {
+  filter: brightness(1.2);
+  outline: 2px solid #ffd166;
+  outline-offset: 1px;
+}
+
+.ground-station-region-filter {
+  position: absolute;
+  top: 9.6rem;
+  left: 1rem;
+  right: auto;
+  z-index: 4;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  max-width: 22rem;
+  pointer-events: none;
+}
+
+.ground-station-region-filter__chip {
+  pointer-events: auto;
+  display: inline-flex;
+  align-items: center;
+  padding: 0.3rem 0.6rem;
+  border-radius: 999px;
+  background: rgba(6, 18, 28, 0.88);
+  color: #dde9f1;
+  font-family: "IBM Plex Sans", system-ui, -apple-system, sans-serif;
+  font-size: 0.7rem;
+  border: 1px solid rgba(157, 196, 232, 0.35);
+  cursor: pointer;
+  transition: background 80ms ease, color 80ms ease, border-color 80ms ease, filter 80ms ease;
+  outline: none;
+}
+
+.ground-station-region-filter__chip[data-active="true"] {
+  background: rgba(157, 196, 232, 0.18);
+  color: #cfe2f4;
+  border-color: rgba(157, 196, 232, 0.7);
+}
+
+.ground-station-region-filter__chip[data-active="false"] {
+  background: rgba(6, 18, 28, 0.55);
+  color: rgba(157, 196, 232, 0.45);
+  text-decoration: line-through;
+}
+
+.ground-station-region-filter__chip:hover,
+.ground-station-region-filter__chip:focus-visible {
+  filter: brightness(1.15);
+  outline: 2px solid #ffd166;
+  outline-offset: 1px;
+}
+
+.ground-station-region-filter__count {
+  display: inline;
+  color: rgba(157, 196, 232, 0.7);
+  margin-left: 0.3rem;
+  font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 720px) {
+  .ground-station-search {
+    top: 10rem;
+    left: 0.6rem;
+    right: 0.6rem;
+  }
+  .ground-station-search__input {
+    width: 100%;
+  }
+  .ground-station-region-filter {
+    top: 13.5rem;
+    left: 0.6rem;
+    right: 0.6rem;
+    max-width: none;
+  }
+}
+
 .v4-projection-side-panel {
   position: absolute;
   top: 5rem;

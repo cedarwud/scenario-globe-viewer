@@ -10,6 +10,8 @@ import { createSelectionStore } from "../../features/multi-station-selector/sele
 import { mountSelectionChips } from "../../features/multi-station-selector/selection-chips";
 import { mountMarkerHoverTooltip } from "../../features/multi-station-selector/marker-hover-tooltip";
 import { mountMarkerFilterChips } from "../../features/multi-station-selector/marker-filter-chips";
+import { mountMarkerRegionChips } from "../../features/multi-station-selector/marker-region-chips";
+import { mountMarkerSearchInput } from "../../features/multi-station-selector/marker-search-input";
 import { mountV4ProjectionSidePanel } from "../../features/multi-station-selector/v4-projection-side-panel";
 import {
   mountOptionalOsmBuildingsShowcase,
@@ -775,6 +777,12 @@ export function startBootstrapComposition(app: HTMLDivElement): BootstrapComposi
   const groundStationMarkerFilterChips = groundStationMarkers
     ? mountMarkerFilterChips(viewer.container as HTMLElement, groundStationMarkers)
     : null;
+  const groundStationMarkerSearchInput = groundStationMarkers
+    ? mountMarkerSearchInput(viewer.container as HTMLElement, groundStationMarkers)
+    : null;
+  const groundStationMarkerRegionChips = groundStationMarkers
+    ? mountMarkerRegionChips(viewer.container as HTMLElement, groundStationMarkers)
+    : null;
 
   const unmountHomepageEntryCta =
     adoptFirstIntakeAsActiveOwner || isM8aV4RuntimeRequest
@@ -804,6 +812,8 @@ export function startBootstrapComposition(app: HTMLDivElement): BootstrapComposi
     dispose() {
       delete window.__SCENARIO_GLOBE_VIEWER_CAPTURE__;
       unmountHomepageEntryCta();
+      groundStationMarkerRegionChips?.dispose();
+      groundStationMarkerSearchInput?.dispose();
       groundStationMarkerFilterChips?.dispose();
       groundStationMarkerHoverTooltip?.dispose();
       groundStationInfoCard?.dispose();

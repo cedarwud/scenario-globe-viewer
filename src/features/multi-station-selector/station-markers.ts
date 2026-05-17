@@ -69,8 +69,41 @@ export interface GroundStationMarkersHandle {
   setHighlightedStation(stationId: string | null): void;
   setOrbitFilter(allowedOrbits: ReadonlyArray<OrbitClass>): void;
   getOrbitFilter(): ReadonlyArray<OrbitClass>;
+  setRegionFilter(allowedRegions: ReadonlyArray<string> | null): void;
+  getRegionFilter(): ReadonlyArray<string> | null;
+  setSearchQuery(query: string | null): void;
+  getSearchQuery(): string;
   getStationCount(): number;
   dispose(): void;
+}
+
+function normaliseSearchQuery(raw: string | null | undefined): string {
+  if (!raw) {
+    return "";
+  }
+  return raw.trim().toLowerCase();
+}
+
+function stationMatchesSearchQuery(
+  station: RegistryStation,
+  normalised: string
+): boolean {
+  if (!normalised) {
+    return true;
+  }
+  if (station.name.toLowerCase().includes(normalised)) {
+    return true;
+  }
+  if (station.operator.toLowerCase().includes(normalised)) {
+    return true;
+  }
+  if (station.country.toLowerCase().includes(normalised)) {
+    return true;
+  }
+  if (station.region.toLowerCase().includes(normalised)) {
+    return true;
+  }
+  return false;
 }
 
 export function mountGroundStationMarkers(
@@ -87,6 +120,8 @@ export function mountGroundStationMarkers(
 
   let visible = options.initiallyVisible ?? true;
   let allowedOrbits: ReadonlySet<OrbitClass> = new Set<OrbitClass>(["LEO", "MEO", "GEO"]);
+  let allowedRegions: ReadonlySet<string> | null = null;
+  let searchQuery = "";
   let highlightedId: string | null = null;
   let attached = false;
   let disposed = false;
@@ -137,12 +172,23 @@ export function mountGroundStationMarkers(
   }
 
   function stationPassesFilter(station: RegistryStation): boolean {
+    let orbitMatch = false;
     for (const orbit of station.supportedOrbits) {
       if (allowedOrbits.has(orbit)) {
-        return true;
+        orbitMatch = true;
+        break;
       }
     }
-    return false;
+    if (!orbitMatch) {
+      return false;
+    }
+    if (allowedRegions !== null && !allowedRegions.has(station.region)) {
+      return false;
+    }
+    if (!stationMatchesSearchQuery(station, searchQuery)) {
+      return false;
+    }
+    return true;
   }
 
   function applyFilterToMarkers(): void {
@@ -206,6 +252,26 @@ export function mountGroundStationMarkers(
     },
     getOrbitFilter(): ReadonlyArray<OrbitClass> {
       return Array.from(allowedOrbits);
+    },
+    setRegionFilter(next: ReadonlyArray<string> | null): void {
+      allowedRegions = next === null ? null : new Set<string>(next);
+      applyFilterToMarkers();
+      if (attached) {
+        viewer.scene.requestRender();
+      }
+    },
+    getRegionFilter(): ReadonlyArray<string> | null {
+      return allowedRegions === null ? null : Array.from(allowedRegions);
+    },
+    setSearchQuery(next: string | null): void {
+      searchQuery = normaliseSearchQuery(next);
+      applyFilterToMarkers();
+      if (attached) {
+        viewer.scene.requestRender();
+      }
+    },
+    getSearchQuery(): string {
+      return searchQuery;
     },
     setHighlightedStation(stationId: string | null): void {
       if (highlightedId === stationId) {
