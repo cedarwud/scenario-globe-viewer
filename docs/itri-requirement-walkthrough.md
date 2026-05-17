@@ -290,12 +290,14 @@ demo 畫面上重現 (reproduce) 的位置與一組真實數字。
 - **原文 (口頭)**: 跨軌道 handover demo 必須是真實 LIVE handover — 單一服務連續
   從 LEO → MEO → GEO 切換,不是 orbit-type 場景選單。
 - **白話**: 一條連線「邊用邊換軌」,而不是「先選好用哪一軌」。
-- **完成度**: 部分。`handover-policy.ts` 的 `cross-orbit-live` 政策已實作:當前 LEO
-  仰角低於門檻且無 LEO 候選達標、但 MEO/GEO 達標且 latency budget 仍滿足時,
-  發出 `cross-orbit-migration`。runtime-projection 以
-  `enableCrossOrbitLivePolicy` 旗標接線。**demo UI 上的開關尚未做** (據實揭露)。
-- **demo 驗證位置**: 計算路徑可在 `runtime-projection.ts` 的
-  `enableCrossOrbitLivePolicy` 分支驗證;UI toggle 待補。
+- **完成度**: done。`handover-policy.ts` 的 `cross-orbit-live` 政策已實作 +
+  runtime-projection.ts **預設且僅**使用此政策 (2026-05-17 砍除 opt-in 旗標
+  `enableCrossOrbitLivePolicy`)。當前 LEO 仰角低於門檻且無 LEO 候選達標、
+  但 MEO/GEO 達標且 latency budget 仍滿足時,發出 `cross-orbit-migration`
+  事件。
+- **demo 驗證位置**: V4 side panel Handover events 區塊 + Non-claims 行
+  (明列「handover decisions use the cross-orbit-live policy (TR 38.821 §7.3
+  + V-MO1 verbal addendum)」)。
 - **source tier**: Tier B — TR 38.821 §7.3 結構 + 口頭需求細化。
 - **重現**: `handover-policy.ts` 含 sanity 註解 (全 LEO < 10° 仰角且 MEO 30° 可用
   → cross-orbit-migration)。
@@ -350,7 +352,7 @@ boundary non-claims 已逐條標示。
 - [x] R1-D2 — 11/30 動態調參介面
 - [x] R1-D3 — 11/30 通訊時間統計
 - [x] R1-D4 — 11/30 24h soak:2026-05-15 通過
-- [~] V-MO1 — 跨軌道 LIVE handover:計算路徑已做;demo UI toggle 未做
+- [x] V-MO1 — 跨軌道 LIVE handover:V4 預設且僅使用 cross-orbit-live 政策
 
 `[x]` = 完成可重現;`[~]` = 部分,括註未做部分。
 
@@ -398,9 +400,10 @@ station id 來自 `public/fixtures/ground-stations/multi-orbit-public-registry.j
    來源為口頭追加。
 
 8. **Q: V-MO1 做完了嗎?**
-   A: 計算路徑做完 — `handover-policy.ts` cross-orbit-live 政策 +
-   runtime-projection 的 `enableCrossOrbitLivePolicy` 旗標接線。demo 上的
-   UI 開關尚未做,本走查 §1 卡 19 與 §3 已標 `[~]`。
+   A: 是。V4 runtime-projection 預設且僅使用 `handover-policy.ts` 的
+   `cross-orbit-live` 政策 (2026-05-17 砍除 opt-in flag),demo 自然呈現
+   單一服務連續跨軌切換行為。truth boundary 的 non-claims 明列政策來源
+   (TR 38.821 §7.3 + V-MO1 verbal addendum)。
 
 9. **Q: 24 小時穩定性如何證明?**
    A: soak 測試證據檔
@@ -439,10 +442,9 @@ station id 來自 `public/fixtures/ground-stations/multi-orbit-public-registry.j
 
 以下能力已實作,但 demo 畫面上沒有專屬入口,reviewer 若問需主動說明。
 
-- **V-MO1 cross-orbit-live 政策**:`handover-policy.ts` 已實作且
-  runtime-projection 已接線,但無 UI toggle。需從程式碼或 input 旗標展示。
-- **handover 政策切換 (leo-first / bootstrap-balanced-v1)**:三政策皆存在,
-  demo 預設走 bootstrap-balanced-v1;切換需經 input 參數。
+- **`handover-policy.ts` 的 leo-first / bootstrap-balanced-v1 政策**:模組
+  支援三種政策;V4 demo 預設且僅使用 cross-orbit-live (V-MO1),其他兩種政策
+  可由直接呼叫 `evaluateHandoverPolicy` 驗證,demo 不切換。
 - **link-budget 各模組獨立函式**:antenna-pattern.ts (S.1528 / S.465)、
   gas-absorption.ts 的細項輸出 (氧氣 / 水氣分項) 未在 panel 顯示,但函式
   可獨立呼叫驗證。
