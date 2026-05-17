@@ -14,11 +14,17 @@ const STYLE_MARKER_ATTR = "data-ground-station-marker-tooltip-style";
 const CURSOR_OFFSET_X = 14;
 const CURSOR_OFFSET_Y = -8;
 
+type OrbitClass = "LEO" | "MEO" | "GEO";
+
 interface RegistryStationLite {
   readonly id: string;
   readonly name: string;
   readonly operator: string;
+  readonly supportedOrbits: ReadonlyArray<OrbitClass>;
+  readonly supportedBands: ReadonlyArray<string>;
 }
+
+const ORBIT_ORDER: ReadonlyArray<OrbitClass> = ["LEO", "MEO", "GEO"];
 
 const STATIONS_BY_ID: ReadonlyMap<string, RegistryStationLite> = new Map(
   (registry.stations as ReadonlyArray<RegistryStationLite>).map((s) => [s.id, s])
@@ -52,6 +58,28 @@ const CSS_TEXT = `
   color: rgba(157,196,232,0.85);
   display: block;
   margin-top: 0.15rem;
+}
+.ground-station-marker-tooltip__orbits {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.2rem;
+  margin-top: 0.25rem;
+}
+.ground-station-marker-tooltip__orbit {
+  border: 1px solid rgba(126,226,184,0.42);
+  border-radius: 999px;
+  background: rgba(126,226,184,0.14);
+  color: #7ee2b8;
+  font-size: 0.58rem;
+  font-weight: 700;
+  line-height: 1.25;
+  padding: 0.04rem 0.25rem;
+}
+.ground-station-marker-tooltip__bands {
+  display: block;
+  margin-top: 0.18rem;
+  color: rgba(255,209,102,0.9);
+  font-size: 0.66rem;
 }
 `;
 
@@ -87,7 +115,13 @@ function createTooltipRoot(): HTMLDivElement {
   const operatorEl = document.createElement("span");
   operatorEl.className = "ground-station-marker-tooltip__operator";
 
-  root.append(nameEl, operatorEl);
+  const orbitsEl = document.createElement("span");
+  orbitsEl.className = "ground-station-marker-tooltip__orbits";
+
+  const bandsEl = document.createElement("span");
+  bandsEl.className = "ground-station-marker-tooltip__bands";
+
+  root.append(nameEl, operatorEl, orbitsEl, bandsEl);
   return root;
 }
 
@@ -107,6 +141,12 @@ export function mountMarkerHoverTooltip(
   const operatorEl = root.querySelector(
     ".ground-station-marker-tooltip__operator"
   ) as HTMLSpanElement;
+  const orbitsEl = root.querySelector(
+    ".ground-station-marker-tooltip__orbits"
+  ) as HTMLSpanElement;
+  const bandsEl = root.querySelector(
+    ".ground-station-marker-tooltip__bands"
+  ) as HTMLSpanElement;
 
   let currentStationId: string | null = null;
   let disposed = false;
@@ -119,6 +159,8 @@ export function mountMarkerHoverTooltip(
     currentStationId = null;
     nameEl.textContent = "";
     operatorEl.textContent = "";
+    orbitsEl.replaceChildren();
+    bandsEl.textContent = "";
   }
 
   function show(station: RegistryStationLite, x: number, y: number): void {
@@ -126,6 +168,17 @@ export function mountMarkerHoverTooltip(
       currentStationId = station.id;
       nameEl.textContent = station.name;
       operatorEl.textContent = station.operator;
+      orbitsEl.replaceChildren(
+        ...ORBIT_ORDER.filter((orbit) => station.supportedOrbits.includes(orbit)).map(
+          (orbit) => {
+            const badge = document.createElement("span");
+            badge.className = "ground-station-marker-tooltip__orbit";
+            badge.textContent = orbit;
+            return badge;
+          }
+        )
+      );
+      bandsEl.textContent = station.supportedBands.join(" · ");
     }
     root.style.left = `${x + CURSOR_OFFSET_X}px`;
     root.style.top = `${y + CURSOR_OFFSET_Y}px`;
@@ -146,7 +199,9 @@ export function mountMarkerHoverTooltip(
       return;
     }
     const picked = viewer.scene.pick(endPosition);
-    const stationId = extractStationId(picked?.id);
+    const stationId =
+      extractStationId(picked?.id) ??
+      markers.findNearestVisible(endPosition, 32);
     if (!stationId) {
       hide();
       return;

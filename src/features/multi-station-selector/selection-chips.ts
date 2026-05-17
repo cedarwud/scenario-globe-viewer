@@ -67,6 +67,32 @@ function renderChip(elements: ChipElements, stationId: string | null): void {
   elements.clearButton.hidden = false;
 }
 
+function createLiveRegion(): HTMLDivElement {
+  const liveRegion = document.createElement("div");
+  liveRegion.className = "ground-station-selection-chips__live";
+  liveRegion.setAttribute("role", "status");
+  liveRegion.setAttribute("aria-live", "polite");
+  liveRegion.setAttribute("aria-atomic", "true");
+  liveRegion.style.position = "absolute";
+  liveRegion.style.width = "1px";
+  liveRegion.style.height = "1px";
+  liveRegion.style.padding = "0";
+  liveRegion.style.margin = "-1px";
+  liveRegion.style.overflow = "hidden";
+  liveRegion.style.clip = "rect(0 0 0 0)";
+  liveRegion.style.clipPath = "inset(50%)";
+  liveRegion.style.whiteSpace = "nowrap";
+  liveRegion.style.border = "0";
+  return liveRegion;
+}
+
+function formatSlotAnnouncement(slot: SelectionSlot, stationId: string | null): string {
+  if (stationId === null) {
+    return `${SLOT_LABEL[slot]} cleared`;
+  }
+  return `${SLOT_LABEL[slot]}: ${STATION_NAME_BY_ID.get(stationId) ?? stationId}`;
+}
+
 interface TierBadgeElements {
   readonly root: HTMLElement;
   readonly label: HTMLSpanElement;
@@ -121,9 +147,11 @@ export function mountSelectionChips(
   const stationB = createChip("stationB");
   const tierBadge = createTierBadge();
   const applyButton = createApplyButton();
+  const liveRegion = createLiveRegion();
 
   root.append(stationA.root, stationB.root, tierBadge.root, applyButton.root);
   viewerContainer.appendChild(root);
+  viewerContainer.appendChild(liveRegion);
 
   function applyTierBadge(snapshot: SelectionSnapshot): void {
     if (!snapshot.stationA || !snapshot.stationB) {
@@ -157,7 +185,21 @@ export function mountSelectionChips(
       snapshot.stationA === null && snapshot.stationB === null ? "true" : "false";
   }
 
-  apply(store.getSnapshot());
+  let previousSnapshot = store.getSnapshot();
+  apply(previousSnapshot);
+
+  function announceSelectionChanges(snapshot: SelectionSnapshot): void {
+    const messages: string[] = [];
+    for (const slot of ["stationA", "stationB"] as ReadonlyArray<SelectionSlot>) {
+      if (snapshot[slot] !== previousSnapshot[slot]) {
+        messages.push(formatSlotAnnouncement(slot, snapshot[slot]));
+      }
+    }
+    if (messages.length > 0) {
+      liveRegion.textContent = messages.join(". ");
+    }
+    previousSnapshot = snapshot;
+  }
 
   const handleClearA = (): void => {
     store.clear("stationA");
@@ -178,7 +220,10 @@ export function mountSelectionChips(
   stationB.clearButton.addEventListener("click", handleClearB);
   applyButton.root.addEventListener("click", handleApplyClick);
 
-  const unsubscribe = store.subscribe(apply);
+  const unsubscribe = store.subscribe((snapshot) => {
+    apply(snapshot);
+    announceSelectionChanges(snapshot);
+  });
 
   return {
     dispose(): void {
@@ -188,6 +233,9 @@ export function mountSelectionChips(
       applyButton.root.removeEventListener("click", handleApplyClick);
       if (root.parentElement) {
         root.parentElement.removeChild(root);
+      }
+      if (liveRegion.parentElement) {
+        liveRegion.parentElement.removeChild(liveRegion);
       }
     }
   };

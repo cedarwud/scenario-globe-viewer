@@ -16,6 +16,11 @@ import type { V4ResolvedStationPair } from "./v4-route-selection";
 
 const PANEL_MAX_VISIBILITY_ROWS = 8;
 const PANEL_MAX_HANDOVER_ROWS = 6;
+const DEFAULT_DEMO_PROJECTION_DURATION_MINUTES = 360;
+const MIN_DEMO_PROJECTION_DURATION_MINUTES = 20;
+const MAX_DEMO_PROJECTION_DURATION_MINUTES = 480;
+const START_UTC_PARAM = "startUtc";
+const DURATION_MINUTES_PARAM = "durationMinutes";
 
 const RAIN_RATE_MIN_MM_PER_HOUR = 0;
 const RAIN_RATE_MAX_MM_PER_HOUR = 100;
@@ -223,7 +228,55 @@ function formatIsoShort(iso: string): string {
   if (!Number.isFinite(ms)) {
     return iso;
   }
-  return new Date(ms).toISOString().slice(11, 19) + "Z";
+  const normalized = new Date(ms).toISOString();
+  return `${normalized.slice(0, 10)} ${normalized.slice(11, 19)}Z`;
+}
+
+function formatProjectionDuration(window: {
+  startUtc: string;
+  endUtc: string;
+}): string {
+  const durationMs = Date.parse(window.endUtc) - Date.parse(window.startUtc);
+  return formatDurationMs(durationMs);
+}
+
+function formatStationPanelName(name: string): string {
+  return name
+    .replace(/\s*\([^)]*\)/g, "")
+    .replace(/\bSatellite Station\b/g, "")
+    .trim();
+}
+
+function formatCountLabel(count: number, singular: string, plural: string): string {
+  return `${count} ${count === 1 ? singular : plural}`;
+}
+
+function clampDurationMinutes(value: number): number {
+  if (!Number.isFinite(value)) {
+    return DEFAULT_DEMO_PROJECTION_DURATION_MINUTES;
+  }
+  return Math.min(
+    Math.max(Math.round(value), MIN_DEMO_PROJECTION_DURATION_MINUTES),
+    MAX_DEMO_PROJECTION_DURATION_MINUTES
+  );
+}
+
+function resolveProjectionTimeWindow(): { startUtc: string; endUtc: string } {
+  const search =
+    typeof window === "undefined"
+      ? new URLSearchParams()
+      : new URLSearchParams(window.location.search);
+  const startUtcParam = search.get(START_UTC_PARAM);
+  const parsedStartMs = startUtcParam ? Date.parse(startUtcParam) : NaN;
+  const startUtc = Number.isFinite(parsedStartMs)
+    ? new Date(parsedStartMs).toISOString()
+    : new Date().toISOString();
+  const durationParam = search.get(DURATION_MINUTES_PARAM);
+  const durationMinutes =
+    durationParam === null
+      ? DEFAULT_DEMO_PROJECTION_DURATION_MINUTES
+      : clampDurationMinutes(Number(durationParam));
+  return buildDefaultTimeWindow(startUtc, durationMinutes);
 }
 
 function buildStatBlock(
@@ -244,6 +297,143 @@ function buildStatBlock(
   valueEl.textContent = value;
   block.append(labelEl, valueEl);
   return block;
+}
+
+function formatOrbitCommunicationTimes(result: RuntimeProjectionResult): string {
+  if (result.sharedSupportedOrbits.length === 0) {
+    return "none";
+  }
+  return result.sharedSupportedOrbits
+    .map((orbit) => `${orbit} ${formatDurationMs(result.communicationStats.byOrbit[orbit])}`)
+    .join(" · ");
+}
+
+function buildProjectionStatus(result: RuntimeProjectionResult): HTMLElement {
+  const wrapper = document.createElement("section");
+  wrapper.className = "v4-projection-side-panel__section";
+
+  const heading = document.createElement("h3");
+  heading.className = "v4-projection-side-panel__section-title";
+  heading.textContent = "Scenario status";
+  wrapper.append(heading);
+
+  const list = document.createElement("ul");
+  list.className = "v4-projection-side-panel__list";
+
+  const status = document.createElement("li");
+  status.className = "v4-projection-side-panel__list-item";
+  const statusPrimary = document.createElement("span");
+  statusPrimary.className = "v4-projection-side-panel__list-primary";
+  const statusSecondary = document.createElement("span");
+  statusSecondary.className = "v4-projection-side-panel__list-secondary";
+  if (result.communicationStats.totalCommunicatingMs <= 0) {
+    statusPrimary.textContent = "No mutual communication in this window";
+    statusSecondary.textContent =
+      "The selected stations share no visible satellite above the elevation threshold for this projection window.";
+  } else {
+    statusPrimary.textContent = "Selected-pair projection is active";
+    statusSecondary.textContent =
+      `${formatCountLabel(
+        result.visibilityWindows.length,
+        "mutual window",
+        "mutual windows"
+      )} · ${formatCountLabel(
+        result.communicationStats.handoverCount,
+        "handover",
+        "handovers"
+      )} · TLE-derived geometry`;
+  }
+  status.append(statusPrimary, statusSecondary);
+  list.append(status);
+
+  if (result.communicationStats.handoverCount === 0) {
+    const handover = document.createElement("li");
+    handover.className = "v4-projection-side-panel__list-item";
+    const primary = document.createElement("span");
+    primary.className = "v4-projection-side-panel__list-primary";
+    primary.textContent = "No handover event in this window";
+    const secondary = document.createElement("span");
+    secondary.className = "v4-projection-side-panel__list-secondary";
+    secondary.textContent =
+      "The pair may still communicate; this window does not exercise the handover policy.";
+    handover.append(primary, secondary);
+    list.append(handover);
+  }
+
+  const boundary = document.createElement("li");
+  boundary.className = "v4-projection-side-panel__list-item";
+  const boundaryPrimary = document.createElement("span");
+  boundaryPrimary.className = "v4-projection-side-panel__list-primary";
+  boundaryPrimary.textContent = "Display boundary";
+  const boundarySecondary = document.createElement("span");
+  boundarySecondary.className = "v4-projection-side-panel__list-secondary";
+  boundarySecondary.textContent =
+    "Panel and CSV follow selected-pair modeled projection; globe selected-pair cues use TLE-derived display lanes, not measured service telemetry.";
+  boundary.append(boundaryPrimary, boundarySecondary);
+  list.append(boundary);
+
+  wrapper.append(list);
+  return wrapper;
+}
+
+function buildProjectionSummary(result: RuntimeProjectionResult): HTMLElement {
+  const wrapper = document.createElement("section");
+  wrapper.className = "v4-projection-side-panel__section";
+
+  const heading = document.createElement("h3");
+  heading.className = "v4-projection-side-panel__section-title";
+  heading.textContent = "Scenario status";
+  wrapper.append(heading);
+
+  const list = document.createElement("ul");
+  list.className = "v4-projection-side-panel__list";
+
+  const status = document.createElement("li");
+  status.className = "v4-projection-side-panel__list-item";
+  const statusPrimary = document.createElement("span");
+  statusPrimary.className = "v4-projection-side-panel__list-primary";
+  const statusSecondary = document.createElement("span");
+  statusSecondary.className = "v4-projection-side-panel__list-secondary";
+
+  if (result.communicationStats.totalCommunicatingMs <= 0) {
+    statusPrimary.textContent = "No mutual communication";
+    statusSecondary.textContent = "No shared visible satellite in this projection window.";
+  } else {
+    statusPrimary.textContent = `${formatCountLabel(
+      result.visibilityWindows.length,
+      "mutual window",
+      "mutual windows"
+    )} · ${formatCountLabel(
+      result.communicationStats.handoverCount,
+      "handover",
+      "handovers"
+    )}`;
+    statusSecondary.textContent = "TLE-derived selected-pair projection";
+  }
+
+  status.append(statusPrimary, statusSecondary);
+  list.append(status);
+  wrapper.append(list);
+  return wrapper;
+}
+
+function buildDetailedStats(result: RuntimeProjectionResult): HTMLElement {
+  const wrapper = document.createElement("section");
+  wrapper.className = "v4-projection-side-panel__section";
+
+  const heading = document.createElement("h3");
+  heading.className = "v4-projection-side-panel__section-title";
+  heading.textContent = "Projection metrics";
+
+  const stats = document.createElement("div");
+  stats.className = "v4-projection-side-panel__stats";
+  stats.append(
+    buildStatBlock("Mean dwell", formatDurationMs(result.communicationStats.meanLinkDwellMs)),
+    buildStatBlock("Orbit comm time", formatOrbitCommunicationTimes(result))
+  );
+
+  wrapper.append(heading, stats);
+  return wrapper;
 }
 
 function downloadRuntimeProjectionCsv(result: RuntimeProjectionResult): void {
@@ -338,7 +528,7 @@ function buildHandoverEventList(
 
   const heading = document.createElement("h3");
   heading.className = "v4-projection-side-panel__section-title";
-  heading.textContent = `Handover events (${events.length})`;
+  heading.textContent = `Link selection events (${events.length})`;
   wrapper.append(heading);
 
   if (events.length === 0) {
@@ -367,7 +557,9 @@ function buildHandoverEventList(
     const reason = document.createElement("span");
     reason.className = "v4-projection-side-panel__list-secondary";
     reason.textContent =
-      e.reasonKind === "cross-orbit-migration"
+      e.fromSatelliteId === null
+        ? "initial acquisition"
+        : e.reasonKind === "cross-orbit-migration"
         ? "cross-orbit migration (V-MO1)"
         : e.reasonKind.replace(/-/g, " ");
     li.append(head, reason);
@@ -440,11 +632,17 @@ const ORBIT_DISPLAY_ORDER: ReadonlyArray<OrbitClass> = ["LEO", "MEO", "GEO"];
  * 0 mm/h vs the current rate makes the rain fade visible even when the
  * window's comm-time is geometry-saturated.
  */
-function buildRainSpeedComparison(rainRateMmPerHour: number): HTMLElement {
+function buildRainSpeedComparison(
+  rainRateMmPerHour: number,
+  sharedSupportedOrbits: ReadonlyArray<OrbitClass>
+): HTMLElement {
   const list = document.createElement("ul");
   list.className = "v4-projection-side-panel__list";
+  const allowedOrbits = new Set(sharedSupportedOrbits);
 
-  for (const orbit of ORBIT_DISPLAY_ORDER) {
+  for (const orbit of ORBIT_DISPLAY_ORDER.filter((orbitClass) =>
+    allowedOrbits.has(orbitClass)
+  )) {
     const clear = computeLinkBudgetMetricsForOrbit(orbit, {
       rainRateMmPerHour: 0
     });
@@ -542,7 +740,9 @@ function buildRainImpactSection(
 
   // Per-orbit throughput contrast — always moves with rain, so the link
   // degradation stays visible even when comm-time is geometry-limited.
-  wrapper.append(buildRainSpeedComparison(rainRateMmPerHour));
+  wrapper.append(
+    buildRainSpeedComparison(rainRateMmPerHour, current.sharedSupportedOrbits)
+  );
 
   const caption = document.createElement("p");
   caption.className = "v4-projection-side-panel__rain-caption";
@@ -613,6 +813,34 @@ function buildRainControl(
   return { control, slider, valueEl, captionEl: caption };
 }
 
+function buildProjectionDetails(
+  result: RuntimeProjectionResult,
+  rainRateMmPerHour: number,
+  clearSky: RuntimeProjectionResult
+): HTMLDetailsElement {
+  const details = document.createElement("details");
+  details.className = "v4-projection-side-panel__details";
+
+  const summary = document.createElement("summary");
+  summary.className = "v4-projection-side-panel__details-summary";
+  summary.textContent = "Details";
+
+  const body = document.createElement("div");
+  body.className = "v4-projection-side-panel__details-body";
+  body.append(
+    buildDownloadCsvButton(result),
+    buildProjectionStatus(result),
+    buildDetailedStats(result),
+    buildRainImpactSection(rainRateMmPerHour, result, clearSky),
+    buildVisibilityWindowList(result.visibilityWindows),
+    buildHandoverEventList(result.handoverEvents),
+    buildNonClaims(result.truthBoundary)
+  );
+
+  details.append(summary, body);
+  return details;
+}
+
 function setRainControlCaption(
   elements: RainControlElements,
   result: RuntimeProjectionResult,
@@ -620,7 +848,7 @@ function setRainControlCaption(
 ): void {
   if (rainRateMmPerHour <= 0) {
     elements.captionEl.textContent =
-      "Drag to model an ITU-R P.618-14 rain fade on the Ku/Ka downlink.";
+      "Model ITU-R P.618-14 rain fade on Ku/Ka.";
     return;
   }
   const rainNonClaim = result.truthBoundary.nonClaims.find((note) =>
@@ -655,11 +883,13 @@ function renderResult(
 
   const title = document.createElement("h2");
   title.className = "v4-projection-side-panel__title";
-  title.textContent = `Runtime projection · ${pair.stationA.name} ↔ ${pair.stationB.name}`;
+  title.textContent = `${formatStationPanelName(
+    pair.stationA.name
+  )} → ${formatStationPanelName(pair.stationB.name)}`;
 
   const windowLine = document.createElement("p");
   windowLine.className = "v4-projection-side-panel__window";
-  windowLine.textContent = `Window ${formatIsoShort(result.timeWindow.startUtc)} – ${formatIsoShort(result.timeWindow.endUtc)} UTC`;
+  windowLine.textContent = `${formatProjectionDuration(result.timeWindow)} selected-pair projection`;
 
   setRainControlCaption(rainControl, result, rainRateMmPerHour);
 
@@ -667,24 +897,16 @@ function renderResult(
   stats.className = "v4-projection-side-panel__stats";
   stats.append(
     buildStatBlock("Comm time", formatDurationMs(result.communicationStats.totalCommunicatingMs)),
-    buildStatBlock("Handovers", String(result.communicationStats.handoverCount)),
-    buildStatBlock("Mean dwell", formatDurationMs(result.communicationStats.meanLinkDwellMs)),
-    buildStatBlock(
-      "LEO/MEO/GEO",
-      `${formatDurationMs(result.communicationStats.byOrbit.LEO)} · ${formatDurationMs(result.communicationStats.byOrbit.MEO)} · ${formatDurationMs(result.communicationStats.byOrbit.GEO)}`
-    ),
-    buildDownloadCsvButton(result)
+    buildStatBlock("Handovers", String(result.communicationStats.handoverCount))
   );
 
   root.append(
     title,
     windowLine,
+    buildProjectionSummary(result),
     rainControl.control,
     stats,
-    buildRainImpactSection(rainRateMmPerHour, result, clearSky),
-    buildVisibilityWindowList(result.visibilityWindows),
-    buildHandoverEventList(result.handoverEvents),
-    buildNonClaims(result.truthBoundary)
+    buildProjectionDetails(result, rainRateMmPerHour, clearSky)
   );
 
   if (sliderWasFocused) {
@@ -780,7 +1002,7 @@ export function mountV4ProjectionSidePanel(
         return;
       }
       tleRecords = parseRuntimeTleSources(sources);
-      timeWindow = buildDefaultTimeWindow();
+      timeWindow = resolveProjectionTimeWindow();
       const requestSeq = ++computeRequestSeq;
       clearSkyResult = await projectionClient.compute({
         stationA: pair.stationA,

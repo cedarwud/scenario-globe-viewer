@@ -36,6 +36,7 @@ function resolveOrientation(orientation: SceneOrientationDegrees | undefined) {
 
 const scaledDestinationScratch = new Cartesian3();
 const normalizedDestinationScratch = new Cartesian3();
+const homeRouteOverrideViewers = new WeakSet<Viewer>();
 
 function resolveFlightDestination(
   viewer: Viewer,
@@ -100,6 +101,10 @@ export function applyCameraLanguage(viewer: Viewer, camera: SceneCameraDefinitio
     }
 
     viewer.homeButton.viewModel.command.beforeExecute.addEventListener((commandInfo) => {
+      if (homeRouteOverrideViewers.has(viewer)) {
+        return;
+      }
+
       if (viewer.scene.mode !== SceneMode.SCENE3D) {
         return;
       }
@@ -116,4 +121,26 @@ export function applyCameraLanguage(viewer: Viewer, camera: SceneCameraDefinitio
   if (viewer.scene.mode === SceneMode.SCENE3D) {
     flyCameraDefinition(viewer, camera, homeDurationSeconds);
   }
+}
+
+export function mountHomeButtonRouteOverride(
+  viewer: Viewer,
+  href: string
+): () => void {
+  const homeButtonCommand = viewer.homeButton?.viewModel.command;
+  if (!homeButtonCommand) {
+    return () => {};
+  }
+
+  homeRouteOverrideViewers.add(viewer);
+  const removeBeforeExecuteListener =
+    homeButtonCommand.beforeExecute.addEventListener((commandInfo) => {
+      commandInfo.cancel = true;
+      window.location.assign(href);
+    });
+
+  return () => {
+    removeBeforeExecuteListener();
+    homeRouteOverrideViewers.delete(viewer);
+  };
 }

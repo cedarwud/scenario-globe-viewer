@@ -36,6 +36,21 @@ import {
 import { clearDocumentTelemetry } from "../features/telemetry/document-telemetry";
 import type { ReplayClock, ReplayClockState } from "../features/time";
 import {
+  resolveV4RouteSelection,
+  type V4ResolvedStationPair
+} from "../features/multi-station-selector/v4-route-selection";
+import {
+  buildDefaultTimeWindow,
+  computeRuntimeProjection,
+  loadDefaultTleSources,
+  parseRuntimeTleSources
+} from "../features/multi-station-selector/runtime-projection";
+import {
+  buildSelectedPairSceneOverlay,
+  type SelectedPairSceneOverlay,
+  type SelectedPairSceneSatellite
+} from "../features/multi-station-selector/selected-pair-scene-adapter";
+import {
   M8A_V4_GROUND_STATION_MODEL_PUBLIC_PATH,
   M8A_V4_GROUND_STATION_QUERY_PARAM,
   M8A_V4_GROUND_STATION_QUERY_VALUE,
@@ -46,7 +61,6 @@ import {
   M8A_V46D_SIMULATION_HANDOVER_MODEL_ID,
   type M8aV4ActorDisplayRole,
   type M8aV4EndpointId,
-  type M8aV4EndpointProjection,
   type M8aV4GeoPosition,
   type M8aV4OrbitActorProjection,
   type M8aV4OrbitClass,
@@ -363,6 +377,11 @@ const M8A_V4_CAMERA_HEIGHT_METERS = 11_500_000;
 const M8A_V4_CAMERA_HEADING_DEGREES = 0;
 const M8A_V4_CAMERA_PITCH_DEGREES = -80;
 const M8A_V4_CAMERA_SCREEN_UP_PAN_METERS = 4_000_000;
+const M8A_V4_SELECTED_PAIR_ENDPOINT_RADIUS_METERS = 90_000;
+const M8A_V4_SELECTED_PAIR_CAMERA_LATITUDE_OFFSET_DEGREES = 66;
+const M8A_V4_SELECTED_PAIR_SCENE_DEFAULT_DURATION_MINUTES = 360;
+const M8A_V4_SELECTED_PAIR_SCENE_MIN_DURATION_MINUTES = 20;
+const M8A_V4_SELECTED_PAIR_SCENE_MAX_DURATION_MINUTES = 480;
 const M8A_V4_MILLISECONDS_PER_DAY = 24 * 60 * 60 * 1000;
 const M8A_V4_FULL_LEO_ORBIT_REPLAY_MARGIN_MS = 5 * 60 * 1000;
 const M8A_V4_DISPLAY_ORBIT_HEIGHT_METERS = {
@@ -457,6 +476,22 @@ interface M8aV4ActorDisplayMotionState {
     | "near-fixed-geo-display-context-guard-not-service-truth";
 }
 
+type SelectedPairOverlayDebugStatus =
+  | "not-requested"
+  | "loading"
+  | "ready"
+  | "empty"
+  | "error";
+
+interface SelectedPairOverlayDebugState {
+  status: SelectedPairOverlayDebugStatus;
+  satelliteCount: number;
+  runtimeLinkVisible: boolean;
+  positionSampleCount: number;
+  activeSelectionSampleCount: number;
+  errorMessage: string;
+}
+
 export interface M8aV4GroundStationSceneState {
   scenarioId: typeof M8A_V4_GROUND_STATION_SCENARIO_ID;
   runtimeState: typeof M8A_V4_GROUND_STATION_RUNTIME_STATE;
@@ -473,15 +508,16 @@ export interface M8aV4GroundStationSceneState {
   dataSourceAttached: boolean;
   endpointCount: 2;
   endpoints: ReadonlyArray<{
-    endpointId: M8aV4EndpointId;
+    endpointId: string;
     label: string;
     markerId: string;
-    precisionBadge: typeof M8A_V4_GROUND_STATION_REQUIRED_PRECISION_BADGE;
-    renderPrecision: "bounded-operator-family-display-anchor";
-    displayPositionIsSourceTruth: false;
-    rawSourceCoordinatesRenderable: false;
-    orbitEvidenceChips: ReadonlyArray<"LEO strong" | "MEO strong" | "GEO strong">;
+    precisionBadge: string;
+    renderPrecision: string;
+    displayPositionIsSourceTruth: boolean;
+    rawSourceCoordinatesRenderable: boolean;
+    orbitEvidenceChips: ReadonlyArray<string>;
   }>;
+  selectedPairOverlay: SelectedPairOverlayDebugState;
   actorCount: number;
   orbitActorCounts: Record<M8aV4OrbitClass, number>;
   actors: ReadonlyArray<M8aV4ActorRuntimeRecord>;
@@ -874,6 +910,34 @@ interface M8aV4ReplayProfile {
   periodSource: "repo-owned-oneweb-tle-mean-motion";
 }
 
+type EndpointRenderRole = "endpoint-a" | "endpoint-b";
+
+interface EndpointRenderContext {
+  endpointId: string;
+  endpointRole: EndpointRenderRole;
+  endpointLabel: string;
+  sourceCoordinatesRenderable: boolean;
+  coordinatePrecision: {
+    renderPrecision: string;
+  };
+  renderMarker: {
+    markerId: string;
+    displayPosition: M8aV4GeoPosition;
+    displayRadiusMeters: number;
+    label: string;
+    requiredPrecisionBadge: string;
+    displayPositionIsSourceTruth: boolean;
+  };
+  orbitEvidenceChips: ReadonlyArray<{
+    chipLabel: string;
+  }>;
+}
+
+interface SceneEndpointContext {
+  endpoints: ReadonlyArray<EndpointRenderContext>;
+  selectedPair: V4ResolvedStationPair | null;
+}
+
 export function isM8aV4GroundStationRuntimeRequested(search: URLSearchParams): boolean {
   if (
     search.get(M8A_V4_GROUND_STATION_QUERY_PARAM) ===
@@ -884,12 +948,10 @@ export function isM8aV4GroundStationRuntimeRequested(search: URLSearchParams): b
   if (search.get("firstIntakeScenarioId") === M8A_V4_GROUND_STATION_SCENARIO_ID) {
     return true;
   }
-  // Implicit V4 activation: a short URL with both stationA and stationB present
+  // Implicit V4 activation: a short URL with a valid stationA/stationB pair
   // resolves into the V4 ground-station scene without requiring the explicit
   // m8aV4GroundStationScene=1 flag. Lets reviewers share short demo links.
-  const stationA = search.get("stationA")?.trim();
-  const stationB = search.get("stationB")?.trim();
-  return Boolean(stationA && stationB);
+  return Boolean(resolveV4RouteSelection(search).resolvedPair);
 }
 
 function serializeList(values: ReadonlyArray<string>): string {
@@ -1035,6 +1097,98 @@ function positionToPlainMeters(cartesian: Cartesian3): {
   };
 }
 
+function resolveSelectedPairFromLocation(): V4ResolvedStationPair | null {
+  if (typeof window === "undefined") {
+    return null;
+  }
+  return resolveV4RouteSelection(new URLSearchParams(window.location.search))
+    .resolvedPair;
+}
+
+function createSelectedPairEndpointContext(
+  station: V4ResolvedStationPair["stationA"],
+  endpointRole: EndpointRenderRole
+): EndpointRenderContext {
+  const roleLabel = endpointRole === "endpoint-a" ? "A" : "B";
+  const precisionBadge = station.disclosurePrecision || "public registry coordinate";
+
+  return {
+    endpointId: `selected-${endpointRole}-${station.id}`,
+    endpointRole,
+    endpointLabel: `${station.country} / ${station.name}`,
+    sourceCoordinatesRenderable: true,
+    coordinatePrecision: {
+      renderPrecision: precisionBadge
+    },
+    renderMarker: {
+      markerId: `selected-${endpointRole}-${station.id}`,
+      displayPosition: {
+        lat: station.lat,
+        lon: station.lon,
+        heightMeters: 0
+      },
+      displayRadiusMeters: M8A_V4_SELECTED_PAIR_ENDPOINT_RADIUS_METERS,
+      label: `${roleLabel}: ${station.name}`,
+      requiredPrecisionBadge: precisionBadge,
+      displayPositionIsSourceTruth: true
+    },
+    orbitEvidenceChips: station.supportedOrbits.map((orbitClass) => ({
+      chipLabel: `${orbitClass} public`
+    }))
+  };
+}
+
+function buildSceneEndpointContext(): SceneEndpointContext {
+  const selectedPair = resolveSelectedPairFromLocation();
+
+  if (!selectedPair) {
+    return {
+      endpoints: M8A_V4_GROUND_STATION_RUNTIME_PROJECTION.endpoints,
+      selectedPair: null
+    };
+  }
+
+  return {
+    endpoints: [
+      createSelectedPairEndpointContext(selectedPair.stationA, "endpoint-a"),
+      createSelectedPairEndpointContext(selectedPair.stationB, "endpoint-b")
+    ],
+    selectedPair
+  };
+}
+
+function resolveSelectedPairSceneDurationMinutes(search: URLSearchParams): number {
+  const rawValue = search.get("durationMinutes");
+  if (rawValue === null) {
+    return M8A_V4_SELECTED_PAIR_SCENE_DEFAULT_DURATION_MINUTES;
+  }
+  const parsed = Number(rawValue);
+  if (!Number.isFinite(parsed)) {
+    return M8A_V4_SELECTED_PAIR_SCENE_DEFAULT_DURATION_MINUTES;
+  }
+  return clamp(
+    Math.round(parsed),
+    M8A_V4_SELECTED_PAIR_SCENE_MIN_DURATION_MINUTES,
+    M8A_V4_SELECTED_PAIR_SCENE_MAX_DURATION_MINUTES
+  );
+}
+
+function resolveSelectedPairSceneTimeWindow(): { startUtc: string; endUtc: string } {
+  const search =
+    typeof window === "undefined"
+      ? new URLSearchParams()
+      : new URLSearchParams(window.location.search);
+  const rawStartUtc = search.get("startUtc");
+  const startUtc =
+    rawStartUtc && Number.isFinite(Date.parse(rawStartUtc))
+      ? new Date(Date.parse(rawStartUtc)).toISOString()
+      : new Date().toISOString();
+  return buildDefaultTimeWindow(
+    startUtc,
+    resolveSelectedPairSceneDurationMinutes(search)
+  );
+}
+
 function resolveReplayWindowRatio(replayState: ReplayClockState): number {
   const startMs = toEpochMilliseconds(replayState.startTime);
   const stopMs = toEpochMilliseconds(replayState.stopTime);
@@ -1168,8 +1322,44 @@ function configureReplayClock(viewer: Viewer, replayClock: ReplayClock): void {
   viewer.timeline?.zoomTo(viewer.clock.startTime, viewer.clock.stopTime);
 }
 
-function applyV4Camera(viewer: Viewer): void {
+function applyV4Camera(
+  viewer: Viewer,
+  sceneEndpointContext: SceneEndpointContext
+): void {
   viewer.camera.cancelFlight();
+
+  if (sceneEndpointContext.selectedPair && sceneEndpointContext.endpoints.length === 2) {
+    const [endpointA, endpointB] = sceneEndpointContext.endpoints;
+    const endpointAPosition = endpointA.renderMarker.displayPosition;
+    const endpointBPosition = endpointB.renderMarker.displayPosition;
+    const west = Math.min(endpointAPosition.lon, endpointBPosition.lon);
+    const east = Math.max(endpointAPosition.lon, endpointBPosition.lon);
+    const south = Math.min(endpointAPosition.lat, endpointBPosition.lat);
+    const north = Math.max(endpointAPosition.lat, endpointBPosition.lat);
+    const pairCenterLon = (west + east) / 2;
+    const pairCenterLat = (south + north) / 2;
+
+    viewer.camera.setView({
+      destination: Cartesian3.fromDegrees(
+        pairCenterLon,
+        clamp(
+          pairCenterLat - M8A_V4_SELECTED_PAIR_CAMERA_LATITUDE_OFFSET_DEGREES,
+          -82,
+          82
+        ),
+        M8A_V4_CAMERA_HEIGHT_METERS
+      ),
+      orientation: {
+        heading: CesiumMath.toRadians(M8A_V4_CAMERA_HEADING_DEGREES),
+        pitch: CesiumMath.toRadians(M8A_V4_CAMERA_PITCH_DEGREES),
+        roll: 0
+      }
+    });
+    viewer.camera.moveUp(M8A_V4_CAMERA_SCREEN_UP_PAN_METERS);
+    viewer.scene.requestRender();
+    return;
+  }
+
   viewer.camera.setView({
     destination: Cartesian3.fromDegrees(
       M8A_V4_CAMERA_LONGITUDE,
@@ -1186,8 +1376,12 @@ function applyV4Camera(viewer: Viewer): void {
   viewer.scene.requestRender();
 }
 
-function resolveEndpointColor(endpointId: M8aV4EndpointId): Color {
-  return endpointId === "tw-cht-multi-orbit-ground-infrastructure"
+function resolveEndpointColor(
+  endpointId: string,
+  endpointRole?: EndpointRenderRole
+): Color {
+  return endpointId === "tw-cht-multi-orbit-ground-infrastructure" ||
+    endpointRole === "endpoint-a"
     ? Color.fromCssColorString("#f4fbff")
     : Color.fromCssColorString("#7ee2b8");
 }
@@ -1277,10 +1471,12 @@ function resolveActorEmphasis(
   };
 }
 
-function createEndpointPointStyle(endpoint: M8aV4EndpointProjection): PointGraphics {
+function createEndpointPointStyle(endpoint: EndpointRenderContext): PointGraphics {
   return new PointGraphics({
     pixelSize: new ConstantProperty(11),
-    color: new ConstantProperty(resolveEndpointColor(endpoint.endpointId)),
+    color: new ConstantProperty(
+      resolveEndpointColor(endpoint.endpointId, endpoint.endpointRole)
+    ),
     outlineColor: new ConstantProperty(
       Color.fromCssColorString("#06121a").withAlpha(0.96)
     ),
@@ -1291,9 +1487,9 @@ function createEndpointPointStyle(endpoint: M8aV4EndpointProjection): PointGraph
 }
 
 function createEndpointEllipseStyle(
-  endpoint: M8aV4EndpointProjection
+  endpoint: EndpointRenderContext
 ): EllipseGraphics {
-  const color = resolveEndpointColor(endpoint.endpointId);
+  const color = resolveEndpointColor(endpoint.endpointId, endpoint.endpointRole);
 
   return new EllipseGraphics({
     semiMajorAxis: new ConstantProperty(endpoint.renderMarker.displayRadiusMeters),
@@ -1306,7 +1502,7 @@ function createEndpointEllipseStyle(
 }
 
 function createEndpointLabelStyle(
-  _endpoint: M8aV4EndpointProjection
+  _endpoint: EndpointRenderContext
 ): LabelGraphics {
   return new LabelGraphics({
     show: new ConstantProperty(false),
@@ -1328,6 +1524,70 @@ function createEndpointLabelStyle(
     verticalOrigin: VerticalOrigin.BOTTOM,
     disableDepthTestDistance: Number.POSITIVE_INFINITY,
     distanceDisplayCondition: new DistanceDisplayCondition(0, 60_000_000)
+  });
+}
+
+function resolveSelectedPairSatelliteColor(
+  satellite: SelectedPairSceneSatellite
+): Color {
+  switch (satellite.orbitClass) {
+    case "LEO":
+      return Color.fromCssColorString("#f4fbff");
+    case "MEO":
+      return Color.fromCssColorString("#d46bff");
+    case "GEO":
+      return Color.fromCssColorString("#ffb23f");
+  }
+}
+
+function formatSelectedPairSatelliteLabel(satelliteId: string): string {
+  return satelliteId.length > 18 ? `${satelliteId.slice(0, 18)}…` : satelliteId;
+}
+
+function createSelectedPairSatellitePointStyle(
+  satellite: SelectedPairSceneSatellite
+): PointGraphics {
+  const color = resolveSelectedPairSatelliteColor(satellite);
+  return new PointGraphics({
+    pixelSize: new ConstantProperty(
+      satellite.role === "link-selection-event" ? 9 : 6
+    ),
+    color: new ConstantProperty(color.withAlpha(0.92)),
+    outlineColor: new ConstantProperty(
+      Color.fromCssColorString("#06121a").withAlpha(0.96)
+    ),
+    outlineWidth: satellite.role === "link-selection-event" ? 2 : 1,
+    disableDepthTestDistance: Number.POSITIVE_INFINITY,
+    distanceDisplayCondition: new DistanceDisplayCondition(0, 100_000_000)
+  });
+}
+
+function createSelectedPairSatelliteLabelStyle(
+  satellite: SelectedPairSceneSatellite
+): LabelGraphics | undefined {
+  if (satellite.role !== "link-selection-event") {
+    return undefined;
+  }
+
+  return new LabelGraphics({
+    text: new ConstantProperty(formatSelectedPairSatelliteLabel(satellite.satelliteId)),
+    font: "11px sans-serif",
+    style: LabelStyle.FILL_AND_OUTLINE,
+    fillColor: new ConstantProperty(Color.WHITE.withAlpha(0.95)),
+    outlineColor: new ConstantProperty(
+      Color.fromCssColorString("#06121a").withAlpha(0.96)
+    ),
+    outlineWidth: 2,
+    showBackground: true,
+    backgroundColor: new ConstantProperty(
+      Color.fromCssColorString("#0b1820").withAlpha(0.64)
+    ),
+    backgroundPadding: new Cartesian2(6, 3),
+    pixelOffset: new Cartesian2(0, -22),
+    horizontalOrigin: HorizontalOrigin.CENTER,
+    verticalOrigin: VerticalOrigin.BOTTOM,
+    disableDepthTestDistance: Number.POSITIVE_INFINITY,
+    distanceDisplayCondition: new DistanceDisplayCondition(0, 100_000_000)
   });
 }
 
@@ -2132,7 +2392,7 @@ function ensureProductUxStructure(root: HTMLElement): void {
       <div class="m8a-v47-product-ux__sheet-header">
         <div class="m8a-v410-inspector__title">
           <span data-m8a-v48-info-class="fixed">Details</span>
-          <strong data-m8a-v410-inspector-title="true" data-m8a-v48-info-class="fixed">Evidence inspector</strong>
+          <strong data-m8a-v410-inspector-title="true" data-m8a-v48-info-class="fixed">Handover details</strong>
         </div>
         <span class="m8a-v411-inspector__mode-label" data-m8a-v411-inspector-mode-label="true" data-m8a-v411-replay-clock-mode="running" data-m8a-v48-info-class="dynamic" hidden></span>
         <span class="m8a-v411-inspector__validation-badge" data-m8a-v411-inspector-validation-badge="true" data-m8a-v411-validation-status-badge="true" data-m8a-v48-info-class="fixed">Validation status: TBD</span>
@@ -2156,7 +2416,7 @@ function ensureProductUxStructure(root: HTMLElement): void {
       </div>
       <button type="button" class="m8a-v411-inspector__source-toggle" data-m8a-v47-action="toggle-source-provenance" data-m8a-v411-advanced-sources-toggle="true" data-m8a-v48-info-class="control" aria-expanded="false">Source provenance</button>
       <div class="m8a-v47-product-ux__inspector" data-m8a-v48-inspector-body="true">
-        <p class="m8a-v410-inspector__lead" data-m8a-v410-inspector-lead="true" data-m8a-v48-info-class="fixed">Evidence for the selected replay window. The scene narrative and sequence rail remain primary.</p>
+        <p class="m8a-v410-inspector__lead" data-m8a-v410-inspector-lead="true" data-m8a-v48-info-class="fixed">Decision context and modeled metrics for the selected replay window. The scene narrative and sequence rail remain primary.</p>
         <div class="m8a-v47-product-ux__inspector-primary m8a-v410-inspector__evidence-structure" data-m8a-v49-inspector-primary-body="true" data-m8a-v410-inspector-evidence-structure="true">
           <section id="m8a-v411-inspector-panel-decision" role="tabpanel" aria-labelledby="m8a-v411-inspector-tab-decision" class="m8a-v411-inspector__role m8a-v411-inspector__role--state" data-m8a-v411-inspector-role="state-evidence" data-m8a-v411-role-state="closed" data-m8a-v411-inspector-panel="decision" data-m8a-v49-inspector-primary="current-state">
             <span class="m8a-v410-inspector__group-label" data-m8a-v48-info-class="fixed">Decision · State Evidence</span>
@@ -3200,7 +3460,8 @@ function renderProductUx(
   root: HTMLElement,
   state: M8aV4GroundStationSceneState,
   viewer: Viewer,
-  visualTokenController: M8aV411VisualTokenController
+  visualTokenController: M8aV411VisualTokenController,
+  sceneEndpoints: ReadonlyArray<EndpointRenderContext>
 ): void {
   const productUx = state.productUx;
   const activeMultiplier = productUx.playback.multiplier;
@@ -4551,8 +4812,10 @@ function renderProductUx(
   renderM8aV411GlanceRankSurface({
     root,
     actors: state.actors,
-    endpoints: M8A_V4_GROUND_STATION_RUNTIME_PROJECTION.endpoints,
-    requiredPrecisionBadge: M8A_V4_GROUND_STATION_REQUIRED_PRECISION_BADGE,
+    endpoints: sceneEndpoints,
+    requiredPrecisionBadge:
+      sceneEndpoints[0]?.renderMarker.requiredPrecisionBadge ??
+      M8A_V4_GROUND_STATION_REQUIRED_PRECISION_BADGE,
     projectActor: (actor) =>
       projectSceneAnchorPoint(
         viewer,
@@ -5484,6 +5747,9 @@ function cloneState(
       ...endpoint,
       orbitEvidenceChips: [...endpoint.orbitEvidenceChips]
     })),
+    selectedPairOverlay: {
+      ...state.selectedPairOverlay
+    },
     orbitActorCounts: {
       ...state.orbitActorCounts
     },
@@ -5846,8 +6112,10 @@ function notifyListeners(
   }
 }
 
-function buildEndpointState(): M8aV4GroundStationSceneState["endpoints"] {
-  return M8A_V4_GROUND_STATION_RUNTIME_PROJECTION.endpoints.map((endpoint) => ({
+function buildEndpointState(
+  endpoints: ReadonlyArray<EndpointRenderContext>
+): M8aV4GroundStationSceneState["endpoints"] {
+  return endpoints.map((endpoint) => ({
     endpointId: endpoint.endpointId,
     label: endpoint.renderMarker.label,
     markerId: endpoint.renderMarker.markerId,
@@ -6439,6 +6707,278 @@ function resolveActorById(
   return actor;
 }
 
+function resolveSelectedPairProjectionDate(
+  overlay: SelectedPairSceneOverlay,
+  replayState: ReplayClockState,
+  time?: JulianDate
+): Date {
+  const projectionStartMs = Date.parse(overlay.timeWindow.startUtc);
+  const projectionStopMs = Date.parse(overlay.timeWindow.endUtc);
+  const replayRatio = time
+    ? resolveReplayWindowRatio({
+        ...replayState,
+        currentTime: JulianDate.toDate(time).toISOString()
+      })
+    : resolveReplayWindowRatio(replayState);
+
+  return new Date(
+    projectionStartMs + (projectionStopMs - projectionStartMs) * replayRatio
+  );
+}
+
+function resolveActiveSelectedPairSatelliteId(
+  overlay: SelectedPairSceneOverlay,
+  projectionDate: Date
+): string | null {
+  const projectionMs = projectionDate.getTime();
+  let activeSatelliteId: string | null = null;
+
+  for (const event of overlay.linkEvents) {
+    const eventMs = Date.parse(event.atUtc);
+    if (Number.isFinite(eventMs) && eventMs <= projectionMs) {
+      activeSatelliteId = event.satelliteId;
+    }
+  }
+
+  if (activeSatelliteId) {
+    return activeSatelliteId;
+  }
+
+  let activeSampleId: string | null = null;
+  for (const sample of overlay.activeSelectionSamples) {
+    const sampleMs = Date.parse(sample.atUtc);
+    if (Number.isFinite(sampleMs) && sampleMs <= projectionMs) {
+      activeSampleId = sample.satelliteId;
+    }
+  }
+
+  return activeSampleId ?? overlay.satellites[0]?.satelliteId ?? null;
+}
+
+function createSelectedPairOverlayDebugState(
+  status: SelectedPairOverlayDebugStatus,
+  overrides: Partial<SelectedPairOverlayDebugState> = {}
+): SelectedPairOverlayDebugState {
+  return {
+    status,
+    satelliteCount: 0,
+    runtimeLinkVisible: false,
+    positionSampleCount: 0,
+    activeSelectionSampleCount: 0,
+    errorMessage: "",
+    ...overrides
+  };
+}
+
+function resolveSelectedPairSatelliteRenderHeightMeters(
+  satellite: SelectedPairSceneSatellite
+): number {
+  switch (satellite.orbitClass) {
+    case "LEO":
+      return 650_000;
+    case "MEO":
+      return 3_400_000;
+    case "GEO":
+      return 5_400_000;
+  }
+}
+
+function resolveSelectedPairSatelliteTrackRate(
+  satellite: SelectedPairSceneSatellite
+): number {
+  switch (satellite.orbitClass) {
+    case "LEO":
+      return 1.1;
+    case "MEO":
+      return 0.42;
+    case "GEO":
+      return 0.06;
+  }
+}
+
+function resolveSelectedPairSatelliteRenderPosition({
+  endpointA,
+  endpointB,
+  index,
+  replayState,
+  result,
+  satellite,
+  time
+}: {
+  readonly endpointA: EndpointRenderContext;
+  readonly endpointB: EndpointRenderContext;
+  readonly index: number;
+  readonly replayState: ReplayClockState;
+  readonly result?: Cartesian3;
+  readonly satellite: SelectedPairSceneSatellite;
+  readonly time?: JulianDate;
+}): Cartesian3 {
+  const endpointAPosition = endpointA.renderMarker.displayPosition;
+  const endpointBPosition = endpointB.renderMarker.displayPosition;
+  const replayRatio = time
+    ? resolveReplayWindowRatio({
+        ...replayState,
+        currentTime: JulianDate.toDate(time).toISOString()
+      })
+    : resolveReplayWindowRatio(replayState);
+  const progress = normalizeUnit(
+    replayRatio * resolveSelectedPairSatelliteTrackRate(satellite) + index * 0.17
+  );
+  const west = Math.min(endpointAPosition.lon, endpointBPosition.lon);
+  const east = Math.max(endpointAPosition.lon, endpointBPosition.lon);
+  const south = Math.min(endpointAPosition.lat, endpointBPosition.lat);
+  const north = Math.max(endpointAPosition.lat, endpointBPosition.lat);
+  const lonPadding = Math.max((east - west) * 0.28, 12);
+  const latPadding = Math.max((north - south) * 0.16, 3.2);
+  const laneOffset = (index % 3) * 1.9;
+
+  return Cartesian3.fromDegrees(
+    lerp(west - lonPadding, east + lonPadding, progress),
+    clamp(north + latPadding + laneOffset, -78, 82),
+    resolveSelectedPairSatelliteRenderHeightMeters(satellite),
+    undefined,
+    result ?? new Cartesian3()
+  );
+}
+
+async function installSelectedPairSceneOverlay({
+  dataSource,
+  endpointA,
+  endpointB,
+  replayClock,
+  sceneEndpointContext,
+  viewer,
+  onStateChange,
+  shouldSkip
+}: {
+  readonly dataSource: CustomDataSource;
+  readonly endpointA: EndpointRenderContext;
+  readonly endpointB: EndpointRenderContext;
+  readonly replayClock: ReplayClock;
+  readonly sceneEndpointContext: SceneEndpointContext;
+  readonly viewer: Viewer;
+  readonly onStateChange: (state: SelectedPairOverlayDebugState) => void;
+  readonly shouldSkip: () => boolean;
+}): Promise<void> {
+  const pair = sceneEndpointContext.selectedPair;
+  if (!pair) {
+    onStateChange(createSelectedPairOverlayDebugState("not-requested"));
+    return;
+  }
+
+  onStateChange(createSelectedPairOverlayDebugState("loading"));
+  const sources = await loadDefaultTleSources();
+  if (shouldSkip()) {
+    return;
+  }
+
+  const tleRecords = parseRuntimeTleSources(sources);
+  const result = computeRuntimeProjection({
+    stationA: pair.stationA,
+    stationB: pair.stationB,
+    timeWindow: resolveSelectedPairSceneTimeWindow(),
+    tleRecords,
+    rainRateMmPerHour: 0
+  });
+  const overlay = buildSelectedPairSceneOverlay(result, tleRecords);
+  if (shouldSkip() || overlay.satellites.length === 0) {
+    if (!shouldSkip()) {
+      onStateChange(
+        createSelectedPairOverlayDebugState("empty", {
+          positionSampleCount: overlay.positionSamples.length,
+          activeSelectionSampleCount: overlay.activeSelectionSamples.length
+        })
+      );
+    }
+    return;
+  }
+
+  const endpointAPosition = positionToCartesian(endpointA.renderMarker.displayPosition);
+  const endpointBPosition = positionToCartesian(endpointB.renderMarker.displayPosition);
+  const satelliteIndexById = new Map(
+    overlay.satellites.map((satellite, index) => [satellite.satelliteId, index])
+  );
+
+  overlay.satellites.forEach((satellite, index) => {
+    dataSource.entities.add({
+      id: `m8a-v4-selected-pair-satellite-${satellite.satelliteId}`,
+      name: `Selected pair ${satellite.orbitClass} ${satellite.satelliteId}`,
+      position: new CallbackPositionProperty((time, positionResult) => {
+        return resolveSelectedPairSatelliteRenderPosition({
+          endpointA,
+          endpointB,
+          index,
+          replayState: replayClock.getState(),
+          result: positionResult,
+          satellite,
+          time
+        });
+      }, false),
+      point: createSelectedPairSatellitePointStyle(satellite),
+      label: createSelectedPairSatelliteLabelStyle(satellite),
+      description: new ConstantProperty(
+        `${satellite.satelliteId}; selected from clear-sky TLE projection and rendered in a demo display lane.`
+      )
+    });
+  });
+
+  dataSource.entities.add({
+    id: "m8a-v4-selected-pair-runtime-link",
+    name: "Selected pair runtime link overlay",
+    polyline: new PolylineGraphics({
+      positions: new CallbackProperty((time) => {
+        const projectionDate = resolveSelectedPairProjectionDate(
+          overlay,
+          replayClock.getState(),
+          time
+        );
+        const satelliteId = resolveActiveSelectedPairSatelliteId(
+          overlay,
+          projectionDate
+        );
+        const satellite = overlay.satellites.find(
+          (candidate) => candidate.satelliteId === satelliteId
+        );
+        if (!satellite) {
+          return [endpointAPosition, endpointBPosition];
+        }
+        const index = satelliteIndexById.get(satellite.satelliteId) ?? 0;
+        return [
+          endpointAPosition,
+          resolveSelectedPairSatelliteRenderPosition({
+            endpointA,
+            endpointB,
+            index,
+            replayState: replayClock.getState(),
+            satellite,
+            time
+          }),
+          endpointBPosition
+        ];
+      }, false),
+      width: new ConstantProperty(1.8),
+      material: new ColorMaterialProperty(
+        Color.fromCssColorString("#7ee2b8").withAlpha(0.32)
+      ),
+      arcType: ArcType.NONE
+    }),
+    description: new ConstantProperty(
+      "Selected-pair runtime link overlay; TLE-derived selection rendered in a demo display lane."
+    )
+  });
+
+  onStateChange(
+    createSelectedPairOverlayDebugState("ready", {
+      satelliteCount: overlay.satellites.length,
+      runtimeLinkVisible: true,
+      positionSampleCount: overlay.positionSamples.length,
+      activeSelectionSampleCount: overlay.activeSelectionSamples.length
+    })
+  );
+
+  viewer.scene.requestRender();
+}
+
 export function createM8aV4GroundStationSceneController({
   viewer,
   hudFrame,
@@ -6446,6 +6986,7 @@ export function createM8aV4GroundStationSceneController({
 }: M8aV4GroundStationSceneControllerOptions): M8aV4GroundStationSceneController {
   const modelUri = resolveModelUri();
   const dataSource = new CustomDataSource(M8A_V4_GROUND_STATION_DATA_SOURCE_NAME);
+  const sceneEndpointContext = buildSceneEndpointContext();
   const visualTokenController: M8aV411VisualTokenController =
     installM8aV411VisualTokens(viewer);
   const hudRoot = createHudRoot();
@@ -6467,6 +7008,9 @@ export function createM8aV4GroundStationSceneController({
   );
   let disposed = false;
   let dataSourceAttached = false;
+  let selectedPairOverlayState = createSelectedPairOverlayDebugState(
+    sceneEndpointContext.selectedPair ? "loading" : "not-requested"
+  );
   let detailsDisclosureOpen = false;
   let boundaryDisclosureOpen = false;
   let sourcesDisclosureOpen = false;
@@ -6513,26 +7057,24 @@ export function createM8aV4GroundStationSceneController({
   let reviewAutoPauseTimeoutId: number | undefined;
 
   configureReplayClock(viewer, replayClock);
-  applyV4Camera(viewer);
+  applyV4Camera(viewer, sceneEndpointContext);
   hudFrame.dataset.hudVisibility = "m8a-v4";
   hudFrame.setAttribute("aria-hidden", "false");
   hudFrame.appendChild(hudRoot);
   hudFrame.appendChild(productUxRoot);
 
-  const endpointsById = new Map(
-    M8A_V4_GROUND_STATION_RUNTIME_PROJECTION.endpoints.map((endpoint) => [
-      endpoint.endpointId,
-      endpoint
-    ])
+  const endpointA = sceneEndpointContext.endpoints.find(
+    (endpoint) => endpoint.endpointRole === "endpoint-a"
   );
-  const endpointA = endpointsById.get("tw-cht-multi-orbit-ground-infrastructure");
-  const endpointB = endpointsById.get("sg-speedcast-singapore-teleport");
+  const endpointB = sceneEndpointContext.endpoints.find(
+    (endpoint) => endpoint.endpointRole === "endpoint-b"
+  );
 
   if (!endpointA || !endpointB) {
-    throw new Error("V4 ground-station scene requires both accepted endpoints.");
+    throw new Error("V4 ground-station scene requires both endpoint roles.");
   }
 
-  for (const endpoint of M8A_V4_GROUND_STATION_RUNTIME_PROJECTION.endpoints) {
+  for (const endpoint of sceneEndpointContext.endpoints) {
     dataSource.entities.add({
       id: `m8a-v4-endpoint-${endpoint.endpointId}`,
       name: endpoint.renderMarker.label,
@@ -6541,14 +7083,16 @@ export function createM8aV4GroundStationSceneController({
       ellipse: createEndpointEllipseStyle(endpoint),
       label: createEndpointLabelStyle(endpoint),
       description: new ConstantProperty(
-        `${endpoint.endpointLabel}; ${M8A_V4_GROUND_STATION_REQUIRED_PRECISION_BADGE}; bounded display anchor, not exact site truth.`
+        `${endpoint.endpointLabel}; ${endpoint.renderMarker.requiredPrecisionBadge}; display context only.`
       )
     });
   }
 
   dataSource.entities.add({
     id: "m8a-v4-operator-family-endpoint-context-ribbon",
-    name: "Operator-family endpoint context ribbon",
+    name: sceneEndpointContext.selectedPair
+      ? "Selected pair endpoint context ribbon"
+      : "Operator-family endpoint context ribbon",
     polyline: new PolylineGraphics({
       positions: new ConstantProperty([
         positionToCartesian(endpointA.renderMarker.displayPosition),
@@ -6568,8 +7112,27 @@ export function createM8aV4GroundStationSceneController({
       clampToGround: false
     }),
     description: new ConstantProperty(
-      "Endpoint pair context ribbon; operator-family precision; display context only."
+      sceneEndpointContext.selectedPair
+        ? "Selected pair context ribbon; public registry coordinates; display context only."
+        : "Endpoint pair context ribbon; operator-family precision; display context only."
     )
+  });
+
+  void installSelectedPairSceneOverlay({
+    dataSource,
+    endpointA,
+    endpointB,
+    replayClock,
+    sceneEndpointContext,
+    viewer,
+    onStateChange: (state) => {
+      selectedPairOverlayState = state;
+    },
+    shouldSkip: () => disposed
+  }).catch((error) => {
+    selectedPairOverlayState = createSelectedPairOverlayDebugState("error", {
+      errorMessage: error instanceof Error ? error.message : "unknown overlay error"
+    });
   });
 
   const resolveSourceOrbitPosition = (
@@ -7280,8 +7843,13 @@ export function createM8aV4GroundStationSceneController({
     role?.focus({ preventScroll: true });
   };
 
+  const sourceEndpointIds = new Set(
+    M8A_V4_GROUND_STATION_RUNTIME_PROJECTION.endpoints.map(
+      (endpoint) => endpoint.endpointId
+    )
+  );
   const isEndpointId = (value: string): value is M8aV4EndpointId =>
-    endpointsById.has(value as M8aV4EndpointId);
+    sourceEndpointIds.has(value as M8aV4EndpointId);
 
   const isOrbitClass = (value: string): value is M8aV4OrbitClass =>
     value === "leo" || value === "meo" || value === "geo";
@@ -7494,7 +8062,8 @@ export function createM8aV4GroundStationSceneController({
       dataSourceName: M8A_V4_GROUND_STATION_DATA_SOURCE_NAME,
       dataSourceAttached,
       endpointCount: 2,
-      endpoints: buildEndpointState(),
+      endpoints: buildEndpointState(sceneEndpointContext.endpoints),
+      selectedPairOverlay: selectedPairOverlayState,
       actorCount: actors.length,
       orbitActorCounts,
       actors,
@@ -7655,7 +8224,13 @@ export function createM8aV4GroundStationSceneController({
     geoGuardCueEntity.show = shouldShowGeoGuardCue(latestSimulationWindow);
 
     renderHud(hudRoot, nextState);
-    renderProductUx(productUxRoot, nextState, viewer, visualTokenController);
+    renderProductUx(
+      productUxRoot,
+      nextState,
+      viewer,
+      visualTokenController,
+      sceneEndpointContext.endpoints
+    );
     syncTelemetry(nextState);
     notifyListeners(listeners, nextState);
 

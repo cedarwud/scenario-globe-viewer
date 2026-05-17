@@ -76,6 +76,7 @@ export function mountMarkerRegionChips(
     chip.type = "button";
     chip.className = "ground-station-region-filter__chip";
     chip.setAttribute("data-region", descriptor.id);
+    chip.setAttribute("aria-label", `Toggle ${descriptor.label} region filter`);
 
     const labelNode = document.createTextNode(descriptor.label);
     chip.appendChild(labelNode);

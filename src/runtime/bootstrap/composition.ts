@@ -3,13 +3,18 @@ import { mountAppShell } from "../../features/app/app-shell";
 import { mountHomepageEntryCta } from "../../features/app/homepage-entry-cta";
 import { refreshLightingForSceneMode } from "../../features/globe/lighting";
 import { mountLightingToggle } from "../../features/globe/lighting-toggle";
+import { mountHomeButtonRouteOverride } from "../../features/globe/camera-language";
 import { mountGroundStationMarkers } from "../../features/multi-station-selector/station-markers";
 import { mountGroundStationInfoCard } from "../../features/multi-station-selector/station-info-card";
 import { createSelectionStore } from "../../features/multi-station-selector/selection-store";
 import { mountSelectionChips } from "../../features/multi-station-selector/selection-chips";
+import { mountStationListPicker } from "../../features/multi-station-selector/station-list-picker";
 import { mountMarkerHoverTooltip } from "../../features/multi-station-selector/marker-hover-tooltip";
-import { mountMarkerFilterPanel } from "../../features/multi-station-selector/marker-filter-panel";
 import { mountV4ProjectionSidePanel } from "../../features/multi-station-selector/v4-projection-side-panel";
+import {
+  resolveV4RouteSelection,
+  type V4RouteSelection
+} from "../../features/multi-station-selector/v4-route-selection";
 import {
   mountOptionalOsmBuildingsShowcase,
   resolveBuildingShowcaseSelection
@@ -162,18 +167,18 @@ const M8A_V3_1_AUTOPLAY_QUERY_PARAM = "firstIntakeAutoplay";
 const M8A_V3_1_CTA_SCENE_PRESET = "global";
 const M8A_V4_GROUND_STATION_CTA_SCENE_PRESET = "regional";
 
-function resolveBootstrapScenePreset(): ScenePresetKey {
-  const search = new URLSearchParams(window.location.search);
+function resolveBootstrapScenePreset(
+  search: URLSearchParams,
+  v4RouteSelection: V4RouteSelection
+): ScenePresetKey {
   const request = search.get("scenePreset");
   if (request !== null) {
     return resolveScenePresetKey(request);
   }
-  // Implicit V4 activation: when only stationA + stationB are present in the
-  // URL (short demo link), default the scene preset to the V4 ground-station
-  // CTA preset so the regional scene loads automatically.
-  const stationA = search.get("stationA")?.trim();
-  const stationB = search.get("stationB")?.trim();
-  if (stationA && stationB) {
+  // Implicit V4 activation: when a short demo link resolves to a valid station
+  // pair, default the scene preset to the V4 ground-station CTA preset so the
+  // regional scene loads automatically.
+  if (v4RouteSelection.resolvedPair) {
     return resolveScenePresetKey(M8A_V4_GROUND_STATION_CTA_SCENE_PRESET);
   }
   return resolveScenePresetKey(null);
@@ -473,10 +478,11 @@ function bindLightingRefresh(viewer: ViewerInstance): () => void {
 
 export function startBootstrapComposition(app: HTMLDivElement): BootstrapComposition {
   const { viewerShell, viewerRoot, hudFrame, statusPanel } = mountAppShell(app);
-  const scenePreset = resolveBootstrapScenePreset();
-  const isM8aV4RuntimeRequest = isM8aV4GroundStationRuntimeRequested(
-    new URLSearchParams(window.location.search)
-  );
+  const searchParams = new URLSearchParams(window.location.search);
+  const v4RouteSelection = resolveV4RouteSelection(searchParams);
+  const scenePreset = resolveBootstrapScenePreset(searchParams, v4RouteSelection);
+  const isM8aV4RuntimeRequest =
+    isM8aV4GroundStationRuntimeRequested(searchParams);
   const firstIntakeSeed = onewebIntelsatGeoAviationSeed as
     FirstIntakeScenarioSeed &
     FirstIntakePathProjectionSeed &
@@ -495,6 +501,9 @@ export function startBootstrapComposition(app: HTMLDivElement): BootstrapComposi
     scenePresetKey: scenePreset,
     buildingShowcaseKey: buildingShowcase.key
   });
+  const unmountHomeButtonRouteOverride = isM8aV4RuntimeRequest
+    ? mountHomeButtonRouteOverride(viewer, "/")
+    : () => {};
   const replayClock = createCesiumReplayClock(viewer);
   const firstIntakeScenarioSession = createFirstIntakeActiveScenarioSession(
     firstIntakeScenarioSurface
@@ -687,8 +696,7 @@ export function startBootstrapComposition(app: HTMLDivElement): BootstrapComposi
     : undefined;
   const m8aV4ProjectionSidePanel = isM8aV4RuntimeRequest
     ? mountV4ProjectionSidePanel(viewer.container as HTMLElement, {
-        stationAId: new URLSearchParams(window.location.search).get("stationA"),
-        stationBId: new URLSearchParams(window.location.search).get("stationB")
+        resolvedPair: v4RouteSelection.resolvedPair
       })
     : null;
   const satelliteOverlay = createSatelliteOverlayController({
@@ -764,15 +772,20 @@ export function startBootstrapComposition(app: HTMLDivElement): BootstrapComposi
   const groundStationMarkers = isCleanHomeViewerMode
     ? mountGroundStationMarkers(viewer, { initiallyVisible: true })
     : null;
-  const groundStationFilterPanel = groundStationMarkers
-    ? mountMarkerFilterPanel(viewer.container as HTMLElement, groundStationMarkers)
-    : null;
   const groundStationSelectionStore = groundStationMarkers
     ? createSelectionStore()
     : null;
   const groundStationSelectionChips =
     groundStationMarkers && groundStationSelectionStore
       ? mountSelectionChips(viewer.container as HTMLElement, groundStationSelectionStore)
+      : null;
+  const groundStationListPicker =
+    groundStationMarkers && groundStationSelectionStore
+      ? mountStationListPicker(
+          viewer.container as HTMLElement,
+          groundStationSelectionStore,
+          groundStationMarkers
+        )
       : null;
   const groundStationInfoCard =
     groundStationMarkers && groundStationSelectionStore
@@ -810,10 +823,11 @@ export function startBootstrapComposition(app: HTMLDivElement): BootstrapComposi
   return {
     dispose() {
       delete window.__SCENARIO_GLOBE_VIEWER_CAPTURE__;
+      unmountHomeButtonRouteOverride();
       unmountHomepageEntryCta();
-      groundStationFilterPanel?.dispose();
       groundStationMarkerHoverTooltip?.dispose();
       groundStationInfoCard?.dispose();
+      groundStationListPicker?.dispose();
       groundStationSelectionChips?.dispose();
       groundStationSelectionStore?.dispose();
       groundStationMarkers?.dispose();

@@ -3,9 +3,11 @@ import {
   Cartesian2,
   Cartesian3,
   Color,
+  EasingFunction,
   HeightReference,
   LabelCollection,
   LabelStyle,
+  Math as CesiumMath,
   SceneTransforms,
   VerticalOrigin,
   type Billboard,
@@ -14,8 +16,10 @@ import {
 } from "cesium";
 
 import registry from "../../../public/fixtures/ground-stations/multi-orbit-public-registry.json";
-
-type OrbitClass = "LEO" | "MEO" | "GEO";
+import {
+  summarizeStationHandoverCapabilities,
+  type OrbitClass
+} from "./station-compatibility";
 
 interface RegistryStation {
   readonly id: string;
@@ -37,7 +41,13 @@ interface ImageSet {
   readonly highlight: string;
 }
 
+export interface SelectedGroundStations {
+  readonly stationA: string | null;
+  readonly stationB: string | null;
+}
+
 const STATIONS = registry.stations as ReadonlyArray<RegistryStation>;
+const HANDOVER_CAPABILITY_SUMMARY = summarizeStationHandoverCapabilities(STATIONS);
 
 function drawCircle(
   radius: number,
@@ -72,8 +82,24 @@ const DUAL_ORBIT_IMAGES: ImageSet = {
   highlight: drawCircle(5.5, "rgba(155,196,232,0.86)", "rgba(255,209,102,0.98)", 3)
 };
 
+const RARE_TRI_ORBIT_IMAGES: ImageSet = {
+  normal: drawCircle(4.5, "rgba(126,226,184,0.92)", "rgba(255,107,154,0.98)", 2.5),
+  highlight: drawCircle(7, "rgba(126,226,184,0.92)", "rgba(255,209,102,0.98)", 3)
+};
+
+const RARE_DUAL_ORBIT_IMAGES: ImageSet = {
+  normal: drawCircle(3.8, "rgba(155,196,232,0.90)", "rgba(255,107,154,0.98)", 2.5),
+  highlight: drawCircle(5.8, "rgba(155,196,232,0.90)", "rgba(255,209,102,0.98)", 3)
+};
+
 function resolveImageSetForStation(station: RegistryStation): ImageSet {
-  return station.supportedOrbits.length >= 3 ? TRI_ORBIT_IMAGES : DUAL_ORBIT_IMAGES;
+  const capability = HANDOVER_CAPABILITY_SUMMARY.byStationId.get(station.id);
+  if (capability?.kind === HANDOVER_CAPABILITY_SUMMARY.minorityKind) {
+    return capability.kind === "tri-capable"
+      ? RARE_TRI_ORBIT_IMAGES
+      : RARE_DUAL_ORBIT_IMAGES;
+  }
+  return capability?.kind === "tri-capable" ? TRI_ORBIT_IMAGES : DUAL_ORBIT_IMAGES;
 }
 
 function toCartesian(station: RegistryStation): Cartesian3 {
@@ -84,6 +110,9 @@ export interface GroundStationMarkersHandle {
   setVisible(visible: boolean): void;
   isVisible(): boolean;
   setHighlightedStation(stationId: string | null): void;
+  setSelectedStations(selection: SelectedGroundStations): void;
+  setStationAllowList(stationIds: ReadonlyArray<string> | null): void;
+  getStationAllowList(): ReadonlyArray<string> | null;
   setOrbitFilter(allowedOrbits: ReadonlyArray<OrbitClass>): void;
   getOrbitFilter(): ReadonlyArray<OrbitClass>;
   setRegionFilter(allowedRegions: ReadonlyArray<string> | null): void;
@@ -94,6 +123,7 @@ export interface GroundStationMarkersHandle {
   getSearchQuery(): string;
   getStationCount(): number;
   findNearestVisible(windowPosition: Cartesian2, tolerancePx: number): string | null;
+  flyToStation(stationId: string): boolean;
   dispose(): void;
 }
 
@@ -145,8 +175,13 @@ export function mountGroundStationMarkers(
   let allowedOrbits: ReadonlySet<OrbitClass> = new Set<OrbitClass>(["LEO", "MEO", "GEO"]);
   let allowedRegions: ReadonlySet<string> | null = null;
   let allowedBands: ReadonlySet<string> | null = null;
+  let allowedStationIds: ReadonlySet<string> | null = null;
   let searchQuery = "";
   let highlightedId: string | null = null;
+  let selectedStations: SelectedGroundStations = {
+    stationA: null,
+    stationB: null
+  };
   let attached = false;
   let disposed = false;
 
@@ -158,7 +193,13 @@ export function mountGroundStationMarkers(
     viewer.scene.primitives.add(labels);
     attached = true;
     billboards.show = visible;
-    labels.show = false;
+    syncLabelCollectionVisibility();
+  }
+
+  function syncLabelCollectionVisibility(): void {
+    labels.show =
+      visible &&
+      (selectedStations.stationA !== null || selectedStations.stationB !== null);
   }
 
   function populate(): void {
@@ -195,6 +236,17 @@ export function mountGroundStationMarkers(
   }
 
   function stationPassesFilter(station: RegistryStation): boolean {
+    const selectedSlot = getSelectedSlot(station.id);
+    if (
+      allowedStationIds !== null &&
+      !allowedStationIds.has(station.id) &&
+      selectedSlot === null
+    ) {
+      return false;
+    }
+    if (selectedSlot !== null) {
+      return true;
+    }
     let orbitMatch = false;
     for (const orbit of station.supportedOrbits) {
       if (allowedOrbits.has(orbit)) {
@@ -227,27 +279,62 @@ export function mountGroundStationMarkers(
     }
   }
 
-  function applyBaseStyle(stationId: string): void {
-    const billboard = billboardById.get(stationId);
-    const imageSet = imageSetById.get(stationId);
-    if (!billboard || !imageSet) {
-      return;
+  function getSelectedSlot(stationId: string): "A" | "B" | null {
+    if (selectedStations.stationA === stationId) {
+      return "A";
     }
-    billboard.image = imageSet.normal;
+    if (selectedStations.stationB === stationId) {
+      return "B";
+    }
+    return null;
   }
 
-  function applyHighlightStyle(stationId: string): void {
+  function applyMarkerVisualState(stationId: string): void {
     const billboard = billboardById.get(stationId);
     const imageSet = imageSetById.get(stationId);
+    const label = labelById.get(stationId);
+    const station = stationById.get(stationId);
     if (!billboard || !imageSet) {
       return;
     }
-    billboard.image = imageSet.highlight;
+    const selectedSlot = getSelectedSlot(stationId);
+    billboard.image =
+      selectedSlot !== null || highlightedId === stationId
+        ? imageSet.highlight
+        : imageSet.normal;
+    if (label && station) {
+      label.show = selectedSlot !== null;
+      if (selectedSlot !== null) {
+        label.text = `${selectedSlot} · ${station.name}`;
+        label.fillColor = Color.fromCssColorString(
+          selectedSlot === "A" ? "#ffd166" : "#9bc4e8"
+        );
+      }
+    }
+  }
+
+  function collectSelectedIds(
+    previous: SelectedGroundStations,
+    next: SelectedGroundStations
+  ): ReadonlySet<string> {
+    const ids = new Set<string>();
+    for (const id of [
+      previous.stationA,
+      previous.stationB,
+      next.stationA,
+      next.stationB
+    ]) {
+      if (id !== null) {
+        ids.add(id);
+      }
+    }
+    return ids;
   }
 
   attach();
   populate();
   applyFilterToMarkers();
+  syncLabelCollectionVisibility();
   viewer.scene.requestRender();
 
   return {
@@ -260,6 +347,7 @@ export function mountGroundStationMarkers(
         } else {
           billboards.show = false;
         }
+        syncLabelCollectionVisibility();
         viewer.scene.requestRender();
       }
     },
@@ -306,16 +394,45 @@ export function mountGroundStationMarkers(
     getSearchQuery(): string {
       return searchQuery;
     },
+    setStationAllowList(next: ReadonlyArray<string> | null): void {
+      allowedStationIds = next === null ? null : new Set<string>(next);
+      applyFilterToMarkers();
+      if (attached) {
+        viewer.scene.requestRender();
+      }
+    },
+    getStationAllowList(): ReadonlyArray<string> | null {
+      return allowedStationIds === null ? null : Array.from(allowedStationIds);
+    },
+    setSelectedStations(next: SelectedGroundStations): void {
+      if (
+        selectedStations.stationA === next.stationA &&
+        selectedStations.stationB === next.stationB
+      ) {
+        return;
+      }
+      const previous = selectedStations;
+      selectedStations = next;
+      applyFilterToMarkers();
+      for (const stationId of collectSelectedIds(previous, next)) {
+        applyMarkerVisualState(stationId);
+      }
+      syncLabelCollectionVisibility();
+      if (attached) {
+        viewer.scene.requestRender();
+      }
+    },
     setHighlightedStation(stationId: string | null): void {
       if (highlightedId === stationId) {
         return;
       }
-      if (highlightedId !== null) {
-        applyBaseStyle(highlightedId);
-      }
+      const previousHighlightedId = highlightedId;
       highlightedId = stationId;
+      if (previousHighlightedId !== null) {
+        applyMarkerVisualState(previousHighlightedId);
+      }
       if (stationId !== null) {
-        applyHighlightStyle(stationId);
+        applyMarkerVisualState(stationId);
       }
       if (attached) {
         viewer.scene.requestRender();
@@ -326,11 +443,13 @@ export function mountGroundStationMarkers(
     },
     findNearestVisible(windowPosition: Cartesian2, tolerancePx: number): string | null {
       const cameraPos = viewer.scene.camera.positionWC;
-      const EARTH_RADIUS_SQ = 6378137 * 6378137 * 0.85;
+      const EARTH_RADIUS_SQ = 6378137 * 6378137 * 0.45;
       const scratchScreen = new Cartesian2();
       const threshold = tolerancePx * tolerancePx;
       let bestId: string | null = null;
       let bestDist = threshold;
+      const canvasWidth = viewer.scene.canvas.clientWidth;
+      const canvasHeight = viewer.scene.canvas.clientHeight;
       for (const [stationId, billboard] of billboardById) {
         if (!billboard.show) {
           continue;
@@ -343,12 +462,28 @@ export function mountGroundStationMarkers(
         if (Cartesian3.dot(worldPos, cameraPos) < EARTH_RADIUS_SQ) {
           continue;
         }
-        const screenPos = SceneTransforms.worldToWindowCoordinates(
+        let screenPos: Cartesian2 | undefined;
+        try {
+          screenPos = billboard.computeScreenSpacePosition(viewer.scene, scratchScreen);
+        } catch {
+          screenPos = undefined;
+        }
+        screenPos ??= SceneTransforms.worldToWindowCoordinates(
           viewer.scene,
           worldPos,
           scratchScreen
         );
         if (!screenPos) {
+          continue;
+        }
+        if (
+          !Number.isFinite(screenPos.x) ||
+          !Number.isFinite(screenPos.y) ||
+          screenPos.x < -tolerancePx ||
+          screenPos.x > canvasWidth + tolerancePx ||
+          screenPos.y < -tolerancePx ||
+          screenPos.y > canvasHeight + tolerancePx
+        ) {
           continue;
         }
         const dx = screenPos.x - windowPosition.x;
@@ -361,12 +496,38 @@ export function mountGroundStationMarkers(
       }
       return bestId;
     },
+    flyToStation(stationId: string): boolean {
+      const station = stationById.get(stationId);
+      if (!station || viewer.isDestroyed()) {
+        return false;
+      }
+      viewer.camera.cancelFlight();
+      viewer.camera.flyTo({
+        destination: Cartesian3.fromDegrees(station.lon, station.lat, 8_000_000),
+        orientation: {
+          heading: 0,
+          pitch: CesiumMath.toRadians(-90),
+          roll: 0
+        },
+        duration: 0.85,
+        easingFunction: EasingFunction.CUBIC_IN_OUT,
+        complete: () => {
+          viewer.scene.requestRender();
+        }
+      });
+      return true;
+    },
     dispose(): void {
       if (disposed) {
         return;
       }
       disposed = true;
       highlightedId = null;
+      selectedStations = {
+        stationA: null,
+        stationB: null
+      };
+      allowedStationIds = null;
       billboardById.clear();
       labelById.clear();
       imageSetById.clear();

@@ -51,6 +51,7 @@ export function mountMarkerFilterChips(
     chip.type = "button";
     chip.className = "ground-station-orbit-filter__chip";
     chip.setAttribute("data-orbit", orbit);
+    chip.setAttribute("aria-label", `Toggle ${orbit} orbit filter`);
 
     const labelNode = document.createTextNode(orbit);
     chip.appendChild(labelNode);

@@ -31,6 +31,7 @@ const DEFAULT_ELEVATION_THRESHOLD_DEG = 10;
 const DEFAULT_LEO_CAP = 60;
 const DEFAULT_MEO_CAP = 60;
 const DEFAULT_GEO_CAP = 60;
+const ORBIT_CLASSES: ReadonlyArray<OrbitClass> = ["LEO", "MEO", "GEO"];
 const EARTH_RADIUS_KM = 6371;
 const SPEED_OF_LIGHT_KM_PER_SECOND = 299_792.458;
 const FIXED_PROCESSING_DELAY_MS = 2;
@@ -112,6 +113,7 @@ export interface RuntimeProjectionResult {
     readonly stationB: PublicRegistryStation;
   };
   readonly timeWindow: { readonly startUtc: string; readonly endUtc: string };
+  readonly sharedSupportedOrbits: ReadonlyArray<OrbitClass>;
   readonly visibleConstellations: Readonly<
     Record<
       OrbitClass,
@@ -494,7 +496,8 @@ function deriveHandoverEventsAtSampleStep(
 function buildTruthBoundary(
   stationA: PublicRegistryStation,
   stationB: PublicRegistryStation,
-  rainRateMmPerHour: number
+  rainRateMmPerHour: number,
+  sharedSupportedOrbits: ReadonlyArray<OrbitClass>
 ): TruthBoundary {
   const attribution = inferPairSourceTier(stationA, stationB);
   const precisionLabel: TruthBoundary["precisionLabel"] =
@@ -503,6 +506,7 @@ function buildTruthBoundary(
       : "modeled-precision";
   const metricNonClaims = [
     "Per-orbit communication metrics are modeled-precision via 3GPP TR 38.811 + ITU-R P.618-14 / P.676-13 and handover decisions use the cross-orbit-live policy (TR 38.821 §7.3 + V-MO1 verbal addendum), not measured service telemetry.",
+    `Satellite candidates are limited to orbit classes disclosed by both selected stations (${sharedSupportedOrbits.join("/") || "none"}) and capped at 60 records per orbit for interactive compute.`,
     ...(rainRateMmPerHour > 0
       ? [
           "Rain-rate attenuation uses the ITU-R P.837 global default context when supplied without local calibration."
@@ -516,6 +520,32 @@ function buildTruthBoundary(
   };
 }
 
+function resolveSharedSupportedOrbits(
+  stationA: PublicRegistryStation,
+  stationB: PublicRegistryStation
+): ReadonlyArray<OrbitClass> {
+  const stationAOrbits = new Set(stationA.supportedOrbits);
+  const stationBOrbits = new Set(stationB.supportedOrbits);
+  return ORBIT_CLASSES.filter(
+    (orbitClass) =>
+      stationAOrbits.has(orbitClass) && stationBOrbits.has(orbitClass)
+  );
+}
+
+function filterRecordsByOrbit(
+  records: ReadonlyArray<TleRecord>,
+  allowedOrbits: ReadonlyArray<OrbitClass>
+): ReadonlyArray<TleRecord> {
+  const allowed = new Set(allowedOrbits);
+  return records.filter((record) => allowed.has(record.orbitClass));
+}
+
+function countServingTransitions(
+  events: ReadonlyArray<HandoverEvent>
+): number {
+  return events.filter((event) => event.fromSatelliteId !== null).length;
+}
+
 export function computeRuntimeProjection(
   input: RuntimeProjectionInput
 ): RuntimeProjectionResult {
@@ -524,11 +554,18 @@ export function computeRuntimeProjection(
     input.elevationThresholdDeg ?? DEFAULT_ELEVATION_THRESHOLD_DEG;
   const rainRateMmPerHour = normalizeRainRateMmPerHour(input.rainRateMmPerHour);
 
-  const cappedRecords = capTleRecords(input.tleRecords, {
-    LEO: DEFAULT_LEO_CAP,
-    MEO: DEFAULT_MEO_CAP,
-    GEO: DEFAULT_GEO_CAP
-  });
+  const sharedSupportedOrbits = resolveSharedSupportedOrbits(
+    input.stationA,
+    input.stationB
+  );
+  const cappedRecords = filterRecordsByOrbit(
+    capTleRecords(input.tleRecords, {
+      LEO: DEFAULT_LEO_CAP,
+      MEO: DEFAULT_MEO_CAP,
+      GEO: DEFAULT_GEO_CAP
+    }),
+    sharedSupportedOrbits
+  );
 
   const sampleConfig = {
     startUtc: input.timeWindow.startUtc,
@@ -573,13 +610,14 @@ export function computeRuntimeProjection(
   const communicationStats: CommunicationStats = {
     totalCommunicatingMs,
     byOrbit: byOrbitMs,
-    handoverCount: handoverEvents.length,
+    handoverCount: countServingTransitions(handoverEvents),
     meanLinkDwellMs
   };
 
   return {
     pair: { stationA: input.stationA, stationB: input.stationB },
     timeWindow: input.timeWindow,
+    sharedSupportedOrbits,
     visibleConstellations: selectVisibleConstellations(
       visibilityWindows,
       cappedRecords
@@ -590,7 +628,8 @@ export function computeRuntimeProjection(
     truthBoundary: buildTruthBoundary(
       input.stationA,
       input.stationB,
-      rainRateMmPerHour
+      rainRateMmPerHour,
+      sharedSupportedOrbits
     )
   };
 }

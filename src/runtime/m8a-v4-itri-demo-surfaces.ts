@@ -1,5 +1,4 @@
 import type {
-  M8aV4EndpointId,
   M8aV4OrbitClass,
   M8aV4RuntimeNarrativeNonClaims,
   M8aV46dSimulationHandoverWindowId,
@@ -235,12 +234,12 @@ export interface M8aV4ItriF16RouteExportBundle {
     endpointPairId: string;
     precision: "operator-family-only";
     endpoints: ReadonlyArray<{
-      endpointId: M8aV4EndpointId;
+      endpointId: string;
       label: string;
       precisionBadge: string;
-      renderPrecision: "bounded-operator-family-display-anchor";
-      displayPositionIsSourceTruth: false;
-      rawSourceCoordinatesRenderable: false;
+      renderPrecision: string;
+      displayPositionIsSourceTruth: boolean;
+      rawSourceCoordinatesRenderable: boolean;
       orbitEvidenceChips: ReadonlyArray<string>;
     }>;
   };

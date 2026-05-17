@@ -50,6 +50,11 @@ export function buildRuntimeProjectionCsv(result: RuntimeProjectionResult): stri
     ["stationBId", result.pair.stationB.id],
     ["timeWindowStartUtc", result.timeWindow.startUtc],
     ["timeWindowEndUtc", result.timeWindow.endUtc],
+    [
+      "timeWindowDurationMs",
+      durationMs(result.timeWindow.startUtc, result.timeWindow.endUtc)
+    ],
+    ["sharedSupportedOrbits", result.sharedSupportedOrbits.join("/")],
     ["sourceTier", result.truthBoundary.sourceTier],
     ["precisionLabel", result.truthBoundary.precisionLabel],
     [],
@@ -91,7 +96,7 @@ export function buildRuntimeProjectionCsv(result: RuntimeProjectionResult): stri
 
   rows.push(
     [],
-    ["# Handover events"],
+    ["# Link selection events"],
     ["handoverAtUtc", "fromSatelliteId", "toSatelliteId", "reasonKind"]
   );
 
@@ -119,5 +124,13 @@ export function buildRuntimeProjectionCsvFilename(
   const stationAId = sanitizeFilenameSegment(result.pair.stationA.id);
   const stationBId = sanitizeFilenameSegment(result.pair.stationB.id);
   const startUtc = compactUtcForFilename(result.timeWindow.startUtc);
-  return `runtime-projection-${stationAId}-${stationBId}-${startUtc}.csv`;
+  const durationValue = durationMs(
+    result.timeWindow.startUtc,
+    result.timeWindow.endUtc
+  );
+  const durationMinutes =
+    typeof durationValue === "number"
+      ? Math.round(durationValue / 60_000)
+      : "unknown";
+  return `runtime-projection-${stationAId}-${stationBId}-${startUtc}-${durationMinutes}m.csv`;
 }

@@ -72,6 +72,7 @@ export function mountMarkerBandChips(
     chip.type = "button";
     chip.className = "ground-station-band-filter__chip";
     chip.setAttribute("data-band", descriptor.id);
+    chip.setAttribute("aria-label", `Toggle ${descriptor.label} band filter`);
 
     chip.appendChild(document.createTextNode(descriptor.label));
 

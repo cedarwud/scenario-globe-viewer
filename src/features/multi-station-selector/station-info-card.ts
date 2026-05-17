@@ -8,6 +8,7 @@ import {
 import registry from "../../../public/fixtures/ground-stations/multi-orbit-public-registry.json";
 
 import type { GroundStationMarkersHandle } from "./station-markers";
+import { areStationsCompatible } from "./station-compatibility";
 import type {
   SelectionSlot,
   SelectionSnapshot,
@@ -19,6 +20,14 @@ import {
 } from "./tier-inference";
 
 const MARKER_PICK_ID_PREFIX = "ground-station-marker:";
+const FOCUSABLE_SELECTOR = [
+  "a[href]",
+  "button:not([disabled])",
+  "input:not([disabled])",
+  "select:not([disabled])",
+  "textarea:not([disabled])",
+  '[tabindex]:not([tabindex="-1"])'
+].join(",");
 
 type OrbitClass = "LEO" | "MEO" | "GEO";
 
@@ -66,6 +75,52 @@ const SLOT_LABEL: Readonly<Record<SelectionSlot, string>> = {
   stationB: "Station B"
 };
 
+function getOtherSlot(slot: SelectionSlot): SelectionSlot {
+  return slot === "stationA" ? "stationB" : "stationA";
+}
+
+function canAssignStationToSlot(
+  station: RegistryStation,
+  slot: SelectionSlot,
+  snapshot: SelectionSnapshot
+): boolean {
+  const otherId = snapshot[getOtherSlot(slot)];
+  if (!otherId) {
+    return true;
+  }
+  const otherStation = STATIONS_BY_ID.get(otherId);
+  return otherStation !== undefined && areStationsCompatible(station, otherStation);
+}
+
+function resolveOpenSlotAssignment(
+  stationId: string,
+  snapshot: SelectionSnapshot
+): SelectionSlot | null {
+  const station = STATIONS_BY_ID.get(stationId);
+  if (!station) {
+    return null;
+  }
+  if (snapshot.stationA && !snapshot.stationB) {
+    if (snapshot.stationA === stationId) {
+      return null;
+    }
+    const stationA = STATIONS_BY_ID.get(snapshot.stationA);
+    return stationA && areStationsCompatible(stationA, station)
+      ? "stationB"
+      : null;
+  }
+  if (snapshot.stationB && !snapshot.stationA) {
+    if (snapshot.stationB === stationId) {
+      return null;
+    }
+    const stationB = STATIONS_BY_ID.get(snapshot.stationB);
+    return stationB && areStationsCompatible(station, stationB)
+      ? "stationA"
+      : null;
+  }
+  return null;
+}
+
 function formatRegion(region: string): string {
   return REGION_LABEL[region] ?? region;
 }
@@ -99,6 +154,7 @@ function createCardRoot(): HTMLElement {
   root.setAttribute("aria-modal", "false");
   root.setAttribute("aria-live", "polite");
   root.setAttribute("aria-label", "Ground station details");
+  root.tabIndex = -1;
   return root;
 }
 
@@ -162,12 +218,20 @@ function buildActionRow(
     button.dataset.stationId = station.id;
 
     const isThisStationInSlot = snapshot[slot] === station.id;
+    const canAssign = isThisStationInSlot ||
+      canAssignStationToSlot(station, slot, snapshot);
     button.dataset.active = String(isThisStationInSlot);
     button.setAttribute("aria-pressed", String(isThisStationInSlot));
+    button.disabled = !canAssign;
+    button.setAttribute("aria-disabled", String(!canAssign));
 
     if (isThisStationInSlot) {
       button.textContent = `✓ ${SLOT_LABEL[slot]} · click to clear`;
       button.title = `${station.name} is currently ${SLOT_LABEL[slot]}. Click to clear.`;
+    } else if (!canAssign) {
+      button.textContent = `Unavailable for ${SLOT_LABEL[slot]}`;
+      button.title =
+        `${station.name} requires a shared band plus at least two orbit handover geometry with the current other station.`;
     } else {
       button.textContent = `Select as ${SLOT_LABEL[slot]}`;
       button.title = `Set ${station.name} as ${SLOT_LABEL[slot]}.`;
@@ -294,16 +358,75 @@ export function mountGroundStationInfoCard(
   viewer.container.appendChild(root);
 
   let activeStationId: string | null = null;
+  let previouslyFocusedElement: HTMLElement | null = null;
   let disposed = false;
+
+  function getFocusableElements(): ReadonlyArray<HTMLElement> {
+    return Array.from(root.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR)).filter(
+      (el) => !el.hidden && el.offsetParent !== null
+    );
+  }
+
+  function focusCard(): void {
+    const [firstFocusable] = getFocusableElements();
+    (firstFocusable ?? root).focus({ preventScroll: true });
+  }
+
+  function restorePreviousFocus(): void {
+    const target = previouslyFocusedElement;
+    previouslyFocusedElement = null;
+    if (target && target.isConnected) {
+      target.focus({ preventScroll: true });
+    }
+  }
+
+  function trapFocus(event: KeyboardEvent): void {
+    const focusable = getFocusableElements();
+    if (focusable.length === 0) {
+      event.preventDefault();
+      root.focus({ preventScroll: true });
+      return;
+    }
+    const first = focusable[0]!;
+    const last = focusable[focusable.length - 1]!;
+    const activeElement = document.activeElement;
+    if (activeElement === root) {
+      event.preventDefault();
+      (event.shiftKey ? last : first).focus({ preventScroll: true });
+      return;
+    }
+    if (!(activeElement instanceof HTMLElement) || !root.contains(activeElement)) {
+      event.preventDefault();
+      first.focus({ preventScroll: true });
+      return;
+    }
+    if (event.shiftKey && activeElement === first) {
+      event.preventDefault();
+      last.focus({ preventScroll: true });
+      return;
+    }
+    if (!event.shiftKey && activeElement === last) {
+      event.preventDefault();
+      first.focus({ preventScroll: true });
+    }
+  }
 
   function open(stationId: string): void {
     const station = STATIONS_BY_ID.get(stationId);
     if (!station) {
       return;
     }
+    const wasHidden = root.hidden;
+    if (wasHidden) {
+      previouslyFocusedElement =
+        document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    }
     activeStationId = stationId;
     renderCard(root, station, selectionStore.getSnapshot());
     root.hidden = false;
+    if (wasHidden) {
+      focusCard();
+    }
     markers.setHighlightedStation(stationId);
     viewer.scene.requestRender();
   }
@@ -318,6 +441,7 @@ export function mountGroundStationInfoCard(
     activeStationId = null;
     markers.setHighlightedStation(null);
     viewer.scene.requestRender();
+    restorePreviousFocus();
   }
 
   function handleRootClick(event: MouseEvent): void {
@@ -346,25 +470,38 @@ export function mountGroundStationInfoCard(
       if (snapshot[slot] === stationId) {
         selectionStore.clear(slot);
       } else {
+        const station = STATIONS_BY_ID.get(stationId);
+        if (!station || !canAssignStationToSlot(station, slot, snapshot)) {
+          return;
+        }
         selectionStore.setStation(slot, stationId);
+        markers.flyToStation(stationId);
       }
     }
   }
 
   function handleKeydown(event: KeyboardEvent): void {
-    if (event.key !== "Escape") {
-      return;
-    }
     if (activeStationId === null) {
       return;
     }
-    close();
+    if (event.key === "Escape") {
+      event.preventDefault();
+      close();
+      return;
+    }
+    if (event.key === "Tab") {
+      trapFocus(event);
+    }
   }
 
   root.addEventListener("click", handleRootClick);
-  window.addEventListener("keydown", handleKeydown);
+  document.addEventListener("keydown", handleKeydown);
 
   const unsubscribeStore = selectionStore.subscribe((snapshot) => {
+    markers.setSelectedStations({
+      stationA: snapshot.stationA,
+      stationB: snapshot.stationB
+    });
     if (activeStationId === null) {
       return;
     }
@@ -372,7 +509,13 @@ export function mountGroundStationInfoCard(
     if (!station) {
       return;
     }
+    const hadFocusInside =
+      document.activeElement instanceof HTMLElement &&
+      root.contains(document.activeElement);
     renderCard(root, station, snapshot);
+    if (hadFocusInside) {
+      focusCard();
+    }
   });
 
   const eventHandler = new ScreenSpaceEventHandler(viewer.scene.canvas);
@@ -380,11 +523,21 @@ export function mountGroundStationInfoCard(
     if (!markers.isVisible()) {
       return;
     }
+    const snapId = markers.findNearestVisible(movement.position, 36);
     const picked = viewer.scene.pick(movement.position);
-    const stationId =
-      extractStationId(picked?.id) ??
-      markers.findNearestVisible(movement.position, 22);
+    const directId = extractStationId(picked?.id);
+    const stationId = directId ?? snapId;
     if (stationId) {
+      const snapshot = selectionStore.getSnapshot();
+      const slot = resolveOpenSlotAssignment(stationId, snapshot);
+      if (slot) {
+        selectionStore.setStation(slot, stationId);
+        markers.flyToStation(stationId);
+        if (activeStationId !== null) {
+          close();
+        }
+        return;
+      }
       open(stationId);
       return;
     }
@@ -401,10 +554,13 @@ export function mountGroundStationInfoCard(
         return;
       }
       disposed = true;
+      if (!root.hidden) {
+        close();
+      }
       eventHandler.destroy();
       unsubscribeStore();
       root.removeEventListener("click", handleRootClick);
-      window.removeEventListener("keydown", handleKeydown);
+      document.removeEventListener("keydown", handleKeydown);
       if (root.parentElement) {
         root.parentElement.removeChild(root);
       }

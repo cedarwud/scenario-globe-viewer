@@ -1,5 +1,5 @@
 import type {
-  M8aV4EndpointProjection,
+  M8aV4GeoPosition,
   M8aV4OrbitClass,
   M8aV46dSimulationHandoverWindowId
 } from "./m8a-v4-ground-station-projection";
@@ -46,14 +46,22 @@ export interface M8aV411OrbitChipActor {
   };
 }
 
+export interface M8aV411GroundChipEndpoint {
+  endpointId: string;
+  endpointLabel: string;
+  renderMarker: {
+    displayPosition: M8aV4GeoPosition;
+  };
+}
+
 interface M8aV411GlanceRankRenderOptions {
   root: HTMLElement;
   actors: readonly M8aV411OrbitChipActor[];
-  endpoints: readonly M8aV4EndpointProjection[];
+  endpoints: readonly M8aV411GroundChipEndpoint[];
   requiredPrecisionBadge: string;
   projectActor: (actor: M8aV411OrbitChipActor) => M8aV411ScreenPoint;
   projectEndpoint: (
-    endpoint: M8aV4EndpointProjection
+    endpoint: M8aV411GroundChipEndpoint
   ) => M8aV411ScreenPoint;
 }
 
@@ -240,10 +248,10 @@ function renderM8aV411OrbitClassChips(
 
 function renderM8aV411GroundStationChips(
   root: HTMLElement,
-  endpoints: readonly M8aV4EndpointProjection[],
+  endpoints: readonly M8aV411GroundChipEndpoint[],
   requiredPrecisionBadge: string,
   projectEndpoint: (
-    endpoint: M8aV4EndpointProjection
+    endpoint: M8aV411GroundChipEndpoint
   ) => M8aV411ScreenPoint
 ): void {
   const layer = getRequiredElement(
