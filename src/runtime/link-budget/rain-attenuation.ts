@@ -1,14 +1,18 @@
 // ITU-R P.618-14 section 2.2.1.1 specific attenuation
 // ITU-R P.618-14 section 2.2.1.2 effective slant path
-// ITU-R P.838-3 k/alpha subset Ku/Ka
+// ITU-R P.838-3 coefficient table delegated to src/features/itu-r-physics/
+// itu-r-p838-rain-attenuation.ts (full 1-100 GHz table)
 // Local PDF: paper-catalog/3gpp/R-REC-P.618-14-202308-I!!PDF-E.pdf
 // Long-term rain attenuation: gammaR times effective slant path.
+
+import { computeSpecificAttenuation } from '../../features/itu-r-physics/itu-r-p838-rain-attenuation';
 
 const EARTH_EFFECTIVE_RADIUS_KM = 8500;
 const LOW_ELEVATION_THRESHOLD_DEG = 5;
 const DEFAULT_RAIN_HEIGHT_KM = 5;
-const MIN_P618_FREQUENCY_GHZ = 1;
-const MAX_P618_FREQUENCY_GHZ = 55;
+const MIN_P838_TABLE_FREQUENCY_GHZ = 1;
+const MAX_P838_TABLE_FREQUENCY_GHZ = 100;
+const ALPHA_PROBE_RAIN_RATE_MM_PER_HOUR = 10;
 
 export type RainPolarization = 'horizontal' | 'vertical' | 'circular';
 
@@ -17,36 +21,10 @@ export type RainKAlphaCoefficients = Readonly<{
   alpha: number;
 }>;
 
-type P838CoefficientAnchor = Readonly<{
-  frequencyGHz: number;
+type P838ResolvedCoefficients = Readonly<{
   horizontal: RainKAlphaCoefficients;
   vertical: RainKAlphaCoefficients;
 }>;
-
-// Coefficients are from ITU-R P.838-3 Tables for the Ku/Ka subset.
-const P838_KU_KA_COEFFICIENTS: ReadonlyArray<P838CoefficientAnchor> = [
-  { frequencyGHz: 10, horizontal: { k: 0.01217, alpha: 1.2571 }, vertical: { k: 0.01129, alpha: 1.2156 } },
-  { frequencyGHz: 11, horizontal: { k: 0.01772, alpha: 1.2140 }, vertical: { k: 0.01731, alpha: 1.1617 } },
-  { frequencyGHz: 12, horizontal: { k: 0.02386, alpha: 1.1825 }, vertical: { k: 0.02455, alpha: 1.1216 } },
-  { frequencyGHz: 13, horizontal: { k: 0.03041, alpha: 1.1586 }, vertical: { k: 0.03266, alpha: 1.0901 } },
-  { frequencyGHz: 14, horizontal: { k: 0.03738, alpha: 1.1396 }, vertical: { k: 0.04126, alpha: 1.0646 } },
-  { frequencyGHz: 15, horizontal: { k: 0.04481, alpha: 1.1233 }, vertical: { k: 0.05008, alpha: 1.0440 } },
-  { frequencyGHz: 16, horizontal: { k: 0.05282, alpha: 1.1086 }, vertical: { k: 0.05899, alpha: 1.0273 } },
-  { frequencyGHz: 17, horizontal: { k: 0.06146, alpha: 1.0949 }, vertical: { k: 0.06797, alpha: 1.0137 } },
-  { frequencyGHz: 18, horizontal: { k: 0.07078, alpha: 1.0818 }, vertical: { k: 0.07708, alpha: 1.0025 } },
-  { frequencyGHz: 19, horizontal: { k: 0.08084, alpha: 1.0691 }, vertical: { k: 0.08642, alpha: 0.9930 } },
-  { frequencyGHz: 20, horizontal: { k: 0.09164, alpha: 1.0568 }, vertical: { k: 0.09611, alpha: 0.9847 } },
-  { frequencyGHz: 21, horizontal: { k: 0.1032, alpha: 1.0447 }, vertical: { k: 0.1063, alpha: 0.9771 } },
-  { frequencyGHz: 22, horizontal: { k: 0.1155, alpha: 1.0329 }, vertical: { k: 0.1170, alpha: 0.9700 } },
-  { frequencyGHz: 23, horizontal: { k: 0.1286, alpha: 1.0214 }, vertical: { k: 0.1284, alpha: 0.9630 } },
-  { frequencyGHz: 24, horizontal: { k: 0.1425, alpha: 1.0101 }, vertical: { k: 0.1404, alpha: 0.9561 } },
-  { frequencyGHz: 25, horizontal: { k: 0.1571, alpha: 0.9991 }, vertical: { k: 0.1533, alpha: 0.9491 } },
-  { frequencyGHz: 26, horizontal: { k: 0.1724, alpha: 0.9884 }, vertical: { k: 0.1669, alpha: 0.9421 } },
-  { frequencyGHz: 27, horizontal: { k: 0.1884, alpha: 0.9780 }, vertical: { k: 0.1813, alpha: 0.9349 } },
-  { frequencyGHz: 28, horizontal: { k: 0.2051, alpha: 0.9679 }, vertical: { k: 0.1964, alpha: 0.9277 } },
-  { frequencyGHz: 29, horizontal: { k: 0.2224, alpha: 0.9580 }, vertical: { k: 0.2124, alpha: 0.9203 } },
-  { frequencyGHz: 30, horizontal: { k: 0.2403, alpha: 0.9485 }, vertical: { k: 0.2291, alpha: 0.9129 } },
-];
 
 export function computeRainAttenuationDb(input: {
   rainRateMmPerHour: number;
@@ -69,8 +47,8 @@ export function computeRainAttenuationDb(input: {
   assertFiniteRange(
     carrierFrequencyGHz,
     'carrierFrequencyGHz',
-    MIN_P618_FREQUENCY_GHZ,
-    MAX_P618_FREQUENCY_GHZ,
+    MIN_P838_TABLE_FREQUENCY_GHZ,
+    MAX_P838_TABLE_FREQUENCY_GHZ,
   );
   assertFiniteRange(elevationDeg, 'elevationDeg', 0, 90);
   assertNonNegativeFinite(stationHeightAboveSeaKm, 'stationHeightAboveSeaKm');
@@ -100,43 +78,35 @@ function getKAlphaCoefficients(
   freqGHz: number,
   polarization: RainPolarization,
 ): RainKAlphaCoefficients {
-  const first = P838_KU_KA_COEFFICIENTS[0];
-  const last = P838_KU_KA_COEFFICIENTS[P838_KU_KA_COEFFICIENTS.length - 1];
-
-  if (freqGHz < first.frequencyGHz || freqGHz > last.frequencyGHz) {
-    throw new RangeError(
-      `carrierFrequencyGHz must be within the available Ku/Ka coefficient subset (${first.frequencyGHz}-${last.frequencyGHz} GHz).`,
-    );
-  }
-
-  const exact = P838_KU_KA_COEFFICIENTS.find(
-    (entry) => entry.frequencyGHz === freqGHz,
+  return selectPolarizationCoefficients(
+    getHorizontalVerticalP838Coefficients(freqGHz),
+    polarization,
   );
-  if (exact !== undefined) {
-    return selectPolarizationCoefficients(exact, polarization);
-  }
+}
 
-  const upperIndex = P838_KU_KA_COEFFICIENTS.findIndex(
-    (entry) => entry.frequencyGHz > freqGHz,
+function getHorizontalVerticalP838Coefficients(freqGHz: number): P838ResolvedCoefficients {
+  return {
+    horizontal: inferP838KAlphaCoefficients(freqGHz, 'horizontal'),
+    vertical: inferP838KAlphaCoefficients(freqGHz, 'vertical'),
+  };
+}
+
+function inferP838KAlphaCoefficients(
+  freqGHz: number,
+  polarization: Exclude<RainPolarization, 'circular'>,
+): RainKAlphaCoefficients {
+  // P.838 uses gammaR = k * R^alpha; R=1 recovers k, one more probe recovers alpha.
+  const k = computeSpecificAttenuation(freqGHz, polarization, 1);
+  const attenuationAtProbeRate = computeSpecificAttenuation(
+    freqGHz,
+    polarization,
+    ALPHA_PROBE_RAIN_RATE_MM_PER_HOUR,
   );
-  const lower = P838_KU_KA_COEFFICIENTS[upperIndex - 1];
-  const upper = P838_KU_KA_COEFFICIENTS[upperIndex];
-  const logFreq = Math.log10(freqGHz);
-  const logLowerFreq = Math.log10(lower.frequencyGHz);
-  const logUpperFreq = Math.log10(upper.frequencyGHz);
-  const t = (logFreq - logLowerFreq) / (logUpperFreq - logLowerFreq);
 
   return {
-    k: interpolateLog(
-      selectPolarizationCoefficients(lower, polarization).k,
-      selectPolarizationCoefficients(upper, polarization).k,
-      t,
-    ),
-    alpha: interpolateLinear(
-      selectPolarizationCoefficients(lower, polarization).alpha,
-      selectPolarizationCoefficients(upper, polarization).alpha,
-      t,
-    ),
+    k,
+    alpha:
+      Math.log(attenuationAtProbeRate / k) / Math.log(ALPHA_PROBE_RAIN_RATE_MM_PER_HOUR),
   };
 }
 
@@ -179,29 +149,21 @@ function computeRainHeightKm(latitudeDeg?: number): number {
 }
 
 function selectPolarizationCoefficients(
-  anchor: P838CoefficientAnchor,
+  coefficients: P838ResolvedCoefficients,
   polarization: RainPolarization,
 ): RainKAlphaCoefficients {
   if (polarization === 'horizontal') {
-    return anchor.horizontal;
+    return coefficients.horizontal;
   }
 
   if (polarization === 'vertical') {
-    return anchor.vertical;
+    return coefficients.vertical;
   }
 
   return {
-    k: (anchor.horizontal.k + anchor.vertical.k) / 2,
-    alpha: (anchor.horizontal.alpha + anchor.vertical.alpha) / 2,
+    k: (coefficients.horizontal.k + coefficients.vertical.k) / 2,
+    alpha: (coefficients.horizontal.alpha + coefficients.vertical.alpha) / 2,
   };
-}
-
-function interpolateLog(lower: number, upper: number, t: number): number {
-  return Math.pow(10, interpolateLinear(Math.log10(lower), Math.log10(upper), t));
-}
-
-function interpolateLinear(lower: number, upper: number, t: number): number {
-  return lower + (upper - lower) * t;
 }
 
 function toRadians(degrees: number): number {
