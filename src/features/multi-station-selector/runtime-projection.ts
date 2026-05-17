@@ -8,6 +8,18 @@ import {
 } from "../handover-decision/handover-decision";
 
 import {
+  ORBIT_CLASS_CARRIER_DEFAULTS,
+  computeFreeSpacePathLossDb
+} from "../../runtime/link-budget/free-space-path-loss";
+import { computeGasAbsorptionDb } from "../../runtime/link-budget/gas-absorption";
+import { computeRainAttenuationDb } from "../../runtime/link-budget/rain-attenuation";
+import {
+  evaluateHandoverPolicy,
+  type HandoverCandidate,
+  type HandoverDecision as LinkBudgetHandoverDecision
+} from "../../runtime/link-budget/handover-policy";
+
+import {
   inferPairSourceTier,
   type PairSourceTierAttribution,
   type PublicRegistryStation
@@ -28,13 +40,32 @@ const DEFAULT_ELEVATION_THRESHOLD_DEG = 10;
 const DEFAULT_LEO_CAP = 60;
 const DEFAULT_MEO_CAP = 60;
 const DEFAULT_GEO_CAP = 60;
+const EARTH_RADIUS_KM = 6371;
+const SPEED_OF_LIGHT_KM_PER_SECOND = 299_792.458;
+const FIXED_PROCESSING_DELAY_MS = 2;
+const REPRESENTATIVE_ELEVATION_DEG = 35;
+const MIN_ELEVATION_FOR_MODEL_DEG = 1;
+const MIN_NETWORK_SPEED_MBPS = 0.1;
+const RAIN_MODEL_MIN_FREQUENCY_GHZ = 10;
+const RAIN_MODEL_MAX_FREQUENCY_GHZ = 30;
+const RELATIVE_RSRP_REFERENCE_DBM = 0;
 
-const NOMINAL_METRICS_BY_ORBIT: Readonly<
-  Record<OrbitClass, { latencyMs: number; jitterMs: number; networkSpeedMbps: number }>
-> = {
-  LEO: { latencyMs: 25, jitterMs: 3, networkSpeedMbps: 200 },
-  MEO: { latencyMs: 100, jitterMs: 5, networkSpeedMbps: 100 },
-  GEO: { latencyMs: 280, jitterMs: 8, networkSpeedMbps: 50 }
+const NOMINAL_ALTITUDE_KM_BY_ORBIT: Readonly<Record<OrbitClass, number>> = {
+  LEO: 550,
+  MEO: 23222,
+  GEO: 35786
+};
+
+const CLEAR_SKY_REFERENCE_CAPACITY_MBPS_BY_ORBIT: Readonly<Record<OrbitClass, number>> = {
+  LEO: 200,
+  MEO: 100,
+  GEO: 50
+};
+
+const BASELINE_JITTER_MS_BY_ORBIT: Readonly<Record<OrbitClass, number>> = {
+  LEO: 3,
+  MEO: 5,
+  GEO: 8
 };
 
 const ORBIT_CLASS_TO_ENGINE: Readonly<Record<OrbitClass, "leo" | "meo" | "geo">> = {
@@ -42,6 +73,13 @@ const ORBIT_CLASS_TO_ENGINE: Readonly<Record<OrbitClass, "leo" | "meo" | "geo">>
   MEO: "meo",
   GEO: "geo"
 };
+
+const CROSS_ORBIT_LIVE_POLICY_CONFIG = {
+  policyId: "cross-orbit-live",
+  hysteresisDb: 2,
+  minVisibilityWindowMs: 60_000,
+  latencyBudgetMs: 600
+} as const;
 
 const TLE_FIXTURE_PATHS: Readonly<Record<OrbitClass, string>> = {
   LEO: "/fixtures/satellites/leo-scale/starlink-2026-05-12T12-35-35Z.tle",
@@ -80,6 +118,8 @@ export interface RuntimeProjectionInput {
   readonly sampleStepSeconds?: number;
   readonly elevationThresholdDeg?: number;
   readonly handoverPolicyId?: HandoverPolicyId;
+  readonly rainRateMmPerHour?: number;
+  readonly enableCrossOrbitLivePolicy?: boolean;
 }
 
 export interface RuntimeProjectionResult {
@@ -106,6 +146,32 @@ export interface RuntimeTleSources {
   readonly geoTleText: string;
 }
 
+export interface LinkBudgetMetricOptions {
+  readonly representativeElevationDeg?: number;
+  readonly rainRateMmPerHour?: number;
+}
+
+export interface LinkBudgetMetrics {
+  readonly latencyMs: number;
+  readonly jitterMs: number;
+  readonly networkSpeedMbps: number;
+}
+
+interface LinkBudgetDetails extends LinkBudgetMetrics {
+  readonly representativeElevationDeg: number;
+  readonly slantRangeKm: number;
+  readonly totalPathLossDb: number;
+  readonly freeSpacePathLossDb: number;
+  readonly gasAbsorptionDb: number;
+  readonly rainAttenuationDb: number;
+}
+
+interface HandoverSampleOptions {
+  readonly elevationThresholdDeg: number;
+  readonly rainRateMmPerHour: number;
+  readonly enableCrossOrbitLivePolicy: boolean;
+}
+
 function toStationGeodetic(station: PublicRegistryStation): StationGeodetic {
   return { lat: station.lat, lon: station.lon };
 }
@@ -125,6 +191,161 @@ function capTleRecords(
     kept.push(record);
   }
   return kept;
+}
+
+function clampNumber(value: number, min: number, max: number): number {
+  return Math.max(min, Math.min(max, value));
+}
+
+function roundMetric(value: number): number {
+  return Number(value.toFixed(3));
+}
+
+function normalizeRainRateMmPerHour(value: number | undefined): number {
+  if (value === undefined || !Number.isFinite(value)) {
+    return 0;
+  }
+  return Math.max(0, value);
+}
+
+function normalizeElevationDeg(value: number | undefined): number {
+  if (value === undefined || !Number.isFinite(value)) {
+    return REPRESENTATIVE_ELEVATION_DEG;
+  }
+  return clampNumber(value, MIN_ELEVATION_FOR_MODEL_DEG, 90);
+}
+
+function computeRepresentativeElevationDeg(
+  window: PairVisibilityWindow | undefined
+): number {
+  if (!window) {
+    return REPRESENTATIVE_ELEVATION_DEG;
+  }
+
+  return normalizeElevationDeg(
+    Math.min(
+      window.stationAWindow.maxElevationDeg,
+      window.stationBWindow.maxElevationDeg
+    )
+  );
+}
+
+function computeRepresentativeSlantRangeKm(
+  orbitClass: OrbitClass,
+  elevationDeg: number
+): number {
+  const altitudeKm = NOMINAL_ALTITUDE_KM_BY_ORBIT[orbitClass];
+  const earthToSatelliteRadiusKm = EARTH_RADIUS_KM + altitudeKm;
+  const elevationRad = (elevationDeg * Math.PI) / 180;
+
+  // 3GPP TR 38.811 §6.7 -- propagation delay from slant range.
+  // Spherical-earth geometry: rho = sqrt((Re+h)^2 - (Re*cos(E))^2) - Re*sin(E),
+  // where E is station elevation, h is nominal orbit altitude, and Re is 6371 km.
+  return (
+    Math.sqrt(
+      earthToSatelliteRadiusKm * earthToSatelliteRadiusKm -
+        Math.pow(EARTH_RADIUS_KM * Math.cos(elevationRad), 2)
+    ) -
+    EARTH_RADIUS_KM * Math.sin(elevationRad)
+  );
+}
+
+function computeRainAttenuationForCarrierDb(options: {
+  readonly rainRateMmPerHour: number;
+  readonly carrierFrequencyGHz: number;
+  readonly elevationDeg: number;
+}): number {
+  const rainRateMmPerHour = normalizeRainRateMmPerHour(options.rainRateMmPerHour);
+  if (rainRateMmPerHour === 0) {
+    return 0;
+  }
+
+  if (
+    options.carrierFrequencyGHz < RAIN_MODEL_MIN_FREQUENCY_GHZ ||
+    options.carrierFrequencyGHz > RAIN_MODEL_MAX_FREQUENCY_GHZ
+  ) {
+    return 0;
+  }
+
+  // ITU-R P.618-14 §2.2.1.1 / §2.2.1.2 -- rain specific attenuation and effective slant path.
+  return computeRainAttenuationDb({
+    rainRateMmPerHour,
+    carrierFrequencyGHz: options.carrierFrequencyGHz,
+    elevationDeg: options.elevationDeg,
+    stationHeightAboveSeaKm: 0,
+    polarization: "circular"
+  });
+}
+
+function computeLinkBudgetDetailsForOrbit(
+  orbitClass: OrbitClass,
+  options: LinkBudgetMetricOptions = {}
+): LinkBudgetDetails {
+  const representativeElevationDeg = normalizeElevationDeg(
+    options.representativeElevationDeg
+  );
+  const rainRateMmPerHour = normalizeRainRateMmPerHour(options.rainRateMmPerHour);
+  const carrierFrequencyGHz =
+    ORBIT_CLASS_CARRIER_DEFAULTS[orbitClass].carrierFrequencyGHz;
+  const slantRangeKm = computeRepresentativeSlantRangeKm(
+    orbitClass,
+    representativeElevationDeg
+  );
+
+  const freeSpacePathLossDb = computeFreeSpacePathLossDb({
+    slantRangeKm,
+    carrierFrequencyGHz
+  });
+  // ITU-R P.676-13 Annex 2 -- simplified clear-air slant-path gas absorption.
+  const gasAbsorptionDb = computeGasAbsorptionDb({
+    carrierFrequencyGHz,
+    elevationDeg: representativeElevationDeg
+  });
+  const rainAttenuationDb = computeRainAttenuationForCarrierDb({
+    rainRateMmPerHour,
+    carrierFrequencyGHz,
+    elevationDeg: representativeElevationDeg
+  });
+  const totalPathLossDb =
+    freeSpacePathLossDb + gasAbsorptionDb + rainAttenuationDb;
+
+  // 3GPP TR 38.811 §6.7 -- one-way propagation delay, not RTT; add a small fixed processing term.
+  const latencyMs =
+    (slantRangeKm / SPEED_OF_LIGHT_KM_PER_SECOND) * 1000 +
+    FIXED_PROCESSING_DELAY_MS;
+  const excessAttenuationDb = gasAbsorptionDb + rainAttenuationDb;
+  // Reference capacity is the old clear-sky anchor; atmospheric fade applies a soft exponential de-rating.
+  const networkSpeedMbps = Math.max(
+    MIN_NETWORK_SPEED_MBPS,
+    CLEAR_SKY_REFERENCE_CAPACITY_MBPS_BY_ORBIT[orbitClass] *
+      Math.exp(-excessAttenuationDb / 20)
+  );
+  const jitterScale = 1 + Math.min(rainAttenuationDb / 20, 3);
+  const jitterMs = BASELINE_JITTER_MS_BY_ORBIT[orbitClass] * jitterScale;
+
+  return {
+    latencyMs: roundMetric(latencyMs),
+    jitterMs: roundMetric(jitterMs),
+    networkSpeedMbps: roundMetric(networkSpeedMbps),
+    representativeElevationDeg,
+    slantRangeKm: roundMetric(slantRangeKm),
+    totalPathLossDb: roundMetric(totalPathLossDb),
+    freeSpacePathLossDb: roundMetric(freeSpacePathLossDb),
+    gasAbsorptionDb: roundMetric(gasAbsorptionDb),
+    rainAttenuationDb: roundMetric(rainAttenuationDb)
+  };
+}
+
+export function computeLinkBudgetMetricsForOrbit(
+  orbitClass: OrbitClass,
+  options: LinkBudgetMetricOptions = {}
+): LinkBudgetMetrics {
+  const details = computeLinkBudgetDetailsForOrbit(orbitClass, options);
+  return {
+    latencyMs: details.latencyMs,
+    jitterMs: details.jitterMs,
+    networkSpeedMbps: details.networkSpeedMbps
+  };
 }
 
 function selectVisibleConstellations(
@@ -165,12 +386,69 @@ function selectVisibleConstellations(
   return result;
 }
 
+function computeLinkBudgetDetailsForWindow(
+  window: PairVisibilityWindow,
+  rainRateMmPerHour: number
+): LinkBudgetDetails {
+  return computeLinkBudgetDetailsForOrbit(window.orbitClass, {
+    representativeElevationDeg: computeRepresentativeElevationDeg(window),
+    rainRateMmPerHour
+  });
+}
+
+function toSnapshotCandidate(
+  window: PairVisibilityWindow,
+  details: LinkBudgetDetails
+): HandoverCandidateMetrics {
+  return {
+    candidateId: window.satelliteId,
+    orbitClass: ORBIT_CLASS_TO_ENGINE[window.orbitClass],
+    latencyMs: details.latencyMs,
+    jitterMs: details.jitterMs,
+    networkSpeedMbps: details.networkSpeedMbps,
+    provenance: HANDOVER_DECISION_PROXY_PROVENANCE
+  };
+}
+
+function toLivePolicyCandidate(
+  window: PairVisibilityWindow,
+  details: LinkBudgetDetails,
+  sampleTimeMs: number
+): HandoverCandidate {
+  const intersectionEndMs = Date.parse(window.intersectionEndUtc);
+  const predictedVisibilityRemainingMs = Number.isFinite(intersectionEndMs)
+    ? Math.max(0, intersectionEndMs - sampleTimeMs)
+    : 0;
+
+  return {
+    id: window.satelliteId,
+    orbitClass: window.orbitClass,
+    elevationDeg: details.representativeElevationDeg,
+    // Relative RSRP proxy: unknown EIRP and antenna gains collapse to a constant offset.
+    rsrpDbm: roundMetric(RELATIVE_RSRP_REFERENCE_DBM - details.totalPathLossDb),
+    predictedVisibilityRemainingMs,
+    latencyMs: details.latencyMs,
+    jitterMs: details.jitterMs
+  };
+}
+
+function mapPolicyReasonToHandoverEventReason(
+  reasonKind: LinkBudgetHandoverDecision["reasonKind"]
+): HandoverEvent["reasonKind"] {
+  if (reasonKind === "cross-orbit-migration") {
+    // HandoverEvent is consumed by the existing panel with a narrower reason union.
+    return "better-candidate-available";
+  }
+  return reasonKind;
+}
+
 function deriveHandoverEventsAtSampleStep(
   windows: ReadonlyArray<PairVisibilityWindow>,
   timeWindow: { startUtc: string; endUtc: string },
   sampleStepSeconds: number,
   policyId: HandoverPolicyId,
-  scenarioId: string
+  scenarioId: string,
+  options: HandoverSampleOptions
 ): {
   readonly handoverEvents: ReadonlyArray<HandoverEvent>;
   readonly totalCommunicatingMs: number;
@@ -195,32 +473,61 @@ function deriveHandoverEventsAtSampleStep(
       }
     }
 
-    const candidates: HandoverCandidateMetrics[] = visibleAtSample.map((w) => {
-      const metrics = NOMINAL_METRICS_BY_ORBIT[w.orbitClass];
-      return {
-        candidateId: w.satelliteId,
-        orbitClass: ORBIT_CLASS_TO_ENGINE[w.orbitClass],
-        latencyMs: metrics.latencyMs,
-        jitterMs: metrics.jitterMs,
-        networkSpeedMbps: metrics.networkSpeedMbps,
-        provenance: HANDOVER_DECISION_PROXY_PROVENANCE
+    const linkBudgetRows = visibleAtSample.map((w) => ({
+      window: w,
+      details: computeLinkBudgetDetailsForWindow(w, options.rainRateMmPerHour)
+    }));
+
+    let next: string | undefined;
+    let eventReason: HandoverEvent["reasonKind"] | undefined;
+
+    if (options.enableCrossOrbitLivePolicy) {
+      if (linkBudgetRows.length > 0) {
+        const decision = evaluateHandoverPolicy({
+          candidates: linkBudgetRows.map((row) =>
+            toLivePolicyCandidate(row.window, row.details, t)
+          ),
+          currentServingId: currentServingCandidateId,
+          policy: {
+            ...CROSS_ORBIT_LIVE_POLICY_CONFIG,
+            elevationThresholdDeg: options.elevationThresholdDeg,
+            minVisibilityWindowMs: Math.max(
+              CROSS_ORBIT_LIVE_POLICY_CONFIG.minVisibilityWindowMs,
+              stepMs
+            )
+          },
+          nowUtc: sampleIso
+        });
+        next = decision.selectedId;
+        eventReason = mapPolicyReasonToHandoverEventReason(decision.reasonKind);
+      }
+    } else {
+      const candidates: HandoverCandidateMetrics[] = linkBudgetRows.map((row) =>
+        toSnapshotCandidate(row.window, row.details)
+      );
+
+      const snapshot: HandoverDecisionSnapshot = {
+        scenarioId,
+        evaluatedAt: sampleIso,
+        activeRange: {
+          start: timeWindow.startUtc,
+          stop: timeWindow.endUtc
+        },
+        currentServingCandidateId,
+        policyId,
+        candidates
       };
-    });
 
-    const snapshot: HandoverDecisionSnapshot = {
-      scenarioId,
-      evaluatedAt: sampleIso,
-      activeRange: {
-        start: timeWindow.startUtc,
-        stop: timeWindow.endUtc
-      },
-      currentServingCandidateId,
-      policyId,
-      candidates
-    };
+      const state = evaluateHandoverDecisionSnapshot(snapshot);
+      next = state.result.servingCandidateId;
+      eventReason =
+        currentServingCandidateId === undefined
+          ? "current-link-unavailable"
+          : state.result.decisionKind === "switch"
+            ? "better-candidate-available"
+            : "policy-tie-break";
+    }
 
-    const state = evaluateHandoverDecisionSnapshot(snapshot);
-    const next = state.result.servingCandidateId;
     if (next) {
       totalCommunicatingMs += stepMs;
       const orbit = visibleAtSample.find((w) => w.satelliteId === next)?.orbitClass;
@@ -228,16 +535,11 @@ function deriveHandoverEventsAtSampleStep(
         byOrbitMs[orbit] += stepMs;
       }
       if (next !== currentServingCandidateId) {
-        const reason = currentServingCandidateId === undefined
-          ? "current-link-unavailable"
-          : state.result.decisionKind === "switch"
-            ? "better-candidate-available"
-            : "policy-tie-break";
         events.push({
           handoverAtUtc: sampleIso,
           fromSatelliteId: currentServingCandidateId ?? null,
           toSatelliteId: next,
-          reasonKind: reason
+          reasonKind: eventReason ?? "policy-tie-break"
         });
         currentServingCandidateId = next;
       }
@@ -251,17 +553,26 @@ function deriveHandoverEventsAtSampleStep(
 
 function buildTruthBoundary(
   stationA: PublicRegistryStation,
-  stationB: PublicRegistryStation
+  stationB: PublicRegistryStation,
+  rainRateMmPerHour: number
 ): TruthBoundary {
   const attribution = inferPairSourceTier(stationA, stationB);
   const precisionLabel: TruthBoundary["precisionLabel"] =
     attribution.sourceTier === "public-disclosed"
       ? "operator-family-precision"
       : "modeled-precision";
+  const metricNonClaims = [
+    "Per-orbit communication metrics are modeled-precision via 3GPP TR 38.811 + ITU-R P.618-14 / P.676-13, not flat nominal constants or measured service telemetry.",
+    ...(rainRateMmPerHour > 0
+      ? [
+          "Rain-rate attenuation uses the ITU-R P.837 global default context when supplied without local calibration."
+        ]
+      : [])
+  ];
   return {
     precisionLabel,
     sourceTier: attribution.sourceTier,
-    nonClaims: attribution.nonClaims
+    nonClaims: [...attribution.nonClaims, ...metricNonClaims]
   };
 }
 
@@ -272,6 +583,8 @@ export function computeRuntimeProjection(
   const elevationThresholdDeg =
     input.elevationThresholdDeg ?? DEFAULT_ELEVATION_THRESHOLD_DEG;
   const policyId = input.handoverPolicyId ?? DEFAULT_HANDOVER_POLICY_ID;
+  const rainRateMmPerHour = normalizeRainRateMmPerHour(input.rainRateMmPerHour);
+  const enableCrossOrbitLivePolicy = input.enableCrossOrbitLivePolicy ?? false;
 
   const cappedRecords = capTleRecords(input.tleRecords, {
     LEO: DEFAULT_LEO_CAP,
@@ -310,7 +623,12 @@ export function computeRuntimeProjection(
       input.timeWindow,
       sampleStepSeconds,
       policyId,
-      scenarioId
+      scenarioId,
+      {
+        elevationThresholdDeg,
+        rainRateMmPerHour,
+        enableCrossOrbitLivePolicy
+      }
     );
 
   const meanLinkDwellMs =
@@ -335,7 +653,11 @@ export function computeRuntimeProjection(
     visibilityWindows,
     handoverEvents,
     communicationStats,
-    truthBoundary: buildTruthBoundary(input.stationA, input.stationB)
+    truthBoundary: buildTruthBoundary(
+      input.stationA,
+      input.stationB,
+      rainRateMmPerHour
+    )
   };
 }
 
