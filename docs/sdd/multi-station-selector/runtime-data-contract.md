@@ -81,14 +81,27 @@ The selector produces this value on Apply. The route translates it into URL sear
 ### URL contract
 
 ```
-/?scenePreset=regional&groundStationSceneActive=1&siteA=<stationId>&siteB=<stationId>
+/?scenePreset=regional&m8aV4GroundStationScene=1&stationA=<stationId>&stationB=<stationId>
 ```
 
-`siteA` and `siteB` resolve to entries in the public registry. The route does not accept lat/lon directly in the URL; only registry-id references, so the registry is the single source for coordinates.
+`stationA` and `stationB` resolve to entries in the public registry. The route does not accept lat/lon directly in the URL; only registry-id references, so the registry is the single source for coordinates.
+
+The short form is also valid:
+
+```
+/?stationA=<stationId>&stationB=<stationId>
+```
+
+When both station ids are present, bootstrap treats the route as a V4 ground-station runtime entry and auto-applies the regional scene preset. The side panel also accepts `startUtc=<ISO timestamp>` and `durationMinutes=<20..480>` to pin a reproducible projection window. `siteA`, `siteB`, and `groundStationSceneActive` were early draft names; they are not the current runtime URL contract.
 
 ## Layer 2 — Output contract
 
-Given a `GroundStationPair`, the runtime produces a `DemoProjection` that the existing V4 demo controllers consume. The shape is constrained to match what the current fixture-driven path produces, so the only difference is the compute path, not the downstream surface.
+Given a `GroundStationPair`, the selected-pair runtime produces a `DemoProjection`
+for the V4 side panel, CSV export, and truth-boundary labels. The main globe can
+render selected-pair endpoint markers, endpoint ribbon, camera framing,
+selected-pair visible-satellite overlay points, and a runtime link cue. Its
+fixture actor/timeline surface remains in place until the controller gets a full
+pair-projection adapter for replacing the original actor model.
 
 ```ts
 export type VisibilityWindow = {
@@ -114,7 +127,8 @@ export type HandoverEvent = {
   readonly reasonKind:
     | "current-link-unavailable"
     | "better-candidate-available"
-    | "policy-tie-break";
+    | "policy-tie-break"
+    | "cross-orbit-migration";
 };
 
 export type CommunicationStats = {
@@ -135,6 +149,11 @@ export type TruthBoundary = {
 
 export type DemoProjection = {
   readonly pair: GroundStationPair;
+  readonly timeWindow: {
+    readonly startUtc: string;
+    readonly endUtc: string;
+  };
+  readonly sharedSupportedOrbits: ReadonlyArray<SupportedOrbitClass>;
   readonly visibleConstellations: {
     readonly LEO: ReadonlyArray<{ readonly satelliteId: string; readonly tleSource: string }>;
     readonly MEO: ReadonlyArray<{ readonly satelliteId: string; readonly tleSource: string }>;
@@ -153,18 +172,20 @@ The runtime resolves the projection in one of two paths, selected by `sourceTier
 
 1. **`operator-validated`** — the route consumes the existing repo fixture under `public/fixtures/ground-station-projections/`. No new compute layer touches this path; the existing controllers continue to render exactly the same surface they render today. This preserves the current verified-complete test surface.
 
-2. **`public-disclosed` / `geometric-derived`** — the route invokes a new compute module:
+2. **`public-disclosed` / `geometric-derived`** — the route invokes the runtime projection module:
 
-   - `src/features/multi-station-selector/runtime-projection.ts` (new)
+   - `src/features/multi-station-selector/runtime-projection.ts`
    - Pulls TLE data from `public/fixtures/satellites/` (existing).
    - Computes per-station per-satellite visibility windows via `satellite.js` (already a project dependency).
    - Intersects the two stations' windows per satellite to derive `PairVisibilityWindow`.
-   - Filters by `supportedOrbits` ∩ orbit class of each candidate satellite.
-   - Feeds the existing handover-decision rule engine (`src/features/handover-decision/handover-decision.ts`) to derive `handoverEvents`.
-   - Aggregates `communicationStats` from the intersection windows.
+   - Filters candidates to orbit classes disclosed by both selected stations.
+   - Caps selected-pair interactive compute at 60 TLE records per orbit class.
+   - Feeds the existing link-budget handover policy module to derive `handoverEvents`.
+   - Aggregates `communicationStats` from the intersection windows; `handoverCount` excludes the first initial acquisition event.
    - Stamps `truthBoundary` with the pair's `sourceTier` and tier-appropriate non-claim strings.
+   - Builds a bounded scene overlay from selected link events plus the longest mutual visibility windows. This overlay carries selected satellite ids/orbits and TLE-sampled positions for CSV/debug evidence; the globe cue renders those selected satellites in demo display lanes so the selected pair stays readable.
 
-The two paths converge on the same `DemoProjection` shape; the V4 demo route does not branch on the source path.
+The public-disclosed / geometric-derived runtime projection currently feeds the V4 route's side panel, CSV export, and `truthBoundary` labeling. The selected public registry pair also drives main-globe endpoint markers, the endpoint context ribbon, camera framing, TLE-derived display-lane satellite cues, and runtime link cue. The tier-1 fixture-driven actor/timeline surface remains the existing V4 controller surface; this contract does not claim that public registry pairs have replaced the V4 controller satellite actor/timeline main scene.
 
 ## Layer 3 — Source-tier authority labels
 
@@ -176,24 +197,27 @@ The non-claim labels are explicit:
 | `public-disclosed` | "Public-disclosure pair · operator-stated capability" | "Pair shown from public operator disclosure. Commercial routing not validated by this surface." |
 | `geometric-derived` | "Geometric pair · visibility-derived only" | "Pair derivable from public station coordinates and satellite ephemerides only. No operator or contractual attestation." |
 
-The badge and non-claims render in the demo route's top strip (see existing `m8a-v411-top-strip` infrastructure) and in any export bundle's `truthBoundary` field.
+The badge and non-claims render in the runtime projection side panel and in any export bundle's `truthBoundary` field.
 
 ## Boundary with the existing demo route
 
-- The current demo route remains the consumer surface; this contract does not change what the demo *displays*, only what *upstream* of that demo computes the inputs.
-- The route still reads `scenePreset=regional&groundStationSceneActive=1` as today.
-- `siteA` / `siteB` are new optional URL params. When absent, the route falls back to the existing default operator-validated pair (no behavior change for unspecified entry).
-- Existing tier-1 fixture-driven assertions (phase6.x, m8a-v4.3 / .11 / .12, phase7.1 multi-orbit scale, scenario surfaces) continue to consume the fixture; the runtime path is invoked only for `siteA` / `siteB` URL values not matching the operator-validated pair id.
+- The current demo route remains the consumer surface. Public-disclosed and geometric-derived pairs are exposed through the runtime projection side panel, CSV export, and `truthBoundary` labels.
+- The route reads `m8aV4GroundStationScene=1` as the explicit V4 activation flag. The short URL `/?stationA=<id>&stationB=<id>` also activates the V4 ground-station runtime and auto-applies `scenePreset=regional`.
+- `stationA` / `stationB` are optional URL params. When absent, the route falls back to the existing default operator-validated pair (no behavior change for unspecified entry).
+- Existing tier-1 fixture-driven assertions (phase6.x, m8a-v4.3 / .11 / .12, phase7.1 multi-orbit scale, scenario surfaces) continue to consume the fixture. Public registry pairs do not replace the V4 controller actor/timeline main scene.
+- The side panel renders a display-boundary note for this split: panel/CSV follow the selected-pair modeled projection, while main-globe selected-pair cues are TLE-derived demo display lanes; the main globe is not selected-pair measured service telemetry.
 
 ## Resolved decisions (2026-05-16)
 
 1. **URL parameter names** — `stationA` and `stationB`. The internal type `M8aV4EndpointId` continues to use "endpoint" terminology to match existing fixture naming, but the public URL surface uses the clearer "station" word.
 
-2. **Default scenario window** — wall-clock UTC, anchored at the live replay clock start. For `bootstrap-regional-real-time` entry, the window is `[now, now + 20 min]`. For `bootstrap-regional-prerecorded` entry, the window is the fixed historical span the prerecorded scenario already defines. The replay multiplier (1x, 4x, 30x, 60x, 120x) is a separate playback control and does not change which wall-clock UTC range the runtime computes against.
+2. **Default scenario window** — selected-pair side panel projection defaults to wall-clock UTC `[now, now + 360 min]`. A route may pin the window with `startUtc` and `durationMinutes`; duration is clamped to 20-480 minutes. The replay multiplier (`30x`, `60x`, `120x` in the visible V4 HUD) is a separate playback control and does not change which UTC range the runtime computes against.
 
-3. **Handover rule engine** — selected pairs at every source tier feed through the existing handover-decision engine (`src/features/handover-decision/handover-decision.ts`) with the existing default `bootstrap-balanced-v1` policy (latency + jitter + network-speed weighted, as required by the prep-layer requirement that handover switches use latency/jitter/network-speed). The policy selector remains available so the user can switch policies inside the demo. Source-tier and handover policy are orthogonal axes: the source-tier badge labels how the *pair* was attested; the policy selector labels how the *rule engine* decides switches.
+3. **Handover rule engine** — selected pairs feed through the link-budget handover policy module with the `cross-orbit-live` policy. The policy considers elevation, predicted visibility, latency, jitter, and network-speed-derived metrics. Source-tier and handover policy are orthogonal axes: the source-tier badge labels how the *pair* was attested; the policy labels how the *rule engine* decides switches. The visible side panel does not expose a policy selector.
 
 4. **Visible-globe markers** — render every station in the registry as a Cesium entity by default. A toggle control (default: on) lets the user hide them. When hidden, the demo entry CTA remains as today.
+
+5. **Keyboard station-list fallback** — globe marker picking is the primary visual selection path. A native select-based station picker remains available as the accessibility fallback, and it writes through the same selection store and `stationA` / `stationB` URL contract.
 
 ## External-spec inputs taken into account
 
@@ -202,7 +226,7 @@ The handover compute path treats the following constraints as inherited from the
 - Switching metrics: latency, jitter, network-speed (per the kickoff and prep documents).
 - Switching across LEO / MEO / GEO orbit classes.
 - Service-layer switching, not RF-native handover.
-- No canonical numerical thresholds inherited; thresholds remain repo-owned, expressed inside the existing `bootstrap-balanced-v1` and adjacent policies.
-- At least two switchable policies (existing `bootstrap-balanced-v1` plus the existing latency/jitter/speed-prioritized variants already verified under F-10 / F-12).
+- No canonical numerical thresholds inherited; thresholds remain repo-owned, expressed inside the `cross-orbit-live` config used by the V4 selected-pair projection.
+- Additional policy variants remain implemented in module-level code, but the V4 selected-pair demo surface intentionally uses `cross-orbit-live` only.
 
 No new claim of authority for the modeled stations is introduced; the truth-boundary block makes the source-tier explicit.

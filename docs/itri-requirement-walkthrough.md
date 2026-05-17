@@ -59,7 +59,7 @@ demo 畫面上重現 (reproduce) 的位置與一組真實數字。
 - **白話**: 畫面上同時有低/中/高軌三層衛星,且服務能在它們之間切換。
 - **完成度**: 視覺化已完成。跨軌道切換邏輯由 `handover-policy.ts` 的
   `cross-orbit-live` 政策提供 (見卡 19 / V-MO1)。
-- **demo 驗證位置**: V4 demo route,三層星座同時顯示;side panel 的 Handover events
+- **demo 驗證位置**: V4 demo route,三層星座同時顯示;side panel 的 Link selection events
   區塊列出切換事件。
 - **source tier**: 幾何顯示 Tier C;切換 metric Tier B。
 - **重現**: 開 V4 route,觀察 LEO/MEO/GEO 三層;side panel「LEO/MEO/GEO」comm-time
@@ -110,11 +110,11 @@ demo 畫面上重現 (reproduce) 的位置與一組真實數字。
 - **完成度**: done。`handover-policy.ts` 提供三種政策
   (`bootstrap-balanced-v1`、`leo-first`、`cross-orbit-live`),參數含
   elevationThresholdDeg、hysteresisDb、minVisibilityWindowMs、latencyBudgetMs。
-- **demo 驗證位置**: side panel Handover events;runtime-projection 取用該模組。
+- **demo 驗證位置**: side panel Link selection events;runtime-projection 取用該模組。
 - **source tier**: Tier B — 3GPP TR 38.821 §7.3。
 - **重現**: `src/runtime/link-budget/handover-policy.ts` 函式頂部附 §7.3 引用。
 - **工程師可能問**: 「門檻數字哪來?」→ 政策結構源自 TR 38.821 §7.3 trigger
-  metrics (elevation / RSRP / 可見視窗);門檻為可調 config,非寫死。
+  metrics (elevation / RSRP / 可見視窗);門檻在 config 中,非 side panel 互動控制。
 
 ### 卡 6 — R1-T6 / K-D5:通訊速率可視化
 
@@ -149,15 +149,17 @@ demo 畫面上重現 (reproduce) 的位置與一組真實數字。
 - **來源**: r1.docx + kickoff slide 5
 - **原文**: 模擬速度可調 (real time 與預錄 TLE 情境切換)。
 - **白話**: 能即時跑,也能用預錄情境並加速播放。
-- **完成度**: done。預設即時視窗為 wall-clock UTC `[now, now+20m]`;Operator HUD
-  播放倍率為三個 bounded preset `30x / 60x / 120x` (見
+- **完成度**: done。selected-pair side panel 預設投影視窗為 wall-clock UTC
+  `[now, now+360m]`,也可由 URL `startUtc` / `durationMinutes` 固定為可重現
+  時間窗;Operator HUD 播放倍率為三個 bounded preset `30x / 60x / 120x` (見
   `src/runtime/m8a-v4-product-ux-model.ts:60-62`),與視窗選擇正交。底層
   `replayClock.setMultiplier(x)` 接受任意 finite 倍率,但 UI 故意限縮為三個
   preset 以避免不穩定的高速播放選項。
 - **demo 驗證位置**: replay 控制;side panel 視窗行顯示 `Window … UTC`。
 - **source tier**: 不適用 (控制層)。
 - **重現**: 觀察 side panel Window 行的起訖時間。
-- **工程師可能問**: 「即時與預錄差別?」→ 即時取 now 起算;預錄取情境固定歷史視窗。
+- **工程師可能問**: 「即時與預錄差別?」→ 未帶 `startUtc` 時即時取開頁當下 UTC
+  起算;帶 `startUtc` 時取 URL 固定視窗。主 globe fixture 仍使用既有預錄展示脈絡。
 
 ### 卡 9 — R1-F3 / K-E3:即時顯示可通訊時間
 
@@ -179,8 +181,8 @@ demo 畫面上重現 (reproduce) 的位置與一組真實數字。
 - **白話**: 系統能依鏈路品質指標自動換軌。
 - **完成度**: done。runtime-projection 每取樣點以 link-budget 推得的
   latency/jitter/networkSpeed 餵入 handover 引擎,serving 衛星變動即記為
-  HandoverEvent。
-- **demo 驗證位置**: side panel Handover events 區塊,每列附 reasonKind。
+  HandoverEvent。handover count 不含第一次 initial acquisition。
+- **demo 驗證位置**: side panel Link selection events 區塊,每列附 reasonKind。
 - **source tier**: Tier B — TR 38.821 §7.3。
 - **重現**: side panel handover 列的 reasonKind
   (current-link-unavailable / better-candidate-available / policy-tie-break)。
@@ -254,11 +256,13 @@ demo 畫面上重現 (reproduce) 的位置與一組真實數字。
 - **來源**: r1.docx 交付表
 - **原文**: 11/30 可動態調整參數介面。
 - **白話**: 期限前要有能即時改參數的介面。
-- **完成度**: done。雨率滑桿、地面站選取、replay 倍率皆即時生效。
+- **完成度**: done。雨率滑桿、地面站選取、replay 倍率、URL 投影視窗皆可調。
 - **demo 驗證位置**: side panel 雨率滑桿即一例:拉動即重算。
 - **source tier**: 不適用。
 - **重現**: 拉滑桿觀察 panel 150 ms debounce 後重算。
-- **工程師可能問**: 「還有哪些參數可調?」→ handover 政策參數、replay 倍率、站對。
+- **工程師可能問**: 「還有哪些參數可調?」→ replay 倍率、站對、雨率、
+  `startUtc` / `durationMinutes`。V4 selected-pair projection 固定使用
+  cross-orbit-live 政策。
 
 ### 卡 17 — R1-D3:11/30 可產生通訊時間統計
 
@@ -271,7 +275,7 @@ demo 畫面上重現 (reproduce) 的位置與一組真實數字。
 - **source tier**: Tier C 幾何 + Tier B 鏈路 metric。
 - **重現**: 見卡 9 + 卡 11。
 - **工程師可能問**: 「統計含哪些?」→ 總通訊時間、handover 次數、平均 dwell、
-  LEO/MEO/GEO 分項。
+  共同支援 orbit 分項。handover 次數不含第一次 initial acquisition。
 
 ### 卡 18 — R1-D4:11/30 畫面穩定運行 24 小時
 
@@ -298,7 +302,7 @@ demo 畫面上重現 (reproduce) 的位置與一組真實數字。
   `enableCrossOrbitLivePolicy`)。當前 LEO 仰角低於門檻且無 LEO 候選達標、
   但 MEO/GEO 達標且 latency budget 仍滿足時,發出 `cross-orbit-migration`
   事件。
-- **demo 驗證位置**: V4 side panel Handover events 區塊 — 跨軌道事件以
+- **demo 驗證位置**: V4 side panel Link selection events 區塊 — 跨軌道事件以
   **紫色強調列**呈現,reasonKind 文字為 `cross-orbit migration (V-MO1)`,
   與其他 handover (better candidate available / current link unavailable /
   policy tie break) 視覺區隔。Non-claims 行另明列政策來源 (TR 38.821 §7.3
@@ -322,8 +326,8 @@ demo 畫面上重現 (reproduce) 的位置與一組真實數字。
 | 星座三層顯示 | 衛星位置 | Tier C | SGP4 + 本地 TLE |
 | Pair visibility windows | 互可見視窗起訖 | Tier C | satellite.js SGP4 + look-angle |
 | Comm time / Mean dwell | 通訊時間統計 | Tier C | 幾何可見性 × 取樣 |
-| Handover events | 換手事件 + reason | Tier B | TR 38.821 §7.3 |
-| Rain attenuation 區塊 | 雨衰 dB / 速率下修 | Tier B | ITU-R P.618-14 §2.2.1 + P.838-3 |
+| Link selection events | 初始連線 / 換手事件 + reason | Tier B | TR 38.821 §7.3 |
+| Rain attenuation 區塊 | comm-time impact / throughput / jitter 下修 | Tier B | ITU-R P.618-14 §2.2.1 + P.838-3 |
 | per-orbit downlink Mbps | 鏈路速率 | Tier B (modeled) | TR 38.811 §6.6 + P.676-13 + P.618-14 |
 | Latency 數字 | 單程傳播延遲 | Tier B (modeled) | TR 38.811 §6.7 (slant range / c) |
 | Non-claims 區塊 | 真實性界線聲明 | 各 tier 自述 | runtime-projection truthBoundary |
@@ -370,20 +374,43 @@ boundary non-claims 已逐條標示。
 `scenePreset=regional` 並啟動 V4 panel。station id 來自
 `public/fixtures/ground-stations/multi-orbit-public-registry.json`。
 
+可加上 `startUtc=<ISO timestamp>` 與 `durationMinutes=<20..480>` 固定投影時間窗。
+若未提供 `durationMinutes`,V4 side panel 預設使用 360 分鐘;若未提供 `startUtc`,
+則以開頁當下 UTC 起算。右側 side panel 與 CSV 使用 selected pair 即時計算;
+主 globe 的地面站端點/ribbon/鏡頭 framing 也會使用 selected pair,並加上
+TLE-derived selected-pair display-lane satellite cue 與 runtime link cue;既有 V4 衛星 actor/timeline
+仍是 fixture-driven 展示脈絡,不是 selected pair 的完整主場景量測遙測。
+
 **5 候選 demo 情境** (對應 spec「high/low elevation × rain/clear × handover/no-handover」代表性子集,Bucket B irreducible-2 替代清單):
 
 1. **極地高仰角同 operator** (KSAT 北/北極) — 高 MEO 視窗活動,Ku/Ka 雨衰帶外:
-   `/?stationA=ksat-svalsat-svalbard&stationB=ksat-tromso`
+   `/?stationA=ksat-svalsat-svalbard&stationB=ksat-tromso&startUtc=2026-05-17T00%3A00%3A00.000Z&durationMinutes=360`
 2. **極地反節點同 operator** (KSAT 北極/南極) — handover 壓力測試,跨半球極長基線:
-   `/?stationA=ksat-svalsat-svalbard&stationB=ksat-trollsat-antarctica`
+   `/?stationA=ksat-svalsat-svalbard&stationB=ksat-trollsat-antarctica&startUtc=2026-05-17T00%3A00%3A00.000Z&durationMinutes=360`
 3. **中緯跨大西洋同 operator** (Intelsat DE/US) — LEO sweep 視窗多:
-   `/?stationA=intelsat-fuchsstadt&stationB=intelsat-atlanta`
+   `/?stationA=intelsat-fuchsstadt&stationB=intelsat-atlanta&startUtc=2026-05-17T00%3A00%3A00.000Z&durationMinutes=360`
 4. **赤道跨 operator** (Singtel SG / Measat MY) — geometric-derived tier + 熱帶雨衰可拉滑桿展示 K-E6:
-   `/?stationA=singtel-bukit-timah&stationB=measat-cyberjaya`
+   `/?stationA=singtel-bukit-timah&stationB=measat-cyberjaya&startUtc=2026-05-17T00%3A00%3A00.000Z&durationMinutes=360`
 5. **跨半球跨 operator** (CHT TW / SANSA ZA) — geometric-derived tier + 長基線:
-   `/?stationA=cht-yangmingshan&stationB=sansa-hartebeesthoek`
+   `/?stationA=cht-yangmingshan&stationB=sansa-hartebeesthoek&startUtc=2026-05-17T00%3A00%3A00.000Z&durationMinutes=360`
 
-每條 URL 進入後,可拉雨衰滑桿 0 → 80 mm/h 切換 rain/clear 情境,觀察 LEO/GEO downlink throughput 與 jitter 變化 (Ka/Ku 帶內),以及 handover events 列表的 reasonKind。每個站對的視窗數量與 handover 次數因軌道幾何而異;若特定時間視窗顯示零互可見性,等待數分鐘 panel 自動重新計算或切下一個情境。
+固定時間窗 `2026-05-17T00:00:00.000Z` + `durationMinutes=360` 的 expected
+counts (2026-05-17 runtime-projection compute):
+
+| # | stationA / stationB | shared orbit | source tier | mutual windows | link-selection events | handovers |
+| --- | --- | --- | --- | ---: | ---: | ---: |
+| 1 | ksat-svalsat-svalbard / ksat-tromso | LEO/MEO/GEO | public-disclosed | 26 | 2 | 1 |
+| 2 | ksat-svalsat-svalbard / ksat-trollsat-antarctica | LEO/MEO/GEO | public-disclosed | 0 | 0 | 0 |
+| 3 | intelsat-fuchsstadt / intelsat-atlanta | MEO/GEO | public-disclosed | 15 | 3 | 2 |
+| 4 | singtel-bukit-timah / measat-cyberjaya | LEO/GEO | geometric-derived | 42 | 1 | 0 |
+| 5 | cht-yangmingshan / sansa-hartebeesthoek | LEO/MEO/GEO | geometric-derived | 9 | 3 | 2 |
+
+每條 URL 進入後,可拉雨衰滑桿 0 → 80 mm/h 切換 rain/clear 情境,觀察共同
+支援 orbit 的 downlink throughput 與 jitter 變化 (Ka/Ku 帶內),以及
+`Link selection events` 列表的 reasonKind。`link-selection events` 包含第一次
+initial acquisition;`handovers` 不含第一次 acquisition,只計 serving 衛星切換。
+若固定時間窗顯示零互可見性,這就是該情境的 no-visibility / no-handover 結果;
+要看其他幾何狀態需改 `startUtc` / `durationMinutes` 或切下一個情境。
 
 ---
 
@@ -416,8 +443,8 @@ boundary non-claims 已逐條標示。
 
 6. **Q: handover 門檻數字如何決定?**
    A: 政策結構源自 TR 38.821 §7.3 trigger metrics (elevation / RSRP / 預測
-   可見視窗)。具體門檻為可調 config (elevationThresholdDeg 等),非寫死,
-   可於驗收時調整。
+   可見視窗)。V4 selected-pair projection 固定採 `cross-orbit-live`;
+   具體門檻在程式 config 中,不是 side panel 目前暴露的互動控制。
 
 7. **Q: V-MO1 跨軌道 live handover 是契約需求嗎?**
    A: 否。r1.docx / kickoff.pptx 僅有 K-A1「可於低/中/高軌切換」。V-MO1 為
