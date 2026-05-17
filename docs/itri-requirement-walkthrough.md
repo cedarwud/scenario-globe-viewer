@@ -149,8 +149,11 @@ demo 畫面上重現 (reproduce) 的位置與一組真實數字。
 - **來源**: r1.docx + kickoff slide 5
 - **原文**: 模擬速度可調 (real time 與預錄 TLE 情境切換)。
 - **白話**: 能即時跑,也能用預錄情境並加速播放。
-- **完成度**: done。預設即時視窗為 wall-clock UTC `[now, now+20m]`;播放倍率
-  1x..120x 與視窗選擇正交。
+- **完成度**: done。預設即時視窗為 wall-clock UTC `[now, now+20m]`;Operator HUD
+  播放倍率為三個 bounded preset `30x / 60x / 120x` (見
+  `src/runtime/m8a-v4-product-ux-model.ts:60-62`),與視窗選擇正交。底層
+  `replayClock.setMultiplier(x)` 接受任意 finite 倍率,但 UI 故意限縮為三個
+  preset 以避免不穩定的高速播放選項。
 - **demo 驗證位置**: replay 控制;side panel 視窗行顯示 `Window … UTC`。
 - **source tier**: 不適用 (控制層)。
 - **重現**: 觀察 side panel Window 行的起訖時間。
@@ -295,9 +298,11 @@ demo 畫面上重現 (reproduce) 的位置與一組真實數字。
   `enableCrossOrbitLivePolicy`)。當前 LEO 仰角低於門檻且無 LEO 候選達標、
   但 MEO/GEO 達標且 latency budget 仍滿足時,發出 `cross-orbit-migration`
   事件。
-- **demo 驗證位置**: V4 side panel Handover events 區塊 + Non-claims 行
-  (明列「handover decisions use the cross-orbit-live policy (TR 38.821 §7.3
-  + V-MO1 verbal addendum)」)。
+- **demo 驗證位置**: V4 side panel Handover events 區塊 — 跨軌道事件以
+  **紫色強調列**呈現,reasonKind 文字為 `cross-orbit migration (V-MO1)`,
+  與其他 handover (better candidate available / current link unavailable /
+  policy tie break) 視覺區隔。Non-claims 行另明列政策來源 (TR 38.821 §7.3
+  + V-MO1 verbal addendum)。
 - **source tier**: Tier B — TR 38.821 §7.3 結構 + 口頭需求細化。
 - **重現**: `handover-policy.ts` 含 sanity 註解 (全 LEO < 10° 仰角且 MEO 30° 可用
   → cross-orbit-migration)。

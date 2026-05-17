@@ -79,7 +79,8 @@ export interface HandoverEvent {
   readonly reasonKind:
     | "current-link-unavailable"
     | "better-candidate-available"
-    | "policy-tie-break";
+    | "policy-tie-break"
+    | "cross-orbit-migration";
 }
 
 export interface CommunicationStats {
@@ -403,10 +404,9 @@ function toLivePolicyCandidate(
 function mapPolicyReasonToHandoverEventReason(
   reasonKind: LinkBudgetHandoverDecision["reasonKind"]
 ): HandoverEvent["reasonKind"] {
-  if (reasonKind === "cross-orbit-migration") {
-    // HandoverEvent is consumed by the existing panel with a narrower reason union.
-    return "better-candidate-available";
-  }
+  // HandoverEvent.reasonKind now includes "cross-orbit-migration" so V-MO1
+  // events keep their distinct reason in the side panel instead of
+  // collapsing into "better-candidate-available". Identity mapping.
   return reasonKind;
 }
 

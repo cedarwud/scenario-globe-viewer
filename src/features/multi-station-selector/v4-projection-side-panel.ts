@@ -1,11 +1,6 @@
 import {
-  PUBLIC_REGISTRY_BY_ID,
-  type PublicRegistryStation
-} from "./tier-inference";
-import {
   buildDefaultTimeWindow,
   computeLinkBudgetMetricsForOrbit,
-  computeRuntimeProjection,
   loadDefaultTleSources,
   parseRuntimeTleSources,
   type RuntimeProjectionResult
@@ -14,8 +9,10 @@ import {
   buildRuntimeProjectionCsv,
   buildRuntimeProjectionCsvFilename
 } from "./runtime-projection-csv";
+import { createRuntimeProjectionWorkerClient } from "./runtime-projection-worker-client";
 import type { OrbitClass, PairVisibilityWindow } from "./visibility-utils";
 import type { TleRecord } from "./visibility-utils";
+import type { V4ResolvedStationPair } from "./v4-route-selection";
 
 const PANEL_MAX_VISIBILITY_ROWS = 8;
 const PANEL_MAX_HANDOVER_ROWS = 6;
@@ -121,6 +118,16 @@ const RAIN_CONTROL_CSS = `
   .v4-projection-side-panel__stat-value {
   color: #ffd166;
 }
+.v4-projection-side-panel__list-item[data-modifier="cross-orbit-migration"] {
+  border-left: 3px solid #c9a0ff;
+  padding-left: 0.45rem;
+  background: rgba(201, 160, 255, 0.07);
+}
+.v4-projection-side-panel__list-item[data-modifier="cross-orbit-migration"]
+  .v4-projection-side-panel__list-secondary {
+  color: #c9a0ff;
+  font-weight: 600;
+}
 .v4-projection-side-panel__download-csv {
   grid-column: 1 / -1;
   width: 100%;
@@ -159,26 +166,6 @@ function injectRainControlStyleOnce(): void {
   document.head.appendChild(style);
 }
 
-interface ResolvedPair {
-  readonly stationA: PublicRegistryStation;
-  readonly stationB: PublicRegistryStation;
-}
-
-function resolvePair(
-  stationAId: string | null,
-  stationBId: string | null
-): ResolvedPair | null {
-  if (!stationAId || !stationBId || stationAId === stationBId) {
-    return null;
-  }
-  const stationA = PUBLIC_REGISTRY_BY_ID.get(stationAId);
-  const stationB = PUBLIC_REGISTRY_BY_ID.get(stationBId);
-  if (!stationA || !stationB) {
-    return null;
-  }
-  return { stationA, stationB };
-}
-
 function createPanelShell(): HTMLElement {
   const root = document.createElement("aside");
   root.className = "v4-projection-side-panel";
@@ -188,7 +175,7 @@ function createPanelShell(): HTMLElement {
   return root;
 }
 
-function renderLoading(root: HTMLElement, pair: ResolvedPair): void {
+function renderLoading(root: HTMLElement, pair: V4ResolvedStationPair): void {
   root.replaceChildren();
   root.dataset.state = "loading";
 
@@ -368,12 +355,21 @@ function buildHandoverEventList(
   for (const e of events.slice(0, PANEL_MAX_HANDOVER_ROWS)) {
     const li = document.createElement("li");
     li.className = "v4-projection-side-panel__list-item";
+    if (e.reasonKind === "cross-orbit-migration") {
+      // V-MO1 cross-orbit live migration — highlight visually so a reviewer
+      // can distinguish it from same-orbit handovers without reading the
+      // truth-boundary non-claims.
+      li.dataset.modifier = "cross-orbit-migration";
+    }
     const head = document.createElement("span");
     head.className = "v4-projection-side-panel__list-primary";
     head.textContent = `${formatIsoShort(e.handoverAtUtc)}  ${e.fromSatelliteId ?? "—"} → ${e.toSatelliteId}`;
     const reason = document.createElement("span");
     reason.className = "v4-projection-side-panel__list-secondary";
-    reason.textContent = e.reasonKind.replace(/-/g, " ");
+    reason.textContent =
+      e.reasonKind === "cross-orbit-migration"
+        ? "cross-orbit migration (V-MO1)"
+        : e.reasonKind.replace(/-/g, " ");
     li.append(head, reason);
     list.append(li);
   }
@@ -642,7 +638,7 @@ interface RenderResultOptions {
 
 function renderResult(
   root: HTMLElement,
-  pair: ResolvedPair,
+  pair: V4ResolvedStationPair,
   result: RuntimeProjectionResult,
   options: RenderResultOptions
 ): void {
@@ -697,8 +693,7 @@ function renderResult(
 }
 
 export interface V4ProjectionSidePanelInput {
-  readonly stationAId: string | null;
-  readonly stationBId: string | null;
+  readonly resolvedPair: V4ResolvedStationPair | null;
 }
 
 export interface V4ProjectionSidePanelHandle {
@@ -709,13 +704,10 @@ export function mountV4ProjectionSidePanel(
   viewerContainer: HTMLElement,
   input: V4ProjectionSidePanelInput
 ): V4ProjectionSidePanelHandle | null {
-  const resolvedPair = resolvePair(input.stationAId, input.stationBId);
-  if (!resolvedPair) {
+  if (!input.resolvedPair) {
     return null;
   }
-  // Bind to a non-nullable `const` so the hoisted `recompute` declaration
-  // below keeps the narrowed type without an extra guard.
-  const pair: ResolvedPair = resolvedPair;
+  const pair = input.resolvedPair;
 
   injectRainControlStyleOnce();
 
@@ -725,35 +717,50 @@ export function mountV4ProjectionSidePanel(
   let disposed = false;
   renderLoading(root, pair);
 
-  // Inputs cached after the first load so the projection can re-run cheaply
-  // (synchronously) every time the rain-rate slider changes.
+  // Inputs cached after the first load so the projection can re-run without
+  // re-fetching TLE fixtures while the worker keeps compute off the UI thread.
+  const projectionClient = createRuntimeProjectionWorkerClient();
   let tleRecords: ReadonlyArray<TleRecord> | null = null;
   let timeWindow: { startUtc: string; endUtc: string } | null = null;
   let clearSkyResult: RuntimeProjectionResult | null = null;
   let rainControl: RainControlElements | null = null;
   let currentRainRate = 0;
   let debounceTimer: ReturnType<typeof setTimeout> | null = null;
+  let computeRequestSeq = 0;
 
-  function recompute(rainRateMmPerHour: number): void {
+  async function recompute(rainRateMmPerHour: number): Promise<void> {
     if (disposed || !tleRecords || !timeWindow || !clearSkyResult || !rainControl) {
       return;
     }
+    const requestSeq = ++computeRequestSeq;
     currentRainRate = rainRateMmPerHour;
-    const result =
-      rainRateMmPerHour <= 0
-        ? clearSkyResult
-        : computeRuntimeProjection({
-            stationA: pair.stationA,
-            stationB: pair.stationB,
-            timeWindow,
-            tleRecords,
-            rainRateMmPerHour
-          });
-    renderResult(root, pair, result, {
-      rainRateMmPerHour,
-      clearSky: clearSkyResult,
-      rainControl
-    });
+    try {
+      const result = await projectionClient.compute({
+        stationA: pair.stationA,
+        stationB: pair.stationB,
+        timeWindow,
+        tleRecords,
+        rainRateMmPerHour
+      });
+      if (disposed || requestSeq !== computeRequestSeq || !rainControl) {
+        return;
+      }
+      if (rainRateMmPerHour <= 0) {
+        clearSkyResult = result;
+      }
+      renderResult(root, pair, result, {
+        rainRateMmPerHour,
+        clearSky: clearSkyResult,
+        rainControl
+      });
+    } catch (error) {
+      if (disposed || requestSeq !== computeRequestSeq) {
+        return;
+      }
+      const message =
+        error instanceof Error ? error.message : "Unknown failure while computing runtime projection.";
+      renderError(root, message);
+    }
   }
 
   function onSliderInput(rainRateMmPerHour: number): void {
@@ -762,7 +769,7 @@ export function mountV4ProjectionSidePanel(
     }
     debounceTimer = setTimeout(() => {
       debounceTimer = null;
-      recompute(rainRateMmPerHour);
+      void recompute(rainRateMmPerHour);
     }, RAIN_RECOMPUTE_DEBOUNCE_MS);
   }
 
@@ -774,14 +781,15 @@ export function mountV4ProjectionSidePanel(
       }
       tleRecords = parseRuntimeTleSources(sources);
       timeWindow = buildDefaultTimeWindow();
-      clearSkyResult = computeRuntimeProjection({
+      const requestSeq = ++computeRequestSeq;
+      clearSkyResult = await projectionClient.compute({
         stationA: pair.stationA,
         stationB: pair.stationB,
         timeWindow,
         tleRecords,
         rainRateMmPerHour: 0
       });
-      if (disposed) {
+      if (disposed || requestSeq !== computeRequestSeq) {
         return;
       }
       rainControl = buildRainControl(currentRainRate, onSliderInput);
@@ -810,6 +818,7 @@ export function mountV4ProjectionSidePanel(
         clearTimeout(debounceTimer);
         debounceTimer = null;
       }
+      projectionClient.dispose();
       if (root.parentElement) {
         root.parentElement.removeChild(root);
       }

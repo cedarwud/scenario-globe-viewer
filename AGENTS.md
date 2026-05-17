@@ -180,8 +180,12 @@ source-authority tiers used throughout the V4 demo:
   only. Label "Geometric pair · visibility-derived only".
 
 Replay defaults: real-time window = wall-clock UTC `[now, now+20m]`;
-playback multiplier 1x..120x is orthogonal to window selection. Shared
-default handover policy is `cross-orbit-live` (V-MO1).
+operator HUD exposes three bounded playback presets `30x / 60x / 120x`
+(see `src/runtime/m8a-v4-product-ux-model.ts:~60`), orthogonal to window
+selection. Underlying `replayClock.setMultiplier(x: number)` accepts
+arbitrary finite multipliers, but the visible UI is gated to the
+three bounded presets. Shared default handover policy is
+`cross-orbit-live` (V-MO1).
 
 ### R8. 3GPP / ITU citation map (`.agent-memory/reference_3gpp_itu_local_sources.md` snapshot)
 
@@ -192,11 +196,14 @@ converted markdowns live at `paper-catalog/3gpp/` +
 `src/runtime/link-budget/*.ts` module carries its §-citation header
 (`free-space-path-loss.ts` → TR 38.811 §6.6.2, `rain-attenuation.ts` →
 P.618-14 §2.2.1 + P.838-3 via delegation, `gas-absorption.ts` →
-P.676-13 Annex 2, `antenna-pattern.ts` → S.1528 + S.465-6,
+P.676-13 Annex 2, `antenna-pattern.ts` → S.1528 + S.465-6 **(standalone,
+not currently wired into the runtime-projection visible compute path)**,
 `handover-policy.ts` → TR 38.821 §7.3 + V-MO1). P.838-3 coefficient
 table is delegated to pre-existing
 `src/features/itu-r-physics/itu-r-p838-rain-attenuation.ts` (single
-source of truth for the table); do not duplicate it.
+source of truth for the table); do not duplicate it. Bootstrap physical
+input seeds use the older `itu-r-f699-antenna-pattern.ts` (not the new
+S.1528 / S.465 module).
 
 ### R9. Demo route URL + 5 candidate scenarios
 
