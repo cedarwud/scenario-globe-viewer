@@ -357,8 +357,28 @@ boundary non-claims 已逐條標示。
 `[x]` = 完成可重現;`[~]` = 部分,括註未做部分。
 
 **進入 demo 的 URL** (V4 route,需帶兩個合法 station id):
-`/?scenePreset=regional&m8aV4GroundStationScene=1&stationA=<id>&stationB=<id>`
-station id 來自 `public/fixtures/ground-stations/multi-orbit-public-registry.json`。
+
+短形 (2026-05-17 起,推薦):`/?stationA=<id>&stationB=<id>`
+長形 (legacy,仍支援):`/?scenePreset=regional&m8aV4GroundStationScene=1&stationA=<id>&stationB=<id>`
+
+只要 `stationA` 與 `stationB` 都是公開 registry 的合法 id,系統會自動套
+`scenePreset=regional` 並啟動 V4 panel。station id 來自
+`public/fixtures/ground-stations/multi-orbit-public-registry.json`。
+
+**5 候選 demo 情境** (對應 spec「high/low elevation × rain/clear × handover/no-handover」代表性子集,Bucket B irreducible-2 替代清單):
+
+1. **極地高仰角同 operator** (KSAT 北/北極) — 高 MEO 視窗活動,Ku/Ka 雨衰帶外:
+   `/?stationA=ksat-svalsat-svalbard&stationB=ksat-tromso`
+2. **極地反節點同 operator** (KSAT 北極/南極) — handover 壓力測試,跨半球極長基線:
+   `/?stationA=ksat-svalsat-svalbard&stationB=ksat-trollsat-antarctica`
+3. **中緯跨大西洋同 operator** (Intelsat DE/US) — LEO sweep 視窗多:
+   `/?stationA=intelsat-fuchsstadt&stationB=intelsat-atlanta`
+4. **赤道跨 operator** (Singtel SG / Measat MY) — geometric-derived tier + 熱帶雨衰可拉滑桿展示 K-E6:
+   `/?stationA=singtel-bukit-timah&stationB=measat-cyberjaya`
+5. **跨半球跨 operator** (CHT TW / SANSA ZA) — geometric-derived tier + 長基線:
+   `/?stationA=cht-yangmingshan&stationB=sansa-hartebeesthoek`
+
+每條 URL 進入後,可拉雨衰滑桿 0 → 80 mm/h 切換 rain/clear 情境,觀察 LEO/GEO downlink throughput 與 jitter 變化 (Ka/Ku 帶內),以及 handover events 列表的 reasonKind。每個站對的視窗數量與 handover 次數因軌道幾何而異;若特定時間視窗顯示零互可見性,等待數分鐘 panel 自動重新計算或切下一個情境。
 
 ---
 
