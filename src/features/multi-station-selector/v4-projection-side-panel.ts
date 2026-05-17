@@ -10,6 +10,10 @@ import {
   parseRuntimeTleSources,
   type RuntimeProjectionResult
 } from "./runtime-projection";
+import {
+  buildRuntimeProjectionCsv,
+  buildRuntimeProjectionCsvFilename
+} from "./runtime-projection-csv";
 import type { OrbitClass, PairVisibilityWindow } from "./visibility-utils";
 import type { TleRecord } from "./visibility-utils";
 
@@ -116,6 +120,32 @@ const RAIN_CONTROL_CSS = `
 .v4-projection-side-panel__stat[data-modifier="rain-degraded"]
   .v4-projection-side-panel__stat-value {
   color: #ffd166;
+}
+.v4-projection-side-panel__download-csv {
+  grid-column: 1 / -1;
+  width: 100%;
+  min-height: 2.1rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.45rem 0.7rem;
+  border-radius: 0.35rem;
+  border: 1px solid rgba(126, 226, 184, 0.32);
+  background: rgba(126, 226, 184, 0.1);
+  color: #e6f7f1;
+  font: inherit;
+  font-size: 0.76rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+}
+.v4-projection-side-panel__download-csv:hover {
+  background: rgba(126, 226, 184, 0.16);
+  border-color: rgba(126, 226, 184, 0.48);
+}
+.v4-projection-side-panel__download-csv:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(126, 226, 184, 0.55);
 }
 `;
 
@@ -227,6 +257,34 @@ function buildStatBlock(
   valueEl.textContent = value;
   block.append(labelEl, valueEl);
   return block;
+}
+
+function downloadRuntimeProjectionCsv(result: RuntimeProjectionResult): void {
+  const csv = buildRuntimeProjectionCsv(result);
+  const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = buildRuntimeProjectionCsvFilename(result);
+  link.style.display = "none";
+  document.body.appendChild(link);
+  try {
+    link.click();
+  } finally {
+    link.remove();
+    URL.revokeObjectURL(url);
+  }
+}
+
+function buildDownloadCsvButton(result: RuntimeProjectionResult): HTMLButtonElement {
+  const button = document.createElement("button");
+  button.type = "button";
+  button.className = "v4-projection-side-panel__download-csv";
+  button.textContent = "Download CSV";
+  button.addEventListener("click", () => {
+    downloadRuntimeProjectionCsv(result);
+  });
+  return button;
 }
 
 function buildVisibilityWindowList(
@@ -618,7 +676,8 @@ function renderResult(
     buildStatBlock(
       "LEO/MEO/GEO",
       `${formatDurationMs(result.communicationStats.byOrbit.LEO)} · ${formatDurationMs(result.communicationStats.byOrbit.MEO)} · ${formatDurationMs(result.communicationStats.byOrbit.GEO)}`
-    )
+    ),
+    buildDownloadCsvButton(result)
   );
 
   root.append(
