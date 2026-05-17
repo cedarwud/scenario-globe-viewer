@@ -381,8 +381,9 @@ export function mountGroundStationInfoCard(
       return;
     }
     const picked = viewer.scene.pick(movement.position);
-    const pickedId = picked?.id;
-    const stationId = extractStationId(pickedId);
+    const stationId =
+      extractStationId(picked?.id) ??
+      markers.findNearestVisible(movement.position, 14);
     if (stationId) {
       open(stationId);
       return;

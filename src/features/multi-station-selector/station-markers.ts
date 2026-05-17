@@ -1,10 +1,12 @@
 import {
   BillboardCollection,
+  Cartesian2,
   Cartesian3,
   Color,
   HeightReference,
   LabelCollection,
   LabelStyle,
+  SceneTransforms,
   VerticalOrigin,
   type Billboard,
   type Label,
@@ -91,6 +93,7 @@ export interface GroundStationMarkersHandle {
   setSearchQuery(query: string | null): void;
   getSearchQuery(): string;
   getStationCount(): number;
+  findNearestVisible(windowPosition: Cartesian2, tolerancePx: number): string | null;
   dispose(): void;
 }
 
@@ -168,7 +171,6 @@ export function mountGroundStationMarkers(
         image: imageSet.normal,
         heightReference: HeightReference.CLAMP_TO_GROUND,
         verticalOrigin: VerticalOrigin.CENTER,
-        disableDepthTestDistance: Number.POSITIVE_INFINITY,
         id: `ground-station-marker:${station.id}`
       });
 
@@ -321,6 +323,43 @@ export function mountGroundStationMarkers(
     },
     getStationCount(): number {
       return billboardById.size;
+    },
+    findNearestVisible(windowPosition: Cartesian2, tolerancePx: number): string | null {
+      const cameraPos = viewer.scene.camera.positionWC;
+      const EARTH_RADIUS_SQ = 6378137 * 6378137;
+      const scratchScreen = new Cartesian2();
+      const threshold = tolerancePx * tolerancePx;
+      let bestId: string | null = null;
+      let bestDist = threshold;
+      for (const [stationId, billboard] of billboardById) {
+        if (!billboard.show) {
+          continue;
+        }
+        const station = stationById.get(stationId);
+        if (!station) {
+          continue;
+        }
+        const worldPos = Cartesian3.fromDegrees(station.lon, station.lat, 0);
+        if (Cartesian3.dot(worldPos, cameraPos) < EARTH_RADIUS_SQ) {
+          continue;
+        }
+        const screenPos = SceneTransforms.worldToWindowCoordinates(
+          viewer.scene,
+          worldPos,
+          scratchScreen
+        );
+        if (!screenPos) {
+          continue;
+        }
+        const dx = screenPos.x - windowPosition.x;
+        const dy = screenPos.y - windowPosition.y;
+        const dist2 = dx * dx + dy * dy;
+        if (dist2 < bestDist) {
+          bestDist = dist2;
+          bestId = stationId;
+        }
+      }
+      return bestId;
     },
     dispose(): void {
       if (disposed) {
