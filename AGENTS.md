@@ -134,6 +134,98 @@ use `scene.pick()` only to confirm. Removes depth dependency entirely.
 
 (Memory entries in `.agent-memory/` are authoritative; this snapshot may lag.)
 
+### R5. Canonical ITRI requirement list (`.agent-memory/reference_itri_canonical_requirements.md` snapshot)
+
+Authoritative requirement source-of-truth lives at
+`/home/u24/papers/itri/requirements-consolidated.md` (34 rows: A=19 main
+axis, B=7 needs-ITRI-data-with-Tier-B-substitute, C=8 ITRI-infra). Cite
+requirements by consolidated ID (`R1-F1`, `K-A4`, `V-MO1`); cite standards
+with section (`ITU-R P.618-14 §2.2.1.1`, `3GPP TR 38.811 §6.7`). Do NOT
+open `r1.docx` / `kickoff.pptx` directly. The 2026-05-17 B/C relabel
+swapped previous B and C semantics — current alphabetical order = demo
+priority order (A → B project Tier-B work → C ITRI infra last).
+
+### R6. Concurrent-session collision caution (`.agent-memory/feedback_concurrent_session_collision.md` snapshot)
+
+Multiple Claude / Codex sessions may edit this repo concurrently. Before
+reverting any unexpected working-tree change, check: (a) file mtimes
+(fresh = a live writer is editing), (b) `pgrep -af "claude --resume"` and
+`pgrep -af "codex exec"` for parallel processes, (c) whether the change
+forms a coherent feature unrelated to your task (that points to
+concurrent work, not drift).
+
+**Known parallel-WIP territory (as of 2026-05-17):** the
+multi-station-selector marker-UI consolidation feature spans
+`src/features/multi-station-selector/marker-*.ts`,
+`src/features/multi-station-selector/station-markers.ts`,
+`src/runtime/bootstrap/composition.ts`, and `src/styles.css`. Treat those
+files as another session's WIP — read OK, write/revert FORBIDDEN unless
+the task explicitly targets them. Always use specific `git add <path>`;
+NEVER `git add -A`, `git add .`, or `git commit -am` in this repo
+(would sweep parallel-session files into your commit).
+
+### R7. Multi-station-selector scope + 3-tier source authority (`.agent-memory/project_multi_station_selector_scope.md` snapshot)
+
+The multi-station selector + V4 ground-station side panel is
+**beyond-ITRI procurement scope** (user-personal product vision). Three
+source-authority tiers used throughout the V4 demo:
+
+- **Tier 1 operator-validated** — legacy Taiwan CHT + Singapore Speedcast
+  pair via existing fixture
+  `public/fixtures/ground-station-projections/m8a-v4.6b-taiwan-cht-speedcast-singapore-...json`. Do not touch.
+- **Tier 2 public-disclosed** — both stations from the 69-station public
+  registry AND share same `operatorFamily`. Label
+  "Public-disclosure pair · operator-stated capability".
+- **Tier 3 geometric-derived** — cross-operator pair, visibility-derived
+  only. Label "Geometric pair · visibility-derived only".
+
+Replay defaults: real-time window = wall-clock UTC `[now, now+20m]`;
+playback multiplier 1x..120x is orthogonal to window selection. Shared
+default handover policy is `cross-orbit-live` (V-MO1).
+
+### R8. 3GPP / ITU citation map (`.agent-memory/reference_3gpp_itu_local_sources.md` snapshot)
+
+12 standards PDFs delivered at `deliverable/3gpp-itu-references/` (its
+README maps each PDF → cited section → requirement ID). Source PDFs +
+converted markdowns live at `paper-catalog/3gpp/` +
+`paper-catalog/markitdown-3gpp-pilot/markdown/`. Each
+`src/runtime/link-budget/*.ts` module carries its §-citation header
+(`free-space-path-loss.ts` → TR 38.811 §6.6.2, `rain-attenuation.ts` →
+P.618-14 §2.2.1 + P.838-3 via delegation, `gas-absorption.ts` →
+P.676-13 Annex 2, `antenna-pattern.ts` → S.1528 + S.465-6,
+`handover-policy.ts` → TR 38.821 §7.3 + V-MO1). P.838-3 coefficient
+table is delegated to pre-existing
+`src/features/itu-r-physics/itu-r-p838-rain-attenuation.ts` (single
+source of truth for the table); do not duplicate it.
+
+### R9. Demo route URL + 5 candidate scenarios
+
+Short URL form (2026-05-17, recommended): `/?stationA=<id>&stationB=<id>`
+— both station ids must be valid registry entries; the implicit V4
+activation auto-applies `scenePreset=regional` and mounts the V4 panel.
+Implementation seam: `isM8aV4GroundStationRuntimeRequested` in
+`src/runtime/m8a-v4-ground-station-handover-scene-controller.ts:~877`
+and `resolveBootstrapScenePreset` in `src/runtime/bootstrap/composition.ts:~165`.
+Long URL form
+`/?scenePreset=regional&m8aV4GroundStationScene=1&stationA=...&stationB=...`
+remains supported.
+
+The 5 candidate demo URLs covering high/low elevation × rain/clear ×
+handover/no-handover live at `docs/itri-requirement-walkthrough.md` §3
+(Bucket B irreducible-2 substitute).
+
+### R10. 62-req independent audit state — forensics (`.agent-memory/project_itri_audit_state.md` snapshot)
+
+`INDEPENDENT-AUDIT-*.md` at repo root uses a **different framework** from
+`requirements-consolidated.md` — 62 rows (F-XX / V-XX / P-XX / D-XX) with
+verified/partial/cannot-verify status. 32/62 verified-complete as of
+2026-05-16 (24-hour soak passed). **Audit verification requires retained
+artefact + executed command + customer evidence**; do not self-promote
+rows without that chain. The 2026-05-17 compute-layer additions are
+recorded as a status-non-altering addendum at
+`/home/u24/papers/itri/itri-acceptance-report-2026-04-20/2026-05-17-post-compute-layer-addendum.md`.
+Treat all `INDEPENDENT-AUDIT-*` files as historical evidence, not active TODO.
+
 ## 6. Sync Rule
 
 `CLAUDE.md` is a symlink to this file. When editing, both Claude Code and
