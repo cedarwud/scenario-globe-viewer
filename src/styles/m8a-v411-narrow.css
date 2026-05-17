@@ -166,7 +166,7 @@
   }
 
   .m8a-v411-top-strip {
-    display: grid !important;
+    display: none !important;
     grid-template-columns: minmax(0, 1fr) auto;
     align-items: center;
     min-height: 42px;

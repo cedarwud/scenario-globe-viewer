@@ -1,0 +1,46 @@
+.m8a-v411-product-ux__scene-context-chip,
+.m8a-v411-top-strip,
+.m8a-v411-handover-rail,
+.m8a-v411-handover-rail-scrim,
+.m8a-v47-product-ux__scene-annotation,
+.m8a-v47-product-ux__transition-event,
+.m8a-v410-product-ux__sequence-rail,
+.m8a-v411-footer-chip__row,
+.m8a-v411-product-ux__countdown-surface,
+.m8a-v411-reviewer-mode-toggle,
+.m8a-v411-reviewer-mode-status,
+.m8a-v411-narrow-rail-trigger,
+.m8a-v47-product-ux__strip-state,
+.m8a-v47-product-ux__progress,
+.m8a-v411-evidence-toggle,
+.m8a-v47-product-ux__strip [data-m8a-v47-control-id="details-toggle"] {
+  display: none !important;
+}
+
+.m8a-v47-product-ux .m8a-v47-product-ux__strip {
+  top: calc(var(--hud-frame-gap) + 3.2rem);
+  left: var(--hud-frame-gap) !important;
+  right: auto !important;
+  width: auto;
+  min-height: 0;
+  grid-template-columns: auto auto minmax(9.5rem, 12rem);
+  gap: 0.36rem;
+  padding: 0.38rem;
+}
+
+.m8a-v47-product-ux .m8a-v47-product-ux__strip-speeds {
+  min-width: 9.5rem;
+}
+
+@media (max-width: 720px) {
+  .m8a-v47-product-ux .m8a-v47-product-ux__strip {
+    top: calc(var(--hud-frame-gap) + 3.6rem);
+    right: var(--hud-frame-gap) !important;
+    left: var(--hud-frame-gap) !important;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+
+  .m8a-v47-product-ux .m8a-v47-product-ux__strip-speeds {
+    grid-column: 1 / -1;
+  }
+}

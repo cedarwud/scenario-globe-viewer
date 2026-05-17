@@ -124,7 +124,7 @@
   box-shadow:
     var(--m8a-v411-shadow-inner),
     0 10px 24px var(--m8a-v411-alpha-black-26);
-  display: flex;
+  display: none;
   flex-wrap: nowrap;
   align-items: center;
   gap: var(--m8a-v411-space-4);
@@ -140,6 +140,22 @@
   line-height: 1.18;
   letter-spacing: 0;
   overflow: hidden;
+}
+
+.m8a-v411-evidence-toggle,
+.m8a-v411-inspector__source-toggle,
+.m8a-v411-inspector__validation-badge,
+.m8a-v411-inspector__boundary-strip,
+.m8a-v47-product-ux__sheet-state,
+.m8a-v410-inspector__lead,
+.m8a-v410-inspector__group-label,
+.m8a-v411-inspector__state-evidence-detail,
+[data-m8a-v411-metrics-not-connected="true"],
+[data-m8a-v411-available-metric-tile="replay-timing"],
+[data-m8a-v411-inspector-tab="evidence"],
+[data-m8a-v411-inspector-panel="evidence"],
+[data-m8a-v49-debug-evidence="true"] {
+  display: none !important;
 }
 
 .m8a-v411-top-strip [data-m8a-v411-top-strip-slot] {

@@ -8,6 +8,7 @@ import "./styles.css";
 import "./styles/m8a-v47-product-ux.css";
 import "./styles/itri-demo-view-default-focus.css";
 import "./styles/m8a-v411-narrow.css";
+import "./styles/m8a-v411-demo-declutter.css";
 
 type BootstrapState = "booting" | "ready" | "error";
 
