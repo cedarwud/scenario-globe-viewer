@@ -11,8 +11,8 @@ demo 畫面上重現 (reproduce) 的位置與一組真實數字。
   `/home/u24/papers/itri/requirements-consolidated.md`。
 - 標準一律附章節 (例 `3GPP TR 38.811 §6.7`、`ITU-R P.618-14 §2.2.1.1`)。
 - 本文件只涵蓋 **Bucket A — 需要本專案完成的 19 條** (A.1 文件 18 + A.2 口頭 1)。
-  Bucket B (ITRI infra / 報告層 8 條) 與 Bucket C (irreducibly ITRI-only 7 條)
-  不在本走查範圍,理由見 `requirements-consolidated.md`。
+  Bucket B (需 ITRI 資料 / Tier B 替代已實作 7 條) 與 Bucket C (ITRI 既有 infra
+  / 報告層 8 條) 不在本走查範圍,理由見 `requirements-consolidated.md`。
 - 「完成度」一律據實描述可執行的程式碼,不寫願景。未做的部分明寫未做。
 
 ---
@@ -167,7 +167,7 @@ demo 畫面上重現 (reproduce) 的位置與一組真實數字。
 - **source tier**: Tier C — 幾何可見性;非 iperf/ping 量測。
 - **重現**: side panel comm-time 數字由 visibility windows × 取樣推得。
 - **工程師可能問**: 「為何沒有 iperf?」→ iperf/ping 需 ITRI ESTNeT 實體網路;
-  目前以幾何可見性為替代,truth tier 已標 Tier C。屬 Bucket C irreducible-1。
+  目前以幾何可見性為替代,truth tier 已標 Tier C。屬 Bucket B irreducible-1。
 
 ### 卡 10 — R1-F4 / K-E4 / K-F4:換手策略切換
 
@@ -221,7 +221,7 @@ demo 畫面上重現 (reproduce) 的位置與一組真實數字。
   1.36 Mbps,jitter 同步上升。MEO carrier 1.5 GHz 在 10-30 GHz 雨衰頻段外,
   panel 據實標示「fade does not apply」。
 - **工程師可能問**: 「雨量數字準嗎?」→ 衰減模型為 ITU-R 公開公式;台灣本地降雨
-  校正常數待 ITRI 提供 (Bucket C irreducible-3),目前用 P.837 全球預設,
+  校正常數待 ITRI 提供 (Bucket B irreducible-3),目前用 P.837 全球預設,
   truth boundary 已標 non-claim。
 
 ### 卡 14 — K-F7:製作展示 demo
@@ -384,7 +384,7 @@ station id 來自 `public/fixtures/ground-stations/multi-orbit-public-registry.j
    與計數為完整 ~11015 顆。兩者是不同的數量。
 
 5. **Q: 為何沒有 iperf / ping 實測?**
-   A: 需 ITRI ESTNeT 實體網路與封包軌跡。屬 Bucket C irreducible-1。目前以
+   A: 需 ITRI ESTNeT 實體網路與封包軌跡。屬 Bucket B irreducible-1。目前以
    SGP4 幾何可通訊時間替代,truth tier 標 Tier C。ITRI 交付軌跡後可 swap。
 
 6. **Q: handover 門檻數字如何決定?**
@@ -417,7 +417,7 @@ station id 來自 `public/fixtures/ground-stations/multi-orbit-public-registry.j
 
 12. **Q: 台灣本地降雨校正?**
     A: 目前用 ITU-R P.837 全球預設降雨率 R0.01。台灣本地實測校正常數
-    (Pingtung / Hsinchu) 屬 Bucket C irreducible-3,待 ITRI 提供。預期差異
+    (Pingtung / Hsinchu) 屬 Bucket B irreducible-3,待 ITRI 提供。預期差異
     數 dB,truth boundary 已標 non-claim。
 
 13. **Q: 標準 PDF 在哪?**
@@ -429,8 +429,9 @@ station id 來自 `public/fixtures/ground-stations/multi-orbit-public-registry.j
     PDF 路徑。例 `free-space-path-loss.ts` 開頭即 `3GPP TR 38.811 §6.6.2`。
 
 15. **Q: 哪些是 ITRI 自己要交付的?**
-    A: Bucket B (8 條 infra / 報告層) 與 Bucket C (7 條 ITRI-only) 不在本
-    專案 UI scope,清單見 `requirements-consolidated.md`。
+    A: Bucket B (7 條,需 ITRI operator data 才能達 Tier A 權威;本專案已實作
+    Tier B 公開標準替代) 與 Bucket C (8 條,ITRI 既有 infra / 報告層,非本
+    專案 UI scope)。清單見 `requirements-consolidated.md`。
 
 ---
 
