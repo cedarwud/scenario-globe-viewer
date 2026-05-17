@@ -61,7 +61,7 @@ function resolveStyleForStation(station: RegistryStation): MarkerStyle {
 }
 
 function toCartesian(station: RegistryStation): Cartesian3 {
-  return Cartesian3.fromDegrees(station.lon, station.lat, 1000);
+  return Cartesian3.fromDegrees(station.lon, station.lat, 0);
 }
 
 export interface GroundStationMarkersHandle {
@@ -132,6 +132,9 @@ export function mountGroundStationMarkers(
   let highlightedId: string | null = null;
   let attached = false;
   let disposed = false;
+
+  const prevDepthTestAgainstTerrain = viewer.scene.globe.depthTestAgainstTerrain;
+  viewer.scene.globe.depthTestAgainstTerrain = false;
 
   function attach(): void {
     if (disposed || attached) {
@@ -326,10 +329,13 @@ export function mountGroundStationMarkers(
       stationById.clear();
       points.removeAll();
       labels.removeAll();
-      if (attached && !viewer.isDestroyed()) {
-        viewer.scene.primitives.remove(points);
-        viewer.scene.primitives.remove(labels);
-        viewer.scene.requestRender();
+      if (!viewer.isDestroyed()) {
+        viewer.scene.globe.depthTestAgainstTerrain = prevDepthTestAgainstTerrain;
+        if (attached) {
+          viewer.scene.primitives.remove(points);
+          viewer.scene.primitives.remove(labels);
+          viewer.scene.requestRender();
+        }
       }
       attached = false;
     }
