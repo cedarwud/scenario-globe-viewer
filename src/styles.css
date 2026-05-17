@@ -3029,6 +3029,179 @@ html[data-viewer-mode="clean-home"] .hud-frame::after {
   }
 }
 
+/* ── Collapsible ground-station filter panel ─────────────────────── */
+
+.gs-filter-panel {
+  position: absolute;
+  top: 4rem;
+  left: 1rem;
+  z-index: 4;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  pointer-events: none;
+}
+
+.gs-filter-panel__header {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  pointer-events: none;
+}
+
+.gs-filter-panel__controls {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 0.4rem;
+  pointer-events: none;
+}
+
+.gs-filter-panel__title {
+  pointer-events: none;
+  color: rgba(221, 233, 241, 0.8);
+  font-family: "IBM Plex Sans", system-ui, -apple-system, sans-serif;
+  font-size: 0.72rem;
+  font-weight: 500;
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+  padding: 0 0.15rem;
+}
+
+.gs-filter-panel__vis-toggle {
+  pointer-events: auto;
+  display: inline-flex;
+  align-items: center;
+  padding: 0.28rem 0.45rem;
+  border-radius: 999px;
+  background: rgba(6, 18, 28, 0.88);
+  border: 1px solid rgba(126, 226, 184, 0.5);
+  cursor: pointer;
+  outline: none;
+}
+
+.gs-filter-panel__vis-toggle:hover,
+.gs-filter-panel__vis-toggle:focus-visible {
+  filter: brightness(1.15);
+  outline: 2px solid #ffd166;
+  outline-offset: 1px;
+}
+
+.gs-toggle__track {
+  display: inline-flex;
+  align-items: center;
+  width: 2rem;
+  height: 0.9rem;
+  border-radius: 999px;
+  background: rgba(20, 30, 38, 0.85);
+  border: 1px solid rgba(157, 196, 232, 0.25);
+  position: relative;
+  transition: background 120ms ease, border-color 120ms ease;
+}
+
+[data-active="true"] .gs-toggle__track {
+  background: rgba(126, 226, 184, 0.28);
+  border-color: rgba(126, 226, 184, 0.75);
+}
+
+.gs-toggle__thumb {
+  position: absolute;
+  top: 1px;
+  left: 1px;
+  width: 0.65rem;
+  height: 0.65rem;
+  border-radius: 999px;
+  background: rgba(157, 196, 232, 0.45);
+  transition: left 120ms ease, background 120ms ease;
+}
+
+[data-active="true"] .gs-toggle__thumb {
+  left: calc(100% - 0.7rem);
+  background: #7ee2b8;
+}
+
+.gs-filter-panel__expand-btn {
+  pointer-events: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.32rem 0.65rem;
+  border-radius: 999px;
+  background: rgba(6, 18, 28, 0.88);
+  color: #dde9f1;
+  font-family: "IBM Plex Sans", system-ui, -apple-system, sans-serif;
+  font-size: 0.72rem;
+  border: 1px solid rgba(126, 226, 184, 0.35);
+  cursor: pointer;
+  outline: none;
+  transition: background 80ms ease, border-color 80ms ease;
+}
+
+.gs-filter-panel__expand-btn:hover,
+.gs-filter-panel__expand-btn:focus-visible {
+  filter: brightness(1.15);
+  outline: 2px solid #ffd166;
+  outline-offset: 1px;
+}
+
+.gs-filter-panel__expand-btn[data-open="true"] {
+  background: rgba(126, 226, 184, 0.14);
+  border-color: rgba(126, 226, 184, 0.6);
+  color: #7ee2b8;
+}
+
+.gs-filter-panel__chevron {
+  font-size: 0.58rem;
+  line-height: 1;
+}
+
+.gs-filter-panel__body[hidden] {
+  display: none !important;
+}
+
+.gs-filter-panel__body:not([hidden]) {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0.5rem 0.6rem 0.55rem;
+  border-radius: 0.55rem;
+  background: rgba(6, 18, 28, 0.9);
+  border: 1px solid rgba(126, 226, 184, 0.2);
+  backdrop-filter: blur(4px);
+  pointer-events: auto;
+  min-width: 14rem;
+}
+
+[data-gs-visible="false"] .gs-filter-panel__body,
+[data-gs-visible="false"] .gs-filter-panel__expand-btn {
+  opacity: 0.28;
+  pointer-events: none;
+  transition: opacity 150ms ease;
+}
+
+/* sub-modules position:static inside panel body */
+.gs-filter-panel__body .ground-station-band-filter {
+  position: static;
+}
+
+.gs-filter-panel__body .ground-station-orbit-filter,
+.gs-filter-panel__body .ground-station-search,
+.gs-filter-panel__body .ground-station-region-filter {
+  position: static;
+  top: auto;
+  left: auto;
+  right: auto;
+  pointer-events: auto;
+}
+
+.gs-filter-panel__body .ground-station-search {
+  border-radius: 0.3rem;
+}
+
+.gs-filter-panel__body .ground-station-region-filter {
+  max-width: none;
+}
+
 .ground-station-orbit-filter {
   position: absolute;
   top: 4rem;
@@ -3426,4 +3599,54 @@ html[data-viewer-mode="clean-home"] .hud-frame::after {
   .v4-projection-side-panel__stats {
     grid-template-columns: 1fr 1fr;
   }
+}
+
+.ground-station-band-filter {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  pointer-events: none;
+}
+
+.ground-station-band-filter__chip {
+  pointer-events: auto;
+  display: inline-flex;
+  align-items: center;
+  padding: 0.28rem 0.55rem;
+  border-radius: 999px;
+  background: rgba(6, 18, 28, 0.88);
+  color: #dde9f1;
+  font-family: "IBM Plex Sans", system-ui, -apple-system, sans-serif;
+  font-size: 0.68rem;
+  border: 1px solid rgba(255, 209, 102, 0.3);
+  cursor: pointer;
+  transition: background 80ms ease, color 80ms ease, border-color 80ms ease;
+  outline: none;
+}
+
+.ground-station-band-filter__chip[data-active="true"] {
+  background: rgba(255, 209, 102, 0.14);
+  color: #ffd166;
+  border-color: rgba(255, 209, 102, 0.65);
+}
+
+.ground-station-band-filter__chip[data-active="false"] {
+  background: rgba(6, 18, 28, 0.55);
+  color: rgba(157, 196, 232, 0.45);
+  text-decoration: line-through;
+}
+
+.ground-station-band-filter__chip:hover,
+.ground-station-band-filter__chip:focus-visible {
+  filter: brightness(1.15);
+  outline: 2px solid #ffd166;
+  outline-offset: 1px;
+}
+
+.ground-station-band-filter__count {
+  display: inline;
+  color: rgba(255, 209, 102, 0.65);
+  margin-left: 0.25rem;
+  font-variant-numeric: tabular-nums;
 }

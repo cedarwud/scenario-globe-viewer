@@ -26,6 +26,7 @@ interface RegistryStation {
   readonly supportedOrbits: ReadonlyArray<OrbitClass>;
   readonly supportedBands: ReadonlyArray<string>;
   readonly disclosurePrecision: string;
+  readonly primaryUseCase: string;
 }
 
 interface MarkerStyle {
@@ -71,6 +72,8 @@ export interface GroundStationMarkersHandle {
   getOrbitFilter(): ReadonlyArray<OrbitClass>;
   setRegionFilter(allowedRegions: ReadonlyArray<string> | null): void;
   getRegionFilter(): ReadonlyArray<string> | null;
+  setBandFilter(allowedBands: ReadonlyArray<string> | null): void;
+  getBandFilter(): ReadonlyArray<string> | null;
   setSearchQuery(query: string | null): void;
   getSearchQuery(): string;
   getStationCount(): number;
@@ -103,6 +106,9 @@ function stationMatchesSearchQuery(
   if (station.region.toLowerCase().includes(normalised)) {
     return true;
   }
+  if (station.primaryUseCase.toLowerCase().includes(normalised)) {
+    return true;
+  }
   return false;
 }
 
@@ -121,6 +127,7 @@ export function mountGroundStationMarkers(
   let visible = options.initiallyVisible ?? true;
   let allowedOrbits: ReadonlySet<OrbitClass> = new Set<OrbitClass>(["LEO", "MEO", "GEO"]);
   let allowedRegions: ReadonlySet<string> | null = null;
+  let allowedBands: ReadonlySet<string> | null = null;
   let searchQuery = "";
   let highlightedId: string | null = null;
   let attached = false;
@@ -184,6 +191,12 @@ export function mountGroundStationMarkers(
     }
     if (allowedRegions !== null && !allowedRegions.has(station.region)) {
       return false;
+    }
+    if (allowedBands !== null) {
+      const hasBand = station.supportedBands.some((b) => allowedBands!.has(b));
+      if (!hasBand) {
+        return false;
+      }
     }
     if (!stationMatchesSearchQuery(station, searchQuery)) {
       return false;
@@ -262,6 +275,16 @@ export function mountGroundStationMarkers(
     },
     getRegionFilter(): ReadonlyArray<string> | null {
       return allowedRegions === null ? null : Array.from(allowedRegions);
+    },
+    setBandFilter(next: ReadonlyArray<string> | null): void {
+      allowedBands = next === null ? null : new Set<string>(next);
+      applyFilterToMarkers();
+      if (attached) {
+        viewer.scene.requestRender();
+      }
+    },
+    getBandFilter(): ReadonlyArray<string> | null {
+      return allowedBands === null ? null : Array.from(allowedBands);
     },
     setSearchQuery(next: string | null): void {
       searchQuery = normaliseSearchQuery(next);

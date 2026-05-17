@@ -4,14 +4,11 @@ import { mountHomepageEntryCta } from "../../features/app/homepage-entry-cta";
 import { refreshLightingForSceneMode } from "../../features/globe/lighting";
 import { mountLightingToggle } from "../../features/globe/lighting-toggle";
 import { mountGroundStationMarkers } from "../../features/multi-station-selector/station-markers";
-import { mountGroundStationMarkerToggle } from "../../features/multi-station-selector/marker-toggle";
 import { mountGroundStationInfoCard } from "../../features/multi-station-selector/station-info-card";
 import { createSelectionStore } from "../../features/multi-station-selector/selection-store";
 import { mountSelectionChips } from "../../features/multi-station-selector/selection-chips";
 import { mountMarkerHoverTooltip } from "../../features/multi-station-selector/marker-hover-tooltip";
-import { mountMarkerFilterChips } from "../../features/multi-station-selector/marker-filter-chips";
-import { mountMarkerRegionChips } from "../../features/multi-station-selector/marker-region-chips";
-import { mountMarkerSearchInput } from "../../features/multi-station-selector/marker-search-input";
+import { mountMarkerFilterPanel } from "../../features/multi-station-selector/marker-filter-panel";
 import { mountV4ProjectionSidePanel } from "../../features/multi-station-selector/v4-projection-side-panel";
 import {
   mountOptionalOsmBuildingsShowcase,
@@ -755,9 +752,9 @@ export function startBootstrapComposition(app: HTMLDivElement): BootstrapComposi
   const groundStationMarkers = isCleanHomeViewerMode
     ? mountGroundStationMarkers(viewer, { initiallyVisible: true })
     : null;
-  const unmountGroundStationMarkerToggle = groundStationMarkers
-    ? mountGroundStationMarkerToggle(viewer, groundStationMarkers)
-    : () => {};
+  const groundStationFilterPanel = groundStationMarkers
+    ? mountMarkerFilterPanel(viewer.container as HTMLElement, groundStationMarkers)
+    : null;
   const groundStationSelectionStore = groundStationMarkers
     ? createSelectionStore()
     : null;
@@ -774,16 +771,6 @@ export function startBootstrapComposition(app: HTMLDivElement): BootstrapComposi
   const groundStationMarkerHoverTooltip = groundStationMarkers
     ? mountMarkerHoverTooltip(viewer, groundStationMarkers)
     : null;
-  const groundStationMarkerFilterChips = groundStationMarkers
-    ? mountMarkerFilterChips(viewer.container as HTMLElement, groundStationMarkers)
-    : null;
-  const groundStationMarkerSearchInput = groundStationMarkers
-    ? mountMarkerSearchInput(viewer.container as HTMLElement, groundStationMarkers)
-    : null;
-  const groundStationMarkerRegionChips = groundStationMarkers
-    ? mountMarkerRegionChips(viewer.container as HTMLElement, groundStationMarkers)
-    : null;
-
   const unmountHomepageEntryCta =
     adoptFirstIntakeAsActiveOwner || isM8aV4RuntimeRequest
     ? () => {}
@@ -812,14 +799,11 @@ export function startBootstrapComposition(app: HTMLDivElement): BootstrapComposi
     dispose() {
       delete window.__SCENARIO_GLOBE_VIEWER_CAPTURE__;
       unmountHomepageEntryCta();
-      groundStationMarkerRegionChips?.dispose();
-      groundStationMarkerSearchInput?.dispose();
-      groundStationMarkerFilterChips?.dispose();
+      groundStationFilterPanel?.dispose();
       groundStationMarkerHoverTooltip?.dispose();
       groundStationInfoCard?.dispose();
       groundStationSelectionChips?.dispose();
       groundStationSelectionStore?.dispose();
-      unmountGroundStationMarkerToggle();
       groundStationMarkers?.dispose();
       disposeLightingRefresh();
       unmountOsmBuildingsShowcase();
