@@ -1,13 +1,12 @@
 import {
-  BillboardCollection,
   Cartesian3,
   Color,
-  HorizontalOrigin,
   LabelCollection,
   LabelStyle,
+  PointPrimitiveCollection,
   VerticalOrigin,
-  type Billboard,
   type Label,
+  type PointPrimitive,
   type Viewer
 } from "cesium";
 
@@ -30,70 +29,36 @@ interface RegistryStation {
   readonly primaryUseCase: string;
 }
 
-interface ImageSet {
-  readonly normal: string;
-  readonly highlight: string;
-}
-
-function drawLocationPin(
-  circleRadius: number,
-  fillCss: string,
-  outlineCss: string,
-  outlineWidth: number
-): string {
-  const pad = Math.ceil(outlineWidth) + 1;
-  const r = circleRadius;
-  const cx = r + pad;
-  const cy = r + pad;
-  const totalWidth = (r + pad) * 2;
-  const tailLength = Math.round(r * 1.1);
-  const totalHeight = cy + r + tailLength + pad;
-  const tipY = totalHeight - pad;
-
-  const canvas = document.createElement("canvas");
-  canvas.width = totalWidth;
-  canvas.height = totalHeight;
-  const ctx = canvas.getContext("2d")!;
-  ctx.clearRect(0, 0, totalWidth, totalHeight);
-
-  ctx.beginPath();
-  ctx.moveTo(cx, tipY);
-  ctx.bezierCurveTo(
-    cx - r * 0.85, tipY - tailLength * 0.35,
-    cx - r, cy + r * 0.55,
-    cx - r, cy
-  );
-  ctx.arc(cx, cy, r, Math.PI, 0, false);
-  ctx.bezierCurveTo(
-    cx + r, cy + r * 0.55,
-    cx + r * 0.85, tipY - tailLength * 0.35,
-    cx, tipY
-  );
-  ctx.closePath();
-
-  ctx.fillStyle = fillCss;
-  ctx.fill();
-  ctx.strokeStyle = outlineCss;
-  ctx.lineWidth = outlineWidth;
-  ctx.stroke();
-  return canvas.toDataURL();
-}
-
-const TRI_ORBIT_IMAGES: ImageSet = {
-  normal: drawLocationPin(7, "rgba(126,226,184,0.92)", "rgba(2,20,31,0.94)", 1.5),
-  highlight: drawLocationPin(9, "rgba(126,226,184,0.92)", "rgba(255,209,102,0.98)", 2.5)
-};
-
-const DUAL_ORBIT_IMAGES: ImageSet = {
-  normal: drawLocationPin(5, "rgba(155,196,232,0.86)", "rgba(2,20,31,0.90)", 1.25),
-  highlight: drawLocationPin(7, "rgba(155,196,232,0.86)", "rgba(255,209,102,0.98)", 2.5)
-};
-
-function resolveImageSetForStation(station: RegistryStation): ImageSet {
-  return station.supportedOrbits.length >= 3 ? TRI_ORBIT_IMAGES : DUAL_ORBIT_IMAGES;
+interface MarkerStyle {
+  pixelSize: number;
+  color: Color;
+  outlineColor: Color;
+  outlineWidth: number;
 }
 
 const STATIONS = registry.stations as ReadonlyArray<RegistryStation>;
+
+const STYLE_TRI_ORBIT: MarkerStyle = {
+  pixelSize: 9,
+  color: Color.fromCssColorString("#7ee2b8").withAlpha(0.92),
+  outlineColor: Color.fromCssColorString("#02141f").withAlpha(0.94),
+  outlineWidth: 1.5
+};
+
+const STYLE_DUAL_ORBIT: MarkerStyle = {
+  pixelSize: 7,
+  color: Color.fromCssColorString("#9bc4e8").withAlpha(0.86),
+  outlineColor: Color.fromCssColorString("#02141f").withAlpha(0.9),
+  outlineWidth: 1.25
+};
+
+const HIGHLIGHT_OUTLINE_COLOR = Color.fromCssColorString("#ffd166").withAlpha(0.98);
+const HIGHLIGHT_OUTLINE_WIDTH = 3;
+const HIGHLIGHT_PIXEL_SIZE_BONUS = 5;
+
+function resolveStyleForStation(station: RegistryStation): MarkerStyle {
+  return station.supportedOrbits.length >= 3 ? STYLE_TRI_ORBIT : STYLE_DUAL_ORBIT;
+}
 
 function toCartesian(station: RegistryStation): Cartesian3 {
   return Cartesian3.fromDegrees(station.lon, station.lat, 0);
@@ -151,12 +116,12 @@ export function mountGroundStationMarkers(
   viewer: Viewer,
   options: { initiallyVisible?: boolean } = {}
 ): GroundStationMarkersHandle {
-  const billboards = new BillboardCollection();
+  const points = new PointPrimitiveCollection({ show: true });
   const labels = new LabelCollection({ show: false });
-  const billboardById = new Map<string, Billboard>();
+  const pointById = new Map<string, PointPrimitive>();
   const labelById = new Map<string, Label>();
 
-  const imageSetById = new Map<string, ImageSet>();
+  const baseStyleById = new Map<string, MarkerStyle>();
   const stationById = new Map<string, RegistryStation>();
 
   let visible = options.initiallyVisible ?? true;
@@ -172,23 +137,25 @@ export function mountGroundStationMarkers(
     if (disposed || attached) {
       return;
     }
-    viewer.scene.primitives.add(billboards);
+    viewer.scene.primitives.add(points);
     viewer.scene.primitives.add(labels);
     attached = true;
-    billboards.show = visible;
+    points.show = visible;
     labels.show = false;
   }
 
   function populate(): void {
     for (const station of STATIONS) {
       const position = toCartesian(station);
-      const imageSet = resolveImageSetForStation(station);
+      const style = resolveStyleForStation(station);
 
-      const billboard = billboards.add({
+      const point = points.add({
         position,
-        image: imageSet.normal,
-        verticalOrigin: VerticalOrigin.BOTTOM,
-        horizontalOrigin: HorizontalOrigin.CENTER,
+        pixelSize: style.pixelSize,
+        color: style.color,
+        outlineColor: style.outlineColor,
+        outlineWidth: style.outlineWidth,
+        disableDepthTestDistance: Number.POSITIVE_INFINITY,
         id: `ground-station-marker:${station.id}`
       });
 
@@ -205,9 +172,9 @@ export function mountGroundStationMarkers(
         show: false
       });
 
-      billboardById.set(station.id, billboard);
+      pointById.set(station.id, point);
       labelById.set(station.id, label);
-      imageSetById.set(station.id, imageSet);
+      baseStyleById.set(station.id, style);
       stationById.set(station.id, station);
     }
   }
@@ -239,28 +206,34 @@ export function mountGroundStationMarkers(
   }
 
   function applyFilterToMarkers(): void {
-    for (const [stationId, billboard] of billboardById) {
+    for (const [stationId, point] of pointById) {
       const station = stationById.get(stationId);
-      billboard.show = station ? stationPassesFilter(station) : false;
+      point.show = station ? stationPassesFilter(station) : false;
     }
   }
 
   function applyBaseStyle(stationId: string): void {
-    const billboard = billboardById.get(stationId);
-    const imageSet = imageSetById.get(stationId);
-    if (!billboard || !imageSet) {
+    const point = pointById.get(stationId);
+    const base = baseStyleById.get(stationId);
+    if (!point || !base) {
       return;
     }
-    billboard.image = imageSet.normal;
+    point.pixelSize = base.pixelSize;
+    point.color = base.color;
+    point.outlineColor = base.outlineColor;
+    point.outlineWidth = base.outlineWidth;
   }
 
   function applyHighlightStyle(stationId: string): void {
-    const billboard = billboardById.get(stationId);
-    const imageSet = imageSetById.get(stationId);
-    if (!billboard || !imageSet) {
+    const point = pointById.get(stationId);
+    const base = baseStyleById.get(stationId);
+    if (!point || !base) {
       return;
     }
-    billboard.image = imageSet.highlight;
+    point.pixelSize = base.pixelSize + HIGHLIGHT_PIXEL_SIZE_BONUS;
+    point.color = base.color;
+    point.outlineColor = HIGHLIGHT_OUTLINE_COLOR;
+    point.outlineWidth = HIGHLIGHT_OUTLINE_WIDTH;
   }
 
   attach();
@@ -273,10 +246,10 @@ export function mountGroundStationMarkers(
       visible = next;
       if (attached) {
         if (next) {
-          billboards.show = true;
+          points.show = true;
           applyFilterToMarkers();
         } else {
-          billboards.show = false;
+          points.show = false;
         }
         viewer.scene.requestRender();
       }
@@ -340,7 +313,7 @@ export function mountGroundStationMarkers(
       }
     },
     getStationCount(): number {
-      return billboardById.size;
+      return pointById.size;
     },
     dispose(): void {
       if (disposed) {
@@ -348,14 +321,14 @@ export function mountGroundStationMarkers(
       }
       disposed = true;
       highlightedId = null;
-      billboardById.clear();
+      pointById.clear();
       labelById.clear();
-      imageSetById.clear();
+      baseStyleById.clear();
       stationById.clear();
-      billboards.removeAll();
+      points.removeAll();
       labels.removeAll();
       if (attached && !viewer.isDestroyed()) {
-        viewer.scene.primitives.remove(billboards);
+        viewer.scene.primitives.remove(points);
         viewer.scene.primitives.remove(labels);
         viewer.scene.requestRender();
       }
