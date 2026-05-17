@@ -1,13 +1,4 @@
 import {
-  DEFAULT_HANDOVER_POLICY_ID,
-  HANDOVER_DECISION_PROXY_PROVENANCE,
-  evaluateHandoverDecisionSnapshot,
-  type HandoverCandidateMetrics,
-  type HandoverDecisionSnapshot,
-  type HandoverPolicyId
-} from "../handover-decision/handover-decision";
-
-import {
   ORBIT_CLASS_CARRIER_DEFAULTS,
   computeFreeSpacePathLossDb
 } from "../../runtime/link-budget/free-space-path-loss";
@@ -68,12 +59,6 @@ const BASELINE_JITTER_MS_BY_ORBIT: Readonly<Record<OrbitClass, number>> = {
   GEO: 8
 };
 
-const ORBIT_CLASS_TO_ENGINE: Readonly<Record<OrbitClass, "leo" | "meo" | "geo">> = {
-  LEO: "leo",
-  MEO: "meo",
-  GEO: "geo"
-};
-
 const CROSS_ORBIT_LIVE_POLICY_CONFIG = {
   policyId: "cross-orbit-live",
   hysteresisDb: 2,
@@ -117,9 +102,7 @@ export interface RuntimeProjectionInput {
   readonly tleRecords: ReadonlyArray<TleRecord>;
   readonly sampleStepSeconds?: number;
   readonly elevationThresholdDeg?: number;
-  readonly handoverPolicyId?: HandoverPolicyId;
   readonly rainRateMmPerHour?: number;
-  readonly enableCrossOrbitLivePolicy?: boolean;
 }
 
 export interface RuntimeProjectionResult {
@@ -169,7 +152,6 @@ interface LinkBudgetDetails extends LinkBudgetMetrics {
 interface HandoverSampleOptions {
   readonly elevationThresholdDeg: number;
   readonly rainRateMmPerHour: number;
-  readonly enableCrossOrbitLivePolicy: boolean;
 }
 
 function toStationGeodetic(station: PublicRegistryStation): StationGeodetic {
@@ -396,20 +378,6 @@ function computeLinkBudgetDetailsForWindow(
   });
 }
 
-function toSnapshotCandidate(
-  window: PairVisibilityWindow,
-  details: LinkBudgetDetails
-): HandoverCandidateMetrics {
-  return {
-    candidateId: window.satelliteId,
-    orbitClass: ORBIT_CLASS_TO_ENGINE[window.orbitClass],
-    latencyMs: details.latencyMs,
-    jitterMs: details.jitterMs,
-    networkSpeedMbps: details.networkSpeedMbps,
-    provenance: HANDOVER_DECISION_PROXY_PROVENANCE
-  };
-}
-
 function toLivePolicyCandidate(
   window: PairVisibilityWindow,
   details: LinkBudgetDetails,
@@ -446,8 +414,6 @@ function deriveHandoverEventsAtSampleStep(
   windows: ReadonlyArray<PairVisibilityWindow>,
   timeWindow: { startUtc: string; endUtc: string },
   sampleStepSeconds: number,
-  policyId: HandoverPolicyId,
-  scenarioId: string,
   options: HandoverSampleOptions
 ): {
   readonly handoverEvents: ReadonlyArray<HandoverEvent>;
@@ -462,6 +428,7 @@ function deriveHandoverEventsAtSampleStep(
   let totalCommunicatingMs = 0;
   let currentServingCandidateId: string | undefined;
 
+  // V-MO1: cross-orbit-live is the single runtime projection policy.
   for (let t = startMs; t < endMs; t += stepMs) {
     const sampleIso = new Date(t).toISOString();
     const visibleAtSample: PairVisibilityWindow[] = [];
@@ -481,51 +448,24 @@ function deriveHandoverEventsAtSampleStep(
     let next: string | undefined;
     let eventReason: HandoverEvent["reasonKind"] | undefined;
 
-    if (options.enableCrossOrbitLivePolicy) {
-      if (linkBudgetRows.length > 0) {
-        const decision = evaluateHandoverPolicy({
-          candidates: linkBudgetRows.map((row) =>
-            toLivePolicyCandidate(row.window, row.details, t)
-          ),
-          currentServingId: currentServingCandidateId,
-          policy: {
-            ...CROSS_ORBIT_LIVE_POLICY_CONFIG,
-            elevationThresholdDeg: options.elevationThresholdDeg,
-            minVisibilityWindowMs: Math.max(
-              CROSS_ORBIT_LIVE_POLICY_CONFIG.minVisibilityWindowMs,
-              stepMs
-            )
-          },
-          nowUtc: sampleIso
-        });
-        next = decision.selectedId;
-        eventReason = mapPolicyReasonToHandoverEventReason(decision.reasonKind);
-      }
-    } else {
-      const candidates: HandoverCandidateMetrics[] = linkBudgetRows.map((row) =>
-        toSnapshotCandidate(row.window, row.details)
-      );
-
-      const snapshot: HandoverDecisionSnapshot = {
-        scenarioId,
-        evaluatedAt: sampleIso,
-        activeRange: {
-          start: timeWindow.startUtc,
-          stop: timeWindow.endUtc
+    if (linkBudgetRows.length > 0) {
+      const decision = evaluateHandoverPolicy({
+        candidates: linkBudgetRows.map((row) =>
+          toLivePolicyCandidate(row.window, row.details, t)
+        ),
+        currentServingId: currentServingCandidateId,
+        policy: {
+          ...CROSS_ORBIT_LIVE_POLICY_CONFIG,
+          elevationThresholdDeg: options.elevationThresholdDeg,
+          minVisibilityWindowMs: Math.max(
+            CROSS_ORBIT_LIVE_POLICY_CONFIG.minVisibilityWindowMs,
+            stepMs
+          )
         },
-        currentServingCandidateId,
-        policyId,
-        candidates
-      };
-
-      const state = evaluateHandoverDecisionSnapshot(snapshot);
-      next = state.result.servingCandidateId;
-      eventReason =
-        currentServingCandidateId === undefined
-          ? "current-link-unavailable"
-          : state.result.decisionKind === "switch"
-            ? "better-candidate-available"
-            : "policy-tie-break";
+        nowUtc: sampleIso
+      });
+      next = decision.selectedId;
+      eventReason = mapPolicyReasonToHandoverEventReason(decision.reasonKind);
     }
 
     if (next) {
@@ -562,7 +502,7 @@ function buildTruthBoundary(
       ? "operator-family-precision"
       : "modeled-precision";
   const metricNonClaims = [
-    "Per-orbit communication metrics are modeled-precision via 3GPP TR 38.811 + ITU-R P.618-14 / P.676-13, not flat nominal constants or measured service telemetry.",
+    "Per-orbit communication metrics are modeled-precision via 3GPP TR 38.811 + ITU-R P.618-14 / P.676-13 and handover decisions use the cross-orbit-live policy (TR 38.821 §7.3 + V-MO1 verbal addendum), not measured service telemetry.",
     ...(rainRateMmPerHour > 0
       ? [
           "Rain-rate attenuation uses the ITU-R P.837 global default context when supplied without local calibration."
@@ -582,9 +522,7 @@ export function computeRuntimeProjection(
   const sampleStepSeconds = input.sampleStepSeconds ?? DEFAULT_SAMPLE_STEP_SECONDS;
   const elevationThresholdDeg =
     input.elevationThresholdDeg ?? DEFAULT_ELEVATION_THRESHOLD_DEG;
-  const policyId = input.handoverPolicyId ?? DEFAULT_HANDOVER_POLICY_ID;
   const rainRateMmPerHour = normalizeRainRateMmPerHour(input.rainRateMmPerHour);
-  const enableCrossOrbitLivePolicy = input.enableCrossOrbitLivePolicy ?? false;
 
   const cappedRecords = capTleRecords(input.tleRecords, {
     LEO: DEFAULT_LEO_CAP,
@@ -616,18 +554,14 @@ export function computeRuntimeProjection(
     cappedRecords
   );
 
-  const scenarioId = `runtime-projection:${input.stationA.id}:${input.stationB.id}`;
   const { handoverEvents, totalCommunicatingMs, byOrbitMs } =
     deriveHandoverEventsAtSampleStep(
       visibilityWindows,
       input.timeWindow,
       sampleStepSeconds,
-      policyId,
-      scenarioId,
       {
         elevationThresholdDeg,
-        rainRateMmPerHour,
-        enableCrossOrbitLivePolicy
+        rainRateMmPerHour
       }
     );
 
