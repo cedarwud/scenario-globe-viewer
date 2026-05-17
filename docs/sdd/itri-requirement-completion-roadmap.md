@@ -425,3 +425,49 @@ does not self-match.
 9. For M8A-V4, is operator-family endpoint authority sufficient for the
    planned scene, or will any later review require site-level, same-site,
    active-path, or performance authority?
+
+## 2026-05-17 Addendum — `src/runtime/link-budget/` Higher-Level NTN Wrapper
+
+Date: 2026-05-17. Docs-only addendum to record a higher-level NTN wrapper that
+shipped alongside the existing `src/features/itu-r-physics/` close-out (S4
+follow-on amendment). This addendum does NOT change any prior status closure
+on this roadmap; it records the new module set and its relationship to the
+existing P.838/P.618 close-out.
+
+New module set under `src/runtime/link-budget/`:
+
+- `free-space-path-loss.ts` — standalone 3GPP TR 38.811 §6.6.2 FSPL fn
+  (the existing `itu-r-physics` suite did not expose FSPL as a standalone fn).
+- `rain-attenuation.ts` — ITU-R P.618-14 §2.2.1 effective slant path plus
+  polarization handling. The P.838-3 coefficient table lookup is **delegated**
+  to the existing `src/features/itu-r-physics/itu-r-p838-rain-attenuation.ts`
+  via `computeSpecificAttenuation`; the full 1-100 GHz P.838-3 table remains
+  the single source of truth in `itu-r-physics/`.
+- `gas-absorption.ts` — standalone ITU-R P.676-13 Annex 2 slant-path estimate
+  (the existing `itu-r-p618-link-budget.ts` only exposed the composite
+  `A_rain + A_gas + A_cloud + A_scint` form; this is the granular standalone).
+- `antenna-pattern.ts` — ITU-R S.1528 (non-GSO satellite) + S.465-6 (Earth
+  station) NTN-specific pattern fns. The existing `itu-r-f699-antenna-pattern.ts`
+  remains canonical for the older F.699 generic recommendation; both patterns
+  cover different rec families and coexist.
+- `handover-policy.ts` — 3GPP TR 38.821 §7.3 handover trigger metrics +
+  user-verbal addendum V-MO1 cross-orbit LIVE handover policy. Not present in
+  the existing `itu-r-physics/` suite.
+
+Live caller seams:
+
+- `src/runtime/bootstrap-physical-input-seeds.ts` → existing
+  `itu-r-physics/itu-r-p618-link-budget.ts` (composite-attenuation path used
+  by bootstrap physical-input families; unchanged).
+- `src/features/multi-station-selector/runtime-projection.ts` → new
+  `link-budget/` modules (multi-station-selector V4 runtime projection,
+  including rain UI + CSV; documented in
+  `docs/itri-requirement-walkthrough.md`).
+
+The two seams serve different feature paths and do not collide. The only
+real duplication, the P.838-3 coefficient table, is resolved by delegation
+(commit `794a34e` on 2026-05-17).
+
+No retained-evidence status changes. The existing S4 / S4R1 close-outs remain
+authoritative for what the public-standards-profile reviewer accepts; this
+addendum only records the additional module footprint.

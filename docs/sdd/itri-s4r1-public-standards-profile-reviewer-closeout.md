@@ -178,3 +178,30 @@ Cross-references:
   close-out pointer;
 - phase plan: `docs/sdd/phase-6-plus-requirement-centered-plan.md` Phase 6.5
   closure note.
+
+## 2026-05-17 Addendum — Higher-Level NTN Wrapper Alongside itu-r-physics
+
+Date: 2026-05-17. The S4R1 reviewer and the close-out above remain
+authoritative for the public-standards-profile package review path. This
+addendum records a separate higher-level wrapper that shipped on the same
+day, so future readers do not conclude the new module set replaces the
+S4R1-reviewed surface.
+
+A new module directory landed at `src/runtime/link-budget/` containing five
+modules used by the multi-station-selector V4 runtime projection (see
+`docs/itri-requirement-walkthrough.md` for the requirement-by-requirement
+walkthrough). The relevant overlap with the existing S4-closed
+`itu-r-physics/` suite is the P.838-3 rain attenuation coefficient table.
+That overlap was resolved on the same day (commit `794a34e`) by refactoring
+`runtime/link-budget/rain-attenuation.ts` to delegate the k/alpha lookup
+into `features/itu-r-physics/itu-r-p838-rain-attenuation.ts` via
+`computeSpecificAttenuation`. The full 1-100 GHz P.838-3 table remains the
+single source of truth in `itu-r-physics/`.
+
+Other modules in `link-budget/` (FSPL standalone, gas-absorption standalone,
+S.1528/S.465 NTN antenna patterns, TR 38.821 §7.3 + V-MO1 handover policy)
+fill gaps the existing `itu-r-physics/` suite did not expose. They do not
+re-implement S4-closed surfaces.
+
+S4R1 reviewer behavior, `profile.json` shape, and acceptance criteria are
+unchanged.
