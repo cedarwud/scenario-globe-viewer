@@ -344,7 +344,7 @@ function buildHandoverEventList(
   if (events.length === 0) {
     const empty = document.createElement("p");
     empty.className = "v4-projection-side-panel__empty";
-    empty.textContent = "No handover events triggered by the bootstrap-balanced policy in this window.";
+    empty.textContent = "No handover events triggered by the cross-orbit-live policy (TR 38.821 §7.3 + V-MO1) in this window.";
     wrapper.append(empty);
     return wrapper;
   }

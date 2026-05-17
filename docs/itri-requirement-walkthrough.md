@@ -346,7 +346,7 @@ boundary non-claims 已逐條標示。
 - [x] R1-T5 / K-D4 — 換手規則參數:handover-policy.ts 三政策
 - [x] R1-T6 / K-D5 — 速率可視化:link-budget per-orbit throughput
 - [x] R1-F1 / K-E1 — ≥500 LEO:本地 TLE ~11015 顆
-- [x] R1-F2 / K-E2 — 速度可調:即時/預錄視窗 + 1-120x
+- [x] R1-F2 / K-E2 — 速度可調:即時/預錄視窗 + 30x/60x/120x bounded preset
 - [~] R1-F3 / K-E3 — 可通訊時間:幾何已做;iperf/ping 整合未做
 - [x] R1-F4 / K-E4 / K-F4 — 換手策略切換:link-budget 餵入 handover 引擎
 - [x] R1-F5 / K-E5 — 統計報表匯出:Download CSV
