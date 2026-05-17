@@ -2,6 +2,8 @@
 
 Audit date: 2026-05-15
 
+**Canonical post-dedup pointer (2026-05-17)**: For daily requirement reference, see `/home/u24/papers/itri/requirements-consolidated.md` (34-row table covering `r1.docx` + `kickoff.pptx` after dedup + V-MO1 verbal addendum, sorted into A / B / C buckets). This audit file remains the Phase 1 forensic inventory (62 reqs including multi-orbit / project-generated expansion); the consolidated file is the contractually-binding requirement subset.
+
 Scope note: this file records Phase 1 only. Source truth was limited to `/home/u24/papers/itri/` original ITRI materials and their conversion/support outputs. I did not use `/home/u24/papers/itri/itri-acceptance-report-2026-04-20/` or any `scenario-globe-viewer/docs/sdd` closeout, handoff, plan, delivery, or completion-status document.
 
 ## Non-Report Source Inventory
