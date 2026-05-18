@@ -420,3 +420,4 @@ try {
 }
 
 console.log(JSON.stringify({ passed: true, baseUrl, results }, null, 2));
+process.exit(0);
