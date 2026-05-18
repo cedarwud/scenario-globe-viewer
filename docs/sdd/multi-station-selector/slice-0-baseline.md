@@ -415,7 +415,275 @@ Runtime selected-pair compute currently applies a 60-record cap per orbit
 class. With the current fixtures this means LEO can be capped during
 selected-pair compute; MEO and GEO are below the cap.
 
-### 6.2 Station registry inventory
+### 6.2 Wave-1 selected-pair baseline (frozen 2026-05-19 at commit 7c44d60)
+
+Captured from the five canonical walkthrough selected-pair URLs on
+2026-05-19 against commit `7c44d60`. Runtime capture used a clean clone at
+that commit, a Vite dev server, and headless Chromium via CDP with
+`--use-angle=swiftshader --enable-unsafe-swiftshader`.
+
+#### URL #1 — Svalbard / Tromso
+
+URL:
+`/?stationA=ksat-svalsat-svalbard&stationB=ksat-tromso&startUtc=2026-05-17T00:00:00.000Z&durationMinutes=360`
+
+Captured: 2026-05-19 against commit `7c44d60`
+
+##### Row 3 stats
+
+- totalCommunicatingMs: `21600000`
+- handoverCount: `1`
+- meanLinkDwellMs: `10800000`
+
+##### Row 4 link-selection events
+
+- total event count: `2`
+- first 3 events:
+  1. `2026-05-17T00:00:00.000Z` | `current-link-unavailable` | `none` -> `GSAT0210 (GALILEO 13)`
+  2. `2026-05-17T05:24:00.000Z` | `current-link-unavailable` | `GSAT0210 (GALILEO 13)` -> `GSAT0226 (GALILEO 31)`
+- cross-orbit-migration events: `0`
+
+##### Row 5 d1 per-orbit throughput (current magic-capacity model)
+
+- LEO Mbps: `198.932`
+- MEO Mbps: `99.712`
+- GEO Mbps: `48.841`
+
+##### Row 6 footer
+
+- precisionLabel: `operator-family-precision`
+- sourceTier: `public-disclosed`
+
+##### TLE source health (wave-1 derivation: filename-based)
+
+- LEO: `fresh`
+- MEO: `fresh`
+- GEO: `fresh`
+
+##### Scene source mode
+
+- sourceMode: `tle-first-runtime`
+
+##### Modeled outputs summary (wave-1 6 kinds)
+
+- handover.modelId: `cross-orbit-live-policy`
+- link-budget.modelId: `fspl-rain-gas-link-budget-v1`
+- throughput.modelId: `selected-pair-throughput-estimate-v1`
+- jitter.modelId: `selected-pair-jitter-estimate-v1`
+- latency.modelId: `selected-pair-propagation-delay-v1`
+- rain-impact.modelId: `selected-pair-rain-impact-v1`
+
+#### URL #2 — Svalbard / Trollsat
+
+URL:
+`/?stationA=ksat-svalsat-svalbard&stationB=ksat-trollsat-antarctica&startUtc=2026-05-17T00:00:00.000Z&durationMinutes=360`
+
+Captured: 2026-05-19 against commit `7c44d60`
+
+##### Row 3 stats
+
+- totalCommunicatingMs: `0`
+- handoverCount: `0`
+- meanLinkDwellMs: `0`
+
+##### Row 4 link-selection events
+
+- total event count: `0`
+- first 3 events: `(none)`
+- cross-orbit-migration events: `0`
+
+##### Row 5 d1 per-orbit throughput (current magic-capacity model)
+
+- LEO Mbps: `N/A` (no visibility)
+- MEO Mbps: `N/A` (no visibility)
+- GEO Mbps: `N/A` (no visibility)
+
+##### Row 6 footer
+
+- precisionLabel: `operator-family-precision`
+- sourceTier: `public-disclosed`
+
+##### TLE source health (wave-1 derivation: filename-based)
+
+- LEO: `fresh`
+- MEO: `fresh`
+- GEO: `fresh`
+
+##### Scene source mode
+
+- sourceMode: `tle-first-runtime`
+- emptyReasonCode: `no-pair-intersection`
+
+##### Modeled outputs summary (wave-1 6 kinds)
+
+- handover.modelId: `cross-orbit-live-policy`
+- link-budget.modelId: `fspl-rain-gas-link-budget-v1`
+- throughput.modelId: `selected-pair-throughput-estimate-v1`
+- jitter.modelId: `selected-pair-jitter-estimate-v1`
+- latency.modelId: `selected-pair-propagation-delay-v1`
+- rain-impact.modelId: `selected-pair-rain-impact-v1`
+
+#### URL #3 — Intelsat Fuchsstadt / Intelsat Atlanta
+
+URL:
+`/?stationA=intelsat-fuchsstadt&stationB=intelsat-atlanta&startUtc=2026-05-17T00:00:00.000Z&durationMinutes=360`
+
+Captured: 2026-05-19 against commit `7c44d60`
+
+##### Row 3 stats
+
+- totalCommunicatingMs: `21600000`
+- handoverCount: `2`
+- meanLinkDwellMs: `7200000`
+
+##### Row 4 link-selection events
+
+- total event count: `3`
+- first 3 events:
+  1. `2026-05-17T00:00:00.000Z` | `current-link-unavailable` | `none` -> `GSAT0213 (GALILEO 17)`
+  2. `2026-05-17T03:35:30.000Z` | `current-link-unavailable` | `GSAT0213 (GALILEO 17)` -> `GSAT0227 (GALILEO 30)`
+  3. `2026-05-17T05:20:30.000Z` | `current-link-unavailable` | `GSAT0227 (GALILEO 30)` -> `GSAT0205 (GALILEO 9)`
+- cross-orbit-migration events: `0`
+
+##### Row 5 d1 per-orbit throughput (current magic-capacity model)
+
+- LEO Mbps: `N/A` (orbit not shared by the selected pair)
+- MEO Mbps: `99.712`
+- GEO Mbps: `48.841`
+
+##### Row 6 footer
+
+- precisionLabel: `operator-family-precision`
+- sourceTier: `public-disclosed`
+
+##### TLE source health (wave-1 derivation: filename-based)
+
+- LEO: `fresh`
+- MEO: `fresh`
+- GEO: `fresh`
+
+##### Scene source mode
+
+- sourceMode: `tle-first-runtime`
+
+##### Modeled outputs summary (wave-1 6 kinds)
+
+- handover.modelId: `cross-orbit-live-policy`
+- link-budget.modelId: `fspl-rain-gas-link-budget-v1`
+- throughput.modelId: `selected-pair-throughput-estimate-v1`
+- jitter.modelId: `selected-pair-jitter-estimate-v1`
+- latency.modelId: `selected-pair-propagation-delay-v1`
+- rain-impact.modelId: `selected-pair-rain-impact-v1`
+
+#### URL #4 — Singtel Bukit Timah / MEASAT Cyberjaya
+
+URL:
+`/?stationA=singtel-bukit-timah&stationB=measat-cyberjaya&startUtc=2026-05-17T00:00:00.000Z&durationMinutes=360`
+
+Captured: 2026-05-19 against commit `7c44d60`
+
+##### Row 3 stats
+
+- totalCommunicatingMs: `21600000`
+- handoverCount: `0`
+- meanLinkDwellMs: `21600000`
+
+##### Row 4 link-selection events
+
+- total event count: `1`
+- first 3 events:
+  1. `2026-05-17T00:00:00.000Z` | `current-link-unavailable` | `none` -> `ASIASTAR`
+- cross-orbit-migration events: `0`
+
+##### Row 5 d1 per-orbit throughput (current magic-capacity model)
+
+- LEO Mbps: `198.932`
+- MEO Mbps: `N/A` (orbit not shared by the selected pair)
+- GEO Mbps: `48.841`
+
+##### Row 6 footer
+
+- precisionLabel: `modeled-precision`
+- sourceTier: `geometric-derived`
+
+##### TLE source health (wave-1 derivation: filename-based)
+
+- LEO: `fresh`
+- MEO: `fresh`
+- GEO: `fresh`
+
+##### Scene source mode
+
+- sourceMode: `tle-first-runtime`
+
+##### Modeled outputs summary (wave-1 6 kinds)
+
+- handover.modelId: `cross-orbit-live-policy`
+- link-budget.modelId: `fspl-rain-gas-link-budget-v1`
+- throughput.modelId: `selected-pair-throughput-estimate-v1`
+- jitter.modelId: `selected-pair-jitter-estimate-v1`
+- latency.modelId: `selected-pair-propagation-delay-v1`
+- rain-impact.modelId: `selected-pair-rain-impact-v1`
+
+#### URL #5 — Yangmingshan / Hartebeesthoek
+
+URL:
+`/?stationA=cht-yangmingshan&stationB=sansa-hartebeesthoek&startUtc=2026-05-17T00:00:00.000Z&durationMinutes=360`
+
+Captured: 2026-05-19 against commit `7c44d60`
+
+##### Row 3 stats
+
+- totalCommunicatingMs: `21600000`
+- handoverCount: `2`
+- meanLinkDwellMs: `7200000`
+
+##### Row 4 link-selection events
+
+- total event count: `3`
+- first 3 events:
+  1. `2026-05-17T00:00:00.000Z` | `current-link-unavailable` | `none` -> `INMARSAT 3-F3`
+  2. `2026-05-17T02:24:30.000Z` | `better-candidate-available` | `INMARSAT 3-F3` -> `GSAT0203 (GALILEO 7)`
+  3. `2026-05-17T04:31:30.000Z` | `current-link-unavailable` | `GSAT0203 (GALILEO 7)` -> `INMARSAT 3-F3`
+- cross-orbit-migration events: `0`
+
+##### Row 5 d1 per-orbit throughput (current magic-capacity model)
+
+- LEO Mbps: `198.932`
+- MEO Mbps: `99.712`
+- GEO Mbps: `48.841`
+
+##### Row 6 footer
+
+- precisionLabel: `modeled-precision`
+- sourceTier: `geometric-derived`
+
+##### TLE source health (wave-1 derivation: filename-based)
+
+- LEO: `fresh`
+- MEO: `fresh`
+- GEO: `fresh`
+
+##### Scene source mode
+
+- sourceMode: `tle-first-runtime`
+
+##### Modeled outputs summary (wave-1 6 kinds)
+
+- handover.modelId: `cross-orbit-live-policy`
+- link-budget.modelId: `fspl-rain-gas-link-budget-v1`
+- throughput.modelId: `selected-pair-throughput-estimate-v1`
+- jitter.modelId: `selected-pair-jitter-estimate-v1`
+- latency.modelId: `selected-pair-propagation-delay-v1`
+- rain-impact.modelId: `selected-pair-rain-impact-v1`
+
+Frozen reference for F9 §49 pre/post comparison view. Captured BEFORE any
+wave-2 wiring (F2/F3/F5/F7) lands. Any future capture against a later commit
+must be added as a new §6.N sub-section, not overwritten. Comparison view in
+F9 §49 may interpolate between this baseline and the live wave-2 numbers; the
+baseline values here are immutable source-of-truth for the "before" pane.
+
+### 6.3 Station registry inventory
 
 Registry source:
 `public/fixtures/ground-stations/multi-orbit-public-registry.json`, generated
@@ -441,7 +709,7 @@ pair source-tier badge:
 | `industry-disclosure` | 4 |
 | `regulatory-filing` | 1 |
 
-### 6.3 Selected-pair output fields before D1-D7
+### 6.4 Selected-pair output fields before D1-D7
 
 `RuntimeProjectionResult` already carries the selected-pair fields that D1-D7
 will annotate:
