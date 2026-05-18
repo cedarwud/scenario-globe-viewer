@@ -152,7 +152,34 @@ await send("Emulation.setDeviceMetricsOverride", {
 // emulation flags the tab as focused so raf runs at native cadence.
 await send("Emulation.setFocusEmulationEnabled", { enabled: true });
 await send("Page.navigate", { url: targetUrl });
-await new Promise((resolve) => setTimeout(resolve, 8_000));
+await new Promise((resolve) => setTimeout(resolve, 4_000));
+
+// Wait for the panel to reach `ready` before starting frame + state
+// sampling so the smoke does not record the initial `loading` sample
+// and trip the all-ready hard gate prematurely.
+{
+  const readinessStart = Date.now();
+  let panelReady = false;
+  while (Date.now() - readinessStart < 15_000) {
+    const { result } = await send("Runtime.evaluate", {
+      expression: `
+        (() => {
+          const panel = document.querySelector('[data-v4-projection-side-panel="true"]');
+          return panel ? panel.dataset.state ?? null : null;
+        })();
+      `,
+      returnByValue: true
+    });
+    if (result.value === "ready") {
+      panelReady = true;
+      break;
+    }
+    await new Promise((resolve) => setTimeout(resolve, 250));
+  }
+  if (!panelReady) {
+    console.error("panel did not reach ready before sampling");
+  }
+}
 
 // Click the 60x button. The button data attribute pattern is
 // data-m8a-v47-multiplier="60" inside the replay strip's speed group.
@@ -191,12 +218,17 @@ await send("Runtime.evaluate", {
         if (clock && typeof clock.getState === "function") {
           const state = clock.getState();
           const now = state && state.currentTime;
-          const epoch =
-            typeof now === "number"
-              ? now
-              : now && typeof now.secondsOfDay === "number"
-                ? now.secondsOfDay
-                : null;
+          let epoch = null;
+          if (typeof now === "number" && Number.isFinite(now)) {
+            epoch = now;
+          } else if (typeof now === "string") {
+            const parsed = Date.parse(now);
+            if (!Number.isNaN(parsed)) {
+              epoch = parsed;
+            }
+          } else if (now && typeof now.secondsOfDay === "number") {
+            epoch = now.secondsOfDay;
+          }
           window.__SGV_REPLAY_CLOCK_SAMPLES__.push(epoch);
         } else {
           window.__SGV_REPLAY_CLOCK_SAMPLES__.push(null);
