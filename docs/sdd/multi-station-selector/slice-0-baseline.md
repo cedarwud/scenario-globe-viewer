@@ -1,195 +1,400 @@
 # Multi-Station Selector — Slice 0 Baseline
 
 This document is the Slice 0 deliverable named by
-`docs/sdd/multi-station-selector/tle-first-3d-pipeline.md` section 8.
-No runtime change; it records current route behaviour before the
-TLE-first 3D pipeline convergence work begins.
+`docs/sdd/multi-station-selector/tle-first-3d-pipeline.md` section 8,
+Slice 0. No runtime change is made here; this records current behaviour before
+the TLE-first convergence work begins.
 
 ## 1. Capture metadata
 
 - Capture date: 2026-05-18
-- Repo HEAD at capture: `2033712` (most recent `main` HEAD when the
-  six baseline PNGs were written)
-- Browser: Playwright-cached Chromium 1217 (headless)
-- Chromium args: `--use-angle=swiftshader --enable-unsafe-swiftshader
-  --disable-dev-shm-usage --no-sandbox`
+- Commit at capture: 2033712 (most recent main HEAD at capture time)
+- Browser: Chromium 1217 headless via
+  `--use-angle=swiftshader --enable-unsafe-swiftshader`
 - Viewport: 1440x900
 - Host: WSL2
-- Dev server: `http://127.0.0.1:5173`
-- CDP port for the capture session: 9333
+- Dev server: http://127.0.0.1:5173
 
 ## 2. Fixed demo entry baseline
 
-Screenshot: `/tmp/sgv_fixed_demo_baseline.png`.
+Screenshot:
 
-Route: `/?scenePreset=regional&m8aV4GroundStationScene=1` (or the
-homepage CTA whose `addressedHref` resolves to this URL after
-commit `06b4d0d` "Restore fixed V4 demo entry route").
+- `/tmp/sgv_fixed_demo_baseline.png`
 
-Observed contract:
+Route:
 
-- `body[data-display-state]` is `idle` because no `stationA` /
-  `stationB` URL params are present.
-- The selected-pair V4 projection side panel does NOT mount
-  (`[data-v4-projection-side-panel="true"]` absent).
-- The V4 ground-station controller mounts the fixture-driven scene
-  (`[data-m8a-v4-ground-station-scene="true"]` present). That scene
-  carries the curated actor / timeline surface: operator-family
-  display anchors, polished link-flow pulses, choreographed label
-  density, and stable camera framing.
-- Visual character: polished, stable, the strongest 3D quality in
-  the codebase today.
+- URL: `/?scenePreset=regional&m8aV4GroundStationScene=1`
+- Equivalent entry: homepage CTA that navigates to the same fixed demo route.
+- `body[data-display-state]` is `idle` because no `stationA` or `stationB`
+  query parameters are present.
+- The V4 projection side panel does not mount. It remains a
+  selected-pair-only surface.
+- The V4 ground-station controller mounts the fixture-driven scene.
+- The mounted scene shows curated actor and timeline state.
+- The mounted scene shows operator-family display anchors.
+- The mounted scene shows polished link-flow pulses.
+- The mounted scene shows label-density choreography.
+- The mounted scene keeps stable camera framing.
 
-Truth-class classification per the TLE-first pipeline SDD section 3:
+Source-tier classification against the parent SDD truth-class table:
 
-- Endpoint anchors → `public-registry-derived` (operator-family
-  region, not exact site coordinates).
-- Actors and timeline → `fixture-fallback` (curated demo data, TLE
-  lineage on actor ids only).
-- Camera framing / label density / link-flow pulses → `display-only`.
+- Actors and timeline: `fixture-fallback`.
+- Endpoint anchors: `public-registry-derived`.
+- Camera framing, label density, and visual spacing: `display-only`.
+- Throughput, rain, and handover state when shown: `modeled`.
 
-This is the visual baseline that the new TLE-first pipeline must
-match or explicitly relabel as `fixture-fallback` per Slice 4.
+Observed 3D state:
+
+- The LEO actor chip reports `600`.
+- Multiple model satellites are visible above the horizon.
+- LEO, MEO, and GEO labels are visible in the curated grammar.
+- Uplink and downlink ribbons are visible near the selected operating region.
+- The globe is framed as a polished product demo rather than a raw pair
+  projection.
+- The side-panel absence is expected for this fixed route.
+
+This is the visual baseline the new pipeline must match or explicitly relabel.
 
 ## 3. Selected-pair walkthrough baselines
 
-The five fixed-window walkthrough URLs all use
-`startUtc=2026-05-17T00:00:00.000Z` and `durationMinutes=360`.
-Mutual-window counts taken from the post-fix final audit verdict
-(`docs/sdd/multi-station-selector/final-audit-ship-verdict-2026-05-18.md`).
-All five render with LEO actor count chip = `600` (demo LEO actor
-fixture record count).
+All five walkthrough captures use:
 
-### 3.1 Walkthrough 1 — `ksat-svalsat-svalbard` ↔ `ksat-tromso`
+- `startUtc=2026-05-17T00:00:00.000Z`
+- `durationMinutes=360`
+- Viewport `1440x900`
+- LEO actor count chip `600`
+- Replay preset `60x`
+- `body[data-display-state]="replaying"`
+- V4 panel `data-state="ready"`
 
-- Screenshot: `/tmp/sgv_slice0_demo1.png`
-- `body[data-display-state]`: `replaying`
-- Panel `data-state`: `ready`
-- Mutual windows: 26 (Row 4 visibility shows next 3 chronologically)
-- Link-selection events: populated (no cross-orbit migration in this
-  window typically; the row would be purple-modified if present)
-- 3D: model satellites visible; short-baseline Arctic pair with
-  stable camera. No regression observable in the baseline screenshot.
+### 3.1 Walkthrough 1 — Svalbard / Tromso
 
-### 3.2 Walkthrough 2 — `ksat-svalsat-svalbard` ↔ `ksat-trollsat-antarctica`
+Screenshot:
 
-- Screenshot: `/tmp/sgv_slice0_demo2.png`
-- `body[data-display-state]`: `replaying`
-- Panel `data-state`: `ready` (after the URL #2 bootstrap-preservation
-  fix in `354345b`; prior to that commit the URL silently dropped
-  `stationB`)
-- Mutual windows: 0 — antipodal polar pair has no shared visibility
-  in this window. Row 4 visibility renders the empty state line.
-- Link-selection events: empty state line.
-- 3D: this is the canonical scene that exposes the polar / antipodal
-  framing gap. See section 4 below.
+- `/tmp/sgv_slice0_demo1.png`
 
-### 3.3 Walkthrough 3 — `intelsat-fuchsstadt` ↔ `intelsat-atlanta`
+URL:
 
-- Screenshot: `/tmp/sgv_slice0_demo3.png`
-- `body[data-display-state]`: `replaying`
-- Panel `data-state`: `ready`
-- Mutual windows: 15
-- Mid-latitude Atlantic-crossing GEO operator pair; classic
-  long-baseline coverage. Renders cleanly.
+```text
+/?stationA=ksat-svalsat-svalbard&stationB=ksat-tromso&startUtc=2026-05-17T00:00:00.000Z&durationMinutes=360
+```
 
-### 3.4 Walkthrough 4 — `singtel-bukit-timah` ↔ `measat-cyberjaya`
+Observed state:
 
-- Screenshot: `/tmp/sgv_slice0_demo4.png`
-- `body[data-display-state]`: `replaying`
-- Panel `data-state`: `ready`
-- Mutual windows: 42 (densest sample; short-baseline equatorial pair
-  with high LEO overlap)
-- Renderer handles the high-density window without label collision in
-  the baseline screenshot.
+- `body[data-display-state]="replaying"`
+- Panel `data-state="ready"`
+- Pair title: Svalbard Satellite Station (SvalSat) to Tromso Satellite
+  Station (TSS).
+- Tier badge: public-disclosure pair, operator-stated capability.
+- Source footer: operator-family precision and public-disclosed source class.
+- Comm time: `360m`.
+- Handovers: `1`.
+- LEO actor count: `600`.
 
-### 3.5 Walkthrough 5 — `cht-yangmingshan` ↔ `sansa-hartebeesthoek`
+Panel Row 4:
 
-- Screenshot: `/tmp/sgv_slice0_demo5.png`
-- `body[data-display-state]`: `replaying`
-- Panel `data-state`: `ready`
-- Mutual windows: 9
-- Long-baseline cross-hemisphere pair; tests camera framing on
-  longer geodesics. Renders cleanly in the baseline screenshot.
+- Visibility list is populated.
+- Count line reads `26 mutual windows · showing next 3`.
+- The first three preview rows are visible.
+- Link-selection list is populated.
+- Count line reads `2 events · showing next 2`.
+- The first event is initial acquisition.
+- The second event is a current-link-unavailable transition.
+- No cross-orbit migration event is visible in the capture.
+- The V-MO1 pin is represented by the link-selection event area.
+
+Observed 3D characteristics:
+
+- Several model satellites are visible, with a compact MEO cluster above the
+  Arctic-facing endpoint pair.
+- A vertical active-link line rises from the paired stations toward the visible
+  actor group.
+- Endpoint markers are visible and close enough to require label choreography.
+- The camera frames northern Europe and the Arctic edge with usable context.
+- Label overlap is present but controlled enough for the selected-pair demo.
+- This is the compatible Arctic pair baseline.
+
+Expected count from the shipped walkthrough audit:
+
+- `26` mutual windows.
+
+### 3.2 Walkthrough 2 — Svalbard / Trollsat
+
+Screenshot:
+
+- `/tmp/sgv_slice0_demo2.png`
+
+URL:
+
+```text
+/?stationA=ksat-svalsat-svalbard&stationB=ksat-trollsat-antarctica&startUtc=2026-05-17T00:00:00.000Z&durationMinutes=360
+```
+
+Observed state:
+
+- `body[data-display-state]="replaying"`
+- Panel `data-state="ready"`
+- Pair title: Svalbard Satellite Station (SvalSat) to Troll Satellite
+  Station (TrollSat).
+- Tier badge: public-disclosure pair, operator-stated capability.
+- Source footer: operator-family precision and public-disclosed source class.
+- Comm time: `0s`.
+- Handovers: `0`.
+- LEO actor count: `600`.
+
+Panel Row 4:
+
+- Visibility list renders the empty state.
+- Count line reads `0 mutual windows`.
+- Empty copy reads `No mutual visibility in this window.`
+- Link-selection list renders the empty state.
+- Count line reads `0 events`.
+- Empty copy says no handover events were triggered by the cross-orbit-live
+  policy in this window.
+- No cross-orbit migration event is present.
+- There is no fake active satellite in the panel or 3D scene.
+
+Observed 3D characteristics:
+
+- Endpoint context is present, but framing is the known weak point.
+- The screenshot centers southern Africa while the pair is polar and
+  antipodal in practice.
+- Endpoint markers can appear separated from the expected polar mental model.
+- The dashed pair guide crosses the globe, but there is no pair-geometry
+  camera classifier yet.
+- No active satellite actor is fabricated for the empty result.
+- This is the canonical polar antipodal zero-window baseline.
+
+Expected count from the shipped walkthrough audit:
+
+- `0` mutual windows.
+
+### 3.3 Walkthrough 3 — Intelsat Fuchsstadt / Intelsat Atlanta
+
+Screenshot:
+
+- `/tmp/sgv_slice0_demo3.png`
+
+URL:
+
+```text
+/?stationA=intelsat-fuchsstadt&stationB=intelsat-atlanta&startUtc=2026-05-17T00:00:00.000Z&durationMinutes=360
+```
+
+Observed state:
+
+- `body[data-display-state]="replaying"`
+- Panel `data-state="ready"`
+- Pair title: Intelsat Fuchsstadt Teleport to Intelsat Atlanta Teleport
+  (Ellenwood).
+- Tier badge: public-disclosure pair, operator-stated capability.
+- Source footer: operator-family precision and public-disclosed source class.
+- Comm time: `360m`.
+- Handovers: `2`.
+- LEO actor count: `600`.
+
+Panel Row 4:
+
+- Visibility list is populated.
+- Count line reads `15 mutual windows · showing next 3`.
+- The first three preview rows are visible.
+- Link-selection list is populated.
+- Count line reads `3 events · showing next 3`.
+- The first event is initial acquisition.
+- Two later events are current-link-unavailable transitions.
+- No cross-orbit migration event is visible in the capture.
+- The V-MO1 pin remains in the Row 4 link-selection area.
+
+Observed 3D characteristics:
+
+- Multiple model satellites are visible across a wider orbital band.
+- Endpoint markers sit on opposite sides of a mid-latitude long path.
+- Active-link lines connect the endpoints to the current actor.
+- The dashed route arc is visible between the endpoints.
+- Camera framing includes both endpoints and a useful portion of the actor
+  field.
+- The scene is readable but busier than the fixed demo grammar.
+- This is the mid-latitude GEO operator-pair baseline.
+
+Expected count from the shipped walkthrough audit:
+
+- `15` mutual windows.
+
+### 3.4 Walkthrough 4 — Singtel Bukit Timah / MEASAT Cyberjaya
+
+Screenshot:
+
+- `/tmp/sgv_slice0_demo4.png`
+
+URL:
+
+```text
+/?stationA=singtel-bukit-timah&stationB=measat-cyberjaya&startUtc=2026-05-17T00:00:00.000Z&durationMinutes=360
+```
+
+Observed state:
+
+- `body[data-display-state]="replaying"`
+- Panel `data-state="ready"`
+- Pair title: Singtel Bukit Timah Teleport to MEASAT Teleport & Broadcast
+  Centre (Cyberjaya).
+- Tier badge: geometric pair, visibility-derived only.
+- Source footer: modeled precision and geometric-derived source class.
+- Comm time: `360m`.
+- Handovers: `0`.
+- LEO actor count: `600`.
+
+Panel Row 4:
+
+- Visibility list is populated.
+- Count line reads `42 mutual windows · showing next 3`.
+- The first three preview rows are visible.
+- Link-selection list is populated.
+- Count line reads `1 event · showing next 1`.
+- The one event is initial acquisition.
+- No cross-orbit migration event is visible in the capture.
+- The V-MO1 pin remains in the link-selection area but has no transition
+  event to surface.
+
+Observed 3D characteristics:
+
+- A compact equatorial station pair is visible with overlapping labels.
+- Several GEO model satellites appear in a line across the upper scene.
+- A long active-link line reaches from the station pair to the current actor.
+- The endpoint baseline is short, so station labels and badges crowd each
+  other.
+- Camera framing is useful for continuity but still needs a short-baseline
+  display policy.
+- This is the equatorial short-baseline baseline.
+
+Expected count from the shipped walkthrough audit:
+
+- `42` mutual windows.
+
+### 3.5 Walkthrough 5 — Yangmingshan / Hartebeesthoek
+
+Screenshot:
+
+- `/tmp/sgv_slice0_demo5.png`
+
+URL:
+
+```text
+/?stationA=cht-yangmingshan&stationB=sansa-hartebeesthoek&startUtc=2026-05-17T00:00:00.000Z&durationMinutes=360
+```
+
+Observed state:
+
+- `body[data-display-state]="replaying"`
+- Panel `data-state="ready"`
+- Pair title: Chunghwa Telecom Yangmingshan Earth Station to SANSA Space
+  Operations Hartebeesthoek.
+- Tier badge: geometric pair, visibility-derived only.
+- Source footer: modeled precision and geometric-derived source class.
+- Comm time: `360m`.
+- Handovers: `2`.
+- LEO actor count: `600`.
+
+Panel Row 4:
+
+- Visibility list is populated.
+- Count line reads `9 mutual windows · showing next 3`.
+- The first three preview rows are visible.
+- Link-selection list is populated.
+- Count line reads `3 events · showing next 3`.
+- The first event is initial acquisition.
+- The second event is marked `better candidate available`.
+- The third event is marked `current link unavailable`.
+- No cross-orbit migration event is visible in the capture.
+- The V-MO1 pin remains in the Row 4 link-selection area.
+
+Observed 3D characteristics:
+
+- Multiple model satellites are visible across a broad long-baseline frame.
+- Endpoint markers are far apart and joined by a long active-link segment.
+- The dashed route arc spans a large part of the lower scene.
+- The camera keeps both endpoints visible, but the right endpoint shares space
+  with several actor badges.
+- The scene shows the strongest current long-baseline composition of the five
+  walkthrough captures.
+- This is the cross-hemisphere long-baseline baseline.
+
+Expected count from the shipped walkthrough audit:
+
+- `9` mutual windows.
 
 ## 4. Known failure modes carried forward
 
-These observations bound what Slice 2 and Slice 3 must improve.
+### Polar pair camera failure mode
 
-### 4.1 Polar / antipodal camera classifier missing
+Walkthrough 2, Svalbard / Trollsat, is the canonical example.
 
-Walkthrough 2 (Svalbard ↔ Trollsat) is the canonical example. The
-panel mounts with 0 mutual windows correctly, but the renderer has
-no pair-geometry classifier today: endpoints sit near opposite poles
-without a guided pull-back, and the camera is not aware that the
-pair geometry is `antipodal`. The new SDD section 6 rule 5 plus
-section 9 A2 require this in Slice 2-3.
+Today:
 
-`SceneCameraHint.pairGeometry` is the contract field that will carry
-this classification (per the TLE-first pipeline SDD section 5).
+- The panel mounts with `0` mutual windows.
+- The panel reaches `data-state="ready"`.
+- The route retains both selected stations after bootstrap.
+- The camera framing does not yet have a polar or antipodal classifier.
+- Endpoints can collapse onto each other in the projection.
+- Endpoints can also sit near opposite poles without a guided pull-back.
+- The current screenshot shows the globe centered away from the intuitive
+  pair frame.
 
-### 4.2 Zero-window invariant — already correct, MUST be preserved
+This is exactly what the parent SDD section 6 rule 5 and section 9 A2 address
+in Slice 2 and Slice 3.
 
-Walkthrough 2 also exercises the zero-window invariant. Today the
-renderer correctly avoids inventing a fake active satellite: Row 4
-visibility renders empty, Row 4 link-selection events render empty,
-and the panel reaches `data-state="ready"` instead of stalling.
+### Zero-window behaviour
 
-Slice 1 (`TleFirstSceneViewModel` adapter) MUST preserve this
-no-fake-actor invariant per the parent SDD section 6 rule 6. The
-adapter regression test for Slice 1 asserts:
+Same URL: Walkthrough 2.
 
-```
-zero-window projection → 0 active actors, 0 SceneActiveLink entries
-```
+Today:
+
+- The panel reaches `data-state="ready"` after the URL #2
+  bootstrap-preservation fix in commit `354345b`.
+- Row 4 visibility renders `0 mutual windows · empty state`.
+- Link-selection events render the empty state.
+- There is no fake active satellite.
+- The 3D renderer keeps endpoint context rather than inventing a link.
+
+This is already correct under the existing renderer. The Slice 1 adapter must
+preserve this no-fake-actor invariant per parent SDD section 6 rule 6.
 
 ## 5. Reproducibility one-liners
 
-Restart Chromium 9333 for fresh captures:
+Chromium baseline binary and arguments:
 
-```
-PW=/home/u24/.cache/ms-playwright/chromium-1217/chrome-linux64/chrome
-rm -rf /tmp/sgv-pw5
-"$PW" --headless=new --use-angle=swiftshader --enable-unsafe-swiftshader \
-  --disable-dev-shm-usage --no-sandbox \
-  --user-data-dir=/tmp/sgv-pw5 --remote-debugging-port=9333 \
-  --window-size=1440,900 about:blank &
+```bash
+CHROME=/home/u24/.cache/ms-playwright/chromium-1217/chrome-linux64/chrome
+ARGS="--headless=new --disable-gpu --no-sandbox --use-angle=swiftshader --enable-unsafe-swiftshader --window-size=1440,900"
 ```
 
-Re-capture the six PNGs (uses `/tmp/sgv-capture.mjs` helper):
+Re-capture the six PNGs if needed:
 
+```bash
+npm run dev -- --host 127.0.0.1 --port 5173
+
+$CHROME $ARGS --screenshot=/tmp/sgv_fixed_demo_baseline.png \
+  'http://127.0.0.1:5173/?scenePreset=regional&m8aV4GroundStationScene=1'
+
+$CHROME $ARGS --screenshot=/tmp/sgv_slice0_demo1.png \
+  'http://127.0.0.1:5173/?stationA=ksat-svalsat-svalbard&stationB=ksat-tromso&startUtc=2026-05-17T00:00:00.000Z&durationMinutes=360'
+
+$CHROME $ARGS --screenshot=/tmp/sgv_slice0_demo2.png \
+  'http://127.0.0.1:5173/?stationA=ksat-svalsat-svalbard&stationB=ksat-trollsat-antarctica&startUtc=2026-05-17T00:00:00.000Z&durationMinutes=360'
+
+$CHROME $ARGS --screenshot=/tmp/sgv_slice0_demo3.png \
+  'http://127.0.0.1:5173/?stationA=intelsat-fuchsstadt&stationB=intelsat-atlanta&startUtc=2026-05-17T00:00:00.000Z&durationMinutes=360'
+
+$CHROME $ARGS --screenshot=/tmp/sgv_slice0_demo4.png \
+  'http://127.0.0.1:5173/?stationA=singtel-bukit-timah&stationB=measat-cyberjaya&startUtc=2026-05-17T00:00:00.000Z&durationMinutes=360'
+
+$CHROME $ARGS --screenshot=/tmp/sgv_slice0_demo5.png \
+  'http://127.0.0.1:5173/?stationA=cht-yangmingshan&stationB=sansa-hartebeesthoek&startUtc=2026-05-17T00:00:00.000Z&durationMinutes=360'
 ```
-node /tmp/sgv-capture.mjs 9333 \
-  'http://127.0.0.1:5173/?scenePreset=regional&m8aV4GroundStationScene=1' \
-  /tmp/sgv_fixed_demo_baseline.png 14000
-
-for i in 1 2 3 4 5; do
-  case $i in
-    1) URL='http://127.0.0.1:5173/?stationA=ksat-svalsat-svalbard&stationB=ksat-tromso&startUtc=2026-05-17T00%3A00%3A00.000Z&durationMinutes=360' ;;
-    2) URL='http://127.0.0.1:5173/?stationA=ksat-svalsat-svalbard&stationB=ksat-trollsat-antarctica&startUtc=2026-05-17T00%3A00%3A00.000Z&durationMinutes=360' ;;
-    3) URL='http://127.0.0.1:5173/?stationA=intelsat-fuchsstadt&stationB=intelsat-atlanta&startUtc=2026-05-17T00%3A00%3A00.000Z&durationMinutes=360' ;;
-    4) URL='http://127.0.0.1:5173/?stationA=singtel-bukit-timah&stationB=measat-cyberjaya&startUtc=2026-05-17T00%3A00%3A00.000Z&durationMinutes=360' ;;
-    5) URL='http://127.0.0.1:5173/?stationA=cht-yangmingshan&stationB=sansa-hartebeesthoek&startUtc=2026-05-17T00%3A00%3A00.000Z&durationMinutes=360' ;;
-  esac
-  node /tmp/sgv-capture.mjs 9333 "$URL" "/tmp/sgv_slice0_demo${i}.png" 13000
-done
-```
-
-The four acceptance smokes also remain reproducible per
-`docs/sdd/multi-station-selector/acceptance-criteria.md`.
 
 ## 6. Hand-off to Slice 1
 
-Slice 1 introduces `TleFirstSceneViewModel` and `SceneActor` per
-section 5 of the parent SDD, alongside the existing
-`src/features/multi-station-selector/selected-pair-scene-adapter.ts`.
-The two adapters co-exist through Slice 1; Slice 2 makes the renderer
-consume the new shape, and Slice 5 removes the old adapter after the
-Slice 4 decision.
-
-The Slice 0 baseline freezes the visual state Slice 1 must not
-regress. Per the parent SDD section 8 Slice 1, the smokes that must
-keep passing after Slice 1 lands are `npm run build`,
-`verify-g1-bucket-a-coverage`, and
-`verify-random-pair-projection-budget`. The six baseline PNGs are
-the visual reference for the Slice 2 visual-diff gate.
+Slice 1 will introduce `TleFirstSceneViewModel` and `SceneActor` per section
+5 of the parent SDD, alongside `selected-pair-scene-adapter.ts`. The Slice 0
+baseline freezes the visual state Slice 1 must not regress, per Slice 1's
+"Smokes that must keep passing" line in parent SDD section 8.
