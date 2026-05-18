@@ -121,6 +121,15 @@ const PANEL_CSS = `
   color: rgba(157, 196, 232, 0.85);
   font-variant-numeric: tabular-nums;
 }
+.v4-projection-side-panel__plain-text-separator {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
 .v4-projection-side-panel__copy-link {
   grid-area: copy;
   align-self: start;
@@ -499,6 +508,26 @@ function formatCountLabel(count: number, singular: string, plural: string): stri
   return `${count} ${count === 1 ? singular : plural}`;
 }
 
+function formatSummaryCountLabel(
+  count: number,
+  previewLimit: number,
+  singular: string,
+  plural: string
+): string {
+  const base = formatCountLabel(count, singular, plural);
+  if (count === 0) {
+    return base;
+  }
+  return `${base} · showing next ${Math.min(count, previewLimit)}`;
+}
+
+function buildPlainTextSeparator(): HTMLSpanElement {
+  const separator = document.createElement("span");
+  separator.className = "v4-projection-side-panel__plain-text-separator";
+  separator.textContent = " · ";
+  return separator;
+}
+
 function clampDurationMinutes(value: number): number {
   if (!Number.isFinite(value)) {
     return DEFAULT_DEMO_PROJECTION_DURATION_MINUTES;
@@ -838,14 +867,17 @@ function buildHeaderRow(
   const tierBadge = document.createElement("span");
   tierBadge.className = "v4-projection-side-panel__tier-badge";
   tierBadge.dataset.tier = tierAttribution.sourceTier;
-  tierBadge.textContent =
+  const tierLabel =
     tierAttribution.sourceTier === "public-disclosed"
       ? "Public-disclosure"
       : "Geometric";
+  tierBadge.textContent = tierLabel;
 
   const windowLine = document.createElement("p");
   windowLine.className = "v4-projection-side-panel__window";
-  windowLine.textContent = `${formatIsoSecond(result.timeWindow.startUtc)} → ${formatIsoSecond(result.timeWindow.endUtc)} UTC · ${durationMinutes}m`;
+  const windowText = `${formatIsoSecond(result.timeWindow.startUtc)} → ${formatIsoSecond(result.timeWindow.endUtc)} UTC · ${durationMinutes}m`;
+  windowLine.textContent = windowText;
+  row.setAttribute("aria-label", `${titleText} · ${tierLabel} · ${windowText}`);
 
   const copyLink = document.createElement("button");
   copyLink.type = "button";
@@ -880,7 +912,14 @@ function buildHeaderRow(
     );
   });
 
-  row.append(title, tierBadge, windowLine, copyLink);
+  row.append(
+    title,
+    buildPlainTextSeparator(),
+    tierBadge,
+    buildPlainTextSeparator(),
+    windowLine,
+    copyLink
+  );
   return row;
 }
 
@@ -991,8 +1030,14 @@ function buildSummariesRow(result: RuntimeProjectionResult): HTMLElement {
   visHeading.textContent = "Visibility windows";
   const visCount = document.createElement("p");
   visCount.className = "v4-projection-side-panel__list-count";
-  visCount.textContent = formatCountLabel(
+  visCount.dataset.summaryCount = "visibility";
+  visCount.dataset.totalCount = String(result.visibilityWindows.length);
+  visCount.dataset.previewCount = String(
+    Math.min(result.visibilityWindows.length, PANEL_ROW4_VISIBILITY_PREVIEW_COUNT)
+  );
+  visCount.textContent = formatSummaryCountLabel(
     result.visibilityWindows.length,
+    PANEL_ROW4_VISIBILITY_PREVIEW_COUNT,
     "mutual window",
     "mutual windows"
   );
@@ -1032,8 +1077,14 @@ function buildSummariesRow(result: RuntimeProjectionResult): HTMLElement {
   handoverHeading.textContent = "Link selection events";
   const handoverCount = document.createElement("p");
   handoverCount.className = "v4-projection-side-panel__list-count";
-  handoverCount.textContent = formatCountLabel(
+  handoverCount.dataset.summaryCount = "handover";
+  handoverCount.dataset.totalCount = String(result.handoverEvents.length);
+  handoverCount.dataset.previewCount = String(
+    pickRow4HandoverEvents(result.handoverEvents).length
+  );
+  handoverCount.textContent = formatSummaryCountLabel(
     result.handoverEvents.length,
+    PANEL_ROW4_HANDOVER_PREVIEW_COUNT,
     "event",
     "events"
   );

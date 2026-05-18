@@ -139,11 +139,12 @@ parallel-session WIP territory; `composition.ts` currently still calls
 does not depend on that surface — consolidating it (or removing it) is a
 follow-up slice (see §11.3) coordinated with the parallel session.
 
-The LEO actor count chip reads from the TLE source count (LEO TLE fixture
-record count, the same denominator that satisfies R1-F1 / K-E1's
-≥ 500 LEO claim), not from the selected-pair projection's 60-record cap.
-The chip is sourced once at bootstrap from the fixture and never re-derived
-from runtime projection state.
+The LEO actor count chip reads from the demo LEO actor fixture count
+(currently 600, the same denominator that satisfies R1-F1 / K-E1's
+≥ 500 LEO claim), not from the selected-pair projection's 60-record cap
+or the larger upstream source inventory. The chip is sourced once at
+bootstrap from the fixture and never re-derived from runtime projection
+state.
 
 ### 4.2 Selection-dependent
 
@@ -351,7 +352,7 @@ chrome surface enumerated in §4.
 | R1-T4 / K-D3 UI interactive | Selection chips + marker filter + rain slider (Row 2) + replay controls | all | chrome + Row 2 |
 | R1-T5 / K-D4 handover rules | Row 5 disclosure 3 `Sources + non-claims` (policy citation TR 38.821 §7.3) | projecting | Row 5 d3 |
 | R1-T6 / K-D5 rate viz | Row 5 disclosure 1 `Rain impact` (per-orbit downlink contrast) | projecting | Row 5 d1 |
-| R1-F1 / K-E1 ≥500 LEO | LEO actor count chip (`chrome.topLeft` row 3 inline-end) sourced from LEO TLE fixture record count (~11015 sats) | all | chrome |
+| R1-F1 / K-E1 ≥500 LEO | LEO actor count chip (`chrome.topLeft` row 3 inline-end) sourced from the demo LEO actor fixture count (600) | all | chrome |
 | R1-F2 / K-E2 speed adjustable | Replay strip 30× / 60× / 120× | all | chrome |
 | R1-F3 / K-E3 communication time | Row 3 `Comm time` stat + Row 5 d2 full window list | projecting / replaying | Row 3 + Row 5 d2 |
 | R1-F4 / K-E4 / K-F4 handover-switch | Row 4 link-selection events list + reasonKind text + Row 5 d3 full list | replaying | Row 4 + Row 5 d3 |
