@@ -3,13 +3,7 @@
 .m8a-v411-handover-rail-scrim,
 .m8a-v411-footer-chip__row,
 .m8a-v411-product-ux__countdown-surface,
-.m8a-v411-reviewer-mode-toggle,
-.m8a-v411-reviewer-mode-status,
-.m8a-v411-narrow-rail-trigger,
-.m8a-v47-product-ux__strip-state,
-.m8a-v47-product-ux__progress,
-.m8a-v411-evidence-toggle,
-.m8a-v47-product-ux__strip [data-m8a-v47-control-id="details-toggle"] {
+.m8a-v411-reviewer-mode-status {
   display: none !important;
 }
 

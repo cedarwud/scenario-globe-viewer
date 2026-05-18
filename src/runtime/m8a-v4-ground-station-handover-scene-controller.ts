@@ -2220,12 +2220,10 @@ function ensureProductUxStructure(root: HTMLElement): void {
     root.querySelector("[data-m8a-v410-boundary-surface='true']") &&
       root.querySelector("[data-m8a-v410-boundary-full-truth-disclosure='true']")
   );
-  // Phase 4: reviewer mode state machine + narrow rail trigger + ARIA live region
+  // Phase 4: reviewer mode state machine ARIA live region
   const hasPhase4ReviewerModeStructure = Boolean(
-    root.querySelector("[data-m8a-v411-reviewer-mode-toggle='true']") &&
-      root.querySelector("[data-m8a-v411-reviewer-mode-status='true']") &&
-      root.querySelector("[data-m8a-v411-inspector-mode-label='true']") &&
-      root.querySelector("[data-m8a-v411-narrow-rail-trigger='true']")
+    root.querySelector("[data-m8a-v411-reviewer-mode-status='true']") &&
+      root.querySelector("[data-m8a-v411-inspector-mode-label='true']")
   );
 
   if (
@@ -2277,21 +2275,11 @@ function ensureProductUxStructure(root: HTMLElement): void {
     </aside>
     <div class="m8a-v47-product-ux__scene-connector" data-m8a-v48-scene-connector="true" aria-hidden="true" hidden></div>
     <div class="m8a-v47-product-ux__strip" data-m8a-v47-ui-surface="compact-control-strip" data-m8a-v47-control-strip="true">
-      <div class="m8a-v47-product-ux__strip-state">
-        <span data-m8a-v48-info-class="fixed">Current state</span>
-        <strong data-m8a-v47-active-label="strip" data-m8a-v48-info-class="dynamic"></strong>
-        <small data-m8a-v48-state-ordinal="strip" data-m8a-v48-info-class="dynamic">State 1 of 5</small>
-      </div>
-      <button type="button" class="m8a-v411-narrow-rail-trigger" data-m8a-v47-action="open-handover-rail" data-m8a-v411-narrow-rail-trigger="true" data-m8a-v48-info-class="control" aria-label="Expand briefing sheet" aria-expanded="false" aria-controls="m8a-v411-handover-rail-drawer">Briefing</button>
       <button type="button" class="m8a-v47-product-ux__play-toggle" data-m8a-v47-action="pause" data-m8a-v47-control-id="play-pause" data-m8a-v48-info-class="control">Pause</button>
       <button type="button" data-m8a-v47-action="restart" data-m8a-v47-control-id="restart" data-m8a-v48-info-class="control">Restart</button>
       <div class="m8a-v47-product-ux__strip-speeds" data-m8a-v47-control-group="speed">
         ${renderSpeedButtons(M8A_V47_PRODUCT_DEFAULT_MULTIPLIER)}
       </div>
-      <button type="button" class="m8a-v411-reviewer-mode-toggle" data-m8a-v47-action="toggle-review-mode" data-m8a-v411-reviewer-mode-toggle="true" data-m8a-v411-reviewer-mode-on="true" data-m8a-v48-info-class="control" aria-pressed="true" title="Auto-pause replay at each window transition for review">Review mode</button>
-      <progress class="m8a-v47-product-ux__progress" max="1" value="0" data-m8a-v47-progress="true" data-m8a-v48-info-class="dynamic" hidden aria-hidden="true"></progress>
-      <button type="button" data-m8a-v47-action="toggle-disclosure" data-m8a-v47-control-id="details-toggle" data-m8a-v48-info-class="control" aria-expanded="false">Details</button>
-      <button type="button" class="m8a-v411-evidence-toggle" data-m8a-v47-action="open-evidence" data-m8a-v47-control-id="evidence-toggle" data-m8a-v48-info-class="control" aria-expanded="false" aria-controls="m8a-v48-inspector-sheet">Evidence</button>
     </div>
     <div class="m8a-v411-reviewer-mode-status" data-m8a-v411-reviewer-mode-status="true" data-m8a-v411-reviewer-mode-version="${M8A_V411_REVIEWER_MODE_VERSION}" role="status" aria-live="polite" aria-atomic="true" data-m8a-v48-info-class="dynamic"></div>
     <aside id="m8a-v410-boundary-surface" class="m8a-v410-product-ux__boundary-surface" data-m8a-v410-boundary-surface="true" data-m8a-v47-ui-surface="boundary-surface" data-m8a-v48-info-class="disclosure" hidden>
@@ -5153,22 +5141,6 @@ function renderM8aV411ReviewerMode(
     return;
   }
 
-  const toggle = root.querySelector<HTMLElement>(
-    "[data-m8a-v411-reviewer-mode-toggle='true']"
-  );
-  if (toggle) {
-    toggle.dataset.m8aV411ReviewerModeOn = String(reviewer.reviewModeOn);
-    toggle.setAttribute("aria-pressed", String(reviewer.reviewModeOn));
-    toggle.textContent = reviewer.reviewModeOn
-      ? "Review mode · on"
-      : "Review mode · off";
-    toggle.dataset.m8aV411ReviewerModeReplayClockMode =
-      reviewer.replayClockMode;
-    toggle.dataset.m8aV411ReviewerModeAutoPauseMs = String(
-      reviewer.autoPauseDurationMs
-    );
-  }
-
   const modeLabel = root.querySelector<HTMLElement>(
     "[data-m8a-v411-inspector-mode-label='true']"
   );
@@ -5252,16 +5224,6 @@ function renderM8aV411ReviewerMode(
   root.dataset.m8aV411InspectorOpen = String(inspectorOpen);
   root.dataset.m8aV411HandoverRailDrawerState =
     productUx.layout.narrowRailDrawerState;
-
-  const railTrigger = root.querySelector<HTMLElement>(
-    "[data-m8a-v411-narrow-rail-trigger='true']"
-  );
-  if (railTrigger) {
-    railTrigger.setAttribute(
-      "aria-expanded",
-      String(productUx.layout.narrowRailDrawerState === "open")
-    );
-  }
 
   const railDrawer = root.querySelector<HTMLElement>(
     "[data-m8a-v411-handover-rail='true']"
