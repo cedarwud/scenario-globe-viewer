@@ -230,3 +230,174 @@ The handover compute path treats the following constraints as inherited from the
 - Additional policy variants remain implemented in module-level code, but the V4 selected-pair demo surface intentionally uses `cross-orbit-live` only.
 
 No new claim of authority for the modeled stations is introduced; the truth-boundary block makes the source-tier explicit.
+
+## 2026-05-17 addendum — single-route mount unification
+
+The original boundary description treated the homepage clean route and the V4
+selected-pair route as two separate consumers. The 2026-05-17 IA convergence
+collapses them into a single mount lifecycle. The data contract itself is
+unchanged; only the mount and visibility rules move. The companion document
+`docs/sdd/multi-station-selector/information-architecture.md` carries the
+visible-state machine and surface registry; this addendum records the data
+contract implications.
+
+### A.1 Mount lifecycle (replaces "two routes" framing)
+
+- The bootstrap composition mounts the ground-station marker layer, the
+  marker filter panel, the selection chips, the station list picker, the
+  station info card, and the marker hover tooltip on every entry, regardless
+  of whether `stationA` and `stationB` resolve to a registry-valid pair.
+- The V4 projection side panel and the V4 ground-station controller surfaces
+  mount on top of that base iff the selection store resolves a registry-valid
+  pair. Their dispose is symmetric: when the pair is cleared (either slot
+  becomes empty), the V4 panel and the V4 controller endpoint surfaces
+  dispose; the marker layer + selection chips + filter panel remain mounted.
+- The route URL no longer differentiates between "demo" and "selected-pair"
+  modes. The same `/` lifecycle covers both. The long-form URL
+  (`m8aV4GroundStationScene=1`) is treated identically to the short form by
+  the bootstrap; it remains accepted only for back-compat with existing
+  links.
+
+### A.2 Selection store as the single state authority
+
+The existing `selection-store.ts` already replaces the URL via
+`history.replaceState` on every commit. After mount unification:
+
+- Selection commits drive the V4 panel mount / unmount decision in
+  composition. A pair completing (both slots non-null and registry-valid)
+  mounts the V4 panel; clearing or invalidating a slot unmounts it.
+- The Apply CTA on the selection chips continues to live in place but its
+  semantic narrows: with mount unification the panel mounts automatically
+  on pair completion, so Apply becomes a no-op when the panel is already
+  mounted. Wave 1 keeps the Apply button visible as a no-op fallback that
+  reloads the URL only when no panel is mounted (defensive). Wave 2 may
+  hide Apply entirely once the in-place flow is verified.
+- `popstate` (history back / forward, copy-paste URL) continues to route
+  through the selection store; the panel re-mounts or unmounts based on the
+  resulting snapshot.
+
+### A.3 Compute path is unchanged
+
+- The runtime projection module
+  (`features/multi-station-selector/runtime-projection.ts`) and its worker
+  client are unchanged. Each pair commit triggers a fresh `compute`
+  invocation; the worker client cancels stale requests through its
+  `computeRequestSeq` mechanism.
+- The CSV export module is unchanged.
+- The selected-pair scene adapter is unchanged; it continues to produce a
+  bounded overlay of up to 6 satellites with sampled positions.
+- The V4 controller's endpoint context (`buildSceneEndpointContext`) reads
+  the selection from the URL at startup. Wave 1 leaves that startup-only
+  behaviour; wave 2 extends the controller to subscribe to selection-store
+  changes so reselection re-anchors endpoints without reload. The data
+  contract does not change in either case.
+
+### A.4 Source-tier authority semantics retained
+
+The three-tier authority remains:
+
+- `operator-validated` — the existing CHT + Speedcast retained-fixture path
+  is preserved exactly; mount unification does not introduce a competing
+  flow into that path.
+- `public-disclosed` / `geometric-derived` — selected-pair runtime projection
+  produces these. The IA carries the badge into Tier-1 of the V4 panel
+  header (operator-validated does not flow through the IA's panel-driven
+  surfaces because it is consumed by the legacy controller path only).
+
+### A.5 Boundary note
+
+The selected-pair main-globe satellite cue continues to be a TLE-derived
+display lane, not measured service telemetry. The fixture-driven V4
+controller actor/timeline main scene remains the existing surface; mount
+unification does not replace it with the selected-pair projection's full
+constellation. Both render simultaneously in `projecting` / `replaying`
+states. The Row 6 panel footer carries the precision / source-tier caveat
+so that boundary remains explicit in the smaller IA.
+
+### A.6 Composition subscription contract (codex-challenge fix)
+
+Mount and dispose decisions for selection-driven surfaces are made by a
+single `display-state` helper that composition wires up at bootstrap:
+
+```ts
+// features/multi-station-selector/display-state.ts (new in wave 1)
+export type DisplayState =
+  | "idle"
+  | "selecting"
+  | "projecting"
+  | "replaying"
+  | "invalid";
+
+export interface DisplayStateInputs {
+  readonly selection: SelectionSnapshot;
+  readonly registryResolves: (id: string) => boolean;
+  readonly infoCardOpen: boolean;
+  readonly replayClockIsPlaying: boolean;
+}
+
+export function resolveDisplayState(inputs: DisplayStateInputs): DisplayState;
+
+export function subscribeDisplayState(
+  store: SelectionStore,
+  replayClock: ReplayClock,
+  infoCardOpenSignal: { subscribe(fn: (open: boolean) => void): () => void },
+  onChange: (state: DisplayState) => void
+): () => void;
+```
+
+Composition does:
+
+```ts
+const dispose: Array<() => void> = [];
+let v4Panel: V4ProjectionSidePanelHandle | null = null;
+let v4Endpoints: V4EndpointSurfacesHandle | null = null;
+
+const unsubscribe = subscribeDisplayState(
+  groundStationSelectionStore,
+  replayClock,
+  groundStationInfoCard.openSignal,
+  (state) => {
+    const isPanelState = state === "projecting" || state === "replaying";
+    if (isPanelState && !v4Panel) {
+      const pair = resolveV4RouteSelection(currentSearchParams()).resolvedPair;
+      if (pair) v4Panel = mountV4ProjectionSidePanel(viewerContainer, { resolvedPair: pair });
+    }
+    if (!isPanelState && v4Panel) {
+      v4Panel.dispose();
+      v4Panel = null;
+    }
+    // wave 2 extends with v4Endpoints mount/dispose
+    document.body.dataset.displayState = state;
+  }
+);
+
+dispose.push(unsubscribe);
+```
+
+The `infoCardOpenSignal` is the new minimal extension to the existing
+`mountGroundStationInfoCard` API: it returns an `openSignal` (a tiny
+subscribe primitive) so the display-state helper can react to info-card
+open/close transitions without depending on DOM presence.
+
+In wave 1 only `subscribeDisplayState` and the V4 panel mount/dispose
+edge are wired; the V4 controller endpoint surfaces continue to mount
+once at bootstrap from the URL. Wave 2 extends the seam to V4 controller
+endpoint surfaces (re-anchoring endpoint markers + camera framing on
+pair change without page reload).
+
+### A.7 Wave-1 reload semantic
+
+Per IA §11.1–§11.2, the chips' Apply CTA in wave 1 acts only when the
+URL on landing did not carry a valid pair AND the user has now filled
+both slots from the picker / markers / list. In that case Apply triggers
+`window.location.assign(buildV4PairHref(...))` to perform a clean
+bootstrap with the V4 panel mounted from the start. When the URL already
+carried a valid pair (panel mounted from boot), Apply is hidden by the
+selection chips renderer; the panel is already there, and changing
+either slot through the chips, picker, or markers updates the URL via
+`selection-store.writeUrl` (already `history.replaceState`-based) and
+triggers a panel recompute via the §A.6 subscription.
+
+There is no other Apply semantic. There is no full-reload during a
+session that already has a mounted V4 panel — preserving G3 60×
+continuity.
