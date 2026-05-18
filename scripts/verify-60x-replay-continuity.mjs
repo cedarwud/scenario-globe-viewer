@@ -135,7 +135,7 @@ await send("Runtime.evaluate", {
   expression: `
     (() => {
       const button = document.querySelector(
-        '[data-m8a-v47-control-group="speed"] button[data-m8a-v47-multiplier="60"]'
+        '[data-m8a-v47-control-group="speed"] button[data-m8a-v47-playback-multiplier="60"]'
       );
       if (!button) return { ok: false, reason: 'no 60x button' };
       button.click();
