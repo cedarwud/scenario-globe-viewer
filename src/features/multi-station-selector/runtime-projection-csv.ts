@@ -115,6 +115,86 @@ export function buildRuntimeProjectionCsv(result: RuntimeProjectionResult): stri
     rows.push([nonClaim]);
   }
 
+  rows.push(
+    [],
+    ["# TLE source manifest"],
+    [
+      "sourceId",
+      "orbitClass",
+      "recordCount",
+      "acceptedRecordCount",
+      "rejectedRecordCount",
+      "capApplied",
+      "sourceTimestampUtc",
+      "health"
+    ]
+  );
+  for (const source of result.dataCompleteness.tleSources) {
+    rows.push([
+      source.sourceId,
+      source.orbitClass,
+      source.recordCount,
+      source.acceptedRecordCount,
+      source.rejectedRecordCount,
+      source.capApplied,
+      source.sourceTimestampUtc,
+      source.health
+    ]);
+  }
+
+  rows.push(
+    [],
+    ["# Station precision"],
+    [
+      "stationId",
+      "disclosurePrecision",
+      "sourceTier",
+      "renderPositionIsSourceTruth",
+      "coordinateUse"
+    ]
+  );
+  for (const station of result.dataCompleteness.stationPrecision) {
+    rows.push([
+      station.stationId,
+      station.disclosurePrecision,
+      station.sourceTier,
+      station.renderPositionIsSourceTruth ? "true" : "false",
+      station.coordinateUse
+    ]);
+  }
+
+  rows.push(
+    [],
+    ["# Modeled outputs"],
+    [
+      "kind",
+      "modelId",
+      "standardsRef",
+      "outputUnit",
+      "rainRateControlMode",
+      "nonClaim"
+    ]
+  );
+  for (const output of result.dataCompleteness.modeledOutputs) {
+    rows.push([
+      output.kind,
+      output.modelId,
+      output.standardsRef.join(" | "),
+      output.outputUnit,
+      output.rainRateControlMode,
+      output.nonClaim
+    ]);
+  }
+
+  rows.push(
+    [],
+    ["# Data completeness"],
+    ["field", "value"],
+    ["routeMode", result.dataCompleteness.routeMode],
+    ["fakeActorCount", result.dataCompleteness.actorSourceCoverage.fakeActorCount],
+    ["emptyReasonCode", result.dataCompleteness.emptyReasonCode]
+  );
+
   return serializeCsvRows(rows);
 }
 

@@ -45,6 +45,7 @@ import {
   loadDefaultTleSources,
   parseRuntimeTleSources
 } from "../features/multi-station-selector/runtime-projection";
+import type { RuntimeDataCompletenessState } from "../features/multi-station-selector/runtime-data-completeness";
 import {
   buildTleFirstSceneViewModel,
   type SceneActor,
@@ -475,6 +476,8 @@ interface SelectedPairOverlayDebugState {
   eventCueCount: number;
   sourceMode: TleFirstSceneViewModel["sourceMode"] | "";
   pairGeometry: SceneCameraHint["pairGeometry"] | "";
+  emptyReasonCode: RuntimeDataCompletenessState["emptyReasonCode"];
+  dataCompleteness: RuntimeDataCompletenessState | null;
   errorMessage: string;
 }
 
@@ -4883,6 +4886,8 @@ function createSelectedPairOverlayDebugState(
     eventCueCount: 0,
     sourceMode: "",
     pairGeometry: "",
+    emptyReasonCode: null,
+    dataCompleteness: null,
     errorMessage: "",
     ...overrides
   };
@@ -5341,6 +5346,16 @@ async function installSelectedPairTleFirstSceneLayer({
   const renderableActors = viewModel.actors.filter(
     (actor) => actor.sourceSamples.length > 0
   );
+  const sceneDataCompleteness: RuntimeDataCompletenessState = {
+    ...result.dataCompleteness,
+    actorSourceCoverage: {
+      renderedActorCount: renderableActors.length,
+      tleBackedActorCount: renderableActors.filter(
+        (actor) => actor.sourceClass === "tle-derived"
+      ).length,
+      fakeActorCount: 0
+    }
+  };
   if (shouldSkip() || renderableActors.length === 0) {
     if (!shouldSkip()) {
       onStateChange(
@@ -5354,7 +5369,9 @@ async function installSelectedPairTleFirstSceneLayer({
             0
           ),
           activeSelectionSampleCount: viewModel.activeLinks.length,
-          handoverEventCount: viewModel.handoverEvents.length
+          handoverEventCount: viewModel.handoverEvents.length,
+          emptyReasonCode: sceneDataCompleteness.emptyReasonCode,
+          dataCompleteness: sceneDataCompleteness
         })
       );
       applySelectedPairCameraHint(viewer, sceneEndpointContext, viewModel.cameraHint);
@@ -5572,7 +5589,9 @@ async function installSelectedPairTleFirstSceneLayer({
           : 0,
       eventCueCount: renderableEventCues.length,
       sourceMode: viewModel.sourceMode,
-      pairGeometry: viewModel.cameraHint.pairGeometry
+      pairGeometry: viewModel.cameraHint.pairGeometry,
+      emptyReasonCode: sceneDataCompleteness.emptyReasonCode,
+      dataCompleteness: sceneDataCompleteness
     })
   );
 

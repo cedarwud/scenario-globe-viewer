@@ -25,12 +25,22 @@ import {
   type StationGeodetic,
   type TleRecord
 } from "./visibility-utils";
+import {
+  buildRuntimeDataCompletenessState,
+  type RuntimeDataCompletenessState,
+  type RuntimeRainRateControlMode
+} from "./runtime-data-completeness";
 
 const DEFAULT_SAMPLE_STEP_SECONDS = 30;
 const DEFAULT_ELEVATION_THRESHOLD_DEG = 10;
 const DEFAULT_LEO_CAP = 60;
 const DEFAULT_MEO_CAP = 60;
 const DEFAULT_GEO_CAP = 60;
+const DEFAULT_TLE_CAPS: Readonly<Record<OrbitClass, number>> = {
+  LEO: DEFAULT_LEO_CAP,
+  MEO: DEFAULT_MEO_CAP,
+  GEO: DEFAULT_GEO_CAP
+};
 const ORBIT_CLASSES: ReadonlyArray<OrbitClass> = ["LEO", "MEO", "GEO"];
 const EARTH_RADIUS_KM = 6371;
 const SPEED_OF_LIGHT_KM_PER_SECOND = 299_792.458;
@@ -124,6 +134,7 @@ export interface RuntimeProjectionResult {
   readonly handoverEvents: ReadonlyArray<HandoverEvent>;
   readonly communicationStats: CommunicationStats;
   readonly truthBoundary: TruthBoundary;
+  readonly dataCompleteness: RuntimeDataCompletenessState;
 }
 
 export interface RuntimeTleSources {
@@ -520,6 +531,12 @@ function buildTruthBoundary(
   };
 }
 
+function resolveRainRateControlMode(
+  rainRateMmPerHour: number | undefined
+): RuntimeRainRateControlMode {
+  return rainRateMmPerHour === undefined ? "fixture-default" : "user-controlled";
+}
+
 function resolveSharedSupportedOrbits(
   stationA: PublicRegistryStation,
   stationB: PublicRegistryStation
@@ -558,12 +575,13 @@ export function computeRuntimeProjection(
     input.stationA,
     input.stationB
   );
+  const cappedAllRecords = capTleRecords(input.tleRecords, {
+    LEO: DEFAULT_TLE_CAPS.LEO,
+    MEO: DEFAULT_TLE_CAPS.MEO,
+    GEO: DEFAULT_TLE_CAPS.GEO
+  });
   const cappedRecords = filterRecordsByOrbit(
-    capTleRecords(input.tleRecords, {
-      LEO: DEFAULT_LEO_CAP,
-      MEO: DEFAULT_MEO_CAP,
-      GEO: DEFAULT_GEO_CAP
-    }),
+    cappedAllRecords,
     sharedSupportedOrbits
   );
 
@@ -614,6 +632,32 @@ export function computeRuntimeProjection(
     meanLinkDwellMs
   };
 
+  const truthBoundary = buildTruthBoundary(
+    input.stationA,
+    input.stationB,
+    rainRateMmPerHour,
+    sharedSupportedOrbits
+  );
+  const dataCompleteness = buildRuntimeDataCompletenessState({
+    routeMode: "tle-first-runtime",
+    stationA: input.stationA,
+    stationB: input.stationB,
+    pairSourceTier: truthBoundary.sourceTier,
+    allTleRecords: input.tleRecords,
+    cappedTleRecords: cappedAllRecords,
+    acceptedTleRecords: cappedRecords,
+    sourcePaths: TLE_FIXTURE_PATHS,
+    caps: DEFAULT_TLE_CAPS,
+    referenceUtc: input.timeWindow.startUtc,
+    sharedSupportedOrbits,
+    visibilityWindows,
+    handoverEventCount: handoverEvents.length,
+    rainRateMmPerHour,
+    rainRateControlMode: resolveRainRateControlMode(input.rainRateMmPerHour),
+    sampleStepSeconds,
+    elevationThresholdDeg
+  });
+
   return {
     pair: { stationA: input.stationA, stationB: input.stationB },
     timeWindow: input.timeWindow,
@@ -625,12 +669,8 @@ export function computeRuntimeProjection(
     visibilityWindows,
     handoverEvents,
     communicationStats,
-    truthBoundary: buildTruthBoundary(
-      input.stationA,
-      input.stationB,
-      rainRateMmPerHour,
-      sharedSupportedOrbits
-    )
+    truthBoundary,
+    dataCompleteness
   };
 }
 

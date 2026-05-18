@@ -1249,6 +1249,38 @@ function buildMeanDwellBlock(result: RuntimeProjectionResult): HTMLElement {
   return block;
 }
 
+function syncTleTelemetryChip(result: RuntimeProjectionResult): void {
+  const chip = document.querySelector<HTMLElement>('[data-tle-telemetry-chip="true"]');
+  if (!chip) {
+    return;
+  }
+  const sources = result.dataCompleteness.tleSources;
+  const acceptedCount = sources.reduce(
+    (total, source) => total + source.acceptedRecordCount,
+    0
+  );
+  const rejectedCount = sources.reduce(
+    (total, source) => total + source.rejectedRecordCount,
+    0
+  );
+  const healthSummary = sources.map((source) => source.health).join("/");
+  const newestTimestamp = sources
+    .map((source) => source.sourceTimestampUtc)
+    .filter((timestamp): timestamp is string => timestamp !== null)
+    .sort()
+    .pop();
+
+  chip.dataset.sourceCount = String(sources.length);
+  chip.dataset.acceptedRecordCount = String(acceptedCount);
+  chip.dataset.rejectedRecordCount = String(rejectedCount);
+  chip.dataset.sourceHealth = healthSummary;
+  chip.dataset.stalenessState = healthSummary;
+  if (newestTimestamp) {
+    chip.dataset.sourceTimestampUtc = newestTimestamp;
+  }
+  chip.textContent = `${chip.textContent?.split(" · ")[0] ?? "TLE"} · ${healthSummary}`;
+}
+
 function buildDisclosuresRow(
   result: RuntimeProjectionResult,
   rainRateMmPerHour: number,
@@ -1302,6 +1334,17 @@ function buildFooterRow(result: RuntimeProjectionResult): HTMLElement {
   row.dataset.row = "6";
   const footer = document.createElement("p");
   footer.className = "v4-projection-side-panel__footer";
+  footer.dataset.stationPrecisionDisclosure = "true";
+  footer.dataset.sourceTier = result.truthBoundary.sourceTier;
+  for (const [index, station] of result.dataCompleteness.stationPrecision.entries()) {
+    const slot = index === 0 ? "A" : "B";
+    footer.dataset[`station${slot}Id`] = station.stationId;
+    footer.dataset[`station${slot}Precision`] = station.disclosurePrecision;
+    footer.dataset[`station${slot}RenderPositionIsSourceTruth`] = String(
+      station.renderPositionIsSourceTruth
+    );
+    footer.dataset[`station${slot}CoordinateUse`] = station.coordinateUse;
+  }
   footer.textContent = `${result.truthBoundary.precisionLabel} · ${result.truthBoundary.sourceTier}`;
   row.append(footer);
   return row;
@@ -1330,7 +1373,10 @@ function renderResult(
   root.dataset.state = "ready";
   root.dataset.sourceTier = result.truthBoundary.sourceTier;
   root.dataset.rainRateMmPerHour = String(rainRateMmPerHour);
+  root.dataset.dataCompletenessRouteMode = result.dataCompleteness.routeMode;
+  root.dataset.emptyReasonCode = result.dataCompleteness.emptyReasonCode ?? "";
 
+  syncTleTelemetryChip(result);
   setRainControlCaption(rainControl, result, rainRateMmPerHour);
 
   root.append(
