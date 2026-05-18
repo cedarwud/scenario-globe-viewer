@@ -59,8 +59,7 @@ demo 畫面上重現 (reproduce) 的位置與一組真實數字。
 - **白話**: 畫面上同時有低/中/高軌三層衛星,且服務能在它們之間切換。
 - **完成度**: 視覺化已完成。跨軌道切換邏輯由 `handover-policy.ts` 的
   `cross-orbit-live` 政策提供 (見卡 19 / V-MO1)。
-- **demo 驗證位置**: V4 demo route,三層星座同時顯示;side panel 的 Link selection events
-  區塊列出切換事件。
+- **demo 驗證位置**: globe 三層星座 + V4 panel Row 4 link-selection list。
 - **source tier**: 幾何顯示 Tier C;切換 metric Tier B。
 - **重現**: 開 V4 route,觀察 LEO/MEO/GEO 三層;side panel「LEO/MEO/GEO」comm-time
   分項即三軌道個別服務時間。
@@ -73,8 +72,7 @@ demo 畫面上重現 (reproduce) 的位置與一組真實數字。
 - **原文**: 衛星模型軌道資料整合。
 - **白話**: 真實衛星的軌道資料能被讀進系統並用來定位。
 - **完成度**: done。
-- **demo 驗證位置**: 任何 route 的衛星位置;TLE fixtures 位於
-  `public/fixtures/satellites/`。
+- **demo 驗證位置**: V4 panel Row 4 visibility list rows;每列附 `satelliteId`。
 - **source tier**: Tier C (SGP4 + TLE)。
 - **重現**: side panel 的 Pair visibility windows 每列附 satelliteId,可回對 TLE。
 - **工程師可能問**: 「TLE 多新?」→ 本地 Starlink/OneWeb TLE 最新 2026-05-16。
@@ -85,7 +83,7 @@ demo 畫面上重現 (reproduce) 的位置與一組真實數字。
 - **原文**: 視覺化呈現 (Blender 工具或等效)。
 - **白話**: 用 3D 地球把衛星與情境畫出來。
 - **完成度**: done。採用 Cesium 為 Blender 的等效方案 (即時、可互動,優於離線算圖)。
-- **demo 驗證位置**: 整個 viewer。
+- **demo 驗證位置**: globe。
 - **source tier**: 不適用 (呈現層)。
 - **重現**: 開首頁即見 3D 地球與星座。
 - **工程師可能問**: 「為何不是 Blender?」→ Blender 為離線算圖;互動式即時 demo
@@ -97,7 +95,7 @@ demo 畫面上重現 (reproduce) 的位置與一組真實數字。
 - **原文**: UI 互動介面。
 - **白話**: 使用者能點選、調整、操作。
 - **完成度**: done。
-- **demo 驗證位置**: 首頁地面站選取、V4 side panel、雨衰滑桿、CSV 按鈕。
+- **demo 驗證位置**: selection chips + list picker filter chips + Row 2 rain slider + replay strip。
 - **source tier**: 不適用。
 - **重現**: 首頁點兩個地面站 → 進 V4 route → 操作 side panel。
 - **工程師可能問**: 「能選真實地面站嗎?」→ 可,69 站公開 registry。
@@ -110,7 +108,7 @@ demo 畫面上重現 (reproduce) 的位置與一組真實數字。
 - **完成度**: done。`handover-policy.ts` 提供三種政策
   (`bootstrap-balanced-v1`、`leo-first`、`cross-orbit-live`),參數含
   elevationThresholdDeg、hysteresisDb、minVisibilityWindowMs、latencyBudgetMs。
-- **demo 驗證位置**: side panel Link selection events;runtime-projection 取用該模組。
+- **demo 驗證位置**: V4 panel Row 5 disclosure 3 `Sources + non-claims`。
 - **source tier**: Tier B — 3GPP TR 38.821 §7.3。
 - **重現**: `src/runtime/link-budget/handover-policy.ts` 函式頂部附 §7.3 引用。
 - **工程師可能問**: 「門檻數字哪來?」→ 政策結構源自 TR 38.821 §7.3 trigger
@@ -123,8 +121,7 @@ demo 畫面上重現 (reproduce) 的位置與一組真實數字。
 - **白話**: 不只顯示「連得到」,還顯示「連得多快」。
 - **完成度**: done。runtime-projection 由 link-budget 推算每軌道 networkSpeedMbps,
   雨衰會即時下修速率 (見卡 13)。
-- **demo 驗證位置**: side panel Rain attenuation 區塊的 per-orbit downlink
-  throughput。
+- **demo 驗證位置**: V4 panel Row 5 disclosure 1 `Rain impact`。
 - **source tier**: Tier B — FSPL (TR 38.811 §6.6) + 雨衰 (P.618-14) + 氣衰
   (P.676-13)。
 - **重現**: 拉雨衰滑桿,觀察 LEO/GEO downlink Mbps 隨之變化。
@@ -137,7 +134,7 @@ demo 畫面上重現 (reproduce) 的位置與一組真實數字。
 - **原文**: 支援 ≥ 500 LEO 模擬 (Starlink、OneWeb)。
 - **白話**: 系統能同時處理至少 500 顆低軌衛星。
 - **完成度**: done,遠超門檻。本地 TLE 約 11015 顆 (Starlink + OneWeb,2026-05-16)。
-- **demo 驗證位置**: LEO scale overlay;star count。
+- **demo 驗證位置**: LEO actor count chip (`chrome.topLeft` 第三列右側)。
 - **source tier**: Tier C — TLE-derived。
 - **重現**: TLE fixture 行數即衛星數;runtime-projection 為控制效能每軌道上限取
   60 顆參與配對運算 (此為運算上限,非總數上限)。
@@ -155,7 +152,7 @@ demo 畫面上重現 (reproduce) 的位置與一組真實數字。
   `src/runtime/m8a-v4-product-ux-model.ts:60-62`),與視窗選擇正交。底層
   `replayClock.setMultiplier(x)` 接受任意 finite 倍率,但 UI 故意限縮為三個
   preset 以避免不穩定的高速播放選項。
-- **demo 驗證位置**: replay 控制;side panel 視窗行顯示 `Window … UTC`。
+- **demo 驗證位置**: replay strip `30x` / `60x` / `120x` 按鈕。
 - **source tier**: 不適用 (控制層)。
 - **重現**: 觀察 side panel Window 行的起訖時間。
 - **工程師可能問**: 「即時與預錄差別?」→ 未帶 `startUtc` 時即時取開頁當下 UTC
@@ -168,7 +165,7 @@ demo 畫面上重現 (reproduce) 的位置與一組真實數字。
 - **白話**: 顯示某段時間內「總共能通訊多久」。
 - **完成度**: 部分。SGP4 + elevation 推算的可通訊時間已實作並顯示;
   **iperf / ping 實測整合尚未做** (此為據實揭露)。
-- **demo 驗證位置**: side panel「Comm time」「Mean dwell」「LEO/MEO/GEO」分項。
+- **demo 驗證位置**: V4 panel Row 3 `Comm time` stat + Row 5 d2 full window list。
 - **source tier**: Tier C — 幾何可見性;非 iperf/ping 量測。
 - **重現**: side panel comm-time 數字由 visibility windows × 取樣推得。
 - **工程師可能問**: 「為何沒有 iperf?」→ iperf/ping 需 ITRI ESTNeT 實體網路;
@@ -182,7 +179,7 @@ demo 畫面上重現 (reproduce) 的位置與一組真實數字。
 - **完成度**: done。runtime-projection 每取樣點以 link-budget 推得的
   latency/jitter/networkSpeed 餵入 handover 引擎,serving 衛星變動即記為
   HandoverEvent。handover count 不含第一次 initial acquisition。
-- **demo 驗證位置**: side panel Link selection events 區塊,每列附 reasonKind。
+- **demo 驗證位置**: V4 panel Row 4 link-selection events list + Row 5 d3。
 - **source tier**: Tier B — TR 38.821 §7.3。
 - **重現**: side panel handover 列的 reasonKind
   (current-link-unavailable / better-candidate-available / policy-tie-break)。
@@ -195,7 +192,7 @@ demo 畫面上重現 (reproduce) 的位置與一組真實數字。
 - **原文**: 統計報表匯出。
 - **白話**: 把畫面上的統計數字匯出成檔案。
 - **完成度**: done。side panel「Download CSV」按鈕匯出 RFC-4180 CSV。
-- **demo 驗證位置**: V4 side panel ready 狀態的 Download CSV 按鈕。
+- **demo 驗證位置**: V4 panel Row 5 d2 head 的 Download CSV 按鈕。
 - **source tier**: 隨被匯出資料的 tier;CSV 含 truth boundary 與 non-claims 區段。
 - **重現**: 點 Download CSV,檔案含 5 區段:Runtime projection、Communication
   stats、Visibility windows、Handover events、Non-claims。
@@ -207,8 +204,7 @@ demo 畫面上重現 (reproduce) 的位置與一組真實數字。
 - **原文**: 輸入 TLE 資料並追蹤衛星行進。
 - **白話**: 餵 TLE 進去,衛星就會照軌道動。
 - **完成度**: done。
-- **demo 驗證位置**: 衛星沿軌道移動的動畫;`visibility-utils.ts`
-  `parseTleListFromText` 解析 NORAD 三行區塊。
+- **demo 驗證位置**: TLE telemetry chip (`chrome.bottomLeft`) + globe 衛星動畫。
 - **source tier**: Tier C — SGP4 propagation。
 - **重現**: side panel visibility windows 即由 TLE → SGP4 → look-angle 推得。
 - **工程師可能問**: 「用哪個 SGP4?」→ satellite.js 標準實作。
@@ -220,7 +216,7 @@ demo 畫面上重現 (reproduce) 的位置與一組真實數字。
 - **白話**: 可以調雨量,看通訊品質怎麼變差。
 - **完成度**: done。V4 side panel 新增雨率滑桿 (0-100 mm/h),即時重算投影並顯示
   Rain attenuation 區塊。
-- **demo 驗證位置**: side panel 雨率滑桿 + Rain attenuation 區塊。
+- **demo 驗證位置**: V4 panel Row 2 rain slider + Row 5 d1 `Rain impact`。
 - **source tier**: Tier B — ITU-R P.618-14 §2.2.1 + P.838-3 k/α。
 - **重現**: 拉滑桿至 80 mm/h,LEO downlink 由 199 → 38.5 Mbps、GEO 由 48.8 →
   1.36 Mbps,jitter 同步上升。MEO carrier 1.5 GHz 在 10-30 GHz 雨衰頻段外,
@@ -235,7 +231,7 @@ demo 畫面上重現 (reproduce) 的位置與一組真實數字。
 - **原文**: 製作展示 demo (預錄 scenario 或 real time 模擬)。
 - **白話**: 要有一個能跑給人看的 demo。
 - **完成度**: done。V4 ground-station demo route 即為此 demo。
-- **demo 驗證位置**: V4 route 整體。
+- **demo 驗證位置**: 整個 `/` 路由。
 - **source tier**: 不適用。
 - **重現**: 進入 V4 route URL 即見完整 demo。
 - **工程師可能問**: 「demo 怎麼進?」→ 見 §3 acceptance quick-ref 的 URL。
@@ -246,7 +242,7 @@ demo 畫面上重現 (reproduce) 的位置與一組真實數字。
 - **原文**: 11/30 成功匯入軌道模型。
 - **白話**: 期限前能把軌道模型載入。
 - **完成度**: done。
-- **demo 驗證位置**: 同卡 2 / 卡 12。
+- **demo 驗證位置**: 同卡 2 (V4 panel Row 4 visibility list rows)。
 - **source tier**: Tier C。
 - **重現**: TLE fixtures 載入 + SGP4 推進。
 - **工程師可能問**: 「交付項目對應?」→ 對應卡 2 + 卡 12 的軌道資料整合。
@@ -257,7 +253,7 @@ demo 畫面上重現 (reproduce) 的位置與一組真實數字。
 - **原文**: 11/30 可動態調整參數介面。
 - **白話**: 期限前要有能即時改參數的介面。
 - **完成度**: done。雨率滑桿、地面站選取、replay 倍率、URL 投影視窗皆可調。
-- **demo 驗證位置**: side panel 雨率滑桿即一例:拉動即重算。
+- **demo 驗證位置**: V4 panel Row 2 rain slider + replay 速度 + URL `startUtc` / `durationMinutes`。
 - **source tier**: 不適用。
 - **重現**: 拉滑桿觀察 panel 150 ms debounce 後重算。
 - **工程師可能問**: 「還有哪些參數可調?」→ replay 倍率、站對、雨率、
@@ -271,7 +267,7 @@ demo 畫面上重現 (reproduce) 的位置與一組真實數字。
 - **白話**: 期限前要能算出通訊時間統計。
 - **完成度**: done。side panel 顯示 + CSV 匯出皆含通訊時間統計。link-budget 接線後
   數字為物理推算而非寫死常數。
-- **demo 驗證位置**: side panel Communication stats;CSV「# Communication stats」段。
+- **demo 驗證位置**: V4 panel Row 3 stats + Row 5 d2 CSV。
 - **source tier**: Tier C 幾何 + Tier B 鏈路 metric。
 - **重現**: 見卡 9 + 卡 11。
 - **工程師可能問**: 「統計含哪些?」→ 總通訊時間、handover 次數、平均 dwell、
@@ -283,9 +279,7 @@ demo 畫面上重現 (reproduce) 的位置與一組真實數字。
 - **原文**: 11/30 畫面穩定運行至少 24 小時。
 - **白話**: demo 連續跑一天不崩。
 - **完成度**: done。soak 測試 2026-05-15 通過。
-- **demo 驗證位置**: 證據檔
-  `output/soak/2026-05-15T05-42-07-506Z-phase7-0-full/summary.json`
-  (`passed=true`、`durationMs=86400000`、`sampleCount=1289`)。
+- **demo 驗證位置**: viewer-root `[data-soak-summary-path]` 屬性 + 證據檔 `output/soak/2026-05-15T05-42-07-506Z-phase7-0-full/summary.json`。
 - **source tier**: 不適用 (穩定性測試)。
 - **重現**: 開啟上述 summary.json 檢視 soak 結果。
 - **工程師可能問**: 「在哪台機器跑的?」→ Ubuntu server 24 小時 soak。
@@ -302,11 +296,7 @@ demo 畫面上重現 (reproduce) 的位置與一組真實數字。
   `enableCrossOrbitLivePolicy`)。當前 LEO 仰角低於門檻且無 LEO 候選達標、
   但 MEO/GEO 達標且 latency budget 仍滿足時,發出 `cross-orbit-migration`
   事件。
-- **demo 驗證位置**: V4 side panel Link selection events 區塊 — 跨軌道事件以
-  **紫色強調列**呈現,reasonKind 文字為 `cross-orbit migration (V-MO1)`,
-  與其他 handover (better candidate available / current link unavailable /
-  policy tie break) 視覺區隔。Non-claims 行另明列政策來源 (TR 38.821 §7.3
-  + V-MO1 verbal addendum)。
+- **demo 驗證位置**: V4 panel Row 4 link-selection 紫色高亮列 (pin 規則) + Row 5 d3 reason 文字。
 - **source tier**: Tier B — TR 38.821 §7.3 結構 + 口頭需求細化。
 - **重現**: `handover-policy.ts` 含 sanity 註解 (全 LEO < 10° 仰角且 MEO 30° 可用
   → cross-orbit-migration)。
