@@ -1311,6 +1311,23 @@ function configureReplayClock(viewer: Viewer, replayClock: ReplayClock): void {
   viewer.timeline?.zoomTo(viewer.clock.startTime, viewer.clock.stopTime);
 }
 
+function configureSelectedPairReplayClock(
+  viewer: Viewer,
+  replayClock: ReplayClock
+): void {
+  const windowRange = resolveSelectedPairSceneTimeWindow();
+  replayClock.setMode("prerecorded", {
+    start: windowRange.startUtc,
+    stop: windowRange.endUtc
+  });
+  replayClock.seek(windowRange.startUtc);
+  replayClock.setMultiplier(
+    M8A_V4_FULL_LEO_ORBIT_REPLAY_PROFILE.playbackMultiplier
+  );
+  replayClock.play();
+  viewer.timeline?.zoomTo(viewer.clock.startTime, viewer.clock.stopTime);
+}
+
 function applyV4Camera(
   viewer: Viewer,
   sceneEndpointContext: SceneEndpointContext
@@ -5624,6 +5641,22 @@ export function createM8aV4GroundStationSceneController({
       "Low-opacity GEO guard cue; simulation display context only."
     )
   });
+  function setFixtureDrivenEntitiesVisible(visible: boolean): void {
+    for (const handle of actorHandles) {
+      handle.entity.show = visible;
+    }
+    for (const handle of relationHandles) {
+      handle.entity.show = visible;
+    }
+    for (const handle of linkFlowSegmentHandles) {
+      handle.entity.show = visible;
+    }
+    for (const handle of linkFlowPulseHandles) {
+      handle.entity.show = visible;
+    }
+    geoGuardCueEntity.show =
+      visible && shouldShowGeoGuardCue(latestSimulationWindow);
+  }
 
   const clearFinalHoldTimer = (): void => {
     if (typeof finalHoldTimeoutId === "number") {
@@ -6325,7 +6358,7 @@ export function createM8aV4GroundStationSceneController({
       updateLinkFlowPulseStyle(handle);
     }
 
-    geoGuardCueEntity.show = shouldShowGeoGuardCue(latestSimulationWindow);
+    setFixtureDrivenEntitiesVisible(!sceneEndpointContext.selectedPair);
 
     renderHud(hudRoot, nextState);
     renderProductUx(
@@ -6816,6 +6849,8 @@ export function createM8aV4GroundStationSceneController({
     // null, the runtime projection's fixture-driven endpoints take over,
     // matching the bootstrap-time fallback shape from buildSceneEndpointContext.
     if (pair) {
+      configureSelectedPairReplayClock(viewer, replayClock);
+      setFixtureDrivenEntitiesVisible(false);
       sceneEndpointContext = {
         endpoints: [
           createSelectedPairEndpointContext(pair.stationA, "endpoint-a"),
@@ -6824,6 +6859,8 @@ export function createM8aV4GroundStationSceneController({
         selectedPair: pair
       };
     } else {
+      configureReplayClock(viewer, replayClock);
+      setFixtureDrivenEntitiesVisible(true);
       sceneEndpointContext = {
         endpoints: M8A_V4_GROUND_STATION_RUNTIME_PROJECTION.endpoints,
         selectedPair: null
