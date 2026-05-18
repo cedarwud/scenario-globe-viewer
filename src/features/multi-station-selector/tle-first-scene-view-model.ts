@@ -421,7 +421,8 @@ export function buildSceneCameraHintForProjection(
     pairGeometry,
     suggestedAltitudeKm: altitudeByGeometry[pairGeometry],
     suggestedHeadingDeg: initialHeadingDeg(stationA, stationB),
-    suggestedPitchDeg: pairGeometry === "short-baseline" ? -42 : -55
+    suggestedPitchDeg:
+      pairGeometry === "short-baseline" || pairGeometry === "long-baseline" ? -82 : -55
   };
 }
 

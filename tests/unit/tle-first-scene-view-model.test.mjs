@@ -186,6 +186,19 @@ test("initial acquisition from null is retained and its target satellite has an 
 });
 
 test("camera hint identifies polar, near-antipodal, or empty pair geometry", () => {
+  const shortViewModel = build();
+  assert.equal(shortViewModel.cameraHint.pairGeometry, "short-baseline");
+  assert.equal(shortViewModel.cameraHint.suggestedPitchDeg, -82);
+
+  const longViewModel = build({
+    projection: {
+      stationA: station("west-site", 10, 20),
+      stationB: station("east-site", 20, 80)
+    }
+  });
+  assert.equal(longViewModel.cameraHint.pairGeometry, "long-baseline");
+  assert.equal(longViewModel.cameraHint.suggestedPitchDeg, -82);
+
   const polarViewModel = build({
     projection: {
       stationA: station("north-site", 78.2, 15.6),

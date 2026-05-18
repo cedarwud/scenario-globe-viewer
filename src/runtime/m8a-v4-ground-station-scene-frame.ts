@@ -31,7 +31,6 @@ const M8A_V4_CAMERA_HEADING_DEGREES = 0;
 const M8A_V4_CAMERA_PITCH_DEGREES = -80;
 const M8A_V4_CAMERA_SCREEN_UP_PAN_METERS = 4_000_000;
 const M8A_V4_SELECTED_PAIR_ENDPOINT_RADIUS_METERS = 90_000;
-const M8A_V4_SELECTED_PAIR_CAMERA_LATITUDE_OFFSET_DEGREES = 66;
 const M8A_V46E_NARROW_VIEWPORT_MAX_WIDTH_PX = 560;
 
 export interface SceneEndpointContext {
@@ -189,11 +188,7 @@ export function applyV4Camera(
     viewer.camera.setView({
       destination: Cartesian3.fromDegrees(
         pairCenterLon,
-        clamp(
-          pairCenterLat - M8A_V4_SELECTED_PAIR_CAMERA_LATITUDE_OFFSET_DEGREES,
-          -82,
-          82
-        ),
+        clamp(pairCenterLat, -82, 82),
         M8A_V4_CAMERA_HEIGHT_METERS
       ),
       orientation: {
@@ -260,7 +255,7 @@ export function applySelectedPairCameraHint(
         -74,
         74
       )
-    : clamp(midpointLat - M8A_V4_SELECTED_PAIR_CAMERA_LATITUDE_OFFSET_DEGREES, -82, 82);
+    : clamp(midpointLat, -82, 82);
 
   viewer.camera.cancelFlight();
   viewer.camera.setView({
