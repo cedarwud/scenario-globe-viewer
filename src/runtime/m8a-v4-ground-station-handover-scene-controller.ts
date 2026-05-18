@@ -1460,18 +1460,71 @@ function resolveActorEmphasis(
   };
 }
 
-function createEndpointPointStyle(endpoint: EndpointRenderContext): PointGraphics {
-  return new PointGraphics({
-    pixelSize: new ConstantProperty(11),
-    color: new ConstantProperty(
-      resolveEndpointColor(endpoint.endpointId, endpoint.endpointRole)
-    ),
-    outlineColor: new ConstantProperty(
-      Color.fromCssColorString("#06121a").withAlpha(0.96)
-    ),
-    outlineWidth: 2,
-    disableDepthTestDistance: Number.POSITIVE_INFINITY,
-    distanceDisplayCondition: new DistanceDisplayCondition(0, 60_000_000)
+// Wave 4.2 — endpoint A/B visual unification with the registry markers.
+// The registry station-markers module draws solid green / blue canvas
+// circles (r=4.5 px tri-orbit, r=3.5 px dual-orbit) via a BillboardCollection
+// per features/multi-station-selector/station-markers.ts. The V4 controller
+// previously drew its endpoints as a PointGraphics circle with a separate
+// ellipse on the ground; this differed visually from the registry markers
+// and made the user see two unrelated dot styles for "the selected pair"
+// vs. "the registry markers". This unification keeps the existing entity
+// scaffolding but swaps the rendering to a BillboardGraphics with a
+// drawn-circle PNG at the slightly larger 6.5 px radius (endpoint > registry)
+// and an always-visible big "A" or "B" label adjacent to the marker.
+function drawEndpointCircleDataUri(
+  radius: number,
+  fillCss: string,
+  outlineCss: string,
+  outlineWidth: number
+): string {
+  const pad = Math.ceil(outlineWidth) + 1;
+  const total = (radius + pad) * 2;
+  const canvas = document.createElement("canvas");
+  canvas.width = total;
+  canvas.height = total;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) {
+    return "";
+  }
+  ctx.clearRect(0, 0, total, total);
+  ctx.beginPath();
+  ctx.arc(total / 2, total / 2, radius, 0, Math.PI * 2);
+  ctx.fillStyle = fillCss;
+  ctx.fill();
+  ctx.strokeStyle = outlineCss;
+  ctx.lineWidth = outlineWidth;
+  ctx.stroke();
+  return canvas.toDataURL();
+}
+
+function resolveEndpointCircleCss(endpoint: EndpointRenderContext): {
+  readonly fillCss: string;
+  readonly outlineCss: string;
+} {
+  // Echo the registry tri-orbit circle stroke colour for slot A and the
+  // dual-orbit blue stroke for slot B so the eye reads "selected pair"
+  // as a higher-saturation version of the registry markers.
+  const isSlotA =
+    endpoint.endpointRole === "endpoint-a" ||
+    endpoint.endpointId === "tw-cht-multi-orbit-ground-infrastructure";
+  return isSlotA
+    ? { fillCss: "rgba(126,226,184,0.96)", outlineCss: "rgba(2,20,31,0.96)" }
+    : { fillCss: "rgba(155,196,232,0.94)", outlineCss: "rgba(2,20,31,0.96)" };
+}
+
+function createEndpointBillboardStyle(
+  endpoint: EndpointRenderContext
+): BillboardGraphics {
+  const { fillCss, outlineCss } = resolveEndpointCircleCss(endpoint);
+  const dataUri = drawEndpointCircleDataUri(6.5, fillCss, outlineCss, 2);
+  return new BillboardGraphics({
+    image: new ConstantProperty(dataUri),
+    verticalOrigin: new ConstantProperty(VerticalOrigin.CENTER),
+    horizontalOrigin: new ConstantProperty(HorizontalOrigin.CENTER),
+    disableDepthTestDistance: new ConstantProperty(Number.POSITIVE_INFINITY),
+    distanceDisplayCondition: new ConstantProperty(
+      new DistanceDisplayCondition(0, 60_000_000)
+    )
   });
 }
 
@@ -1491,30 +1544,35 @@ function createEndpointEllipseStyle(
 }
 
 function createEndpointLabelStyle(
-  _endpoint: EndpointRenderContext
+  endpoint: EndpointRenderContext
 ): LabelGraphics {
+  const roleLetter =
+    endpoint.endpointRole === "endpoint-a" ? "A" : "B";
+  const roleColorCss =
+    endpoint.endpointRole === "endpoint-a" ? "#ffd166" : "#9bc4e8";
   return new LabelGraphics({
-    show: new ConstantProperty(false),
-    text: new ConstantProperty(M8A_V4_GROUND_STATION_REQUIRED_PRECISION_BADGE),
-    font: "11px sans-serif",
+    show: new ConstantProperty(true),
+    text: new ConstantProperty(roleLetter),
+    font: "bold 14px Inter, system-ui, sans-serif",
     style: LabelStyle.FILL_AND_OUTLINE,
-    fillColor: new ConstantProperty(Color.WHITE.withAlpha(0.96)),
+    fillColor: new ConstantProperty(Color.fromCssColorString(roleColorCss)),
     outlineColor: new ConstantProperty(
-      Color.fromCssColorString("#06121a").withAlpha(0.96)
+      Color.fromCssColorString("#02141f").withAlpha(0.96)
     ),
     outlineWidth: 2,
     showBackground: true,
     backgroundColor: new ConstantProperty(
-      Color.fromCssColorString("#0b1820").withAlpha(0.68)
+      Color.fromCssColorString("#06121a").withAlpha(0.76)
     ),
-    backgroundPadding: new Cartesian2(7, 4),
-    pixelOffset: new Cartesian2(0, -32),
-    horizontalOrigin: HorizontalOrigin.CENTER,
+    backgroundPadding: new Cartesian2(6, 3),
+    pixelOffset: new Cartesian2(12, -14),
+    horizontalOrigin: HorizontalOrigin.LEFT,
     verticalOrigin: VerticalOrigin.BOTTOM,
     disableDepthTestDistance: Number.POSITIVE_INFINITY,
     distanceDisplayCondition: new DistanceDisplayCondition(0, 60_000_000)
   });
 }
+
 
 function resolveSelectedPairSatelliteColor(
   satellite: SelectedPairSceneSatellite
@@ -5201,7 +5259,7 @@ export function createM8aV4GroundStationSceneController({
       id: `m8a-v4-endpoint-${endpoint.endpointId}`,
       name: endpoint.renderMarker.label,
       position: positionToCartesian(endpoint.renderMarker.displayPosition),
-      point: createEndpointPointStyle(endpoint),
+      billboard: createEndpointBillboardStyle(endpoint),
       ellipse: createEndpointEllipseStyle(endpoint),
       label: createEndpointLabelStyle(endpoint),
       description: new ConstantProperty(
@@ -6868,7 +6926,7 @@ export function createM8aV4GroundStationSceneController({
         id: `m8a-v4-endpoint-${endpoint.endpointId}`,
         name: endpoint.renderMarker.label,
         position: positionToCartesian(endpoint.renderMarker.displayPosition),
-        point: createEndpointPointStyle(endpoint),
+        billboard: createEndpointBillboardStyle(endpoint),
         ellipse: createEndpointEllipseStyle(endpoint),
         label: createEndpointLabelStyle(endpoint),
         description: new ConstantProperty(
