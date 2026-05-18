@@ -55,12 +55,13 @@ const chrome = spawn(
   CHROMIUM_PATH,
   [
     "--headless=new",
-    // The G3 spec pins `--use-gl=swiftshader`; the previous
-    // `--use-angle=swiftshader` switch routes through ANGLE which
-    // throttles raf to ~1Hz in headless on this WSL2 host. The
-    // direct-gl path keeps raf at native cadence under focus
-    // emulation.
-    "--use-gl=swiftshader",
+    // `--use-angle=swiftshader --enable-unsafe-swiftshader` is the only
+    // combination verified to initialize Cesium WebGL on this WSL2 host.
+    // The raf throttling concern is addressed via the
+    // background-throttling disables + Emulation.setFocusEmulationEnabled
+    // below.
+    "--use-angle=swiftshader",
+    "--enable-unsafe-swiftshader",
     "--disable-dev-shm-usage",
     "--no-sandbox",
     // Headless Chromium throttles requestAnimationFrame in
