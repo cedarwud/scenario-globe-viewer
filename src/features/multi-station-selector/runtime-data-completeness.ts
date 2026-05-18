@@ -1,9 +1,19 @@
-import type { SceneSourceMode } from "./tle-first-scene-view-model";
+import { twoline2satrec } from "../../vendor/satellite-js-runtime";
+import type {
+  SceneCameraHint,
+  SceneDisplayPolicy,
+  SceneSourceMode
+} from "./tle-first-scene-view-model";
 import type {
   PairSourceTierAttribution,
   PublicRegistryStation
 } from "./tier-inference";
-import type { OrbitClass, PairVisibilityWindow, TleRecord } from "./visibility-utils";
+import type {
+  OrbitClass,
+  PairVisibilityWindow,
+  TlePropagationStats,
+  TleRecord
+} from "./visibility-utils";
 
 export type RuntimeTruthClass =
   | "tle-derived"
@@ -22,6 +32,18 @@ export type RuntimeEmptyReasonCode =
   | "no-pair-intersection"
   | "no-handover-event";
 
+export interface RuntimeNoradIdRangeSummary {
+  readonly start: number;
+  readonly end: number;
+  readonly count: number;
+}
+
+export interface RuntimeTleDragTermFieldCoverage {
+  readonly meanMotionFirstDerivativeCount: number;
+  readonly meanMotionSecondDerivativeCount: number;
+  readonly bstarDragTermCount: number;
+}
+
 export interface RuntimeTleSourceManifestEntry {
   readonly sourceId: string;
   readonly sourcePath: string;
@@ -38,6 +60,12 @@ export interface RuntimeTleSourceManifestEntry {
   readonly sourceTimestampUtc: string | null;
   readonly healthThresholdDays: number;
   readonly health: TleSourceHealth;
+  readonly sgp4ErrorCount: number;
+  readonly noradIdRangeSummary: ReadonlyArray<RuntimeNoradIdRangeSummary>;
+  readonly cosparDesignatorCount: number;
+  readonly cosparDesignatorSamples: ReadonlyArray<string>;
+  readonly classificationCounts: Readonly<Record<string, number>>;
+  readonly dragTermFieldCoverage: RuntimeTleDragTermFieldCoverage;
 }
 
 export interface RuntimeTleSourceParseStats {
@@ -47,6 +75,11 @@ export interface RuntimeTleSourceParseStats {
   readonly rawRecordGroupCount: number;
   readonly parsedRecordCount: number;
   readonly parserFailureCount: number;
+  readonly noradIdRangeSummary: ReadonlyArray<RuntimeNoradIdRangeSummary>;
+  readonly cosparDesignatorCount: number;
+  readonly cosparDesignatorSamples: ReadonlyArray<string>;
+  readonly classificationCounts: Readonly<Record<string, number>>;
+  readonly dragTermFieldCoverage: RuntimeTleDragTermFieldCoverage;
 }
 
 export interface RuntimeProvenanceTag {
@@ -54,6 +87,10 @@ export interface RuntimeProvenanceTag {
   readonly sourceId: string;
   readonly modelId?: string;
   readonly nonClaim?: string;
+}
+
+export interface RuntimeDisplayTransformMetadata extends RuntimeProvenanceTag {
+  readonly inputSummary: Readonly<Record<string, string | number | boolean | null>>;
 }
 
 export type RuntimeModeledOutputKind =
@@ -132,7 +169,8 @@ export interface RuntimeDataCompletenessState {
   readonly actorProvenance: ReadonlyArray<RuntimeActorProvenanceState>;
   readonly visibilityProvenance: ReadonlyArray<RuntimeVisibilityProvenanceState>;
   readonly modeledOutputs: ReadonlyArray<RuntimeModeledOutputMetadata>;
-  readonly displayTransforms: ReadonlyArray<RuntimeProvenanceTag>;
+  readonly displayTransforms: ReadonlyArray<RuntimeDisplayTransformMetadata>;
+  readonly visibilityCadenceSecondsByOrbit: Readonly<Record<OrbitClass, number>>;
   readonly emptyReasonCode: RuntimeEmptyReasonCode | null;
 }
 
@@ -157,7 +195,12 @@ export interface BuildRuntimeDataCompletenessInput {
   readonly rainRateMmPerHour: number;
   readonly rainRateControlMode: RuntimeRainRateControlMode;
   readonly sampleStepSeconds: number;
+  readonly sampleCadenceSecondsByOrbit: Readonly<Record<OrbitClass, number>>;
   readonly elevationThresholdDeg: number;
+  readonly propagationStatsBySatellite?: ReadonlyMap<string, TlePropagationStats>;
+  readonly sourceHealthThresholdDays?: Partial<Record<OrbitClass, number>>;
+  readonly sceneCameraHint?: SceneCameraHint;
+  readonly sceneDisplayPolicy?: SceneDisplayPolicy;
 }
 
 const ORBIT_CLASSES: ReadonlyArray<OrbitClass> = ["LEO", "MEO", "GEO"];
@@ -209,21 +252,126 @@ function extractSourceTimestampUtc(sourcePath: string): string | null {
   return match ? `${match[1]}T00:00:00.000Z` : null;
 }
 
+function maxUtc(
+  ...values: ReadonlyArray<string | null | undefined>
+): string | null {
+  const times = values
+    .map((value) => (value ? Date.parse(value) : NaN))
+    .filter((value) => Number.isFinite(value));
+  if (times.length === 0) {
+    return null;
+  }
+  return new Date(Math.max(...times)).toISOString();
+}
+
 function resolveTleSourceHealth(options: {
   readonly sourceTimestampUtc: string | null;
+  readonly epochEndUtc: string | null;
   readonly referenceUtc: string;
   readonly thresholdDays: number;
 }): TleSourceHealth {
-  if (!options.sourceTimestampUtc) {
+  const freshnessAnchorUtc = maxUtc(options.sourceTimestampUtc, options.epochEndUtc);
+  if (!freshnessAnchorUtc) {
     return "unknown-age";
   }
-  const sourceMs = Date.parse(options.sourceTimestampUtc);
+  const sourceMs = Date.parse(freshnessAnchorUtc);
   const referenceMs = Date.parse(options.referenceUtc);
   if (!Number.isFinite(sourceMs) || !Number.isFinite(referenceMs)) {
     return "unknown-age";
   }
   const ageDays = Math.max(0, (referenceMs - sourceMs) / 86_400_000);
   return ageDays <= options.thresholdDays ? "fresh" : "stale";
+}
+
+function resolveHealthThresholdDays(
+  orbitClass: OrbitClass,
+  overrides?: Partial<Record<OrbitClass, number>>
+): number {
+  const override = overrides?.[orbitClass];
+  if (Number.isFinite(override) && override !== undefined && override > 0) {
+    return override;
+  }
+  return SOURCE_HEALTH_THRESHOLD_DAYS[orbitClass];
+}
+
+function summarizeNoradIds(
+  records: ReadonlyArray<TleRecord>
+): ReadonlyArray<RuntimeNoradIdRangeSummary> {
+  const ids = records
+    .map((record) => record.noradCatalogId)
+    .filter((id): id is number => Number.isInteger(id))
+    .sort((left, right) => left - right);
+  if (ids.length === 0) {
+    return [];
+  }
+  const ranges: RuntimeNoradIdRangeSummary[] = [];
+  let start = ids[0];
+  let end = ids[0];
+  let count = 1;
+  for (let index = 1; index < ids.length; index += 1) {
+    const id = ids[index];
+    if (id === end + 1) {
+      end = id;
+      count += 1;
+      continue;
+    }
+    ranges.push({ start, end, count });
+    start = id;
+    end = id;
+    count = 1;
+  }
+  ranges.push({ start, end, count });
+  return ranges;
+}
+
+function countClassification(records: ReadonlyArray<TleRecord>): Record<string, number> {
+  const counts: Record<string, number> = {};
+  for (const record of records) {
+    const key = record.classification || "unknown";
+    counts[key] = (counts[key] ?? 0) + 1;
+  }
+  return counts;
+}
+
+function buildDragTermCoverage(
+  records: ReadonlyArray<TleRecord>
+): RuntimeTleDragTermFieldCoverage {
+  return {
+    meanMotionFirstDerivativeCount: records.filter(
+      (record) => record.meanMotionFirstDerivative !== null && record.meanMotionFirstDerivative !== undefined
+    ).length,
+    meanMotionSecondDerivativeCount: records.filter(
+      (record) => record.meanMotionSecondDerivative !== null && record.meanMotionSecondDerivative !== undefined
+    ).length,
+    bstarDragTermCount: records.filter(
+      (record) => record.bstarDragTerm !== null && record.bstarDragTerm !== undefined
+    ).length
+  };
+}
+
+function resolveCosparSamples(records: ReadonlyArray<TleRecord>): ReadonlyArray<string> {
+  return [
+    ...new Set(
+      records
+        .map((record) => record.cosparDesignator)
+        .filter((value): value is string => Boolean(value))
+    )
+  ].slice(0, 8);
+}
+
+function countSgp4ErrorRecords(records: ReadonlyArray<TleRecord>): number {
+  let count = 0;
+  for (const record of records) {
+    try {
+      const satrec = twoline2satrec(record.tleLine1, record.tleLine2);
+      if (satrec?.error) {
+        count += 1;
+      }
+    } catch {
+      count += 1;
+    }
+  }
+  return count;
 }
 
 function resolveCoordinateUse(
@@ -283,7 +431,13 @@ function buildTleSourceManifest(
     ];
     const sourcePath = input.sourcePaths[orbitClass];
     const sourceTimestampUtc = extractSourceTimestampUtc(sourcePath);
-    const healthThresholdDays = SOURCE_HEALTH_THRESHOLD_DAYS[orbitClass];
+    const healthThresholdDays = resolveHealthThresholdDays(
+      orbitClass,
+      input.sourceHealthThresholdDays
+    );
+    const epochRange = resolveEpochRange(allRecords);
+    const cosparDesignatorSamples =
+      parseStats?.cosparDesignatorSamples ?? resolveCosparSamples(allRecords);
     return {
       sourceId: `tle:${orbitClass.toLowerCase()}`,
       sourcePath,
@@ -295,14 +449,25 @@ function buildTleSourceManifest(
       capApplied: input.caps[orbitClass] ?? null,
       excludedRecordCount: capExcludedCount + unsupportedOrbitCount,
       excludedReasonCategories,
-      ...resolveEpochRange(allRecords),
+      ...epochRange,
       sourceTimestampUtc,
       healthThresholdDays,
       health: resolveTleSourceHealth({
         sourceTimestampUtc,
+        epochEndUtc: epochRange.epochEndUtc,
         referenceUtc: input.referenceUtc,
         thresholdDays: healthThresholdDays
-      })
+      }),
+      sgp4ErrorCount: countSgp4ErrorRecords(allRecords),
+      noradIdRangeSummary:
+        parseStats?.noradIdRangeSummary ?? summarizeNoradIds(allRecords),
+      cosparDesignatorCount:
+        parseStats?.cosparDesignatorCount ?? cosparDesignatorSamples.length,
+      cosparDesignatorSamples,
+      classificationCounts:
+        parseStats?.classificationCounts ?? countClassification(allRecords),
+      dragTermFieldCoverage:
+        parseStats?.dragTermFieldCoverage ?? buildDragTermCoverage(allRecords)
     };
   });
 }
@@ -311,20 +476,23 @@ function resolveSourceIdForOrbit(orbitClass: OrbitClass): string {
   return `tle:${orbitClass.toLowerCase()}`;
 }
 
-function resolveProjectionSampleCount(input: BuildRuntimeDataCompletenessInput): number {
+function resolveProjectionSampleCount(
+  input: BuildRuntimeDataCompletenessInput,
+  orbitClass: OrbitClass = "LEO"
+): number {
   const startMs = Date.parse(input.timeWindow.startUtc);
   const endMs = Date.parse(input.timeWindow.endUtc);
-  const stepMs = input.sampleStepSeconds * 1000;
+  const stepMs = input.sampleCadenceSecondsByOrbit[orbitClass] * 1000;
   if (
     !Number.isFinite(startMs) ||
     !Number.isFinite(endMs) ||
     !Number.isFinite(stepMs) ||
     stepMs <= 0 ||
-    endMs < startMs
+    endMs <= startMs
   ) {
     return 0;
   }
-  return Math.floor((endMs - startMs) / stepMs) + 1;
+  return Math.ceil((endMs - startMs) / stepMs);
 }
 
 function buildActorProvenance(
@@ -337,20 +505,28 @@ function buildActorProvenance(
       window
     ]);
   }
-  const sampleCount = resolveProjectionSampleCount(input);
   return [...windowsBySatellite.entries()]
     .map((entry): RuntimeActorProvenanceState => {
       const [satelliteId, windows] = entry;
       const orbitClass = windows[0]?.orbitClass ?? "LEO";
       const sourceId = resolveSourceIdForOrbit(orbitClass);
+      const propagationStats = input.propagationStatsBySatellite?.get(satelliteId);
+      const sampleCount = resolveProjectionSampleCount(input, orbitClass);
       return {
         satelliteId,
         orbitClass,
         sourceId,
-        propagatedSampleCount: sampleCount,
-        sampleCadenceSeconds: input.sampleStepSeconds,
-        firstPropagatedUtc: sampleCount > 0 ? input.timeWindow.startUtc : null,
-        lastPropagatedUtc: sampleCount > 0 ? input.timeWindow.endUtc : null,
+        propagatedSampleCount:
+          propagationStats?.propagatedSampleCount ?? sampleCount,
+        sampleCadenceSeconds:
+          propagationStats?.sampleCadenceSeconds ??
+          input.sampleCadenceSecondsByOrbit[orbitClass],
+        firstPropagatedUtc:
+          propagationStats?.firstPropagatedUtc ??
+          (sampleCount > 0 ? input.timeWindow.startUtc : null),
+        lastPropagatedUtc:
+          propagationStats?.lastPropagatedUtc ??
+          (sampleCount > 0 ? input.timeWindow.endUtc : null),
         visibilityWindowCount: windows.length,
         provenance: {
           truthClass: "tle-derived",
@@ -374,7 +550,7 @@ function buildVisibilityProvenance(
       stationBWindowSource: `visibility:${input.stationB.id}:${window.satelliteId}`,
       pairIntersectionSource: `pair-intersection:${input.stationA.id}:${input.stationB.id}:${window.satelliteId}`,
       elevationThresholdDeg: input.elevationThresholdDeg,
-      sampleCadenceSeconds: input.sampleStepSeconds,
+      sampleCadenceSeconds: input.sampleCadenceSecondsByOrbit[window.orbitClass],
       intersectionStartUtc: window.intersectionStartUtc,
       intersectionEndUtc: window.intersectionEndUtc,
       provenance: {
@@ -388,11 +564,14 @@ function buildVisibilityProvenance(
 function buildModeledOutputs(
   input: BuildRuntimeDataCompletenessInput
 ): ReadonlyArray<RuntimeModeledOutputMetadata> {
-  const baseInputSummary = {
+  const baseInputSummary = () => ({
     rainRateMmPerHour: input.rainRateMmPerHour,
-    sampleStepSeconds: input.sampleStepSeconds,
+    handoverSampleStepSeconds: input.sampleStepSeconds,
+    leoCadenceSeconds: input.sampleCadenceSecondsByOrbit.LEO,
+    meoCadenceSeconds: input.sampleCadenceSecondsByOrbit.MEO,
+    geoCadenceSeconds: input.sampleCadenceSecondsByOrbit.GEO,
     elevationThresholdDeg: input.elevationThresholdDeg
-  };
+  });
   const modelNonClaim =
     "Modeled output only; not measured operator telemetry or private schedule truth.";
   const provenance = (modelId: string): RuntimeProvenanceTag => ({
@@ -408,7 +587,8 @@ function buildModeledOutputs(
       modelId: "cross-orbit-live-policy",
       standardsRef: ["3GPP TR 38.821 §7.3", "V-MO1"],
       inputSummary: {
-        ...baseInputSummary,
+        ...baseInputSummary(),
+        outputKind: "handover",
         eventCount: input.handoverEventCount
       },
       outputUnit: "event",
@@ -423,7 +603,11 @@ function buildModeledOutputs(
         "ITU-R P.618-14 §2.2.1",
         "ITU-R P.676-13 Annex 2"
       ],
-      inputSummary: baseInputSummary,
+      inputSummary: {
+        ...baseInputSummary(),
+        outputKind: "link-budget",
+        carrierSelection: "orbit-class-default"
+      },
       outputUnit: "dB",
       rainRateControlMode: input.rainRateControlMode,
       provenance: provenance("fspl-rain-gas-link-budget-v1"),
@@ -433,7 +617,11 @@ function buildModeledOutputs(
       kind: "throughput",
       modelId: "selected-pair-throughput-estimate-v1",
       standardsRef: ["3GPP TR 38.811 §6.6.2", "ITU-R P.618-14 §2.2.1"],
-      inputSummary: baseInputSummary,
+      inputSummary: {
+        ...baseInputSummary(),
+        outputKind: "throughput",
+        capacityModel: "clear-sky-reference-with-fade-derating"
+      },
       outputUnit: "Mbps",
       rainRateControlMode: input.rainRateControlMode,
       provenance: provenance("selected-pair-throughput-estimate-v1"),
@@ -443,7 +631,11 @@ function buildModeledOutputs(
       kind: "jitter",
       modelId: "selected-pair-jitter-estimate-v1",
       standardsRef: ["ITU-R P.618-14 §2.2.1"],
-      inputSummary: baseInputSummary,
+      inputSummary: {
+        ...baseInputSummary(),
+        outputKind: "jitter",
+        jitterModel: "orbit-baseline-with-rain-scale"
+      },
       outputUnit: "ms",
       rainRateControlMode: input.rainRateControlMode,
       provenance: provenance("selected-pair-jitter-estimate-v1"),
@@ -453,7 +645,11 @@ function buildModeledOutputs(
       kind: "latency",
       modelId: "selected-pair-propagation-delay-v1",
       standardsRef: ["3GPP TR 38.811 §6.7"],
-      inputSummary: baseInputSummary,
+      inputSummary: {
+        ...baseInputSummary(),
+        outputKind: "latency",
+        delayModel: "slant-range-one-way-plus-fixed-processing"
+      },
       outputUnit: "ms",
       provenance: provenance("selected-pair-propagation-delay-v1"),
       nonClaim: modelNonClaim
@@ -462,7 +658,11 @@ function buildModeledOutputs(
       kind: "rain-impact",
       modelId: "selected-pair-rain-impact-v1",
       standardsRef: ["ITU-R P.618-14 §2.2.1"],
-      inputSummary: baseInputSummary,
+      inputSummary: {
+        ...baseInputSummary(),
+        outputKind: "rain-impact",
+        rainRateControlMode: input.rainRateControlMode
+      },
       outputUnit: "dB",
       rainRateControlMode: input.rainRateControlMode,
       provenance: provenance("selected-pair-rain-impact-v1"),
@@ -471,31 +671,58 @@ function buildModeledOutputs(
   ];
 }
 
-function buildDisplayTransforms(): ReadonlyArray<RuntimeProvenanceTag> {
+function buildDisplayTransforms(
+  input: BuildRuntimeDataCompletenessInput
+): ReadonlyArray<RuntimeDisplayTransformMetadata> {
+  const cameraHint = input.sceneCameraHint;
+  const displayPolicy = input.sceneDisplayPolicy;
   return [
     {
       truthClass: "display-only",
       sourceId: "selected-pair-scene-altitude-compression",
+      inputSummary: {
+        enabled: displayPolicy?.altitudeCompressionEnabled ?? null,
+        factor: displayPolicy?.altitudeCompressionFactor ?? null
+      },
       nonClaim: "Renderer transform only; source ECEF samples remain separate."
     },
     {
       truthClass: "display-only",
       sourceId: "selected-pair-scene-camera-framing",
+      inputSummary: {
+        pairGeometry: cameraHint?.pairGeometry ?? null,
+        suggestedAltitudeKm: cameraHint?.suggestedAltitudeKm ?? null,
+        suggestedHeadingDeg: cameraHint?.suggestedHeadingDeg ?? null,
+        suggestedPitchDeg: cameraHint?.suggestedPitchDeg ?? null
+      },
       nonClaim: "Camera framing only; it does not alter station or satellite truth."
     },
     {
       truthClass: "display-only",
       sourceId: "selected-pair-scene-label-density",
+      inputSummary: {
+        maxVisibleActorLabels: displayPolicy?.maxVisibleActorLabels ?? null,
+        suppressNonActiveTrails: displayPolicy?.suppressNonActiveTrails ?? null
+      },
       nonClaim: "Label-density choice only; it does not alter computed visibility."
     },
     {
       truthClass: "display-only",
       sourceId: "selected-pair-scene-display-lane-offset",
+      inputSummary: {
+        leoCadenceSeconds: input.sampleCadenceSecondsByOrbit.LEO,
+        meoCadenceSeconds: input.sampleCadenceSecondsByOrbit.MEO,
+        geoCadenceSeconds: input.sampleCadenceSecondsByOrbit.GEO
+      },
       nonClaim: "Display lane or label offset only; source coordinates remain separate."
     },
     {
       truthClass: "display-only",
       sourceId: "selected-pair-scene-generic-actor-mesh",
+      inputSummary: {
+        meshClass: "generic-satellite",
+        sourceMode: input.routeMode
+      },
       nonClaim: "Generic mesh choice only; it is not operator hardware truth."
     }
   ];
@@ -546,7 +773,8 @@ export function buildRuntimeDataCompletenessState(
     actorProvenance: buildActorProvenance(input),
     visibilityProvenance: buildVisibilityProvenance(input),
     modeledOutputs: buildModeledOutputs(input),
-    displayTransforms: buildDisplayTransforms(),
+    displayTransforms: buildDisplayTransforms(input),
+    visibilityCadenceSecondsByOrbit: input.sampleCadenceSecondsByOrbit,
     emptyReasonCode: resolveEmptyReasonCode(input)
   };
 }

@@ -812,6 +812,9 @@ export async function installSelectedPairTleFirstSceneLayer({
   const renderableActors = viewModel.actors.filter(
     (actor) => actor.sourceSamples.length > 0
   );
+  const renderableActorIds = new Set(
+    renderableActors.map((actor) => actor.satelliteId)
+  );
   const sceneDataCompleteness: RuntimeDataCompletenessState = {
     ...result.dataCompleteness,
     actorSourceCoverage: {
@@ -821,23 +824,9 @@ export async function installSelectedPairTleFirstSceneLayer({
       ).length,
       fakeActorCount: 0
     },
-    actorProvenance: renderableActors.map((actor) => ({
-      satelliteId: actor.satelliteId,
-      orbitClass: actor.orbitClass,
-      sourceId: actor.sourceId,
-      propagatedSampleCount: actor.sourceSamples.length,
-      sampleCadenceSeconds: viewModel.timeWindow.sampleStepSeconds,
-      firstPropagatedUtc: actor.sourceSamples[0]?.atUtc ?? null,
-      lastPropagatedUtc:
-        actor.sourceSamples.length > 0
-          ? actor.sourceSamples[actor.sourceSamples.length - 1].atUtc
-          : null,
-      visibilityWindowCount: actor.visibilityWindows.length,
-      provenance: {
-        truthClass: actor.sourceClass,
-        sourceId: actor.sourceId
-      }
-    }))
+    actorProvenance: result.dataCompleteness.actorProvenance.filter((actor) =>
+      renderableActorIds.has(actor.satelliteId)
+    )
   };
   if (shouldSkip() || renderableActors.length === 0) {
     if (!shouldSkip()) {

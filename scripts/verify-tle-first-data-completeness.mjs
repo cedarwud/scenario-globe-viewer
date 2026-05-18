@@ -330,10 +330,13 @@ async function readCsvEvidence(client, testCase) {
         rainRateMmPerHour: 0
       });
       const text = csv.buildRuntimeProjectionCsv(result);
+      const defaultWindow = rt.buildDefaultTimeWindow("2026-05-17T00:00:00.000Z");
       return {
         text,
         dataCompleteness: result.dataCompleteness,
-        visibilityWindowCount: result.visibilityWindows.length
+        visibilityWindowCount: result.visibilityWindows.length,
+        defaultWindowDurationMinutes:
+          (Date.parse(defaultWindow.endUtc) - Date.parse(defaultWindow.startUtc)) / 60000
       };
     })()`,
     { awaitPromise: true }
@@ -391,6 +394,21 @@ function assert(condition, message) {
   }
 }
 
+function expectedSourceHealth(source, referenceUtc) {
+  const sourceMs = Date.parse(source.sourceTimestampUtc);
+  const epochMs = Date.parse(source.epochEndUtc);
+  const referenceMs = Date.parse(referenceUtc);
+  if (!Number.isFinite(referenceMs) || (!Number.isFinite(sourceMs) && !Number.isFinite(epochMs))) {
+    return "unknown-age";
+  }
+  const anchorMs = Math.max(
+    Number.isFinite(sourceMs) ? sourceMs : Number.NEGATIVE_INFINITY,
+    Number.isFinite(epochMs) ? epochMs : Number.NEGATIVE_INFINITY
+  );
+  const ageDays = Math.max(0, (referenceMs - anchorMs) / 86400000);
+  return ageDays <= source.healthThresholdDays ? "fresh" : "stale";
+}
+
 function assertDataCompletenessShape(label, state) {
   assert(state?.hasCapture, `${label}: missing capture seam`);
   assert(state?.hasController, `${label}: missing controller`);
@@ -403,6 +421,49 @@ function assertDataCompletenessShape(label, state) {
   assert(
     data.tleSources.every((source) => source.health && source.sourceTimestampUtc),
     `${label}: source health/timestamp missing`
+  );
+  const thresholdByOrbit = { LEO: 14, MEO: 30, GEO: 30 };
+  for (const source of data.tleSources) {
+    assert(
+      source.healthThresholdDays === thresholdByOrbit[source.orbitClass],
+      `${label}: ${source.orbitClass} freshness threshold mismatch`
+    );
+    assert(source.epochEndUtc, `${label}: ${source.orbitClass} epoch end missing`);
+    assert(
+      source.health === expectedSourceHealth(source, "2026-05-17T00:00:00.000Z"),
+      `${label}: ${source.orbitClass} health not based on max source/epoch date`
+    );
+    assert(
+      Number.isInteger(source.sgp4ErrorCount) && source.sgp4ErrorCount >= 0,
+      `${label}: ${source.orbitClass} SGP4 error count missing`
+    );
+    assert(
+      Array.isArray(source.noradIdRangeSummary) && source.noradIdRangeSummary.length > 0,
+      `${label}: ${source.orbitClass} NORAD range summary missing`
+    );
+    assert(
+      Number.isInteger(source.cosparDesignatorCount) &&
+        source.cosparDesignatorCount > 0 &&
+        Array.isArray(source.cosparDesignatorSamples) &&
+        source.cosparDesignatorSamples.length > 0,
+      `${label}: ${source.orbitClass} COSPAR exposure missing`
+    );
+    assert(
+      source.classificationCounts && Object.keys(source.classificationCounts).length > 0,
+      `${label}: ${source.orbitClass} classification counts missing`
+    );
+    assert(
+      source.dragTermFieldCoverage?.meanMotionFirstDerivativeCount > 0 &&
+        source.dragTermFieldCoverage?.meanMotionSecondDerivativeCount > 0 &&
+        source.dragTermFieldCoverage?.bstarDragTermCount > 0,
+      `${label}: ${source.orbitClass} drag-term coverage missing`
+    );
+  }
+  assert(
+    data.visibilityCadenceSecondsByOrbit?.LEO === 30 &&
+      data.visibilityCadenceSecondsByOrbit?.MEO === 60 &&
+      data.visibilityCadenceSecondsByOrbit?.GEO === 120,
+    `${label}: per-orbit visibility cadence mismatch`
   );
   assert(
     Array.isArray(data.stationPrecision) && data.stationPrecision.length === 2,
@@ -433,6 +494,14 @@ function assertDataCompletenessShape(label, state) {
       ),
       `${label}: actor provenance row incomplete`
     );
+    assert(
+      data.actorProvenance.every(
+        (actor) =>
+          actor.sampleCadenceSeconds ===
+          data.visibilityCadenceSecondsByOrbit[actor.orbitClass]
+      ),
+      `${label}: actor sample cadence does not match orbit cadence`
+    );
   }
   assert(
     Array.isArray(data.visibilityProvenance),
@@ -451,6 +520,14 @@ function assertDataCompletenessShape(label, state) {
       ),
       `${label}: visibility provenance row incomplete`
     );
+    assert(
+      data.visibilityProvenance.every(
+        (row) =>
+          row.sampleCadenceSeconds ===
+          data.visibilityCadenceSecondsByOrbit[row.orbitClass]
+      ),
+      `${label}: visibility sample cadence does not match orbit cadence`
+    );
   }
   const outputKinds = new Set(data.modeledOutputs?.map((output) => output.kind));
   for (const kind of ["handover", "link-budget", "throughput", "jitter", "latency", "rain-impact"]) {
@@ -466,6 +543,13 @@ function assertDataCompletenessShape(label, state) {
     ),
     `${label}: modeled output metadata incomplete`
   );
+  const modeledInputSummaries = new Set(
+    data.modeledOutputs.map((output) => JSON.stringify(output.inputSummary))
+  );
+  assert(
+    modeledInputSummaries.size === data.modeledOutputs.length,
+    `${label}: modeled output inputSummary objects are not per-output`
+  );
   const transformIds = new Set(data.displayTransforms?.map((entry) => entry.sourceId));
   for (const sourceId of [
     "selected-pair-scene-altitude-compression",
@@ -476,6 +560,20 @@ function assertDataCompletenessShape(label, state) {
   ]) {
     assert(transformIds.has(sourceId), `${label}: missing display transform ${sourceId}`);
   }
+  const transformById = new Map(data.displayTransforms.map((entry) => [entry.sourceId, entry]));
+  assert(
+    transformById.get("selected-pair-scene-camera-framing")?.inputSummary?.pairGeometry ===
+      state.overlay.pairGeometry,
+    `${label}: camera hint not reflected in display transform payload`
+  );
+  assert(
+    Number(transformById.get("selected-pair-scene-altitude-compression")?.inputSummary?.factor) > 0,
+    `${label}: altitude compression transform missing dynamic factor`
+  );
+  assert(
+    Number(transformById.get("selected-pair-scene-label-density")?.inputSummary?.maxVisibleActorLabels) > 0,
+    `${label}: label-density transform missing dynamic label limit`
+  );
 }
 
 function assertReadyCase(testCase, state) {
@@ -550,6 +648,27 @@ function assertCsvEvidence(label, evidence) {
     assert(row.epochStartUtc === csvCellValue(source.epochStartUtc), `${label}: CSV epoch start mismatch`);
     assert(row.epochEndUtc === csvCellValue(source.epochEndUtc), `${label}: CSV epoch end mismatch`);
     assert(row.health === source.health, `${label}: CSV source health mismatch`);
+    assert(row.sgp4ErrorCount === csvCellValue(source.sgp4ErrorCount), `${label}: CSV SGP4 count mismatch`);
+    assert(
+      row.noradIdRangeSummary === JSON.stringify(source.noradIdRangeSummary),
+      `${label}: CSV NORAD summary mismatch`
+    );
+    assert(
+      row.cosparDesignatorCount === csvCellValue(source.cosparDesignatorCount),
+      `${label}: CSV COSPAR count mismatch`
+    );
+    assert(
+      row.cosparDesignatorSamples === source.cosparDesignatorSamples.join("|"),
+      `${label}: CSV COSPAR samples mismatch`
+    );
+    assert(
+      row.classificationCounts === JSON.stringify(source.classificationCounts),
+      `${label}: CSV classification counts mismatch`
+    );
+    assert(
+      row.dragTermFieldCoverage === JSON.stringify(source.dragTermFieldCoverage),
+      `${label}: CSV drag-term coverage mismatch`
+    );
   }
 
   const stationPrecision = requireCsvSection(sections, "# Station precision", label);
@@ -683,6 +802,25 @@ function assertCsvEvidence(label, evidence) {
     assert(row.nonClaim === output.nonClaim, `${label}: CSV output non-claim mismatch`);
   }
 
+  const displayTransforms = requireCsvSection(sections, "# Display transforms", label);
+  assert(
+    displayTransforms.rows.length === data.displayTransforms.length,
+    `${label}: CSV display transform row count mismatch`
+  );
+  const transformsBySourceId = new Map(displayTransforms.rows.map((row) => [row.sourceId, row]));
+  for (const transform of data.displayTransforms) {
+    const row = transformsBySourceId.get(transform.sourceId);
+    assert(row, `${label}: CSV missing display transform ${transform.sourceId}`);
+    assert(
+      row.provenanceTruthClass === transform.truthClass,
+      `${label}: CSV display transform truth class mismatch`
+    );
+    assert(
+      row.inputSummary === JSON.stringify(transform.inputSummary),
+      `${label}: CSV display transform input summary mismatch`
+    );
+  }
+
   const dataCompleteness = requireCsvSection(sections, "# Data completeness", label);
   const summaryByField = new Map(dataCompleteness.rows.map((row) => [row.field, row.value]));
   assert(
@@ -690,8 +828,17 @@ function assertCsvEvidence(label, evidence) {
     `${label}: CSV fake actor count mismatch`
   );
   assert(
+    summaryByField.get("visibilityCadenceSecondsByOrbit") ===
+      JSON.stringify(data.visibilityCadenceSecondsByOrbit),
+    `${label}: CSV cadence summary mismatch`
+  );
+  assert(
     summaryByField.get("emptyReasonCode") === csvCellValue(data.emptyReasonCode),
     `${label}: CSV empty reason mismatch`
+  );
+  assert(
+    evidence.defaultWindowDurationMinutes === 360,
+    `${label}: buildDefaultTimeWindow default should be 360 minutes`
   );
 }
 

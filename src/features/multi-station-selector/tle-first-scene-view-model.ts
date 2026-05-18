@@ -126,6 +126,15 @@ export interface BuildTleFirstSceneViewModelInput {
   readonly maxVisibleActorLabels?: number;
 }
 
+export type SceneCameraHintProjectionInput = Pick<
+  RuntimeProjectionResult,
+  "pair" | "visibilityWindows" | "handoverEvents"
+>;
+
+export interface BuildSceneDisplayPolicyInput {
+  readonly maxVisibleActorLabels?: number;
+}
+
 const DEFAULT_SAMPLE_STEP_SECONDS = 30;
 const DEFAULT_TLE_CAP_PER_ORBIT = 60;
 const DEFAULT_MAX_VISIBLE_ACTOR_LABELS = 6;
@@ -382,7 +391,9 @@ function initialHeadingDeg(
   return (heading + 360) % 360;
 }
 
-function buildCameraHint(result: RuntimeProjectionResult): SceneCameraHint {
+export function buildSceneCameraHintForProjection(
+  result: SceneCameraHintProjectionInput
+): SceneCameraHint {
   const stationA = result.pair.stationA;
   const stationB = result.pair.stationB;
   const distanceDeg = greatCircleDistanceDeg(stationA, stationB);
@@ -414,8 +425,8 @@ function buildCameraHint(result: RuntimeProjectionResult): SceneCameraHint {
   };
 }
 
-function buildDisplayPolicy(
-  input: BuildTleFirstSceneViewModelInput
+export function buildSceneDisplayPolicy(
+  input: BuildSceneDisplayPolicyInput = {}
 ): SceneDisplayPolicy {
   return {
     maxVisibleActorLabels: normalizePositiveInteger(
@@ -552,8 +563,8 @@ export function buildTleFirstSceneViewModel(
     actors,
     activeLinks: buildActiveLinks(result, finalActorIds, handoverEvents),
     handoverEvents,
-    cameraHint: buildCameraHint(result),
-    displayPolicy: buildDisplayPolicy(input),
+    cameraHint: buildSceneCameraHintForProjection(result),
+    displayPolicy: buildSceneDisplayPolicy(input),
     truthBoundary: buildTruthBoundary(input, sourceMode)
   };
 }

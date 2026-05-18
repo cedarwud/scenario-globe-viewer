@@ -17,8 +17,8 @@ import {
 } from "./tier-inference";
 
 import {
-  computeVisibilityWindowsForStation,
   intersectStationWindowsForPair,
+  parseTleRecordMetadata,
   parseTleListFromText,
   type OrbitClass,
   type PairVisibilityWindow,
@@ -26,11 +26,20 @@ import {
   type TleRecord
 } from "./visibility-utils";
 import {
+  computeVisibilityWindowsForStationByOrbitCadence,
+  resolveVisibilityCadenceSecondsByOrbit
+} from "./visibility-cadence-multi";
+import {
   buildRuntimeDataCompletenessState,
   type RuntimeDataCompletenessState,
+  type RuntimeNoradIdRangeSummary,
   type RuntimeTleSourceParseStats,
   type RuntimeRainRateControlMode
 } from "./runtime-data-completeness";
+import {
+  buildSceneCameraHintForProjection,
+  buildSceneDisplayPolicy
+} from "./tle-first-scene-view-model";
 
 const DEFAULT_SAMPLE_STEP_SECONDS = 30;
 const DEFAULT_ELEVATION_THRESHOLD_DEG = 10;
@@ -116,6 +125,7 @@ export interface RuntimeProjectionInput {
   readonly tleParseStats?: ReadonlyArray<RuntimeTleSourceParseStats>;
   readonly sourcePaths?: Readonly<Record<OrbitClass, string>>;
   readonly sampleStepSeconds?: number;
+  readonly sampleCadenceSecondsByOrbit?: Partial<Record<OrbitClass, number>>;
   readonly elevationThresholdDeg?: number;
   readonly rainRateMmPerHour?: number;
 }
@@ -560,6 +570,22 @@ function filterRecordsByOrbit(
   return records.filter((record) => allowed.has(record.orbitClass));
 }
 
+function resolveRuntimeVisibilityCadenceSecondsByOrbit(
+  input: RuntimeProjectionInput
+): Readonly<Record<OrbitClass, number>> {
+  if (input.sampleCadenceSecondsByOrbit) {
+    return resolveVisibilityCadenceSecondsByOrbit(input.sampleCadenceSecondsByOrbit);
+  }
+  if (input.sampleStepSeconds !== undefined) {
+    return resolveVisibilityCadenceSecondsByOrbit({
+      LEO: input.sampleStepSeconds,
+      MEO: input.sampleStepSeconds,
+      GEO: input.sampleStepSeconds
+    });
+  }
+  return resolveVisibilityCadenceSecondsByOrbit();
+}
+
 function countServingTransitions(
   events: ReadonlyArray<HandoverEvent>
 ): number {
@@ -580,6 +606,8 @@ export function computeRuntimeProjection(
   input: RuntimeProjectionInput
 ): RuntimeProjectionResult {
   const sampleStepSeconds = input.sampleStepSeconds ?? DEFAULT_SAMPLE_STEP_SECONDS;
+  const sampleCadenceSecondsByOrbit =
+    resolveRuntimeVisibilityCadenceSecondsByOrbit(input);
   const elevationThresholdDeg =
     input.elevationThresholdDeg ?? DEFAULT_ELEVATION_THRESHOLD_DEG;
   const rainRateMmPerHour = normalizeRainRateMmPerHour(input.rainRateMmPerHour);
@@ -601,24 +629,24 @@ export function computeRuntimeProjection(
   const sampleConfig = {
     startUtc: input.timeWindow.startUtc,
     endUtc: input.timeWindow.endUtc,
-    stepSeconds: sampleStepSeconds,
-    elevationThresholdDeg
+    elevationThresholdDeg,
+    cadenceSecondsByOrbit: sampleCadenceSecondsByOrbit
   };
 
-  const stationAWindows = computeVisibilityWindowsForStation(
+  const stationAVisibility = computeVisibilityWindowsForStationByOrbitCadence(
     toStationGeodetic(input.stationA),
     cappedRecords,
     sampleConfig
   );
-  const stationBWindows = computeVisibilityWindowsForStation(
+  const stationBVisibility = computeVisibilityWindowsForStationByOrbitCadence(
     toStationGeodetic(input.stationB),
     cappedRecords,
     sampleConfig
   );
 
   const visibilityWindows = intersectStationWindowsForPair(
-    stationAWindows,
-    stationBWindows,
+    stationAVisibility.windowsBySatellite,
+    stationBVisibility.windowsBySatellite,
     cappedRecords
   );
 
@@ -652,6 +680,12 @@ export function computeRuntimeProjection(
     sharedSupportedOrbits
   );
   const sourcePaths = input.sourcePaths ?? TLE_FIXTURE_PATHS;
+  const sceneCameraHint = buildSceneCameraHintForProjection({
+    pair: { stationA: input.stationA, stationB: input.stationB },
+    visibilityWindows,
+    handoverEvents
+  });
+  const sceneDisplayPolicy = buildSceneDisplayPolicy();
   const dataCompleteness = buildRuntimeDataCompletenessState({
     routeMode: "tle-first-runtime",
     stationA: input.stationA,
@@ -666,14 +700,22 @@ export function computeRuntimeProjection(
     referenceUtc: input.timeWindow.startUtc,
     timeWindow: input.timeWindow,
     sharedSupportedOrbits,
-    stationAVisibilityWindowCount: countVisibilityWindows(stationAWindows),
-    stationBVisibilityWindowCount: countVisibilityWindows(stationBWindows),
+    stationAVisibilityWindowCount: countVisibilityWindows(
+      stationAVisibility.windowsBySatellite
+    ),
+    stationBVisibilityWindowCount: countVisibilityWindows(
+      stationBVisibility.windowsBySatellite
+    ),
     visibilityWindows,
     handoverEventCount: handoverEvents.length,
     rainRateMmPerHour,
     rainRateControlMode: resolveRainRateControlMode(input.rainRateMmPerHour),
     sampleStepSeconds,
-    elevationThresholdDeg
+    sampleCadenceSecondsByOrbit,
+    elevationThresholdDeg,
+    propagationStatsBySatellite: stationAVisibility.propagationStatsBySatellite,
+    sceneCameraHint,
+    sceneDisplayPolicy
   });
 
   return {
@@ -713,6 +755,33 @@ export function parseRuntimeTleSources(
   ];
 }
 
+function summarizeNoradIds(
+  ids: ReadonlyArray<number>
+): ReadonlyArray<RuntimeNoradIdRangeSummary> {
+  const sorted = ids.slice().sort((left, right) => left - right);
+  if (sorted.length === 0) {
+    return [];
+  }
+  const ranges: RuntimeNoradIdRangeSummary[] = [];
+  let start = sorted[0];
+  let end = sorted[0];
+  let count = 1;
+  for (let index = 1; index < sorted.length; index += 1) {
+    const id = sorted[index];
+    if (id === end + 1) {
+      end = id;
+      count += 1;
+      continue;
+    }
+    ranges.push({ start, end, count });
+    start = id;
+    end = id;
+    count = 1;
+  }
+  ranges.push({ start, end, count });
+  return ranges;
+}
+
 function buildTleSourceParseStatsForText(
   rawTleText: string,
   orbitClass: OrbitClass,
@@ -725,13 +794,38 @@ function buildTleSourceParseStatsForText(
   let rawRecordGroupCount = 0;
   let parsedRecordCount = 0;
   let parserFailureCount = 0;
+  const noradIds: number[] = [];
+  const cosparDesignators: string[] = [];
+  const classificationCounts: Record<string, number> = {};
+  let meanMotionFirstDerivativeCount = 0;
+  let meanMotionSecondDerivativeCount = 0;
+  let bstarDragTermCount = 0;
   for (let i = 0; i + 2 < lines.length; i += 3) {
     rawRecordGroupCount += 1;
     const nameLine = lines[i];
     const line1 = lines[i + 1];
     const line2 = lines[i + 2];
     if (nameLine && line1?.startsWith("1 ") && line2?.startsWith("2 ")) {
+      const metadata = parseTleRecordMetadata(line1);
       parsedRecordCount += 1;
+      if (metadata.noradCatalogId !== null) {
+        noradIds.push(metadata.noradCatalogId);
+      }
+      if (metadata.cosparDesignator) {
+        cosparDesignators.push(metadata.cosparDesignator);
+      }
+      const classification = metadata.classification || "unknown";
+      classificationCounts[classification] =
+        (classificationCounts[classification] ?? 0) + 1;
+      if (metadata.meanMotionFirstDerivative !== null) {
+        meanMotionFirstDerivativeCount += 1;
+      }
+      if (metadata.meanMotionSecondDerivative !== null) {
+        meanMotionSecondDerivativeCount += 1;
+      }
+      if (metadata.bstarDragTerm !== null) {
+        bstarDragTermCount += 1;
+      }
     } else {
       parserFailureCount += 1;
     }
@@ -746,7 +840,16 @@ function buildTleSourceParseStatsForText(
     orbitClass,
     rawRecordGroupCount,
     parsedRecordCount,
-    parserFailureCount
+    parserFailureCount,
+    noradIdRangeSummary: summarizeNoradIds(noradIds),
+    cosparDesignatorCount: new Set(cosparDesignators).size,
+    cosparDesignatorSamples: [...new Set(cosparDesignators)].slice(0, 8),
+    classificationCounts,
+    dragTermFieldCoverage: {
+      meanMotionFirstDerivativeCount,
+      meanMotionSecondDerivativeCount,
+      bstarDragTermCount
+    }
   };
 }
 
@@ -762,7 +865,7 @@ export function buildRuntimeTleSourceParseStats(
 
 export function buildDefaultTimeWindow(
   startUtc: string = new Date().toISOString(),
-  durationMinutes: number = 20
+  durationMinutes: number = 360
 ): { startUtc: string; endUtc: string } {
   const startMs = Date.parse(startUtc);
   return {

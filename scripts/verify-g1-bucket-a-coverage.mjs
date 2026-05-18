@@ -334,21 +334,31 @@ const G1_ROWS = [
         const text = capturedBlob && typeof capturedBlob.text === "function"
           ? await capturedBlob.text()
           : "";
-        const hashLineCount = text.split(/\r?\n/).filter((line) => line.startsWith("# ")).length;
+        const sectionLines = text.split(/\r?\n/).filter((line) => line.startsWith("# "));
+        const requiredSections = [
+          "# Runtime projection",
+          "# Communication stats",
+          "# Visibility windows",
+          "# Link selection events",
+          "# Non-claims"
+        ];
         const mimeType = capturedBlob?.type ?? null;
         return {
           passed:
             capturedDownload?.startsWith("runtime-projection") === true &&
             mimeType?.startsWith("text/csv") === true &&
             text.trimStart().startsWith("# Runtime projection") &&
-            hashLineCount === 5,
+            requiredSections.every((section) => sectionLines.includes(section)),
           evidence: {
             buttonExists: true,
             download: capturedDownload,
             href: capturedHref,
             mimeType,
             prefix: text.slice(0, 80),
-            hashLineCount
+            hashLineCount: sectionLines.length,
+            requiredSectionsPresent: requiredSections.every((section) =>
+              sectionLines.includes(section)
+            )
           }
         };
       })();

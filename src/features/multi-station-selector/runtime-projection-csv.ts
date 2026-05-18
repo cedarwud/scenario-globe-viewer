@@ -132,7 +132,13 @@ export function buildRuntimeProjectionCsv(result: RuntimeProjectionResult): stri
       "epochEndUtc",
       "sourceTimestampUtc",
       "healthThresholdDays",
-      "health"
+      "health",
+      "sgp4ErrorCount",
+      "noradIdRangeSummary",
+      "cosparDesignatorCount",
+      "cosparDesignatorSamples",
+      "classificationCounts",
+      "dragTermFieldCoverage"
     ]
   );
   for (const source of result.dataCompleteness.tleSources) {
@@ -150,7 +156,13 @@ export function buildRuntimeProjectionCsv(result: RuntimeProjectionResult): stri
       source.epochEndUtc,
       source.sourceTimestampUtc,
       source.healthThresholdDays,
-      source.health
+      source.health,
+      source.sgp4ErrorCount,
+      JSON.stringify(source.noradIdRangeSummary),
+      source.cosparDesignatorCount,
+      source.cosparDesignatorSamples.join("|"),
+      JSON.stringify(source.classificationCounts),
+      JSON.stringify(source.dragTermFieldCoverage)
     ]);
   }
 
@@ -278,10 +290,35 @@ export function buildRuntimeProjectionCsv(result: RuntimeProjectionResult): stri
 
   rows.push(
     [],
+    ["# Display transforms"],
+    [
+      "sourceId",
+      "provenanceTruthClass",
+      "provenanceModelId",
+      "inputSummary",
+      "nonClaim"
+    ]
+  );
+  for (const transform of result.dataCompleteness.displayTransforms) {
+    rows.push([
+      transform.sourceId,
+      transform.truthClass,
+      transform.modelId,
+      JSON.stringify(transform.inputSummary),
+      transform.nonClaim
+    ]);
+  }
+
+  rows.push(
+    [],
     ["# Data completeness"],
     ["field", "value"],
     ["routeMode", result.dataCompleteness.routeMode],
     ["fakeActorCount", result.dataCompleteness.actorSourceCoverage.fakeActorCount],
+    [
+      "visibilityCadenceSecondsByOrbit",
+      JSON.stringify(result.dataCompleteness.visibilityCadenceSecondsByOrbit)
+    ],
     ["emptyReasonCode", result.dataCompleteness.emptyReasonCode]
   );
 

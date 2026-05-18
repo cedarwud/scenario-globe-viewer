@@ -25,12 +25,48 @@ export interface TleRecord {
   readonly orbitClass: OrbitClass;
   readonly tleLine1: string;
   readonly tleLine2: string;
+  readonly noradCatalogId?: number | null;
+  readonly classification?: string | null;
+  readonly cosparDesignator?: string | null;
+  readonly meanMotionFirstDerivative?: number | null;
+  readonly meanMotionFirstDerivativeRaw?: string | null;
+  readonly meanMotionSecondDerivative?: number | null;
+  readonly meanMotionSecondDerivativeRaw?: string | null;
+  readonly bstarDragTerm?: number | null;
+  readonly bstarDragTermRaw?: string | null;
 }
 export interface VisibilitySampleConfig {
   readonly startUtc: string;
   readonly endUtc: string;
   readonly stepSeconds: number;
   readonly elevationThresholdDeg: number;
+}
+export interface TlePropagationStats {
+  readonly satelliteId: string;
+  readonly orbitClass: OrbitClass;
+  readonly sampleCadenceSeconds: number;
+  readonly attemptedSampleCount: number;
+  readonly propagatedSampleCount: number;
+  readonly failedSampleCount: number;
+  readonly sgp4ErrorCode: number | null;
+  readonly firstPropagatedUtc: string | null;
+  readonly lastPropagatedUtc: string | null;
+}
+export interface StationVisibilityComputationResult {
+  readonly windowsBySatellite: Map<string, ReadonlyArray<VisibilityWindow>>;
+  readonly propagationStatsBySatellite: Map<string, TlePropagationStats>;
+}
+
+export interface TleRecordMetadata {
+  readonly noradCatalogId: number | null;
+  readonly classification: string | null;
+  readonly cosparDesignator: string | null;
+  readonly meanMotionFirstDerivative: number | null;
+  readonly meanMotionFirstDerivativeRaw: string | null;
+  readonly meanMotionSecondDerivative: number | null;
+  readonly meanMotionSecondDerivativeRaw: string | null;
+  readonly bstarDragTerm: number | null;
+  readonly bstarDragTermRaw: string | null;
 }
 
 interface StationEcefKm {
@@ -76,58 +112,128 @@ function lookAngleElevationDeg(s: StationEcefKm, sat: { x: number; y: number; z:
 
 function emitWindow(out: VisibilityWindow[], startMs: number, endMs: number, maxElev: number, thresholdDeg: number): void {
   if (maxElev <= thresholdDeg) return;
+  if (endMs <= startMs) return;
   out.push({ startUtc: new Date(startMs).toISOString(), endUtc: new Date(endMs).toISOString(), maxElevationDeg: maxElev });
+}
+
+function interpolateThresholdCrossingMs(
+  startMs: number,
+  startElevationDeg: number,
+  endMs: number,
+  endElevationDeg: number,
+  thresholdDeg: number
+): number {
+  if (
+    !Number.isFinite(startElevationDeg) ||
+    !Number.isFinite(endElevationDeg) ||
+    startElevationDeg === endElevationDeg
+  ) {
+    return endMs;
+  }
+  const ratio = (thresholdDeg - startElevationDeg) / (endElevationDeg - startElevationDeg);
+  if (!Number.isFinite(ratio) || ratio < 0 || ratio > 1) {
+    return endMs;
+  }
+  return startMs + (endMs - startMs) * ratio;
 }
 
 function collapseSamplesToWindows(sampleTimesMs: ReadonlyArray<number>, sampleElevsDeg: ReadonlyArray<number>, stepMs: number, thresholdDeg: number): ReadonlyArray<VisibilityWindow> {
   const out: VisibilityWindow[] = [];
-  let runStartIdx = -1;
+  let runStartMs: number | null = null;
   let runMaxElev = Number.NEGATIVE_INFINITY;
   for (let i = 0; i < sampleTimesMs.length; i += 1) {
     const e = sampleElevsDeg[i];
     const visible = Number.isFinite(e) && e > thresholdDeg;
     if (visible) {
-      if (runStartIdx < 0) {
-        runStartIdx = i;
+      if (runStartMs === null) {
+        const previousTimeMs = sampleTimesMs[i - 1];
+        const previousElevationDeg = sampleElevsDeg[i - 1];
+        runStartMs =
+          i > 0
+            ? interpolateThresholdCrossingMs(
+                previousTimeMs,
+                previousElevationDeg,
+                sampleTimesMs[i],
+                e,
+                thresholdDeg
+              )
+            : sampleTimesMs[i];
         runMaxElev = e;
       } else if (e > runMaxElev) {
         runMaxElev = e;
       }
-    } else if (runStartIdx >= 0) {
-      emitWindow(out, sampleTimesMs[runStartIdx], sampleTimesMs[i - 1] + stepMs, runMaxElev, thresholdDeg);
-      runStartIdx = -1;
+    } else if (runStartMs !== null) {
+      const previousTimeMs = sampleTimesMs[i - 1];
+      const previousElevationDeg = sampleElevsDeg[i - 1];
+      const endMs = Number.isFinite(e)
+        ? interpolateThresholdCrossingMs(
+            previousTimeMs,
+            previousElevationDeg,
+            sampleTimesMs[i],
+            e,
+            thresholdDeg
+          )
+        : previousTimeMs + stepMs;
+      emitWindow(out, runStartMs, endMs, runMaxElev, thresholdDeg);
+      runStartMs = null;
       runMaxElev = Number.NEGATIVE_INFINITY;
     }
   }
-  if (runStartIdx >= 0) {
-    emitWindow(out, sampleTimesMs[runStartIdx], sampleTimesMs[sampleTimesMs.length - 1] + stepMs, runMaxElev, thresholdDeg);
+  if (runStartMs !== null) {
+    emitWindow(out, runStartMs, sampleTimesMs[sampleTimesMs.length - 1] + stepMs, runMaxElev, thresholdDeg);
   }
   return out;
 }
 
-export function computeVisibilityWindowsForStation(
+export function computeVisibilityWindowsForStationWithStats(
   station: StationGeodetic,
   tleRecords: ReadonlyArray<TleRecord>,
   config: VisibilitySampleConfig
-): Map<string, ReadonlyArray<VisibilityWindow>> {
+): StationVisibilityComputationResult {
   // WHY: uniform-step sampling is robust across LEO/MEO/GEO without per-orbit-class closed-form pass predictors that satellite.js does not expose.
   const stationEcef = stationToEcefKm(station);
   const startMs = Date.parse(config.startUtc);
   const endMs = Date.parse(config.endUtc);
   const stepMs = config.stepSeconds * 1000;
-  const result = new Map<string, ReadonlyArray<VisibilityWindow>>();
+  const windowsBySatellite = new Map<string, ReadonlyArray<VisibilityWindow>>();
+  const propagationStatsBySatellite = new Map<string, TlePropagationStats>();
+  const emptyStats = (rec: TleRecord, sgp4ErrorCode: number | null): TlePropagationStats => ({
+    satelliteId: rec.satelliteId,
+    orbitClass: rec.orbitClass,
+    sampleCadenceSeconds: config.stepSeconds,
+    attemptedSampleCount: 0,
+    propagatedSampleCount: 0,
+    failedSampleCount: 0,
+    sgp4ErrorCode,
+    firstPropagatedUtc: null,
+    lastPropagatedUtc: null
+  });
   if (!Number.isFinite(startMs) || !Number.isFinite(endMs) || !Number.isFinite(stepMs) || stepMs <= 0 || endMs <= startMs) {
-    for (const rec of tleRecords) result.set(rec.satelliteId, []);
-    return result;
+    for (const rec of tleRecords) {
+      windowsBySatellite.set(rec.satelliteId, []);
+      propagationStatsBySatellite.set(rec.satelliteId, emptyStats(rec, null));
+    }
+    return { windowsBySatellite, propagationStatsBySatellite };
   }
   const sampleTimesMs: number[] = [];
   for (let t = startMs; t < endMs; t += stepMs) sampleTimesMs.push(t);
   for (const rec of tleRecords) {
     let satrec: ReturnType<typeof twoline2satrec> | null;
     try { satrec = twoline2satrec(rec.tleLine1, rec.tleLine2); }
-    catch { result.set(rec.satelliteId, []); continue; }
-    if (!satrec || satrec.error) { result.set(rec.satelliteId, []); continue; }
+    catch {
+      windowsBySatellite.set(rec.satelliteId, []);
+      propagationStatsBySatellite.set(rec.satelliteId, emptyStats(rec, -1));
+      continue;
+    }
+    if (!satrec || satrec.error) {
+      windowsBySatellite.set(rec.satelliteId, []);
+      propagationStatsBySatellite.set(rec.satelliteId, emptyStats(rec, satrec?.error ?? -1));
+      continue;
+    }
     const elevs: number[] = new Array(sampleTimesMs.length);
+    let propagatedSampleCount = 0;
+    let firstPropagatedUtc: string | null = null;
+    let lastPropagatedUtc: string | null = null;
     for (let i = 0; i < sampleTimesMs.length; i += 1) {
       const when = new Date(sampleTimesMs[i]);
       let propagated: ReturnType<typeof propagate> | null;
@@ -143,11 +249,33 @@ export function computeVisibilityWindowsForStation(
         elevs[i] = Number.NEGATIVE_INFINITY;
         continue;
       }
+      propagatedSampleCount += 1;
+      firstPropagatedUtc ??= when.toISOString();
+      lastPropagatedUtc = when.toISOString();
       elevs[i] = lookAngleElevationDeg(stationEcef, posEcf);
     }
-    result.set(rec.satelliteId, collapseSamplesToWindows(sampleTimesMs, elevs, stepMs, config.elevationThresholdDeg));
+    windowsBySatellite.set(rec.satelliteId, collapseSamplesToWindows(sampleTimesMs, elevs, stepMs, config.elevationThresholdDeg));
+    propagationStatsBySatellite.set(rec.satelliteId, {
+      satelliteId: rec.satelliteId,
+      orbitClass: rec.orbitClass,
+      sampleCadenceSeconds: config.stepSeconds,
+      attemptedSampleCount: sampleTimesMs.length,
+      propagatedSampleCount,
+      failedSampleCount: Math.max(0, sampleTimesMs.length - propagatedSampleCount),
+      sgp4ErrorCode: null,
+      firstPropagatedUtc,
+      lastPropagatedUtc
+    });
   }
-  return result;
+  return { windowsBySatellite, propagationStatsBySatellite };
+}
+
+export function computeVisibilityWindowsForStation(
+  station: StationGeodetic,
+  tleRecords: ReadonlyArray<TleRecord>,
+  config: VisibilitySampleConfig
+): Map<string, ReadonlyArray<VisibilityWindow>> {
+  return computeVisibilityWindowsForStationWithStats(station, tleRecords, config).windowsBySatellite;
 }
 
 export function intersectStationWindowsForPair(
@@ -186,6 +314,51 @@ export function intersectStationWindowsForPair(
   return out;
 }
 
+function parseNormalNumber(raw: string): number | null {
+  const trimmed = raw.trim();
+  if (!trimmed) return null;
+  const parsed = Number(trimmed);
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
+function parseTleCompactExponential(raw: string): number | null {
+  const trimmed = raw.trim();
+  if (!trimmed) return null;
+  const match = trimmed.match(/^([+-]?)(\d+)([+-]\d+)$/);
+  if (!match) return null;
+  const sign = match[1] === "-" ? -1 : 1;
+  const mantissa = Number(`0.${match[2]}`);
+  const exponent = Number(match[3]);
+  if (!Number.isFinite(mantissa) || !Number.isFinite(exponent)) return null;
+  return sign * mantissa * 10 ** exponent;
+}
+
+export function parseTleRecordMetadata(line1: string): TleRecordMetadata {
+  const noradCatalogId = Number.parseInt(line1.slice(2, 7), 10);
+  const classification = line1.slice(7, 8).trim() || null;
+  const cosparDesignator = line1.slice(9, 17).trim() || null;
+  const meanMotionFirstDerivativeRaw = line1.slice(33, 43).trim() || null;
+  const meanMotionSecondDerivativeRaw = line1.slice(44, 52).trim() || null;
+  const bstarDragTermRaw = line1.slice(53, 61).trim() || null;
+  return {
+    noradCatalogId: Number.isInteger(noradCatalogId) ? noradCatalogId : null,
+    classification,
+    cosparDesignator,
+    meanMotionFirstDerivative: meanMotionFirstDerivativeRaw
+      ? parseNormalNumber(meanMotionFirstDerivativeRaw)
+      : null,
+    meanMotionFirstDerivativeRaw,
+    meanMotionSecondDerivative: meanMotionSecondDerivativeRaw
+      ? parseTleCompactExponential(meanMotionSecondDerivativeRaw)
+      : null,
+    meanMotionSecondDerivativeRaw,
+    bstarDragTerm: bstarDragTermRaw
+      ? parseTleCompactExponential(bstarDragTermRaw)
+      : null,
+    bstarDragTermRaw
+  };
+}
+
 export function parseTleListFromText(
   rawTleText: string,
   orbitClass: OrbitClass
@@ -198,7 +371,13 @@ export function parseTleListFromText(
     const line2 = lines[i + 2];
     if (!nameLine || !line1 || !line2) continue;
     if (!line1.startsWith("1 ") || !line2.startsWith("2 ")) continue;
-    out.push({ satelliteId: nameLine, orbitClass, tleLine1: line1, tleLine2: line2 });
+    out.push({
+      satelliteId: nameLine,
+      orbitClass,
+      tleLine1: line1,
+      tleLine2: line2,
+      ...parseTleRecordMetadata(line1)
+    });
   }
   return out;
 }
