@@ -39,7 +39,7 @@ the smoke fails fast on absence.
 | R1-T1 / K-A1 | `[data-v4-projection-side-panel="true"] .v4-projection-side-panel__list-item` in the link-selection list | count ≥ 1 OR the empty-state line `No handover events` is present |
 | R1-T2 / K-D1 | first row of `.v4-projection-side-panel__list-primary` in visibility windows section | text contains a satellite id matching `/^[A-Z0-9_-]+$/` resolvable to the LEO/MEO/GEO TLE fixture |
 | R1-T3 / K-D2 | `canvas.cesium-widget-canvas` | element present, non-zero `clientWidth` |
-| R1-T4 / K-D3 | `.gs-filter-panel__expand-btn`, `.ground-station-selection-chip`, `.v4-projection-side-panel__rain-slider`, `.m8a-v47-product-ux__strip [data-m8a-v47-control-id="play-pause"]` | each element exists; replay button is enabled when panel substate is `ready` |
+| R1-T4 / K-D3 | `.ground-station-list-picker__filters-button`, `.ground-station-selection-chip`, `.v4-projection-side-panel__rain-slider`, `.m8a-v47-product-ux__strip [data-m8a-v47-control-id="play-pause"]` | each element exists; replay button is enabled when panel substate is `ready` |
 | R1-T5 / K-D4 | `.v4-projection-side-panel__details:nth-of-type(3)` body | body innerText contains `TR 38.821 §7.3` |
 | R1-T6 / K-D5 | `.v4-projection-side-panel__details:nth-of-type(1)` body | body innerText contains lines starting with at least two of `LEO downlink`, `MEO downlink`, `GEO downlink` |
 | R1-F1 / K-E1 | `[data-leo-actor-count-chip="true"]` | DOM attribute `data-leo-actor-count` parses to integer ≥ 500 |
@@ -61,9 +61,10 @@ section. Empty states still count as covered.
 ### G2. Single-route mount
 
 There is only one bootstrap entry path that the user navigates. Markers,
-filter panel, selection chips, station list picker, and station info card
-mount on every route entry, irrespective of whether the URL carries
-`stationA` / `stationB`. The V4 projection side panel mounts iff
+selection chips, station list picker (which carries the orbit / region /
+band filter chips in its collapsible body), and station info card mount
+on every route entry, irrespective of whether the URL carries `stationA`
+/ `stationB`. The V4 projection side panel mounts iff
 `resolveV4RouteSelection` returns `resolvedPair !== null` — i.e. both
 `stationA` AND `stationB` URL params parse to ids present in
 `multi-orbit-public-registry.json` AND the two ids differ. Acceptance:
@@ -72,9 +73,9 @@ mount on every route entry, irrespective of whether the URL carries
    panel is absent. `body[data-display-state]` equals `idle`.
 2. Navigate to `/?stationA=<id-A>&stationB=<id-B>` where both ids
    resolve in the registry: markers, chips, list picker, info-card,
-   filter panel (collapsed icon per §4.5), and V4 panel are all
-   mounted simultaneously. `body[data-display-state]` equals
-   `projecting`.
+   and V4 panel are all mounted simultaneously.
+   `body[data-display-state]` equals `projecting` (or `replaying` if
+   the replay clock is auto-playing).
 3. Navigate to `/?stationA=bogus&stationB=bogus`: markers and chips
    mount; V4 panel does not mount; `body[data-display-state]` equals
    `invalid`.
@@ -149,10 +150,11 @@ At 1280×800 viewport, with V4 panel mounted at panel substate `ready`:
 2. Row 5 disclosures are closed by default. Opening a disclosure
    scrolls **inside the disclosure body only**; the panel root does
    not scroll.
-3. The marker filter panel collapses to the icon-only state
-   (per IA §4.5); no overlap with the V4 panel.
-4. The selection chips and station list picker in `chrome.topLeft` do
-   not visually overlap each other or the replay strip.
+3. No `chrome.topRight` contention (per IA §4.5) — the V4 panel is the
+   only surface anchored in the topRight upper portion.
+4. The selection chips and station list picker (including its
+   collapsible filter chip body) in `chrome.topLeft` do not visually
+   overlap each other or the replay strip.
 
 Verified at 1280×800 and 1920×1080 by `scripts/verify-information-density.mjs`
 which computes layout boxes via CDP `DOM.getBoxModel`.

@@ -106,7 +106,7 @@ freedom that lives in `styles.css`, not in this document.
 | Zone | Purpose | Stack order |
 | --- | --- | --- |
 | `chrome.topLeft` | Selection identity + interactive primary | top-down: chips → list-picker → replay-strip |
-| `chrome.topRight` | Filter + projection panel (exclusive) | only one of {filter-panel, V4-panel} occupies the upper portion at a time; see §4.5 |
+| `chrome.topRight` | V4 projection side panel | only the V4 panel mounts here, in `projecting` / `replaying`; see §4.5 |
 | `chrome.bottomLeft` | Cesium credits + telemetry footer | bottom-up: Cesium credit · TLE telemetry chip |
 | `chrome.bottomRight` | Replay event pill (transient) | single slot, transient |
 | `globe` | World-space elements (markers, satellites, ribbon, label) | not stacked; world coordinates |
@@ -121,20 +121,23 @@ Their visibility within a state is controlled in §4.5.
 | --- | --- | --- | --- |
 | Cesium globe | `globe` | all | `core/cesium/viewer-factory.ts` |
 | Ground station markers (registry) | `globe` | all (subject to filter) | `features/multi-station-selector/station-markers.ts` |
-| Marker filter panel (visibility + filter chips) | `chrome.topRight` upper | `idle` / `selecting`; collapsed icon-only in `projecting` / `replaying` | `features/multi-station-selector/marker-filter-panel.ts` |
 | Selection chips (slot A · slot B · tier badge · Apply / Copy-link) | `chrome.topLeft` row 1 | all (chips show empty-state placeholder copy in `idle`) | `features/multi-station-selector/selection-chips.ts` |
-| Station list picker | `chrome.topLeft` row 2 | all | `features/multi-station-selector/station-list-picker.ts` |
+| Station list picker (with embedded filter chips: orbit + region + band) | `chrome.topLeft` row 2 | all | `features/multi-station-selector/station-list-picker.ts` |
 | Replay control strip (play/pause · restart · 30×/60×/120×) | `chrome.topLeft` row 3 | all (controls disabled until `projecting`) | V4 controller's `m8a-v47-product-ux__strip` |
 | LEO actor count chip (`${tleSourceCount} LEO actors`) | `chrome.topLeft` row 3 inline-end | all | chip belongs to replay strip's right slot |
 | TLE telemetry chip (`TLE ${date}`) | `chrome.bottomLeft` | all | small dim chip beside Cesium credit |
 | Cesium credit + info | `chrome.bottomLeft` | all | Cesium |
 
-The marker filter panel is the mount point for the orbit + region + band
-filter chips and the visibility toggle. It currently exists on disk
-(`marker-filter-panel.ts`) but is not imported by `composition.ts`. Mount
-unification re-introduces this single mount; sub-modules
-(`marker-filter-chips.ts`, `marker-region-chips.ts`, `marker-band-chips.ts`)
-become its children, replacing any standalone mounts.
+The IA's canonical placement for the orbit + region + band filter chips
+is **inside the station list picker's collapsible body** at
+`chrome.topLeft` row 2 — that is where the chips are rendered today (see
+`station-list-picker.ts:~650-720`). The standalone modules on disk
+(`marker-filter-panel.ts`, `marker-filter-chips.ts`, `marker-region-chips.ts`,
+`marker-band-chips.ts`, `marker-toggle.ts`, `marker-search-input.ts`) are
+parallel-session WIP territory; `composition.ts` currently still calls
+`mountMarkerFilterPanel` for a redundant standalone surface, but the IA
+does not depend on that surface — consolidating it (or removing it) is a
+follow-up slice (see §11.3) coordinated with the parallel session.
 
 The LEO actor count chip reads from the TLE source count (LEO TLE fixture
 record count, the same denominator that satisfies R1-F1 / K-E1's
@@ -148,7 +151,7 @@ from runtime projection state.
 | --- | --- | --- | --- |
 | Marker hover tooltip | any state where marker is hovered | `marker-docked` | `marker-hover-tooltip.ts` |
 | Station info card | when a marker is clicked, dismiss on outside-click / ESC | `marker-docked` | `station-info-card.ts` |
-| V4 projection side panel | `projecting` or `replaying` (replaces filter panel upper area; see §4.5) | `chrome.topRight` upper | `v4-projection-side-panel.ts` |
+| V4 projection side panel | `projecting` or `replaying` | `chrome.topRight` upper | `v4-projection-side-panel.ts` |
 | V4 endpoint A/B markers + ribbon + camera framing | `projecting` or `replaying` | `globe` | `m8a-v4-ground-station-handover-scene-controller.ts:1108-1158, 1474+` |
 | Selected-pair display-lane satellite cue + active-selection sample | `projecting` or `replaying` | `globe` (renders alongside controller's fixture actors per data-contract §A.5) | controller via `selected-pair-scene-adapter.ts` |
 
@@ -179,19 +182,10 @@ adjacent to slot label) and leaves wording to UX.
 
 ### 4.5 Top-right exclusivity rule (`chrome.topRight` upper)
 
-The marker filter panel and the V4 projection side panel both target the
-upper portion of `chrome.topRight`. Resolution:
-
-- In `idle` and `selecting` states the filter panel occupies the slot
-  expanded by default.
-- When the surface transitions into `projecting` (V4 panel mounts), the
-  filter panel collapses to an icon-only "≣" toggle anchored at the very
-  top of the zone; clicking re-expands it as a popover layered over the V4
-  panel.
-- When the surface transitions back to `idle` or `selecting` (pair cleared),
-  the filter panel auto-expands and the V4 panel disposes.
-
-This rule is the only allowed contention in `chrome.topRight`.
+No `chrome.topRight` contention — the V4 panel mounts alone in the upper
+portion; the marker filter chips live inside the list picker's collapsible
+body at `chrome.topLeft`. The previous over-specified collapse-to-icon
+rule has been retired alongside the standalone-filter-panel design.
 
 ## 5. V4 panel — five-row information layering
 
@@ -413,9 +407,10 @@ This IA does not prescribe (and downstream slices are free to choose):
 
 Minimum:
 
-1. Tab traversal in this order: marker filter (visibility toggle, then
-   filter chips), selection chips (slot A clear, slot B clear, Apply CTA),
-   station list picker selects, rain slider, panel disclosures.
+1. Tab traversal in this order: selection chips (slot A clear, slot B
+   clear, Apply CTA), station list picker (orbit + region + band filter
+   chips inside the picker body, then list selects), rain slider, panel
+   disclosures.
 2. ARIA-live regions on selection changes (existing) and on handover events
    during replay (new in wave 2).
 3. Marker info card closes on ESC.
@@ -429,21 +424,25 @@ remain deferred per R4 Block B; not required for delivery.
 
 1. **V4 controller hot-mount on selection change in wave 1.** Wave 1
    mount-unification mounts the clean-home base surfaces (markers, chips,
-   list picker, info card, hover tooltip, filter panel) on every entry.
-   The V4 panel + V4 controller endpoint surfaces continue to require a
-   full page reload triggered by the chips' Apply CTA when going from
-   "no pair" to "pair present". Wave 2 extends the seam to subscribe the
-   panel + controller endpoint context to the selection store so a
-   reselection during an existing session re-anchors without reload. Both
-   waves keep `selection-store.ts` URL-replaceState semantics unchanged.
+   list picker, info card, hover tooltip) on every entry. The V4 panel +
+   V4 controller endpoint surfaces continue to require a full page reload
+   triggered by the chips' Apply CTA when going from "no pair" to "pair
+   present". Wave 2 extends the seam to subscribe the panel + controller
+   endpoint context to the selection store so a reselection during an
+   existing session re-anchors without reload. Both waves keep
+   `selection-store.ts` URL-replaceState semantics unchanged.
 2. **Apply CTA semantic in wave 1** — Apply triggers a reload only when
    no V4 panel is mounted (e.g. user landed on `/` with no params, picked
    two stations, clicked Apply). When the panel is already mounted (URL
    carries a valid pair), Apply is hidden / no-op. The selection chips'
    `mountSelectionChips` already disables Apply when the snapshot is
    incomplete; the new behaviour adds "hide when panel already mounted".
-3. `marker-toggle.ts` standalone module cleanup — subsumed by the marker
-   filter panel header; removal is a separate slice.
+3. Standalone marker-filter module cleanup — `marker-toggle.ts`,
+   `marker-filter-panel.ts`, `marker-filter-chips.ts`,
+   `marker-region-chips.ts`, `marker-band-chips.ts`,
+   `marker-search-input.ts` exist on disk as parallel-session WIP but are
+   not imported by `composition.ts`; removing them is a separate slice
+   gated on R6 concurrent-session coordination.
 4. Removal of dead inspector / boundary-surface / countdown DOM in the V4
    controller is wave 3; the controller's hidden HUD aside continues to
    carry state-bearing dataset attributes until then.
