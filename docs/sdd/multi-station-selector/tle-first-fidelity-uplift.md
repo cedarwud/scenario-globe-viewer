@@ -1,10 +1,11 @@
 # Multi-Station Selector — TLE-First Fidelity Uplift
 
 Draft date: 2026-05-18
-Status: proposed v2 (wave 2 follow-up to `tle-first-3d-pipeline.md` Slice 5 and
-`tle-first-data-completeness.md` D7; v1 codex-challenge findings reconciled
+Status: proposed v2 + F9 (wave 2 follow-up to `tle-first-3d-pipeline.md` Slice 5
+and `tle-first-data-completeness.md` D7; v1 codex-challenge findings reconciled
 2026-05-18; codex-challenge v2 findings reconciled 2026-05-18 — RF math +
-schema nullability + cadence-gating contradictions resolved; perf-spike S1,
+schema nullability + cadence-gating contradictions resolved; Slice F9 visual
+evidence layer + gaps F43-F50 added 2026-05-19; perf-spike S1,
 EIRP/bandwidth/T_sys-anchor spike S2a, hysteresis re-tune spike S2b,
 legal-spike S3 pending per §12.1)
 
@@ -12,10 +13,12 @@ legal-spike S3 pending per §12.1)
 
 This document defines the wave-2 fidelity uplift for the selected-pair runtime
 route (`/?stationA=<id>&stationB=<id>`, `sourceMode = tle-first-runtime`). It
-addresses the 42 fidelity gaps catalogued in the 2026-05-18 audit (see the
-audit appendix in §14) and the open-source datasets that can satisfy them.
+addresses the 42 fidelity gaps catalogued in the 2026-05-18 audit + 8
+visual-evidence gaps (F43-F50) added 2026-05-19 to expose wave-2 data impact
+on the rendered 3D scene and side-panel disclosures (see the audit appendix
+in §14), plus the open-source datasets that can satisfy them.
 
-The uplift covers six families:
+The uplift covers nine families:
 
 1. cheap internal wiring (parser, freshness, cadence, per-output provenance);
 2. antenna pattern wiring + RSRP rigor;
@@ -24,7 +27,8 @@ The uplift covers six families:
 5. throughput + handover policy rigor;
 6. station precision + DEM + terrain mask;
 7. live TLE + constellation membership;
-8. cap raise + policy surfacing.
+8. cap raise + policy surfacing;
+9. visual evidence of wave-2 data impact on 3D scene + Row 5 disclosures.
 
 It does not change the runtime data contract layers defined in
 `runtime-data-contract.md`, nor the 3D scene view-model contract defined in
@@ -62,6 +66,14 @@ strongest publicly defensible source. Specifically:
    or fake links.
 9. The selected-pair route never claims operator measured telemetry, regardless
    of how many of the above slices are wired.
+10. Wave-2 data impact is visible on the 3D scene and side-panel disclosures
+    through encoded visual primitives (per-satellite RSRP color, antenna gain
+    polar plot, TLE freshness chip color, handover reason animation, dominant
+    factor pill, atmospheric composite bar, pre/post comparison view, wave-2
+    active badge) so a reviewer can SEE the wave-2 contract is live without
+    reading raw numbers alone. All visual encodings retain non-color
+    redundancy (shape, size, or text) so they remain interpretable for
+    color-blind reviewers.
 
 ## 2. Current State After Wave-1 D7
 
@@ -123,6 +135,7 @@ detail sits in §7.
 | F6 | Station precision + DEM | 3 | NASA SRTM 1arcsec | registry +2 fields; **prep-PR before F6 wiring** |
 | F7 | Live TLE + constellation | 2 | CelesTrak GP + SATCAT | none; build-step downloader + generated manifest |
 | F8 | Tier + cap surfacing | 4 | none | none; UI cap-disclosure row; **cap raise blocked on PERF-SPIKE S1** |
+| F9 | Visual evidence layer | 8 (F43-F50) | none | none; Cesium actor styling + SVG plots + Row 5 / Row 6 extensions; **depends on F2/F3/F5/F7 outputs** |
 
 ## 3. Truth Classes
 
@@ -943,6 +956,153 @@ post-F8 worst-case in the slice commit message.
 LOC estimate: ≈ 250 (down from v1 ≈ 300 after dropping the no-op
 operator-validated removal).
 
+### Slice F9 — Visual evidence of wave-2 data impact
+
+Covers gaps F43, F44, F45, F46, F47, F48, F49, F50 (new visual-evidence
+gaps added 2026-05-19; not part of the original 2026-05-18 audit). F9
+exposes wave-2 contract outputs (F2 RSRP, F3 atmospheric components,
+F5 throughput, F7 TLE freshness) as encoded visual primitives so reviewers
+can SEE the wave-2 layer is live without reading raw dB / Mbps numbers.
+
+**Scope clarification**: F9 extends the existing `TleFirstSceneViewModel`
+with styling and disclosure-body content; it does NOT introduce a second
+scene contract. R6 forbids touching `marker-*.ts`, `station-markers.ts`,
+`composition.ts`, `styles.css`; F9 routes all styling through module-scoped
+`<style>` injection from `chrome-telemetry.ts` / `v4-projection-side-panel.ts`
+/ the selected-pair scene layer that already owns Cesium actor styling. No
+global stylesheet edit.
+
+Acceptance:
+
+- **F43 per-satellite RSRP marker**: Cesium actor color encodes
+  `receivedPowerProxyDbm` per visible satellite. Color band thresholds
+  (project-tuned; documented in slice-0 baseline appendix):
+  green ≥ −110 dBm, amber −110 to −120 dBm, red < −120 dBm, grey =
+  `unavailable` (proxy = null per §4.1 nullability rule). Encoding also
+  carries a shape redundancy: triangle for LEO, square for MEO, circle for
+  GEO. Cesium actor recolor is **event-driven only on
+  `receivedPowerProxyDbm` change**, not per replay tick (perf
+  requirement; per §11 risk row). Row 5 d3 gains a small legend chip
+  documenting the color × shape band;
+- **F44 antenna gain polar plot**: SVG mini-plot inside Row 5 d1 body
+  showing S.1528 (sat boresight + off-axis) and S.465 (ground) gain
+  rolloff at the current `RfChainBreakdown.carrierFrequencyGHz`. Plot
+  axes: angle (-90° to +90°), gain dBi. Updates when carrier band
+  changes via re-selection. V-band fallback (`rx-antenna-gain =
+  unavailable`) renders an empty plot with non-claim copy "S.465-6 not
+  defined above 31 GHz; see §7 F2 carveout";
+- **F45 TLE freshness chip color** via `data-source-mode` attribute
+  selector on `[data-tle-telemetry-chip]`:
+    - `data-source-mode="network-snapshot"` → green tint background;
+    - `data-source-mode="fallback-local-snapshot"` → amber tint background;
+    - `data-source-mode="local-snapshot"` → neutral grey (default).
+  Colors live in module-scoped `<style>` from `chrome-telemetry.ts`
+  (NOT in global `styles.css` per R6). Chip dataset attribute is the
+  smoke target; computed background-color is the visual confirmation;
+- **F46 handover reason link-line animation**: at each `handoverEvents`
+  emission during replay, the selected-pair active link polyline
+  briefly flashes color for 500 ms:
+    - `cross-orbit-migration` → purple (matches V-MO1 modifier in Row 4);
+    - `better-candidate-available` → blue;
+    - `current-link-unavailable` → red;
+    - `policy-tie-break` → grey;
+    - `initial-acquisition` → neutral white (no flash).
+  Animation owned by the selected-pair scene layer (already R6-safe
+  territory; polyline NOT shared with marker module). Shape redundancy:
+  pill text in `chrome.bottomRight` replay event pill already names the
+  reasonKind, so color is supplementary;
+- **F47 dominant factor pill**: Row 5 d1 disclosure body header gains a
+  one-line text computed from `atmospheric-composite.inputSummary`,
+  format "Top atmospheric contributor: rain 8.3 dB at 23°N tropical"
+  where the contributor with max `*AttenuationDb` is named (rain /
+  cloud / scintillation / gas). When all four components are < 0.1 dB,
+  the pill shows "Atmospheric loss minimal (< 0.1 dB total)";
+- **F48 atmospheric composite stacked bar**: Row 5 d1 SVG horizontal bar
+  with four colored segments (rain / cloud / scintillation / gas)
+  proportional to each component's dB contribution; total bar length
+  scales to the `atmospheric-composite.contributionSignedDb`. Hover
+  tooltip per segment shows the absolute dB value and the standards
+  citation (P.618 for rain/scint, P.840 for cloud, P.676 for gas). When
+  composite is null (F3 grids unavailable per S3), the bar renders empty
+  with non-claim copy;
+- **F49 pre/post comparison view**: URL parameter
+  `?compare=pre-wave-2` triggers a split-pane Row 3 stats + Row 4
+  event-list rendering. Left pane shows current wave-2 numbers; right
+  pane shows the wave-1 baseline frozen in `slice-0-baseline.md` §6
+  (must be captured BEFORE F2/F3/F5/F7 land — slice-0 baseline becomes a
+  data prerequisite for F9 to ship usefully). Without `?compare=`
+  param, the view renders as today (single pane). Deltas in event
+  count, comm time, and per-orbit throughput are highlighted via
+  green ↑ / red ↓ arrows + numeric delta;
+- **F50 wave-2 active indicator**: Row 6 footer extends with
+  `[data-wave2-active]` badge that renders "wave-2 data layer: ACTIVE"
+  when `RfChainBreakdown.receivedPowerProxyDbm != null` AND
+  `RuntimeDataCompletenessState.atmosphericLookups.length > 0`. Renders
+  "wave-2 data layer: PENDING-SPIKE" when proxy is null due to S2a.
+  Renders nothing when wave-2 has not yet wired (legacy mode);
+- D6 smoke gains assertions for the 8 visual primitives:
+    - F43: every visible Cesium actor has a non-default color encoding
+      (RGB ≠ default white) and a shape attribute (triangle/square/circle);
+    - F44: SVG element `[data-antenna-pattern-plot]` exists inside Row 5 d1
+      when F2 is wired;
+    - F45: TLE chip dataset `data-source-mode` ∈ {fresh, fallback, local};
+      computed background-color RGB matches the documented band;
+    - F46: replay smoke at 60× emits at least one polyline color
+      transition matching a handover event timestamp;
+    - F47: Row 5 d1 body contains "Top atmospheric contributor:" string
+      or "Atmospheric loss minimal" string;
+    - F48: SVG element `[data-atm-composite-bar]` has four sub-segments
+      (or zero when composite is null) and hover-text per segment;
+    - F49: `?compare=pre-wave-2` renders both Row 3 panes; default URL
+      renders single pane;
+    - F50: Row 6 contains `[data-wave2-active]` element with text
+      matching one of {ACTIVE, PENDING-SPIKE, hidden}.
+
+Smokes that must keep passing: same as F8 set, plus:
+- `verify-information-density` re-baselined for Row 5 d1 + Row 6 height
+  changes;
+- new `verify-wave2-visual-evidence.mjs` covering the 8 D6 assertions
+  above;
+- new `verify-replay-fps.mjs` measuring 60× replay frame rate with F43
+  per-event recolor; gate: ≥ 30 fps p95 on baseline hardware.
+
+Dependencies (acceptance items per slice that must land first):
+- F43, F44, F46 depend on F2 (`RfChainBreakdown` + carrier band) which
+  itself depends on §12.1 S2a anchor closure for `tx-eirp` to be
+  non-null;
+- F47, F48 depend on F3 (`atmospheric-composite.inputSummary` carrying
+  the four component dB values) which itself depends on §12.1 S3
+  ITU-grid legal closure;
+- F45 depends on F7 (`RuntimeTleSourceFreshness.sourceMode`);
+- F49 depends on slice-0 baseline capture run BEFORE F2/F3/F5/F7 land
+  (captures the comparison reference);
+- F50 depends on F2 + F3 visibility into the runtime contract.
+
+F9 can land **incrementally**: F45 + F50 ship as soon as F7 + the
+contract shape are live; F47 + F48 ship after F3; F43 + F44 + F46 ship
+after F2 + S2a; F49 ships once slice-0 baseline is captured. The slice
+is gated on no single spike — each visual primitive ships when its
+data-source prerequisite is met.
+
+Risk highlights:
+- Cesium actor recolor across visible satellites can drop replay fps at
+  60× if recolor runs every tick. **Mitigation**: F43 recolor is
+  event-driven on `receivedPowerProxyDbm` value change only (which
+  changes at the cadence of `runtime-projection-worker-client` compute
+  events, not per replay tick). See §11 new row.
+- Color encoding could fail for color-blind reviewers. **Mitigation**:
+  shape (triangle/square/circle for F43; pill text for F46) provides
+  non-color redundancy.
+- Pre/post comparison (F49) requires the wave-1 baseline be captured
+  BEFORE F2/F3/F5/F7 land, otherwise the "before" numbers leak post-
+  wave-2 data. **Mitigation**: slice-0 baseline capture is a hard
+  prerequisite committed before any wiring PR; the captured baseline
+  lives in `slice-0-baseline.md` §6 appendix.
+
+LOC estimate: ≈ 600 (SVG plots ≈ 150 + Cesium color/shape binding ≈ 200
++ animation timer + comparison view ≈ 150 + Row 6 badge + module-scoped
+styles ≈ 100).
+
 ## 8. Acceptance Criteria
 
 ### A1. RF chain breakdown
@@ -1074,7 +1234,9 @@ Per-slice smoke deltas:
 
 - This SDD does not change the URL contract or the route shape.
 - It does not introduce a second 3D scene view-model; the existing
-  `TleFirstSceneViewModel` continues to render the runtime.
+  `TleFirstSceneViewModel` continues to render the runtime. F9 visual
+  evidence extends actor styling + disclosure body content on top of the
+  existing contract; the contract shape is unchanged.
 - It does not change the fixed demo `fixture-fallback` route's data path.
 - It does not claim measured operator handover logs, measured throughput,
   measured jitter, or measured congestion. Every wave-2 addition is modeled.
@@ -1106,6 +1268,9 @@ Per-slice smoke deltas:
 | Schema delta breaks existing fixture path | `operator-validated` fixture stops compiling | the fixture path types retain their existing shape; wave-2 types are additive |
 | `txPolarization` registry default `circular` overrides operator-disclosed linear | misleading polarization metadata | seed registry with `txPolarization: "circular"` only where no operator disclosure exists, otherwise carry operator value; `txPolarizationSource` records which path applied |
 | Multiple Claude / Codex sessions edit registry JSON concurrently | parallel-session collision (R6 caution applies to registry too) | always `git add` registry JSON by name; never `git add -A` |
+| **F9 Cesium per-sat recolor at 60× replay** can drop fps below 30 if recolor runs per replay tick | replay continuity G3 + G5 visual-density regress | F43 acceptance pins recolor to event-driven on `receivedPowerProxyDbm` change (driven by `runtime-projection-worker-client` compute events, not per-tick); new `verify-replay-fps.mjs` smoke gates ≥ 30 fps p95 |
+| F9 color encoding excludes color-blind reviewers | accessibility regression | F43 + F46 acceptance require non-color redundancy (shape for F43 actors, pill text for F46 reasonKind); D6 smoke asserts shape attribute presence |
+| F49 pre/post comparison requires wave-1 baseline captured before wave-2 wires | "before" numbers leak post-wave-2 data if baseline captured too late | slice-0 baseline capture is hard prerequisite before any F2/F3/F5/F7 wiring PR; baseline frozen in `slice-0-baseline.md` §6 appendix |
 
 ## 12. Resolved Decisions
 
@@ -1335,15 +1500,32 @@ status (acknowledged ceiling vs. new finding).
 | F40 | `stationHeightAboveSeaKm: 0` hardcoded | F6 | new |
 | F41 | `inputSummary` shared across modeled outputs | F1 | new |
 | F42 | TLE parser drops classification / drag terms | F1 | new |
+| F43 | Per-satellite RSRP marker missing (3D scene shows uniform color regardless of received power) | F9 | new-visual-evidence (2026-05-19) |
+| F44 | Antenna gain polar plot absent (S.1528 + S.465 rolloff not visible) | F9 | new-visual-evidence (2026-05-19) |
+| F45 | TLE freshness chip color uniform (snapshot mode not visually distinguishable) | F9 | new-visual-evidence (2026-05-19) |
+| F46 | Handover reason link-line uniform color (cross-orbit-migration / current-unavailable / better-candidate / policy-tie-break all render identically) | F9 | new-visual-evidence (2026-05-19) |
+| F47 | Dominant atmospheric factor not surfaced in Row 5 d1 (rain vs cloud vs scintillation dominance hidden) | F9 | new-visual-evidence (2026-05-19) |
+| F48 | Atmospheric composite breakdown not visualised (rain / cloud / scint / gas proportions invisible to reviewer) | F9 | new-visual-evidence (2026-05-19) |
+| F49 | Pre/post wave-2 comparison view absent (reviewer cannot side-by-side compare wave-1 baseline vs wave-2 output) | F9 | new-visual-evidence (2026-05-19) |
+| F50 | Wave-2 active indicator missing (Row 6 footer does not surface whether wave-2 data layer is live, pending-spike, or absent) | F9 | new-visual-evidence (2026-05-19) |
 
-Gap-to-slice coverage: 42 gaps → 8 slices, no gap unassigned. Acknowledged
-ceilings (5 gaps: F01, F02, F11, F30, F37) flow through the same slice path
-as new findings; the SDD does not separately track them after this appendix.
+Gap-to-slice coverage: 50 gaps → 9 slices, no gap unassigned (42 from the
+2026-05-18 audit + 8 visual-evidence gaps F43-F50 added 2026-05-19).
+Acknowledged ceilings (5 gaps: F01, F02, F11, F30, F37) flow through the
+same slice path as new findings; the SDD does not separately track them
+after this appendix.
 
 **v2 spike-blocked gaps**: F02 (cap raise) is BLOCKED on §12.1 S1;
 F09, F10, F11, F16 (F2 antenna + RSRP rigor) and F21-F28 (F5 throughput +
 handover) are partially BLOCKED on §12.1 S2a (anchors) + S2b (hysteresis); F13, F14, F15, F17, F18, F19,
 F20 (F3 + F4 atmospheric + climatology grids) are BLOCKED on §12.1 S3.
+**F9 visual-evidence gaps F43-F50** inherit their parent slice's spike
+blocks: F43 / F44 / F46 partially blocked on S2a (until `tx-eirp` term is
+non-null, RSRP color and antenna polar plot have nothing to render);
+F47 / F48 blocked on S3 (until ITU grids ship, atmospheric components stay
+null); F45 / F50 spike-independent (F45 needs F7 only; F50 needs the
+contract shape, not the values). F49 spike-independent but gated on
+slice-0 baseline capture happening BEFORE F2/F3/F5/F7 land.
 Spikes deliverables are written reports at
 `docs/spike/multi-station-selector/spike-S<n>-*.md`; their outcomes update
 this SDD §11 / §12 in-place when they close.
