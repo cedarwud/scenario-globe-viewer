@@ -169,6 +169,71 @@ display lane, not measured service telemetry.
 | Replay event pill (single rolling, 4 s fade) | `replaying`, mounts on handover-event emission | `chrome.bottomRight` | new lightweight emitter |
 | Active selected satellite ring | `replaying` | `globe` | controller |
 
+### 4.3.1 Replay event pill — contract
+
+A single transient pill anchored at `chrome.bottomRight`. The pill is the
+visible signal of the most recent handover-event emission during
+`replaying`; it is the surface that satisfies R1-F4 / K-E4 reason-text
+visibility outside the V4 panel's Row 4 list.
+
+**Mount**
+
+- A single `<div>` element is appended to `viewer.container` at bootstrap.
+- New module `src/features/multi-station-selector/replay-event-pill.ts`
+  owns the lifecycle (mount, observe, fade, dispose).
+- The pill mounts once per viewer lifetime, hidden by default
+  (`data-fade-state="hidden"`). The module exposes no per-event
+  mount/unmount churn — only attribute mutations on a stable root.
+
+**DOM contract**
+
+- Root selector: `[data-replay-event-pill="true"]`.
+- Dataset attributes (mutated as the pill cycles):
+  - `data-event-kind` ∈ `initial-acquisition`, `current-link-unavailable`,
+    `better-candidate-available`, `policy-tie-break`,
+    `cross-orbit-migration`.
+  - `data-event-utc` carries the ISO timestamp of the most recent event.
+  - `data-fade-state` ∈ `visible`, `fading`, `hidden`.
+  - `data-v-mo1="true"` is set iff `data-event-kind="cross-orbit-migration"`
+    so styles can echo the purple V-MO1 modifier.
+- Inner DOM:
+  - One line: `${reasonKindHumanLabel} at ${HH:MM:SS} UTC`.
+  - One small chip: `${fromSatId} → ${toSatId}` (initial acquisition
+    renders `— → ${toSatId}` because `fromSatelliteId` is null).
+- ARIA: `role="status"`, `aria-live="polite"`, `aria-atomic="true"`.
+  `aria-hidden="true"` flips on whenever `data-fade-state` is
+  `hidden` or `fading`.
+
+**Lifecycle**
+
+1. Bootstrap mounts the root in DOM, hidden. No event observed yet.
+2. When the display state enters `replaying` AND the V4 panel publishes
+   a `handoverEvents` array (via a small observer extension on the
+   panel handle), the module begins watching the replay clock's
+   `currentTime` and picks the event whose `handoverAtUtc` is the
+   largest value `≤ now`.
+3. When the picked-event identity changes (different `handoverAtUtc`),
+   the module:
+   - sets `data-event-utc`, `data-event-kind`, `data-fade-state="visible"`,
+     and the V-MO1 flag,
+   - clears any in-flight fade timer,
+   - schedules a 3 s timer to set `data-fade-state="fading"` (CSS
+     opacity transition over 1 s),
+   - schedules a 4 s timer to set `data-fade-state="hidden"` and
+     `aria-hidden="true"`.
+4. A new event arriving before the 4 s window completes cancels the
+   pending timers and restarts the visible → fading → hidden cycle.
+5. Display state transitioning away from `replaying` resets the pill
+   to `data-fade-state="hidden"` immediately (no fade), cancels timers,
+   and clears the picked-event identity.
+
+**Out of scope** (deferred to a future slice if needed)
+
+- A stack of multiple pills.
+- Click-to-dismiss.
+- Click-to-jump (seek the replay clock to the event).
+- Per-orbit color coding beyond the V-MO1 purple modifier.
+
 ### 4.4 Idle hint copy folds into chip empty-state
 
 There is no standalone idle hint card. The selection chips' empty-state
