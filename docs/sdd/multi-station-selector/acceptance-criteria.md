@@ -43,7 +43,7 @@ the smoke fails fast on absence.
 | R1-T5 / K-D4 | `.v4-projection-side-panel__details:nth-of-type(3)` body | body innerText contains `TR 38.821 §7.3` |
 | R1-T6 / K-D5 | `.v4-projection-side-panel__details:nth-of-type(1)` body | body innerText contains lines starting with at least two of `LEO downlink`, `MEO downlink`, `GEO downlink` |
 | R1-F1 / K-E1 | `[data-leo-actor-count-chip="true"]` | DOM attribute `data-leo-actor-count` parses to integer ≥ 500 |
-| R1-F2 / K-E2 | `[data-m8a-v47-control-group="speed"] button[data-m8a-v47-multiplier]` | three buttons present; values `30`, `60`, `120` |
+| R1-F2 / K-E2 | `[data-m8a-v47-control-group="speed"] button[data-m8a-v47-playback-multiplier]` | three buttons present; `data-m8a-v47-playback-multiplier` values `30`, `60`, `120` (matches `renderSpeedButtons` in `m8a-v4-ground-station-handover-scene-controller.ts:2187-2201`) |
 | R1-F3 / K-E3 | `.v4-projection-side-panel__stat-value` (first stat) | text matches `/\d+[hms]/` OR panel substate `empty-result` |
 | R1-F4 / K-E4 / K-F4 | each `.v4-projection-side-panel__list-item` in link-selection list | `.v4-projection-side-panel__list-secondary` non-empty |
 | R1-F5 / K-E5 | `.v4-projection-side-panel__download-csv` | button present; click yields a `text/csv` blob whose body starts with `# Runtime projection,` and contains 5 lines starting with `# ` |
