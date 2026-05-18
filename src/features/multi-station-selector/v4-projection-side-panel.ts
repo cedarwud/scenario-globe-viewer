@@ -1242,6 +1242,15 @@ export interface V4ProjectionSidePanelInput {
 }
 
 export interface V4ProjectionSidePanelHandle {
+  /**
+   * Subscribe to the latest runtime projection result the panel has rendered.
+   * Fires immediately with the current result (if any) and again on each
+   * recompute. Returns an unsubscribe function. Used by the replay event
+   * pill (§4.3.1) to observe `handoverEvents` without re-running compute.
+   */
+  subscribeRuntimeResult(
+    listener: (result: RuntimeProjectionResult | null) => void
+  ): () => void;
   dispose(): void;
 }
 
@@ -1273,6 +1282,21 @@ export function mountV4ProjectionSidePanel(
   let currentRainRate = 0;
   let debounceTimer: ReturnType<typeof setTimeout> | null = null;
   let computeRequestSeq = 0;
+  let latestResult: RuntimeProjectionResult | null = null;
+  const runtimeResultListeners = new Set<
+    (result: RuntimeProjectionResult | null) => void
+  >();
+
+  function publishRuntimeResult(result: RuntimeProjectionResult | null): void {
+    latestResult = result;
+    for (const listener of runtimeResultListeners) {
+      try {
+        listener(result);
+      } catch {
+        // Listener errors must not break the panel render loop.
+      }
+    }
+  }
 
   async function recompute(rainRateMmPerHour: number): Promise<void> {
     if (disposed || !tleRecords || !timeWindow || !clearSkyResult || !rainControl) {
@@ -1300,6 +1324,7 @@ export function mountV4ProjectionSidePanel(
         rainControl,
         durationMinutes
       });
+      publishRuntimeResult(result);
     } catch (error) {
       if (disposed || requestSeq !== computeRequestSeq) {
         return;
@@ -1348,6 +1373,7 @@ export function mountV4ProjectionSidePanel(
         rainControl,
         durationMinutes
       });
+      publishRuntimeResult(clearSkyResult);
     } catch (error) {
       if (disposed) {
         return;
@@ -1359,6 +1385,22 @@ export function mountV4ProjectionSidePanel(
   })();
 
   return {
+    subscribeRuntimeResult(
+      listener: (result: RuntimeProjectionResult | null) => void
+    ): () => void {
+      runtimeResultListeners.add(listener);
+      // Fire immediately with the current result so the subscriber does
+      // not have to wait for the next recompute to receive its first
+      // observation. Mirrors the pattern in selection-store.subscribe.
+      try {
+        listener(latestResult);
+      } catch {
+        // Subscriber errors must not propagate into the mount return.
+      }
+      return () => {
+        runtimeResultListeners.delete(listener);
+      };
+    },
     dispose(): void {
       if (disposed) {
         return;
@@ -1368,6 +1410,7 @@ export function mountV4ProjectionSidePanel(
         clearTimeout(debounceTimer);
         debounceTimer = null;
       }
+      runtimeResultListeners.clear();
       projectionClient.dispose();
       if (root.parentElement) {
         root.parentElement.removeChild(root);

@@ -16,6 +16,10 @@ import {
   type V4ProjectionSidePanelHandle
 } from "../../features/multi-station-selector/v4-projection-side-panel";
 import {
+  mountReplayEventPill,
+  type ReplayEventPillHandle
+} from "../../features/multi-station-selector/replay-event-pill";
+import {
   resolveV4RouteSelection,
   type V4RouteSelection
 } from "../../features/multi-station-selector/v4-route-selection";
@@ -823,6 +827,16 @@ export function startBootstrapComposition(app: HTMLDivElement): BootstrapComposi
       })
     : null;
 
+  // Replay event pill — IA §4.3.1. Mounts once when selector surfaces
+  // mount and remains hidden until the display state enters `replaying`
+  // and the V4 panel publishes a runtime projection. The display-state
+  // subscription below pipes state transitions into the pill; the
+  // V4 panel mount/dispose pipes the runtime-result subscription so
+  // the pill always sees the latest handover-events array.
+  const replayEventPill: ReplayEventPillHandle | null = mountSelectorSurfaces
+    ? mountReplayEventPill(viewer.container as HTMLElement, firstIntakeReplayClock)
+    : null;
+
   // V4 projection side panel — mounted/disposed by the display-state
   // subscription so the panel is only present in projecting/replaying.
   // The subscription also writes body[data-display-state] so CSS can
@@ -832,6 +846,7 @@ export function startBootstrapComposition(app: HTMLDivElement): BootstrapComposi
   // (state stays projecting/replaying but slot ids change) disposes the
   // stale panel and remounts with the fresh pair. Wave 2 §A.6 extension.
   let v4ProjectionSidePanelMountedPairKey: string | null = null;
+  let v4ProjectionSidePanelRuntimeResultUnsubscribe: (() => void) | null = null;
   let unsubscribeDisplayState: (() => void) | null = null;
   if (groundStationSelectionStore && groundStationInfoCard) {
     const registryResolves = (id: string): boolean =>
@@ -854,9 +869,14 @@ export function startBootstrapComposition(app: HTMLDivElement): BootstrapComposi
           ) {
             // Pair changed mid-session — dispose stale panel so it
             // remounts with the fresh pair header / window / stats.
+            v4ProjectionSidePanelRuntimeResultUnsubscribe?.();
+            v4ProjectionSidePanelRuntimeResultUnsubscribe = null;
             v4ProjectionSidePanel.dispose();
             v4ProjectionSidePanel = null;
             v4ProjectionSidePanelMountedPairKey = null;
+            // Clear the pill's runtime result so it does not pick stale
+            // events from the previous pair's projection.
+            replayEventPill?.setRuntimeResult(null);
           }
           if (!v4ProjectionSidePanel) {
             v4ProjectionSidePanel = mountV4ProjectionSidePanel(
@@ -864,6 +884,12 @@ export function startBootstrapComposition(app: HTMLDivElement): BootstrapComposi
               { resolvedPair }
             );
             v4ProjectionSidePanelMountedPairKey = pairKey;
+            // Wire the pill to the panel's runtime-result observer so it
+            // sees each successful recompute (initial + rain slider runs).
+            v4ProjectionSidePanelRuntimeResultUnsubscribe =
+              v4ProjectionSidePanel?.subscribeRuntimeResult((result) => {
+                replayEventPill?.setRuntimeResult(result);
+              }) ?? null;
           }
           // wave 2 §A.6 extension: re-anchor the V4 controller's endpoint
           // markers + ribbon + camera framing + selected-pair overlay
@@ -874,13 +900,19 @@ export function startBootstrapComposition(app: HTMLDivElement): BootstrapComposi
           // same entities and the camera framing converges.
           m8aV4GroundStationScene?.setSelectedPair(resolvedPair);
         } else if (!isPanelState && v4ProjectionSidePanel) {
+          v4ProjectionSidePanelRuntimeResultUnsubscribe?.();
+          v4ProjectionSidePanelRuntimeResultUnsubscribe = null;
           v4ProjectionSidePanel.dispose();
           v4ProjectionSidePanel = null;
           v4ProjectionSidePanelMountedPairKey = null;
+          replayEventPill?.setRuntimeResult(null);
         }
         groundStationSelectionChips?.setPanelMounted(
           v4ProjectionSidePanel !== null
         );
+        // Always propagate the latest derived state to the pill so it
+        // can reset to hidden when leaving replaying.
+        replayEventPill?.setDisplayState(state);
       }
     );
   } else {
@@ -919,9 +951,12 @@ export function startBootstrapComposition(app: HTMLDivElement): BootstrapComposi
       unmountHomeButtonRouteOverride();
       unmountHomepageEntryCta();
       unsubscribeDisplayState?.();
+      v4ProjectionSidePanelRuntimeResultUnsubscribe?.();
+      v4ProjectionSidePanelRuntimeResultUnsubscribe = null;
       v4ProjectionSidePanel?.dispose();
       v4ProjectionSidePanel = null;
       v4ProjectionSidePanelMountedPairKey = null;
+      replayEventPill?.dispose();
       delete document.body.dataset.displayState;
       selectorChromeTelemetry?.dispose();
       groundStationMarkerHoverTooltip?.dispose();

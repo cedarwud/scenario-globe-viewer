@@ -1,0 +1,73 @@
+/* Replay event pill — IA §4.3.1. Anchored at chrome.bottomRight. The
+ * pill is mounted once per viewer lifetime; the lifecycle module only
+ * mutates data-fade-state / data-event-kind / data-v-mo1 / data-event-utc.
+ * Display state machine:
+ *   data-fade-state="visible"  -> opacity 1
+ *   data-fade-state="fading"   -> opacity 0 with 1s transition
+ *   data-fade-state="hidden"   -> display:none
+ */
+
+[data-replay-event-pill="true"] {
+  position: absolute;
+  bottom: 4rem;
+  right: 1rem;
+  z-index: 20;
+  min-width: 12rem;
+  max-width: 22rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.5rem;
+  background: rgba(6, 18, 28, 0.92);
+  border: 1px solid rgba(126, 226, 184, 0.32);
+  color: #dde9f1;
+  font-size: 0.78rem;
+  font-family: Inter, system-ui, sans-serif;
+  letter-spacing: 0.01em;
+  display: flex;
+  flex-direction: column;
+  gap: 0.28rem;
+  opacity: 1;
+  pointer-events: none;
+}
+
+[data-replay-event-pill="true"][data-v-mo1="true"] {
+  border-color: rgba(201, 160, 255, 0.72);
+}
+
+[data-replay-event-pill="true"] .replay-event-pill__label {
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: #f0f7fb;
+  line-height: 1.25;
+}
+
+[data-replay-event-pill="true"][data-v-mo1="true"] .replay-event-pill__label {
+  color: #c9a0ff;
+}
+
+[data-replay-event-pill="true"] .replay-event-pill__chip {
+  display: inline-block;
+  align-self: flex-start;
+  font-size: 0.68rem;
+  font-variant-numeric: tabular-nums;
+  background: rgba(126, 226, 184, 0.14);
+  border: 1px solid rgba(126, 226, 184, 0.32);
+  color: rgba(221, 233, 241, 0.92);
+  padding: 0.1rem 0.4rem;
+  border-radius: 999px;
+  line-height: 1.3;
+}
+
+[data-replay-event-pill="true"][data-v-mo1="true"] .replay-event-pill__chip {
+  background: rgba(201, 160, 255, 0.14);
+  border-color: rgba(201, 160, 255, 0.5);
+  color: rgba(221, 207, 247, 0.95);
+}
+
+[data-replay-event-pill="true"][data-fade-state="fading"] {
+  opacity: 0;
+  transition: opacity 1s ease-out;
+}
+
+[data-replay-event-pill="true"][data-fade-state="hidden"] {
+  display: none;
+}
