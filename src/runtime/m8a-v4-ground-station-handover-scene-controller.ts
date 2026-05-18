@@ -2298,13 +2298,6 @@ function ensureProductUxStructure(root: HTMLElement): void {
   }
 
   root.innerHTML = `
-    <div class="m8a-v411-top-strip" data-m8a-v411-top-strip="true" data-m8a-v47-ui-surface="top-scope-strip">
-      <span data-m8a-v411-top-strip-label="true" data-m8a-v48-info-class="fixed">Scenario Scope</span>
-      <span data-m8a-v411-top-strip-slot="scope" data-m8a-v48-info-class="dynamic">Scope: 13-actor demo · LEO/MEO/GEO</span>
-      <span data-m8a-v411-top-strip-slot="replay" data-m8a-v48-info-class="dynamic">Time: --</span>
-      <span data-m8a-v411-top-strip-slot="precision" data-m8a-v48-info-class="dynamic">Precision: operator-family precision</span>
-      <span data-m8a-v411-top-strip-slot="boundary" data-m8a-v48-info-class="dynamic">Boundary: repo-owned projection · not measured truth</span>
-    </div>
     <button type="button" class="m8a-v411-handover-rail-scrim" data-m8a-v411-handover-rail-scrim="true" data-m8a-v47-action="close-handover-rail" data-m8a-v48-info-class="control" tabindex="-1" aria-label="Close handover rail" hidden></button>
     <aside id="m8a-v411-handover-rail-drawer" class="m8a-v411-handover-rail" data-m8a-v411-handover-rail="true" data-itri-demo-l0-briefing-card="true" data-itri-demo-l0-layer="L0-first-read-demo-stage" data-itri-demo-l0-version="${M8A_V4_CUSTOMER_DEMO_VIEW_DEFAULT_FOCUS_VERSION}" data-m8a-v47-ui-surface="left-handover-rail" aria-label="Handover briefing">
       <div class="m8a-v411-handover-rail-header" data-m8a-v411-handover-rail-header="true">
@@ -4228,26 +4221,6 @@ function renderProductUx(
     root,
     "[data-m8a-v411-state-evidence-title='true']",
     stateEvidenceCopy.title
-  );
-  updateProductUxText(
-    root,
-    "[data-m8a-v411-top-strip-slot='scope']",
-    `Scope: ${state.actorCount}-actor demo · LEO/MEO/GEO (${state.orbitActorCounts.leo}/${state.orbitActorCounts.meo}/${state.orbitActorCounts.geo})`
-  );
-  updateProductUxText(
-    root,
-    "[data-m8a-v411-top-strip-slot='replay']",
-    `Time: ${productUx.playback.simulatedReplayTimeDisplay} · replay · ${activeMultiplier}x`
-  );
-  updateProductUxText(
-    root,
-    "[data-m8a-v411-top-strip-slot='precision']",
-    "Precision: operator-family precision"
-  );
-  updateProductUxText(
-    root,
-    "[data-m8a-v411-top-strip-slot='boundary']",
-    "Boundary: repo-owned projection · not measured truth"
   );
   const railPanel = root.querySelector<HTMLElement>(
     "[data-m8a-v411-rail-panel='true']"

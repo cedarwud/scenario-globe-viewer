@@ -99,7 +99,6 @@
   --m8a-v411-layer-hover-popover: 7;
   --m8a-v411-layer-hud-frame: 12;
   --m8a-v411-layer-rail: 90;
-  --m8a-v411-layer-top-strip: 100;
   --m8a-v411-layer-inspector: 110;
 }
 
@@ -111,35 +110,6 @@
 .m8a-v47-product-ux button[data-m8a-v48-info-class="control"] {
   min-width: 44px;
   min-height: 44px;
-}
-
-.m8a-v411-top-strip {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  min-height: 40px;
-  background-color: var(--m8a-v411-ui-canvas);
-  border-bottom: 1px solid var(--m8a-v411-alpha-border);
-  box-shadow:
-    var(--m8a-v411-shadow-inner),
-    0 10px 24px var(--m8a-v411-alpha-black-26);
-  display: none;
-  flex-wrap: nowrap;
-  align-items: center;
-  gap: var(--m8a-v411-space-4);
-  row-gap: var(--m8a-v411-space-1);
-  padding:
-    6px calc(var(--m8a-v411-inspector-desktop-width) + var(--hud-frame-gap) + var(--m8a-v411-space-5))
-    6px var(--m8a-v411-space-4);
-  z-index: var(--m8a-v411-layer-top-strip);
-  color: var(--m8a-v411-ui-text);
-  font-family: var(--m8a-v411-font-ui);
-  font-size: 13px;
-  font-weight: 650;
-  line-height: 1.18;
-  letter-spacing: 0;
-  overflow: hidden;
 }
 
 .m8a-v411-evidence-toggle,
@@ -156,18 +126,6 @@
 [data-m8a-v411-inspector-panel="evidence"],
 [data-m8a-v49-debug-evidence="true"] {
   display: none !important;
-}
-
-.m8a-v411-top-strip [data-m8a-v411-top-strip-slot] {
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.m8a-v411-top-strip [data-m8a-v411-top-strip-slot="replay"] {
-  font-family: var(--m8a-v411-font-data);
-  font-variant-numeric: tabular-nums;
 }
 
 .m8a-v411-handover-rail {
@@ -345,12 +303,6 @@
   .m8a-v411-rail-panel[data-m8a-v411-rail-role="candidate"] .m8a-v411-rail-main-chip {
     animation: none !important;
   }
-}
-
-/* Ensure the top strip label is visible */
-[data-m8a-v411-top-strip-label="true"] {
-  font-weight: 760;
-  color: var(--m8a-v411-ui-text-muted);
 }
 
 /* Push existing left-aligned overlays out of the way of the new left rail */
