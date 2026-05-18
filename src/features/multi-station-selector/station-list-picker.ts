@@ -790,6 +790,7 @@ export function mountStationListPicker(
     STATIONS,
     store.getSnapshot()
   );
+  let initialReconcileDone = false;
 
   function syncMarkers(snapshot: SelectionSnapshot): void {
     markers.setSelectedStations({
@@ -861,7 +862,11 @@ export function mountStationListPicker(
 
   function reconcile(snapshot: SelectionSnapshot): void {
     recalculateFilters(snapshot);
-    if (markers.isVisible() && clearInvalidSelections(snapshot)) {
+    if (
+      markers.isVisible() &&
+      initialReconcileDone &&
+      clearInvalidSelections(snapshot)
+    ) {
       return;
     }
     syncFilterChips(snapshot);
@@ -1169,6 +1174,7 @@ export function mountStationListPicker(
   syncFilters();
   syncVisibilityToggle();
   reconcile(store.getSnapshot());
+  initialReconcileDone = true;
   const unsubscribe = store.subscribe(reconcile);
 
   return {
