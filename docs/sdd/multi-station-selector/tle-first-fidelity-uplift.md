@@ -134,7 +134,7 @@ detail sits in §7.
 | F5 | Throughput + handover policy | 9 | 3GPP TR 38.821 §6.1.5 / §7.3 / Table 6.1.6.1.2-1 | none |
 | F6 | Station precision + DEM | 3 | NASA SRTM 1arcsec | registry +2 fields; **prep-PR before F6 wiring** |
 | F7 | Live TLE + constellation | 2 | CelesTrak GP + SATCAT | none; build-step downloader + generated manifest |
-| F8 | Tier + cap surfacing | 4 | none | none; UI cap-disclosure row; **cap raise blocked on PERF-SPIKE S1** |
+| F8 | Tier + cap surfacing | 4 | none | none; UI cap-disclosure row; S1 authorises LEO 200 cap at cadence 30 s; combined LEO 200 + LEO 10 s gated on PERF-FOLLOWUP-PENDING |
 | F9 | Visual evidence layer | 8 (F43-F50) | none | none; Cesium actor styling + SVG plots + Row 5 / Row 6 extensions; **depends on F2/F3/F5/F7 outputs** |
 
 ## 3. Truth Classes
@@ -521,13 +521,14 @@ Acceptance:
 - `RuntimeDataCompletenessState.displayTransforms` reflects the chosen camera
   hint, altitude compression factor, and label density derived from the scene
   view-model — not a static enumeration;
-- per-orbit cadence WRAPPER ships with **legacy values held** until §12.1
-  spike S1 returns measurement: LEO **30 s held** (not 10 s), MEO 60 s,
-  GEO 120 s. The wrapper supports per-orbit `Record<OrbitClass, number>`
-  input but its production configuration uses the legacy LEO 30 s. The LEO
-  10 s upgrade is **gated on S1**: when S1 returns a (cap, cadence)
-  configuration that fits the 1 s G4 budget, the LEO cadence value is
-  updated in a follow-up commit alongside the F8 cap raise. The current
+- per-orbit cadence WRAPPER ships with LEO cadence held at 30 s in db018a6
+  (F1 landing commit), MEO 60 s, GEO 120 s. The S1 spike (closed §12 entry
+  14) authorises LEO 10 s at the current LEO 60 cap; a follow-up runtime
+  change can flip the wrapper's LEO cadence value to 10 s once the
+  implementation team is ready to re-baseline G1 R1-T2 / R1-F4 row counts
+  against the finer cadence. The wrapper API itself
+  (`Record<OrbitClass, number>`) is unchanged. Combined LEO 200 cap + LEO
+  10 s is NOT authorised; see §11 PERF-FOLLOWUP-PENDING row. The current
   `visibility-utils.ts:107-151` `computeVisibilityWindowsForStation` API
   takes a single `config.stepSeconds`; F1 introduces a new module
   `src/features/multi-station-selector/visibility-cadence-multi.ts` that
@@ -549,12 +550,12 @@ Smokes that must keep passing: `npm run build`,
 `verify-60x-replay-continuity`, `verify-information-density`,
 `verify-tle-first-data-completeness`.
 
-Risk highlights: per-orbit cadence wrapper ships with legacy LEO 30 s; no
-pass-edge regressions expected from F1 alone. The future LEO 10 s upgrade
-(in a follow-up commit alongside F8) will multiply LEO sample count 3× vs
+Risk highlights: per-orbit cadence wrapper ships with LEO 30 s in db018a6;
+no pass-edge regressions expected from F1 alone. The authorised future LEO
+10 s upgrade at the current LEO 60 cap will multiply LEO sample count 3× vs
 30 s — that change records pre-change Row 4 visibility timestamps for the 5
-walkthrough URLs as the regression baseline, and lands only after S1
-returns favourable measurement.
+walkthrough URLs as the regression baseline. Combined LEO 200 cap + LEO
+10 s remains gated on §11 PERF-FOLLOWUP-PENDING.
 
 LOC estimate: ≈ 600 (all small-class edits) + ≈ 80 for the new
 `visibility-cadence-multi.ts` wrapper.
@@ -906,9 +907,9 @@ Covers gaps F02, F30, F31, F32. **F8 is rescoped vs v1**: codex challenge
 2026-05-18 confirmed that `tier-inference.ts:48-56` already returns only
 `public-disclosed | geometric-derived` and `PublicPairSourceTier` already
 excludes `operator-validated`; the "remove operator-validated tier from
-runtime" item is a no-op and is dropped. F8 v2 focuses on cap raise (gated
-on S1), policy selector, alias canonicalisation, and the cap-disclosure
-surface.
+runtime" item is a no-op and is dropped. F8 v2 focuses on the S1-authorised
+cap raise at cadence 30 s, policy selector, alias canonicalisation, and the
+cap-disclosure surface.
 
 Acceptance:
 
@@ -922,17 +923,15 @@ Acceptance:
   know the cap raise's real impact is LEO-only. The MEO/GEO cap values are
   raised in parallel for future-proofing (when inventories grow), with no
   runtime change at landing time.
-- **BLOCKED on §12.1 spike S1** (cap × cadence performance). The v1 SDD
-  claimed worst-case ~750 ms at the new cap; codex challenge 2026-05-18
-  observed that combined with F1's LEO 10 s cadence target (3× sample count
-  vs 30 s) and linear-scale per-station SGP4 cost, the worst-case projects
-  to ~5 s (≈ 13× the original 372 ms). S1 must return a measured G4
-  envelope across {LEO 60 / 120 / 200} × {30 s / 10 s cadence}. If S1
-  returns a configuration that stays under the 1 s gate, ship F8 with that
-  configuration AND simultaneously upgrade F1 wrapper's LEO cadence to 10 s;
-  if not, raise cap incrementally and/or compute-path-optimise SGP4 before
-  the F8 wiring PR lands. F8 must not ship the cap raise without S1
-  evidence;
+- LEO cap raise to 200 is authorised at cadence 30 s per S1 entry 14
+  (p95 = 391 ms, comfortably under the 1 s G4 gate). F8 ships the LEO 200
+  cap with cadence HELD at 30 s (the F1 wrapper's production LEO value).
+  MEO 100 cap raise is a no-op against current fixture inventory
+  (33 satellites) but ships for future-proofing. GEO cap unchanged at 60
+  (current inventory 30 satellites). Combined LEO 200 cap + LEO 10 s
+  cadence is NOT shipped in F8; it remains gated on the §11
+  PERF-FOLLOWUP-PENDING row and requires a separate follow-up PR after the
+  post-F7 empirical smoke confirms ≤ 1 s p95 under per-orbit cadence;
 - URL parameter `?policy=cross-orbit-live | leo-first | bootstrap-balanced-v1`
   selects an alternate handover policy; absence preserves the default;
 - the visible Row 5 d3 disclosure quotes the active policy id and threshold
@@ -1252,7 +1251,7 @@ Per-slice smoke deltas:
 
 | Risk | Impact | Mitigation |
 | --- | --- | --- |
-| **PERF-SPIKE-PENDING (S1)** — cap × cadence interaction (F1 LEO 10 s × F8 LEO 200) projects worst-case G4 to ≈ 5 s, ≈ 5× over the 1 s gate | F1 + F8 BLOCKED on S1 | S1 deliverable: measured G4 envelope across {LEO 60 / 120 / 200} × {30 s / 10 s cadence} on baseline hardware (Chromium 1217, 4-core, swiftshader). Until S1 closes, F1 lands with LEO cadence held at 30 s; F8 lands without cap raise |
+| **PERF-FOLLOWUP-PENDING** — combined LEO 200 cap + per-orbit LEO 10 s cadence not yet empirically measured (S1 measured global cadence only) | F8 + F1 LEO 10 s upgrade cannot ship simultaneously until confirmed | Run post-F7 smoke at config (LEO 200 cap, per-orbit cadence LEO 10 s / MEO 60 s / GEO 120 s) with seed 20260517 × 3 runs; gate at p95 ≤ 1000 ms; report appends to `docs/spike/multi-station-selector/spike-S1-cap-cadence-perf.md` as §-followup or new spike-S1b report |
 | **LEGAL-SPIKE-PENDING (S3)** — ITU-R grid bundling (P.835-6, P.836-6, P.837-8, P.839-4, P.840-9) under ITU Terms of Use; bundling for non-commercial vs free-redistribution status TBD | F3 + F4 BLOCKED on S3 | S3 deliverable: legal opinion on ITU rights notice + 3GPP Article 3.2.2 covering (a) bundle, (b) build-step download, (c) runtime cache. Decision sets which §6 path lands |
 | **EIRP/BW/T_sys-anchor-SPIKE-PENDING (S2a)** — satellite EIRP, allocated bandwidth, system noise temperature seeds for F2 RSRP proxy + F5 SNR + Shannon throughput | F2 RSRP arithmetic BLOCKED; F5 throughput BLOCKED (with `unavailable` fallback per §7 F5 non-shipping condition) | S2a deliverable per §12.1: defensible per-orbit anchors (3GPP TR 38.821 §6.1.1 + §6.1.5 system parameters via §-anchor citation subject to S3 IPR, or operator-disclosed per station, or `unavailable`-tagged with explicit non-claim) |
 | **HYSTERESIS-RETUNE-SPIKE-PENDING (S2b)** — handover policy 2 dB hysteresis tuned against path-loss-only RSRP; needs re-tune for EIRP+gain proxy | F2 cross-orbit hysteresis decisions risk thrash | S2b deliverable per §12.1: measured cross-orbit RSRP-delta distribution for 5 walkthrough URLs + recommended hysteresis value + fallback value. Depends on S2a outcome |
@@ -1341,9 +1340,31 @@ Per-slice smoke deltas:
     (Codex challenge 2026-05-18 ambiguity resolved.)
 13. **F8 operator-validated tier removal is a no-op** and is dropped from
     F8 scope. `tier-inference.ts` already returns only
-    `public-disclosed | geometric-derived`. F8 v2 covers cap raise (gated
-    on S1), policy selector, alias canonicalisation, and cap-disclosure
-    UI only. (Codex challenge 2026-05-18 finding.)
+    `public-disclosed | geometric-derived`. F8 v2 covers the S1-authorised
+    LEO 200 cap raise at cadence 30 s, policy selector, alias
+    canonicalisation, and cap-disclosure UI only. (Codex challenge
+    2026-05-18 finding.)
+14. **S1 perf spike closed (2026-05-19, commit 83ed47d)**:
+    configuration LEO 60 cap + 10 s global cadence stays under 1 s G4
+    gate (p95 = 795 ms); configuration LEO 200 cap + 30 s global cadence
+    stays under 1 s G4 gate (p95 = 391 ms); combined LEO 200 cap + LEO
+    10 s global cadence fails (p95 = 1027 ms, 27 ms over). Flame graph
+    identifies `computeVisibilityWindowsForStation` as 86.2 % inclusive
+    cost; SGP4 propagation (`sgp4`) as 38.1 % self-cost. Single-worker baseline
+    (`runtime-projection-worker.ts`) is sufficient at the passing
+    configurations. See
+    `docs/spike/multi-station-selector/spike-S1-cap-cadence-perf.md` for
+    the full envelope.
+15. **F1/F8 cadence-cap split authorised from S1 evidence**: F1 LEO 10 s
+    cadence upgrade is authorised at LEO 60 cap (S1 entry 14 evidence).
+    F8 LEO 200 cap raise is authorised with cadence held at 30 s (S1
+    entry 14 evidence). Combined LEO 200 cap + LEO 10 s per-orbit cadence
+    remains gated on §11 PERF-FOLLOWUP-PENDING row; the combined upgrade
+    lands only after the post-F7 follow-up smoke confirms ≤ 1 s p95.
+    Per-orbit cadence (F1 `visibility-cadence-multi.ts`, landed db018a6)
+    is the assumed implementation surface for the follow-up;
+    global-cadence S1 measurement is an upper bound, not the production
+    case.
 
 ## 12.1 Pending Spikes
 
@@ -1353,7 +1374,7 @@ that this SDD §11 / §12 will incorporate.
 
 | Spike | Title | Blocks | Deliverable | Notes |
 | --- | --- | --- | --- | --- |
-| **S1** | cap × cadence performance | F1 cadence upgrade; F8 cap raise | Measured G4 envelope (worst-case, p50, p95) across {LEO 60 / 120 / 200} × {30 s / 10 s cadence}, MEO 60/100, GEO 60. Hardware = Chromium 1217 + 4-core + swiftshader (baseline). **Acknowledge the existing `src/features/multi-station-selector/runtime-projection-worker.ts` (≈ lines 30-45) + `runtime-projection-worker-client.ts` (≈ lines 39-83) — the worker exists; the spike measures its current behaviour first, and only recommends additional workers (e.g., worker pool) if the single-worker baseline fails.** Report includes flame graph of `computeVisibilityWindowsForStation`, identifies the linear cost factor, and recommends a (cap, cadence) configuration that stays under 1 s G4 gate | If no configuration stays under 1 s, S1 also returns a compute-path-optimisation proposal (additional worker via pool, SGP4 batching, sample-time memoisation) before F8 wiring lands |
+| **S1** | cap × cadence performance (CLOSED 2026-05-19, see §12 entry 14) | F1 cadence upgrade; F8 cap raise | Measured G4 envelope (worst-case, p50, p95) across {LEO 60 / 120 / 200} × {30 s / 10 s cadence}, MEO 60/100, GEO 60. Hardware = Chromium 1217 + 4-core + swiftshader (baseline). **Acknowledge the existing `src/features/multi-station-selector/runtime-projection-worker.ts` (≈ lines 30-45) + `runtime-projection-worker-client.ts` (≈ lines 39-83) — the worker exists; the spike measures its current behaviour first, and only recommends additional workers (e.g., worker pool) if the single-worker baseline fails.** Report includes flame graph of `computeVisibilityWindowsForStation`, identifies the linear cost factor, and recommends a (cap, cadence) configuration that stays under 1 s G4 gate | If no configuration stays under 1 s, S1 also returns a compute-path-optimisation proposal (additional worker via pool, SGP4 batching, sample-time memoisation) before F8 wiring lands |
 | **S2a** | satellite EIRP / bandwidth / T_sys anchor | F2 RSRP proxy; F5 SNR / throughput | Defensible per-orbit-class anchor for THREE values: (i) `peakEirpDbm`; (ii) `txAllocatedBandwidthHz`; (iii) `T_sys` (system noise temperature). Spike returns one path per value: (a) 3GPP TR 38.821 §6.1.1 / §6.1.5 system parameters extracted by §-anchor citation (subject to S3 IPR policy); (b) operator-disclosed value per station, registry-authored, with `*Source` field; (c) `null` + `unavailable` tag with explicit non-claim. **F5 acceptance includes the non-shipping condition** (per §7 F5): if path (c) for both EIRP and bandwidth, Shannon throughput renders `unavailable` rather than misleading numbers | Must coordinate with S3 if path (a) is chosen, since 3GPP IPR Article 3.2.2 applies. v2 SDD bundled this with hysteresis re-tune; v3 split S2b out so the deliverables track independently |
 | **S2b** | cross-orbit hysteresis re-tune | F2 handover policy hysteresis | Cross-orbit RSRP-delta distribution measurement for the 5 walkthrough URLs (post-S2a, since the proxy needs the anchor values). Spike returns a re-tuned hysteresis value (replacing the v1 default 2 dB) that absorbs cross-orbit EIRP + gain deltas without thrashing handover events. Returns measured 5-URL distribution + 1 recommended value + 1 fallback value with rationale | Depends on S2a outcome. If S2a returns path (c) for EIRP (no useful proxy), S2b deliverable is "hysteresis remains 2 dB tagged not-validated-for-cross-orbit" + non-claim string |
 | **S3** | ITU + 3GPP redistribution legal | F3 + F4 grid bundling; F2 / F5 3GPP table extractions | Legal opinion on (i) ITU-R Terms of Use coverage for bundling P.835-6 / P.836-6 / P.837-8 / P.839-4 / P.840-9 grids inside the project bundle; (ii) 3GPP Partnership Agreement Article 3.2.2 coverage for extracting numerical values from TR tables vs §-anchor citation. Returns a policy decision per dataset: (a) bundle with retained notice, (b) build-step download-on-demand into local cache, (c) runtime fetch with cache-and-licence-banner | Spike may decline path (a) and force (b) for ITU grids — F3 / F4 acceptance text and §6 license column would update accordingly |
@@ -1515,7 +1536,8 @@ Acknowledged ceilings (5 gaps: F01, F02, F11, F30, F37) flow through the
 same slice path as new findings; the SDD does not separately track them
 after this appendix.
 
-**v2 spike-blocked gaps**: F02 (cap raise) is BLOCKED on §12.1 S1;
+**v2 spike-blocked gaps**: F02 (cap raise to LEO 200 at cadence 30 s) was
+BLOCKED on §12.1 S1; resolved §12 entry 14 (S1 CLOSED 2026-05-19).
 F09, F10, F11, F16 (F2 antenna + RSRP rigor) and F21-F28 (F5 throughput +
 handover) are partially BLOCKED on §12.1 S2a (anchors) + S2b (hysteresis); F13, F14, F15, F17, F18, F19,
 F20 (F3 + F4 atmospheric + climatology grids) are BLOCKED on §12.1 S3.
