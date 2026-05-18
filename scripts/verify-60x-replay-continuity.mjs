@@ -24,6 +24,11 @@ const SAMPLE_INTERVAL_SECONDS = 5;
 const FPS_AVG_FLOOR = 45;
 const FPS_P95_FLOOR = 28;
 const NO_FRAME_STARVATION_MS = 200;
+const TLE_SOURCE_MODES = new Set([
+  "local-snapshot",
+  "network-snapshot",
+  "fallback-local-snapshot"
+]);
 
 // Split only on the FIRST `=` so a value that itself contains `=` (such
 // as a URL with query parameters) survives intact.
@@ -203,6 +208,7 @@ await send("Runtime.evaluate", {
       window.__SGV_FRAME_STAMPS__ = [];
       window.__SGV_PANEL_STATE_SAMPLES__ = [];
       window.__SGV_REPLAY_CLOCK_SAMPLES__ = [];
+      window.__SGV_TLE_SOURCE_MODE_SAMPLES__ = [];
       const tick = (timestamp) => {
         window.__SGV_FRAME_STAMPS__.push(timestamp);
         requestAnimationFrame(tick);
@@ -214,6 +220,13 @@ await send("Runtime.evaluate", {
           panel ? panel.dataset.state ?? null : null
         );
         const capture = window.__SCENARIO_GLOBE_VIEWER_CAPTURE__;
+        const overlay =
+          capture?.m8aV4GroundStationScene?.getState?.()?.selectedPairOverlay ?? null;
+        const chip = document.querySelector('[data-tle-telemetry-chip="true"]');
+        window.__SGV_TLE_SOURCE_MODE_SAMPLES__.push(
+          overlay?.dataCompleteness?.tleFreshness?.[0]?.sourceMode ??
+            (chip ? chip.dataset.sourceMode ?? null : null)
+        );
         const clock = capture && capture.replayClock;
         if (clock && typeof clock.getState === "function") {
           const state = clock.getState();
@@ -258,10 +271,15 @@ const { result: replayClockResult } = await send("Runtime.evaluate", {
   expression: "JSON.stringify(window.__SGV_REPLAY_CLOCK_SAMPLES__)",
   returnByValue: true
 });
+const { result: sourceModeResult } = await send("Runtime.evaluate", {
+  expression: "JSON.stringify(window.__SGV_TLE_SOURCE_MODE_SAMPLES__)",
+  returnByValue: true
+});
 
 const frameTimes = JSON.parse(framesResult.value ?? "[]");
 const panelStates = JSON.parse(stateResult.value ?? "[]");
 const replayClockSamples = JSON.parse(replayClockResult.value ?? "[]");
+const sourceModeSamples = JSON.parse(sourceModeResult.value ?? "[]");
 
 const intervals = [];
 for (let index = 1; index < frameTimes.length; index += 1) {
@@ -296,6 +314,12 @@ const replayClockAdvanced =
   validClockSamples.length >= 2 &&
   validClockSamples[validClockSamples.length - 1] > validClockSamples[0];
 const fpsMetHardGate = fpsAvg >= FPS_AVG_FLOOR && p95FpsFromInterval >= FPS_P95_FLOOR;
+const nonEmptySourceModes = sourceModeSamples.filter(
+  (mode) => typeof mode === "string" && mode.length > 0
+);
+const sourceModeValues = [...new Set(nonEmptySourceModes)];
+const sourceModeStable =
+  sourceModeValues.length === 1 && TLE_SOURCE_MODES.has(sourceModeValues[0]);
 
 const verdict = {
   url: targetUrl,
@@ -314,6 +338,9 @@ const verdict = {
   replayClockAdvanced,
   replayClockStartSeconds: validClockSamples[0] ?? null,
   replayClockEndSeconds: validClockSamples[validClockSamples.length - 1] ?? null,
+  tleSourceModeSampleCount: sourceModeSamples.length,
+  tleSourceModeValues: sourceModeValues,
+  tleSourceModeStable: sourceModeStable,
   consoleErrorCount: consoleErrors.length,
   consoleErrorMessages: consoleErrors.slice(0, 10),
   pageErrorCount: pageErrors.length,
@@ -321,7 +348,8 @@ const verdict = {
   pass:
     allReady &&
     noErrors &&
-    replayClockAdvanced
+    replayClockAdvanced &&
+    sourceModeStable
 };
 console.log(JSON.stringify(verdict, null, 2));
 

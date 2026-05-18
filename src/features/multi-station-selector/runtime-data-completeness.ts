@@ -25,6 +25,11 @@ export type RuntimeTruthClass =
 
 export type TleSourceHealth = "fresh" | "stale" | "unknown-age" | "rejected";
 
+export type TleSourceMode =
+  | "local-snapshot"
+  | "network-snapshot"
+  | "fallback-local-snapshot";
+
 export type RuntimeEmptyReasonCode =
   | "no-shared-supported-orbit"
   | "tle-source-unavailable"
@@ -68,14 +73,28 @@ export interface RuntimeTleSourceManifestEntry {
   readonly dragTermFieldCoverage: RuntimeTleDragTermFieldCoverage;
 }
 
+export interface RuntimeTleSourceFreshness {
+  readonly sourceMode: TleSourceMode;
+  readonly snapshotFetchedUtc: string | null;
+  readonly snapshotPath: string;
+  readonly maxEpochUtc: string | null;
+  readonly noradIdRangeSummary: ReadonlyArray<RuntimeNoradIdRangeSummary>;
+  readonly constellationMembership: Readonly<Record<string, number>>;
+  readonly provenance: RuntimeProvenanceTag;
+}
+
 export interface RuntimeTleSourceParseStats {
   readonly sourceId: string;
   readonly sourcePath: string;
   readonly orbitClass: OrbitClass;
+  readonly sourceMode?: TleSourceMode;
+  readonly snapshotFetchedUtc?: string | null;
+  readonly snapshotPath?: string;
   readonly rawRecordGroupCount: number;
   readonly parsedRecordCount: number;
   readonly parserFailureCount: number;
   readonly noradIdRangeSummary: ReadonlyArray<RuntimeNoradIdRangeSummary>;
+  readonly constellationMembership?: Readonly<Record<string, number>>;
   readonly cosparDesignatorCount: number;
   readonly cosparDesignatorSamples: ReadonlyArray<string>;
   readonly classificationCounts: Readonly<Record<string, number>>;
@@ -161,6 +180,7 @@ export interface RuntimeDataCompletenessState {
   readonly routeMode: SceneSourceMode;
   readonly stationPrecision: ReadonlyArray<RuntimeStationPrecisionState>;
   readonly tleSources: ReadonlyArray<RuntimeTleSourceManifestEntry>;
+  readonly tleFreshness: ReadonlyArray<RuntimeTleSourceFreshness>;
   readonly actorSourceCoverage: {
     readonly renderedActorCount: number;
     readonly tleBackedActorCount: number;
@@ -184,6 +204,8 @@ export interface BuildRuntimeDataCompletenessInput {
   readonly acceptedTleRecords: ReadonlyArray<TleRecord>;
   readonly tleParseStats?: ReadonlyArray<RuntimeTleSourceParseStats>;
   readonly sourcePaths: Readonly<Record<OrbitClass, string>>;
+  readonly tleSourceMode?: TleSourceMode;
+  readonly snapshotFetchedUtc?: string | null;
   readonly caps: Readonly<Record<OrbitClass, number>>;
   readonly referenceUtc: string;
   readonly timeWindow: { readonly startUtc: string; readonly endUtc: string };
@@ -468,6 +490,78 @@ function buildTleSourceManifest(
         parseStats?.classificationCounts ?? countClassification(allRecords),
       dragTermFieldCoverage:
         parseStats?.dragTermFieldCoverage ?? buildDragTermCoverage(allRecords)
+    };
+  });
+}
+
+function resolveTleSourceMode(input: BuildRuntimeDataCompletenessInput): TleSourceMode {
+  if (input.tleSourceMode) {
+    return input.tleSourceMode;
+  }
+  const modes = [
+    ...new Set(
+      (input.tleParseStats ?? [])
+        .map((stats) => stats.sourceMode)
+        .filter((mode): mode is TleSourceMode => Boolean(mode))
+    )
+  ];
+  return modes.length === 1 ? modes[0] : "local-snapshot";
+}
+
+function resolveSnapshotFetchedUtc(
+  input: BuildRuntimeDataCompletenessInput
+): string | null {
+  if (input.snapshotFetchedUtc !== undefined) {
+    return input.snapshotFetchedUtc;
+  }
+  const fetchedValues = [
+    ...new Set(
+      (input.tleParseStats ?? [])
+        .map((stats) => stats.snapshotFetchedUtc)
+        .filter((value): value is string => Boolean(value))
+    )
+  ];
+  return fetchedValues.length === 1 ? fetchedValues[0] : null;
+}
+
+function resolveConstellationMembership(
+  stats: RuntimeTleSourceParseStats | undefined
+): Readonly<Record<string, number>> {
+  if (!stats?.constellationMembership) {
+    return {};
+  }
+  return Object.fromEntries(
+    Object.entries(stats.constellationMembership)
+      .filter(([, count]) => Number.isInteger(count) && count > 0)
+      .sort((left, right) => right[1] - left[1] || left[0].localeCompare(right[0]))
+  );
+}
+
+export function buildRuntimeTleSourceFreshness(
+  input: BuildRuntimeDataCompletenessInput,
+  sources: ReadonlyArray<RuntimeTleSourceManifestEntry> = buildTleSourceManifest(input)
+): ReadonlyArray<RuntimeTleSourceFreshness> {
+  const sourceMode = resolveTleSourceMode(input);
+  const snapshotFetchedUtc = resolveSnapshotFetchedUtc(input);
+  return sources.map((source) => {
+    const stats = input.tleParseStats?.find(
+      (candidate) => candidate.orbitClass === source.orbitClass
+    );
+    return {
+      sourceMode,
+      snapshotFetchedUtc,
+      snapshotPath: stats?.snapshotPath ?? source.sourcePath,
+      maxEpochUtc: source.epochEndUtc,
+      noradIdRangeSummary: source.noradIdRangeSummary,
+      constellationMembership: resolveConstellationMembership(stats),
+      provenance: {
+        truthClass: "tle-derived",
+        sourceId: source.sourceId,
+        nonClaim:
+          sourceMode === "local-snapshot"
+            ? "Bundled TLE snapshot selected at bootstrap."
+            : "Bundled network-refresh artifact selected at bootstrap; no live orbital-data fetch occurs in the browser."
+      }
     };
   });
 }
@@ -758,13 +852,15 @@ export function buildRuntimeDataCompletenessState(
   const visibleSatelliteIds = new Set(
     input.visibilityWindows.map((window) => window.satelliteId)
   );
+  const tleSources = buildTleSourceManifest(input);
   return {
     routeMode: input.routeMode,
     stationPrecision: [
       buildStationPrecisionState(input.stationA, input.pairSourceTier),
       buildStationPrecisionState(input.stationB, input.pairSourceTier)
     ],
-    tleSources: buildTleSourceManifest(input),
+    tleSources,
+    tleFreshness: buildRuntimeTleSourceFreshness(input, tleSources),
     actorSourceCoverage: {
       renderedActorCount: visibleSatelliteIds.size,
       tleBackedActorCount: visibleSatelliteIds.size,

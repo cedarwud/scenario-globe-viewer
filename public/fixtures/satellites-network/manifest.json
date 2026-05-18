@@ -1,0 +1,28 @@
+{
+  "comment": "# Data source: CelesTrak (celestrak.org), Terms of Use: https://celestrak.org/terms-of-use.php",
+  "generatedAtUtc": "2026-05-18T22:36:10.000Z",
+  "leo": {
+    "path": "leo-2026-05-18T22-36-10Z.tle",
+    "recordCount": 600,
+    "epochRangeUtc": {
+      "startUtc": "2026-05-10T16:40:08.249Z",
+      "endUtc": "2026-05-12T08:00:01.000Z"
+    }
+  },
+  "meo": {
+    "path": "meo-2026-05-18T22-36-10Z.tle",
+    "recordCount": 33,
+    "epochRangeUtc": {
+      "startUtc": "2026-04-25T15:10:52.485Z",
+      "endUtc": "2026-05-12T13:12:24.687Z"
+    }
+  },
+  "geo": {
+    "path": "geo-2026-05-18T22-36-10Z.tle",
+    "recordCount": 30,
+    "epochRangeUtc": {
+      "startUtc": "2026-05-11T06:21:38.641Z",
+      "endUtc": "2026-05-12T20:33:28.077Z"
+    }
+  }
+}

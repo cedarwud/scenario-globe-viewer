@@ -34,6 +34,7 @@ import {
   type RuntimeDataCompletenessState,
   type RuntimeNoradIdRangeSummary,
   type RuntimeTleSourceParseStats,
+  type TleSourceMode,
   type RuntimeRainRateControlMode
 } from "./runtime-data-completeness";
 import {
@@ -91,6 +92,17 @@ export const TLE_FIXTURE_PATHS: Readonly<Record<OrbitClass, string>> = {
   LEO: "/fixtures/satellites/leo-scale/starlink-2026-05-12T12-35-35Z.tle",
   MEO: "/fixtures/satellites/multi-orbit/meo/galileo-2026-05-13T01-28-37Z.tle",
   GEO: "/fixtures/satellites/multi-orbit/geo/commercial-geo-top30-2026-05-13T01-28-37Z.tle"
+};
+
+const NETWORK_TLE_MANIFEST_PATH = "/fixtures/satellites-network/manifest.json";
+const NETWORK_TLE_BASE_PATH = "/fixtures/satellites-network/";
+const NETWORK_SATCAT_SUMMARY_PATH =
+  "/fixtures/satellites-network/satcat-summary.json";
+
+const SOURCE_HEALTH_THRESHOLD_DAYS: Readonly<Record<OrbitClass, number>> = {
+  LEO: 14,
+  MEO: 30,
+  GEO: 30
 };
 
 export interface HandoverEvent {
@@ -154,6 +166,45 @@ export interface RuntimeTleSources {
   readonly leoTleText: string;
   readonly meoTleText: string;
   readonly geoTleText: string;
+  readonly sourceMode?: TleSourceMode;
+  readonly sourcePaths?: Readonly<Record<OrbitClass, string>>;
+  readonly snapshotFetchedUtc?: string | null;
+  readonly manifestPath?: string | null;
+  readonly satcatSummaryPath?: string | null;
+  readonly satcatSummary?: ReadonlyArray<RuntimeSatcatSummaryEntry>;
+}
+
+export interface RuntimeSatcatSummaryEntry {
+  readonly noradId: number;
+  readonly objectName: string;
+  readonly operatorFamily: string;
+  readonly constellationName: string;
+  readonly orbitClass: OrbitClass;
+  readonly decayDate: string | null;
+}
+
+interface RuntimeTleNetworkManifestEntry {
+  readonly path: string;
+  readonly recordCount: number;
+  readonly epochRangeUtc: {
+    readonly startUtc: string | null;
+    readonly endUtc: string | null;
+  };
+}
+
+interface RuntimeTleNetworkManifest {
+  readonly generatedAtUtc: string;
+  readonly leo: RuntimeTleNetworkManifestEntry;
+  readonly meo: RuntimeTleNetworkManifestEntry;
+  readonly geo: RuntimeTleNetworkManifestEntry;
+}
+
+interface RuntimeTleSourceSelection {
+  readonly sourceMode: TleSourceMode;
+  readonly sourcePaths: Readonly<Record<OrbitClass, string>>;
+  readonly snapshotFetchedUtc: string | null;
+  readonly manifestPath: string | null;
+  readonly manifest: RuntimeTleNetworkManifest | null;
 }
 
 export interface LinkBudgetMetricOptions {
@@ -521,16 +572,29 @@ function buildTruthBoundary(
   stationA: PublicRegistryStation,
   stationB: PublicRegistryStation,
   rainRateMmPerHour: number,
-  sharedSupportedOrbits: ReadonlyArray<OrbitClass>
+  sharedSupportedOrbits: ReadonlyArray<OrbitClass>,
+  tleSourceMode: TleSourceMode,
+  tleParseStats: ReadonlyArray<RuntimeTleSourceParseStats> | undefined
 ): TruthBoundary {
   const attribution = inferPairSourceTier(stationA, stationB);
   const precisionLabel: TruthBoundary["precisionLabel"] =
     attribution.sourceTier === "public-disclosed"
       ? "operator-family-precision"
       : "modeled-precision";
+  const membershipSummary = summarizeConstellationMembership(tleParseStats);
+  const sourceAttributionNonClaims =
+    tleSourceMode === "local-snapshot"
+      ? []
+      : [
+          "TLE snapshot artifacts are attributed to CelesTrak public GP data; the browser reads bundled files only.",
+          ...(membershipSummary
+            ? [`SATCAT constellation membership in this TLE snapshot: ${membershipSummary}.`]
+            : [])
+        ];
   const metricNonClaims = [
     "Per-orbit communication metrics are modeled-precision via 3GPP TR 38.811 + ITU-R P.618-14 / P.676-13 and handover decisions use the cross-orbit-live policy (TR 38.821 §7.3 + V-MO1 verbal addendum), not measured service telemetry.",
     `Satellite candidates are limited to orbit classes disclosed by both selected stations (${sharedSupportedOrbits.join("/") || "none"}) and capped at 60 records per orbit for interactive compute.`,
+    ...sourceAttributionNonClaims,
     ...(rainRateMmPerHour > 0
       ? [
           "Rain-rate attenuation uses the ITU-R P.837 global default context when supplied without local calibration."
@@ -542,6 +606,27 @@ function buildTruthBoundary(
     sourceTier: attribution.sourceTier,
     nonClaims: [...attribution.nonClaims, ...metricNonClaims]
   };
+}
+
+function summarizeConstellationMembership(
+  tleParseStats: ReadonlyArray<RuntimeTleSourceParseStats> | undefined
+): string | null {
+  const counts = new Map<string, number>();
+  for (const stats of tleParseStats ?? []) {
+    for (const [family, count] of Object.entries(stats.constellationMembership ?? {})) {
+      if (!family || !Number.isFinite(count) || count <= 0) {
+        continue;
+      }
+      counts.set(family, (counts.get(family) ?? 0) + count);
+    }
+  }
+  const top = [...counts.entries()]
+    .sort((left, right) => right[1] - left[1] || left[0].localeCompare(right[0]))
+    .slice(0, 3);
+  if (top.length === 0) {
+    return null;
+  }
+  return top.map(([family, count]) => `${count} ${family}`).join(", ");
 }
 
 function resolveRainRateControlMode(
@@ -600,6 +685,43 @@ function countVisibilityWindows(
     count += windows.length;
   }
   return count;
+}
+
+function resolveProjectionSourcePaths(
+  input: RuntimeProjectionInput
+): Readonly<Record<OrbitClass, string>> {
+  if (input.sourcePaths) {
+    return input.sourcePaths;
+  }
+  const paths = { ...TLE_FIXTURE_PATHS };
+  for (const stats of input.tleParseStats ?? []) {
+    paths[stats.orbitClass] = stats.sourcePath;
+  }
+  return paths;
+}
+
+function resolveProjectionTleSourceMode(input: RuntimeProjectionInput): TleSourceMode {
+  const modes = [
+    ...new Set(
+      (input.tleParseStats ?? [])
+        .map((stats) => stats.sourceMode)
+        .filter((mode): mode is TleSourceMode => Boolean(mode))
+    )
+  ];
+  return modes.length === 1 ? modes[0] : "local-snapshot";
+}
+
+function resolveProjectionSnapshotFetchedUtc(
+  input: RuntimeProjectionInput
+): string | null {
+  const values = [
+    ...new Set(
+      (input.tleParseStats ?? [])
+        .map((stats) => stats.snapshotFetchedUtc)
+        .filter((value): value is string => Boolean(value))
+    )
+  ];
+  return values.length === 1 ? values[0] : null;
 }
 
 export function computeRuntimeProjection(
@@ -673,13 +795,16 @@ export function computeRuntimeProjection(
     meanLinkDwellMs
   };
 
+  const tleSourceMode = resolveProjectionTleSourceMode(input);
   const truthBoundary = buildTruthBoundary(
     input.stationA,
     input.stationB,
     rainRateMmPerHour,
-    sharedSupportedOrbits
+    sharedSupportedOrbits,
+    tleSourceMode,
+    input.tleParseStats
   );
-  const sourcePaths = input.sourcePaths ?? TLE_FIXTURE_PATHS;
+  const sourcePaths = resolveProjectionSourcePaths(input);
   const sceneCameraHint = buildSceneCameraHintForProjection({
     pair: { stationA: input.stationA, stationB: input.stationB },
     visibilityWindows,
@@ -696,6 +821,8 @@ export function computeRuntimeProjection(
     acceptedTleRecords: cappedRecords,
     tleParseStats: input.tleParseStats,
     sourcePaths,
+    tleSourceMode,
+    snapshotFetchedUtc: resolveProjectionSnapshotFetchedUtc(input),
     caps: DEFAULT_TLE_CAPS,
     referenceUtc: input.timeWindow.startUtc,
     timeWindow: input.timeWindow,
@@ -734,15 +861,252 @@ export function computeRuntimeProjection(
   };
 }
 
+let defaultTleSourcesPromise: Promise<RuntimeTleSources> | null = null;
+
+function parseJsonWithOptionalHeader(text: string): unknown {
+  return JSON.parse(text.replace(/^(?:#.*(?:\r?\n|$))+/, ""));
+}
+
+function isIsoOrNull(value: unknown): value is string | null {
+  return value === null || (typeof value === "string" && Number.isFinite(Date.parse(value)));
+}
+
+function isManifestEntry(value: unknown): value is RuntimeTleNetworkManifestEntry {
+  if (!value || typeof value !== "object") {
+    return false;
+  }
+  const candidate = value as Partial<RuntimeTleNetworkManifestEntry>;
+  const recordCount = candidate.recordCount;
+  return (
+    typeof candidate.path === "string" &&
+    candidate.path.endsWith(".tle") &&
+    !candidate.path.includes("..") &&
+    Number.isInteger(recordCount) &&
+    recordCount !== undefined &&
+    recordCount > 0 &&
+    Boolean(candidate.epochRangeUtc) &&
+    isIsoOrNull(candidate.epochRangeUtc?.startUtc) &&
+    isIsoOrNull(candidate.epochRangeUtc?.endUtc)
+  );
+}
+
+function isNetworkManifest(value: unknown): value is RuntimeTleNetworkManifest {
+  if (!value || typeof value !== "object") {
+    return false;
+  }
+  const candidate = value as Partial<RuntimeTleNetworkManifest>;
+  return (
+    typeof candidate.generatedAtUtc === "string" &&
+    Number.isFinite(Date.parse(candidate.generatedAtUtc)) &&
+    isManifestEntry(candidate.leo) &&
+    isManifestEntry(candidate.meo) &&
+    isManifestEntry(candidate.geo)
+  );
+}
+
+function manifestEntryForOrbit(
+  manifest: RuntimeTleNetworkManifest,
+  orbitClass: OrbitClass
+): RuntimeTleNetworkManifestEntry {
+  return manifest[orbitClass.toLowerCase() as "leo" | "meo" | "geo"];
+}
+
+function normalizeNetworkTlePath(path: string): string {
+  return path.startsWith("/") ? path : `${NETWORK_TLE_BASE_PATH}${path}`;
+}
+
+function manifestSourcePaths(
+  manifest: RuntimeTleNetworkManifest
+): Readonly<Record<OrbitClass, string>> {
+  return {
+    LEO: normalizeNetworkTlePath(manifest.leo.path),
+    MEO: normalizeNetworkTlePath(manifest.meo.path),
+    GEO: normalizeNetworkTlePath(manifest.geo.path)
+  };
+}
+
+function isManifestEntryFresh(
+  manifest: RuntimeTleNetworkManifest,
+  orbitClass: OrbitClass,
+  referenceUtc: string
+): boolean {
+  const entry = manifestEntryForOrbit(manifest, orbitClass);
+  const candidates = [manifest.generatedAtUtc, entry.epochRangeUtc.endUtc]
+    .map((value) => (value ? Date.parse(value) : NaN))
+    .filter((value) => Number.isFinite(value));
+  const referenceMs = Date.parse(referenceUtc);
+  if (candidates.length === 0 || !Number.isFinite(referenceMs)) {
+    return false;
+  }
+  const anchorMs = Math.max(...candidates);
+  const ageDays = Math.max(0, (referenceMs - anchorMs) / 86_400_000);
+  return ageDays <= SOURCE_HEALTH_THRESHOLD_DAYS[orbitClass];
+}
+
+function localTleSourceSelection(
+  sourceMode: TleSourceMode,
+  manifest: RuntimeTleNetworkManifest | null
+): RuntimeTleSourceSelection {
+  return {
+    sourceMode,
+    sourcePaths: TLE_FIXTURE_PATHS,
+    snapshotFetchedUtc: manifest?.generatedAtUtc ?? null,
+    manifestPath: manifest ? NETWORK_TLE_MANIFEST_PATH : null,
+    manifest
+  };
+}
+
+async function resolveTleSourceSelection(
+  fetchImpl: typeof fetch,
+  referenceUtc: string = new Date().toISOString()
+): Promise<RuntimeTleSourceSelection> {
+  let response: Response;
+  try {
+    response = await fetchImpl(NETWORK_TLE_MANIFEST_PATH);
+  } catch {
+    return localTleSourceSelection("fallback-local-snapshot", null);
+  }
+  if (response.status === 404) {
+    return localTleSourceSelection("local-snapshot", null);
+  }
+  if (!response.ok) {
+    return localTleSourceSelection("fallback-local-snapshot", null);
+  }
+  let manifest: RuntimeTleNetworkManifest;
+  try {
+    const parsed = parseJsonWithOptionalHeader(await response.text());
+    if (!isNetworkManifest(parsed)) {
+      return localTleSourceSelection("fallback-local-snapshot", null);
+    }
+    manifest = parsed;
+  } catch {
+    return localTleSourceSelection("fallback-local-snapshot", null);
+  }
+  if (!ORBIT_CLASSES.every((orbitClass) => isManifestEntryFresh(manifest, orbitClass, referenceUtc))) {
+    return localTleSourceSelection("fallback-local-snapshot", manifest);
+  }
+  return {
+    sourceMode: "network-snapshot",
+    sourcePaths: manifestSourcePaths(manifest),
+    snapshotFetchedUtc: manifest.generatedAtUtc,
+    manifestPath: NETWORK_TLE_MANIFEST_PATH,
+    manifest
+  };
+}
+
+async function fetchTleText(
+  fetchImpl: typeof fetch,
+  path: string
+): Promise<string> {
+  const response = await fetchImpl(path);
+  if (!response.ok) {
+    throw new Error(`TLE fetch failed (${response.status} ${response.statusText}) for ${path}`);
+  }
+  return response.text();
+}
+
+async function fetchTleTexts(
+  fetchImpl: typeof fetch,
+  sourcePaths: Readonly<Record<OrbitClass, string>>
+): Promise<Pick<RuntimeTleSources, "leoTleText" | "meoTleText" | "geoTleText">> {
+  const [leoTleText, meoTleText, geoTleText] = await Promise.all([
+    fetchTleText(fetchImpl, sourcePaths.LEO),
+    fetchTleText(fetchImpl, sourcePaths.MEO),
+    fetchTleText(fetchImpl, sourcePaths.GEO)
+  ]);
+  return { leoTleText, meoTleText, geoTleText };
+}
+
+function isSatcatSummaryEntry(value: unknown): value is RuntimeSatcatSummaryEntry {
+  if (!value || typeof value !== "object") {
+    return false;
+  }
+  const candidate = value as Partial<RuntimeSatcatSummaryEntry>;
+  return (
+    Number.isInteger(candidate.noradId) &&
+    typeof candidate.objectName === "string" &&
+    typeof candidate.operatorFamily === "string" &&
+    typeof candidate.constellationName === "string" &&
+    ORBIT_CLASSES.includes(candidate.orbitClass as OrbitClass) &&
+    (candidate.decayDate === null || typeof candidate.decayDate === "string")
+  );
+}
+
+async function loadRuntimeSatcatSummary(
+  fetchImpl: typeof fetch
+): Promise<ReadonlyArray<RuntimeSatcatSummaryEntry>> {
+  try {
+    const response = await fetchImpl(NETWORK_SATCAT_SUMMARY_PATH);
+    if (!response.ok) {
+      return [];
+    }
+    const parsed = parseJsonWithOptionalHeader(await response.text());
+    if (!Array.isArray(parsed)) {
+      return [];
+    }
+    return parsed.filter(isSatcatSummaryEntry);
+  } catch {
+    return [];
+  }
+}
+
+async function loadDefaultTleSourcesUncached(
+  fetchImpl: typeof fetch
+): Promise<RuntimeTleSources> {
+  const selection = await resolveTleSourceSelection(fetchImpl);
+  const satcatSummary = await loadRuntimeSatcatSummary(fetchImpl);
+  if (selection.sourceMode === "network-snapshot") {
+    try {
+      const texts = await fetchTleTexts(fetchImpl, selection.sourcePaths);
+      return {
+        ...texts,
+        sourceMode: selection.sourceMode,
+        sourcePaths: selection.sourcePaths,
+        snapshotFetchedUtc: selection.snapshotFetchedUtc,
+        manifestPath: selection.manifestPath,
+        satcatSummaryPath: satcatSummary.length > 0 ? NETWORK_SATCAT_SUMMARY_PATH : null,
+        satcatSummary
+      };
+    } catch {
+      const fallback = await fetchTleTexts(fetchImpl, TLE_FIXTURE_PATHS);
+      return {
+        ...fallback,
+        sourceMode: "fallback-local-snapshot",
+        sourcePaths: TLE_FIXTURE_PATHS,
+        snapshotFetchedUtc: selection.snapshotFetchedUtc,
+        manifestPath: selection.manifestPath,
+        satcatSummaryPath: satcatSummary.length > 0 ? NETWORK_SATCAT_SUMMARY_PATH : null,
+        satcatSummary
+      };
+    }
+  }
+  const texts = await fetchTleTexts(fetchImpl, selection.sourcePaths);
+  return {
+    ...texts,
+    sourceMode: selection.sourceMode,
+    sourcePaths: selection.sourcePaths,
+    snapshotFetchedUtc: selection.snapshotFetchedUtc,
+    manifestPath: selection.manifestPath,
+    satcatSummaryPath: satcatSummary.length > 0 ? NETWORK_SATCAT_SUMMARY_PATH : null,
+    satcatSummary
+  };
+}
+
 export async function loadDefaultTleSources(
   fetchImpl: typeof fetch = fetch
 ): Promise<RuntimeTleSources> {
-  const [leoTleText, meoTleText, geoTleText] = await Promise.all([
-    fetchImpl(TLE_FIXTURE_PATHS.LEO).then((r) => r.text()),
-    fetchImpl(TLE_FIXTURE_PATHS.MEO).then((r) => r.text()),
-    fetchImpl(TLE_FIXTURE_PATHS.GEO).then((r) => r.text())
-  ]);
-  return { leoTleText, meoTleText, geoTleText };
+  if (fetchImpl === fetch) {
+    defaultTleSourcesPromise ??= loadDefaultTleSourcesUncached(fetchImpl);
+    return defaultTleSourcesPromise;
+  }
+  return loadDefaultTleSourcesUncached(fetchImpl);
+}
+
+export async function resolveDefaultTleFixturePaths(
+  fetchImpl: typeof fetch = fetch
+): Promise<Readonly<Record<OrbitClass, string>>> {
+  const sources = await loadDefaultTleSources(fetchImpl);
+  return sources.sourcePaths ?? TLE_FIXTURE_PATHS;
 }
 
 export function parseRuntimeTleSources(
@@ -785,7 +1149,13 @@ function summarizeNoradIds(
 function buildTleSourceParseStatsForText(
   rawTleText: string,
   orbitClass: OrbitClass,
-  sourcePath: string
+  sourcePath: string,
+  sourceMetadata: {
+    readonly sourceMode: TleSourceMode;
+    readonly snapshotFetchedUtc: string | null;
+    readonly snapshotPath: string;
+    readonly satcatByNoradId: ReadonlyMap<number, RuntimeSatcatSummaryEntry>;
+  }
 ): RuntimeTleSourceParseStats {
   const lines = rawTleText
     .split(/\r?\n/)
@@ -797,6 +1167,7 @@ function buildTleSourceParseStatsForText(
   const noradIds: number[] = [];
   const cosparDesignators: string[] = [];
   const classificationCounts: Record<string, number> = {};
+  const constellationMembership: Record<string, number> = {};
   let meanMotionFirstDerivativeCount = 0;
   let meanMotionSecondDerivativeCount = 0;
   let bstarDragTermCount = 0;
@@ -806,24 +1177,31 @@ function buildTleSourceParseStatsForText(
     const line1 = lines[i + 1];
     const line2 = lines[i + 2];
     if (nameLine && line1?.startsWith("1 ") && line2?.startsWith("2 ")) {
-      const metadata = parseTleRecordMetadata(line1);
+      const recordMetadata = parseTleRecordMetadata(line1);
       parsedRecordCount += 1;
-      if (metadata.noradCatalogId !== null) {
-        noradIds.push(metadata.noradCatalogId);
+      if (recordMetadata.noradCatalogId !== null) {
+        noradIds.push(recordMetadata.noradCatalogId);
+        const satcatEntry = sourceMetadata.satcatByNoradId.get(
+          recordMetadata.noradCatalogId
+        );
+        if (satcatEntry?.operatorFamily) {
+          constellationMembership[satcatEntry.operatorFamily] =
+            (constellationMembership[satcatEntry.operatorFamily] ?? 0) + 1;
+        }
       }
-      if (metadata.cosparDesignator) {
-        cosparDesignators.push(metadata.cosparDesignator);
+      if (recordMetadata.cosparDesignator) {
+        cosparDesignators.push(recordMetadata.cosparDesignator);
       }
-      const classification = metadata.classification || "unknown";
+      const classification = recordMetadata.classification || "unknown";
       classificationCounts[classification] =
         (classificationCounts[classification] ?? 0) + 1;
-      if (metadata.meanMotionFirstDerivative !== null) {
+      if (recordMetadata.meanMotionFirstDerivative !== null) {
         meanMotionFirstDerivativeCount += 1;
       }
-      if (metadata.meanMotionSecondDerivative !== null) {
+      if (recordMetadata.meanMotionSecondDerivative !== null) {
         meanMotionSecondDerivativeCount += 1;
       }
-      if (metadata.bstarDragTerm !== null) {
+      if (recordMetadata.bstarDragTerm !== null) {
         bstarDragTermCount += 1;
       }
     } else {
@@ -838,10 +1216,14 @@ function buildTleSourceParseStatsForText(
     sourceId: `tle:${orbitClass.toLowerCase()}`,
     sourcePath,
     orbitClass,
+    sourceMode: sourceMetadata.sourceMode,
+    snapshotFetchedUtc: sourceMetadata.snapshotFetchedUtc,
+    snapshotPath: sourceMetadata.snapshotPath,
     rawRecordGroupCount,
     parsedRecordCount,
     parserFailureCount,
     noradIdRangeSummary: summarizeNoradIds(noradIds),
+    constellationMembership,
     cosparDesignatorCount: new Set(cosparDesignators).size,
     cosparDesignatorSamples: [...new Set(cosparDesignators)].slice(0, 8),
     classificationCounts,
@@ -856,10 +1238,34 @@ function buildTleSourceParseStatsForText(
 export function buildRuntimeTleSourceParseStats(
   sources: RuntimeTleSources
 ): ReadonlyArray<RuntimeTleSourceParseStats> {
+  const sourcePaths = sources.sourcePaths ?? TLE_FIXTURE_PATHS;
+  const sourceMetadata = {
+    sourceMode: sources.sourceMode ?? "local-snapshot",
+    snapshotFetchedUtc: sources.snapshotFetchedUtc ?? null,
+    snapshotPath: sources.manifestPath ?? sourcePaths.LEO,
+    satcatByNoradId: new Map(
+      (sources.satcatSummary ?? []).map((entry) => [entry.noradId, entry])
+    )
+  };
   return [
-    buildTleSourceParseStatsForText(sources.leoTleText, "LEO", TLE_FIXTURE_PATHS.LEO),
-    buildTleSourceParseStatsForText(sources.meoTleText, "MEO", TLE_FIXTURE_PATHS.MEO),
-    buildTleSourceParseStatsForText(sources.geoTleText, "GEO", TLE_FIXTURE_PATHS.GEO)
+    buildTleSourceParseStatsForText(
+      sources.leoTleText,
+      "LEO",
+      sourcePaths.LEO,
+      { ...sourceMetadata, snapshotPath: sourcePaths.LEO }
+    ),
+    buildTleSourceParseStatsForText(
+      sources.meoTleText,
+      "MEO",
+      sourcePaths.MEO,
+      { ...sourceMetadata, snapshotPath: sourcePaths.MEO }
+    ),
+    buildTleSourceParseStatsForText(
+      sources.geoTleText,
+      "GEO",
+      sourcePaths.GEO,
+      { ...sourceMetadata, snapshotPath: sourcePaths.GEO }
+    )
   ];
 }
 

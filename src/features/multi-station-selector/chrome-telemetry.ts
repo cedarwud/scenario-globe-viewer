@@ -10,8 +10,8 @@
 //      the chip renderer stays sync across re-mounts.
 //
 //   2. TLE telemetry chip — `[data-tle-telemetry-chip="true"]` with
-//      `data-tle-date="<ISO date>"`. The date is parsed from the LEO
-//      TLE filename constant in runtime-projection.ts.
+//      `data-tle-date="<ISO date>"` and `data-source-mode="<mode>"`.
+//      The date is parsed from the resolved LEO TLE snapshot path.
 //
 //   3. Soak summary path — `data-soak-summary-path` attribute on the
 //      viewer root. Machine-readable evidence of R1-D4.
@@ -20,7 +20,7 @@
 // 0). When no cached count is present a background fetch resolves the
 // LEO TLE record count and back-patches the chip's data attribute.
 
-import { TLE_FIXTURE_PATHS } from "./runtime-projection";
+import { TLE_FIXTURE_PATHS, loadDefaultTleSources } from "./runtime-projection";
 
 const LEO_COUNT_CACHE_KEY = "__SGV_LEO_TLE_COUNT__";
 const SOAK_SUMMARY_PATH =
@@ -93,12 +93,15 @@ declare global {
   }
 }
 
-function extractTleDateFromLeoPath(): string {
+function extractTleDateFromPath(path: string): string {
   // Filename shape: `<constellation>-<YYYY-MM-DDTHH-MM-SSZ>.tle` — extract
   // the leading date portion (`YYYY-MM-DD`) as an ISO date string.
-  const path = TLE_FIXTURE_PATHS.LEO;
   const match = path.match(/(\d{4}-\d{2}-\d{2})T/);
   return match?.[1] ?? "unknown";
+}
+
+function extractTleDateFromLeoPath(): string {
+  return extractTleDateFromPath(TLE_FIXTURE_PATHS.LEO);
 }
 
 function countTleGroups(tleText: string): number {
@@ -118,14 +121,8 @@ async function loadLeoTleRecordCount(): Promise<number> {
   if (typeof cached === "number" && Number.isFinite(cached) && cached > 0) {
     return cached;
   }
-  const response = await fetch(TLE_FIXTURE_PATHS.LEO);
-  if (!response.ok) {
-    throw new Error(
-      `LEO TLE fixture fetch failed (${response.status} ${response.statusText})`
-    );
-  }
-  const text = await response.text();
-  const count = countTleGroups(text);
+  const sources = await loadDefaultTleSources();
+  const count = countTleGroups(sources.leoTleText);
   window[LEO_COUNT_CACHE_KEY] = count;
   return count;
 }
@@ -159,9 +156,35 @@ function createTleTelemetryChip(tleDate: string): HTMLElement {
   chip.className = "gs-tle-telemetry-chip";
   chip.dataset.tleTelemetryChip = "true";
   chip.dataset.tleDate = tleDate;
+  chip.dataset.sourceMode = "local-snapshot";
   chip.setAttribute("aria-label", `TLE source date ${tleDate}`);
   chip.textContent = `TLE ${tleDate}`;
   return chip;
+}
+
+function syncTleTelemetryChipSource(chip: HTMLElement): void {
+  void loadDefaultTleSources()
+    .then((sources) => {
+      const sourceMode = sources.sourceMode ?? "local-snapshot";
+      const tleDate = extractTleDateFromPath(
+        sources.sourcePaths?.LEO ?? TLE_FIXTURE_PATHS.LEO
+      );
+      chip.dataset.tleDate = tleDate;
+      chip.dataset.sourceMode = sourceMode;
+      if (sourceMode === "network-snapshot" || sourceMode === "fallback-local-snapshot") {
+        chip.dataset.tleAttribution = "CelesTrak";
+      } else {
+        delete chip.dataset.tleAttribution;
+      }
+      chip.setAttribute("aria-label", `TLE source date ${tleDate}`);
+      const suffix = chip.textContent?.includes(" · ")
+        ? ` · ${chip.textContent.split(" · ").slice(1).join(" · ")}`
+        : "";
+      chip.textContent = `TLE ${tleDate}${suffix}`;
+    })
+    .catch(() => {
+      chip.dataset.sourceMode = "local-snapshot";
+    });
 }
 
 export interface SelectorChromeTelemetryHandle {
@@ -186,6 +209,7 @@ export function mountSelectorChromeTelemetry(
   const initialCount = window[LEO_COUNT_CACHE_KEY] ?? 0;
   const leoChip = createLeoActorCountChip(initialCount);
   const tleChip = createTleTelemetryChip(extractTleDateFromLeoPath());
+  syncTleTelemetryChipSource(tleChip);
 
   viewerContainer.appendChild(leoChip);
   viewerContainer.appendChild(tleChip);

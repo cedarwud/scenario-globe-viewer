@@ -21,6 +21,11 @@ const VIEWPORT = { width: 1440, height: 900 };
 const READY_TIMEOUT_MS = 30_000;
 const RUNTIME_MODE = "tle-first-runtime";
 const FIXTURE_MODE = "fixture-fallback";
+const TLE_SOURCE_MODES = new Set([
+  "local-snapshot",
+  "network-snapshot",
+  "fallback-local-snapshot"
+]);
 const DEBUG_SERVER_PROBE = process.env.SGV_DEBUG_SERVER_PROBE === "1";
 
 const args = Object.fromEntries(
@@ -278,6 +283,7 @@ async function readSelectedPairState(client, terminalStatuses = ["ready", "empty
         const panel = document.querySelector('[data-v4-projection-side-panel="true"]');
         const footer = document.querySelector('[data-station-precision-disclosure="true"]');
         const chip = document.querySelector('[data-tle-telemetry-chip="true"]');
+        const sourcesDisclosure = document.querySelector('[data-disclosure="sources-non-claims"]');
         last = {
           hasCapture: Boolean(capture),
           hasController: Boolean(controller),
@@ -291,7 +297,8 @@ async function readSelectedPairState(client, terminalStatuses = ["ready", "empty
               }
             : null,
           footer: footer ? { ...footer.dataset } : null,
-          chip: chip ? { ...chip.dataset } : null
+          chip: chip ? { ...chip.dataset } : null,
+          sourcesDisclosureText: sourcesDisclosure?.textContent ?? ""
         };
         const panelHasDataCompleteness =
           !panel || Boolean(panel.dataset.dataCompletenessRouteMode);
@@ -388,6 +395,74 @@ async function readMissingSourceEvidence(client, testCase) {
   );
 }
 
+async function readSourceModeResolutionEvidence(client) {
+  return await evaluateRuntimeValue(
+    client,
+    `(async () => {
+      const rt = await import("/src/features/multi-station-selector/runtime-projection.ts");
+      const now = new Date().toISOString();
+      const fakeTle = [
+        "ISS (ZARYA)",
+        "1 25544U 98067A   26138.00000000  .00010000  00000+0  10000-3 0  9991",
+        "2 25544  51.6400 120.0000 0006000  40.0000  80.0000 15.50000000400000"
+      ].join("\\n") + "\\n";
+      const manifest = {
+        generatedAtUtc: now,
+        leo: { path: "leo-frozen.tle", recordCount: 1, epochRangeUtc: { startUtc: now, endUtc: now } },
+        meo: { path: "meo-frozen.tle", recordCount: 1, epochRangeUtc: { startUtc: now, endUtc: now } },
+        geo: { path: "geo-frozen.tle", recordCount: 1, epochRangeUtc: { startUtc: now, endUtc: now } }
+      };
+      const localPaths = {
+        LEO: "/fixtures/satellites/leo-scale/starlink-2026-05-12T12-35-35Z.tle",
+        MEO: "/fixtures/satellites/multi-orbit/meo/galileo-2026-05-13T01-28-37Z.tle",
+        GEO: "/fixtures/satellites/multi-orbit/geo/commercial-geo-top30-2026-05-13T01-28-37Z.tle"
+      };
+      const networkPaths = new Set([
+        "/fixtures/satellites-network/leo-frozen.tle",
+        "/fixtures/satellites-network/meo-frozen.tle",
+        "/fixtures/satellites-network/geo-frozen.tle"
+      ]);
+      const response = (body, status = 200) => new Response(body, {
+        status,
+        statusText: status === 200 ? "OK" : status === 404 ? "Not Found" : "Failure"
+      });
+      const runCase = async (label, fakeFetch) => {
+        const sources = await rt.loadDefaultTleSources(fakeFetch);
+        return {
+          label,
+          sourceMode: sources.sourceMode,
+          sourcePaths: sources.sourcePaths,
+          snapshotFetchedUtc: sources.snapshotFetchedUtc
+        };
+      };
+      return [
+        await runCase("offline-baseline", async (url) => {
+          if (url.endsWith("/manifest.json")) return response("", 404);
+          if (url.endsWith("/satcat-summary.json")) return response("", 404);
+          if (Object.values(localPaths).includes(url)) return response(fakeTle);
+          return response("", 404);
+        }),
+        await runCase("network-frozen-fresh", async (url) => {
+          if (url.endsWith("/manifest.json")) return response(JSON.stringify(manifest));
+          if (url.endsWith("/satcat-summary.json")) return response(JSON.stringify([]));
+          if (networkPaths.has(url)) return response(fakeTle);
+          if (Object.values(localPaths).includes(url)) return response(fakeTle);
+          return response("", 404);
+        }),
+        await runCase("fallback-local-snapshot", async (url) => {
+          if (url.endsWith("/manifest.json")) return response(JSON.stringify(manifest));
+          if (url.endsWith("/satcat-summary.json")) return response(JSON.stringify([]));
+          if (url.endsWith("/leo-frozen.tle")) return response("", 500);
+          if (networkPaths.has(url)) return response(fakeTle);
+          if (Object.values(localPaths).includes(url)) return response(fakeTle);
+          return response("", 404);
+        })
+      ];
+    })()`,
+    { awaitPromise: true }
+  );
+}
+
 function assert(condition, message) {
   if (!condition) {
     throw new Error(message);
@@ -418,6 +493,32 @@ function assertDataCompletenessShape(label, state) {
   assert(data.routeMode === RUNTIME_MODE, `${label}: wrong routeMode ${data.routeMode}`);
   assert(data.actorSourceCoverage?.fakeActorCount === 0, `${label}: fake actor count is not zero`);
   assert(Array.isArray(data.tleSources) && data.tleSources.length === 3, `${label}: expected 3 TLE sources`);
+  assert(
+    Array.isArray(data.tleFreshness) && data.tleFreshness.length === 3,
+    `${label}: expected 3 TLE freshness rows`
+  );
+  for (const freshness of data.tleFreshness) {
+    assert(
+      TLE_SOURCE_MODES.has(freshness.sourceMode),
+      `${label}: invalid TLE sourceMode ${freshness.sourceMode}`
+    );
+    assert(freshness.snapshotPath, `${label}: TLE freshness snapshot path missing`);
+    assert(freshness.maxEpochUtc, `${label}: TLE freshness max epoch missing`);
+    assert(
+      Array.isArray(freshness.noradIdRangeSummary) &&
+        freshness.noradIdRangeSummary.length > 0,
+      `${label}: TLE freshness NORAD summary missing`
+    );
+    assert(
+      freshness.constellationMembership &&
+        typeof freshness.constellationMembership === "object",
+      `${label}: TLE freshness membership payload missing`
+    );
+  }
+  const hasSatcatMembership = data.tleFreshness.some(
+    (freshness) => Object.keys(freshness.constellationMembership).length > 0
+  );
+  assert(hasSatcatMembership, `${label}: SATCAT constellation membership missing`);
   assert(
     data.tleSources.every((source) => source.health && source.sourceTimestampUtc),
     `${label}: source health/timestamp missing`
@@ -588,6 +689,23 @@ function assertReadyCase(testCase, state) {
   assert(state.footer?.stationBId === testCase.stationB, `${testCase.label}: footer station B missing`);
   assert(state.chip?.sourceCount === "3", `${testCase.label}: TLE chip source count missing`);
   assert(state.chip?.sourceHealth, `${testCase.label}: TLE chip source health missing`);
+  assert(
+    TLE_SOURCE_MODES.has(state.chip?.sourceMode),
+    `${testCase.label}: TLE chip sourceMode missing`
+  );
+  if (
+    state.chip?.sourceMode === "network-snapshot" ||
+    state.chip?.sourceMode === "fallback-local-snapshot"
+  ) {
+    assert(
+      state.chip?.tleAttribution === "CelesTrak",
+      `${testCase.label}: TLE chip CelesTrak attribution missing`
+    );
+    assert(
+      state.sourcesDisclosureText.includes("CelesTrak"),
+      `${testCase.label}: Row 5 sources disclosure CelesTrak attribution missing`
+    );
+  }
   const parserFailureCount = state.overlay.dataCompleteness.tleSources.reduce(
     (total, source) => total + (source.parserFailureCount ?? 0),
     0
@@ -889,6 +1007,25 @@ try {
     mobile: false
   });
 
+  await navigate(client, baseUrl);
+  const sourceModeEvidence = await readSourceModeResolutionEvidence(client);
+  const sourceModeByLabel = new Map(
+    sourceModeEvidence.map((entry) => [entry.label, entry])
+  );
+  assert(
+    sourceModeByLabel.get("offline-baseline")?.sourceMode === "local-snapshot",
+    "offline-baseline: expected local-snapshot"
+  );
+  assert(
+    sourceModeByLabel.get("network-frozen-fresh")?.sourceMode === "network-snapshot",
+    "network-frozen-fresh: expected network-snapshot"
+  );
+  assert(
+    sourceModeByLabel.get("fallback-local-snapshot")?.sourceMode ===
+      "fallback-local-snapshot",
+    "fallback-local-snapshot: expected fallback-local-snapshot"
+  );
+
   await navigate(client, buildSelectedPairUrl(readyCase));
   const readyState = await readSelectedPairState(client);
   assertReadyCase(readyCase, readyState);
@@ -901,6 +1038,7 @@ try {
     status: readyState.overlay.status,
     emptyReasonCode: readyState.overlay.emptyReasonCode,
     sourceHealth: readyState.chip.sourceHealth,
+    sourceMode: readyState.chip.sourceMode,
     modeledOutputCount: readyState.overlay.dataCompleteness.modeledOutputs.length,
     actorProvenanceCount: readyState.overlay.dataCompleteness.actorProvenance.length,
     visibilityProvenanceCount: readyState.overlay.dataCompleteness.visibilityProvenance.length,
