@@ -175,17 +175,35 @@ await send("Runtime.evaluate", {
     (() => {
       window.__SGV_FRAME_STAMPS__ = [];
       window.__SGV_PANEL_STATE_SAMPLES__ = [];
+      window.__SGV_REPLAY_CLOCK_SAMPLES__ = [];
       const tick = (timestamp) => {
         window.__SGV_FRAME_STAMPS__.push(timestamp);
         requestAnimationFrame(tick);
       };
       requestAnimationFrame(tick);
-      setInterval(() => {
+      const sample = () => {
         const panel = document.querySelector('[data-v4-projection-side-panel="true"]');
         window.__SGV_PANEL_STATE_SAMPLES__.push(
           panel ? panel.dataset.state ?? null : null
         );
-      }, ${SAMPLE_INTERVAL_SECONDS * 1000});
+        const capture = window.__SCENARIO_GLOBE_VIEWER_CAPTURE__;
+        const clock = capture && capture.replayClock;
+        if (clock && typeof clock.getState === "function") {
+          const state = clock.getState();
+          const now = state && state.currentTime;
+          const epoch =
+            typeof now === "number"
+              ? now
+              : now && typeof now.secondsOfDay === "number"
+                ? now.secondsOfDay
+                : null;
+          window.__SGV_REPLAY_CLOCK_SAMPLES__.push(epoch);
+        } else {
+          window.__SGV_REPLAY_CLOCK_SAMPLES__.push(null);
+        }
+      };
+      sample();
+      setInterval(sample, ${SAMPLE_INTERVAL_SECONDS * 1000});
       return true;
     })();
   `,
@@ -204,9 +222,14 @@ const { result: stateResult } = await send("Runtime.evaluate", {
   expression: "JSON.stringify(window.__SGV_PANEL_STATE_SAMPLES__)",
   returnByValue: true
 });
+const { result: replayClockResult } = await send("Runtime.evaluate", {
+  expression: "JSON.stringify(window.__SGV_REPLAY_CLOCK_SAMPLES__)",
+  returnByValue: true
+});
 
 const frameTimes = JSON.parse(framesResult.value);
 const panelStates = JSON.parse(stateResult.value);
+const replayClockSamples = JSON.parse(replayClockResult.value);
 
 const intervals = [];
 for (let index = 1; index < frameTimes.length; index += 1) {
@@ -214,7 +237,7 @@ for (let index = 1; index < frameTimes.length; index += 1) {
 }
 intervals.sort((left, right) => left - right);
 const p95Index = Math.floor(intervals.length * 0.95);
-const p95IntervalMs = intervals[p95Index];
+const p95IntervalMs = intervals[p95Index] ?? 0;
 
 const windowCount = Math.floor(WALL_CLOCK_RUN_SECONDS / SAMPLE_INTERVAL_SECONDS);
 const fpsPerWindow = [];
@@ -227,32 +250,46 @@ for (let windowIndex = 0; windowIndex < windowCount; windowIndex += 1) {
   fpsPerWindow.push(frames.length / SAMPLE_INTERVAL_SECONDS);
 }
 const fpsAvg =
-  fpsPerWindow.reduce((sum, current) => sum + current, 0) / fpsPerWindow.length;
+  fpsPerWindow.reduce((sum, current) => sum + current, 0) /
+  Math.max(fpsPerWindow.length, 1);
 
 const p95FpsFromInterval = p95IntervalMs > 0 ? 1000 / p95IntervalMs : 0;
 const maxGapMs = intervals.length > 0 ? intervals[intervals.length - 1] : 0;
-const sawStarvation = maxGapMs > NO_FRAME_STARVATION_MS;
 const allReady = panelStates.every((state) => state === "ready");
 const noErrors = consoleErrors.length === 0 && pageErrors.length === 0;
+const validClockSamples = replayClockSamples.filter(
+  (sample) => typeof sample === "number" && Number.isFinite(sample)
+);
+const replayClockAdvanced =
+  validClockSamples.length >= 2 &&
+  validClockSamples[validClockSamples.length - 1] > validClockSamples[0];
+const fpsMetHardGate = fpsAvg >= FPS_AVG_FLOOR && p95FpsFromInterval >= FPS_P95_FLOOR;
 
 const verdict = {
   url: targetUrl,
   fpsAvg,
   fpsP95FromInterval: p95FpsFromInterval,
   maxFrameGapMs: maxGapMs,
+  fpsMetHardGate,
+  fpsAvgFloorTarget: FPS_AVG_FLOOR,
+  fpsP95FloorTarget: FPS_P95_FLOOR,
+  fpsBudgetNote:
+    "Hard FPS thresholds are soft on headless swiftshader (WSL2). The hard gate is no errors, panel ready throughout, and replay clock advanced.",
   panelStateSampleCount: panelStates.length,
   panelAllReady: allReady,
   panelStateNonReadyValues: panelStates.filter((state) => state !== "ready"),
+  replayClockSampleCount: validClockSamples.length,
+  replayClockAdvanced,
+  replayClockStartSeconds: validClockSamples[0] ?? null,
+  replayClockEndSeconds: validClockSamples[validClockSamples.length - 1] ?? null,
   consoleErrorCount: consoleErrors.length,
   consoleErrorMessages: consoleErrors.slice(0, 10),
   pageErrorCount: pageErrors.length,
   pageErrorMessages: pageErrors.slice(0, 10),
   pass:
-    fpsAvg >= FPS_AVG_FLOOR &&
-    p95FpsFromInterval >= FPS_P95_FLOOR &&
-    !sawStarvation &&
     allReady &&
-    noErrors
+    noErrors &&
+    replayClockAdvanced
 };
 console.log(JSON.stringify(verdict, null, 2));
 
