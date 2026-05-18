@@ -53,7 +53,7 @@ the visible product UX root and should stay behind a separate visual-diff pass.
 ## Post-Ship Correction
 
 After manual demo review, clean-route pair selection was corrected so selecting
-both stations from `/` automatically enters the V4 pair URL. CDP interaction
-evidence confirmed the flow redirects to
-`?scenePreset=regional&m8aV4GroundStationScene=1&stationA=ksat-svalsat-svalbard&stationB=ksat-tromso`,
-mounts the V4 controller, and leaves the panel in `data-state="ready"`.
+both stations from `/` hot-mounts the V4 controller in the same browser
+lifecycle. CDP interaction evidence confirmed the URL remains the short
+selected-pair form, the V4 controller exists in the capture seam, and the panel
+stays in `data-state="ready"`.

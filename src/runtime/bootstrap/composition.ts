@@ -23,7 +23,6 @@ import {
   resolveV4RouteSelection,
   type V4RouteSelection
 } from "../../features/multi-station-selector/v4-route-selection";
-import { buildV4PairHref } from "../../features/multi-station-selector/v4-route-href";
 import { PUBLIC_REGISTRY_BY_ID } from "../../features/multi-station-selector/tier-inference";
 import {
   subscribeDisplayState,
@@ -708,7 +707,7 @@ export function startBootstrapComposition(app: HTMLDivElement): BootstrapComposi
   // leaves this controller's startup-only behaviour intact; only the
   // V4 projection side panel below is wired into the display-state
   // subscription this round.
-  const m8aV4GroundStationScene = isM8aV4RuntimeRequest
+  let m8aV4GroundStationScene = isM8aV4RuntimeRequest
     ? createM8aV4GroundStationSceneController({
         viewer,
         hudFrame,
@@ -776,6 +775,24 @@ export function startBootstrapComposition(app: HTMLDivElement): BootstrapComposi
     validationState: controllerGraph.validationStateController
   };
   syncVisualBaselineState(viewer);
+
+  function ensureM8aV4GroundStationScene(): NonNullable<
+    typeof m8aV4GroundStationScene
+  > {
+    if (!m8aV4GroundStationScene) {
+      m8aV4GroundStationScene = createM8aV4GroundStationSceneController({
+        viewer,
+        hudFrame,
+        replayClock: firstIntakeReplayClock
+      });
+      if (window.__SCENARIO_GLOBE_VIEWER_CAPTURE__) {
+        window.__SCENARIO_GLOBE_VIEWER_CAPTURE__.m8aV4GroundStationScene =
+          m8aV4GroundStationScene;
+      }
+    }
+    return m8aV4GroundStationScene;
+  }
+
   const unmountLightingToggle = mountLightingToggle(viewer);
   const unmountOsmBuildingsShowcase = mountOptionalOsmBuildingsShowcase(
     viewer,
@@ -849,7 +866,6 @@ export function startBootstrapComposition(app: HTMLDivElement): BootstrapComposi
   let v4ProjectionSidePanelMountedPairKey: string | null = null;
   let v4ProjectionSidePanelRuntimeResultUnsubscribe: (() => void) | null = null;
   let unsubscribeDisplayState: (() => void) | null = null;
-  let v4RuntimeReloadPending = false;
   if (groundStationSelectionStore && groundStationInfoCard) {
     const registryResolves = (id: string): boolean =>
       PUBLIC_REGISTRY_BY_ID.has(id);
@@ -865,16 +881,6 @@ export function startBootstrapComposition(app: HTMLDivElement): BootstrapComposi
           ? `${resolvedPair.stationA.id} ${resolvedPair.stationB.id}`
           : null;
         if (isPanelState && resolvedPair) {
-          if (!isM8aV4RuntimeRequest && !v4RuntimeReloadPending) {
-            v4RuntimeReloadPending = true;
-            window.location.assign(
-              buildV4PairHref({
-                stationAId: resolvedPair.stationA.id,
-                stationBId: resolvedPair.stationB.id
-              })
-            );
-            return;
-          }
           if (
             v4ProjectionSidePanel &&
             v4ProjectionSidePanelMountedPairKey !== pairKey
@@ -910,7 +916,7 @@ export function startBootstrapComposition(app: HTMLDivElement): BootstrapComposi
           // a no-op when the resolved pair matches the controller's
           // existing endpoints because the entity-id keys land on the
           // same entities and the camera framing converges.
-          m8aV4GroundStationScene?.setSelectedPair(resolvedPair);
+          ensureM8aV4GroundStationScene().setSelectedPair(resolvedPair);
         } else if (!isPanelState && v4ProjectionSidePanel) {
           v4ProjectionSidePanelRuntimeResultUnsubscribe?.();
           v4ProjectionSidePanelRuntimeResultUnsubscribe = null;
