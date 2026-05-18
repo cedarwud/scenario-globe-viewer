@@ -10,11 +10,20 @@ import { createSelectionStore } from "../../features/multi-station-selector/sele
 import { mountSelectionChips } from "../../features/multi-station-selector/selection-chips";
 import { mountStationListPicker } from "../../features/multi-station-selector/station-list-picker";
 import { mountMarkerHoverTooltip } from "../../features/multi-station-selector/marker-hover-tooltip";
-import { mountV4ProjectionSidePanel } from "../../features/multi-station-selector/v4-projection-side-panel";
+import { mountMarkerFilterPanel } from "../../features/multi-station-selector/marker-filter-panel";
+import {
+  mountV4ProjectionSidePanel,
+  type V4ProjectionSidePanelHandle
+} from "../../features/multi-station-selector/v4-projection-side-panel";
 import {
   resolveV4RouteSelection,
   type V4RouteSelection
 } from "../../features/multi-station-selector/v4-route-selection";
+import { PUBLIC_REGISTRY_BY_ID } from "../../features/multi-station-selector/tier-inference";
+import {
+  subscribeDisplayState,
+  type DisplayState
+} from "../../features/multi-station-selector/display-state";
 import {
   mountOptionalOsmBuildingsShowcase,
   resolveBuildingShowcaseSelection
@@ -687,6 +696,12 @@ export function startBootstrapComposition(app: HTMLDivElement): BootstrapComposi
           physicalInputController: firstIntakePhysicalInputController
         })
       : undefined;
+  // wave 2: extend the V4 ground-station controller mount to subscribe
+  // to the selection-store so endpoint markers + camera framing
+  // re-anchor on a reselection without a full page reload. Wave 1
+  // leaves this controller's startup-only behaviour intact; only the
+  // V4 projection side panel below is wired into the display-state
+  // subscription this round.
   const m8aV4GroundStationScene = isM8aV4RuntimeRequest
     ? createM8aV4GroundStationSceneController({
         viewer,
@@ -694,11 +709,6 @@ export function startBootstrapComposition(app: HTMLDivElement): BootstrapComposi
         replayClock: firstIntakeReplayClock
       })
     : undefined;
-  const m8aV4ProjectionSidePanel = isM8aV4RuntimeRequest
-    ? mountV4ProjectionSidePanel(viewer.container as HTMLElement, {
-        resolvedPair: v4RouteSelection.resolvedPair
-      })
-    : null;
   const satelliteOverlay = createSatelliteOverlayController({
     viewer,
     replayClock
@@ -767,13 +777,22 @@ export function startBootstrapComposition(app: HTMLDivElement): BootstrapComposi
   );
   const disposeLightingRefresh = bindLightingRefresh(viewer);
 
-  const isCleanHomeViewerMode =
-    !isM8aV4RuntimeRequest && !adoptFirstIntakeAsActiveOwner;
-  const groundStationMarkers = isCleanHomeViewerMode
+  // Mount unification per IA §2 + §4.1 + runtime-data-contract §A.1:
+  // the marker layer, filter panel, selection chips, station list
+  // picker, info card, and hover tooltip mount whenever the first-intake
+  // surface is not the active owner — independent of whether the URL
+  // carries stationA/stationB. The V4 projection side panel mounts on
+  // top of that base only when display state enters projecting/replaying
+  // (see subscribeDisplayState below).
+  const mountSelectorSurfaces = !adoptFirstIntakeAsActiveOwner;
+  const groundStationMarkers = mountSelectorSurfaces
     ? mountGroundStationMarkers(viewer, { initiallyVisible: true })
     : null;
   const groundStationSelectionStore = groundStationMarkers
     ? createSelectionStore()
+    : null;
+  const groundStationMarkerFilterPanel = groundStationMarkers
+    ? mountMarkerFilterPanel(viewer.container as HTMLElement, groundStationMarkers)
     : null;
   const groundStationSelectionChips =
     groundStationMarkers && groundStationSelectionStore
@@ -796,6 +815,49 @@ export function startBootstrapComposition(app: HTMLDivElement): BootstrapComposi
   const groundStationMarkerHoverTooltip = groundStationMarkers
     ? mountMarkerHoverTooltip(viewer, groundStationMarkers)
     : null;
+
+  // V4 projection side panel — mounted/disposed by the display-state
+  // subscription so the panel is only present in projecting/replaying.
+  // The subscription also writes body[data-display-state] so CSS can
+  // branch on the surface state without per-tick JS (IA §3).
+  let v4ProjectionSidePanel: V4ProjectionSidePanelHandle | null = null;
+  let unsubscribeDisplayState: (() => void) | null = null;
+  if (groundStationSelectionStore && groundStationInfoCard) {
+    const registryResolves = (id: string): boolean =>
+      PUBLIC_REGISTRY_BY_ID.has(id);
+    unsubscribeDisplayState = subscribeDisplayState(
+      groundStationSelectionStore,
+      firstIntakeReplayClock,
+      groundStationInfoCard.openSignal,
+      registryResolves,
+      (state: DisplayState) => {
+        document.body.dataset.displayState = state;
+        const isPanelState = state === "projecting" || state === "replaying";
+        if (isPanelState && !v4ProjectionSidePanel) {
+          const currentSelection = resolveV4RouteSelection(
+            new URLSearchParams(window.location.search)
+          );
+          if (currentSelection.resolvedPair) {
+            v4ProjectionSidePanel = mountV4ProjectionSidePanel(
+              viewer.container as HTMLElement,
+              { resolvedPair: currentSelection.resolvedPair }
+            );
+          }
+        } else if (!isPanelState && v4ProjectionSidePanel) {
+          v4ProjectionSidePanel.dispose();
+          v4ProjectionSidePanel = null;
+        }
+        groundStationSelectionChips?.setPanelMounted(
+          v4ProjectionSidePanel !== null
+        );
+      }
+    );
+  } else {
+    // When selector surfaces are not mounted (first-intake owns the
+    // viewer), still expose the derived state so downstream selectors
+    // can branch off `idle` without a missing-attribute special case.
+    document.body.dataset.displayState = "idle";
+  }
   const unmountHomepageEntryCta =
     adoptFirstIntakeAsActiveOwner || isM8aV4RuntimeRequest
     ? () => {}
@@ -825,16 +887,20 @@ export function startBootstrapComposition(app: HTMLDivElement): BootstrapComposi
       delete window.__SCENARIO_GLOBE_VIEWER_CAPTURE__;
       unmountHomeButtonRouteOverride();
       unmountHomepageEntryCta();
+      unsubscribeDisplayState?.();
+      v4ProjectionSidePanel?.dispose();
+      v4ProjectionSidePanel = null;
+      delete document.body.dataset.displayState;
       groundStationMarkerHoverTooltip?.dispose();
       groundStationInfoCard?.dispose();
       groundStationListPicker?.dispose();
       groundStationSelectionChips?.dispose();
+      groundStationMarkerFilterPanel?.dispose();
       groundStationSelectionStore?.dispose();
       groundStationMarkers?.dispose();
       disposeLightingRefresh();
       unmountOsmBuildingsShowcase();
       unmountLightingToggle();
-      m8aV4ProjectionSidePanel?.dispose();
       m8aV4GroundStationScene?.dispose();
       firstIntakeOrbitContextActors?.dispose();
       firstIntakeSatcomContextOverlay?.dispose();

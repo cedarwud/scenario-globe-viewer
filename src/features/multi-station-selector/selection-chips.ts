@@ -133,6 +133,11 @@ function createApplyButton(): ApplyButtonElements {
 
 export interface SelectionChipsHandle {
   dispose(): void;
+  // Wave 1 IA §4.1 / runtime-data-contract §A.7: hide the Apply CTA
+  // when the V4 panel is already mounted (the panel mounts itself
+  // from a complete pair so Apply becomes a no-op fallback). Flip
+  // this from the composition display-state subscription.
+  setPanelMounted(mounted: boolean): void;
 }
 
 export function mountSelectionChips(
@@ -152,6 +157,13 @@ export function mountSelectionChips(
   root.append(stationA.root, stationB.root, tierBadge.root, applyButton.root);
   viewerContainer.appendChild(root);
   viewerContainer.appendChild(liveRegion);
+
+  // Wave 1 IA §4.1 / runtime-data-contract §A.7: when the V4 panel is
+  // mounted (URL already carries a valid pair), Apply is hidden — the
+  // panel reacts to the selection-store URL replace already. When the
+  // panel is not mounted (user is mid-selection on idle), Apply is the
+  // reload fallback that bootstraps the V4 surface from a clean URL.
+  let panelMounted = false;
 
   function applyTierBadge(snapshot: SelectionSnapshot): void {
     if (!snapshot.stationA || !snapshot.stationB) {
@@ -174,6 +186,9 @@ export function mountSelectionChips(
     const ready = Boolean(snapshot.stationA && snapshot.stationB);
     applyButton.root.disabled = !ready;
     applyButton.root.dataset.ready = String(ready);
+    // When the V4 panel is already mounted there is no work for Apply;
+    // hide the button so reviewers do not see a no-op affordance.
+    applyButton.root.hidden = panelMounted;
   }
 
   function apply(snapshot: SelectionSnapshot): void {
@@ -226,6 +241,13 @@ export function mountSelectionChips(
   });
 
   return {
+    setPanelMounted(mounted: boolean): void {
+      if (panelMounted === mounted) {
+        return;
+      }
+      panelMounted = mounted;
+      applyButtonState(store.getSnapshot());
+    },
     dispose(): void {
       unsubscribe();
       stationA.clearButton.removeEventListener("click", handleClearA);
