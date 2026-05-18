@@ -341,10 +341,15 @@ export interface GroundStationInfoCardOptions {
   readonly selectionStore: SelectionStore;
 }
 
+export interface GroundStationInfoCardOpenSignal {
+  subscribe(listener: (open: boolean) => void): () => void;
+}
+
 export interface GroundStationInfoCardHandle {
   open(stationId: string): void;
   close(): void;
   dispose(): void;
+  readonly openSignal: GroundStationInfoCardOpenSignal;
 }
 
 export function mountGroundStationInfoCard(
@@ -360,6 +365,30 @@ export function mountGroundStationInfoCard(
   let activeStationId: string | null = null;
   let previouslyFocusedElement: HTMLElement | null = null;
   let disposed = false;
+
+  // Minimal open-signal pub/sub so the display-state helper can react to
+  // info-card open/close transitions without depending on DOM presence.
+  // Listeners get the current value on subscribe so wiring is order-free.
+  const openListeners = new Set<(open: boolean) => void>();
+  let lastBroadcastOpen = false;
+  function broadcastOpen(open: boolean): void {
+    if (open === lastBroadcastOpen) {
+      return;
+    }
+    lastBroadcastOpen = open;
+    for (const listener of openListeners) {
+      listener(open);
+    }
+  }
+  const openSignal: GroundStationInfoCardOpenSignal = {
+    subscribe(listener: (open: boolean) => void): () => void {
+      openListeners.add(listener);
+      listener(lastBroadcastOpen);
+      return () => {
+        openListeners.delete(listener);
+      };
+    }
+  };
 
   function getFocusableElements(): ReadonlyArray<HTMLElement> {
     return Array.from(root.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR)).filter(
@@ -429,6 +458,7 @@ export function mountGroundStationInfoCard(
     }
     markers.setHighlightedStation(stationId);
     viewer.scene.requestRender();
+    broadcastOpen(true);
   }
 
   function close(): void {
@@ -442,6 +472,7 @@ export function mountGroundStationInfoCard(
     markers.setHighlightedStation(null);
     viewer.scene.requestRender();
     restorePreviousFocus();
+    broadcastOpen(false);
   }
 
   function handleRootClick(event: MouseEvent): void {
@@ -549,6 +580,7 @@ export function mountGroundStationInfoCard(
   return {
     open,
     close,
+    openSignal,
     dispose(): void {
       if (disposed) {
         return;
@@ -565,6 +597,7 @@ export function mountGroundStationInfoCard(
         root.parentElement.removeChild(root);
       }
       markers.setHighlightedStation(null);
+      openListeners.clear();
     }
   };
 }
