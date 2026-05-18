@@ -310,10 +310,6 @@
   .m8a-v47-product-ux__strip {
     left: 340px !important;
   }
-
-  .m8a-v47-product-ux__scene-annotation {
-    left: 340px !important;
-  }
 }
 
 /* Phase 4 (spec v2 §8): the prior `display: none` graceful-degradation for

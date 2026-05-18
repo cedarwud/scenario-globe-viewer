@@ -337,11 +337,7 @@ import {
   M8A_V410_PRODUCT_UX_STRUCTURE_VERSION,
   resolvePlaybackMode,
   resolvePlaybackStatus,
-  resolveM8aV4ItriDemoFocusChoreography,
   resolveTimelineLabel,
-  resolveV410TransitionLabel,
-  resolveV48StateOrdinalLabel,
-  resolveV49WindowProductCopy,
   type M8aV410BoundaryAffordanceRuntime,
   type M8aV411InspectorTab,
   type M8aV47DisclosureState,
@@ -2163,38 +2159,6 @@ function renderM8aV411DisabledMetricTiles(): string {
 // Conv 3: renderCompactTruthAffordance removed — Truth button no longer exists.
 // Boundary toggle is now triggered by footer chip with data-m8a-v47-action="toggle-boundary".
 
-function renderV410SequenceRailMarks(): string {
-  return M8A_V4_GROUND_STATION_RUNTIME_PROJECTION.simulationHandoverModel.timeline
-    .map((windowDefinition) => {
-      const copy = resolveV49WindowProductCopy(windowDefinition.windowId);
-      const ordinal = resolveV48StateOrdinalLabel(
-        M8A_V4_GROUND_STATION_RUNTIME_PROJECTION.simulationHandoverModel
-          .timeline,
-        windowDefinition.windowId
-      );
-      const railLabel = resolveV410TransitionLabel(windowDefinition.windowId);
-
-      return [
-        `<li class="m8a-v410-sequence-rail__mark"`,
-        ` data-m8a-v410-sequence-mark="true"`,
-        ` data-m8a-v410-sequence-window-id="${windowDefinition.windowId}"`,
-        ` data-m8a-v410-sequence-index="${ordinal.stateIndex}"`,
-        ` data-m8a-v410-sequence-orbit="${copy.orbitClassToken}"`,
-        ` data-active="false"`,
-        ` data-next="false"`,
-        ` data-transition-from="false"`,
-        ` data-transition-to="false"`,
-        ` aria-current="false"`,
-        ` aria-label="${ordinal.stateOrdinalLabel}: ${copy.productLabel}">`,
-        `<span class="m8a-v410-sequence-rail__number" aria-hidden="true">${ordinal.stateIndex}</span>`,
-        `<strong class="m8a-v410-sequence-rail__label">${railLabel}</strong>`,
-        `<small class="m8a-v410-sequence-rail__orbit">${copy.orbitClassToken}</small>`,
-        `</li>`
-      ].join("");
-    })
-    .join("");
-}
-
 function renderSpeedButtons(activeMultiplier: number): string {
   return M8A_V47_PRODUCT_PLAYBACK_MULTIPLIERS.map((multiplier) => {
     const isActive = activeMultiplier === multiplier;
@@ -2237,12 +2201,6 @@ function ensureProductUxStructure(root: HTMLElement): void {
     return;
   }
 
-  const hasSlice2SceneNearStructure = Boolean(
-    root.querySelector("[data-m8a-v49-scene-near-meaning]")
-  );
-  const hasSlice3TransitionStructure = Boolean(
-    root.querySelector("[data-m8a-v49-transition-event='true']")
-  );
   const hasSlice4InspectorStructure = Boolean(
     root.querySelector("[data-m8a-v49-inspector-primary-body='true']") &&
       root.querySelector("[data-m8a-v49-debug-evidence='true']") &&
@@ -2256,19 +2214,6 @@ function ensureProductUxStructure(root: HTMLElement): void {
       root.querySelector("[data-itri-policy-rule-controls-surface='true']") &&
       root.querySelector("[data-itri-f09-rate-surface='true']") &&
       root.querySelector("[data-itri-f16-export-surface='true']")
-  );
-  const hasSlice1V410SceneNarrative = Boolean(
-    root.querySelector("[data-m8a-v410-scene-narrative='true']") &&
-      root.querySelector("[data-m8a-v410-first-read-line='true']") &&
-      root.querySelector("[data-m8a-v410-next-line='true']")
-  );
-  const hasSlice2V410SequenceRail = Boolean(
-    root.querySelector("[data-m8a-v410-sequence-rail='true']") &&
-      root.querySelectorAll("[data-m8a-v410-sequence-mark='true']").length ===
-        M8A_V4_GROUND_STATION_RUNTIME_PROJECTION.simulationHandoverModel
-          .timeline.length &&
-      root.querySelector("[data-m8a-v410-sequence-active-summary='true']") &&
-      root.querySelector("[data-m8a-v410-sequence-next-summary='true']")
   );
   // Conv 3: compact-line was on Truth button (now removed); check boundary surface + full disclosure only
   const hasSlice3V410BoundarySurface = Boolean(
@@ -2286,11 +2231,7 @@ function ensureProductUxStructure(root: HTMLElement): void {
   if (
     root.dataset.m8aV471StableControls === "true" &&
     root.dataset.m8aV49StructureVersion === M8A_V49_PRODUCT_COMPREHENSION_VERSION &&
-    hasSlice2SceneNearStructure &&
-    hasSlice3TransitionStructure &&
     hasSlice4InspectorStructure &&
-    hasSlice1V410SceneNarrative &&
-    hasSlice2V410SequenceRail &&
     hasSlice3V410BoundarySurface &&
     hasPhase4ReviewerModeStructure
   ) {
@@ -2335,28 +2276,6 @@ function ensureProductUxStructure(root: HTMLElement): void {
       </div>
     </aside>
     <div class="m8a-v47-product-ux__scene-connector" data-m8a-v48-scene-connector="true" aria-hidden="true" hidden></div>
-    <div class="m8a-v47-product-ux__transition-event" data-m8a-v49-transition-event="true" data-m8a-v47-ui-surface="transition-event" aria-live="polite" hidden>
-      <strong data-m8a-v49-transition-summary="true" data-m8a-v48-info-class="dynamic"></strong>
-      <small data-m8a-v49-transition-context="true" data-m8a-v48-info-class="dynamic"></small>
-    </div>
-    <div class="m8a-v47-product-ux__scene-annotation m8a-v410-product-ux__scene-narrative" data-m8a-v47-ui-surface="scene-near-annotation" data-m8a-v47-scene-annotation="true" data-m8a-v410-scene-narrative="true" aria-live="polite">
-      <span data-m8a-v49-scene-near-orbit-token="true" data-m8a-v48-info-class="fixed">Orbit focus</span>
-      <strong data-m8a-v47-active-label="scene-annotation" data-m8a-v410-scene-title="true" data-m8a-v48-info-class="dynamic"></strong>
-      <p data-m8a-v49-scene-near-meaning="true" data-m8a-v410-first-read-line="true" data-m8a-v48-info-class="dynamic"></p>
-      <small data-m8a-v47-annotation-context="true" data-m8a-v49-scene-near-cue="true" data-m8a-v410-watch-cue-line="true" data-m8a-v48-info-class="dynamic">Watch: representative cue.</small>
-      <small data-m8a-v410-next-line="true" data-m8a-v48-info-class="dynamic"></small>
-      <small data-m8a-v49-scene-near-fallback="true" data-m8a-v410-fallback-line="true" data-m8a-v48-info-class="dynamic" hidden></small>
-    </div>
-    <div class="m8a-v410-product-ux__sequence-rail" data-m8a-v410-sequence-rail="true" data-m8a-v47-ui-surface="handover-sequence-rail" data-m8a-v48-info-class="dynamic" aria-label="Handover sequence rail" aria-live="polite">
-      <div class="m8a-v410-sequence-rail__summary">
-        <span data-m8a-v48-info-class="fixed">Handover sequence</span>
-        <strong data-m8a-v410-sequence-active-summary="true"></strong>
-        <small data-m8a-v410-sequence-next-summary="true"></small>
-      </div>
-      <ol class="m8a-v410-sequence-rail__track">
-        ${renderV410SequenceRailMarks()}
-      </ol>
-    </div>
     <div class="m8a-v47-product-ux__strip" data-m8a-v47-ui-surface="compact-control-strip" data-m8a-v47-control-strip="true">
       <div class="m8a-v47-product-ux__strip-state">
         <span data-m8a-v48-info-class="fixed">Current state</span>
@@ -2885,15 +2804,7 @@ function ensureV410ProductUxStructureReady(root: HTMLElement): void {
 
   // Conv 3: compact-line was on Truth button (now removed); omit from required check
   const hasRequiredStructure = Boolean(
-    root.querySelector("[data-m8a-v410-scene-narrative='true']") &&
-      root.querySelector("[data-m8a-v49-scene-near-meaning]") &&
-      root.querySelector("[data-m8a-v49-scene-near-cue='true']") &&
-      root.querySelector("[data-m8a-v410-next-line='true']") &&
-      root.querySelector("[data-m8a-v49-scene-near-fallback]") &&
-      root.querySelector("[data-m8a-v410-sequence-rail='true']") &&
-      root.querySelector("[data-m8a-v410-sequence-active-summary='true']") &&
-      root.querySelector("[data-m8a-v410-sequence-next-summary='true']") &&
-      root.querySelector("[data-m8a-v410-boundary-surface='true']") &&
+    root.querySelector("[data-m8a-v410-boundary-surface='true']") &&
       root.querySelector("[data-m8a-v410-inspector-evidence-structure='true']") &&
       root.querySelector("[data-itri-demo-l2-acceptance-layer='true']") &&
       root.querySelector("[data-itri-requirement-gap-surface='true']") &&
@@ -2961,72 +2872,6 @@ function rectFitsViewport(rect: M8aV48SceneAnchorProtectionRect): boolean {
     rect.right <= window.innerWidth &&
     rect.bottom <= window.innerHeight
   );
-}
-
-function placeTransitionEventAwayFromSelectedCue(
-  transitionEvent: HTMLElement,
-  placement: M8aV48SceneAnchorPlacement,
-  root: HTMLElement
-): void {
-  const viewportWidth = window.innerWidth;
-  const viewportHeight = window.innerHeight;
-  const gap = 16;
-  const width = Math.min(340, Math.max(250, viewportWidth - gap * 2));
-  const strip = root.querySelector<HTMLElement>(
-    "[data-m8a-v47-control-strip='true']"
-  );
-  const stripRect = strip?.getBoundingClientRect();
-
-  transitionEvent.style.width = `${width}px`;
-
-  const measuredRect = transitionEvent.getBoundingClientRect();
-  const height = Math.max(56, measuredRect.height || 64);
-  const selectedCueRect =
-    placement.anchorStatus === "geometry-reliable"
-      ? placement.protectionRect
-      : null;
-  const topBelowStrip = stripRect ? stripRect.bottom + 8 : gap + 96;
-  const candidates = [
-    {
-      placement: "below-strip-right",
-      left: viewportWidth - width - gap,
-      top: topBelowStrip
-    },
-    {
-      placement: "upper-left",
-      left: gap,
-      top: gap + 76
-    },
-    {
-      placement: "mid-left",
-      left: gap,
-      top: Math.min(
-        Math.max(topBelowStrip + 72, gap),
-        viewportHeight - height - 96
-      )
-    }
-  ];
-  const selected =
-    candidates.find((candidate) => {
-      const candidateRect = buildRect(
-        candidate.left,
-        candidate.top,
-        width,
-        height
-      );
-
-      return (
-        candidateRect.left >= gap &&
-        candidateRect.right <= viewportWidth - gap &&
-        candidateRect.top >= gap &&
-        candidateRect.bottom <= viewportHeight - gap &&
-        (!selectedCueRect || !rectsIntersect(candidateRect, selectedCueRect))
-      );
-    }) ?? candidates[0];
-
-  transitionEvent.style.left = `${selected.left.toFixed(1)}px`;
-  transitionEvent.style.top = `${selected.top.toFixed(1)}px`;
-  transitionEvent.dataset.m8aV49TransitionPlacement = selected.placement;
 }
 
 function buildPointProtectionRect(
@@ -4156,11 +4001,6 @@ function renderProductUx(
   );
   updateProductUxText(
     root,
-    "[data-m8a-v410-scene-title='true']",
-    microCueCopy
-  );
-  updateProductUxText(
-    root,
     "[data-m8a-v48-state-ordinal]",
     review.stateOrdinalLabel
   );
@@ -4173,44 +4013,6 @@ function renderProductUx(
     root,
     "[data-m8a-v47-time-label='simulated']",
     productUx.playback.simulatedReplayTimeDisplay
-  );
-  updateProductUxText(
-    root,
-    "[data-m8a-v49-scene-near-orbit-token]",
-    sceneNear.heading
-  );
-  updateProductUxText(
-    root,
-    "[data-m8a-v49-scene-near-meaning]",
-    sceneNear.stateMeaning
-  );
-  updateProductUxText(
-    root,
-    "[data-m8a-v47-annotation-context]",
-    sceneNear.watchCueLabel
-  );
-  updateProductUxText(
-    root,
-    "[data-m8a-v410-next-line='true']",
-    comprehension.activeWindowCopy.nextLine
-  );
-  updateProductUxText(
-    root,
-    "[data-m8a-v49-scene-near-fallback]",
-    sceneNear.fallbackText
-  );
-  updateProductUxText(
-    root,
-    "[data-m8a-v410-sequence-active-summary='true']",
-    `${sequenceRail.activeOrdinalLabel}: ${sequenceRail.activeProductLabel}`
-  );
-  updateProductUxText(
-    root,
-    "[data-m8a-v410-sequence-next-summary='true']",
-    sequenceRail.nextWindowId === "leo-acquisition-context" &&
-      sequenceRail.activeWindowId === "geo-continuity-guard"
-      ? `Restart: ${sequenceRail.nextOrdinalLabel} ${sequenceRail.nextProductLabel}`
-      : `Next: ${sequenceRail.nextOrdinalLabel} ${sequenceRail.nextProductLabel}`
   );
   updateProductUxText(
     root,
@@ -4666,96 +4468,6 @@ function renderProductUx(
     review.truthBoundarySummary
   );
 
-  const annotation = getProductUxElement(
-    root,
-    "[data-m8a-v47-scene-annotation='true']"
-  );
-  annotation.dataset.m8aV47WindowId = productUx.activeWindowId;
-  annotation.dataset.m8aV49SceneNearMode = sceneNear.mode;
-  annotation.dataset.m8aV49SceneNearMeaningVisible = String(
-    sceneNear.meaningVisible
-  );
-  annotation.dataset.m8aV49SceneNearCueVisible = String(sceneNear.cueVisible);
-  annotation.dataset.m8aV49SceneNearFallbackVisible = String(
-    sceneNear.fallbackVisible
-  );
-  annotation.dataset.m8aV49SceneNearMeaningText = sceneNear.stateMeaning;
-  annotation.dataset.m8aV49SceneNearCueText = sceneNear.watchCueLabel;
-  annotation.dataset.m8aV410FirstReadLine = sceneNear.stateMeaning;
-  annotation.dataset.m8aV410WatchCueLine = sceneNear.watchCueLabel;
-  annotation.dataset.m8aV410NextLine = comprehension.activeWindowCopy.nextLine;
-  annotation.dataset.m8aV49SceneNearFallbackText = sceneNear.fallbackText;
-  annotation.dataset.m8aV49SceneNearAttachmentClaim =
-    sceneNear.attachmentClaim;
-  annotation.dataset.m8aV411SceneMicroCue = "true";
-  annotation.dataset.m8aV411SceneMicroCueCopy = microCueCopy;
-  annotation.dataset.m8aV411SceneMicroCueMaxWidthPx = "180";
-  annotation.dataset.m8aV411SceneMicroCueMaxHeightPx = "24";
-  annotation.dataset.m8aV411GlanceRankSurface =
-    M8A_V411_GLANCE_RANK_SURFACE_VERSION;
-  annotation.setAttribute("aria-label", microCueCopy);
-  annotation.dataset.m8aV47SceneAnchorKind =
-    "display-representative-context-cue";
-  annotation.dataset.m8aV47SceneAnchorActorId = placement.anchorActorId;
-  annotation.dataset.m8aV47SceneAnchorProjected = String(placement.projected);
-  annotation.dataset.m8aV47SceneAnchorX = placement.anchorX.toFixed(1);
-  annotation.dataset.m8aV47SceneAnchorY = placement.anchorY.toFixed(1);
-  annotation.dataset.m8aV48SceneAnchorState =
-    review.sceneAnchorState.state;
-  annotation.dataset.sceneAnchorState = review.sceneAnchorState.state;
-  annotation.dataset.m8aV48SelectedAnchorType = placement.selectedAnchorType;
-  annotation.dataset.m8aV48SelectedActorId = placement.selectedActorId;
-  annotation.dataset.m8aV48SelectedRelationCueId =
-    placement.selectedRelationCueId;
-  annotation.dataset.m8aV48SelectedCorridorId = placement.selectedCorridorId;
-  annotation.dataset.m8aV48AnchorStatus = placement.anchorStatus;
-  annotation.dataset.m8aV48FallbackReason = placement.fallbackReason;
-  annotation.dataset.m8aV48ConnectorThresholdPx =
-    placement.connectorThresholdPx.toFixed(1);
-  annotation.dataset.m8aV48ConnectorEndpointDistancePx =
-    placement.connectorEndpointDistancePx.toFixed(1);
-  annotation.dataset.m8aV48ProtectionRectLeft =
-    placement.protectionRect.left.toFixed(1);
-  annotation.dataset.m8aV48ProtectionRectTop =
-    placement.protectionRect.top.toFixed(1);
-  annotation.dataset.m8aV48ProtectionRectRight =
-    placement.protectionRect.right.toFixed(1);
-  annotation.dataset.m8aV48ProtectionRectBottom =
-    placement.protectionRect.bottom.toFixed(1);
-  annotation.dataset.m8aV48ProtectionRectWidth =
-    placement.protectionRect.width.toFixed(1);
-  annotation.dataset.m8aV48ProtectionRectHeight =
-    placement.protectionRect.height.toFixed(1);
-  annotation.style.left = `${placement.left.toFixed(1)}px`;
-  annotation.style.top = `${placement.top.toFixed(1)}px`;
-
-  const sceneNearMeaning = getProductUxElement(
-    root,
-    "[data-m8a-v49-scene-near-meaning]"
-  );
-  setProductUxHidden(sceneNearMeaning, true);
-  const sceneNearCue = getProductUxElement(
-    root,
-    "[data-m8a-v47-annotation-context]"
-  );
-  sceneNearCue.dataset.m8aV49SceneNearCue = "true";
-  setProductUxHidden(sceneNearCue, true);
-  const sceneNearOrbitToken = getProductUxElement(
-    root,
-    "[data-m8a-v49-scene-near-orbit-token]"
-  );
-  setProductUxHidden(sceneNearOrbitToken, true);
-  const sceneNearNext = getProductUxElement(
-    root,
-    "[data-m8a-v410-next-line='true']"
-  );
-  setProductUxHidden(sceneNearNext, true);
-  const sceneNearFallback = getProductUxElement(
-    root,
-    "[data-m8a-v49-scene-near-fallback]"
-  );
-  setProductUxHidden(sceneNearFallback, true);
-
   const connector = getProductUxElement(
     root,
     "[data-m8a-v48-scene-connector='true']"
@@ -4849,138 +4561,16 @@ function renderProductUx(
     toastSuppressed: productUx.reviewerMode.toastSuppressed
   });
 
-  const transitionElement = getProductUxElement(
-    root,
-    "[data-m8a-v49-transition-event='true']"
-  );
-  transitionElement.dataset.m8aV49TransitionEventVisible =
-    String(transitionEventVisible);
-  transitionElement.dataset.m8aV49TransitionEventDurationMs = String(
-    comprehension.transitionEventLayer.durationMs
-  );
-  transitionElement.dataset.m8aV49TransitionEventFromLabel =
-    transitionEvent?.fromProductLabel ?? "";
-  transitionElement.dataset.m8aV49TransitionEventToLabel =
-    transitionEvent?.toProductLabel ?? "";
-  transitionElement.dataset.m8aV49TransitionEventStateTruthSource =
-    comprehension.transitionEventLayer.currentStateTruthSource;
-  transitionElement.dataset.m8aV49TransitionEventNonBlocking =
-    comprehension.transitionEventLayer.blockingPolicy;
-  updateProductUxText(
-    root,
-    "[data-m8a-v49-transition-summary]",
-    transitionEvent?.summaryText ?? ""
-  );
-  updateProductUxText(
-    root,
-    "[data-m8a-v49-transition-context]",
-    transitionEvent?.contextText ?? ""
-  );
-  setProductUxHidden(transitionElement, !transitionEventVisible);
-
-  if (transitionEventVisible) {
-    placeTransitionEventAwayFromSelectedCue(
-      transitionElement,
-      placement,
-      root
-    );
-  }
-
-  const sequenceRailElement = getProductUxElement(
-    root,
-    "[data-m8a-v410-sequence-rail='true']"
-  );
-  sequenceRailElement.dataset.m8aV410HandoverSequenceRail =
-    sequenceRail.version;
-  sequenceRailElement.dataset.m8aV410SequenceRailScope =
-    sequenceRail.scope;
-  sequenceRailElement.dataset.m8aV410SequenceRailVisibleContent =
-    serializeList([...sequenceRail.visibleContent]);
-  sequenceRailElement.dataset.m8aV410SequenceRailWindowIds =
-    serializeList([...sequenceRail.windowIds]);
-  sequenceRailElement.dataset.m8aV410SequenceRailActiveWindowId =
-    sequenceRail.activeWindowId;
-  sequenceRailElement.dataset.m8aV410SequenceRailNextWindowId =
-    sequenceRail.nextWindowId;
-  sequenceRailElement.dataset.m8aV410SequenceRailActiveLabel =
-    sequenceRail.activeProductLabel;
-  sequenceRailElement.dataset.m8aV410SequenceRailNextLabel =
-    sequenceRail.nextProductLabel;
-  sequenceRailElement.dataset.m8aV410SequenceRailActiveOrdinal =
-    sequenceRail.activeOrdinalLabel;
-  sequenceRailElement.dataset.m8aV410SequenceRailNextOrdinal =
-    sequenceRail.nextOrdinalLabel;
-  sequenceRailElement.dataset.m8aV410SequenceRailTransitionFromWindowId =
-    sequenceRail.transitionEvent.fromWindowId;
-  sequenceRailElement.dataset.m8aV410SequenceRailTransitionToWindowId =
-    sequenceRail.transitionEvent.toWindowId;
-  sequenceRailElement.dataset.m8aV410SequenceRailTransitionVisible = String(
-    sequenceRail.transitionEvent.visible
-  );
-  sequenceRailElement.dataset.m8aV410SequenceRailViewportPolicy =
-    sequenceRail.viewportPolicy;
-  sequenceRailElement.dataset.itriDemoFocusChoreographyVersion =
-    focusChoreography.version;
-  sequenceRailElement.dataset.itriDemoFocusActiveWindowId =
-    focusChoreography.windowId;
-  sequenceRailElement.dataset.itriDemoFocusActiveId =
-    focusChoreography.focusId;
-  sequenceRailElement.dataset.itriDemoFocusActivePrimaryLabel =
-    focusChoreography.primaryFocusLabel;
-  sequenceRailElement.dataset.itriDemoFocusNextHint =
-    focusChoreography.nextFocusHint;
-
-  for (const item of sequenceRail.items) {
-    const mark = getProductUxElement(
-      root,
-      `[data-m8a-v410-sequence-window-id="${item.windowId}"]`
-    );
-    const itemFocus = resolveM8aV4ItriDemoFocusChoreography(item.windowId);
-
-    mark.dataset.active = String(item.isActive);
-    mark.dataset.next = String(item.isNext);
-    mark.dataset.transitionFrom = String(item.isTransitionFrom);
-    mark.dataset.transitionTo = String(item.isTransitionTo);
-    mark.dataset.m8aV410SequenceProductLabel = item.productLabel;
-    mark.dataset.m8aV410SequenceRailLabel = item.railLabel;
-    mark.dataset.m8aV410SequenceOrdinal = item.ordinalLabel;
-    mark.dataset.itriDemoFocusId = itemFocus.focusId;
-    mark.dataset.itriDemoFocusRole = itemFocus.focusRole;
-    mark.dataset.itriDemoFocusPrimaryLabel = itemFocus.primaryFocusLabel;
-    mark.dataset.itriDemoFocusVisualCue = itemFocus.visualCue;
-    mark.dataset.itriDemoFocusSecondary = item.isActive
-      ? "primary"
-      : item.isNext
-        ? "next-visible"
-        : "dimmed-context";
-    mark.setAttribute("aria-current", item.isActive ? "step" : "false");
-    mark.setAttribute(
-      "aria-label",
-      `${item.ordinalLabel}: ${item.productLabel}${
-        item.isActive ? " active" : item.isNext ? " next" : ""
-      }`
-    );
-  }
-
   syncM8aV411HoverPopoverTargets({
     root,
     activeWindow: state.simulationHandoverModel.window,
     timeline: state.simulationHandoverModel.timeline
   });
 
-  const microCueRectForCountdown = (() => {
-    try {
-      return root
-        .querySelector<HTMLElement>("[data-m8a-v47-scene-annotation='true']")
-        ?.getBoundingClientRect() ?? null;
-    } catch (error) {
-      return null;
-    }
-  })();
   renderM8aV411CountdownSurface({
     root,
     derivation: countdownDerivation,
-    microCueRect: microCueRectForCountdown
+    microCueRect: null
   });
   root.dataset.m8aV411CountdownSurface = M8A_V411_COUNTDOWN_SURFACE_VERSION;
   root.dataset.m8aV411CountdownDerivation = "addendum-1.1";
