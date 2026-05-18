@@ -181,6 +181,7 @@ grep -RInE 'itri' \
   tests/smoke/multi-station-selector-*.mjs \
   scripts/verify-60x-replay-continuity.mjs \
   scripts/verify-random-pair-projection-budget.mjs \
+  scripts/verify-tle-first-data-completeness.mjs \
   scripts/verify-information-density.mjs \
   docs/sdd/multi-station-selector/
 ```

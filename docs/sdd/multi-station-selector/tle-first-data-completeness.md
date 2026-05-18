@@ -212,7 +212,7 @@ Each rendered actor and visibility row should trace to:
 
 - satellite id;
 - TLE source id;
-- propagated sample count;
+- propagated sample count over the selected time window;
 - sample cadence;
 - first and last propagated UTC;
 - station elevation threshold;
@@ -349,7 +349,9 @@ export interface RuntimeDataCompletenessState {
   readonly routeMode: SceneSourceMode;
   readonly stationPrecision: ReadonlyArray<{
     readonly stationId: string;
-    readonly disclosurePrecision: GroundStationDescriptor["disclosurePrecision"];
+    // Same registry-schema field as GroundStationDescriptor["disclosurePrecision"];
+    // PublicRegistryStation is the selected-pair runtime source type.
+    readonly disclosurePrecision: PublicRegistryStation["disclosurePrecision"];
     readonly sourceTier: PairSourceTier;
     readonly renderPositionIsSourceTruth: boolean;
     readonly provenance: RuntimeProvenanceTag;
@@ -372,8 +374,9 @@ CSV metadata, and side-panel source disclosure.
 Minimum visible bindings for automated review:
 
 - `[data-tle-telemetry-chip]` must expose source health, source count,
-  accepted/rejected record counts, source timestamp, and staleness state either
-  as data attributes or through the machine-readable debug snapshot.
+  accepted/rejected record counts, parser failure count, source timestamp, and
+  staleness state either as data attributes or through the machine-readable
+  debug snapshot.
 - Row 6 source footer must gain a stable station precision disclosure target,
   proposed as `[data-station-precision-disclosure]`, with station id,
   disclosure precision, source tier, and render-position truth.
@@ -455,6 +458,9 @@ Acceptance:
 
 - selected-pair route never uses fixed fixture actors as hidden fallback;
 - empty-result route reports a reason code;
+- `no-visibility-windows` is reserved for cases where both stations have zero
+  station visibility windows; when only one side has no usable window, the pair
+  still reports `no-pair-intersection`;
 - smoke covers at least one no-window pair and one missing/unsupported source
   path.
 
@@ -555,7 +561,7 @@ display transforms must remain separate in state.
 | `npx tsx --test tests/unit/tle-first-scene-view-model.test.mjs` | Scene adapter source guarantees |
 | `node scripts/verify-tle-first-scene-view-model-runtime.mjs` | Selected-pair runtime mode, actor/link/cue, fixed fallback mode |
 | `node scripts/verify-g1-bucket-a-coverage.mjs --port=<port>` | Requirement coverage surface |
-| `node scripts/verify-random-pair-projection-budget.mjs --port=<port>` | Pair compute budget and random coverage |
+| `node scripts/verify-random-pair-projection-budget.mjs --base-url=<dev-url> --port=<port> --seed=<int>` | Pair compute budget and random coverage |
 | `node scripts/verify-information-density.mjs --port=<port>` | Panel density and no-overlap checks |
 | `node scripts/verify-60x-replay-continuity.mjs --port=<port>` | Replay continuity and console/page error gate |
 | `node scripts/verify-tle-first-data-completeness.mjs --port=<port>` | Selected-pair `fakeActorCount === 0`, route mode + source health visible, station-precision label visible, modeled-output metadata, empty reason code on no-window routes, fixed demo still `fixture-fallback` |
@@ -624,12 +630,14 @@ Runtime source of truth:
 - `selectedPairOverlay.dataCompleteness` exposes the same payload through the
   controller debug capture.
 - `actorProvenance` traces rendered selected-pair actors to `tle:<orbit>`
-  source ids, propagated sample counts, sample cadence, and source time range.
+  source ids, propagated sample counts over the selected time window, sample
+  cadence, and source time range.
 - `visibilityProvenance` traces each pair window to station A/B visibility
   sources and a pair-intersection source id.
 - Row 6 exposes `[data-station-precision-disclosure="true"]`.
 - `[data-tle-telemetry-chip="true"]` gains source count, accepted/rejected
-  record counts, timestamp, and health dataset fields after projection render.
+  record counts, parser failure count, timestamp, and health dataset fields
+  after projection render.
 - CSV export now includes TLE source manifest, station precision, modeled
   outputs, actor provenance, visibility provenance, and data-completeness
   summary sections; the D6 smoke parses those sections and compares row values

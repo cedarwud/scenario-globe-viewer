@@ -426,7 +426,8 @@ The payload records:
   pair-intersection source id;
 - modeled output metadata for handover, link budget, throughput, jitter,
   latency, and rain impact;
-- display-only transform provenance;
+- display-only transform provenance for altitude compression, camera framing,
+  label density, display lane or label offsets, and generic actor mesh choice;
 - empty reason codes for unsupported or no-window cases.
 
 The V4 side panel and CSV export surface the same payload without changing the
@@ -434,10 +435,11 @@ route shape:
 
 - Row 6 carries `[data-station-precision-disclosure="true"]`.
 - `[data-tle-telemetry-chip="true"]` is patched with source-count,
-  accepted/rejected-count, timestamp, and health dataset fields after selected
-  projection render.
+  accepted/rejected-count, parser-failure-count, timestamp, and health dataset
+  fields after selected projection render.
 - CSV export includes `# TLE source manifest`, `# Station precision`,
-  `# Modeled outputs`, and `# Data completeness` sections.
+  `# Actor provenance`, `# Visibility provenance`, `# Modeled outputs`, and
+  `# Data completeness` sections.
 
 The fixed demo entry remains `fixture-fallback`; it does not receive a hidden
 selected-pair data retrofit.

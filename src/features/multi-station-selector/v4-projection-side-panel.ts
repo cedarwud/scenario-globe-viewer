@@ -1264,6 +1264,10 @@ function syncTleTelemetryChip(result: RuntimeProjectionResult): void {
     (total, source) => total + source.rejectedRecordCount,
     0
   );
+  const parserFailureCount = sources.reduce(
+    (total, source) => total + (source.parserFailureCount ?? 0),
+    0
+  );
   const healthSummary = sources.map((source) => source.health).join("/");
   const newestTimestamp = sources
     .map((source) => source.sourceTimestampUtc)
@@ -1274,6 +1278,7 @@ function syncTleTelemetryChip(result: RuntimeProjectionResult): void {
   chip.dataset.sourceCount = String(sources.length);
   chip.dataset.acceptedRecordCount = String(acceptedCount);
   chip.dataset.rejectedRecordCount = String(rejectedCount);
+  chip.dataset.parserFailureCount = String(parserFailureCount);
   chip.dataset.sourceHealth = healthSummary;
   chip.dataset.stalenessState = healthSummary;
   if (newestTimestamp) {

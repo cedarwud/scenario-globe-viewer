@@ -471,6 +471,36 @@ function buildModeledOutputs(
   ];
 }
 
+function buildDisplayTransforms(): ReadonlyArray<RuntimeProvenanceTag> {
+  return [
+    {
+      truthClass: "display-only",
+      sourceId: "selected-pair-scene-altitude-compression",
+      nonClaim: "Renderer transform only; source ECEF samples remain separate."
+    },
+    {
+      truthClass: "display-only",
+      sourceId: "selected-pair-scene-camera-framing",
+      nonClaim: "Camera framing only; it does not alter station or satellite truth."
+    },
+    {
+      truthClass: "display-only",
+      sourceId: "selected-pair-scene-label-density",
+      nonClaim: "Label-density choice only; it does not alter computed visibility."
+    },
+    {
+      truthClass: "display-only",
+      sourceId: "selected-pair-scene-display-lane-offset",
+      nonClaim: "Display lane or label offset only; source coordinates remain separate."
+    },
+    {
+      truthClass: "display-only",
+      sourceId: "selected-pair-scene-generic-actor-mesh",
+      nonClaim: "Generic mesh choice only; it is not operator hardware truth."
+    }
+  ];
+}
+
 function resolveEmptyReasonCode(
   input: BuildRuntimeDataCompletenessInput
 ): RuntimeEmptyReasonCode | null {
@@ -516,13 +546,7 @@ export function buildRuntimeDataCompletenessState(
     actorProvenance: buildActorProvenance(input),
     visibilityProvenance: buildVisibilityProvenance(input),
     modeledOutputs: buildModeledOutputs(input),
-    displayTransforms: [
-      {
-        truthClass: "display-only",
-        sourceId: "selected-pair-scene-altitude-compression",
-        nonClaim: "Renderer transform only; source ECEF samples remain separate."
-      }
-    ],
+    displayTransforms: buildDisplayTransforms(),
     emptyReasonCode: resolveEmptyReasonCode(input)
   };
 }

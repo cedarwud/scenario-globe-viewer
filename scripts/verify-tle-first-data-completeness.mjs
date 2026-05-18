@@ -466,6 +466,16 @@ function assertDataCompletenessShape(label, state) {
     ),
     `${label}: modeled output metadata incomplete`
   );
+  const transformIds = new Set(data.displayTransforms?.map((entry) => entry.sourceId));
+  for (const sourceId of [
+    "selected-pair-scene-altitude-compression",
+    "selected-pair-scene-camera-framing",
+    "selected-pair-scene-label-density",
+    "selected-pair-scene-display-lane-offset",
+    "selected-pair-scene-generic-actor-mesh"
+  ]) {
+    assert(transformIds.has(sourceId), `${label}: missing display transform ${sourceId}`);
+  }
 }
 
 function assertReadyCase(testCase, state) {
@@ -480,6 +490,14 @@ function assertReadyCase(testCase, state) {
   assert(state.footer?.stationBId === testCase.stationB, `${testCase.label}: footer station B missing`);
   assert(state.chip?.sourceCount === "3", `${testCase.label}: TLE chip source count missing`);
   assert(state.chip?.sourceHealth, `${testCase.label}: TLE chip source health missing`);
+  const parserFailureCount = state.overlay.dataCompleteness.tleSources.reduce(
+    (total, source) => total + (source.parserFailureCount ?? 0),
+    0
+  );
+  assert(
+    state.chip?.parserFailureCount === String(parserFailureCount),
+    `${testCase.label}: TLE chip parser failure count mismatch`
+  );
 }
 
 function assertEmptyCase(testCase, state) {
