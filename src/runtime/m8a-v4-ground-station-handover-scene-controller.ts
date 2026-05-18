@@ -470,6 +470,9 @@ interface SelectedPairOverlayDebugState {
   runtimeLinkVisible: boolean;
   positionSampleCount: number;
   activeSelectionSampleCount: number;
+  handoverEventCount: number;
+  linkFlowCueCount: number;
+  eventCueCount: number;
   sourceMode: TleFirstSceneViewModel["sourceMode"] | "";
   pairGeometry: SceneCameraHint["pairGeometry"] | "";
   errorMessage: string;
@@ -4873,6 +4876,9 @@ function createSelectedPairOverlayDebugState(
     runtimeLinkVisible: false,
     positionSampleCount: 0,
     activeSelectionSampleCount: 0,
+    handoverEventCount: 0,
+    linkFlowCueCount: 0,
+    eventCueCount: 0,
     sourceMode: "",
     pairGeometry: "",
     errorMessage: "",
@@ -4930,6 +4936,25 @@ function createSelectedPairActorGlowStyle(actor: SceneActor): BillboardGraphics 
   });
 }
 
+function createSelectedPairActorModelStyle(
+  modelUri: string,
+  actor: SceneActor
+): ModelGraphics | undefined {
+  if (actor.role !== "active" && actor.role !== "continuity") {
+    return undefined;
+  }
+
+  const orbitClass = sceneActorOrbitClassToDisplayOrbit(actor);
+  return new ModelGraphics({
+    uri: new ConstantProperty(modelUri),
+    scale: new ConstantProperty(actor.role === "active" ? 1.08 : 0.84),
+    minimumPixelSize: new ConstantProperty(
+      orbitClass === "geo" ? 42 : orbitClass === "meo" ? 48 : 44
+    ),
+    maximumScale: new ConstantProperty(150_000)
+  });
+}
+
 function createSelectedPairActorLabelStyle(
   actor: SceneActor,
   shouldShow: boolean
@@ -4953,6 +4978,50 @@ function createSelectedPairActorLabelStyle(
     ),
     backgroundPadding: new Cartesian2(6, 3),
     pixelOffset: new Cartesian2(0, -18),
+    horizontalOrigin: HorizontalOrigin.CENTER,
+    verticalOrigin: VerticalOrigin.BOTTOM,
+    disableDepthTestDistance: Number.POSITIVE_INFINITY,
+    distanceDisplayCondition: new DistanceDisplayCondition(0, 100_000_000)
+  });
+}
+
+function createSelectedPairHandoverCueLabelStyle(
+  event: TleFirstSceneViewModel["handoverEvents"][number],
+  replayClock: ReplayClock,
+  viewModel: TleFirstSceneViewModel
+): LabelGraphics {
+  return new LabelGraphics({
+    show: new CallbackProperty((time) => {
+      const projectionDate = resolveSelectedPairProjectionDate(
+        viewModel,
+        replayClock.getState(),
+        time
+      );
+      const eventMs = Date.parse(event.atUtc);
+      const projectionMs = projectionDate.getTime();
+      return (
+        Number.isFinite(eventMs) &&
+        Number.isFinite(projectionMs) &&
+        Math.abs(projectionMs - eventMs) <= 120_000
+      );
+    }, false),
+    text: new ConstantProperty(
+      event.fromSatelliteId ? "HANDOVER" : "ACQUIRE"
+    ),
+    font: "700 11px sans-serif",
+    scale: 0.92,
+    style: LabelStyle.FILL_AND_OUTLINE,
+    fillColor: new ConstantProperty(Color.fromCssColorString("#f7d46a")),
+    outlineColor: new ConstantProperty(
+      Color.fromCssColorString("#06121a").withAlpha(0.98)
+    ),
+    outlineWidth: 2,
+    showBackground: true,
+    backgroundColor: new ConstantProperty(
+      Color.fromCssColorString("#07131b").withAlpha(0.82)
+    ),
+    backgroundPadding: new Cartesian2(8, 4),
+    pixelOffset: new Cartesian2(0, -44),
     horizontalOrigin: HorizontalOrigin.CENTER,
     verticalOrigin: VerticalOrigin.BOTTOM,
     disableDepthTestDistance: Number.POSITIVE_INFINITY,
@@ -5048,10 +5117,184 @@ function resolveSceneActorRenderPosition(
   return sceneSampleToCartesian(previous, viewModel, result);
 }
 
+function resolveSelectedPairActiveActorPosition(
+  actorsById: ReadonlyMap<string, SceneActor>,
+  viewModel: TleFirstSceneViewModel,
+  projectionDate: Date,
+  result?: Cartesian3
+): Cartesian3 | undefined {
+  const activeLink = resolveActiveSelectedPairLink(viewModel, projectionDate);
+  if (!activeLink) {
+    return undefined;
+  }
+  const actor = actorsById.get(activeLink.satelliteId);
+  if (!actor) {
+    return undefined;
+  }
+  return resolveSceneActorRenderPosition(actor, viewModel, projectionDate, result);
+}
+
+function createSelectedPairLinkFlowSegmentPositions(
+  actorsById: ReadonlyMap<string, SceneActor>,
+  endpointAPosition: Cartesian3,
+  endpointBPosition: Cartesian3,
+  replayClock: ReplayClock,
+  viewModel: TleFirstSceneViewModel,
+  direction: M8aV4LinkFlowDirection
+): CallbackProperty {
+  return new CallbackProperty((time) => {
+    const projectionDate = resolveSelectedPairProjectionDate(
+      viewModel,
+      replayClock.getState(),
+      time
+    );
+    const actorPosition = resolveSelectedPairActiveActorPosition(
+      actorsById,
+      viewModel,
+      projectionDate,
+      new Cartesian3()
+    );
+
+    if (!actorPosition) {
+      return direction === "uplink"
+        ? [endpointAPosition, endpointAPosition]
+        : [endpointBPosition, endpointBPosition];
+    }
+
+    return direction === "uplink"
+      ? [endpointAPosition, actorPosition]
+      : [actorPosition, endpointBPosition];
+  }, false);
+}
+
+function resolveSelectedPairLinkFlowEndpoints(
+  actorsById: ReadonlyMap<string, SceneActor>,
+  endpointAPosition: Cartesian3,
+  endpointBPosition: Cartesian3,
+  replayClock: ReplayClock,
+  viewModel: TleFirstSceneViewModel,
+  direction: M8aV4LinkFlowDirection,
+  time?: JulianDate
+): { start: Cartesian3; stop: Cartesian3 } {
+  const projectionDate = resolveSelectedPairProjectionDate(
+    viewModel,
+    replayClock.getState(),
+    time
+  );
+  const actorPosition = resolveSelectedPairActiveActorPosition(
+    actorsById,
+    viewModel,
+    projectionDate,
+    new Cartesian3()
+  );
+  if (!actorPosition) {
+    return direction === "uplink"
+      ? { start: endpointAPosition, stop: endpointAPosition }
+      : { start: endpointBPosition, stop: endpointBPosition };
+  }
+
+  return direction === "uplink"
+    ? { start: endpointAPosition, stop: actorPosition }
+    : { start: actorPosition, stop: endpointBPosition };
+}
+
+function createSelectedPairLinkFlowVisibleProperty(
+  replayClock: ReplayClock,
+  viewModel: TleFirstSceneViewModel
+): CallbackProperty {
+  return new CallbackProperty((time) => {
+    const projectionDate = resolveSelectedPairProjectionDate(
+      viewModel,
+      replayClock.getState(),
+      time
+    );
+    return resolveActiveSelectedPairLink(viewModel, projectionDate) !== null;
+  }, false);
+}
+
+function createSelectedPairLinkFlowPulseRotation(
+  actorsById: ReadonlyMap<string, SceneActor>,
+  endpointAPosition: Cartesian3,
+  endpointBPosition: Cartesian3,
+  replayClock: ReplayClock,
+  viewModel: TleFirstSceneViewModel,
+  direction: M8aV4LinkFlowDirection,
+  viewer: Viewer
+): CallbackProperty {
+  return new CallbackProperty((time) => {
+    const { start, stop } = resolveSelectedPairLinkFlowEndpoints(
+      actorsById,
+      endpointAPosition,
+      endpointBPosition,
+      replayClock,
+      viewModel,
+      direction,
+      time
+    );
+    const startWindow = SceneTransforms.worldToWindowCoordinates(
+      viewer.scene,
+      start,
+      new Cartesian2()
+    );
+    const stopWindow = SceneTransforms.worldToWindowCoordinates(
+      viewer.scene,
+      stop,
+      new Cartesian2()
+    );
+
+    if (!startWindow || !stopWindow) {
+      return 0;
+    }
+    const dx = stopWindow.x - startWindow.x;
+    const dy = stopWindow.y - startWindow.y;
+    return Math.abs(dx) < 0.001 && Math.abs(dy) < 0.001
+      ? 0
+      : Math.atan2(-dy, dx);
+  }, false);
+}
+
+function createSelectedPairLinkFlowPulsePosition(
+  actorsById: ReadonlyMap<string, SceneActor>,
+  endpointAPosition: Cartesian3,
+  endpointBPosition: Cartesian3,
+  replayClock: ReplayClock,
+  viewModel: TleFirstSceneViewModel,
+  direction: M8aV4LinkFlowDirection,
+  pulseOffset: number
+): CallbackPositionProperty {
+  return new CallbackPositionProperty((time, result) => {
+    const replayState = replayClock.getState();
+    const replayRatio = time
+      ? resolveReplayWindowRatio({
+          ...replayState,
+          currentTime: JulianDate.toDate(time).toISOString()
+        })
+      : resolveReplayWindowRatio(replayState);
+    const { start, stop } = resolveSelectedPairLinkFlowEndpoints(
+      actorsById,
+      endpointAPosition,
+      endpointBPosition,
+      replayClock,
+      viewModel,
+      direction,
+      time
+    );
+    const directionOffset = direction === "uplink" ? 0 : 0.11;
+    const phase = normalizeUnit(
+      replayRatio * M8A_V4_LINK_FLOW_REPLAY_CYCLES +
+        pulseOffset +
+        directionOffset
+    );
+
+    return Cartesian3.lerp(start, stop, phase, result ?? new Cartesian3());
+  }, false);
+}
+
 async function installSelectedPairSceneOverlay({
   dataSource,
   endpointA,
   endpointB,
+  modelUri,
   replayClock,
   sceneEndpointContext,
   viewer,
@@ -5061,6 +5304,7 @@ async function installSelectedPairSceneOverlay({
   readonly dataSource: CustomDataSource;
   readonly endpointA: EndpointRenderContext;
   readonly endpointB: EndpointRenderContext;
+  readonly modelUri: string;
   readonly replayClock: ReplayClock;
   readonly sceneEndpointContext: SceneEndpointContext;
   readonly viewer: Viewer;
@@ -5107,7 +5351,8 @@ async function installSelectedPairSceneOverlay({
             (total, actor) => total + actor.sourceSamples.length,
             0
           ),
-          activeSelectionSampleCount: viewModel.activeLinks.length
+          activeSelectionSampleCount: viewModel.activeLinks.length,
+          handoverEventCount: viewModel.handoverEvents.length
         })
       );
       applySelectedPairCameraHint(viewer, sceneEndpointContext, viewModel.cameraHint);
@@ -5148,6 +5393,7 @@ async function installSelectedPairSceneOverlay({
       }, false),
       billboard: createSelectedPairActorGlowStyle(actor),
       point: createSelectedPairActorPointStyle(actor),
+      model: createSelectedPairActorModelStyle(modelUri, actor),
       label: createSelectedPairActorLabelStyle(actor, shouldShowLabel),
       description: new ConstantProperty(
         `${actor.satelliteId}; ${actor.sourceClass} actor rendered with ${actor.displayTransform?.transformClass ?? "source"} transform.`
@@ -5197,6 +5443,113 @@ async function installSelectedPairSceneOverlay({
         "Selected-pair runtime link overlay; active only inside the scene view-model link windows."
       )
     });
+
+    for (const direction of M8A_V4_LINK_FLOW_DIRECTIONS) {
+      const segment = createLinkFlowSegmentStyle(
+        createSelectedPairLinkFlowSegmentPositions(
+          actorsById,
+          endpointAPosition,
+          endpointBPosition,
+          replayClock,
+          viewModel,
+          direction
+        ),
+        direction,
+        "displayRepresentative"
+      );
+      segment.show = createSelectedPairLinkFlowVisibleProperty(
+        replayClock,
+        viewModel
+      );
+      dataSource.entities.add({
+        id: `m8a-v4-selected-pair-link-flow-${direction}-segment`,
+        name: `Selected pair ${direction} flow segment`,
+        polyline: segment,
+        description: new ConstantProperty(
+          `Selected-pair ${direction} flow cue driven by the scene view-model active link.`
+        )
+      });
+
+      for (const [pulseIndex, pulseOffset] of M8A_V4_LINK_FLOW_PULSE_OFFSETS.entries()) {
+        const billboard = createLinkFlowPulseStyle(
+          direction,
+          "displayRepresentative",
+          pulseIndex,
+          createSelectedPairLinkFlowPulseRotation(
+            actorsById,
+            endpointAPosition,
+            endpointBPosition,
+            replayClock,
+            viewModel,
+            direction,
+            viewer
+          )
+        );
+        billboard.show = createSelectedPairLinkFlowVisibleProperty(
+          replayClock,
+          viewModel
+        );
+        const label =
+          pulseIndex === 0 ? createLinkFlowLabelStyle(direction) : undefined;
+        if (label) {
+          label.show = createSelectedPairLinkFlowVisibleProperty(
+            replayClock,
+            viewModel
+          );
+        }
+        dataSource.entities.add({
+          id: `m8a-v4-selected-pair-link-flow-${direction}-pulse-${pulseIndex}`,
+          name: `Selected pair ${direction} flow pulse ${pulseIndex + 1}`,
+          position: createSelectedPairLinkFlowPulsePosition(
+            actorsById,
+            endpointAPosition,
+            endpointBPosition,
+            replayClock,
+            viewModel,
+            direction,
+            pulseOffset
+          ),
+          billboard,
+          label,
+          description: new ConstantProperty(
+            `Selected-pair moving ${direction} pulse; display cue only.`
+          )
+        });
+      }
+    }
+  }
+
+  const renderableEventCues = viewModel.handoverEvents.filter((event) =>
+    actorsById.has(event.toSatelliteId)
+  );
+  for (const [index, event] of renderableEventCues.entries()) {
+    const actor = actorsById.get(event.toSatelliteId);
+    if (!actor) {
+      continue;
+    }
+    dataSource.entities.add({
+      id: `m8a-v4-selected-pair-handover-cue-${index}`,
+      name: `Selected pair event cue ${index + 1}`,
+      position: new CallbackPositionProperty((time, positionResult) => {
+        const projectionDate = resolveSelectedPairProjectionDate(
+          viewModel,
+          replayClock.getState(),
+          time
+        );
+        return (
+          resolveSceneActorRenderPosition(
+            actor,
+            viewModel,
+            projectionDate,
+            positionResult
+          ) ?? endpointAPosition
+        );
+      }, false),
+      label: createSelectedPairHandoverCueLabelStyle(event, replayClock, viewModel),
+      description: new ConstantProperty(
+        `Selected-pair event cue for ${event.toSatelliteId}; driven by scene handover events.`
+      )
+    });
   }
 
   onStateChange(
@@ -5209,6 +5562,13 @@ async function installSelectedPairSceneOverlay({
         0
       ),
       activeSelectionSampleCount: viewModel.activeLinks.length,
+      handoverEventCount: viewModel.handoverEvents.length,
+      linkFlowCueCount:
+        viewModel.activeLinks.length > 0
+          ? M8A_V4_LINK_FLOW_DIRECTIONS.length *
+            (M8A_V4_LINK_FLOW_PULSE_OFFSETS.length + 1)
+          : 0,
+      eventCueCount: renderableEventCues.length,
       sourceMode: viewModel.sourceMode,
       pairGeometry: viewModel.cameraHint.pairGeometry
     })
@@ -5370,6 +5730,7 @@ export function createM8aV4GroundStationSceneController({
     dataSource,
     endpointA,
     endpointB,
+    modelUri,
     replayClock,
     sceneEndpointContext,
     viewer,
@@ -6954,9 +7315,8 @@ export function createM8aV4GroundStationSceneController({
     }
     // Remove the existing endpoint + ribbon + selected-pair overlay
     // entities. The selected-pair overlay tags its satellite entities with
-    // `m8a-v4-selected-pair-satellite-*` and a single
-    // `m8a-v4-selected-pair-runtime-link` polyline; iterate over a
-    // snapshot because removeById mutates the live list.
+    // `m8a-v4-selected-pair-*` entity ids; iterate over a snapshot because
+    // removeById mutates the live list.
     if (endpointA) {
       dataSource.entities.removeById(`m8a-v4-endpoint-${endpointA.endpointId}`);
     }
@@ -6971,7 +7331,9 @@ export function createM8aV4GroundStationSceneController({
       .filter((id) =>
         typeof id === "string" &&
         (id === "m8a-v4-selected-pair-runtime-link" ||
-          id.startsWith("m8a-v4-selected-pair-satellite-"))
+          id.startsWith("m8a-v4-selected-pair-satellite-") ||
+          id.startsWith("m8a-v4-selected-pair-link-flow-") ||
+          id.startsWith("m8a-v4-selected-pair-handover-cue-"))
       );
     for (const id of overlayEntityIds) {
       dataSource.entities.removeById(id);
@@ -7068,6 +7430,7 @@ export function createM8aV4GroundStationSceneController({
       dataSource,
       endpointA,
       endpointB,
+      modelUri,
       replayClock,
       sceneEndpointContext,
       viewer,

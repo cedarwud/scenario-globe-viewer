@@ -49,7 +49,8 @@ const cases = [
     expectedStatus: "ready",
     expectedActorRelation: "positive",
     expectedRuntimeLinkVisible: true,
-    expectedPairGeometry: "polar"
+    expectedPairGeometry: "polar",
+    expectedVisualCueRelation: "positive"
   },
   {
     label: "Svalbard / TrollSat zero-window pair",
@@ -60,7 +61,8 @@ const cases = [
     expectedStatus: "empty",
     expectedActorRelation: "zero",
     expectedRuntimeLinkVisible: false,
-    expectedPairGeometry: "empty-result"
+    expectedPairGeometry: "empty-result",
+    expectedVisualCueRelation: "zero"
   },
   {
     label: "Singtel / MEASAT short-baseline pair",
@@ -71,7 +73,8 @@ const cases = [
     expectedStatus: "ready",
     expectedActorRelation: "positive",
     expectedRuntimeLinkVisible: true,
-    expectedPairGeometry: "short-baseline"
+    expectedPairGeometry: "short-baseline",
+    expectedVisualCueRelation: "positive"
   }
 ];
 
@@ -277,6 +280,25 @@ function assertCase(testCase, result) {
   } else {
     assert(actorCount > 0, `${testCase.label}: expected actors, received ${actorCount}`);
   }
+
+  const linkFlowCueCount = overlay.linkFlowCueCount ?? 0;
+  const eventCueCount = overlay.eventCueCount ?? 0;
+  const handoverEventCount = overlay.handoverEventCount ?? 0;
+  if (testCase.expectedVisualCueRelation === "zero") {
+    assert(
+      linkFlowCueCount === 0 && eventCueCount === 0 && handoverEventCount === 0,
+      `${testCase.label}: expected zero visual cues, received linkFlow=${linkFlowCueCount}, events=${eventCueCount}, handovers=${handoverEventCount}`
+    );
+  } else {
+    assert(
+      linkFlowCueCount > 0,
+      `${testCase.label}: expected link-flow cues, received ${linkFlowCueCount}`
+    );
+    assert(
+      eventCueCount > 0 && handoverEventCount > 0,
+      `${testCase.label}: expected event cues from handover events, received eventCue=${eventCueCount}, handovers=${handoverEventCount}`
+    );
+  }
 }
 
 const server = await startServerIfNeeded();
@@ -313,7 +335,10 @@ try {
       sourceMode: overlay.sourceMode ?? null,
       pairGeometry: overlay.pairGeometry,
       actorCount: overlay.actorCount ?? overlay.satelliteCount,
-      runtimeLinkVisible: overlay.runtimeLinkVisible
+      runtimeLinkVisible: overlay.runtimeLinkVisible,
+      linkFlowCueCount: overlay.linkFlowCueCount ?? 0,
+      eventCueCount: overlay.eventCueCount ?? 0,
+      handoverEventCount: overlay.handoverEventCount ?? 0
     });
   }
 } finally {
