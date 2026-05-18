@@ -490,6 +490,7 @@ export interface M8aV4GroundStationSceneState {
     typeof M8A_V4_GROUND_STATION_RUNTIME_PROJECTION.generatedFromArtifactId;
   projectionSourceAuthority:
     typeof M8A_V4_GROUND_STATION_RUNTIME_PROJECTION.sourceAuthority;
+  sceneSourceMode: TleFirstSceneViewModel["sourceMode"];
   dataSourceName: typeof M8A_V4_GROUND_STATION_DATA_SOURCE_NAME;
   dataSourceAttached: boolean;
   endpointCount: 2;
@@ -2041,6 +2042,7 @@ function renderHud(root: HTMLElement, state: M8aV4GroundStationSceneState): void
   root.dataset.m8aV4GroundStationSceneVisibility = "hidden";
   root.dataset.m8aV46eVisualLanguage = "true";
   root.dataset.activeStateLabel = activeStateLabel;
+  root.dataset.sceneSourceMode = state.sceneSourceMode;
   root.dataset.serviceWindowId = state.serviceState.window.windowId;
   root.dataset.simulationHandoverModelId =
     state.simulationHandoverModel.modelId;
@@ -6689,6 +6691,9 @@ export function createM8aV4GroundStationSceneController({
         M8A_V4_GROUND_STATION_RUNTIME_PROJECTION.generatedFromArtifactId,
       projectionSourceAuthority:
         M8A_V4_GROUND_STATION_RUNTIME_PROJECTION.sourceAuthority,
+      sceneSourceMode: sceneEndpointContext.selectedPair
+        ? "tle-first-runtime"
+        : "fixture-fallback",
       dataSourceName: M8A_V4_GROUND_STATION_DATA_SOURCE_NAME,
       dataSourceAttached,
       endpointCount: 2,

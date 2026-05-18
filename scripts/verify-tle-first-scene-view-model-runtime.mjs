@@ -20,6 +20,7 @@ const DEFAULT_SERVER_PORT = 5173;
 const VIEWPORT = { width: 1440, height: 900 };
 const READY_TIMEOUT_MS = 30_000;
 const RUNTIME_MODE = "tle-first-runtime";
+const FIXTURE_MODE = "fixture-fallback";
 const DEBUG_SERVER_PROBE = process.env.SGV_DEBUG_SERVER_PROBE === "1";
 
 const args = Object.fromEntries(
@@ -77,6 +78,16 @@ const cases = [
     expectedVisualCueRelation: "positive"
   }
 ];
+
+const fixedDemoCase = {
+  label: "Fixed demo fixture fallback route",
+  searchParams: {
+    scenePreset: "regional",
+    m8aV4GroundStationScene: "1"
+  },
+  expectedSceneSourceMode: FIXTURE_MODE,
+  expectedOverlayStatus: "not-requested"
+};
 
 function sleep(ms) {
   return new Promise((resolve) => {
@@ -172,6 +183,14 @@ function buildCaseUrl(testCase) {
   return url.href;
 }
 
+function buildFixedDemoUrl(testCase) {
+  const url = new URL(baseUrl);
+  for (const [key, value] of Object.entries(testCase.searchParams)) {
+    url.searchParams.set(key, value);
+  }
+  return url.href;
+}
+
 async function navigate(client, url) {
   await client.send("Page.navigate", { url });
   await sleep(500);
@@ -191,28 +210,34 @@ async function navigate(client, url) {
   );
 }
 
-async function readOverlayState(client) {
+async function readOverlayState(client, terminalStatuses = ["ready", "empty", "error"]) {
+  const serializedTerminalStatuses = JSON.stringify(terminalStatuses);
   return await evaluateRuntimeValue(
     client,
     `(async () => {
       const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
       let last = null;
       const startedAt = Date.now();
+      const terminalStatuses = new Set(${serializedTerminalStatuses});
 
       while (Date.now() - startedAt < ${READY_TIMEOUT_MS}) {
         const capture = window.__SCENARIO_GLOBE_VIEWER_CAPTURE__;
         const controller = capture?.m8aV4GroundStationScene;
         const state = controller?.getState?.();
         const overlay = state?.selectedPairOverlay ?? null;
+        const hud = document.querySelector("[data-m8a-v4-ground-station-scene='true']");
         last = {
           hasCapture: Boolean(capture),
           hasController: Boolean(controller),
-          overlay
+          overlay,
+          sceneSourceMode: state?.sceneSourceMode ?? null,
+          hudSceneSourceMode: hud?.dataset?.sceneSourceMode ?? null,
+          actorCount: state?.actorCount ?? null
         };
 
         if (
           overlay &&
-          ["ready", "empty", "error"].includes(overlay.status)
+          terminalStatuses.has(overlay.status)
         ) {
           return last;
         }
@@ -254,6 +279,15 @@ function assertCase(testCase, result) {
       `${testCase.label}: expected sourceMode ${RUNTIME_MODE}, received ${overlay.sourceMode}`
     );
   }
+
+  assert(
+    result.sceneSourceMode === RUNTIME_MODE,
+    `${testCase.label}: expected sceneSourceMode ${RUNTIME_MODE}, received ${result.sceneSourceMode}`
+  );
+  assert(
+    result.hudSceneSourceMode === RUNTIME_MODE,
+    `${testCase.label}: expected HUD sceneSourceMode ${RUNTIME_MODE}, received ${result.hudSceneSourceMode}`
+  );
 
   assert(
     overlay.pairGeometry === testCase.expectedPairGeometry,
@@ -301,6 +335,27 @@ function assertCase(testCase, result) {
   }
 }
 
+function assertFixedDemoCase(testCase, result) {
+  assert(result?.hasCapture, `${testCase.label}: missing runtime capture seam`);
+  assert(result?.hasController, `${testCase.label}: missing scene controller`);
+  assert(
+    result.sceneSourceMode === testCase.expectedSceneSourceMode,
+    `${testCase.label}: expected sceneSourceMode ${testCase.expectedSceneSourceMode}, received ${result.sceneSourceMode}`
+  );
+  assert(
+    result.hudSceneSourceMode === testCase.expectedSceneSourceMode,
+    `${testCase.label}: expected HUD sceneSourceMode ${testCase.expectedSceneSourceMode}, received ${result.hudSceneSourceMode}`
+  );
+  assert(
+    result.overlay?.status === testCase.expectedOverlayStatus,
+    `${testCase.label}: expected overlay status ${testCase.expectedOverlayStatus}, received ${result.overlay?.status}`
+  );
+  assert(
+    Number.isInteger(result.actorCount) && result.actorCount > 0,
+    `${testCase.label}: expected fixture actor count, received ${result.actorCount}`
+  );
+}
+
 const server = await startServerIfNeeded();
 const browserCommand = findHeadlessBrowser();
 const browser = await startHeadlessBrowser(browserCommand, [
@@ -341,6 +396,21 @@ try {
       handoverEventCount: overlay.handoverEventCount ?? 0
     });
   }
+
+  await navigate(client, buildFixedDemoUrl(fixedDemoCase));
+  const fixedDemoState = await readOverlayState(client, ["not-requested", "error"]);
+  assertFixedDemoCase(fixedDemoCase, fixedDemoState);
+  results.push({
+    label: fixedDemoCase.label,
+    status: fixedDemoState.overlay?.status ?? null,
+    sourceMode: fixedDemoState.sceneSourceMode,
+    hudSceneSourceMode: fixedDemoState.hudSceneSourceMode,
+    actorCount: fixedDemoState.actorCount,
+    runtimeLinkVisible: fixedDemoState.overlay?.runtimeLinkVisible ?? null,
+    linkFlowCueCount: fixedDemoState.overlay?.linkFlowCueCount ?? 0,
+    eventCueCount: fixedDemoState.overlay?.eventCueCount ?? 0,
+    handoverEventCount: fixedDemoState.overlay?.handoverEventCount ?? 0
+  });
 } finally {
   if (client) {
     await client.close();
