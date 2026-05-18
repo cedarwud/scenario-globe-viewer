@@ -2220,10 +2220,9 @@ function ensureProductUxStructure(root: HTMLElement): void {
     root.querySelector("[data-m8a-v410-boundary-surface='true']") &&
       root.querySelector("[data-m8a-v410-boundary-full-truth-disclosure='true']")
   );
-  // Phase 4: reviewer mode state machine ARIA live region
+  // Phase 4: reviewer mode state machine
   const hasPhase4ReviewerModeStructure = Boolean(
-    root.querySelector("[data-m8a-v411-reviewer-mode-status='true']") &&
-      root.querySelector("[data-m8a-v411-inspector-mode-label='true']")
+    root.querySelector("[data-m8a-v411-inspector-mode-label='true']")
   );
 
   if (
@@ -2237,42 +2236,6 @@ function ensureProductUxStructure(root: HTMLElement): void {
   }
 
   root.innerHTML = `
-    <button type="button" class="m8a-v411-handover-rail-scrim" data-m8a-v411-handover-rail-scrim="true" data-m8a-v47-action="close-handover-rail" data-m8a-v48-info-class="control" tabindex="-1" aria-label="Close handover rail" hidden></button>
-    <aside id="m8a-v411-handover-rail-drawer" class="m8a-v411-handover-rail" data-m8a-v411-handover-rail="true" data-itri-demo-l0-briefing-card="true" data-itri-demo-l0-layer="L0-first-read-demo-stage" data-itri-demo-l0-version="${M8A_V4_CUSTOMER_DEMO_VIEW_DEFAULT_FOCUS_VERSION}" data-m8a-v47-ui-surface="left-handover-rail" aria-label="Handover briefing">
-      <div class="m8a-v411-handover-rail-header" data-m8a-v411-handover-rail-header="true">
-        <span data-itri-demo-l0-eyebrow="true" data-m8a-v48-info-class="fixed">customer V4 demo</span>
-        <strong data-itri-demo-l0-heading="true" data-m8a-v48-info-class="fixed">Handover briefing</strong>
-        <button type="button" class="m8a-v411-handover-rail-close" data-m8a-v47-action="close-handover-rail" data-m8a-v411-handover-rail-close="true" data-m8a-v48-info-class="control" aria-label="Collapse briefing sheet">Close</button>
-      </div>
-      <div data-m8a-v411-handover-rail-content="true">
-        <div class="m8a-v411-rail-panel" data-m8a-v411-rail-panel="true" data-m8a-v411-rail-current="true" data-itri-demo-l0-primary-surface="true" data-m8a-v48-info-class="dynamic" aria-label="Active handover briefing state">
-          <div class="m8a-v411-briefing-now" data-itri-demo-l0-section="now">
-            <span data-m8a-v48-info-class="fixed">Now</span>
-            <strong data-itri-demo-l0-current-state="true" data-m8a-v48-info-class="dynamic"></strong>
-            <p data-itri-demo-l0-current-reason="true" data-m8a-v48-info-class="dynamic"></p>
-          </div>
-          <div class="m8a-v411-rail-layer m8a-v411-rail-layer--judgment" data-m8a-v411-rail-layer="judgment">
-            <span class="m8a-v411-rail-main-chip" data-m8a-v411-rail-main-chip="true" role="group" tabindex="0" aria-label="Active handover judgment">
-              <span class="m8a-v411-rail-role-glyph" data-m8a-v411-rail-role-glyph="true" aria-hidden="true">F</span>
-              <span class="m8a-v411-rail-orbit-swatch" data-m8a-v411-rail-orbit-swatch="true" aria-hidden="true"></span>
-              <span data-m8a-v411-rail-main-chip-text="true">LEO · focus</span>
-            </span>
-            <div class="m8a-v411-rail-token-row" data-m8a-v411-rail-token-row="true" aria-label="Current candidate fallback context">
-              <span class="m8a-v411-rail-subtoken" data-m8a-v411-rail-slot="current" data-m8a-v411-rail-token="current" data-m8a-v48-info-class="dynamic">Current: --</span>
-              <span class="m8a-v411-rail-subtoken" data-m8a-v411-rail-slot="candidate" data-m8a-v411-rail-token="candidate" data-m8a-v48-info-class="dynamic">Candidate: --</span>
-              <span class="m8a-v411-rail-subtoken" data-m8a-v411-rail-slot="fallback" data-m8a-v411-rail-token="fallback" data-m8a-v48-info-class="dynamic">Fallback: --</span>
-            </div>
-          </div>
-          <div class="m8a-v411-briefing-grid" data-itri-demo-l0-section="quick-facts">
-            <p data-itri-demo-l0-active-orbit="true" data-m8a-v48-info-class="dynamic"></p>
-            <p data-itri-demo-l0-rate-class="true" data-m8a-v48-info-class="dynamic"></p>
-          </div>
-          <p class="m8a-v411-rail-next" data-m8a-v411-rail-layer="next" data-m8a-v411-rail-slot="next" data-itri-demo-l0-next-state="true" data-m8a-v48-info-class="dynamic">Next: --</p>
-          <p class="m8a-v411-rail-evidence" data-m8a-v411-rail-layer="evidence" data-m8a-v411-rail-slot="evidence" data-m8a-v48-info-class="dynamic">modeled quality --</p>
-          <p class="m8a-v411-briefing-truth" data-itri-demo-l0-truth-boundary="true" data-m8a-v48-info-class="fixed">${M8A_V4_CUSTOMER_DEMO_VIEW_DEFAULT_TRUTH_COPY}</p>
-        </div>
-      </div>
-    </aside>
     <div class="m8a-v47-product-ux__scene-connector" data-m8a-v48-scene-connector="true" aria-hidden="true" hidden></div>
     <div class="m8a-v47-product-ux__strip" data-m8a-v47-ui-surface="compact-control-strip" data-m8a-v47-control-strip="true">
       <button type="button" class="m8a-v47-product-ux__play-toggle" data-m8a-v47-action="pause" data-m8a-v47-control-id="play-pause" data-m8a-v48-info-class="control">Pause</button>
@@ -2281,7 +2244,6 @@ function ensureProductUxStructure(root: HTMLElement): void {
         ${renderSpeedButtons(M8A_V47_PRODUCT_DEFAULT_MULTIPLIER)}
       </div>
     </div>
-    <div class="m8a-v411-reviewer-mode-status" data-m8a-v411-reviewer-mode-status="true" data-m8a-v411-reviewer-mode-version="${M8A_V411_REVIEWER_MODE_VERSION}" role="status" aria-live="polite" aria-atomic="true" data-m8a-v48-info-class="dynamic"></div>
     <aside id="m8a-v410-boundary-surface" class="m8a-v410-product-ux__boundary-surface" data-m8a-v410-boundary-surface="true" data-m8a-v47-ui-surface="boundary-surface" data-m8a-v48-info-class="disclosure" hidden>
       <div class="m8a-v410-boundary-surface__header">
         <strong data-m8a-v48-info-class="fixed">Truth boundary</strong>
@@ -5165,29 +5127,6 @@ function renderM8aV411ReviewerMode(
     }
   }
 
-  const status = root.querySelector<HTMLElement>(
-    "[data-m8a-v411-reviewer-mode-status='true']"
-  );
-  if (status) {
-    const previousMode = status.dataset.m8aV411ReviewerModeAnnouncedMode;
-    const previousOrdinal =
-      status.dataset.m8aV411ReviewerModeAnnouncedOrdinal ?? "";
-    const currentOrdinal = reviewer.pinnedWindowOrdinalLabel ?? "";
-    const announcementChanged =
-      previousMode !== reviewer.replayClockMode ||
-      previousOrdinal !== currentOrdinal;
-    status.dataset.m8aV411ReplayClockMode = reviewer.replayClockMode;
-    status.dataset.m8aV411ReviewerModeOn = String(reviewer.reviewModeOn);
-    if (announcementChanged) {
-      status.textContent = reviewer.announcement.ariaText;
-      status.dataset.m8aV411ReviewerModeAnnouncedMode =
-        reviewer.replayClockMode;
-      status.dataset.m8aV411ReviewerModeAnnouncedOrdinal = currentOrdinal;
-      status.dataset.m8aV411ReviewerModeAnnouncedAriaText =
-        reviewer.announcement.ariaText;
-    }
-  }
-
   const pauseButton = root.querySelector<HTMLElement>(
     "button[data-m8a-v47-control-id='play-pause']"
   );
@@ -5222,33 +5161,6 @@ function renderM8aV411ReviewerMode(
     reviewer.toastSuppressed
   );
   root.dataset.m8aV411InspectorOpen = String(inspectorOpen);
-  root.dataset.m8aV411HandoverRailDrawerState =
-    productUx.layout.narrowRailDrawerState;
-
-  const railDrawer = root.querySelector<HTMLElement>(
-    "[data-m8a-v411-handover-rail='true']"
-  );
-  if (railDrawer) {
-    railDrawer.dataset.m8aV411HandoverRailDrawerState =
-      productUx.layout.narrowRailDrawerState;
-    railDrawer.dataset.m8aV4ItriDemoViewNarrow =
-      M8A_V4_CUSTOMER_DEMO_VIEW_NARROW_VERSION;
-    railDrawer.dataset.m8aV4ItriDemoViewNarrowPresentation =
-      productUx.layout.viewportClass === "narrow"
-        ? "bottom-sheet-briefing"
-        : "left-briefing";
-    railDrawer.setAttribute(
-      "aria-hidden",
-      "false"
-    );
-  }
-
-  const railScrim = root.querySelector<HTMLElement>(
-    "[data-m8a-v411-handover-rail-scrim='true']"
-  );
-  if (railScrim) {
-    railScrim.hidden = productUx.layout.narrowRailDrawerState !== "open";
-  }
 }
 
 function cloneActorState(

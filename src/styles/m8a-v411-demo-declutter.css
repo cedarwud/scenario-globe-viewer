@@ -1,9 +1,6 @@
 .m8a-v411-product-ux__scene-context-chip,
-.m8a-v411-handover-rail,
-.m8a-v411-handover-rail-scrim,
 .m8a-v411-footer-chip__row,
-.m8a-v411-product-ux__countdown-surface,
-.m8a-v411-reviewer-mode-status {
+.m8a-v411-product-ux__countdown-surface {
   display: none !important;
 }
 
