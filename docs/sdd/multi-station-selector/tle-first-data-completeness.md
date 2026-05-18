@@ -1,7 +1,7 @@
 # Multi-Station Selector — TLE-First Data Completeness
 
 Draft date: 2026-05-18
-Status: proposed SDD
+Status: implemented through D7 on 2026-05-18
 
 ## Scope
 
@@ -581,22 +581,48 @@ display transforms must remain separate in state.
 | Visual/data confusion | Cinematic layout hides source geometry | Keep source samples and display transforms separate |
 | Source coverage gaps | Some valid pairs produce sparse results | Surface inventory coverage and rejected-source reasons |
 
-## 12. Open Decisions
+## 12. Resolved Decisions For D0-D7
 
-1. What staleness thresholds should apply to bundled LEO, MEO, and GEO TLE
-   sources?
-2. Should a future implementation support optional live TLE refresh, or should
-   the product remain local-snapshot-only for reproducible review?
-3. What source-health status should block rendering vs. warn only?
-4. Which empty reason codes are user-facing, and which remain debug-only?
-5. Should homepage canonical CTA eventually move from fixed demo fallback to a
-   selected-pair default route?
+1. Initial source-health thresholds are LEO 14 days, MEO 30 days, and GEO 30
+   days, evaluated against the selected projection window start.
+2. D0-D7 remain local-snapshot-only. Live TLE refresh is not part of this
+   implementation.
+3. D0-D7 expose `fresh`, `stale`, and `unknown-age` as warning/debug states.
+   The `rejected` state remains reserved for a future source-loader policy that
+   actively blocks stale or invalid sources.
+4. Empty reason codes are machine-readable first. The side panel keeps its
+   existing user-facing empty copy, while debug state exposes
+   `no-shared-supported-orbit`, `tle-source-unavailable`,
+   `no-pair-intersection`, and related reason codes.
+5. Homepage canonical CTA does not move in D0-D7. The fixed demo route remains
+   the CTA and fixture fallback; selected-pair short URLs remain the canonical
+   arbitrary-pair runtime.
 
    > The companion `tle-first-3d-pipeline.md` §12 #5 already resolved this for
    > Slice 4 of that SDD: the fixed demo route remains the CTA and reports
    > `fixture-fallback`; selected-pair short URLs report `tle-first-runtime`.
-   > This question is intentionally re-opened here only to ask whether the
-   > data-completeness work landing under D0-D7 should trigger a revisit.
+
+## 12.1 Implementation Closeout
+
+D0-D7 landed in three implementation commits after this SDD was accepted:
+
+- `c0a32e4` — D0 data inventory appendix in `slice-0-baseline.md`.
+- `82776a9` — D1-D5 runtime data-completeness metadata, panel/CSV bindings,
+  and controller debug payload.
+- `27075c1` — D6 smoke gate
+  `scripts/verify-tle-first-data-completeness.mjs`.
+
+Runtime source of truth:
+
+- `RuntimeProjectionResult.dataCompleteness` carries the
+  `RuntimeDataCompletenessState`.
+- `selectedPairOverlay.dataCompleteness` exposes the same payload through the
+  controller debug capture.
+- Row 6 exposes `[data-station-precision-disclosure="true"]`.
+- `[data-tle-telemetry-chip="true"]` gains source count, accepted/rejected
+  record counts, timestamp, and health dataset fields after projection render.
+- CSV export now includes TLE source manifest, station precision, modeled
+  outputs, and data-completeness summary sections.
 
 ## 13. References
 

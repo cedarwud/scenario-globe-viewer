@@ -279,6 +279,22 @@ The existing per-orbit TLE cap is allowed for interactive compute. The cap must
 be visible in debug state or truth boundary text so the scene does not imply an
 exhaustive full-catalog search.
 
+### 7.4 Data-completeness closeout
+
+The companion data-completeness SDD has now landed. Selected-pair runtime
+projection exposes `RuntimeProjectionResult.dataCompleteness`, and the V4
+controller mirrors it at `selectedPairOverlay.dataCompleteness` for smoke
+capture. This closes the provenance gap that remained after the 3D pipeline
+slices:
+
+- TLE source manifest and staleness are machine-readable.
+- Station precision is station-level, not only pair-level.
+- Modeled output metadata is structured by output kind.
+- Empty selected-pair scenes carry reason codes.
+- CSV and panel debug surfaces preserve the same provenance payload.
+
+The fixed demo route remains an explicit `fixture-fallback` source mode.
+
 ## 8. Implementation Slices
 
 ### Slice 0 — SDD and baseline capture

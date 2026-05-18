@@ -206,6 +206,12 @@ SDD freeze) lists which smokes must keep passing; `npm run
 test:smoke:manifest` (added in wave 4) iterates that manifest and
 asserts each script exits 0.
 
+The data-completeness closeout adds one selected-pair provenance gate:
+`node scripts/verify-tle-first-data-completeness.mjs --port=<port>`. It
+asserts source health, station precision, modeled-output metadata, empty reason
+codes, CSV provenance sections, `fakeActorCount === 0`, and fixed-demo
+`fixture-fallback` isolation.
+
 ## 2. Soft acceptance (warnings, not blockers)
 
 1. Lighthouse accessibility score on `/` ≥ 90.

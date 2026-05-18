@@ -403,3 +403,36 @@ triggers a panel recompute via the §A.6 subscription.
 There is no other Apply semantic. There is no full-reload during a
 session that already has a mounted V4 panel — preserving G3 60×
 continuity.
+
+## 2026-05-18 addendum — data-completeness payload
+
+The selected-pair runtime now exposes a second machine-readable contract on
+top of `DemoProjection`: `RuntimeDataCompletenessState`, exported from
+`src/features/multi-station-selector/runtime-data-completeness.ts` and carried
+on `RuntimeProjectionResult.dataCompleteness`.
+
+The payload records:
+
+- route source mode (`tle-first-runtime` for selected-pair runtime);
+- per-orbit TLE source manifest, cap, source timestamp, epoch range, accepted
+  and rejected counts, and source-health state;
+- per-station disclosure precision and whether the rendered coordinate is
+  source truth or a representative coordinate;
+- actor source coverage with `fakeActorCount === 0`;
+- modeled output metadata for handover, link budget, throughput, jitter,
+  latency, and rain impact;
+- display-only transform provenance;
+- empty reason codes for unsupported or no-window cases.
+
+The V4 side panel and CSV export surface the same payload without changing the
+route shape:
+
+- Row 6 carries `[data-station-precision-disclosure="true"]`.
+- `[data-tle-telemetry-chip="true"]` is patched with source-count,
+  accepted/rejected-count, timestamp, and health dataset fields after selected
+  projection render.
+- CSV export includes `# TLE source manifest`, `# Station precision`,
+  `# Modeled outputs`, and `# Data completeness` sections.
+
+The fixed demo entry remains `fixture-fallback`; it does not receive a hidden
+selected-pair data retrofit.
