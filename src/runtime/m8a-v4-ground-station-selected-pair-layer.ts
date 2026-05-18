@@ -50,36 +50,16 @@ import {
   M8A_V4_LINK_FLOW_REPLAY_CYCLES,
   type M8aV4LinkFlowDirection
 } from "./m8a-v4-product-ux-model";
+import {
+  createSelectedPairOverlayDebugState,
+  type SelectedPairOverlayDebugState
+} from "./m8a-v4-ground-station-overlay-debug";
 
 const M8A_V4_SELECTED_PAIR_SCENE_DEFAULT_DURATION_MINUTES = 360;
 const M8A_V4_SELECTED_PAIR_SCENE_MIN_DURATION_MINUTES = 20;
 const M8A_V4_SELECTED_PAIR_SCENE_MAX_DURATION_MINUTES = 480;
 
 type SelectedPairLinkFlowRole = "displayRepresentative";
-
-export type SelectedPairOverlayDebugStatus =
-  | "not-requested"
-  | "loading"
-  | "ready"
-  | "empty"
-  | "error";
-
-export interface SelectedPairOverlayDebugState {
-  status: SelectedPairOverlayDebugStatus;
-  satelliteCount: number;
-  actorCount: number;
-  runtimeLinkVisible: boolean;
-  positionSampleCount: number;
-  activeSelectionSampleCount: number;
-  handoverEventCount: number;
-  linkFlowCueCount: number;
-  eventCueCount: number;
-  sourceMode: TleFirstSceneViewModel["sourceMode"] | "";
-  pairGeometry: SceneCameraHint["pairGeometry"] | "";
-  emptyReasonCode: RuntimeDataCompletenessState["emptyReasonCode"];
-  dataCompleteness: RuntimeDataCompletenessState | null;
-  errorMessage: string;
-}
 
 export interface SelectedPairLayerEndpointContext {
   readonly renderMarker: {
@@ -223,29 +203,6 @@ function resolveActiveSelectedPairLink(
   }
 
   return null;
-}
-
-export function createSelectedPairOverlayDebugState(
-  status: SelectedPairOverlayDebugStatus,
-  overrides: Partial<SelectedPairOverlayDebugState> = {}
-): SelectedPairOverlayDebugState {
-  return {
-    status,
-    satelliteCount: 0,
-    actorCount: 0,
-    runtimeLinkVisible: false,
-    positionSampleCount: 0,
-    activeSelectionSampleCount: 0,
-    handoverEventCount: 0,
-    linkFlowCueCount: 0,
-    eventCueCount: 0,
-    sourceMode: "",
-    pairGeometry: "",
-    emptyReasonCode: null,
-    dataCompleteness: null,
-    errorMessage: "",
-    ...overrides
-  };
 }
 
 function sceneActorOrbitClassToDisplayOrbit(

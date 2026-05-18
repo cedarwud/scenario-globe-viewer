@@ -235,12 +235,11 @@ import {
   type M8aV411SourcesFilter,
   type M8aV411SourcesTrigger
 } from "./m8a-v411-sources-role";
+import { installSelectedPairTleFirstSceneLayer, resolveSelectedPairSceneTimeWindow } from "./m8a-v4-ground-station-selected-pair-layer";
 import {
   createSelectedPairOverlayDebugState,
-  installSelectedPairTleFirstSceneLayer,
-  resolveSelectedPairSceneTimeWindow,
   type SelectedPairOverlayDebugState
-} from "./m8a-v4-ground-station-selected-pair-layer";
+} from "./m8a-v4-ground-station-overlay-debug";
 import {
   ensureM8aV411FooterChipRow,
   M8A_V411_FOOTER_CHIP_SYSTEM_VERSION,
