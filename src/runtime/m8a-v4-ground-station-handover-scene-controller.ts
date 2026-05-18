@@ -216,6 +216,20 @@ import {
   renderProductUxDetailContent
 } from "./m8a-v4-ground-station-product-dom";
 import {
+  buildEndpointState,
+  buildProductUxState,
+  buildReplayWindowState,
+  buildSimulationHandoverState,
+  cloneState,
+  M8A_V4_FULL_LEO_ORBIT_REPLAY_PROFILE,
+  notifyListeners,
+  resolveReplayWindowRatio,
+  resolveServiceStateWindow,
+  resolveSimulationHandoverWindow,
+  toEpochMilliseconds,
+  toIsoTimestamp
+} from "./m8a-v4-ground-station-state-builders";
+import {
   createActorEntityOptions,
   createEndpointContextRibbonEntityOptions,
   createEndpointEntityOptions,
@@ -256,7 +270,6 @@ import {
   readM8aV411ReviewerModePersistedToggle,
   resolveM8aV411ControlAvailability,
   resolveM8aV411ModeAnnouncement,
-  resolveM8aV411WindowOrdinalLabel,
   transitionForFinalHoldEnter,
   transitionForInspectorClose,
   transitionForInspectorOpen,
@@ -270,13 +283,8 @@ import {
   type M8aV411ReviewerModeState
 } from "./m8a-v411-reviewer-mode";
 import {
-  buildSimulatedReplayTimeDisplay,
-  buildV48HandoverReviewViewModel,
-  buildV49ProductComprehensionRuntime,
   buildV49TransitionEvent,
-  coercePlaybackMultiplier,
   M8A_V4_CUSTOMER_DEMO_VIEW_FOCUS_CHOREOGRAPHY_VERSION,
-  M8A_V4_CUSTOMER_DEMO_VIEW_FOCUS_VISIBLE_CONTENT,
   M8A_V4_LINK_FLOW_CUE_MODE,
   M8A_V4_LINK_FLOW_CUE_VERSION,
   M8A_V4_LINK_FLOW_DIRECTIONS,
@@ -284,13 +292,7 @@ import {
   M8A_V4_LINK_FLOW_RELATION_ROLES,
   M8A_V4_LINK_FLOW_REPLAY_CYCLES,
   M8A_V4_LINK_FLOW_TRUTH_BOUNDARY,
-  M8A_V410_BOUNDARY_AFFORDANCE_VISIBLE_CONTENT,
-  M8A_V410_INSPECTOR_DENIED_FIRST_READ_ROLES,
-  M8A_V410_INSPECTOR_EVIDENCE_STRUCTURE,
-  M8A_V410_INSPECTOR_NOT_CLAIMED_CONTENT,
-  M8A_V410_SEQUENCE_RAIL_VISIBLE_CONTENT,
   M8A_V411_INSPECTOR_TABS,
-  M8A_V46E_TIMELINE_LABELS,
   M8A_V47_DEBUG_TEST_MULTIPLIER,
   M8A_V47_DISCLOSURE_LINES,
   M8A_V47_FINAL_HOLD_DURATION_MS,
@@ -303,20 +305,8 @@ import {
   M8A_V47_QUICK_SCAN_MULTIPLIER,
   M8A_V47_TRUTH_BADGES,
   M8A_V48_UI_IA_VERSION,
-  M8A_V49_INSPECTOR_DEBUG_EVIDENCE_CONTENT,
-  M8A_V49_INSPECTOR_DENIED_PRIMARY_CONTENT,
-  M8A_V49_INSPECTOR_PRIMARY_VISIBLE_CONTENT,
-  M8A_V49_PERSISTENT_ALLOWED_CONTENT,
-  M8A_V49_PERSISTENT_DENIED_DEFAULT_CONTENT,
-  M8A_V49_SCENE_NEAR_FALLBACK_VISIBLE_CONTENT,
-  M8A_V49_SCENE_NEAR_RELIABLE_VISIBLE_CONTENT,
-  M8A_V49_TRANSITION_EVENT_DENIED_VISIBLE_CONTENT,
   M8A_V49_TRANSITION_EVENT_DURATION_MS,
-  M8A_V49_TRANSITION_EVENT_VISIBLE_CONTENT,
-  resolvePlaybackMode,
-  resolvePlaybackStatus,
   resolveTimelineLabel,
-  type M8aV410BoundaryAffordanceRuntime,
   type M8aV411InspectorTab,
   type M8aV47DisclosureState,
   type M8aV47PlaybackMode,
@@ -347,8 +337,6 @@ const M8A_V4_CAMERA_PITCH_DEGREES = -80;
 const M8A_V4_CAMERA_SCREEN_UP_PAN_METERS = 4_000_000;
 const M8A_V4_SELECTED_PAIR_ENDPOINT_RADIUS_METERS = 90_000;
 const M8A_V4_SELECTED_PAIR_CAMERA_LATITUDE_OFFSET_DEGREES = 66;
-const M8A_V4_MILLISECONDS_PER_DAY = 24 * 60 * 60 * 1000;
-const M8A_V4_FULL_LEO_ORBIT_REPLAY_MARGIN_MS = 5 * 60 * 1000;
 const M8A_V4_DISPLAY_ORBIT_HEIGHT_METERS = {
   leo: {
     start: 280_000,
@@ -817,24 +805,6 @@ interface PropagatedActorPosition {
   propagationTimeUtc: string;
 }
 
-interface M8aV4OneWebLeoPeriod {
-  actorId: string;
-  sourceRecordName: string;
-  meanMotionRevPerDay: number;
-  periodMs: number;
-}
-
-interface M8aV4ReplayProfile {
-  longestOneWebLeoActorId: string;
-  longestOneWebLeoSourceRecordName: string;
-  longestOneWebLeoMeanMotionRevPerDay: number;
-  longestOneWebLeoPeriodMs: number;
-  replayMarginMs: number;
-  replayDurationMs: number;
-  playbackMultiplier: number;
-  periodSource: "repo-owned-oneweb-tle-mean-motion";
-}
-
 interface SceneEndpointContext {
   endpoints: ReadonlyArray<EndpointRenderContext>;
   selectedPair: V4ResolvedStationPair | null;
@@ -864,22 +834,6 @@ function serializeJson(value: unknown): string {
   return JSON.stringify(value);
 }
 
-function assertFiniteTimestamp(value: number, fieldName: string): void {
-  if (!Number.isFinite(value)) {
-    throw new Error(`${fieldName} must resolve to a finite timestamp.`);
-  }
-}
-
-function toEpochMilliseconds(value: ReplayClockState["currentTime"]): number {
-  const epochMs = typeof value === "number" ? value : Date.parse(value);
-  assertFiniteTimestamp(epochMs, "m8aV4GroundStation.timestamp");
-  return epochMs;
-}
-
-function toIsoTimestamp(value: ReplayClockState["currentTime"] | number): string {
-  return new Date(toEpochMilliseconds(value)).toISOString();
-}
-
 function clamp(value: number, min: number, max: number): number {
   return Math.min(Math.max(value, min), max);
 }
@@ -889,95 +843,9 @@ function normalizeUnit(value: number): number {
   return normalized < 0 ? normalized + 1 : normalized;
 }
 
-function parseTleMeanMotionRevPerDay(
-  tleLine2: string,
-  actorId: string
-): number {
-  const meanMotion = Number(tleLine2.slice(52, 63).trim());
-
-  if (!Number.isFinite(meanMotion) || meanMotion <= 0) {
-    throw new Error(
-      `Missing positive TLE mean motion for V4 actor ${actorId}.`
-    );
-  }
-
-  return meanMotion;
-}
-
-function isCurrentOneWebLeoActor(actor: M8aV4OrbitActorProjection): boolean {
-  const sourceRecordName = actor.sourceLineage[0]?.sourceRecordName ?? "";
-
-  return (
-    actor.orbitClass === "leo" &&
-    actor.operatorContext.toLowerCase().includes("oneweb") &&
-    sourceRecordName.toLowerCase().startsWith("oneweb-")
-  );
-}
-
-function resolveCurrentOneWebLeoActorPeriods(
-  actors: ReadonlyArray<M8aV4OrbitActorProjection>
-): ReadonlyArray<M8aV4OneWebLeoPeriod> {
-  return actors.filter(isCurrentOneWebLeoActor).map((actor) => {
-    const lineage = actor.sourceLineage[0];
-
-    if (!lineage) {
-      throw new Error(`Missing V4 OneWeb LEO lineage for ${actor.actorId}.`);
-    }
-
-    const meanMotionRevPerDay = parseTleMeanMotionRevPerDay(
-      lineage.tleLine2,
-      actor.actorId
-    );
-
-    return {
-      actorId: actor.actorId,
-      sourceRecordName: lineage.sourceRecordName,
-      meanMotionRevPerDay,
-      periodMs: M8A_V4_MILLISECONDS_PER_DAY / meanMotionRevPerDay
-    };
-  });
-}
-
-function resolveLongestCurrentOneWebLeoActorPeriod(
-  actors: ReadonlyArray<M8aV4OrbitActorProjection>
-): M8aV4OneWebLeoPeriod {
-  const periods = resolveCurrentOneWebLeoActorPeriods(actors);
-
-  if (periods.length === 0) {
-    throw new Error("V4.6A replay requires at least one current OneWeb LEO actor.");
-  }
-
-  return periods.reduce((longest, candidate) =>
-    candidate.periodMs > longest.periodMs ? candidate : longest
-  );
-}
-
-function buildFullLeoOrbitReplayProfile(): M8aV4ReplayProfile {
-  const longestLeoPeriod = resolveLongestCurrentOneWebLeoActorPeriod(
-    M8A_V4_GROUND_STATION_RUNTIME_PROJECTION.orbitActors
-  );
-
-  return {
-    longestOneWebLeoActorId: longestLeoPeriod.actorId,
-    longestOneWebLeoSourceRecordName: longestLeoPeriod.sourceRecordName,
-    longestOneWebLeoMeanMotionRevPerDay:
-      longestLeoPeriod.meanMotionRevPerDay,
-    longestOneWebLeoPeriodMs: longestLeoPeriod.periodMs,
-    replayMarginMs: M8A_V4_FULL_LEO_ORBIT_REPLAY_MARGIN_MS,
-    replayDurationMs: Math.ceil(
-      longestLeoPeriod.periodMs + M8A_V4_FULL_LEO_ORBIT_REPLAY_MARGIN_MS
-    ),
-    playbackMultiplier: M8A_V47_PRODUCT_DEFAULT_MULTIPLIER,
-    periodSource: "repo-owned-oneweb-tle-mean-motion"
-  };
-}
-
 function lerp(left: number, right: number, ratio: number): number {
   return left + (right - left) * ratio;
 }
-
-const M8A_V4_FULL_LEO_ORBIT_REPLAY_PROFILE =
-  buildFullLeoOrbitReplayProfile();
 
 function positionToPlainMeters(cartesian: Cartesian3): {
   x: number;
@@ -1051,56 +919,6 @@ function buildSceneEndpointContext(): SceneEndpointContext {
   };
 }
 
-function resolveReplayWindowRatio(replayState: ReplayClockState): number {
-  const startMs = toEpochMilliseconds(replayState.startTime);
-  const stopMs = toEpochMilliseconds(replayState.stopTime);
-  const currentMs = toEpochMilliseconds(replayState.currentTime);
-  const durationMs = stopMs - startMs;
-
-  if (durationMs <= 0) {
-    return 0;
-  }
-
-  return clamp((currentMs - startMs) / durationMs, 0, 1);
-}
-
-function resolveServiceStateWindow(
-  replayState: ReplayClockState
-): M8aV4ServiceStateWindow {
-  const ratio = resolveReplayWindowRatio(replayState);
-
-  return (
-    M8A_V4_GROUND_STATION_RUNTIME_PROJECTION.serviceStateModel.timeline.find(
-      (windowDefinition) =>
-        ratio >= windowDefinition.startRatio &&
-        ratio < windowDefinition.stopRatio
-    ) ??
-    M8A_V4_GROUND_STATION_RUNTIME_PROJECTION.serviceStateModel.timeline[
-      M8A_V4_GROUND_STATION_RUNTIME_PROJECTION.serviceStateModel.timeline.length - 1
-    ]
-  );
-}
-
-function resolveSimulationHandoverWindow(
-  replayState: ReplayClockState
-): M8aV46dSimulationHandoverWindow {
-  const ratio = resolveReplayWindowRatio(replayState);
-  const timeline =
-    M8A_V4_GROUND_STATION_RUNTIME_PROJECTION.simulationHandoverModel.timeline;
-
-  return (
-    timeline.find((windowDefinition) => {
-      const isFinalWindow = windowDefinition.stopRatioExclusive === 1;
-
-      return (
-        ratio >= windowDefinition.startRatioInclusive &&
-        (ratio < windowDefinition.stopRatioExclusive ||
-          (isFinalWindow && ratio <= 1))
-      );
-    }) ?? timeline[timeline.length - 1]
-  );
-}
-
 function resolveActorDisplayHeightMeters(
   orbitClass: M8aV4OrbitClass,
   pathProgress: number,
@@ -1167,7 +985,9 @@ function configureReplayClock(viewer: Viewer, replayClock: ReplayClock): void {
   const startMs = Date.parse(
     M8A_V4_GROUND_STATION_RUNTIME_PROJECTION.projectionEpochUtc
   );
-  assertFiniteTimestamp(startMs, "m8aV4GroundStation.projectionEpochUtc");
+  if (!Number.isFinite(startMs)) {
+    throw new Error("Invalid m8aV4GroundStation.projectionEpochUtc timestamp");
+  }
   const stopMs =
     startMs + M8A_V4_FULL_LEO_ORBIT_REPLAY_PROFILE.replayDurationMs;
   const range = {
@@ -2082,468 +1902,6 @@ function renderProductUx(
   });
 }
 
-function cloneActorState(
-  actor: M8aV4ActorRuntimeRecord
-): M8aV4ActorRuntimeRecord {
-  return {
-    ...actor,
-    sourcePositionEcefMeters: {
-      ...actor.sourcePositionEcefMeters
-    },
-    renderPositionEcefMeters: {
-      ...actor.renderPositionEcefMeters
-    },
-    artifactRenderPosition: {
-      ...actor.artifactRenderPosition
-    },
-    displayMotion: {
-      ...actor.displayMotion
-    }
-  };
-}
-
-function cloneState(
-  state: M8aV4GroundStationSceneState
-): M8aV4GroundStationSceneState {
-  return {
-    ...state,
-    directRoute: {
-      ...state.directRoute
-    },
-    endpoints: state.endpoints.map((endpoint) => ({
-      ...endpoint,
-      orbitEvidenceChips: [...endpoint.orbitEvidenceChips]
-    })),
-    selectedPairOverlay: {
-      ...state.selectedPairOverlay
-    },
-    orbitActorCounts: {
-      ...state.orbitActorCounts
-    },
-    actors: state.actors.map(cloneActorState),
-    actorLabelDensity: {
-      ...state.actorLabelDensity,
-      visibleActorLabelIds: [...state.actorLabelDensity.visibleActorLabelIds],
-      alwaysVisibleActorLabelIds: [
-        ...state.actorLabelDensity.alwaysVisibleActorLabelIds
-      ]
-    },
-    serviceState: {
-      ...state.serviceState,
-      window: {
-        ...state.serviceState.window,
-        visibleCandidateOrbitClasses: [
-          ...state.serviceState.window.visibleCandidateOrbitClasses
-        ],
-        reasonSignals: [...state.serviceState.window.reasonSignals],
-        boundedMetricsUsed: [...state.serviceState.window.boundedMetricsUsed]
-      },
-      timelineWindowIds: [...state.serviceState.timelineWindowIds]
-    },
-    simulationHandoverModel: {
-      ...state.simulationHandoverModel,
-      window: {
-        ...state.simulationHandoverModel.window,
-        candidateContextOrbitClasses: [
-          ...state.simulationHandoverModel.window.candidateContextOrbitClasses
-        ],
-        candidateContextActorIds: [
-          ...state.simulationHandoverModel.window.candidateContextActorIds
-        ],
-        fallbackContextOrbitClasses: [
-          ...state.simulationHandoverModel.window.fallbackContextOrbitClasses
-        ],
-        fallbackContextActorIds: [
-          ...state.simulationHandoverModel.window.fallbackContextActorIds
-        ],
-        reasonSignalClasses: [
-          ...state.simulationHandoverModel.window.reasonSignalClasses
-        ],
-        boundedMetricClasses: {
-          ...state.simulationHandoverModel.window.boundedMetricClasses
-        },
-        nonClaims: {
-          ...state.simulationHandoverModel.window.nonClaims
-        }
-      },
-      timeline: state.simulationHandoverModel.timeline.map(
-        (windowDefinition) => ({
-          ...windowDefinition,
-          candidateContextOrbitClasses: [
-            ...windowDefinition.candidateContextOrbitClasses
-          ],
-          candidateContextActorIds: [
-            ...windowDefinition.candidateContextActorIds
-          ],
-          fallbackContextOrbitClasses: [
-            ...windowDefinition.fallbackContextOrbitClasses
-          ],
-          fallbackContextActorIds: [
-            ...windowDefinition.fallbackContextActorIds
-          ],
-          reasonSignalClasses: [...windowDefinition.reasonSignalClasses],
-          boundedMetricClasses: {
-            ...windowDefinition.boundedMetricClasses
-          },
-          nonClaims: {
-            ...windowDefinition.nonClaims
-          }
-        })
-      ),
-      timelineWindowIds: [...state.simulationHandoverModel.timelineWindowIds],
-      validationExpectations: {
-        ...state.simulationHandoverModel.validationExpectations,
-        expectedActorCounts: {
-          ...state.simulationHandoverModel.validationExpectations
-            .expectedActorCounts
-        },
-        expectedWindowIds: [
-          ...state.simulationHandoverModel.validationExpectations
-            .expectedWindowIds
-        ],
-        requiredWindowNonClaimKeys: [
-          ...state.simulationHandoverModel.validationExpectations
-            .requiredWindowNonClaimKeys
-        ]
-      },
-      forbiddenClaimScan: {
-        ...state.simulationHandoverModel.forbiddenClaimScan,
-        negatedFieldNames: [
-          ...state.simulationHandoverModel.forbiddenClaimScan.negatedFieldNames
-        ],
-        forbiddenModelKeys: [
-          ...state.simulationHandoverModel.forbiddenClaimScan.forbiddenModelKeys
-        ]
-      }
-    },
-    replayWindow: {
-      ...state.replayWindow
-    },
-    productUx: {
-      ...state.productUx,
-      playbackPolicy: {
-        ...state.productUx.playbackPolicy,
-        productMultipliers: [...state.productUx.playbackPolicy.productMultipliers],
-        finalHoldRangeMs: {
-          ...state.productUx.playbackPolicy.finalHoldRangeMs
-        }
-      },
-      playback: {
-        ...state.productUx.playback
-      },
-      informationHierarchy: [
-        ...state.productUx.informationHierarchy
-      ] as M8aV4GroundStationSceneState["productUx"]["informationHierarchy"],
-      stateLabels: {
-        ...state.productUx.stateLabels
-      },
-      reviewViewModel: {
-        ...state.productUx.reviewViewModel,
-        representativeActor: {
-          ...state.productUx.reviewViewModel.representativeActor
-        },
-        candidateContextActors:
-          state.productUx.reviewViewModel.candidateContextActors.map(
-            (actor) => ({ ...actor })
-          ),
-        fallbackContextActors:
-          state.productUx.reviewViewModel.fallbackContextActors.map((actor) => ({
-            ...actor
-          })),
-        relationCueRole: {
-          ...state.productUx.reviewViewModel.relationCueRole
-        },
-        sceneAnchorState: {
-          ...state.productUx.reviewViewModel.sceneAnchorState
-        }
-      },
-      productComprehension: {
-        ...state.productUx.productComprehension,
-        handoverSequenceRail: {
-          ...state.productUx.productComprehension.handoverSequenceRail,
-          windowIds: [
-            ...state.productUx.productComprehension.handoverSequenceRail
-              .windowIds
-          ],
-          visibleContent: [
-            ...state.productUx.productComprehension.handoverSequenceRail
-              .visibleContent
-          ] as typeof M8A_V410_SEQUENCE_RAIL_VISIBLE_CONTENT,
-          items:
-            state.productUx.productComprehension.handoverSequenceRail.items.map(
-              (item) => ({ ...item })
-            ),
-          transitionEvent: {
-            ...state.productUx.productComprehension.handoverSequenceRail
-              .transitionEvent
-          }
-        },
-        boundaryAffordance: {
-          ...state.productUx.productComprehension.boundaryAffordance,
-          visibleContent: [
-            ...state.productUx.productComprehension.boundaryAffordance
-              .visibleContent
-          ] as typeof M8A_V410_BOUNDARY_AFFORDANCE_VISIBLE_CONTENT,
-          forbiddenBehavior: [
-            ...state.productUx.productComprehension.boundaryAffordance
-              .forbiddenBehavior
-          ] as M8aV410BoundaryAffordanceRuntime["forbiddenBehavior"]
-        },
-        focusChoreography: {
-          ...state.productUx.productComprehension.focusChoreography,
-          visibleContent: [
-            ...state.productUx.productComprehension.focusChoreography
-              .visibleContent
-          ] as typeof M8A_V4_CUSTOMER_DEMO_VIEW_FOCUS_VISIBLE_CONTENT,
-          secondaryActorEmphasisRoles: [
-            ...state.productUx.productComprehension.focusChoreography
-              .secondaryActorEmphasisRoles
-          ] as readonly ["candidate", "fallback", "context"]
-        },
-        windowIds: [...state.productUx.productComprehension.windowIds],
-        activeWindowCopy: {
-          ...state.productUx.productComprehension.activeWindowCopy
-        },
-        copyInventory: state.productUx.productComprehension.copyInventory.map(
-          (copy) => ({ ...copy })
-        ),
-        persistentLayer: {
-          ...state.productUx.productComprehension.persistentLayer,
-          defaultVisibleContent: [
-            ...state.productUx.productComprehension.persistentLayer
-              .defaultVisibleContent
-          ] as typeof M8A_V49_PERSISTENT_ALLOWED_CONTENT,
-          deniedDefaultVisibleContent: [
-            ...state.productUx.productComprehension.persistentLayer
-              .deniedDefaultVisibleContent
-          ] as typeof M8A_V49_PERSISTENT_DENIED_DEFAULT_CONTENT
-        },
-        sceneNearMeaningLayer: {
-          ...state.productUx.productComprehension.sceneNearMeaningLayer,
-          reliableVisibleContent: [
-            ...state.productUx.productComprehension.sceneNearMeaningLayer
-              .reliableVisibleContent
-          ] as typeof M8A_V49_SCENE_NEAR_RELIABLE_VISIBLE_CONTENT,
-          fallbackVisibleContent: [
-            ...state.productUx.productComprehension.sceneNearMeaningLayer
-              .fallbackVisibleContent
-          ] as typeof M8A_V49_SCENE_NEAR_FALLBACK_VISIBLE_CONTENT
-        },
-        transitionEventLayer: {
-          ...state.productUx.productComprehension.transitionEventLayer,
-          visibleContent: [
-            ...state.productUx.productComprehension.transitionEventLayer
-              .visibleContent
-          ] as typeof M8A_V49_TRANSITION_EVENT_VISIBLE_CONTENT,
-          deniedVisibleContent: [
-            ...state.productUx.productComprehension.transitionEventLayer
-              .deniedVisibleContent
-          ] as typeof M8A_V49_TRANSITION_EVENT_DENIED_VISIBLE_CONTENT,
-          activeEvent: state.productUx.productComprehension.transitionEventLayer
-            .activeEvent
-            ? {
-                ...state.productUx.productComprehension.transitionEventLayer
-                  .activeEvent
-              }
-            : null
-        },
-        inspectorLayer: {
-          ...state.productUx.productComprehension.inspectorLayer,
-          evidenceStructure: [
-            ...state.productUx.productComprehension.inspectorLayer
-              .evidenceStructure
-          ] as typeof M8A_V410_INSPECTOR_EVIDENCE_STRUCTURE,
-          primaryVisibleContent: [
-            ...state.productUx.productComprehension.inspectorLayer
-              .primaryVisibleContent
-          ] as typeof M8A_V49_INSPECTOR_PRIMARY_VISIBLE_CONTENT,
-          deniedPrimaryVisibleContent: [
-            ...state.productUx.productComprehension.inspectorLayer
-              .deniedPrimaryVisibleContent
-          ] as typeof M8A_V49_INSPECTOR_DENIED_PRIMARY_CONTENT,
-          debugEvidenceContent: [
-            ...state.productUx.productComprehension.inspectorLayer
-              .debugEvidenceContent
-          ] as typeof M8A_V49_INSPECTOR_DEBUG_EVIDENCE_CONTENT,
-          deniedFirstReadRoles: [
-            ...state.productUx.productComprehension.inspectorLayer
-              .deniedFirstReadRoles
-          ] as typeof M8A_V410_INSPECTOR_DENIED_FIRST_READ_ROLES,
-          notClaimedContent: [
-            ...state.productUx.productComprehension.inspectorLayer
-              .notClaimedContent
-          ] as typeof M8A_V410_INSPECTOR_NOT_CLAIMED_CONTENT
-        }
-      },
-      truthBadges: [...state.productUx.truthBadges] as typeof M8A_V47_TRUTH_BADGES,
-      disclosure: {
-        ...state.productUx.disclosure,
-        sourcesFilter: {
-          ...state.productUx.disclosure.sourcesFilter
-        },
-        lines: [
-          ...state.productUx.disclosure.lines
-        ] as typeof M8A_V47_DISCLOSURE_LINES
-      },
-      layout: {
-        ...state.productUx.layout
-      }
-    },
-    relationCues: {
-      ...state.relationCues
-    },
-    requirementGapSurface: {
-      ...state.requirementGapSurface,
-      truthBoundaryLabels: [
-        ...state.requirementGapSurface.truthBoundaryLabels
-      ] as typeof M8A_V4_CUSTOMER_REQUIREMENT_GAP_TRUTH_LABELS,
-      groups: state.requirementGapSurface.groups.map((group) => ({
-        ...group,
-        requirementIds: [...group.requirementIds]
-      })),
-      openRequirementIds: [
-        ...state.requirementGapSurface.openRequirementIds
-      ]
-    },
-    acceptanceLayer: {
-      ...state.acceptanceLayer,
-      requirementIds: [
-        ...state.acceptanceLayer.requirementIds
-      ] as typeof M8A_V4_CUSTOMER_ACCEPTANCE_REQUIREMENT_IDS,
-      coverageRecords: state.acceptanceLayer.coverageRecords.map((record) => ({
-        ...record
-      })),
-      requirementStatusPairs: [
-        ...state.acceptanceLayer.requirementStatusPairs
-      ],
-      requirementLayerPairs: [
-        ...state.acceptanceLayer.requirementLayerPairs
-      ],
-      externalFailIds: [
-        ...state.acceptanceLayer.externalFailIds
-      ] as typeof M8A_V4_CUSTOMER_ACCEPTANCE_EXTERNAL_FAIL_IDS,
-      boundedRouteRepresentationIds: [
-        ...state.acceptanceLayer.boundedRouteRepresentationIds
-      ] as typeof M8A_V4_CUSTOMER_ACCEPTANCE_BOUNDED_ROUTE_REPRESENTATION_IDS,
-      f13Phase71Evidence: {
-        ...state.acceptanceLayer.f13Phase71Evidence
-      },
-      f13RouteNativeScaleReadiness: {
-        ...state.acceptanceLayer.f13RouteNativeScaleReadiness,
-        knownGaps: [
-          ...state.acceptanceLayer.f13RouteNativeScaleReadiness.knownGaps
-        ] as typeof M8A_V4_CUSTOMER_F13_ROUTE_NATIVE_SCALE_READINESS_KNOWN_GAPS,
-        nonClaims: [
-          ...state.acceptanceLayer.f13RouteNativeScaleReadiness.nonClaims
-        ] as typeof M8A_V4_CUSTOMER_F13_ROUTE_NATIVE_SCALE_READINESS_NON_CLAIMS
-      },
-      externalValidationPackage: {
-        ...state.acceptanceLayer.externalValidationPackage,
-        failIds: [
-          ...state.acceptanceLayer.externalValidationPackage.failIds
-        ] as typeof M8A_V4_CUSTOMER_ACCEPTANCE_EXTERNAL_FAIL_IDS
-      }
-    },
-    f09RateSurface: {
-      ...state.f09RateSurface,
-      rows: state.f09RateSurface.rows.map((row) => ({ ...row }))
-    },
-    f16ExportSurface: {
-      ...state.f16ExportSurface,
-      explicitNonClaims: [
-        ...state.f16ExportSurface.explicitNonClaims
-      ] as typeof M8A_V4_CUSTOMER_F16_EXPLICIT_NON_CLAIMS
-    },
-    policyRuleControls: buildPolicyRuleControlsState(
-      state.policyRuleControls.activePolicyPreset.presetId,
-      state.policyRuleControls.activeRulePreset.presetId
-    ),
-    nonClaims: {
-      ...state.nonClaims
-    },
-    sourceLineage: {
-      ...state.sourceLineage
-    },
-    modelAsset: {
-      ...state.modelAsset
-    }
-  };
-}
-
-function notifyListeners(
-  listeners: ReadonlySet<(state: M8aV4GroundStationSceneState) => void>,
-  state: M8aV4GroundStationSceneState
-): void {
-  for (const listener of listeners) {
-    listener(cloneState(state));
-  }
-}
-
-function buildEndpointState(
-  endpoints: ReadonlyArray<EndpointRenderContext>
-): M8aV4GroundStationSceneState["endpoints"] {
-  return endpoints.map((endpoint) => ({
-    endpointId: endpoint.endpointId,
-    label: endpoint.renderMarker.label,
-    markerId: endpoint.renderMarker.markerId,
-    precisionBadge: endpoint.renderMarker.requiredPrecisionBadge,
-    renderPrecision: endpoint.coordinatePrecision.renderPrecision,
-    displayPositionIsSourceTruth: endpoint.renderMarker.displayPositionIsSourceTruth,
-    rawSourceCoordinatesRenderable: endpoint.sourceCoordinatesRenderable,
-    orbitEvidenceChips: endpoint.orbitEvidenceChips.map((chip) => chip.chipLabel)
-  }));
-}
-
-function buildReplayWindowState(
-  replayState: ReplayClockState
-): M8aV4GroundStationSceneState["replayWindow"] {
-  const startMs = toEpochMilliseconds(replayState.startTime);
-  const stopMs = toEpochMilliseconds(replayState.stopTime);
-
-  return {
-    startTimeUtc: toIsoTimestamp(startMs),
-    stopTimeUtc: toIsoTimestamp(stopMs),
-    durationMs: stopMs - startMs,
-    playbackMultiplier: replayState.multiplier,
-    longestCurrentOneWebLeoActorId:
-      M8A_V4_FULL_LEO_ORBIT_REPLAY_PROFILE.longestOneWebLeoActorId,
-    longestCurrentOneWebLeoSourceRecordName:
-      M8A_V4_FULL_LEO_ORBIT_REPLAY_PROFILE.longestOneWebLeoSourceRecordName,
-    longestCurrentOneWebLeoMeanMotionRevPerDay:
-      M8A_V4_FULL_LEO_ORBIT_REPLAY_PROFILE.longestOneWebLeoMeanMotionRevPerDay,
-    longestCurrentOneWebLeoPeriodMs:
-      M8A_V4_FULL_LEO_ORBIT_REPLAY_PROFILE.longestOneWebLeoPeriodMs,
-    replayMarginMs: M8A_V4_FULL_LEO_ORBIT_REPLAY_PROFILE.replayMarginMs,
-    periodSource: M8A_V4_FULL_LEO_ORBIT_REPLAY_PROFILE.periodSource
-  };
-}
-
-function buildSimulationHandoverState(
-  replayState: ReplayClockState
-): M8aV4GroundStationSceneState["simulationHandoverModel"] {
-  const model = M8A_V4_GROUND_STATION_RUNTIME_PROJECTION.simulationHandoverModel;
-
-  return {
-    modelId: model.modelId,
-    modelStatus: model.modelStatus,
-    modelScope: model.modelScope,
-    modelTruth: model.modelTruth,
-    endpointPairId: model.endpointPairId,
-    acceptedPairPrecision: model.acceptedPairPrecision,
-    route: model.route,
-    sourceRead:
-      "M8A_V4_GROUND_STATION_RUNTIME_PROJECTION.simulationHandoverModel.timeline",
-    replayRatio: resolveReplayWindowRatio(replayState),
-    window: resolveSimulationHandoverWindow(replayState),
-    timeline: model.timeline,
-    timelineWindowIds: model.timeline.map((windowDefinition) => {
-      return windowDefinition.windowId;
-    }),
-    validationExpectations: model.validationExpectations,
-    forbiddenClaimScan: model.forbiddenClaimScan
-  };
-}
-
 function buildRequirementGapSurfaceState(): M8aV4GroundStationSceneState["requirementGapSurface"] {
   const model = M8A_V4_GROUND_STATION_RUNTIME_PROJECTION.simulationHandoverModel;
 
@@ -2902,163 +2260,6 @@ function downloadF16RouteExportBundle(
       URL.revokeObjectURL(url);
     }, 0);
   }
-}
-
-function buildProductUxState({
-  replayState,
-  simulationHandoverModel,
-  viewportClass,
-  finalHoldActive,
-  finalHoldStartedAtEpochMs,
-  finalHoldCompletedAtEpochMs,
-  finalHoldLoopCount,
-  detailsDisclosureOpen,
-  boundaryDisclosureOpen,
-  sourcesDisclosureOpen,
-  sourcesFilter,
-  boundaryFullTruthDisclosureOpen,
-  activeInspectorTab,
-  activeTransitionEvent,
-  reviewerModeState,
-  narrowRailDrawerOpen
-}: {
-  replayState: ReplayClockState;
-  simulationHandoverModel: M8aV4GroundStationSceneState["simulationHandoverModel"];
-  viewportClass: "desktop" | "narrow";
-  finalHoldActive: boolean;
-  finalHoldStartedAtEpochMs: number | null;
-  finalHoldCompletedAtEpochMs: number | null;
-  finalHoldLoopCount: number;
-  detailsDisclosureOpen: boolean;
-  boundaryDisclosureOpen: boolean;
-  sourcesDisclosureOpen: boolean;
-  sourcesFilter: M8aV411SourcesFilter;
-  boundaryFullTruthDisclosureOpen: boolean;
-  activeInspectorTab: M8aV411InspectorTab;
-  activeTransitionEvent: M8aV49TransitionEventRuntime | null;
-  reviewerModeState: M8aV411ReviewerModeState;
-  narrowRailDrawerOpen: boolean;
-}): M8aV4GroundStationSceneState["productUx"] {
-  const replayRatio = resolveReplayWindowRatio(replayState);
-  const multiplier = coercePlaybackMultiplier(replayState.multiplier);
-  const reviewTime = buildSimulatedReplayTimeDisplay(
-    replayRatio,
-    toEpochMilliseconds(replayState.stopTime) -
-      toEpochMilliseconds(replayState.startTime),
-    multiplier
-  );
-  const activeWindowId = simulationHandoverModel.window.windowId;
-  const activeProductLabel = resolveTimelineLabel(activeWindowId);
-  const reviewViewModel =
-    buildV48HandoverReviewViewModel(simulationHandoverModel);
-  const detailsDisclosureState: M8aV47DisclosureState =
-    detailsDisclosureOpen ? "open" : "closed";
-  const boundaryDisclosureState: M8aV47DisclosureState =
-    boundaryDisclosureOpen ? "open" : "closed";
-  const sourcesDisclosureState: M8aV47DisclosureState =
-    sourcesDisclosureOpen ? "open" : "closed";
-  const inspectorDisclosureState: M8aV47DisclosureState =
-    detailsDisclosureOpen || boundaryDisclosureOpen || sourcesDisclosureOpen
-      ? "open"
-      : "closed";
-  const boundaryFullTruthDisclosureState: M8aV47DisclosureState =
-    boundaryFullTruthDisclosureOpen ? "open" : "closed";
-  const productComprehension =
-    buildV49ProductComprehensionRuntime(
-      simulationHandoverModel,
-      activeTransitionEvent,
-      detailsDisclosureState,
-      boundaryDisclosureState,
-      boundaryFullTruthDisclosureState
-    );
-
-  return {
-    version: M8A_V47_PRODUCT_UX_VERSION,
-    uiIaVersion: M8A_V48_UI_IA_VERSION,
-    infoClassSeam: "data-m8a-v48-info-class",
-    infoClassValues: ["fixed", "dynamic", "disclosure", "control"],
-    playbackPolicy: {
-      defaultMultiplier: M8A_V47_PRODUCT_DEFAULT_MULTIPLIER,
-      guidedReviewMultiplier: M8A_V47_GUIDED_REVIEW_MULTIPLIER,
-      quickScanMultiplier: M8A_V47_QUICK_SCAN_MULTIPLIER,
-      debugTestMultiplier: M8A_V47_DEBUG_TEST_MULTIPLIER,
-      productMultipliers: [...M8A_V47_PRODUCT_PLAYBACK_MULTIPLIERS],
-      normalControlsExposeDebugMultiplier: false,
-      finalHoldDurationMs: M8A_V47_FINAL_HOLD_DURATION_MS,
-      finalHoldRangeMs: {
-        min: M8A_V47_FINAL_HOLD_MIN_MS,
-        max: M8A_V47_FINAL_HOLD_MAX_MS
-      },
-      loopPolicy: "hold-final-state-then-restart"
-    },
-    playback: {
-      multiplier,
-      mode: resolvePlaybackMode(multiplier),
-      status: resolvePlaybackStatus(replayState, finalHoldActive),
-      replayRatio,
-      finalHoldActive,
-      finalHoldStartedAtEpochMs,
-      finalHoldCompletedAtEpochMs,
-      finalHoldLoopCount,
-      reviewElapsedDisplay: reviewTime.reviewElapsedDisplay,
-      reviewDurationDisplay: reviewTime.reviewDurationDisplay,
-      simulatedReplayTimeDisplay: reviewTime.simulatedReplayTimeDisplay,
-      replayUtcDisplay: `Replay UTC ${toIsoTimestamp(replayState.currentTime)}`
-    },
-    informationHierarchy: [
-      "scene",
-      "current-simulation-state",
-      "playback-and-time",
-      "truth-boundary-badges",
-      "optional-detail"
-    ],
-    stateLabels: {
-      ...M8A_V46E_TIMELINE_LABELS
-    },
-    activeWindowId,
-    activeProductLabel,
-    reviewViewModel,
-    productComprehension,
-    truthBadges: M8A_V47_TRUTH_BADGES,
-    disclosure: {
-      state: inspectorDisclosureState,
-      detailsSheetState: detailsDisclosureState,
-      boundarySurfaceState: boundaryDisclosureState,
-      sourcesRoleState: sourcesDisclosureState,
-      activeInspectorTab,
-      sourcesFilter,
-      boundaryFullTruthDisclosureState,
-      lines: M8A_V47_DISCLOSURE_LINES
-    },
-    layout: {
-      viewportClass,
-      desktopPolicy: "compact-control-strip",
-      narrowPolicy: "compact-control-strip-with-secondary-sheet",
-      detailSheetState: inspectorDisclosureState,
-      boundarySurfaceState: boundaryDisclosureState,
-      sourcesRoleState: sourcesDisclosureState,
-      protectedZonePolicy:
-        "endpoint-corridor-geo-guard-and-required-labels-non-obstruction",
-      narrowRailDrawerState: narrowRailDrawerOpen ? "open" : "closed"
-    },
-    reviewerMode: {
-      version: M8A_V411_REVIEWER_MODE_VERSION,
-      replayClockMode: reviewerModeState.replayClockMode,
-      pauseSource: reviewerModeState.pauseSource,
-      pinnedWindowId: reviewerModeState.pinnedWindowId,
-      pinnedWindowOrdinalLabel: resolveM8aV411WindowOrdinalLabel(
-        reviewerModeState.pinnedWindowId
-      ),
-      pinnedReplayRatio: reviewerModeState.pinnedReplayRatio,
-      previousPlaybackState: reviewerModeState.previousPlaybackState,
-      toastSuppressed: reviewerModeState.toastSuppressed,
-      reviewModeOn: reviewerModeState.reviewModeOn,
-      manualPauseSpeedDeferred: reviewerModeState.manualPauseSpeedDeferred,
-      announcement: resolveM8aV411ModeAnnouncement(reviewerModeState),
-      controls: resolveM8aV411ControlAvailability(reviewerModeState),
-      autoPauseDurationMs: M8A_V411_REVIEW_AUTO_PAUSE_DURATION_MS
-    }
-  };
 }
 
 function resolveActorById(
