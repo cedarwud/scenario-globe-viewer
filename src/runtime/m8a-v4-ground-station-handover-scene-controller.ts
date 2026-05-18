@@ -18,7 +18,6 @@ import {
   LabelStyle,
   Math as CesiumMath,
   ModelGraphics,
-  PointGraphics,
   PolylineArrowMaterialProperty,
   PolylineDashMaterialProperty,
   PolylineGraphics,
@@ -1591,38 +1590,27 @@ function createEndpointLabelStyle(
 }
 
 
-function resolveSelectedPairSatelliteColor(
-  satellite: SelectedPairSceneSatellite
-): Color {
-  switch (satellite.orbitClass) {
-    case "LEO":
-      return Color.fromCssColorString("#f4fbff");
-    case "MEO":
-      return Color.fromCssColorString("#d46bff");
-    case "GEO":
-      return Color.fromCssColorString("#ffb23f");
-  }
-}
-
 function formatSelectedPairSatelliteLabel(satelliteId: string): string {
   return satelliteId.length > 18 ? `${satelliteId.slice(0, 18)}…` : satelliteId;
 }
 
-function createSelectedPairSatellitePointStyle(
+function createSelectedPairSatelliteModelStyle(
+  modelUri: string,
   satellite: SelectedPairSceneSatellite
-): PointGraphics {
-  const color = resolveSelectedPairSatelliteColor(satellite);
-  return new PointGraphics({
-    pixelSize: new ConstantProperty(
-      satellite.role === "link-selection-event" ? 9 : 6
+): ModelGraphics {
+  return new ModelGraphics({
+    uri: new ConstantProperty(modelUri),
+    scale: new ConstantProperty(
+      satellite.role === "link-selection-event" ? 1.18 : 0.96
     ),
-    color: new ConstantProperty(color.withAlpha(0.92)),
-    outlineColor: new ConstantProperty(
-      Color.fromCssColorString("#06121a").withAlpha(0.96)
+    minimumPixelSize: new ConstantProperty(
+      satellite.orbitClass === "GEO"
+        ? 50
+        : satellite.orbitClass === "MEO"
+          ? 58
+          : 52
     ),
-    outlineWidth: satellite.role === "link-selection-event" ? 2 : 1,
-    disableDepthTestDistance: Number.POSITIVE_INFINITY,
-    distanceDisplayCondition: new DistanceDisplayCondition(0, 100_000_000)
+    maximumScale: new ConstantProperty(180_000)
   });
 }
 
@@ -4956,6 +4944,7 @@ async function installSelectedPairSceneOverlay({
   dataSource,
   endpointA,
   endpointB,
+  modelUri,
   replayClock,
   sceneEndpointContext,
   viewer,
@@ -4965,6 +4954,7 @@ async function installSelectedPairSceneOverlay({
   readonly dataSource: CustomDataSource;
   readonly endpointA: EndpointRenderContext;
   readonly endpointB: EndpointRenderContext;
+  readonly modelUri: string;
   readonly replayClock: ReplayClock;
   readonly sceneEndpointContext: SceneEndpointContext;
   readonly viewer: Viewer;
@@ -5025,7 +5015,7 @@ async function installSelectedPairSceneOverlay({
           time
         });
       }, false),
-      point: createSelectedPairSatellitePointStyle(satellite),
+      model: createSelectedPairSatelliteModelStyle(modelUri, satellite),
       label: createSelectedPairSatelliteLabelStyle(satellite),
       description: new ConstantProperty(
         `${satellite.satelliteId}; selected from clear-sky TLE projection and rendered in a demo display lane.`
@@ -5240,6 +5230,7 @@ export function createM8aV4GroundStationSceneController({
     dataSource,
     endpointA,
     endpointB,
+    modelUri,
     replayClock,
     sceneEndpointContext,
     viewer,
@@ -6935,6 +6926,7 @@ export function createM8aV4GroundStationSceneController({
       dataSource,
       endpointA,
       endpointB,
+      modelUri,
       replayClock,
       sceneEndpointContext,
       viewer,
