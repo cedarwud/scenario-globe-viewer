@@ -392,7 +392,75 @@ $CHROME $ARGS --screenshot=/tmp/sgv_slice0_demo5.png \
   'http://127.0.0.1:5173/?stationA=cht-yangmingshan&stationB=sansa-hartebeesthoek&startUtc=2026-05-17T00:00:00.000Z&durationMinutes=360'
 ```
 
-## 6. Hand-off to Slice 1
+## 6. Data inventory appendix
+
+This appendix is the Slice D0 baseline for
+`docs/sdd/multi-station-selector/tle-first-data-completeness.md`. It records
+the local source inventory before runtime provenance fields are added. No
+runtime behavior changed for this appendix.
+
+### 6.1 Local TLE source inventory
+
+Count method: parse each bundled 3-line TLE fixture as name + line 1 + line 2
+groups, then extract epoch from TLE line 1. Source timestamp is the date
+embedded in the fixture filename; there is no live refresh in this baseline.
+
+| Orbit | Runtime fixture path | Source date | Parsed records | Epoch range |
+| --- | --- | --- | ---: | --- |
+| LEO | `public/fixtures/satellites/leo-scale/starlink-2026-05-12T12-35-35Z.tle` | 2026-05-12 | 600 | 2026-05-10T16:40:08.249Z -> 2026-05-12T08:00:01.000Z |
+| MEO | `public/fixtures/satellites/multi-orbit/meo/galileo-2026-05-13T01-28-37Z.tle` | 2026-05-13 | 33 | 2026-04-25T15:10:52.485Z -> 2026-05-12T13:12:24.687Z |
+| GEO | `public/fixtures/satellites/multi-orbit/geo/commercial-geo-top30-2026-05-13T01-28-37Z.tle` | 2026-05-13 | 30 | 2026-05-11T06:21:38.641Z -> 2026-05-12T20:33:28.077Z |
+
+Runtime selected-pair compute currently applies a 60-record cap per orbit
+class. With the current fixtures this means LEO can be capped during
+selected-pair compute; MEO and GEO are below the cap.
+
+### 6.2 Station registry inventory
+
+Registry source:
+`public/fixtures/ground-stations/multi-orbit-public-registry.json`, generated
+at `2026-05-16T09:10:22Z`.
+
+| Metric | Count |
+| --- | ---: |
+| Total stations | 69 |
+| `exact-coords` stations | 22 |
+| `operator-family-region` stations | 47 |
+| `region-only` stations | 0 |
+| Stations disclosing LEO support | 50 |
+| Stations disclosing MEO support | 41 |
+| Stations disclosing GEO support | 69 |
+
+Registry `sourceTier` distribution is source-publication metadata, not the
+pair source-tier badge:
+
+| Registry source tier | Count |
+| --- | ---: |
+| `operator-stated` | 57 |
+| `wikipedia` | 7 |
+| `industry-disclosure` | 4 |
+| `regulatory-filing` | 1 |
+
+### 6.3 Selected-pair output fields before D1-D7
+
+`RuntimeProjectionResult` already carries the selected-pair fields that D1-D7
+will annotate:
+
+- pair station descriptors;
+- UTC time window;
+- shared supported orbit classes;
+- visible constellation rows by orbit;
+- pair visibility windows;
+- handover events;
+- communication stats;
+- truth boundary with precision label, pair source tier, and non-claims.
+
+The missing baseline fields are machine-readable source health, per-source
+cap/exclusion detail, station coordinate precision as structured state,
+modeled-output metadata, empty reason code, and a stable data-completeness
+debug payload.
+
+## 7. Hand-off to Slice 1
 
 Slice 1 introduced `TleFirstSceneViewModel` and `SceneActor` per section 5 of
 the parent SDD. Slice 5 removes the superseded selected-pair display adapter.
