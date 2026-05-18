@@ -1,3 +1,28 @@
+// V4 projection side panel — five-row information layering per IA §5.
+//
+// Row 1 — header: title (`A ↔ B`), tier badge pill, ISO window line,
+//   `Copy link` icon button (top-right of header).
+// Row 2 — rain control: rain rate slider (single row).
+// Row 3 — flat stats: `Comm time` + `Handovers` (two values).
+// Row 4 — summary lists: visibility windows (next 3 by chronological start)
+//   and link selection events (next 3 by chronological time PLUS the most
+//   recent `cross-orbit-migration` event if not in the top 3).
+// Row 5 — three independent disclosures:
+//   d1 `Rain impact`: rain-impact stats + per-orbit downlink contrast +
+//      body-header line carrying the K-E6 citation `ITU-R P.618-14 §2.2.1`
+//      so the rain-effect source is reachable without opening another panel.
+//   d2 `All visibility windows`: full sorted list with internal scroll +
+//      CSV download button at the top of the disclosure body.
+//   d3 `Sources + non-claims`: full handover events list + non-claims +
+//      policy citation chain + Mean dwell stat as a small secondary block.
+// Row 6 — footer: dim one-liner `${precisionLabel} · ${sourceTier}`.
+//
+// Style notes:
+// - Each row carries a `data-row="${1|2|3|4|5|6}"` attribute so probes can
+//   assert the layout without leaning on class hierarchies.
+// - The panel itself is `overflow:hidden`; only Row 5 disclosure bodies
+//   scroll internally when opened (IA §9.1, G5.2).
+
 import {
   buildDefaultTimeWindow,
   computeLinkBudgetMetricsForOrbit,
@@ -10,12 +35,15 @@ import {
   buildRuntimeProjectionCsvFilename
 } from "./runtime-projection-csv";
 import { createRuntimeProjectionWorkerClient } from "./runtime-projection-worker-client";
+import { inferPairSourceTier } from "./tier-inference";
 import type { OrbitClass, PairVisibilityWindow } from "./visibility-utils";
 import type { TleRecord } from "./visibility-utils";
 import type { V4ResolvedStationPair } from "./v4-route-selection";
 
-const PANEL_MAX_VISIBILITY_ROWS = 8;
-const PANEL_MAX_HANDOVER_ROWS = 6;
+const PANEL_ROW4_VISIBILITY_PREVIEW_COUNT = 3;
+const PANEL_ROW4_HANDOVER_PREVIEW_COUNT = 3;
+const PANEL_ROW5_VISIBILITY_MAX_ROWS = 64;
+const PANEL_ROW5_HANDOVER_MAX_ROWS = 64;
 const DEFAULT_DEMO_PROJECTION_DURATION_MINUTES = 360;
 const MIN_DEMO_PROJECTION_DURATION_MINUTES = 20;
 const MAX_DEMO_PROJECTION_DURATION_MINUTES = 480;
@@ -27,14 +55,104 @@ const RAIN_RATE_MAX_MM_PER_HOUR = 100;
 const RAIN_RATE_STEP_MM_PER_HOUR = 5;
 const RAIN_RECOMPUTE_DEBOUNCE_MS = 150;
 
-const RAIN_CONTROL_STYLE_ATTR = "data-v4-rain-control-style";
+const RAIN_IMPACT_STANDARD_CITATION = "ITU-R P.618-14 §2.2.1";
 
-const RAIN_CONTROL_CSS = `
-.v4-projection-side-panel__rain-control {
+const PANEL_STYLE_ATTR = "data-v4-projection-side-panel-style";
+
+const PANEL_CSS = `
+/* Five-row panel layout per IA §5. The panel root never scrolls; only
+   Row 5 disclosure bodies scroll internally. */
+.v4-projection-side-panel__row {
   display: flex;
   flex-direction: column;
   gap: 0.32rem;
-  padding: 0.55rem 0.65rem 0.6rem;
+}
+.v4-projection-side-panel__header {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  grid-template-areas:
+    "title  copy"
+    "badge  copy"
+    "window window";
+  align-items: center;
+  column-gap: 0.5rem;
+  row-gap: 0.18rem;
+}
+.v4-projection-side-panel__title {
+  grid-area: title;
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #f0f7fb;
+  letter-spacing: 0.005em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+.v4-projection-side-panel__tier-badge {
+  grid-area: badge;
+  justify-self: start;
+  display: inline-flex;
+  align-items: center;
+  padding: 0.18rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.62rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  border: 1px solid transparent;
+  white-space: nowrap;
+}
+.v4-projection-side-panel__tier-badge[data-tier="public-disclosed"] {
+  background: rgba(126, 226, 184, 0.14);
+  color: #c9ffe8;
+  border-color: rgba(126, 226, 184, 0.45);
+}
+.v4-projection-side-panel__tier-badge[data-tier="geometric-derived"] {
+  background: rgba(255, 209, 102, 0.12);
+  color: #ffe8a3;
+  border-color: rgba(255, 209, 102, 0.4);
+}
+.v4-projection-side-panel__window {
+  grid-area: window;
+  margin: 0;
+  font-size: 0.72rem;
+  color: rgba(157, 196, 232, 0.85);
+  font-variant-numeric: tabular-nums;
+}
+.v4-projection-side-panel__copy-link {
+  grid-area: copy;
+  align-self: start;
+  width: 1.85rem;
+  height: 1.85rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border-radius: 0.35rem;
+  border: 1px solid rgba(126, 226, 184, 0.32);
+  background: rgba(126, 226, 184, 0.08);
+  color: #c9ffe8;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+.v4-projection-side-panel__copy-link:hover,
+.v4-projection-side-panel__copy-link:focus-visible {
+  background: rgba(126, 226, 184, 0.18);
+  border-color: rgba(126, 226, 184, 0.55);
+  outline: none;
+}
+.v4-projection-side-panel__copy-link[data-copied="true"] {
+  background: rgba(255, 209, 102, 0.18);
+  border-color: rgba(255, 209, 102, 0.55);
+  color: #ffd166;
+}
+.v4-projection-side-panel__rain-control {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 0.4rem 0.6rem 0.45rem;
   border-radius: 0.4rem;
   background: rgba(157, 196, 232, 0.06);
   border: 1px solid rgba(126, 226, 184, 0.18);
@@ -133,8 +251,53 @@ const RAIN_CONTROL_CSS = `
   color: #c9a0ff;
   font-weight: 600;
 }
+.v4-projection-side-panel__list-count {
+  margin: 0;
+  font-size: 0.72rem;
+  color: rgba(157, 196, 232, 0.85);
+  font-variant-numeric: tabular-nums;
+}
+.v4-projection-side-panel__summary-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.22rem;
+}
+.v4-projection-side-panel__summary-heading {
+  margin: 0;
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: rgba(221, 233, 241, 0.78);
+}
+[data-row="4"] .v4-projection-side-panel__list {
+  gap: 0.18rem;
+}
+[data-row="4"] .v4-projection-side-panel__list-item {
+  padding: 0.22rem 0.45rem;
+}
+[data-row="4"] .v4-projection-side-panel__list-primary {
+  font-size: 0.73rem;
+  line-height: 1.18;
+}
+[data-row="4"] .v4-projection-side-panel__list-secondary {
+  font-size: 0.65rem;
+  line-height: 1.18;
+}
+.v4-projection-side-panel__details + .v4-projection-side-panel__details {
+  margin-top: 0.3rem;
+}
+.v4-projection-side-panel__details-body--scroll {
+  max-height: 14rem;
+  overflow-y: auto;
+}
+.v4-projection-side-panel__citation {
+  margin: 0;
+  font-size: 0.68rem;
+  color: rgba(157, 196, 232, 0.85);
+  font-variant-numeric: tabular-nums;
+}
 .v4-projection-side-panel__download-csv {
-  grid-column: 1 / -1;
   width: 100%;
   min-height: 2.1rem;
   display: inline-flex;
@@ -159,15 +322,45 @@ const RAIN_CONTROL_CSS = `
   outline: none;
   box-shadow: 0 0 0 2px rgba(126, 226, 184, 0.55);
 }
+.v4-projection-side-panel__footer {
+  margin: 0;
+  padding-top: 0.4rem;
+  border-top: 1px solid rgba(157, 196, 232, 0.16);
+  font-size: 0.68rem;
+  color: rgba(157, 196, 232, 0.72);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.03em;
+}
+.v4-projection-side-panel__mean-dwell {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  padding: 0.32rem 0.45rem;
+  border-radius: 0.32rem;
+  background: rgba(157, 196, 232, 0.06);
+}
+.v4-projection-side-panel__mean-dwell-label {
+  font-size: 0.6rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(157, 196, 232, 0.75);
+}
+.v4-projection-side-panel__mean-dwell-value {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #f0f7fb;
+  font-variant-numeric: tabular-nums;
+}
 `;
 
-function injectRainControlStyleOnce(): void {
-  if (document.head.querySelector(`[${RAIN_CONTROL_STYLE_ATTR}="true"]`)) {
+function injectPanelStyleOnce(): void {
+  if (document.head.querySelector(`[${PANEL_STYLE_ATTR}="true"]`)) {
     return;
   }
   const style = document.createElement("style");
-  style.setAttribute(RAIN_CONTROL_STYLE_ATTR, "true");
-  style.textContent = RAIN_CONTROL_CSS;
+  style.setAttribute(PANEL_STYLE_ATTR, "true");
+  style.textContent = PANEL_CSS;
   document.head.appendChild(style);
 }
 
@@ -232,12 +425,12 @@ function formatIsoShort(iso: string): string {
   return `${normalized.slice(0, 10)} ${normalized.slice(11, 19)}Z`;
 }
 
-function formatProjectionDuration(window: {
-  startUtc: string;
-  endUtc: string;
-}): string {
-  const durationMs = Date.parse(window.endUtc) - Date.parse(window.startUtc);
-  return formatDurationMs(durationMs);
+function formatIsoSecond(iso: string): string {
+  const ms = Date.parse(iso);
+  if (!Number.isFinite(ms)) {
+    return iso;
+  }
+  return `${new Date(ms).toISOString().slice(0, 19)}Z`;
 }
 
 function formatStationPanelName(name: string): string {
@@ -261,7 +454,10 @@ function clampDurationMinutes(value: number): number {
   );
 }
 
-function resolveProjectionTimeWindow(): { startUtc: string; endUtc: string } {
+function resolveProjectionTimeWindowAndDuration(): {
+  window: { startUtc: string; endUtc: string };
+  durationMinutes: number;
+} {
   const search =
     typeof window === "undefined"
       ? new URLSearchParams()
@@ -276,7 +472,10 @@ function resolveProjectionTimeWindow(): { startUtc: string; endUtc: string } {
     durationParam === null
       ? DEFAULT_DEMO_PROJECTION_DURATION_MINUTES
       : clampDurationMinutes(Number(durationParam));
-  return buildDefaultTimeWindow(startUtc, durationMinutes);
+  return {
+    window: buildDefaultTimeWindow(startUtc, durationMinutes),
+    durationMinutes
+  };
 }
 
 function buildStatBlock(
@@ -297,143 +496,6 @@ function buildStatBlock(
   valueEl.textContent = value;
   block.append(labelEl, valueEl);
   return block;
-}
-
-function formatOrbitCommunicationTimes(result: RuntimeProjectionResult): string {
-  if (result.sharedSupportedOrbits.length === 0) {
-    return "none";
-  }
-  return result.sharedSupportedOrbits
-    .map((orbit) => `${orbit} ${formatDurationMs(result.communicationStats.byOrbit[orbit])}`)
-    .join(" · ");
-}
-
-function buildProjectionStatus(result: RuntimeProjectionResult): HTMLElement {
-  const wrapper = document.createElement("section");
-  wrapper.className = "v4-projection-side-panel__section";
-
-  const heading = document.createElement("h3");
-  heading.className = "v4-projection-side-panel__section-title";
-  heading.textContent = "Scenario status";
-  wrapper.append(heading);
-
-  const list = document.createElement("ul");
-  list.className = "v4-projection-side-panel__list";
-
-  const status = document.createElement("li");
-  status.className = "v4-projection-side-panel__list-item";
-  const statusPrimary = document.createElement("span");
-  statusPrimary.className = "v4-projection-side-panel__list-primary";
-  const statusSecondary = document.createElement("span");
-  statusSecondary.className = "v4-projection-side-panel__list-secondary";
-  if (result.communicationStats.totalCommunicatingMs <= 0) {
-    statusPrimary.textContent = "No mutual communication in this window";
-    statusSecondary.textContent =
-      "The selected stations share no visible satellite above the elevation threshold for this projection window.";
-  } else {
-    statusPrimary.textContent = "Selected-pair projection is active";
-    statusSecondary.textContent =
-      `${formatCountLabel(
-        result.visibilityWindows.length,
-        "mutual window",
-        "mutual windows"
-      )} · ${formatCountLabel(
-        result.communicationStats.handoverCount,
-        "handover",
-        "handovers"
-      )} · TLE-derived geometry`;
-  }
-  status.append(statusPrimary, statusSecondary);
-  list.append(status);
-
-  if (result.communicationStats.handoverCount === 0) {
-    const handover = document.createElement("li");
-    handover.className = "v4-projection-side-panel__list-item";
-    const primary = document.createElement("span");
-    primary.className = "v4-projection-side-panel__list-primary";
-    primary.textContent = "No handover event in this window";
-    const secondary = document.createElement("span");
-    secondary.className = "v4-projection-side-panel__list-secondary";
-    secondary.textContent =
-      "The pair may still communicate; this window does not exercise the handover policy.";
-    handover.append(primary, secondary);
-    list.append(handover);
-  }
-
-  const boundary = document.createElement("li");
-  boundary.className = "v4-projection-side-panel__list-item";
-  const boundaryPrimary = document.createElement("span");
-  boundaryPrimary.className = "v4-projection-side-panel__list-primary";
-  boundaryPrimary.textContent = "Display boundary";
-  const boundarySecondary = document.createElement("span");
-  boundarySecondary.className = "v4-projection-side-panel__list-secondary";
-  boundarySecondary.textContent =
-    "Panel and CSV follow selected-pair modeled projection; globe selected-pair cues use TLE-derived display lanes, not measured service telemetry.";
-  boundary.append(boundaryPrimary, boundarySecondary);
-  list.append(boundary);
-
-  wrapper.append(list);
-  return wrapper;
-}
-
-function buildProjectionSummary(result: RuntimeProjectionResult): HTMLElement {
-  const wrapper = document.createElement("section");
-  wrapper.className = "v4-projection-side-panel__section";
-
-  const heading = document.createElement("h3");
-  heading.className = "v4-projection-side-panel__section-title";
-  heading.textContent = "Scenario status";
-  wrapper.append(heading);
-
-  const list = document.createElement("ul");
-  list.className = "v4-projection-side-panel__list";
-
-  const status = document.createElement("li");
-  status.className = "v4-projection-side-panel__list-item";
-  const statusPrimary = document.createElement("span");
-  statusPrimary.className = "v4-projection-side-panel__list-primary";
-  const statusSecondary = document.createElement("span");
-  statusSecondary.className = "v4-projection-side-panel__list-secondary";
-
-  if (result.communicationStats.totalCommunicatingMs <= 0) {
-    statusPrimary.textContent = "No mutual communication";
-    statusSecondary.textContent = "No shared visible satellite in this projection window.";
-  } else {
-    statusPrimary.textContent = `${formatCountLabel(
-      result.visibilityWindows.length,
-      "mutual window",
-      "mutual windows"
-    )} · ${formatCountLabel(
-      result.communicationStats.handoverCount,
-      "handover",
-      "handovers"
-    )}`;
-    statusSecondary.textContent = "TLE-derived selected-pair projection";
-  }
-
-  status.append(statusPrimary, statusSecondary);
-  list.append(status);
-  wrapper.append(list);
-  return wrapper;
-}
-
-function buildDetailedStats(result: RuntimeProjectionResult): HTMLElement {
-  const wrapper = document.createElement("section");
-  wrapper.className = "v4-projection-side-panel__section";
-
-  const heading = document.createElement("h3");
-  heading.className = "v4-projection-side-panel__section-title";
-  heading.textContent = "Projection metrics";
-
-  const stats = document.createElement("div");
-  stats.className = "v4-projection-side-panel__stats";
-  stats.append(
-    buildStatBlock("Mean dwell", formatDurationMs(result.communicationStats.meanLinkDwellMs)),
-    buildStatBlock("Orbit comm time", formatOrbitCommunicationTimes(result))
-  );
-
-  wrapper.append(heading, stats);
-  return wrapper;
 }
 
 function downloadRuntimeProjectionCsv(result: RuntimeProjectionResult): void {
@@ -462,146 +524,6 @@ function buildDownloadCsvButton(result: RuntimeProjectionResult): HTMLButtonElem
     downloadRuntimeProjectionCsv(result);
   });
   return button;
-}
-
-function buildVisibilityWindowList(
-  windows: ReadonlyArray<PairVisibilityWindow>
-): HTMLElement {
-  const wrapper = document.createElement("section");
-  wrapper.className = "v4-projection-side-panel__section";
-
-  const heading = document.createElement("h3");
-  heading.className = "v4-projection-side-panel__section-title";
-  heading.textContent = `Pair visibility windows (${windows.length})`;
-  wrapper.append(heading);
-
-  if (windows.length === 0) {
-    const empty = document.createElement("p");
-    empty.className = "v4-projection-side-panel__empty";
-    empty.textContent = "No satellite is mutually visible to both stations in the time window.";
-    wrapper.append(empty);
-    return wrapper;
-  }
-
-  const sorted = [...windows]
-    .sort(
-      (a, b) =>
-        Date.parse(a.intersectionStartUtc) - Date.parse(b.intersectionStartUtc)
-    )
-    .slice(0, PANEL_MAX_VISIBILITY_ROWS);
-
-  const list = document.createElement("ul");
-  list.className = "v4-projection-side-panel__list";
-
-  for (const w of sorted) {
-    const li = document.createElement("li");
-    li.className = "v4-projection-side-panel__list-item";
-    const dur = Date.parse(w.intersectionEndUtc) - Date.parse(w.intersectionStartUtc);
-    li.innerHTML = "";
-    const sat = document.createElement("span");
-    sat.className = "v4-projection-side-panel__list-primary";
-    sat.textContent = `${w.satelliteId} · ${w.orbitClass}`;
-    const time = document.createElement("span");
-    time.className = "v4-projection-side-panel__list-secondary";
-    time.textContent = `${formatIsoShort(w.intersectionStartUtc)} – ${formatIsoShort(w.intersectionEndUtc)}  ·  ${formatDurationMs(dur)}`;
-    li.append(sat, time);
-    list.append(li);
-  }
-
-  wrapper.append(list);
-
-  if (windows.length > PANEL_MAX_VISIBILITY_ROWS) {
-    const more = document.createElement("p");
-    more.className = "v4-projection-side-panel__more";
-    more.textContent = `+${windows.length - PANEL_MAX_VISIBILITY_ROWS} more windows`;
-    wrapper.append(more);
-  }
-
-  return wrapper;
-}
-
-function buildHandoverEventList(
-  events: RuntimeProjectionResult["handoverEvents"]
-): HTMLElement {
-  const wrapper = document.createElement("section");
-  wrapper.className = "v4-projection-side-panel__section";
-
-  const heading = document.createElement("h3");
-  heading.className = "v4-projection-side-panel__section-title";
-  heading.textContent = `Link selection events (${events.length})`;
-  wrapper.append(heading);
-
-  if (events.length === 0) {
-    const empty = document.createElement("p");
-    empty.className = "v4-projection-side-panel__empty";
-    empty.textContent = "No handover events triggered by the cross-orbit-live policy (TR 38.821 §7.3 + V-MO1) in this window.";
-    wrapper.append(empty);
-    return wrapper;
-  }
-
-  const list = document.createElement("ul");
-  list.className = "v4-projection-side-panel__list";
-
-  for (const e of events.slice(0, PANEL_MAX_HANDOVER_ROWS)) {
-    const li = document.createElement("li");
-    li.className = "v4-projection-side-panel__list-item";
-    if (e.reasonKind === "cross-orbit-migration") {
-      // V-MO1 cross-orbit live migration — highlight visually so a reviewer
-      // can distinguish it from same-orbit handovers without reading the
-      // truth-boundary non-claims.
-      li.dataset.modifier = "cross-orbit-migration";
-    }
-    const head = document.createElement("span");
-    head.className = "v4-projection-side-panel__list-primary";
-    head.textContent = `${formatIsoShort(e.handoverAtUtc)}  ${e.fromSatelliteId ?? "—"} → ${e.toSatelliteId}`;
-    const reason = document.createElement("span");
-    reason.className = "v4-projection-side-panel__list-secondary";
-    reason.textContent =
-      e.fromSatelliteId === null
-        ? "initial acquisition"
-        : e.reasonKind === "cross-orbit-migration"
-        ? "cross-orbit migration (V-MO1)"
-        : e.reasonKind.replace(/-/g, " ");
-    li.append(head, reason);
-    list.append(li);
-  }
-
-  wrapper.append(list);
-
-  if (events.length > PANEL_MAX_HANDOVER_ROWS) {
-    const more = document.createElement("p");
-    more.className = "v4-projection-side-panel__more";
-    more.textContent = `+${events.length - PANEL_MAX_HANDOVER_ROWS} more events`;
-    wrapper.append(more);
-  }
-
-  return wrapper;
-}
-
-function buildNonClaims(
-  truthBoundary: RuntimeProjectionResult["truthBoundary"]
-): HTMLElement {
-  const wrapper = document.createElement("section");
-  wrapper.className = "v4-projection-side-panel__section v4-projection-side-panel__section--non-claims";
-
-  const heading = document.createElement("h3");
-  heading.className = "v4-projection-side-panel__section-title";
-  heading.textContent = `Non-claims · ${truthBoundary.sourceTier}`;
-  wrapper.append(heading);
-
-  if (truthBoundary.nonClaims.length === 0) {
-    return wrapper;
-  }
-
-  const list = document.createElement("ul");
-  list.className = "v4-projection-side-panel__non-claim-list";
-  for (const note of truthBoundary.nonClaims) {
-    const li = document.createElement("li");
-    li.textContent = note;
-    list.append(li);
-  }
-  wrapper.append(list);
-  return wrapper;
 }
 
 function formatSignedPercent(fraction: number): string {
@@ -680,21 +602,22 @@ function buildRainSpeedComparison(
 }
 
 /**
- * Rain-attenuation impact summary. Contrasts a clear-sky baseline projection
- * (0 mm/h) against the current rain rate so the user can see the degradation.
+ * Rain-attenuation impact body (Row 5 disclosure 1). Contrasts a
+ * clear-sky baseline projection (0 mm/h) against the current rain rate so
+ * the user can see the degradation. The K-E6 citation `ITU-R P.618-14
+ * §2.2.1` appears as a body-header line per IA §5 Row 5 d1 + §9.5.
  */
-function buildRainImpactSection(
+function buildRainImpactBody(
   rainRateMmPerHour: number,
   current: RuntimeProjectionResult,
   clearSky: RuntimeProjectionResult
-): HTMLElement {
-  const wrapper = document.createElement("section");
-  wrapper.className = "v4-projection-side-panel__section";
+): DocumentFragment {
+  const frag = document.createDocumentFragment();
 
-  const heading = document.createElement("h3");
-  heading.className = "v4-projection-side-panel__section-title";
-  heading.textContent = "Rain attenuation";
-  wrapper.append(heading);
+  const citation = document.createElement("p");
+  citation.className = "v4-projection-side-panel__citation";
+  citation.textContent = `Standard: ${RAIN_IMPACT_STANDARD_CITATION}`;
+  frag.append(citation);
 
   const clearMs = clearSky.communicationStats.totalCommunicatingMs;
   const currentMs = current.communicationStats.totalCommunicatingMs;
@@ -703,9 +626,15 @@ function buildRainImpactSection(
     const note = document.createElement("p");
     note.className = "v4-projection-side-panel__empty";
     note.textContent =
-      "Clear sky — no rain attenuation applied. Raise the rain rate to model an ITU-R P.618-14 fade.";
-    wrapper.append(note);
-    return wrapper;
+      "Clear sky — no rain attenuation applied. Raise the rain rate (Row 2) to model a fade.";
+    frag.append(note);
+
+    // Even at 0 mm/h still show the per-orbit downlink baseline so the
+    // disclosure body is never empty.
+    frag.append(
+      buildRainSpeedComparison(rainRateMmPerHour, current.sharedSupportedOrbits)
+    );
+    return frag;
   }
 
   const lostMs = Math.max(0, clearMs - currentMs);
@@ -731,16 +660,16 @@ function buildRainImpactSection(
       lostMs > 0 ? "rain-degraded" : undefined
     )
   );
-  wrapper.append(stats);
+  frag.append(stats);
 
   const speedHeading = document.createElement("p");
   speedHeading.className = "v4-projection-side-panel__rain-caption";
   speedHeading.textContent = `Modeled downlink throughput · clear sky → ${rainRateMmPerHour} mm/h`;
-  wrapper.append(speedHeading);
+  frag.append(speedHeading);
 
   // Per-orbit throughput contrast — always moves with rain, so the link
   // degradation stays visible even when comm-time is geometry-limited.
-  wrapper.append(
+  frag.append(
     buildRainSpeedComparison(rainRateMmPerHour, current.sharedSupportedOrbits)
   );
 
@@ -750,9 +679,9 @@ function buildRainImpactSection(
     lostMs > 0
       ? `Rain fade removes ${formatDurationMs(lostMs)} of usable communication and cuts per-orbit throughput versus clear sky.`
       : "Comm-time is geometry-limited in this window, so rain fade shows up as the per-orbit throughput and jitter loss above.";
-  wrapper.append(caption);
+  frag.append(caption);
 
-  return wrapper;
+  return frag;
 }
 
 interface RainControlElements {
@@ -813,34 +742,6 @@ function buildRainControl(
   return { control, slider, valueEl, captionEl: caption };
 }
 
-function buildProjectionDetails(
-  result: RuntimeProjectionResult,
-  rainRateMmPerHour: number,
-  clearSky: RuntimeProjectionResult
-): HTMLDetailsElement {
-  const details = document.createElement("details");
-  details.className = "v4-projection-side-panel__details";
-
-  const summary = document.createElement("summary");
-  summary.className = "v4-projection-side-panel__details-summary";
-  summary.textContent = "Details";
-
-  const body = document.createElement("div");
-  body.className = "v4-projection-side-panel__details-body";
-  body.append(
-    buildDownloadCsvButton(result),
-    buildProjectionStatus(result),
-    buildDetailedStats(result),
-    buildRainImpactSection(rainRateMmPerHour, result, clearSky),
-    buildVisibilityWindowList(result.visibilityWindows),
-    buildHandoverEventList(result.handoverEvents),
-    buildNonClaims(result.truthBoundary)
-  );
-
-  details.append(summary, body);
-  return details;
-}
-
 function setRainControlCaption(
   elements: RainControlElements,
   result: RuntimeProjectionResult,
@@ -858,10 +759,449 @@ function setRainControlCaption(
     rainNonClaim ?? "Rain-rate attenuation applied per ITU-R P.618-14.";
 }
 
+// ---------------------------------------------------------------------------
+// Row builders
+// ---------------------------------------------------------------------------
+
+function buildHeaderRow(
+  pair: V4ResolvedStationPair,
+  result: RuntimeProjectionResult,
+  durationMinutes: number
+): HTMLElement {
+  const row = document.createElement("section");
+  row.className =
+    "v4-projection-side-panel__row v4-projection-side-panel__header";
+  row.dataset.row = "1";
+
+  const title = document.createElement("h2");
+  title.className = "v4-projection-side-panel__title";
+  const titleText = `${formatStationPanelName(pair.stationA.name)} ↔ ${formatStationPanelName(pair.stationB.name)}`;
+  title.textContent = titleText;
+  title.title = titleText;
+
+  const tierAttribution = inferPairSourceTier(pair.stationA, pair.stationB);
+  const tierBadge = document.createElement("span");
+  tierBadge.className = "v4-projection-side-panel__tier-badge";
+  tierBadge.dataset.tier = tierAttribution.sourceTier;
+  tierBadge.textContent =
+    tierAttribution.sourceTier === "public-disclosed"
+      ? "Public-disclosure"
+      : "Geometric";
+
+  const windowLine = document.createElement("p");
+  windowLine.className = "v4-projection-side-panel__window";
+  windowLine.textContent = `${formatIsoSecond(result.timeWindow.startUtc)} → ${formatIsoSecond(result.timeWindow.endUtc)} UTC · ${durationMinutes}m`;
+
+  const copyLink = document.createElement("button");
+  copyLink.type = "button";
+  copyLink.className = "v4-projection-side-panel__copy-link";
+  copyLink.title = "Copy link to clipboard";
+  copyLink.setAttribute("aria-label", "Copy link to clipboard");
+  copyLink.textContent = "📋";
+  copyLink.addEventListener("click", () => {
+    const href =
+      typeof window !== "undefined" ? window.location.href : "";
+    if (!href) {
+      return;
+    }
+    const navigatorClipboard = (
+      typeof navigator !== "undefined" ? navigator.clipboard : undefined
+    );
+    if (!navigatorClipboard) {
+      return;
+    }
+    void navigatorClipboard.writeText(href).then(
+      () => {
+        copyLink.dataset.copied = "true";
+        copyLink.textContent = "✓";
+        window.setTimeout(() => {
+          copyLink.dataset.copied = "false";
+          copyLink.textContent = "📋";
+        }, 1200);
+      },
+      () => {
+        // clipboard write may fail in some sandboxes; leave the icon as-is.
+      }
+    );
+  });
+
+  row.append(title, tierBadge, windowLine, copyLink);
+  return row;
+}
+
+function buildRainControlRow(rainControl: RainControlElements): HTMLElement {
+  const row = document.createElement("section");
+  row.className = "v4-projection-side-panel__row";
+  row.dataset.row = "2";
+  row.append(rainControl.control);
+  return row;
+}
+
+function buildFlatStatsRow(result: RuntimeProjectionResult): HTMLElement {
+  const row = document.createElement("section");
+  row.className = "v4-projection-side-panel__row";
+  row.dataset.row = "3";
+
+  const stats = document.createElement("div");
+  stats.className = "v4-projection-side-panel__stats";
+  stats.append(
+    buildStatBlock(
+      "Comm time",
+      formatDurationMs(result.communicationStats.totalCommunicatingMs)
+    ),
+    buildStatBlock(
+      "Handovers",
+      String(result.communicationStats.handoverCount)
+    )
+  );
+  row.append(stats);
+  return row;
+}
+
+function buildVisibilityRow(
+  satelliteId: string,
+  orbitClass: OrbitClass,
+  startUtc: string,
+  endUtc: string
+): HTMLLIElement {
+  const li = document.createElement("li");
+  li.className = "v4-projection-side-panel__list-item";
+  const dur = Date.parse(endUtc) - Date.parse(startUtc);
+  const sat = document.createElement("span");
+  sat.className = "v4-projection-side-panel__list-primary";
+  sat.textContent = `${satelliteId} · ${orbitClass}`;
+  const time = document.createElement("span");
+  time.className = "v4-projection-side-panel__list-secondary";
+  time.textContent = `${formatIsoShort(startUtc)} – ${formatIsoShort(endUtc)}  ·  ${formatDurationMs(dur)}`;
+  li.append(sat, time);
+  return li;
+}
+
+function buildHandoverRow(
+  event: RuntimeProjectionResult["handoverEvents"][number]
+): HTMLLIElement {
+  const li = document.createElement("li");
+  li.className = "v4-projection-side-panel__list-item";
+  if (event.reasonKind === "cross-orbit-migration") {
+    li.dataset.modifier = "cross-orbit-migration";
+  }
+  const head = document.createElement("span");
+  head.className = "v4-projection-side-panel__list-primary";
+  head.textContent = `${formatIsoShort(event.handoverAtUtc)}  ${event.fromSatelliteId ?? "—"} → ${event.toSatelliteId}`;
+  const reason = document.createElement("span");
+  reason.className = "v4-projection-side-panel__list-secondary";
+  reason.textContent =
+    event.fromSatelliteId === null
+      ? "initial acquisition"
+      : event.reasonKind === "cross-orbit-migration"
+      ? "cross-orbit migration (V-MO1)"
+      : event.reasonKind.replace(/-/g, " ");
+  li.append(head, reason);
+  return li;
+}
+
+function pickRow4HandoverEvents(
+  events: RuntimeProjectionResult["handoverEvents"]
+): ReadonlyArray<RuntimeProjectionResult["handoverEvents"][number]> {
+  if (events.length === 0) {
+    return [];
+  }
+  const sortedAsc = [...events].sort(
+    (a, b) => Date.parse(a.handoverAtUtc) - Date.parse(b.handoverAtUtc)
+  );
+  const head = sortedAsc.slice(0, PANEL_ROW4_HANDOVER_PREVIEW_COUNT);
+  // Pin the most recent cross-orbit-migration event if it is not already
+  // in the head — V-MO1 visibility requirement (IA §5 Row 4).
+  const headIds = new Set(head.map((event) => event.handoverAtUtc));
+  const latestCrossOrbit = [...sortedAsc]
+    .reverse()
+    .find(
+      (event) =>
+        event.reasonKind === "cross-orbit-migration" &&
+        !headIds.has(event.handoverAtUtc)
+    );
+  return latestCrossOrbit ? [...head, latestCrossOrbit] : head;
+}
+
+function buildSummariesRow(result: RuntimeProjectionResult): HTMLElement {
+  const row = document.createElement("section");
+  row.className = "v4-projection-side-panel__row";
+  row.dataset.row = "4";
+
+  // Visibility windows summary
+  const visSection = document.createElement("section");
+  visSection.className = "v4-projection-side-panel__summary-section";
+  const visHeading = document.createElement("h3");
+  visHeading.className = "v4-projection-side-panel__summary-heading";
+  visHeading.textContent = "Visibility windows";
+  const visCount = document.createElement("p");
+  visCount.className = "v4-projection-side-panel__list-count";
+  visCount.textContent = formatCountLabel(
+    result.visibilityWindows.length,
+    "mutual window",
+    "mutual windows"
+  );
+  visSection.append(visHeading, visCount);
+  if (result.visibilityWindows.length === 0) {
+    const empty = document.createElement("p");
+    empty.className = "v4-projection-side-panel__empty";
+    empty.textContent = "No mutual visibility in this window.";
+    visSection.append(empty);
+  } else {
+    const sorted = [...result.visibilityWindows].sort(
+      (a, b) =>
+        Date.parse(a.intersectionStartUtc) -
+        Date.parse(b.intersectionStartUtc)
+    );
+    const head = sorted.slice(0, PANEL_ROW4_VISIBILITY_PREVIEW_COUNT);
+    const list = document.createElement("ul");
+    list.className = "v4-projection-side-panel__list";
+    for (const w of head) {
+      list.append(
+        buildVisibilityRow(
+          w.satelliteId,
+          w.orbitClass,
+          w.intersectionStartUtc,
+          w.intersectionEndUtc
+        )
+      );
+    }
+    visSection.append(list);
+  }
+
+  // Link selection events summary
+  const handoverSection = document.createElement("section");
+  handoverSection.className = "v4-projection-side-panel__summary-section";
+  const handoverHeading = document.createElement("h3");
+  handoverHeading.className = "v4-projection-side-panel__summary-heading";
+  handoverHeading.textContent = "Link selection events";
+  const handoverCount = document.createElement("p");
+  handoverCount.className = "v4-projection-side-panel__list-count";
+  handoverCount.textContent = formatCountLabel(
+    result.handoverEvents.length,
+    "event",
+    "events"
+  );
+  handoverSection.append(handoverHeading, handoverCount);
+  if (result.handoverEvents.length === 0) {
+    const empty = document.createElement("p");
+    empty.className = "v4-projection-side-panel__empty";
+    empty.textContent =
+      "No handover events triggered by the cross-orbit-live policy in this window.";
+    handoverSection.append(empty);
+  } else {
+    const head = pickRow4HandoverEvents(result.handoverEvents);
+    const list = document.createElement("ul");
+    list.className = "v4-projection-side-panel__list";
+    for (const event of head) {
+      list.append(buildHandoverRow(event));
+    }
+    handoverSection.append(list);
+  }
+
+  row.append(visSection, handoverSection);
+  return row;
+}
+
+function buildDisclosure(
+  label: string,
+  bodyChildren: ReadonlyArray<Node>,
+  bodyScroll: boolean,
+  detailsAttrs?: { [key: string]: string }
+): HTMLDetailsElement {
+  const details = document.createElement("details");
+  details.className = "v4-projection-side-panel__details";
+  if (detailsAttrs) {
+    for (const [k, v] of Object.entries(detailsAttrs)) {
+      details.dataset[k] = v;
+    }
+  }
+  const summary = document.createElement("summary");
+  summary.className = "v4-projection-side-panel__details-summary";
+  summary.textContent = label;
+  const body = document.createElement("div");
+  body.className = bodyScroll
+    ? "v4-projection-side-panel__details-body v4-projection-side-panel__details-body--scroll"
+    : "v4-projection-side-panel__details-body";
+  for (const child of bodyChildren) {
+    body.append(child);
+  }
+  details.append(summary, body);
+  return details;
+}
+
+function buildAllVisibilityList(
+  windows: ReadonlyArray<PairVisibilityWindow>
+): HTMLElement {
+  if (windows.length === 0) {
+    const empty = document.createElement("p");
+    empty.className = "v4-projection-side-panel__empty";
+    empty.textContent = "No mutual visibility windows in this projection.";
+    return empty;
+  }
+  const sorted = [...windows]
+    .sort(
+      (a, b) =>
+        Date.parse(a.intersectionStartUtc) - Date.parse(b.intersectionStartUtc)
+    )
+    .slice(0, PANEL_ROW5_VISIBILITY_MAX_ROWS);
+  const list = document.createElement("ul");
+  list.className = "v4-projection-side-panel__list";
+  for (const w of sorted) {
+    list.append(
+      buildVisibilityRow(
+        w.satelliteId,
+        w.orbitClass,
+        w.intersectionStartUtc,
+        w.intersectionEndUtc
+      )
+    );
+  }
+  return list;
+}
+
+function buildAllHandoverList(
+  events: RuntimeProjectionResult["handoverEvents"]
+): HTMLElement {
+  if (events.length === 0) {
+    const empty = document.createElement("p");
+    empty.className = "v4-projection-side-panel__empty";
+    empty.textContent =
+      "No handover events triggered by the cross-orbit-live policy (TR 38.821 §7.3 + V-MO1) in this window.";
+    return empty;
+  }
+  const sorted = [...events].sort(
+    (a, b) => Date.parse(a.handoverAtUtc) - Date.parse(b.handoverAtUtc)
+  );
+  const list = document.createElement("ul");
+  list.className = "v4-projection-side-panel__list";
+  for (const event of sorted.slice(0, PANEL_ROW5_HANDOVER_MAX_ROWS)) {
+    list.append(buildHandoverRow(event));
+  }
+  return list;
+}
+
+function buildNonClaimsBlock(
+  truthBoundary: RuntimeProjectionResult["truthBoundary"]
+): HTMLElement {
+  const wrapper = document.createElement("section");
+  wrapper.className =
+    "v4-projection-side-panel__section v4-projection-side-panel__section--non-claims";
+  const heading = document.createElement("h3");
+  heading.className = "v4-projection-side-panel__section-title";
+  heading.textContent = `Non-claims · ${truthBoundary.sourceTier}`;
+  wrapper.append(heading);
+  if (truthBoundary.nonClaims.length === 0) {
+    return wrapper;
+  }
+  const list = document.createElement("ul");
+  list.className = "v4-projection-side-panel__non-claim-list";
+  for (const note of truthBoundary.nonClaims) {
+    const li = document.createElement("li");
+    li.textContent = note;
+    list.append(li);
+  }
+  wrapper.append(list);
+  return wrapper;
+}
+
+function buildStandardsReferences(): HTMLElement {
+  const wrapper = document.createElement("section");
+  wrapper.className = "v4-projection-side-panel__section";
+  const heading = document.createElement("h3");
+  heading.className = "v4-projection-side-panel__section-title";
+  heading.textContent = "Standards references";
+  wrapper.append(heading);
+  const list = document.createElement("ul");
+  list.className = "v4-projection-side-panel__non-claim-list";
+  const refs = [
+    "Handover policy: TR 38.821 §7.3 + V-MO1 (cross-orbit live)",
+    "Rain attenuation: ITU-R P.618-14 §2.2.1",
+    "Gas absorption: ITU-R P.676-13"
+  ];
+  for (const ref of refs) {
+    const li = document.createElement("li");
+    li.textContent = ref;
+    list.append(li);
+  }
+  wrapper.append(list);
+  return wrapper;
+}
+
+function buildMeanDwellBlock(result: RuntimeProjectionResult): HTMLElement {
+  const block = document.createElement("div");
+  block.className = "v4-projection-side-panel__mean-dwell";
+  const label = document.createElement("span");
+  label.className = "v4-projection-side-panel__mean-dwell-label";
+  label.textContent = "Mean dwell";
+  const value = document.createElement("span");
+  value.className = "v4-projection-side-panel__mean-dwell-value";
+  value.textContent = formatDurationMs(
+    result.communicationStats.meanLinkDwellMs
+  );
+  block.append(label, value);
+  return block;
+}
+
+function buildDisclosuresRow(
+  result: RuntimeProjectionResult,
+  rainRateMmPerHour: number,
+  clearSky: RuntimeProjectionResult
+): HTMLElement {
+  const row = document.createElement("section");
+  row.className = "v4-projection-side-panel__row";
+  row.dataset.row = "5";
+
+  // d1 Rain impact
+  const rainBody = buildRainImpactBody(rainRateMmPerHour, result, clearSky);
+  row.append(
+    buildDisclosure("Rain impact", [rainBody], false, {
+      disclosure: "rain-impact"
+    })
+  );
+
+  // d2 All visibility windows
+  const csvButton = buildDownloadCsvButton(result);
+  const visList = buildAllVisibilityList(result.visibilityWindows);
+  row.append(
+    buildDisclosure("All visibility windows", [csvButton, visList], true, {
+      disclosure: "all-visibility"
+    })
+  );
+
+  // d3 Sources + non-claims
+  const handoverList = buildAllHandoverList(result.handoverEvents);
+  const nonClaims = buildNonClaimsBlock(result.truthBoundary);
+  const standards = buildStandardsReferences();
+  const meanDwell = buildMeanDwellBlock(result);
+  row.append(
+    buildDisclosure(
+      "Sources + non-claims",
+      [handoverList, nonClaims, standards, meanDwell],
+      true,
+      { disclosure: "sources-non-claims" }
+    )
+  );
+
+  return row;
+}
+
+function buildFooterRow(result: RuntimeProjectionResult): HTMLElement {
+  const row = document.createElement("section");
+  row.className = "v4-projection-side-panel__row";
+  row.dataset.row = "6";
+  const footer = document.createElement("p");
+  footer.className = "v4-projection-side-panel__footer";
+  footer.textContent = `${result.truthBoundary.precisionLabel} · ${result.truthBoundary.sourceTier}`;
+  row.append(footer);
+  return row;
+}
+
 interface RenderResultOptions {
   readonly rainRateMmPerHour: number;
   readonly clearSky: RuntimeProjectionResult;
   readonly rainControl: RainControlElements;
+  readonly durationMinutes: number;
 }
 
 function renderResult(
@@ -870,7 +1210,7 @@ function renderResult(
   result: RuntimeProjectionResult,
   options: RenderResultOptions
 ): void {
-  const { rainRateMmPerHour, clearSky, rainControl } = options;
+  const { rainRateMmPerHour, clearSky, rainControl, durationMinutes } = options;
 
   // Preserve slider focus across re-renders: the rain control node is reused,
   // not recreated, so the user can keep dragging while the panel recomputes.
@@ -881,32 +1221,15 @@ function renderResult(
   root.dataset.sourceTier = result.truthBoundary.sourceTier;
   root.dataset.rainRateMmPerHour = String(rainRateMmPerHour);
 
-  const title = document.createElement("h2");
-  title.className = "v4-projection-side-panel__title";
-  title.textContent = `${formatStationPanelName(
-    pair.stationA.name
-  )} → ${formatStationPanelName(pair.stationB.name)}`;
-
-  const windowLine = document.createElement("p");
-  windowLine.className = "v4-projection-side-panel__window";
-  windowLine.textContent = `${formatProjectionDuration(result.timeWindow)} selected-pair projection`;
-
   setRainControlCaption(rainControl, result, rainRateMmPerHour);
 
-  const stats = document.createElement("div");
-  stats.className = "v4-projection-side-panel__stats";
-  stats.append(
-    buildStatBlock("Comm time", formatDurationMs(result.communicationStats.totalCommunicatingMs)),
-    buildStatBlock("Handovers", String(result.communicationStats.handoverCount))
-  );
-
   root.append(
-    title,
-    windowLine,
-    buildProjectionSummary(result),
-    rainControl.control,
-    stats,
-    buildProjectionDetails(result, rainRateMmPerHour, clearSky)
+    buildHeaderRow(pair, result, durationMinutes),
+    buildRainControlRow(rainControl),
+    buildFlatStatsRow(result),
+    buildSummariesRow(result),
+    buildDisclosuresRow(result, rainRateMmPerHour, clearSky),
+    buildFooterRow(result)
   );
 
   if (sliderWasFocused) {
@@ -931,7 +1254,7 @@ export function mountV4ProjectionSidePanel(
   }
   const pair = input.resolvedPair;
 
-  injectRainControlStyleOnce();
+  injectPanelStyleOnce();
 
   const root = createPanelShell();
   viewerContainer.appendChild(root);
@@ -944,6 +1267,7 @@ export function mountV4ProjectionSidePanel(
   const projectionClient = createRuntimeProjectionWorkerClient();
   let tleRecords: ReadonlyArray<TleRecord> | null = null;
   let timeWindow: { startUtc: string; endUtc: string } | null = null;
+  let durationMinutes = DEFAULT_DEMO_PROJECTION_DURATION_MINUTES;
   let clearSkyResult: RuntimeProjectionResult | null = null;
   let rainControl: RainControlElements | null = null;
   let currentRainRate = 0;
@@ -973,7 +1297,8 @@ export function mountV4ProjectionSidePanel(
       renderResult(root, pair, result, {
         rainRateMmPerHour,
         clearSky: clearSkyResult,
-        rainControl
+        rainControl,
+        durationMinutes
       });
     } catch (error) {
       if (disposed || requestSeq !== computeRequestSeq) {
@@ -1002,7 +1327,9 @@ export function mountV4ProjectionSidePanel(
         return;
       }
       tleRecords = parseRuntimeTleSources(sources);
-      timeWindow = resolveProjectionTimeWindow();
+      const resolved = resolveProjectionTimeWindowAndDuration();
+      timeWindow = resolved.window;
+      durationMinutes = resolved.durationMinutes;
       const requestSeq = ++computeRequestSeq;
       clearSkyResult = await projectionClient.compute({
         stationA: pair.stationA,
@@ -1018,7 +1345,8 @@ export function mountV4ProjectionSidePanel(
       renderResult(root, pair, clearSkyResult, {
         rainRateMmPerHour: currentRainRate,
         clearSky: clearSkyResult,
-        rainControl
+        rainControl,
+        durationMinutes
       });
     } catch (error) {
       if (disposed) {
