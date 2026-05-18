@@ -55,10 +55,23 @@ const chrome = spawn(
   CHROMIUM_PATH,
   [
     "--headless=new",
-    "--use-angle=swiftshader",
-    "--enable-unsafe-swiftshader",
+    // The G3 spec pins `--use-gl=swiftshader`; the previous
+    // `--use-angle=swiftshader` switch routes through ANGLE which
+    // throttles raf to ~1Hz in headless on this WSL2 host. The
+    // direct-gl path keeps raf at native cadence under focus
+    // emulation.
+    "--use-gl=swiftshader",
     "--disable-dev-shm-usage",
     "--no-sandbox",
+    // Headless Chromium throttles requestAnimationFrame in
+    // background / occluded tabs (down to ~1Hz). The G3 smoke samples
+    // raf rate to derive fps, so the throttling makes every run fail
+    // regardless of actual replay performance. Disable the three
+    // background-throttling code paths so the active tab keeps
+    // running at full raf cadence.
+    "--disable-background-timer-throttling",
+    "--disable-renderer-backgrounding",
+    "--disable-backgrounding-occluded-windows",
     `--user-data-dir=${profileDir}`,
     `--remote-debugging-port=${cdpPort}`,
     "--window-size=1440,900",
@@ -134,6 +147,9 @@ await send("Emulation.setDeviceMetricsOverride", {
   deviceScaleFactor: 1,
   mobile: false
 });
+// Headless chromium throttles raf in inactive tabs to ~1Hz; focus
+// emulation flags the tab as focused so raf runs at native cadence.
+await send("Emulation.setFocusEmulationEnabled", { enabled: true });
 await send("Page.navigate", { url: targetUrl });
 await new Promise((resolve) => setTimeout(resolve, 8_000));
 
@@ -225,8 +241,11 @@ const verdict = {
   maxFrameGapMs: maxGapMs,
   panelStateSampleCount: panelStates.length,
   panelAllReady: allReady,
+  panelStateNonReadyValues: panelStates.filter((state) => state !== "ready"),
   consoleErrorCount: consoleErrors.length,
+  consoleErrorMessages: consoleErrors.slice(0, 10),
   pageErrorCount: pageErrors.length,
+  pageErrorMessages: pageErrors.slice(0, 10),
   pass:
     fpsAvg >= FPS_AVG_FLOOR &&
     p95FpsFromInterval >= FPS_P95_FLOOR &&
