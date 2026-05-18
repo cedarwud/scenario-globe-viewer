@@ -25,11 +25,19 @@ const FPS_AVG_FLOOR = 45;
 const FPS_P95_FLOOR = 28;
 const NO_FRAME_STARVATION_MS = 200;
 
+// Split only on the FIRST `=` so a value that itself contains `=` (such
+// as a URL with query parameters) survives intact.
 const args = Object.fromEntries(
-  process.argv
-    .slice(2)
-    .map((arg) => arg.split("="))
-    .map(([key, value]) => [key.replace(/^--/, ""), value])
+  process.argv.slice(2).map((arg) => {
+    const splitAt = arg.indexOf("=");
+    if (splitAt < 0) {
+      return [arg.replace(/^--/, ""), ""];
+    }
+    return [
+      arg.slice(0, splitAt).replace(/^--/, ""),
+      arg.slice(splitAt + 1)
+    ];
+  })
 );
 
 const targetUrl = args.url ?? DEFAULT_URL;
@@ -230,6 +238,13 @@ console.log(JSON.stringify(verdict, null, 2));
 
 ws.close();
 chrome.kill("SIGTERM");
-rmSync(profileDir, { recursive: true, force: true });
+for (let attempt = 0; attempt < 8; attempt += 1) {
+  try {
+    rmSync(profileDir, { recursive: true, force: true, maxRetries: 4 });
+    break;
+  } catch {
+    await new Promise((resolve) => setTimeout(resolve, 150));
+  }
+}
 
 process.exit(verdict.pass ? 0 : 1);

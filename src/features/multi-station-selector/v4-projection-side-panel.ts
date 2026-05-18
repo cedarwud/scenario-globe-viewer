@@ -287,9 +287,64 @@ const PANEL_CSS = `
 .v4-projection-side-panel__details + .v4-projection-side-panel__details {
   margin-top: 0.3rem;
 }
-.v4-projection-side-panel__details-body--scroll {
-  max-height: 14rem;
+/* G5 IA §9.1 + §9.2: rows 1-4 + 6 fit without internal panel scroll
+   when no disclosure is open. When one disclosure opens, row 4
+   (summary lists) shrinks with internal scroll and row 5 grows to
+   fill remaining height. The open disclosure body is positioned
+   absolutely inside its disclosure so its content size doesn't push
+   the panel layout past its fixed height. */
+.v4-projection-side-panel [data-row="4"] {
+  flex: 0 1 auto;
+  min-height: 0;
+}
+.v4-projection-side-panel:has([data-row="5"] details[open]) [data-row="4"] {
+  flex: 1 1 0;
+  min-height: 0;
   overflow-y: auto;
+}
+.v4-projection-side-panel [data-row="5"] {
+  flex: 0 1 auto;
+  min-height: 0;
+}
+.v4-projection-side-panel:has([data-row="5"] details[open]) [data-row="5"] {
+  flex: 1 1 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+.v4-projection-side-panel [data-row="5"] > .v4-projection-side-panel__details {
+  flex: 0 0 auto;
+}
+.v4-projection-side-panel [data-row="5"] > .v4-projection-side-panel__details[open] {
+  flex: 1 1 0;
+  min-height: 0;
+  position: relative;
+  overflow: hidden;
+}
+.v4-projection-side-panel [data-row="5"] > .v4-projection-side-panel__details[open]
+  > .v4-projection-side-panel__details-summary {
+  position: relative;
+  z-index: 1;
+}
+.v4-projection-side-panel [data-row="5"] > .v4-projection-side-panel__details[open]
+  > .v4-projection-side-panel__details-body {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 1.6rem;
+  bottom: 0;
+  overflow-y: auto;
+}
+/* Fallback body cap for the closed-to-open transition before the
+   absolute positioning above takes effect, and for environments
+   without :has() support. */
+.v4-projection-side-panel__details-body--scroll {
+  max-height: 11rem;
+  overflow-y: auto;
+}
+.v4-projection-side-panel [data-row="5"] > .v4-projection-side-panel__details[open]
+  > .v4-projection-side-panel__details-body--scroll {
+  max-height: none;
 }
 .v4-projection-side-panel__citation {
   margin: 0;
@@ -1152,10 +1207,14 @@ function buildDisclosuresRow(
   row.className = "v4-projection-side-panel__row";
   row.dataset.row = "5";
 
-  // d1 Rain impact
+  // d1 Rain impact — scroll mode so the body caps at the same height as
+  // d2/d3 and the panel root never overflows when any single disclosure
+  // is open (G5 IA §9.1 + IA §9.2). The rain-impact body is shorter than
+  // the cap on typical pairs so scroll only engages at extreme content
+  // heights.
   const rainBody = buildRainImpactBody(rainRateMmPerHour, result, clearSky);
   row.append(
-    buildDisclosure("Rain impact", [rainBody], false, {
+    buildDisclosure("Rain impact", [rainBody], true, {
       disclosure: "rain-impact"
     })
   );

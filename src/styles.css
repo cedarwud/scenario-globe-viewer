@@ -2392,7 +2392,10 @@ html[data-viewer-mode="clean-home"] .hud-frame::after {
 
   .m8a-v47-product-ux__strip {
     position: absolute;
-    top: calc(var(--hud-frame-gap) + 3.3rem);
+    /* Narrow viewport stack: chips (row 1) + picker (row 2) + strip (row 3).
+       Picker is wider relative to viewport here so push the strip further
+       down for picker headroom. */
+    top: calc(var(--hud-frame-gap) + 15rem);
     left: var(--hud-frame-gap);
     right: var(--hud-frame-gap);
     display: grid;
@@ -3618,11 +3621,17 @@ html[data-viewer-mode="clean-home"] .hud-frame::after {
 
 .v4-projection-side-panel {
   position: absolute;
-  top: 4.5rem;
+  top: 3rem;
   right: 1rem;
   z-index: 18;
   width: clamp(18rem, 24vw, 22rem);
-  max-height: calc(100% - 6rem);
+  /* Wave 4 G5: viewport-relative fixed height so the panel always
+     occupies the full available column. This gives the row-5 flex
+     child measurable remaining space when a disclosure opens, so the
+     open body scrolls inside its own box without pushing the panel
+     past its bounds. */
+  height: calc(100vh - 4rem);
+  max-height: calc(100vh - 4rem);
   display: flex;
   flex-direction: column;
   gap: 0.4rem;

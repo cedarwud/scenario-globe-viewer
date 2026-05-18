@@ -25,11 +25,19 @@ const PANEL_READY_TIMEOUT_MS = 15_000;
 const LAYOUT_SETTLE_MS = 250;
 const OVERLAP_EPSILON_PX = 0.5;
 
+// Split only on the FIRST `=` so a value that itself contains `=` (such
+// as a URL with query parameters) survives intact.
 const args = Object.fromEntries(
-  process.argv
-    .slice(2)
-    .map((arg) => arg.split("="))
-    .map(([key, value]) => [key.replace(/^--/, ""), value])
+  process.argv.slice(2).map((arg) => {
+    const splitAt = arg.indexOf("=");
+    if (splitAt < 0) {
+      return [arg.replace(/^--/, ""), ""];
+    }
+    return [
+      arg.slice(0, splitAt).replace(/^--/, ""),
+      arg.slice(splitAt + 1)
+    ];
+  })
 );
 
 const targetUrl = args.url ?? DEFAULT_URL;
@@ -478,7 +486,17 @@ try {
 } finally {
   if (ws) ws.close();
   if (chrome) chrome.kill("SIGTERM");
-  rmSync(profileDir, { recursive: true, force: true });
+  // chrome may still be releasing handles when we hit rmSync; retry a few
+  // times to avoid an ENOTEMPTY from this finally block masking the actual
+  // smoke verdict in the report below.
+  for (let attempt = 0; attempt < 8; attempt += 1) {
+    try {
+      rmSync(profileDir, { recursive: true, force: true, maxRetries: 4 });
+      break;
+    } catch {
+      await new Promise((resolve) => setTimeout(resolve, 150));
+    }
+  }
 }
 
 console.log(JSON.stringify(report, null, 2));

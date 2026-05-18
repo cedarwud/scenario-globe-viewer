@@ -26,14 +26,23 @@ const CHROMIUM_PATH =
 const COMPUTE_BUDGET_MS = 1000;
 const RANDOM_PAIR_COUNT = 10;
 
+// Split only on the FIRST `=` so a value that itself contains `=` (such
+// as a URL with query parameters) survives intact.
 const args = Object.fromEntries(
-  process.argv
-    .slice(2)
-    .map((arg) => arg.split("="))
-    .map(([key, value]) => [key.replace(/^--/, ""), value])
+  process.argv.slice(2).map((arg) => {
+    const splitAt = arg.indexOf("=");
+    if (splitAt < 0) {
+      return [arg.replace(/^--/, ""), ""];
+    }
+    return [
+      arg.slice(0, splitAt).replace(/^--/, ""),
+      arg.slice(splitAt + 1)
+    ];
+  })
 );
 const cdpPort = Number.parseInt(args.port ?? "9445", 10);
 const seed = Number.parseInt(args.seed ?? "20260517", 10);
+const baseUrl = args["base-url"] ?? "http://127.0.0.1:5173/";
 const profileDir = join(tmpdir(), `sgv-g4-${cdpPort}`);
 
 if (!existsSync(CHROMIUM_PATH)) {
@@ -206,7 +215,7 @@ async function waitForPanelReady(timeoutMs = 5_000) {
 
 for (const pair of targetPairs) {
   const startWall = Date.now();
-  const url = new URL("http://127.0.0.1:5173/");
+  const url = new URL(baseUrl);
   url.searchParams.set("stationA", pair.stationAId);
   url.searchParams.set("stationB", pair.stationBId);
   url.searchParams.set("startUtc", "2026-05-17T00:00:00.000Z");
@@ -244,6 +253,13 @@ console.log(JSON.stringify(summary, null, 2));
 
 ws.close();
 chrome.kill("SIGTERM");
-rmSync(profileDir, { recursive: true, force: true });
+for (let attempt = 0; attempt < 8; attempt += 1) {
+  try {
+    rmSync(profileDir, { recursive: true, force: true, maxRetries: 4 });
+    break;
+  } catch {
+    await new Promise((resolve) => setTimeout(resolve, 150));
+  }
+}
 
 process.exit(failed.length === 0 ? 0 : 1);

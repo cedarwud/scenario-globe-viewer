@@ -546,7 +546,12 @@
 
 .m8a-v47-product-ux__strip {
   position: absolute;
-  top: calc(var(--hud-frame-gap) + 3.2rem);
+  /* IA §4.1 chrome.topLeft row 3 — the strip stacks below the chips
+     (row 1) and the list-picker (row 2). Picker has top:4rem and a
+     collapsed natural height around 12-16rem with filter-chip
+     headroom; place the strip at 15rem so it always sits under the
+     picker at 1280x800 and 1920x1080 (G5). */
+  top: calc(var(--hud-frame-gap) + 15rem);
   left: var(--hud-frame-gap);
   right: auto;
   z-index: 3;
