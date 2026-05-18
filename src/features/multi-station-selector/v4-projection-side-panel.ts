@@ -25,6 +25,7 @@
 
 import {
   buildDefaultTimeWindow,
+  buildRuntimeTleSourceParseStats,
   computeLinkBudgetMetricsForOrbit,
   loadDefaultTleSources,
   parseRuntimeTleSources,
@@ -1431,6 +1432,7 @@ export function mountV4ProjectionSidePanel(
   // re-fetching TLE fixtures while the worker keeps compute off the UI thread.
   const projectionClient = createRuntimeProjectionWorkerClient();
   let tleRecords: ReadonlyArray<TleRecord> | null = null;
+  let tleParseStats: ReturnType<typeof buildRuntimeTleSourceParseStats> | null = null;
   let timeWindow: { startUtc: string; endUtc: string } | null = null;
   let durationMinutes = DEFAULT_DEMO_PROJECTION_DURATION_MINUTES;
   let clearSkyResult: RuntimeProjectionResult | null = null;
@@ -1466,6 +1468,7 @@ export function mountV4ProjectionSidePanel(
         stationB: pair.stationB,
         timeWindow,
         tleRecords,
+        tleParseStats: tleParseStats ?? undefined,
         rainRateMmPerHour
       });
       if (disposed || requestSeq !== computeRequestSeq || !rainControl) {
@@ -1508,6 +1511,7 @@ export function mountV4ProjectionSidePanel(
         return;
       }
       tleRecords = parseRuntimeTleSources(sources);
+      tleParseStats = buildRuntimeTleSourceParseStats(sources);
       const resolved = resolveProjectionTimeWindowAndDuration();
       timeWindow = resolved.window;
       durationMinutes = resolved.durationMinutes;
@@ -1517,6 +1521,7 @@ export function mountV4ProjectionSidePanel(
         stationB: pair.stationB,
         timeWindow,
         tleRecords,
+        tleParseStats,
         rainRateMmPerHour: 0
       });
       if (disposed || requestSeq !== computeRequestSeq) {

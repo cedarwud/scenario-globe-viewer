@@ -414,11 +414,16 @@ on `RuntimeProjectionResult.dataCompleteness`.
 The payload records:
 
 - route source mode (`tle-first-runtime` for selected-pair runtime);
-- per-orbit TLE source manifest, cap, source timestamp, epoch range, accepted
-  and rejected counts, and source-health state;
+- per-orbit TLE source manifest, runtime source path, cap, source timestamp,
+  epoch range, accepted and rejected counts, parser failure count, and
+  source-health state;
 - per-station disclosure precision and whether the rendered coordinate is
   source truth or a representative coordinate;
 - actor source coverage with `fakeActorCount === 0`;
+- per-actor provenance with TLE source id, propagated sample count, cadence,
+  and source time range;
+- per-window visibility provenance with station A/B visibility source ids and
+  pair-intersection source id;
 - modeled output metadata for handover, link budget, throughput, jitter,
   latency, and rain impact;
 - display-only transform provenance;

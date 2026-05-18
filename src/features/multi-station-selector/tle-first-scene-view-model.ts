@@ -41,6 +41,7 @@ export interface SceneActor {
   readonly satelliteId: string;
   readonly orbitClass: OrbitClass;
   readonly role: SceneActorRole;
+  readonly sourceId: string;
   readonly sourceClass: Extract<SceneTruthClass, "tle-derived" | "fixture-fallback">;
   readonly sourceSamples: ReadonlyArray<SceneActorSourceSample>;
   readonly visibilityWindows: ReadonlyArray<SceneActorVisibilityWindow>;
@@ -520,6 +521,7 @@ export function buildTleFirstSceneViewModel(
         continuityIds,
         handoverTargetIds
       ),
+      sourceId: `tle:${record.orbitClass.toLowerCase()}`,
       sourceClass: sourceMode === "fixture-fallback" ? "fixture-fallback" : "tle-derived",
       sourceSamples: buildSourceSamplesForRecord(record, sampleTimesMs),
       visibilityWindows: mergeActorWindows(pairWindows),

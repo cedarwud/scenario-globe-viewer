@@ -220,8 +220,9 @@ await send("Runtime.evaluate", {
       const wc = await import("${workerClientUrl}");
       const sources = await rt.loadDefaultTleSources();
       const tleRecords = rt.parseRuntimeTleSources(sources);
+      const tleParseStats = rt.buildRuntimeTleSourceParseStats(sources);
       const client = wc.createRuntimeProjectionWorkerClient();
-      window.__sgvG4 = { rt, wc, tleRecords, client };
+      window.__sgvG4 = { rt, wc, tleRecords, tleParseStats, client };
     })();
   `,
   awaitPromise: true,
@@ -256,13 +257,13 @@ for (const pair of targetPairs) {
     const { result, exceptionDetails } = await send("Runtime.evaluate", {
       expression: `
         (async () => {
-          const { client, tleRecords } = window.__sgvG4;
+          const { client, tleRecords, tleParseStats } = window.__sgvG4;
           const stationA = ${stationAJson};
           const stationB = ${stationBJson};
           const timeWindow = { startUtc: "2026-05-17T00:00:00.000Z", endUtc: "2026-05-17T06:00:00.000Z" };
           const t0 = performance.now();
           try {
-            const result = await client.compute({ stationA, stationB, timeWindow, tleRecords, rainRateMmPerHour: 0 });
+            const result = await client.compute({ stationA, stationB, timeWindow, tleRecords, tleParseStats, rainRateMmPerHour: 0 });
             const elapsed = performance.now() - t0;
             return { ok: true, ms: elapsed, sharedOrbits: result.sharedSupportedOrbits, vwCount: result.visibilityWindows.length };
           } catch (error) {

@@ -162,6 +162,86 @@ function buildFixedDemoUrl(testCase) {
   return url.href;
 }
 
+function csvCellValue(value) {
+  return value === null || value === undefined ? "" : String(value);
+}
+
+function parseCsvRows(text) {
+  const rows = [];
+  let row = [];
+  let cell = "";
+  let quoted = false;
+  for (let i = 0; i < text.length; i += 1) {
+    const char = text[i];
+    if (quoted) {
+      if (char === '"' && text[i + 1] === '"') {
+        cell += '"';
+        i += 1;
+      } else if (char === '"') {
+        quoted = false;
+      } else {
+        cell += char;
+      }
+      continue;
+    }
+    if (char === '"') {
+      quoted = true;
+    } else if (char === ",") {
+      row.push(cell);
+      cell = "";
+    } else if (char === "\r" || char === "\n") {
+      row.push(cell);
+      rows.push(row);
+      row = [];
+      cell = "";
+      if (char === "\r" && text[i + 1] === "\n") {
+        i += 1;
+      }
+    } else {
+      cell += char;
+    }
+  }
+  if (cell.length > 0 || row.length > 0) {
+    row.push(cell);
+    rows.push(row);
+  }
+  return rows;
+}
+
+function parseCsvSections(text) {
+  const sections = new Map();
+  let currentSection = null;
+  for (const row of parseCsvRows(text)) {
+    if (row.length === 0 || row.every((cell) => cell === "")) {
+      continue;
+    }
+    if (row[0]?.startsWith("# ")) {
+      currentSection = { header: null, rows: [] };
+      sections.set(row[0], currentSection);
+      continue;
+    }
+    if (!currentSection) {
+      continue;
+    }
+    if (!currentSection.header) {
+      currentSection.header = row;
+      continue;
+    }
+    const record = {};
+    currentSection.header.forEach((key, index) => {
+      record[key] = row[index] ?? "";
+    });
+    currentSection.rows.push(record);
+  }
+  return sections;
+}
+
+function requireCsvSection(sections, sectionName, label) {
+  const section = sections.get(sectionName);
+  assert(section, `${label}: CSV missing ${sectionName}`);
+  return section;
+}
+
 async function navigate(client, url) {
   await client.send("Page.navigate", { url });
   await sleep(500);
@@ -235,6 +315,7 @@ async function readCsvEvidence(client, testCase) {
       const tier = await import("/src/features/multi-station-selector/tier-inference.ts");
       const sources = await rt.loadDefaultTleSources();
       const tleRecords = rt.parseRuntimeTleSources(sources);
+      const tleParseStats = rt.buildRuntimeTleSourceParseStats(sources);
       const stationA = tier.PUBLIC_REGISTRY_BY_ID.get(${JSON.stringify(testCase.stationA)});
       const stationB = tier.PUBLIC_REGISTRY_BY_ID.get(${JSON.stringify(testCase.stationB)});
       const result = rt.computeRuntimeProjection({
@@ -245,15 +326,59 @@ async function readCsvEvidence(client, testCase) {
           endUtc: "2026-05-17T06:00:00.000Z"
         },
         tleRecords,
+        tleParseStats,
         rainRateMmPerHour: 0
       });
       const text = csv.buildRuntimeProjectionCsv(result);
       return {
-        hasSourceManifest: text.includes("# TLE source manifest"),
-        hasStationPrecision: text.includes("# Station precision"),
-        hasModeledOutputs: text.includes("# Modeled outputs"),
-        hasFakeActorCount: text.includes("fakeActorCount"),
-        modeledOutputCount: result.dataCompleteness.modeledOutputs.length
+        text,
+        dataCompleteness: result.dataCompleteness,
+        visibilityWindowCount: result.visibilityWindows.length
+      };
+    })()`,
+    { awaitPromise: true }
+  );
+}
+
+async function readMissingSourceEvidence(client, testCase) {
+  return await evaluateRuntimeValue(
+    client,
+    `(async () => {
+      const rt = await import("/src/features/multi-station-selector/runtime-projection.ts");
+      const tier = await import("/src/features/multi-station-selector/tier-inference.ts");
+      const stationA = tier.PUBLIC_REGISTRY_BY_ID.get(${JSON.stringify(testCase.stationA)});
+      const stationB = tier.PUBLIC_REGISTRY_BY_ID.get(${JSON.stringify(testCase.stationB)});
+      const missingSourcePaths = {
+        LEO: "missing:leo",
+        MEO: "unsupported:meo",
+        GEO: "missing:geo"
+      };
+      const result = rt.computeRuntimeProjection({
+        stationA,
+        stationB,
+        timeWindow: {
+          startUtc: "2026-05-17T00:00:00.000Z",
+          endUtc: "2026-05-17T06:00:00.000Z"
+        },
+        tleRecords: [],
+        tleParseStats: [
+          { sourceId: "tle:leo", sourcePath: "missing:leo", orbitClass: "LEO", rawRecordGroupCount: 0, parsedRecordCount: 0, parserFailureCount: 0 },
+          { sourceId: "tle:meo", sourcePath: "unsupported:meo", orbitClass: "MEO", rawRecordGroupCount: 0, parsedRecordCount: 0, parserFailureCount: 0 },
+          { sourceId: "tle:geo", sourcePath: "missing:geo", orbitClass: "GEO", rawRecordGroupCount: 0, parsedRecordCount: 0, parserFailureCount: 0 }
+        ],
+        sourcePaths: missingSourcePaths,
+        rainRateMmPerHour: 0
+      });
+      return {
+        emptyReasonCode: result.dataCompleteness.emptyReasonCode,
+        fakeActorCount: result.dataCompleteness.actorSourceCoverage.fakeActorCount,
+        sourceCount: result.dataCompleteness.tleSources.length,
+        sources: result.dataCompleteness.tleSources.map((source) => ({
+          orbitClass: source.orbitClass,
+          sourcePath: source.sourcePath,
+          parserFailureCount: source.parserFailureCount,
+          health: source.health
+        }))
       };
     })()`,
     { awaitPromise: true }
@@ -287,6 +412,46 @@ function assertDataCompletenessShape(label, state) {
     data.stationPrecision.every((station) => station.stationId && station.disclosurePrecision),
     `${label}: station precision row incomplete`
   );
+  assert(
+    Array.isArray(data.actorProvenance),
+    `${label}: actor provenance payload missing`
+  );
+  if (data.actorSourceCoverage.renderedActorCount > 0) {
+    assert(
+      data.actorProvenance.length === data.actorSourceCoverage.renderedActorCount,
+      `${label}: actor provenance count mismatch`
+    );
+    assert(
+      data.actorProvenance.every(
+        (actor) =>
+          actor.satelliteId &&
+          actor.sourceId &&
+          actor.propagatedSampleCount > 0 &&
+          actor.sampleCadenceSeconds > 0 &&
+          actor.firstPropagatedUtc &&
+          actor.lastPropagatedUtc
+      ),
+      `${label}: actor provenance row incomplete`
+    );
+  }
+  assert(
+    Array.isArray(data.visibilityProvenance),
+    `${label}: visibility provenance payload missing`
+  );
+  if (data.visibilityProvenance.length > 0) {
+    assert(
+      data.visibilityProvenance.every(
+        (row) =>
+          row.satelliteId &&
+          row.sourceId &&
+          row.stationAWindowSource &&
+          row.stationBWindowSource &&
+          row.pairIntersectionSource &&
+          row.sampleCadenceSeconds > 0
+      ),
+      `${label}: visibility provenance row incomplete`
+    );
+  }
   const outputKinds = new Set(data.modeledOutputs?.map((output) => output.kind));
   for (const kind of ["handover", "link-budget", "throughput", "jitter", "latency", "rain-impact"]) {
     assert(outputKinds.has(kind), `${label}: missing modeled output ${kind}`);
@@ -335,11 +500,205 @@ function assertEmptyCase(testCase, state) {
 }
 
 function assertCsvEvidence(label, evidence) {
-  assert(evidence?.hasSourceManifest, `${label}: CSV missing source manifest`);
-  assert(evidence?.hasStationPrecision, `${label}: CSV missing station precision`);
-  assert(evidence?.hasModeledOutputs, `${label}: CSV missing modeled outputs`);
-  assert(evidence?.hasFakeActorCount, `${label}: CSV missing fakeActorCount`);
-  assert(evidence?.modeledOutputCount >= 6, `${label}: modeled output count too small`);
+  assert(evidence?.text, `${label}: CSV text missing`);
+  const data = evidence.dataCompleteness;
+  assert(data, `${label}: CSV reference payload missing`);
+  const sections = parseCsvSections(evidence.text);
+
+  const sourceManifest = requireCsvSection(sections, "# TLE source manifest", label);
+  assert(
+    sourceManifest.rows.length === data.tleSources.length,
+    `${label}: CSV source manifest row count mismatch`
+  );
+  const sourcesById = new Map(sourceManifest.rows.map((row) => [row.sourceId, row]));
+  for (const source of data.tleSources) {
+    const row = sourcesById.get(source.sourceId);
+    assert(row, `${label}: CSV missing source row ${source.sourceId}`);
+    assert(row.sourcePath === source.sourcePath, `${label}: CSV source path mismatch`);
+    assert(row.orbitClass === source.orbitClass, `${label}: CSV orbit class mismatch`);
+    assert(row.recordCount === csvCellValue(source.recordCount), `${label}: CSV record count mismatch`);
+    assert(
+      row.acceptedRecordCount === csvCellValue(source.acceptedRecordCount),
+      `${label}: CSV accepted count mismatch`
+    );
+    assert(
+      row.parserFailureCount === csvCellValue(source.parserFailureCount),
+      `${label}: CSV parser failure count mismatch`
+    );
+    assert(
+      row.excludedReasonCategories === source.excludedReasonCategories.join("|"),
+      `${label}: CSV excluded reason mismatch`
+    );
+    assert(row.epochStartUtc === csvCellValue(source.epochStartUtc), `${label}: CSV epoch start mismatch`);
+    assert(row.epochEndUtc === csvCellValue(source.epochEndUtc), `${label}: CSV epoch end mismatch`);
+    assert(row.health === source.health, `${label}: CSV source health mismatch`);
+  }
+
+  const stationPrecision = requireCsvSection(sections, "# Station precision", label);
+  assert(
+    stationPrecision.rows.length === data.stationPrecision.length,
+    `${label}: CSV station precision row count mismatch`
+  );
+  const stationsById = new Map(stationPrecision.rows.map((row) => [row.stationId, row]));
+  for (const station of data.stationPrecision) {
+    const row = stationsById.get(station.stationId);
+    assert(row, `${label}: CSV missing station row ${station.stationId}`);
+    assert(
+      row.disclosurePrecision === station.disclosurePrecision,
+      `${label}: CSV disclosure precision mismatch`
+    );
+    assert(row.rawLat === csvCellValue(station.rawLat), `${label}: CSV raw latitude mismatch`);
+    assert(row.rawLon === csvCellValue(station.rawLon), `${label}: CSV raw longitude mismatch`);
+    assert(
+      row.provenanceTruthClass === station.provenance.truthClass,
+      `${label}: CSV station provenance class mismatch`
+    );
+    assert(
+      row.provenanceSourceId === station.provenance.sourceId,
+      `${label}: CSV station provenance source mismatch`
+    );
+  }
+
+  const actorProvenance = requireCsvSection(sections, "# Actor provenance", label);
+  assert(
+    actorProvenance.rows.length === data.actorProvenance.length,
+    `${label}: CSV actor provenance row count mismatch`
+  );
+  const actorsById = new Map(actorProvenance.rows.map((row) => [row.satelliteId, row]));
+  for (const actor of data.actorProvenance) {
+    const row = actorsById.get(actor.satelliteId);
+    assert(row, `${label}: CSV missing actor row ${actor.satelliteId}`);
+    assert(row.orbitClass === actor.orbitClass, `${label}: CSV actor orbit class mismatch`);
+    assert(row.sourceId === actor.sourceId, `${label}: CSV actor source mismatch`);
+    assert(
+      row.propagatedSampleCount === csvCellValue(actor.propagatedSampleCount),
+      `${label}: CSV actor sample count mismatch`
+    );
+    assert(
+      row.sampleCadenceSeconds === csvCellValue(actor.sampleCadenceSeconds),
+      `${label}: CSV actor cadence mismatch`
+    );
+    assert(
+      row.firstPropagatedUtc === csvCellValue(actor.firstPropagatedUtc),
+      `${label}: CSV actor first sample mismatch`
+    );
+    assert(
+      row.lastPropagatedUtc === csvCellValue(actor.lastPropagatedUtc),
+      `${label}: CSV actor last sample mismatch`
+    );
+    assert(
+      row.visibilityWindowCount === csvCellValue(actor.visibilityWindowCount),
+      `${label}: CSV actor visibility count mismatch`
+    );
+    assert(
+      row.provenanceTruthClass === actor.provenance.truthClass,
+      `${label}: CSV actor provenance class mismatch`
+    );
+  }
+
+  const visibilityProvenance = requireCsvSection(sections, "# Visibility provenance", label);
+  assert(
+    data.visibilityProvenance.length === evidence.visibilityWindowCount,
+    `${label}: visibility provenance count mismatch`
+  );
+  assert(
+    visibilityProvenance.rows.length === data.visibilityProvenance.length,
+    `${label}: CSV visibility provenance row count mismatch`
+  );
+  const visibilityRowsByKey = new Map(
+    visibilityProvenance.rows.map((row) => [
+      `${row.satelliteId}|${row.intersectionStartUtc}|${row.intersectionEndUtc}`,
+      row
+    ])
+  );
+  for (const rowData of data.visibilityProvenance) {
+    const key = `${rowData.satelliteId}|${rowData.intersectionStartUtc}|${rowData.intersectionEndUtc}`;
+    const row = visibilityRowsByKey.get(key);
+    assert(row, `${label}: CSV missing visibility row ${key}`);
+    assert(row.orbitClass === rowData.orbitClass, `${label}: CSV visibility orbit class mismatch`);
+    assert(row.sourceId === rowData.sourceId, `${label}: CSV visibility source mismatch`);
+    assert(
+      row.stationAWindowSource === rowData.stationAWindowSource,
+      `${label}: CSV station A window source mismatch`
+    );
+    assert(
+      row.stationBWindowSource === rowData.stationBWindowSource,
+      `${label}: CSV station B window source mismatch`
+    );
+    assert(
+      row.pairIntersectionSource === rowData.pairIntersectionSource,
+      `${label}: CSV pair intersection source mismatch`
+    );
+    assert(
+      row.elevationThresholdDeg === csvCellValue(rowData.elevationThresholdDeg),
+      `${label}: CSV visibility elevation threshold mismatch`
+    );
+    assert(
+      row.sampleCadenceSeconds === csvCellValue(rowData.sampleCadenceSeconds),
+      `${label}: CSV visibility cadence mismatch`
+    );
+    assert(
+      row.provenanceTruthClass === rowData.provenance.truthClass,
+      `${label}: CSV visibility provenance class mismatch`
+    );
+  }
+
+  const modeledOutputs = requireCsvSection(sections, "# Modeled outputs", label);
+  assert(
+    modeledOutputs.rows.length === data.modeledOutputs.length,
+    `${label}: CSV modeled output row count mismatch`
+  );
+  const modeledOutputsByKind = new Map(modeledOutputs.rows.map((row) => [row.kind, row]));
+  for (const output of data.modeledOutputs) {
+    const row = modeledOutputsByKind.get(output.kind);
+    assert(row, `${label}: CSV missing modeled output ${output.kind}`);
+    assert(row.modelId === output.modelId, `${label}: CSV model id mismatch`);
+    assert(row.inputSummary === JSON.stringify(output.inputSummary), `${label}: CSV input summary mismatch`);
+    assert(
+      row.provenanceTruthClass === output.provenance.truthClass,
+      `${label}: CSV output provenance class mismatch`
+    );
+    assert(
+      row.provenanceSourceId === output.provenance.sourceId,
+      `${label}: CSV output provenance source mismatch`
+    );
+    assert(row.nonClaim === output.nonClaim, `${label}: CSV output non-claim mismatch`);
+  }
+
+  const dataCompleteness = requireCsvSection(sections, "# Data completeness", label);
+  const summaryByField = new Map(dataCompleteness.rows.map((row) => [row.field, row.value]));
+  assert(
+    summaryByField.get("fakeActorCount") === csvCellValue(data.actorSourceCoverage.fakeActorCount),
+    `${label}: CSV fake actor count mismatch`
+  );
+  assert(
+    summaryByField.get("emptyReasonCode") === csvCellValue(data.emptyReasonCode),
+    `${label}: CSV empty reason mismatch`
+  );
+}
+
+function assertMissingSourceEvidence(label, evidence) {
+  assert(
+    evidence?.emptyReasonCode === "tle-source-unavailable",
+    `${label}: expected missing source reason, received ${evidence?.emptyReasonCode}`
+  );
+  assert(evidence.fakeActorCount === 0, `${label}: missing source produced fake actor`);
+  assert(evidence.sourceCount === 3, `${label}: missing source manifest count mismatch`);
+  const sourcesByOrbit = new Map(evidence.sources?.map((source) => [source.orbitClass, source]));
+  assert(
+    sourcesByOrbit.get("LEO")?.sourcePath === "missing:leo" &&
+      sourcesByOrbit.get("MEO")?.sourcePath === "unsupported:meo" &&
+      sourcesByOrbit.get("GEO")?.sourcePath === "missing:geo",
+    `${label}: missing/unsupported source paths were not preserved`
+  );
+  assert(
+    [...sourcesByOrbit.values()].every((source) => source.parserFailureCount === 0),
+    `${label}: missing source parser failures not propagated`
+  );
+  assert(
+    [...sourcesByOrbit.values()].every((source) => source.health === "unknown-age"),
+    `${label}: missing source health should be unknown-age`
+  );
 }
 
 const server = await startServerIfNeeded();
@@ -370,12 +729,17 @@ try {
   assertReadyCase(readyCase, readyState);
   const readyCsv = await readCsvEvidence(client, readyCase);
   assertCsvEvidence(readyCase.label, readyCsv);
+  const missingSourceEvidence = await readMissingSourceEvidence(client, readyCase);
+  assertMissingSourceEvidence(readyCase.label, missingSourceEvidence);
   results.push({
     label: readyCase.label,
     status: readyState.overlay.status,
     emptyReasonCode: readyState.overlay.emptyReasonCode,
     sourceHealth: readyState.chip.sourceHealth,
-    modeledOutputCount: readyState.overlay.dataCompleteness.modeledOutputs.length
+    modeledOutputCount: readyState.overlay.dataCompleteness.modeledOutputs.length,
+    actorProvenanceCount: readyState.overlay.dataCompleteness.actorProvenance.length,
+    visibilityProvenanceCount: readyState.overlay.dataCompleteness.visibilityProvenance.length,
+    missingSourceReason: missingSourceEvidence.emptyReasonCode
   });
 
   await navigate(client, buildSelectedPairUrl(emptyCase));

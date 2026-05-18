@@ -120,24 +120,36 @@ export function buildRuntimeProjectionCsv(result: RuntimeProjectionResult): stri
     ["# TLE source manifest"],
     [
       "sourceId",
+      "sourcePath",
       "orbitClass",
       "recordCount",
       "acceptedRecordCount",
       "rejectedRecordCount",
+      "parserFailureCount",
       "capApplied",
+      "excludedReasonCategories",
+      "epochStartUtc",
+      "epochEndUtc",
       "sourceTimestampUtc",
+      "healthThresholdDays",
       "health"
     ]
   );
   for (const source of result.dataCompleteness.tleSources) {
     rows.push([
       source.sourceId,
+      source.sourcePath,
       source.orbitClass,
       source.recordCount,
       source.acceptedRecordCount,
       source.rejectedRecordCount,
+      source.parserFailureCount,
       source.capApplied,
+      source.excludedReasonCategories.join("|"),
+      source.epochStartUtc,
+      source.epochEndUtc,
       source.sourceTimestampUtc,
+      source.healthThresholdDays,
       source.health
     ]);
   }
@@ -149,8 +161,12 @@ export function buildRuntimeProjectionCsv(result: RuntimeProjectionResult): stri
       "stationId",
       "disclosurePrecision",
       "sourceTier",
+      "rawLat",
+      "rawLon",
       "renderPositionIsSourceTruth",
-      "coordinateUse"
+      "coordinateUse",
+      "provenanceTruthClass",
+      "provenanceSourceId"
     ]
   );
   for (const station of result.dataCompleteness.stationPrecision) {
@@ -158,8 +174,74 @@ export function buildRuntimeProjectionCsv(result: RuntimeProjectionResult): stri
       station.stationId,
       station.disclosurePrecision,
       station.sourceTier,
+      station.rawLat,
+      station.rawLon,
       station.renderPositionIsSourceTruth ? "true" : "false",
-      station.coordinateUse
+      station.coordinateUse,
+      station.provenance.truthClass,
+      station.provenance.sourceId
+    ]);
+  }
+
+  rows.push(
+    [],
+    ["# Actor provenance"],
+    [
+      "satelliteId",
+      "orbitClass",
+      "sourceId",
+      "propagatedSampleCount",
+      "sampleCadenceSeconds",
+      "firstPropagatedUtc",
+      "lastPropagatedUtc",
+      "visibilityWindowCount",
+      "provenanceTruthClass"
+    ]
+  );
+  for (const actor of result.dataCompleteness.actorProvenance) {
+    rows.push([
+      actor.satelliteId,
+      actor.orbitClass,
+      actor.sourceId,
+      actor.propagatedSampleCount,
+      actor.sampleCadenceSeconds,
+      actor.firstPropagatedUtc,
+      actor.lastPropagatedUtc,
+      actor.visibilityWindowCount,
+      actor.provenance.truthClass
+    ]);
+  }
+
+  rows.push(
+    [],
+    ["# Visibility provenance"],
+    [
+      "satelliteId",
+      "orbitClass",
+      "sourceId",
+      "stationAWindowSource",
+      "stationBWindowSource",
+      "pairIntersectionSource",
+      "elevationThresholdDeg",
+      "sampleCadenceSeconds",
+      "intersectionStartUtc",
+      "intersectionEndUtc",
+      "provenanceTruthClass"
+    ]
+  );
+  for (const row of result.dataCompleteness.visibilityProvenance) {
+    rows.push([
+      row.satelliteId,
+      row.orbitClass,
+      row.sourceId,
+      row.stationAWindowSource,
+      row.stationBWindowSource,
+      row.pairIntersectionSource,
+      row.elevationThresholdDeg,
+      row.sampleCadenceSeconds,
+      row.intersectionStartUtc,
+      row.intersectionEndUtc,
+      row.provenance.truthClass
     ]);
   }
 
@@ -170,8 +252,12 @@ export function buildRuntimeProjectionCsv(result: RuntimeProjectionResult): stri
       "kind",
       "modelId",
       "standardsRef",
+      "inputSummary",
       "outputUnit",
       "rainRateControlMode",
+      "provenanceTruthClass",
+      "provenanceSourceId",
+      "provenanceModelId",
       "nonClaim"
     ]
   );
@@ -180,8 +266,12 @@ export function buildRuntimeProjectionCsv(result: RuntimeProjectionResult): stri
       output.kind,
       output.modelId,
       output.standardsRef.join(" | "),
+      JSON.stringify(output.inputSummary),
       output.outputUnit,
       output.rainRateControlMode,
+      output.provenance.truthClass,
+      output.provenance.sourceId,
+      output.provenance.modelId,
       output.nonClaim
     ]);
   }

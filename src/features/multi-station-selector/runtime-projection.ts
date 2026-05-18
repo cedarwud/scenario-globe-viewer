@@ -28,6 +28,7 @@ import {
 import {
   buildRuntimeDataCompletenessState,
   type RuntimeDataCompletenessState,
+  type RuntimeTleSourceParseStats,
   type RuntimeRainRateControlMode
 } from "./runtime-data-completeness";
 
@@ -112,6 +113,8 @@ export interface RuntimeProjectionInput {
   readonly stationB: PublicRegistryStation;
   readonly timeWindow: { startUtc: string; endUtc: string };
   readonly tleRecords: ReadonlyArray<TleRecord>;
+  readonly tleParseStats?: ReadonlyArray<RuntimeTleSourceParseStats>;
+  readonly sourcePaths?: Readonly<Record<OrbitClass, string>>;
   readonly sampleStepSeconds?: number;
   readonly elevationThresholdDeg?: number;
   readonly rainRateMmPerHour?: number;
@@ -563,6 +566,16 @@ function countServingTransitions(
   return events.filter((event) => event.fromSatelliteId !== null).length;
 }
 
+function countVisibilityWindows(
+  windowsBySatellite: ReadonlyMap<string, ReadonlyArray<unknown>>
+): number {
+  let count = 0;
+  for (const windows of windowsBySatellite.values()) {
+    count += windows.length;
+  }
+  return count;
+}
+
 export function computeRuntimeProjection(
   input: RuntimeProjectionInput
 ): RuntimeProjectionResult {
@@ -638,6 +651,7 @@ export function computeRuntimeProjection(
     rainRateMmPerHour,
     sharedSupportedOrbits
   );
+  const sourcePaths = input.sourcePaths ?? TLE_FIXTURE_PATHS;
   const dataCompleteness = buildRuntimeDataCompletenessState({
     routeMode: "tle-first-runtime",
     stationA: input.stationA,
@@ -646,10 +660,14 @@ export function computeRuntimeProjection(
     allTleRecords: input.tleRecords,
     cappedTleRecords: cappedAllRecords,
     acceptedTleRecords: cappedRecords,
-    sourcePaths: TLE_FIXTURE_PATHS,
+    tleParseStats: input.tleParseStats,
+    sourcePaths,
     caps: DEFAULT_TLE_CAPS,
     referenceUtc: input.timeWindow.startUtc,
+    timeWindow: input.timeWindow,
     sharedSupportedOrbits,
+    stationAVisibilityWindowCount: countVisibilityWindows(stationAWindows),
+    stationBVisibilityWindowCount: countVisibilityWindows(stationBWindows),
     visibilityWindows,
     handoverEventCount: handoverEvents.length,
     rainRateMmPerHour,
@@ -692,6 +710,53 @@ export function parseRuntimeTleSources(
     ...parseTleListFromText(sources.leoTleText, "LEO"),
     ...parseTleListFromText(sources.meoTleText, "MEO"),
     ...parseTleListFromText(sources.geoTleText, "GEO")
+  ];
+}
+
+function buildTleSourceParseStatsForText(
+  rawTleText: string,
+  orbitClass: OrbitClass,
+  sourcePath: string
+): RuntimeTleSourceParseStats {
+  const lines = rawTleText
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter((line) => line.length > 0);
+  let rawRecordGroupCount = 0;
+  let parsedRecordCount = 0;
+  let parserFailureCount = 0;
+  for (let i = 0; i + 2 < lines.length; i += 3) {
+    rawRecordGroupCount += 1;
+    const nameLine = lines[i];
+    const line1 = lines[i + 1];
+    const line2 = lines[i + 2];
+    if (nameLine && line1?.startsWith("1 ") && line2?.startsWith("2 ")) {
+      parsedRecordCount += 1;
+    } else {
+      parserFailureCount += 1;
+    }
+  }
+  const trailingLineCount = lines.length % 3;
+  if (trailingLineCount > 0) {
+    parserFailureCount += 1;
+  }
+  return {
+    sourceId: `tle:${orbitClass.toLowerCase()}`,
+    sourcePath,
+    orbitClass,
+    rawRecordGroupCount,
+    parsedRecordCount,
+    parserFailureCount
+  };
+}
+
+export function buildRuntimeTleSourceParseStats(
+  sources: RuntimeTleSources
+): ReadonlyArray<RuntimeTleSourceParseStats> {
+  return [
+    buildTleSourceParseStatsForText(sources.leoTleText, "LEO", TLE_FIXTURE_PATHS.LEO),
+    buildTleSourceParseStatsForText(sources.meoTleText, "MEO", TLE_FIXTURE_PATHS.MEO),
+    buildTleSourceParseStatsForText(sources.geoTleText, "GEO", TLE_FIXTURE_PATHS.GEO)
   ];
 }
 

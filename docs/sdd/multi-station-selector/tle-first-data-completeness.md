@@ -604,13 +604,18 @@ display transforms must remain separate in state.
 
 ## 12.1 Implementation Closeout
 
-D0-D7 landed in three implementation commits after this SDD was accepted:
+D0-D7 landed in three implementation commits after this SDD was accepted,
+followed by one review-hardening commit:
 
 - `c0a32e4` — D0 data inventory appendix in `slice-0-baseline.md`.
 - `82776a9` — D1-D5 runtime data-completeness metadata, panel/CSV bindings,
   and controller debug payload.
 - `27075c1` — D6 smoke gate
   `scripts/verify-tle-first-data-completeness.mjs`.
+- Review-hardening follow-up — adds per-actor provenance,
+  per-visibility-window provenance, TLE parser stats propagation,
+  custom missing/unsupported source-path smoke coverage, and row-level CSV
+  provenance assertions after independent review.
 
 Runtime source of truth:
 
@@ -618,11 +623,17 @@ Runtime source of truth:
   `RuntimeDataCompletenessState`.
 - `selectedPairOverlay.dataCompleteness` exposes the same payload through the
   controller debug capture.
+- `actorProvenance` traces rendered selected-pair actors to `tle:<orbit>`
+  source ids, propagated sample counts, sample cadence, and source time range.
+- `visibilityProvenance` traces each pair window to station A/B visibility
+  sources and a pair-intersection source id.
 - Row 6 exposes `[data-station-precision-disclosure="true"]`.
 - `[data-tle-telemetry-chip="true"]` gains source count, accepted/rejected
   record counts, timestamp, and health dataset fields after projection render.
 - CSV export now includes TLE source manifest, station precision, modeled
-  outputs, and data-completeness summary sections.
+  outputs, actor provenance, visibility provenance, and data-completeness
+  summary sections; the D6 smoke parses those sections and compares row values
+  to the debug payload.
 
 ## 13. References
 

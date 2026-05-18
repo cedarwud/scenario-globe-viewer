@@ -29,7 +29,7 @@ export interface RuntimeTleSourceManifestEntry {
   readonly recordCount: number;
   readonly acceptedRecordCount: number;
   readonly rejectedRecordCount: number;
-  readonly parserFailureCount: number;
+  readonly parserFailureCount: number | null;
   readonly capApplied: number | null;
   readonly excludedRecordCount: number;
   readonly excludedReasonCategories: ReadonlyArray<string>;
@@ -38,6 +38,15 @@ export interface RuntimeTleSourceManifestEntry {
   readonly sourceTimestampUtc: string | null;
   readonly healthThresholdDays: number;
   readonly health: TleSourceHealth;
+}
+
+export interface RuntimeTleSourceParseStats {
+  readonly sourceId: string;
+  readonly sourcePath: string;
+  readonly orbitClass: OrbitClass;
+  readonly rawRecordGroupCount: number;
+  readonly parsedRecordCount: number;
+  readonly parserFailureCount: number;
 }
 
 export interface RuntimeProvenanceTag {
@@ -85,6 +94,32 @@ export interface RuntimeStationPrecisionState {
   readonly provenance: RuntimeProvenanceTag;
 }
 
+export interface RuntimeActorProvenanceState {
+  readonly satelliteId: string;
+  readonly orbitClass: OrbitClass;
+  readonly sourceId: string;
+  readonly propagatedSampleCount: number;
+  readonly sampleCadenceSeconds: number;
+  readonly firstPropagatedUtc: string | null;
+  readonly lastPropagatedUtc: string | null;
+  readonly visibilityWindowCount: number;
+  readonly provenance: RuntimeProvenanceTag;
+}
+
+export interface RuntimeVisibilityProvenanceState {
+  readonly satelliteId: string;
+  readonly orbitClass: OrbitClass;
+  readonly sourceId: string;
+  readonly stationAWindowSource: string;
+  readonly stationBWindowSource: string;
+  readonly pairIntersectionSource: string;
+  readonly elevationThresholdDeg: number;
+  readonly sampleCadenceSeconds: number;
+  readonly intersectionStartUtc: string;
+  readonly intersectionEndUtc: string;
+  readonly provenance: RuntimeProvenanceTag;
+}
+
 export interface RuntimeDataCompletenessState {
   readonly routeMode: SceneSourceMode;
   readonly stationPrecision: ReadonlyArray<RuntimeStationPrecisionState>;
@@ -94,6 +129,8 @@ export interface RuntimeDataCompletenessState {
     readonly tleBackedActorCount: number;
     readonly fakeActorCount: 0;
   };
+  readonly actorProvenance: ReadonlyArray<RuntimeActorProvenanceState>;
+  readonly visibilityProvenance: ReadonlyArray<RuntimeVisibilityProvenanceState>;
   readonly modeledOutputs: ReadonlyArray<RuntimeModeledOutputMetadata>;
   readonly displayTransforms: ReadonlyArray<RuntimeProvenanceTag>;
   readonly emptyReasonCode: RuntimeEmptyReasonCode | null;
@@ -107,10 +144,14 @@ export interface BuildRuntimeDataCompletenessInput {
   readonly allTleRecords: ReadonlyArray<TleRecord>;
   readonly cappedTleRecords: ReadonlyArray<TleRecord>;
   readonly acceptedTleRecords: ReadonlyArray<TleRecord>;
+  readonly tleParseStats?: ReadonlyArray<RuntimeTleSourceParseStats>;
   readonly sourcePaths: Readonly<Record<OrbitClass, string>>;
   readonly caps: Readonly<Record<OrbitClass, number>>;
   readonly referenceUtc: string;
+  readonly timeWindow: { readonly startUtc: string; readonly endUtc: string };
   readonly sharedSupportedOrbits: ReadonlyArray<OrbitClass>;
+  readonly stationAVisibilityWindowCount: number;
+  readonly stationBVisibilityWindowCount: number;
   readonly visibilityWindows: ReadonlyArray<PairVisibilityWindow>;
   readonly handoverEventCount: number;
   readonly rainRateMmPerHour: number;
@@ -225,6 +266,9 @@ function buildTleSourceManifest(
   const acceptedByOrbit = countByOrbit(input.acceptedTleRecords);
 
   return ORBIT_CLASSES.map((orbitClass) => {
+    const parseStats = input.tleParseStats?.find(
+      (stats) => stats.orbitClass === orbitClass
+    );
     const allRecords = input.allTleRecords.filter(
       (record) => record.orbitClass === orbitClass
     );
@@ -247,7 +291,7 @@ function buildTleSourceManifest(
       recordCount: totalCount,
       acceptedRecordCount: acceptedCount,
       rejectedRecordCount: capExcludedCount + unsupportedOrbitCount,
-      parserFailureCount: 0,
+      parserFailureCount: parseStats?.parserFailureCount ?? null,
       capApplied: input.caps[orbitClass] ?? null,
       excludedRecordCount: capExcludedCount + unsupportedOrbitCount,
       excludedReasonCategories,
@@ -259,6 +303,84 @@ function buildTleSourceManifest(
         referenceUtc: input.referenceUtc,
         thresholdDays: healthThresholdDays
       })
+    };
+  });
+}
+
+function resolveSourceIdForOrbit(orbitClass: OrbitClass): string {
+  return `tle:${orbitClass.toLowerCase()}`;
+}
+
+function resolveProjectionSampleCount(input: BuildRuntimeDataCompletenessInput): number {
+  const startMs = Date.parse(input.timeWindow.startUtc);
+  const endMs = Date.parse(input.timeWindow.endUtc);
+  const stepMs = input.sampleStepSeconds * 1000;
+  if (
+    !Number.isFinite(startMs) ||
+    !Number.isFinite(endMs) ||
+    !Number.isFinite(stepMs) ||
+    stepMs <= 0 ||
+    endMs < startMs
+  ) {
+    return 0;
+  }
+  return Math.floor((endMs - startMs) / stepMs) + 1;
+}
+
+function buildActorProvenance(
+  input: BuildRuntimeDataCompletenessInput
+): ReadonlyArray<RuntimeActorProvenanceState> {
+  const windowsBySatellite = new Map<string, ReadonlyArray<PairVisibilityWindow>>();
+  for (const window of input.visibilityWindows) {
+    windowsBySatellite.set(window.satelliteId, [
+      ...(windowsBySatellite.get(window.satelliteId) ?? []),
+      window
+    ]);
+  }
+  const sampleCount = resolveProjectionSampleCount(input);
+  return [...windowsBySatellite.entries()]
+    .map((entry): RuntimeActorProvenanceState => {
+      const [satelliteId, windows] = entry;
+      const orbitClass = windows[0]?.orbitClass ?? "LEO";
+      const sourceId = resolveSourceIdForOrbit(orbitClass);
+      return {
+        satelliteId,
+        orbitClass,
+        sourceId,
+        propagatedSampleCount: sampleCount,
+        sampleCadenceSeconds: input.sampleStepSeconds,
+        firstPropagatedUtc: sampleCount > 0 ? input.timeWindow.startUtc : null,
+        lastPropagatedUtc: sampleCount > 0 ? input.timeWindow.endUtc : null,
+        visibilityWindowCount: windows.length,
+        provenance: {
+          truthClass: "tle-derived",
+          sourceId
+        }
+      };
+    })
+    .sort((left, right) => left.satelliteId.localeCompare(right.satelliteId));
+}
+
+function buildVisibilityProvenance(
+  input: BuildRuntimeDataCompletenessInput
+): ReadonlyArray<RuntimeVisibilityProvenanceState> {
+  return input.visibilityWindows.map((window) => {
+    const sourceId = resolveSourceIdForOrbit(window.orbitClass);
+    return {
+      satelliteId: window.satelliteId,
+      orbitClass: window.orbitClass,
+      sourceId,
+      stationAWindowSource: `visibility:${input.stationA.id}:${window.satelliteId}`,
+      stationBWindowSource: `visibility:${input.stationB.id}:${window.satelliteId}`,
+      pairIntersectionSource: `pair-intersection:${input.stationA.id}:${input.stationB.id}:${window.satelliteId}`,
+      elevationThresholdDeg: input.elevationThresholdDeg,
+      sampleCadenceSeconds: input.sampleStepSeconds,
+      intersectionStartUtc: window.intersectionStartUtc,
+      intersectionEndUtc: window.intersectionEndUtc,
+      provenance: {
+        truthClass: "tle-derived",
+        sourceId
+      }
     };
   });
 }
@@ -358,6 +480,12 @@ function resolveEmptyReasonCode(
   if (input.acceptedTleRecords.length === 0) {
     return "tle-source-unavailable";
   }
+  if (
+    input.stationAVisibilityWindowCount === 0 &&
+    input.stationBVisibilityWindowCount === 0
+  ) {
+    return "no-visibility-windows";
+  }
   if (input.visibilityWindows.length === 0) {
     return "no-pair-intersection";
   }
@@ -385,6 +513,8 @@ export function buildRuntimeDataCompletenessState(
       tleBackedActorCount: visibleSatelliteIds.size,
       fakeActorCount: 0
     },
+    actorProvenance: buildActorProvenance(input),
+    visibilityProvenance: buildVisibilityProvenance(input),
     modeledOutputs: buildModeledOutputs(input),
     displayTransforms: [
       {

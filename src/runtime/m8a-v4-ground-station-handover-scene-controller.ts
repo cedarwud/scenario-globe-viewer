@@ -41,6 +41,7 @@ import {
 } from "../features/multi-station-selector/v4-route-selection";
 import {
   buildDefaultTimeWindow,
+  buildRuntimeTleSourceParseStats,
   computeRuntimeProjection,
   loadDefaultTleSources,
   parseRuntimeTleSources
@@ -5331,11 +5332,13 @@ async function installSelectedPairTleFirstSceneLayer({
   }
 
   const tleRecords = parseRuntimeTleSources(sources);
+  const tleParseStats = buildRuntimeTleSourceParseStats(sources);
   const result = computeRuntimeProjection({
     stationA: pair.stationA,
     stationB: pair.stationB,
     timeWindow: resolveSelectedPairSceneTimeWindow(),
     tleRecords,
+    tleParseStats,
     rainRateMmPerHour: 0
   });
   const viewModel = buildTleFirstSceneViewModel({
@@ -5354,7 +5357,24 @@ async function installSelectedPairTleFirstSceneLayer({
         (actor) => actor.sourceClass === "tle-derived"
       ).length,
       fakeActorCount: 0
-    }
+    },
+    actorProvenance: renderableActors.map((actor) => ({
+      satelliteId: actor.satelliteId,
+      orbitClass: actor.orbitClass,
+      sourceId: actor.sourceId,
+      propagatedSampleCount: actor.sourceSamples.length,
+      sampleCadenceSeconds: viewModel.timeWindow.sampleStepSeconds,
+      firstPropagatedUtc: actor.sourceSamples[0]?.atUtc ?? null,
+      lastPropagatedUtc:
+        actor.sourceSamples.length > 0
+          ? actor.sourceSamples[actor.sourceSamples.length - 1].atUtc
+          : null,
+      visibilityWindowCount: actor.visibilityWindows.length,
+      provenance: {
+        truthClass: actor.sourceClass,
+        sourceId: actor.sourceId
+      }
+    }))
   };
   if (shouldSkip() || renderableActors.length === 0) {
     if (!shouldSkip()) {
