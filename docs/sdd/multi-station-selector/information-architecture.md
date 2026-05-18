@@ -154,14 +154,14 @@ state.
 | Station info card | when a marker is clicked, dismiss on outside-click / ESC | `marker-docked` | `station-info-card.ts` |
 | V4 projection side panel | `projecting` or `replaying` | `chrome.topRight` upper | `v4-projection-side-panel.ts` |
 | V4 endpoint A/B markers + ribbon + camera framing | `projecting` or `replaying` | `globe` | `m8a-v4-ground-station-handover-scene-controller.ts:1108-1158, 1474+` |
-| Selected-pair display-lane satellite cue + active-selection sample | `projecting` or `replaying` | `globe` (renders alongside controller's fixture actors per data-contract §A.5) | controller via `selected-pair-scene-adapter.ts` |
+| Selected-pair TLE-first actor, link-flow, and event cues | `projecting` or `replaying` | `globe` | controller via `tle-first-scene-view-model.ts` |
 
-The selected-pair display-lane satellite cue and the fixture-driven V4
-controller actor/timeline main scene **render simultaneously** during
-`projecting` and `replaying`. The data contract §A.5 reaffirms this; this
-IA does not assert the cue replaces the fixture actors. Tier-4 footer
-carries the precision/source-tier caveat that the cue is TLE-derived
-display lane, not measured service telemetry.
+The selected-pair globe cues now consume the TLE-first scene view-model. The
+fixed demo entry remains an explicitly reported `fixture-fallback` scene, so
+the IA treats selected-pair runtime and fixed demo fallback as distinct source
+modes on the same controller surface rather than two ambiguous truth models.
+Tier-4 footer carries the precision/source-tier caveat that runtime selected
+pair cues are TLE-derived display transforms, not measured service telemetry.
 
 ### 4.3 Replay-dependent
 

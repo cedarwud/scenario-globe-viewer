@@ -212,13 +212,11 @@ export interface SceneTruthBoundary {
 
 **Migration vs. existing adapter**
 
-`TleFirstSceneViewModel` is the convergence target. Slice 1 introduces a new
-adapter alongside the existing
-`src/features/multi-station-selector/selected-pair-scene-adapter.ts`. Slice 2
-makes the renderer consume the new shape. Slice 5 removes the old
-`SelectedPairSceneOverlay` adapter once Slice 4 has decided whether the fixed
-demo entry is `tle-first-runtime` or `fixture-fallback`. The two adapters MUST
-NOT both feed the renderer at the same time after Slice 2.
+`TleFirstSceneViewModel` is the convergence target. Slice 1 introduced the new
+adapter, Slice 2 made the renderer consume the new shape, Slice 4 kept the
+fixed demo entry as an explicit `fixture-fallback`, and Slice 5 removes the
+old selected-pair display adapter. Only the scene view-model may feed the
+selected-pair renderer after Slice 5.
 
 The key rule: if `sourceMode` is `tle-first-runtime`, actor identity and
 source samples must come from TLE records. Display transforms may change how an
@@ -455,8 +453,7 @@ The UI or debug state exposes:
 
 ## 12. Open Decisions
 
-1. Should the fixed demo entry become a default public-registry pair, or remain
-   a fixture fallback?
+1. Resolved in Slice 4: the fixed demo entry remains a fixture fallback.
 2. What is the maximum number of visible actors for selected-pair 3D at
    1280x800 and 1920x1080?
 3. Should display compression preserve real longitude/latitude and compress
@@ -465,7 +462,8 @@ The UI or debug state exposes:
    current active and next handover candidate?
 5. Which route should be the canonical reviewer URL after convergence?
 
-   > SDD inclination: the selected-pair short URL (`/?stationA=&stationB=`) becomes canonical once Slice 4 lands, because A3 already targets one shared scene view-model contract. The fixed-demo CTA then either resolves to a default pair (option 1) or stays as a labelled fixture-fallback (option 2). Final call is the user's at Slice 4 acceptance review.
+   > Slice 4 chose option 2: the fixed demo route remains the CTA and reports
+   > `fixture-fallback`; selected-pair short URLs report `tle-first-runtime`.
 
 ## 13. References
 
@@ -474,5 +472,5 @@ The UI or debug state exposes:
 - `docs/sdd/multi-station-selector/acceptance-criteria.md`
 - `docs/sdd/multi-station-selector/delivery-summary.md`
 - `src/features/multi-station-selector/runtime-projection.ts`
-- `src/features/multi-station-selector/selected-pair-scene-adapter.ts`
+- `src/features/multi-station-selector/tle-first-scene-view-model.ts`
 - `src/runtime/m8a-v4-ground-station-handover-scene-controller.ts`

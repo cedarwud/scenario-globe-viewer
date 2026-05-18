@@ -5292,7 +5292,7 @@ function createSelectedPairLinkFlowPulsePosition(
   }, false);
 }
 
-async function installSelectedPairSceneOverlay({
+async function installSelectedPairTleFirstSceneLayer({
   dataSource,
   endpointA,
   endpointB,
@@ -5728,7 +5728,7 @@ export function createM8aV4GroundStationSceneController({
   });
 
   const initialSelectedPairOverlayGeneration = ++selectedPairOverlayInstallGeneration;
-  void installSelectedPairSceneOverlay({
+  void installSelectedPairTleFirstSceneLayer({
     dataSource,
     endpointA,
     endpointB,
@@ -7431,7 +7431,7 @@ export function createM8aV4GroundStationSceneController({
     );
 
     const selectedPairOverlayGeneration = ++selectedPairOverlayInstallGeneration;
-    void installSelectedPairSceneOverlay({
+    void installSelectedPairTleFirstSceneLayer({
       dataSource,
       endpointA,
       endpointB,

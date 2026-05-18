@@ -394,7 +394,7 @@ $CHROME $ARGS --screenshot=/tmp/sgv_slice0_demo5.png \
 
 ## 6. Hand-off to Slice 1
 
-Slice 1 will introduce `TleFirstSceneViewModel` and `SceneActor` per section
-5 of the parent SDD, alongside `selected-pair-scene-adapter.ts`. The Slice 0
-baseline freezes the visual state Slice 1 must not regress, per Slice 1's
-"Smokes that must keep passing" line in parent SDD section 8.
+Slice 1 introduced `TleFirstSceneViewModel` and `SceneActor` per section 5 of
+the parent SDD. Slice 5 removes the superseded selected-pair display adapter.
+The Slice 0 baseline freezes the visual state the migration must not regress,
+per the "Smokes that must keep passing" lines in parent SDD section 8.
