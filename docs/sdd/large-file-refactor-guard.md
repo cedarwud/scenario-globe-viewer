@@ -70,6 +70,11 @@ This SDD turns those audit findings into a current, executable plan.
 5. Add a guardrail that prevents the controller from growing again after the
    split.
 6. Keep each slice small enough to review and revert independently.
+7. Treat the original R5 controller budget as an interim stop, not final
+   quality.
+8. Finish with the controller below 2500 lines and a hard cap of 3000 lines.
+9. Add an executable large-file budget gate so future feature work cannot
+   silently stack new behavior back into the same files.
 
 ## 4. Non-Goals
 
@@ -238,6 +243,41 @@ Ownership:
 Large smoke files should be reduced by harness extraction, not by hiding
 feature-specific assertions.
 
+### 6.8 Final controller diet modules
+
+Proposed file family:
+
+```text
+src/runtime/m8a-v4-ground-station-event-handlers.ts
+src/runtime/m8a-v4-ground-station-replay-lifecycle.ts
+src/runtime/m8a-v4-ground-station-export-policy.ts
+```
+
+Ownership:
+
+- product control event routing;
+- replay lifecycle and final-hold state transitions;
+- export and policy-control wiring that is not controller orchestration;
+- small adapter types required to keep controller imports one-directional.
+
+The controller should finish as a facade and coordinator only: mount, dispose,
+public methods, dependency wiring, and module coordination.
+
+### 6.9 Large-file budget gate
+
+Proposed file:
+
+```text
+scripts/verify-large-file-budgets.mjs
+```
+
+Ownership:
+
+- controller target and hard cap checks;
+- helper module soft and hard caps;
+- smoke file size checks;
+- report-only stylesheet watch until a stylesheet SDD is explicitly opened.
+
 ## 7. Slice Plan
 
 ### Slice R0 — Baseline and freeze guard
@@ -307,7 +347,7 @@ Acceptance:
 
 - telemetry sync still receives the same state shape;
 - export bundle behavior, if still reachable, is unchanged;
-- controller line count is below 4200;
+- controller line count is below 4200 as an interim target;
 - new state-builder module has no DOM or Cesium side effects.
 
 ### Slice R6 — Smoke harness extraction
@@ -330,6 +370,32 @@ Acceptance:
 - no direct edits to `src/styles.css` in this SDD unless explicitly approved;
 - if approved later, define an import-order-controlled stylesheet entrypoint;
 - selector moves are verified by browser screenshots or layout-box smokes.
+
+### Slice R8 — Final controller diet
+
+Extract the remaining non-facade responsibilities from the controller.
+
+Acceptance:
+
+- controller line count is below 2500;
+- controller hard cap is 3000 lines and is enforced by the budget gate;
+- event routing, replay lifecycle, and export or policy wiring live outside the
+  controller unless there is a documented dependency reason;
+- public controller exports remain stable;
+- replay, information-density, selected-pair runtime, and data-completeness
+  gates still pass.
+
+### Slice R9 — Budget gate closeout
+
+Add and enable the large-file budget gate.
+
+Acceptance:
+
+- `scripts/verify-large-file-budgets.mjs --profile=final` passes;
+- package scripts expose interim and final budget checks;
+- new helper modules stay below 1200 lines unless a split note explains why;
+- no monitored smoke file remains above 1200 lines unless explicitly
+  allowlisted with a follow-up SDD.
 
 ## 8. Guardrails
 
@@ -360,9 +426,15 @@ focused helper module or extend an extracted module.
 
 Suggested budget:
 
-- controller target after R5: below 4200 lines;
-- no new source module above 1200 lines without a local split note;
-- no new smoke file above 1200 lines without shared-harness justification.
+- controller interim target after R5: below 4200 lines;
+- controller final target after R8: below 2500 lines;
+- controller hard cap after R8: 3000 lines;
+- no new runtime helper module above 1200 lines without a local split note;
+- no runtime helper module above 1500 lines without an approved follow-up;
+- no monitored smoke file above 1200 lines without shared-harness
+  justification;
+- stylesheet remains report-only in this SDD unless the user explicitly opens
+  that scope.
 
 ## 9. Acceptance Criteria
 
@@ -420,6 +492,8 @@ boundary extracted.
 | `node scripts/verify-random-pair-projection-budget.mjs --base-url=<dev-url> --port=<port> --seed=<int>` | R1-R3 and closeout | compute budget and worker path stability |
 | `node scripts/verify-60x-replay-continuity.mjs --port=<port>` | R3-R5 | replay lifecycle stability |
 | `node scripts/verify-information-density.mjs --port=<port>` | R3-R5 | no-overlap and density stability |
+| `node scripts/verify-large-file-budgets.mjs --profile=interim` | R5-R7 | keep the first-stage line budgets from regressing |
+| `node scripts/verify-large-file-budgets.mjs --profile=final` | R8-R9 and closeout | enforce the final controller cap and smoke/helper budgets |
 
 Browser gates should run after starting a local Vite dev server on an explicit
 port. Stop any server started by the slice before final handoff.
@@ -434,23 +508,25 @@ port. Stop any server started by the slice before final handoff.
 | Browser smoke becomes slower | delivery friction | run focused gates per slice, full matrix at closeout |
 | Parallel sessions touch the same files | accidental overwrite | explicit staging and status checks before edits |
 | Large module simply moves elsewhere | no real maintainability gain | enforce 1200-line soft limit and responsibility ownership per module |
+| Controller remains around 4000 lines after R5 | first-stage stop becomes permanent | R8 final controller diet is mandatory before closeout |
 
 ## 12. Open Decisions
 
 1. Whether R1 should extract the selected-pair layer first or whether the
    existing product panel DOM should be split first. This SDD recommends
    selected-pair first because it is the active data-completeness path.
-2. Whether the stylesheet split should happen immediately after R5 or wait for
+2. Whether the stylesheet split should happen immediately after R8 or wait for
    a visual SDD. This SDD recommends waiting unless the user explicitly opens
    that scope.
-3. Whether to add a CI line-count guard. This SDD recommends a documented
-   manual gate first, then a script only if the controller starts growing again.
+3. Whether to wire the final budget gate into `npm run build` immediately or
+   keep it as an explicit pre-PR gate. This SDD adds the script first and
+   recommends enabling final enforcement after R8 passes.
 
 ## 13. Closeout Requirements
 
 Before marking this SDD implemented:
 
-- list the commits for R0-R7 or explicitly mark skipped slices;
+- list the commits for R0-R9 or explicitly mark skipped slices;
 - record before/after line counts for the controller and any extracted modules;
 - confirm the public exports stayed stable;
 - confirm the final verification matrix results;
