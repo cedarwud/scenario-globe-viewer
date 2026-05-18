@@ -301,8 +301,6 @@ import {
   M8A_V4_LINK_FLOW_REPLAY_CYCLES,
   M8A_V4_LINK_FLOW_TRUTH_BOUNDARY,
   M8A_V410_BOUNDARY_AFFORDANCE_VISIBLE_CONTENT,
-  M8A_V410_BOUNDARY_COMPACT_COPY,
-  M8A_V410_BOUNDARY_SECONDARY_COPY,
   M8A_V410_FIRST_VIEWPORT_COMPOSITION_VERSION,
   M8A_V410_INSPECTOR_DENIED_FIRST_READ_ROLES,
   M8A_V410_INSPECTOR_EVIDENCE_STRUCTURE,
@@ -2215,11 +2213,6 @@ function ensureProductUxStructure(root: HTMLElement): void {
       root.querySelector("[data-itri-f09-rate-surface='true']") &&
       root.querySelector("[data-itri-f16-export-surface='true']")
   );
-  // Conv 3: compact-line was on Truth button (now removed); check boundary surface + full disclosure only
-  const hasSlice3V410BoundarySurface = Boolean(
-    root.querySelector("[data-m8a-v410-boundary-surface='true']") &&
-      root.querySelector("[data-m8a-v410-boundary-full-truth-disclosure='true']")
-  );
   // Phase 4: reviewer mode state machine
   const hasPhase4ReviewerModeStructure = Boolean(
     root.querySelector("[data-m8a-v411-inspector-mode-label='true']")
@@ -2229,7 +2222,6 @@ function ensureProductUxStructure(root: HTMLElement): void {
     root.dataset.m8aV471StableControls === "true" &&
     root.dataset.m8aV49StructureVersion === M8A_V49_PRODUCT_COMPREHENSION_VERSION &&
     hasSlice4InspectorStructure &&
-    hasSlice3V410BoundarySurface &&
     hasPhase4ReviewerModeStructure
   ) {
     return;
@@ -2244,23 +2236,6 @@ function ensureProductUxStructure(root: HTMLElement): void {
         ${renderSpeedButtons(M8A_V47_PRODUCT_DEFAULT_MULTIPLIER)}
       </div>
     </div>
-    <aside id="m8a-v410-boundary-surface" class="m8a-v410-product-ux__boundary-surface" data-m8a-v410-boundary-surface="true" data-m8a-v47-ui-surface="boundary-surface" data-m8a-v48-info-class="disclosure" hidden>
-      <div class="m8a-v410-boundary-surface__header">
-        <strong data-m8a-v48-info-class="fixed">Truth boundary</strong>
-        <button type="button" data-m8a-v47-action="close-boundary" data-m8a-v47-control-id="boundary-close" data-m8a-v48-info-class="control">Close</button>
-      </div>
-      <p class="m8a-v410-boundary-surface__summary" data-m8a-v410-boundary-summary="true" data-m8a-v48-info-class="disclosure">${M8A_V410_BOUNDARY_COMPACT_COPY}.</p>
-      <p class="m8a-v410-boundary-surface__secondary" data-m8a-v410-boundary-secondary="true" data-m8a-v48-info-class="disclosure">${M8A_V410_BOUNDARY_SECONDARY_COPY}</p>
-      <details class="m8a-v47-product-ux__disclosure m8a-v410-boundary-surface__full" data-m8a-v410-boundary-full-truth-disclosure="true">
-        <summary data-m8a-v47-action="toggle-boundary-full-truth" data-m8a-v48-info-class="disclosure">Full truth disclosure</summary>
-        <div class="m8a-v47-product-ux__badges">
-          ${renderTruthBadges()}
-        </div>
-        <ul>
-          ${renderDisclosureLines()}
-        </ul>
-      </details>
-    </aside>
     <aside id="m8a-v48-inspector-sheet" class="m8a-v47-product-ux__sheet" data-m8a-v47-ui-surface="inspection-sheet" data-m8a-v48-inspector="true" hidden>
       <div class="m8a-v47-product-ux__sheet-header">
         <div class="m8a-v410-inspector__title">
@@ -2754,8 +2729,7 @@ function ensureV410ProductUxStructureReady(root: HTMLElement): void {
 
   // Conv 3: compact-line was on Truth button (now removed); omit from required check
   const hasRequiredStructure = Boolean(
-    root.querySelector("[data-m8a-v410-boundary-surface='true']") &&
-      root.querySelector("[data-m8a-v410-inspector-evidence-structure='true']") &&
+    root.querySelector("[data-m8a-v410-inspector-evidence-structure='true']") &&
       root.querySelector("[data-itri-demo-l2-acceptance-layer='true']") &&
       root.querySelector("[data-itri-requirement-gap-surface='true']") &&
       root.querySelector("[data-itri-policy-rule-controls-surface='true']") &&
@@ -3285,7 +3259,6 @@ function renderProductUx(
     productUx.disclosure.boundarySurfaceState === "open";
   const sourcesRoleOpen = productUx.disclosure.sourcesRoleState === "open";
   const sheetOpen = stateEvidenceOpen || truthBoundaryOpen || sourcesRoleOpen;
-  const boundarySurfaceOpen = false;
   const progressValue = productUx.playback.replayRatio.toFixed(6);
   const placement = resolveSceneAnnotationPlacement(state, viewer);
   const sceneNear = resolveV49SceneNearRenderState(
@@ -4613,44 +4586,6 @@ function renderProductUx(
     ...comprehension.persistentLayer.deniedDefaultVisibleContent
   ]);
 
-  const boundarySurface = getProductUxElement(
-    root,
-    "[data-m8a-v410-boundary-surface='true']"
-  );
-  boundarySurface.dataset.m8aV410BoundaryAffordance =
-    boundaryAffordance.version;
-  boundarySurface.dataset.m8aV410BoundaryAffordanceScope =
-    boundaryAffordance.scope;
-  boundarySurface.dataset.m8aV410BoundaryVisibleContent = serializeList([
-    ...boundaryAffordance.visibleContent
-  ]);
-  boundarySurface.dataset.m8aV410BoundaryCompactCopy =
-    boundaryAffordance.compactCopy;
-  boundarySurface.dataset.m8aV410BoundarySecondaryCopy =
-    boundaryAffordance.secondaryCopy;
-  boundarySurface.dataset.m8aV410BoundaryDetailsBehavior =
-    boundaryAffordance.detailsBehavior;
-  boundarySurface.dataset.m8aV410BoundarySurfaceState =
-    boundaryAffordance.boundarySurfaceState;
-  boundarySurface.dataset.m8aV410DetailsSheetState =
-    boundaryAffordance.detailsSheetState;
-  boundarySurface.dataset.m8aV410BoundaryFullTruthDisclosurePlacement =
-    boundaryAffordance.fullTruthDisclosurePlacement;
-  boundarySurface.dataset.m8aV410BoundaryForbiddenBehavior = serializeList([
-    ...boundaryAffordance.forbiddenBehavior
-  ]);
-  boundarySurface.dataset.m8aV48WindowId = review.windowId;
-  updateProductUxText(
-    root,
-    "[data-m8a-v410-boundary-summary='true']",
-    `${boundaryAffordance.compactCopy}.`
-  );
-  updateProductUxText(
-    root,
-    "[data-m8a-v410-boundary-secondary='true']",
-    boundaryAffordance.secondaryCopy
-  );
-  setProductUxHidden(boundarySurface, !boundarySurfaceOpen);
 
   const sheet = getProductUxElement(
     root,
@@ -5062,26 +4997,6 @@ function renderProductUx(
   fullTruthBoundary.dataset.m8aV49TruthBoundaryPlacement =
     comprehension.inspectorLayer.truthBoundaryPlacement;
   fullTruthBoundary.dataset.m8aV49TruthBoundaryOpen = String(truthBoundaryOpen);
-
-  const boundaryFullTruthDisclosure = getProductUxElement(
-    root,
-    "[data-m8a-v410-boundary-full-truth-disclosure='true']"
-  ) as HTMLDetailsElement;
-  const boundaryFullTruthSummary =
-    boundaryFullTruthDisclosure.querySelector<HTMLElement>("summary");
-
-  if (!boundaryFullTruthSummary) {
-    throw new Error("Missing V4.10 boundary full truth disclosure summary.");
-  }
-
-  boundaryFullTruthDisclosure.open =
-    productUx.disclosure.boundaryFullTruthDisclosureState === "open";
-  boundaryFullTruthDisclosure.dataset.m8aV410BoundaryFullTruthDisclosurePlacement =
-    boundaryAffordance.fullTruthDisclosurePlacement;
-  boundaryFullTruthDisclosure.dataset.m8aV410BoundaryFullTruthDisclosureState =
-    boundaryAffordance.fullTruthDisclosureState;
-  boundaryFullTruthDisclosure.dataset.m8aV410BoundaryFullTruthDisclosureOpen =
-    String(boundaryFullTruthDisclosure.open);
 
   for (const stage of root.querySelectorAll<HTMLElement>(
     "[data-m8a-v47-window-id]"
