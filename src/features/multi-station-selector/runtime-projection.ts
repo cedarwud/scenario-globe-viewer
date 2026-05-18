@@ -67,7 +67,7 @@ const CROSS_ORBIT_LIVE_POLICY_CONFIG = {
   latencyBudgetMs: 600
 } as const;
 
-const TLE_FIXTURE_PATHS: Readonly<Record<OrbitClass, string>> = {
+export const TLE_FIXTURE_PATHS: Readonly<Record<OrbitClass, string>> = {
   LEO: "/fixtures/satellites/leo-scale/starlink-2026-05-12T12-35-35Z.tle",
   MEO: "/fixtures/satellites/multi-orbit/meo/galileo-2026-05-13T01-28-37Z.tle",
   GEO: "/fixtures/satellites/multi-orbit/geo/commercial-geo-top30-2026-05-13T01-28-37Z.tle"

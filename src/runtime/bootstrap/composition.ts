@@ -24,6 +24,7 @@ import {
   subscribeDisplayState,
   type DisplayState
 } from "../../features/multi-station-selector/display-state";
+import { mountSelectorChromeTelemetry } from "../../features/multi-station-selector/chrome-telemetry";
 import {
   mountOptionalOsmBuildingsShowcase,
   resolveBuildingShowcaseSelection
@@ -815,6 +816,12 @@ export function startBootstrapComposition(app: HTMLDivElement): BootstrapComposi
   const groundStationMarkerHoverTooltip = groundStationMarkers
     ? mountMarkerHoverTooltip(viewer, groundStationMarkers)
     : null;
+  const selectorChromeTelemetry = mountSelectorSurfaces
+    ? mountSelectorChromeTelemetry({
+        viewerContainer: viewer.container as HTMLElement,
+        viewerRoot
+      })
+    : null;
 
   // V4 projection side panel — mounted/disposed by the display-state
   // subscription so the panel is only present in projecting/replaying.
@@ -891,6 +898,7 @@ export function startBootstrapComposition(app: HTMLDivElement): BootstrapComposi
       v4ProjectionSidePanel?.dispose();
       v4ProjectionSidePanel = null;
       delete document.body.dataset.displayState;
+      selectorChromeTelemetry?.dispose();
       groundStationMarkerHoverTooltip?.dispose();
       groundStationInfoCard?.dispose();
       groundStationListPicker?.dispose();
