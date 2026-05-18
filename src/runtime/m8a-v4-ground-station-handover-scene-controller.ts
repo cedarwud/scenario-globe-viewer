@@ -1,33 +1,13 @@
 import {
-  CallbackPositionProperty,
-  CallbackProperty,
-  Cartesian2,
-  Cartesian3,
   CustomDataSource,
-  JulianDate,
-  Math as CesiumMath,
-  SceneTransforms,
   type Viewer
 } from "cesium";
-import {
-  eciToEcf,
-  gstime,
-  propagate,
-  twoline2satrec
-} from "satellite.js";
 
 import { clearDocumentTelemetry } from "../features/telemetry/document-telemetry";
-import type { ReplayClock, ReplayClockState } from "../features/time";
+import type { ReplayClock } from "../features/time";
+import type { V4ResolvedStationPair } from "../features/multi-station-selector/v4-route-selection";
+import type { SceneSourceMode } from "../features/multi-station-selector/tle-first-scene-view-model";
 import {
-  resolveV4RouteSelection,
-  type V4ResolvedStationPair
-} from "../features/multi-station-selector/v4-route-selection";
-import {
-  type SceneCameraHint,
-  type SceneSourceMode
-} from "../features/multi-station-selector/tle-first-scene-view-model";
-import {
-  M8A_V4_GROUND_STATION_MODEL_PUBLIC_PATH,
   M8A_V4_GROUND_STATION_QUERY_PARAM,
   M8A_V4_GROUND_STATION_QUERY_VALUE,
   M8A_V4_GROUND_STATION_REQUIRED_PRECISION_BADGE,
@@ -35,9 +15,7 @@ import {
   M8A_V4_GROUND_STATION_RUNTIME_PROJECTION_ID,
   M8A_V4_GROUND_STATION_SCENARIO_ID,
   M8A_V46D_SIMULATION_HANDOVER_MODEL_ID,
-  type M8aV4ActorDisplayRole,
   type M8aV4EndpointId,
-  type M8aV4OrbitActorProjection,
   type M8aV4OrbitClass,
   type M8aV4RuntimeNarrativeNonClaims,
   type M8aV4ServiceStateWindow,
@@ -135,86 +113,46 @@ import {
   type M8aV4ItriF16ExportRecord,
   type M8aV4ItriF16RouteExportBundle,
   type M8aV4ItriAcceptanceCoverageRecord,
-  type M8aV4ItriRequirementGroupId,
   type M8aV4ItriRequirementStatusGroup
 } from "./m8a-v4-itri-demo-surfaces";
 import {
   buildF09RateWindowRows
 } from "./m8a-v4-itri-demo-renderers";
 import {
-  ensureM8aV411GlanceRankStructure,
-  M8A_V411_DEMOTED_ACTOR_OPACITY,
-  M8A_V411_GLANCE_RANK_SURFACE_VERSION,
-  M8A_V411_GROUND_ORBIT_EVIDENCE_TRIPLET,
-  M8A_V411_GROUND_STATION_SHORT_CHIP_COPY,
-  M8A_V411_GROUND_STATION_SHORT_CHIP_FONT_SIZE_PX,
-  M8A_V411_GROUND_STATION_SHORT_CHIP_MAX_HEIGHT_PX,
-  M8A_V411_GROUND_STATION_SHORT_CHIP_MAX_WIDTH_PX,
-  M8A_V411_SOURCE_PROVENANCE_BADGE,
-  resolveM8aV411MicroCueCopy
-} from "./m8a-v411-glance-rank-surface";
-import {
-  ensureM8aV411SceneContextChip,
-  M8A_V411_SCENE_CONTEXT_CHIP_COPY,
-  M8A_V411_SCENE_CONTEXT_CHIP_FONT_SIZE_PX,
-  M8A_V411_SCENE_CONTEXT_CHIP_MAX_HEIGHT_PX,
-  M8A_V411_SCENE_CONTEXT_CHIP_MAX_WIDTH_PX,
-  M8A_V411_SCENE_CONTEXT_CHIP_VERSION,
-  syncM8aV411SceneContextChip
-} from "./m8a-v411-scene-context-chip";
-import {
   installM8aV411VisualTokens,
-  M8A_V411_VISUAL_TOKEN_DATA_SOURCE_NAME,
-  M8A_V411_VISUAL_TOKEN_DEPTH_DISTANCES,
-  M8A_V411_VISUAL_TOKENS_VERSION,
-  M8A_V411_W3_DISK_RADIUS_METERS,
   type M8aV411VisualTokenController
 } from "./m8a-v411-visual-tokens";
 import {
-  installM8aV411HoverPopoverController,
-  M8A_V411_HOVER_POPOVER_CONV2_SCHEMA,
-  M8A_V411_HOVER_POPOVER_DELAY_MS,
-  M8A_V411_HOVER_POPOVER_MAX_HEIGHT_PX,
-  M8A_V411_HOVER_POPOVER_MAX_WIDTH_PX,
-  M8A_V411_HOVER_POPOVER_VERSION
+  installM8aV411HoverPopoverController
 } from "./m8a-v411-hover-popover";
 import {
-  M8A_V411_INSPECTOR_CONCURRENCY_CONV2_BEHAVIOR,
-  M8A_V411_INSPECTOR_CONCURRENCY_VERSION,
-  M8A_V411_INSPECTOR_MAX_CANVAS_WIDTH_RATIO,
-  M8A_V411_INSPECTOR_MAX_HEIGHT_CSS,
-  M8A_V411_INSPECTOR_MAX_WIDTH_PX,
-  M8A_V411_INSPECTOR_PRIMARY_ROLE
-} from "./m8a-v411-inspector-concurrency";
-import {
-  disposeM8aV411TransientSurfaces,
-  M8A_V411_SCENE_CUE_FADE_IN_MS,
-  M8A_V411_SCENE_CUE_MAX_HEIGHT_PX,
-  M8A_V411_SCENE_CUE_MAX_WIDTH_PX,
-  M8A_V411_SCENE_CUE_PERSIST_MS,
-  M8A_V411_TRANSIENT_SURFACE_VERSION,
-  M8A_V411_TRANSITION_TOAST_DURATION_MS,
-  M8A_V411_TRANSITION_TOAST_MAX_CANVAS_WIDTH_RATIO,
-  M8A_V411_TRANSITION_TOAST_MAX_COUNT,
-  M8A_V411_TRANSITION_TOAST_MAX_WIDTH_PX
+  disposeM8aV411TransientSurfaces
 } from "./m8a-v411-transition-toast";
 import {
   createM8aV411DefaultSourcesFilter,
-  M8A_V411_SOURCES_ROLE_VERSION,
   type M8aV411SourcesFilter,
   type M8aV411SourcesTrigger
 } from "./m8a-v411-sources-role";
-import { installSelectedPairTleFirstSceneLayer, resolveSelectedPairSceneTimeWindow } from "./m8a-v4-ground-station-selected-pair-layer";
+import {
+  applySelectedPairCameraHint,
+  applyV4Camera,
+  buildSceneEndpointContext,
+  configureReplayClock,
+  configureSelectedPairReplayClock,
+  createSelectedPairEndpointContext,
+  isM8aV4GroundStationRuntimeRequested,
+  resolveModelUri,
+  resolveViewportClass
+} from "./m8a-v4-ground-station-scene-frame";
+import { installSelectedPairTleFirstSceneLayer } from "./m8a-v4-ground-station-selected-pair-layer";
 import {
   createSelectedPairOverlayDebugState,
   type SelectedPairOverlayDebugState
 } from "./m8a-v4-ground-station-overlay-debug";
 import {
-  createProductUxRoot,
-  ensureProductUxStructure,
-  ensureV410ProductUxStructureReady,
-  renderProductUxDetailContent
+  createProductUxRoot
 } from "./m8a-v4-ground-station-product-dom";
+import { renderProductUx } from "./m8a-v4-ground-station-product-sync";
 import {
   buildEndpointState,
   buildProductUxState,
@@ -226,42 +164,16 @@ import {
   resolveReplayWindowRatio,
   resolveServiceStateWindow,
   resolveSimulationHandoverWindow,
-  toEpochMilliseconds,
-  toIsoTimestamp
+  toEpochMilliseconds
 } from "./m8a-v4-ground-station-state-builders";
 import {
-  createActorEntityOptions,
+  createGroundStationOrbitRenderLayer,
+  type M8aV4ActorRuntimeRecord
+} from "./m8a-v4-ground-station-orbit-render-layer";
+import {
   createEndpointContextRibbonEntityOptions,
-  createEndpointEntityOptions,
-  createGeoGuardCueEntityOptions,
-  createLinkFlowPulseEntityOptions,
-  createLinkFlowSegmentEntityOptions,
-  createRelationEntityOptions,
-  positionToCartesian,
-  resolveActorEmphasis,
-  shouldRenderActorLabel,
-  shouldShowGeoGuardCue,
-  updateActorStyle,
-  updateLinkFlowPulseStyle,
-  updateLinkFlowSegmentStyle,
-  updateRelationStyle,
-  type ActorRenderHandle,
-  type EndpointRenderContext,
-  type EndpointRenderRole,
-  type LinkFlowPulseRenderHandle,
-  type LinkFlowSegmentRenderHandle,
-  type M8aV4ActorEmphasis,
-  type RelationRenderHandle
+  createEndpointEntityOptions
 } from "./m8a-v4-ground-station-cesium-entities";
-import {
-  resolveSceneAnnotationPlacement,
-  resolveV49SceneNearRenderState
-} from "./m8a-v4-ground-station-placement";
-import {
-  ensureM8aV411FooterChipRow,
-  M8A_V411_FOOTER_CHIP_SYSTEM_VERSION,
-  syncM8aV411FooterChipRow
-} from "./m8a-v411-footer-chip-system";
 import {
   createM8aV411ReviewerModeInitialState,
   isM8aV411ReviewAutoPauseElapsed,
@@ -290,7 +202,6 @@ import {
   M8A_V4_LINK_FLOW_DIRECTIONS,
   M8A_V4_LINK_FLOW_PULSE_OFFSETS,
   M8A_V4_LINK_FLOW_RELATION_ROLES,
-  M8A_V4_LINK_FLOW_REPLAY_CYCLES,
   M8A_V4_LINK_FLOW_TRUTH_BOUNDARY,
   M8A_V411_INSPECTOR_TABS,
   M8A_V47_DEBUG_TEST_MULTIPLIER,
@@ -316,11 +227,10 @@ import {
   type M8aV48HandoverReviewViewModel,
   type M8aV48InfoClass,
   type M8aV49ProductComprehensionRuntime,
-  type M8aV49TransitionEventRuntime,
-  type M8aV4LinkFlowDirection,
-  type M8aV4LinkFlowRelationRole,
-  type M8aV4RelationRole
+  type M8aV49TransitionEventRuntime
 } from "./m8a-v4-product-ux-model";
+
+export { isM8aV4GroundStationRuntimeRequested };
 
 export const M8A_V4_GROUND_STATION_DATA_SOURCE_NAME =
   "m8a-v4-ground-station-multi-orbit-handover-scene";
@@ -329,92 +239,9 @@ export const M8A_V4_GROUND_STATION_RUNTIME_STATE =
 export const M8A_V4_GROUND_STATION_PROOF_SEAM =
   "window.__SCENARIO_GLOBE_VIEWER_CAPTURE__.m8aV4GroundStationScene";
 
-const M8A_V4_CAMERA_LONGITUDE = 114;
-const M8A_V4_CAMERA_LATITUDE = -44;
-const M8A_V4_CAMERA_HEIGHT_METERS = 11_500_000;
-const M8A_V4_CAMERA_HEADING_DEGREES = 0;
-const M8A_V4_CAMERA_PITCH_DEGREES = -80;
-const M8A_V4_CAMERA_SCREEN_UP_PAN_METERS = 4_000_000;
-const M8A_V4_SELECTED_PAIR_ENDPOINT_RADIUS_METERS = 90_000;
-const M8A_V4_SELECTED_PAIR_CAMERA_LATITUDE_OFFSET_DEGREES = 66;
-const M8A_V4_DISPLAY_ORBIT_HEIGHT_METERS = {
-  leo: {
-    start: 280_000,
-    stop: 500_000,
-    wobble: 30_000
-  },
-  meo: {
-    start: 2_900_000,
-    stop: 3_800_000,
-    wobble: 80_000
-  },
-  geo: {
-    start: 6_200_000,
-    stop: 6_200_000,
-    wobble: 0
-  }
-} satisfies Record<
-  M8aV4OrbitClass,
-  { start: number; stop: number; wobble: number }
->;
-const M8A_V4_MEO_DISPLAY_LANE_LATITUDE_BIAS_DEGREES = 8;
-const M8A_V4_MEO_DISPLAY_LANE_LONGITUDE_BIAS_DEGREES = -5;
-const M8A_V46E_NARROW_VIEWPORT_MAX_WIDTH_PX = 560;
 const M8A_V46E_PREFERRED_VISIBLE_ACTOR_LABELS = 1;
 const M8A_V4_DESKTOP_MAX_ALWAYS_VISIBLE_ACTOR_LABELS = 3;
 const M8A_V4_NARROW_MAX_ALWAYS_VISIBLE_ACTOR_LABELS = 1;
-
-interface M8aV4ActorRuntimeRecord {
-  actorId: string;
-  label: string;
-  orbitClass: M8aV4OrbitClass;
-  displayRole: M8aV4ActorDisplayRole;
-  operatorContext: string;
-  sourceEpochUtc: string;
-  projectionEpochUtc: string;
-  motionMode: M8aV4OrbitActorProjection["motionMode"];
-  evidenceClass: M8aV4OrbitActorProjection["evidenceClass"];
-  modelAssetId: M8aV4OrbitActorProjection["modelAssetId"];
-  modelTruth: M8aV4OrbitActorProjection["modelTruth"];
-  sourcePositionEcefMeters: {
-    x: number;
-    y: number;
-    z: number;
-  };
-  renderPositionEcefMeters: {
-    x: number;
-    y: number;
-    z: number;
-  };
-  artifactRenderPosition: M8aV4OrbitActorProjection["artifactRenderPosition"];
-  renderTrackBasis: string;
-  renderTrackIsSourceTruth: false;
-  displayMotion: M8aV4ActorDisplayMotionState;
-  propagationTimeUtc: string;
-  emphasis: M8aV4ActorEmphasis["emphasis"];
-  labelVisibility: "always-visible" | "hidden-context";
-}
-
-type M8aV4ActorDisplayMotionPolicy =
-  | "monotonic-wrapped-display-pass"
-  | "near-fixed-geo-guard";
-
-interface M8aV4ActorDisplayMotionState {
-  policy: M8aV4ActorDisplayMotionPolicy;
-  sourceBoundary:
-    "M8A_V4_GROUND_STATION_RUNTIME_PROJECTION.orbitActors.runtimeDisplayTrack";
-  trackKind: M8aV4OrbitActorProjection["runtimeDisplayTrack"]["trackKind"];
-  pathProgress: number;
-  unwrappedTrackProgress: number;
-  wrapIndex: number;
-  phaseOffset: number;
-  cycleRate: number;
-  renderTrackBasis: string;
-  renderTrackIsSourceTruth: false;
-  truthBoundary:
-    | "viewer-owned-display-projection-not-source-truth"
-    | "near-fixed-geo-display-context-guard-not-service-truth";
-}
 
 export interface M8aV4GroundStationSceneState {
   scenarioId: typeof M8A_V4_GROUND_STATION_SCENARIO_ID;
@@ -800,340 +627,12 @@ export interface M8aV4GroundStationSceneControllerOptions {
   replayClock: ReplayClock;
 }
 
-interface PropagatedActorPosition {
-  cartesian: Cartesian3;
-  propagationTimeUtc: string;
-}
-
-interface SceneEndpointContext {
-  endpoints: ReadonlyArray<EndpointRenderContext>;
-  selectedPair: V4ResolvedStationPair | null;
-}
-
-export function isM8aV4GroundStationRuntimeRequested(search: URLSearchParams): boolean {
-  if (
-    search.get(M8A_V4_GROUND_STATION_QUERY_PARAM) ===
-    M8A_V4_GROUND_STATION_QUERY_VALUE
-  ) {
-    return true;
-  }
-  if (search.get("firstIntakeScenarioId") === M8A_V4_GROUND_STATION_SCENARIO_ID) {
-    return true;
-  }
-  // Implicit V4 activation: a short URL with a valid stationA/stationB pair
-  // resolves into the V4 ground-station scene without requiring the explicit
-  // m8aV4GroundStationScene=1 flag. Lets reviewers share short demo links.
-  return Boolean(resolveV4RouteSelection(search).resolvedPair);
-}
-
 function serializeList(values: ReadonlyArray<string>): string {
   return values.join("|");
 }
 
 function serializeJson(value: unknown): string {
   return JSON.stringify(value);
-}
-
-function clamp(value: number, min: number, max: number): number {
-  return Math.min(Math.max(value, min), max);
-}
-
-function normalizeUnit(value: number): number {
-  const normalized = value % 1;
-  return normalized < 0 ? normalized + 1 : normalized;
-}
-
-function lerp(left: number, right: number, ratio: number): number {
-  return left + (right - left) * ratio;
-}
-
-function positionToPlainMeters(cartesian: Cartesian3): {
-  x: number;
-  y: number;
-  z: number;
-} {
-  return {
-    x: cartesian.x,
-    y: cartesian.y,
-    z: cartesian.z
-  };
-}
-
-function resolveSelectedPairFromLocation(): V4ResolvedStationPair | null {
-  if (typeof window === "undefined") {
-    return null;
-  }
-  return resolveV4RouteSelection(new URLSearchParams(window.location.search))
-    .resolvedPair;
-}
-
-function createSelectedPairEndpointContext(
-  station: V4ResolvedStationPair["stationA"],
-  endpointRole: EndpointRenderRole
-): EndpointRenderContext {
-  const roleLabel = endpointRole === "endpoint-a" ? "A" : "B";
-  const precisionBadge = station.disclosurePrecision || "public registry coordinate";
-
-  return {
-    endpointId: `selected-${endpointRole}-${station.id}`,
-    endpointRole,
-    endpointLabel: `${station.country} / ${station.name}`,
-    sourceCoordinatesRenderable: true,
-    coordinatePrecision: {
-      renderPrecision: precisionBadge
-    },
-    renderMarker: {
-      markerId: `selected-${endpointRole}-${station.id}`,
-      displayPosition: {
-        lat: station.lat,
-        lon: station.lon,
-        heightMeters: 0
-      },
-      displayRadiusMeters: M8A_V4_SELECTED_PAIR_ENDPOINT_RADIUS_METERS,
-      label: `${roleLabel}: ${station.name}`,
-      requiredPrecisionBadge: precisionBadge,
-      displayPositionIsSourceTruth: true
-    },
-    orbitEvidenceChips: station.supportedOrbits.map((orbitClass) => ({
-      chipLabel: `${orbitClass} public`
-    }))
-  };
-}
-
-function buildSceneEndpointContext(): SceneEndpointContext {
-  const selectedPair = resolveSelectedPairFromLocation();
-
-  if (!selectedPair) {
-    return {
-      endpoints: M8A_V4_GROUND_STATION_RUNTIME_PROJECTION.endpoints,
-      selectedPair: null
-    };
-  }
-
-  return {
-    endpoints: [
-      createSelectedPairEndpointContext(selectedPair.stationA, "endpoint-a"),
-      createSelectedPairEndpointContext(selectedPair.stationB, "endpoint-b")
-    ],
-    selectedPair
-  };
-}
-
-function resolveActorDisplayHeightMeters(
-  orbitClass: M8aV4OrbitClass,
-  pathProgress: number,
-  loopRatio: number
-): number {
-  const heightBand = M8A_V4_DISPLAY_ORBIT_HEIGHT_METERS[orbitClass];
-  return (
-    lerp(heightBand.start, heightBand.stop, pathProgress) +
-    Math.sin(loopRatio * Math.PI * 2) * heightBand.wobble
-  );
-}
-
-function resolveActorDisplayMotionState(
-  actor: M8aV4OrbitActorProjection,
-  replayRatio: number
-): M8aV4ActorDisplayMotionState {
-  const track = actor.runtimeDisplayTrack;
-
-  if (track.trackKind === "east-asia-near-fixed-geo-anchor") {
-    return {
-      policy: "near-fixed-geo-guard",
-      sourceBoundary:
-        "M8A_V4_GROUND_STATION_RUNTIME_PROJECTION.orbitActors.runtimeDisplayTrack",
-      trackKind: track.trackKind,
-      pathProgress: 0,
-      unwrappedTrackProgress: 0,
-      wrapIndex: 0,
-      phaseOffset: track.phaseOffset,
-      cycleRate: track.cycleRate,
-      renderTrackBasis: track.renderTrackBasis,
-      renderTrackIsSourceTruth: track.renderTrackIsSourceTruth,
-      truthBoundary: "near-fixed-geo-display-context-guard-not-service-truth"
-    };
-  }
-
-  const unwrappedTrackProgress =
-    replayRatio * track.cycleRate + track.phaseOffset;
-
-  return {
-    policy: "monotonic-wrapped-display-pass",
-    sourceBoundary:
-      "M8A_V4_GROUND_STATION_RUNTIME_PROJECTION.orbitActors.runtimeDisplayTrack",
-    trackKind: track.trackKind,
-    pathProgress: normalizeUnit(unwrappedTrackProgress),
-    unwrappedTrackProgress,
-    wrapIndex: Math.floor(unwrappedTrackProgress),
-    phaseOffset: track.phaseOffset,
-    cycleRate: track.cycleRate,
-    renderTrackBasis: track.renderTrackBasis,
-    renderTrackIsSourceTruth: track.renderTrackIsSourceTruth,
-    truthBoundary: "viewer-owned-display-projection-not-source-truth"
-  };
-}
-
-function resolveModelUri(): string {
-  const publicBaseUrl = new URL(import.meta.env.BASE_URL, window.location.origin);
-  return new URL(
-    M8A_V4_GROUND_STATION_MODEL_PUBLIC_PATH,
-    publicBaseUrl
-  ).toString();
-}
-
-function configureReplayClock(viewer: Viewer, replayClock: ReplayClock): void {
-  const startMs = Date.parse(
-    M8A_V4_GROUND_STATION_RUNTIME_PROJECTION.projectionEpochUtc
-  );
-  if (!Number.isFinite(startMs)) {
-    throw new Error("Invalid m8aV4GroundStation.projectionEpochUtc timestamp");
-  }
-  const stopMs =
-    startMs + M8A_V4_FULL_LEO_ORBIT_REPLAY_PROFILE.replayDurationMs;
-  const range = {
-    start: new Date(startMs).toISOString(),
-    stop: new Date(stopMs).toISOString()
-  };
-
-  replayClock.setMode("prerecorded", range);
-  replayClock.seek(range.start);
-  replayClock.setMultiplier(
-    M8A_V4_FULL_LEO_ORBIT_REPLAY_PROFILE.playbackMultiplier
-  );
-  replayClock.play();
-  viewer.timeline?.zoomTo(viewer.clock.startTime, viewer.clock.stopTime);
-}
-
-function configureSelectedPairReplayClock(
-  viewer: Viewer,
-  replayClock: ReplayClock
-): void {
-  const windowRange = resolveSelectedPairSceneTimeWindow();
-  replayClock.setMode("prerecorded", {
-    start: windowRange.startUtc,
-    stop: windowRange.endUtc
-  });
-  replayClock.seek(windowRange.startUtc);
-  replayClock.setMultiplier(
-    M8A_V4_FULL_LEO_ORBIT_REPLAY_PROFILE.playbackMultiplier
-  );
-  replayClock.play();
-  viewer.timeline?.zoomTo(viewer.clock.startTime, viewer.clock.stopTime);
-}
-
-function applyV4Camera(
-  viewer: Viewer,
-  sceneEndpointContext: SceneEndpointContext
-): void {
-  viewer.camera.cancelFlight();
-
-  if (sceneEndpointContext.selectedPair && sceneEndpointContext.endpoints.length === 2) {
-    const [endpointA, endpointB] = sceneEndpointContext.endpoints;
-    const endpointAPosition = endpointA.renderMarker.displayPosition;
-    const endpointBPosition = endpointB.renderMarker.displayPosition;
-    const west = Math.min(endpointAPosition.lon, endpointBPosition.lon);
-    const east = Math.max(endpointAPosition.lon, endpointBPosition.lon);
-    const south = Math.min(endpointAPosition.lat, endpointBPosition.lat);
-    const north = Math.max(endpointAPosition.lat, endpointBPosition.lat);
-    const pairCenterLon = (west + east) / 2;
-    const pairCenterLat = (south + north) / 2;
-
-    viewer.camera.setView({
-      destination: Cartesian3.fromDegrees(
-        pairCenterLon,
-        clamp(
-          pairCenterLat - M8A_V4_SELECTED_PAIR_CAMERA_LATITUDE_OFFSET_DEGREES,
-          -82,
-          82
-        ),
-        M8A_V4_CAMERA_HEIGHT_METERS
-      ),
-      orientation: {
-        heading: CesiumMath.toRadians(M8A_V4_CAMERA_HEADING_DEGREES),
-        pitch: CesiumMath.toRadians(M8A_V4_CAMERA_PITCH_DEGREES),
-        roll: 0
-      }
-    });
-    viewer.camera.moveUp(M8A_V4_CAMERA_SCREEN_UP_PAN_METERS);
-    viewer.scene.requestRender();
-    return;
-  }
-
-  viewer.camera.setView({
-    destination: Cartesian3.fromDegrees(
-      M8A_V4_CAMERA_LONGITUDE,
-      M8A_V4_CAMERA_LATITUDE,
-      M8A_V4_CAMERA_HEIGHT_METERS
-    ),
-    orientation: {
-      heading: CesiumMath.toRadians(M8A_V4_CAMERA_HEADING_DEGREES),
-      pitch: CesiumMath.toRadians(M8A_V4_CAMERA_PITCH_DEGREES),
-      roll: 0
-    }
-  });
-  viewer.camera.moveUp(M8A_V4_CAMERA_SCREEN_UP_PAN_METERS);
-  viewer.scene.requestRender();
-}
-
-function applySelectedPairCameraHint(
-  viewer: Viewer,
-  sceneEndpointContext: SceneEndpointContext,
-  cameraHint: SceneCameraHint
-): void {
-  if (!sceneEndpointContext.selectedPair || sceneEndpointContext.endpoints.length !== 2) {
-    return;
-  }
-
-  const [endpointA, endpointB] = sceneEndpointContext.endpoints;
-  const endpointAPosition = endpointA.renderMarker.displayPosition;
-  const endpointBPosition = endpointB.renderMarker.displayPosition;
-  let lonA = endpointAPosition.lon;
-  let lonB = endpointBPosition.lon;
-  if (Math.abs(lonA - lonB) > 180) {
-    if (lonA < lonB) {
-      lonA += 360;
-    } else {
-      lonB += 360;
-    }
-  }
-
-  const midpointLon = ((lonA + lonB) / 2 + 540) % 360 - 180;
-  const midpointLat = (endpointAPosition.lat + endpointBPosition.lat) / 2;
-  const isPolarLike =
-    cameraHint.pairGeometry === "polar" ||
-    cameraHint.pairGeometry === "antipodal" ||
-    cameraHint.pairGeometry === "empty-result";
-  const targetLat = isPolarLike
-    ? clamp(
-        Math.max(Math.abs(endpointAPosition.lat), Math.abs(endpointBPosition.lat)) >= 66
-          ? Math.sign(endpointAPosition.lat + endpointBPosition.lat || endpointAPosition.lat || 1) *
-              64
-          : midpointLat,
-        -74,
-        74
-      )
-    : clamp(midpointLat - M8A_V4_SELECTED_PAIR_CAMERA_LATITUDE_OFFSET_DEGREES, -82, 82);
-
-  viewer.camera.cancelFlight();
-  viewer.camera.setView({
-    destination: Cartesian3.fromDegrees(
-      midpointLon,
-      targetLat,
-      cameraHint.suggestedAltitudeKm * 1000
-    ),
-    orientation: {
-      heading: CesiumMath.toRadians(cameraHint.suggestedHeadingDeg),
-      pitch: CesiumMath.toRadians(cameraHint.suggestedPitchDeg),
-      roll: 0
-    }
-  });
-  viewer.scene.requestRender();
-}
-
-function resolveViewportClass(): "desktop" | "narrow" {
-  return window.innerWidth <= M8A_V46E_NARROW_VIEWPORT_MAX_WIDTH_PX
-    ? "narrow"
-    : "desktop";
 }
 
 function resolveFallbackGuardCueMode(
@@ -1207,699 +706,6 @@ function renderHud(root: HTMLElement, state: M8aV4GroundStationSceneState): void
     state.sourceLineage.rawPackageSideReadOwnership;
   root.dataset.nonClaims = serializeJson(state.nonClaims);
   root.innerHTML = "";
-}
-
-function renderProductUx(
-  root: HTMLElement,
-  state: M8aV4GroundStationSceneState,
-  viewer: Viewer,
-  visualTokenController: M8aV411VisualTokenController,
-  sceneEndpoints: ReadonlyArray<EndpointRenderContext>
-): void {
-  const productUx = state.productUx;
-  const activeMultiplier = productUx.playback.multiplier;
-  const playbackAction =
-    productUx.playback.status === "playing" ? "pause" : "play";
-  const playbackLabel =
-    productUx.playback.status === "playing" ? "Pause" : "Play";
-  const review = productUx.reviewViewModel;
-  const comprehension = productUx.productComprehension;
-  const focusChoreography = comprehension.focusChoreography;
-  const sequenceRail = comprehension.handoverSequenceRail;
-  const boundaryAffordance = comprehension.boundaryAffordance;
-  const candidateActorIds = review.candidateContextActors.map(
-    (actor) => actor.actorId
-  );
-  const fallbackActorIds = review.fallbackContextActors.map(
-    (actor) => actor.actorId
-  );
-  const stateEvidenceOpen =
-    productUx.disclosure.detailsSheetState === "open";
-  const truthBoundaryOpen =
-    productUx.disclosure.boundarySurfaceState === "open";
-  const sourcesRoleOpen = productUx.disclosure.sourcesRoleState === "open";
-  const sheetOpen = stateEvidenceOpen || truthBoundaryOpen || sourcesRoleOpen;
-  const progressValue = productUx.playback.replayRatio.toFixed(6);
-  const placement = resolveSceneAnnotationPlacement(state, viewer);
-  const sceneNear = resolveV49SceneNearRenderState(
-    comprehension,
-    review,
-    placement
-  );
-  const microCueCopy = resolveM8aV411MicroCueCopy(productUx.activeWindowId);
-  const transitionEvent = comprehension.transitionEventLayer.activeEvent;
-  const transitionEventVisible = Boolean(transitionEvent);
-  const selectedInspectorTab: M8aV411InspectorTab = sourcesRoleOpen
-    ? "evidence"
-    : productUx.disclosure.activeInspectorTab;
-  const decisionPanelOpen =
-    sheetOpen &&
-    (truthBoundaryOpen ||
-      (stateEvidenceOpen && selectedInspectorTab === "decision"));
-  const metricsPanelOpen =
-    sheetOpen && stateEvidenceOpen && selectedInspectorTab === "metrics";
-  const boundaryPanelOpen = sheetOpen && truthBoundaryOpen;
-  const evidencePanelOpen =
-    sheetOpen &&
-    (sourcesRoleOpen ||
-      (stateEvidenceOpen && selectedInspectorTab === "evidence"));
-  const requirementGapSurface = state.requirementGapSurface;
-  const acceptanceLayer = state.acceptanceLayer;
-  const f09RateSurface = state.f09RateSurface;
-  const f16ExportSurface = state.f16ExportSurface;
-  const policyRuleControls = state.policyRuleControls;
-  const requirementIdsForGroup = (
-    groupId: M8aV4ItriRequirementGroupId
-  ): readonly string[] =>
-    requirementGapSurface.groups.find((group) => group.groupId === groupId)
-      ?.requirementIds ?? [];
-
-  ensureProductUxStructure(root);
-  ensureV410ProductUxStructureReady(root);
-  ensureM8aV411GlanceRankStructure(root);
-  ensureM8aV411SceneContextChip(root);
-  syncM8aV411SceneContextChip(root);
-  ensureM8aV411FooterChipRow(root);
-  syncM8aV411FooterChipRow(root, {
-    activeWindowId: productUx.activeWindowId,
-    actorCount: state.actorCount,
-    boundaryDisclosureOpen: truthBoundaryOpen
-  });
-  root.hidden = false;
-  root.setAttribute("aria-hidden", "false");
-  root.dataset.viewportClass = productUx.layout.viewportClass;
-  root.dataset.playbackStatus = productUx.playback.status;
-  root.dataset.playbackMultiplier = String(activeMultiplier);
-  root.dataset.activeWindowId = productUx.activeWindowId;
-  root.dataset.activeProductLabel = productUx.activeProductLabel;
-  root.dataset.finalHoldActive = String(productUx.playback.finalHoldActive);
-  root.dataset.replayProgressRatio = progressValue;
-  root.dataset.truthDisclosure = productUx.disclosure.state;
-  root.dataset.m8aV410DetailsSheetState =
-    productUx.disclosure.detailsSheetState;
-  root.dataset.m8aV410BoundarySurfaceState =
-    productUx.disclosure.boundarySurfaceState;
-  root.dataset.normalControlsExposeDebugMultiplier = "false";
-  root.dataset.m8aV48UiIaVersion = productUx.uiIaVersion;
-  root.dataset.m8aV48InfoClassSeam = productUx.infoClassSeam;
-  root.dataset.m8aV48InfoClassValues = serializeList(productUx.infoClassValues);
-  root.dataset.m8aV49ProductComprehension = comprehension.version;
-  root.dataset.m8aV49SliceScope = comprehension.scope;
-  root.dataset.m8aV410FirstViewportComposition =
-    comprehension.firstViewportComposition.version;
-  root.dataset.m8aV4ItriDemoViewFocusChoreography =
-    focusChoreography.version;
-  root.dataset.m8aV4ItriDemoViewFocusScope = focusChoreography.scope;
-  root.dataset.m8aV4ItriDemoViewFocusVisibleContent = serializeList([
-    ...focusChoreography.visibleContent
-  ]);
-  root.dataset.m8aV4ItriDemoViewFocusWindowId =
-    focusChoreography.windowId;
-  root.dataset.m8aV4ItriDemoViewFocusId = focusChoreography.focusId;
-  root.dataset.m8aV4ItriDemoViewFocusPrimaryLabel =
-    focusChoreography.primaryFocusLabel;
-  root.dataset.m8aV4ItriDemoViewFocusOrbitClass =
-    focusChoreography.focusOrbitClassToken;
-  root.dataset.m8aV4ItriDemoViewFocusRole =
-    focusChoreography.focusRole;
-  root.dataset.m8aV4ItriDemoViewFocusBriefing =
-    focusChoreography.briefingLine;
-  root.dataset.m8aV4ItriDemoViewFocusWatch =
-    focusChoreography.decisionWatch;
-  root.dataset.m8aV4ItriDemoViewFocusNext =
-    focusChoreography.nextFocusHint;
-  root.dataset.m8aV4ItriDemoViewFocusVisualCue =
-    focusChoreography.visualCue;
-  root.dataset.m8aV4ItriDemoViewFocusSceneCue =
-    focusChoreography.sceneCueLabel;
-  root.dataset.m8aV4ItriDemoViewFocusSecondaryActorPolicy =
-    focusChoreography.secondaryActorPolicy;
-  root.dataset.m8aV4ItriDemoViewFocusSecondaryActorRoles = serializeList([
-    ...focusChoreography.secondaryActorEmphasisRoles
-  ]);
-  root.dataset.m8aV4ItriDemoViewFocusNextContextVisible = String(
-    focusChoreography.nextContextVisible
-  );
-  root.dataset.m8aV4ItriDemoViewFocusTruthBoundary =
-    focusChoreography.truthBoundary;
-  root.dataset.m8aV4ItriDemoViewDefaultFocus =
-    M8A_V4_CUSTOMER_DEMO_VIEW_DEFAULT_FOCUS_VERSION;
-  root.dataset.m8aV4ItriDemoViewNarrow =
-    M8A_V4_CUSTOMER_DEMO_VIEW_NARROW_VERSION;
-  root.dataset.m8aV4ItriDemoViewDefaultLayer =
-    "L0-first-read-demo-stage";
-  root.dataset.m8aV4ItriDemoViewDefaultInspectorOpen = String(sheetOpen);
-  root.dataset.m8aV4ItriDemoViewDefaultRequirementMatrixVisible =
-    String(evidencePanelOpen);
-  root.dataset.m8aV4ItriDemoViewDefaultCurrentState =
-    focusChoreography.primaryFocusLabel;
-  root.dataset.m8aV4ItriDemoViewDefaultNextState =
-    focusChoreography.nextFocusHint;
-  root.dataset.m8aV4ItriDemoViewDefaultOrbitClass =
-    focusChoreography.focusOrbitClassToken;
-  root.dataset.m8aV4ItriDemoViewDefaultRateClass =
-    f09RateSurface.currentClassLabel;
-  root.dataset.m8aV4ItriDemoViewDefaultTruthBoundary =
-    M8A_V4_CUSTOMER_DEMO_VIEW_DEFAULT_TRUTH_COPY;
-  root.dataset.m8aV4ItriDemoViewAcceptanceLayer =
-    acceptanceLayer.version;
-  root.dataset.m8aV4ItriDemoViewAcceptanceLayerId =
-    acceptanceLayer.layerId;
-  root.dataset.m8aV4ItriDemoViewAcceptanceVisible =
-    String(evidencePanelOpen);
-  root.dataset.m8aV4ItriDemoViewAcceptanceRequirementIds = serializeList([
-    ...acceptanceLayer.requirementIds
-  ]);
-  root.dataset.m8aV4ItriDemoViewAcceptanceRequirementStatuses =
-    serializeList([...acceptanceLayer.requirementStatusPairs]);
-  root.dataset.m8aV4ItriDemoViewAcceptanceRequirementLayers =
-    serializeList([...acceptanceLayer.requirementLayerPairs]);
-  root.dataset.m8aV4ItriDemoViewAcceptanceExternalFailIds = serializeList([
-    ...acceptanceLayer.externalFailIds
-  ]);
-  root.dataset.m8aV4ItriDemoViewAcceptanceBoundedRouteIds = serializeList([
-    ...acceptanceLayer.boundedRouteRepresentationIds
-  ]);
-  root.dataset.m8aV4ItriDemoViewAcceptanceF13Artifact =
-    acceptanceLayer.f13Phase71Evidence.artifact;
-  root.dataset.m8aV4ItriDemoViewAcceptanceF13FreshUntilUtc =
-    acceptanceLayer.f13Phase71Evidence.staleAfterUtc;
-  root.dataset.m8aV4ItriDemoViewAcceptanceF13RouteNativeScaleClaimed =
-    String(acceptanceLayer.f13Phase71Evidence.routeNativeScaleClaimed);
-  root.dataset.m8aV4ItriF13ScaleReadinessSurface =
-    acceptanceLayer.f13RouteNativeScaleReadiness.version;
-  root.dataset.m8aV4ItriF13ScaleReadinessTargetReached = String(
-    acceptanceLayer.f13RouteNativeScaleReadiness.targetReached
-  );
-  root.dataset.m8aV4ItriF13ScaleReadinessCurrentRouteActorCount = String(
-    acceptanceLayer.f13RouteNativeScaleReadiness.currentRouteActorCount
-  );
-  root.dataset.m8aV4ItriF13ScaleReadinessActorCount = String(
-    acceptanceLayer.f13RouteNativeScaleReadiness.readinessActorCount
-  );
-  root.dataset.m8aV4ItriF13ScaleReadinessLeoCount = String(
-    acceptanceLayer.f13RouteNativeScaleReadiness.readinessLeoActorCount
-  );
-  root.dataset.m8aV4ItriF13ScaleReadinessTargetLeoCount = String(
-    acceptanceLayer.f13RouteNativeScaleReadiness.targetLeoCount
-  );
-  root.dataset.m8aV4ItriF13ScaleReadinessSourceType =
-    acceptanceLayer.f13RouteNativeScaleReadiness.sourceType;
-  root.dataset.m8aV4ItriF13ScaleReadinessSourceUrl =
-    acceptanceLayer.f13RouteNativeScaleReadiness.sourceUrl;
-  root.dataset.m8aV4ItriF13ScaleReadinessPublicSourceUsed = String(
-    acceptanceLayer.f13RouteNativeScaleReadiness.publicSourceUsed
-  );
-  root.dataset.m8aV4ItriF13ScaleReadinessBuiltAtUtc =
-    acceptanceLayer.f13RouteNativeScaleReadiness.builtAtUtc;
-  root.dataset.m8aV4ItriF13ScaleReadinessFreshnessTimestampUtc =
-    acceptanceLayer.f13RouteNativeScaleReadiness.freshnessTimestampUtc;
-  root.dataset.m8aV4ItriF13ScaleReadinessClosureClaimed = String(
-    acceptanceLayer.f13RouteNativeScaleReadiness
-      .routeNativeScaleClosureClaimed
-  );
-  root.dataset.m8aV4ItriDemoViewAcceptanceExternalValidationArtifact =
-    acceptanceLayer.externalValidationPackage.artifact;
-  root.dataset.m8aV4ItriDemoViewAcceptanceExternalValidationStatus =
-    acceptanceLayer.externalValidationPackage.status;
-  root.dataset.m8aV410SliceScope =
-    comprehension.firstViewportComposition.scope;
-  root.dataset.m8aV410SceneNarrativeVisibleContent = serializeList([
-    ...comprehension.firstViewportComposition.sceneNarrativeVisibleContent
-  ]);
-  root.dataset.m8aV410ControlsPriority =
-    comprehension.firstViewportComposition.controlsPriority;
-  root.dataset.m8aV410SequenceRailScope =
-    comprehension.firstViewportComposition.sequenceRailScope;
-  root.dataset.m8aV410InspectorDefaultOpen = String(
-    comprehension.firstViewportComposition.inspectorDefaultOpen
-  );
-  root.dataset.m8aV410HandoverSequenceRail = sequenceRail.version;
-  root.dataset.m8aV410SequenceRailScope = sequenceRail.scope;
-  root.dataset.m8aV410SequenceRailVisibleContent = serializeList([
-    ...sequenceRail.visibleContent
-  ]);
-  root.dataset.m8aV410SequenceRailWindowIds = serializeList([
-    ...sequenceRail.windowIds
-  ]);
-  root.dataset.m8aV410SequenceRailActiveWindowId =
-    sequenceRail.activeWindowId;
-  root.dataset.m8aV410SequenceRailNextWindowId = sequenceRail.nextWindowId;
-  root.dataset.m8aV410SequenceRailActiveLabel =
-    sequenceRail.activeProductLabel;
-  root.dataset.m8aV410SequenceRailNextLabel = sequenceRail.nextProductLabel;
-  root.dataset.m8aV410SequenceRailActiveOrdinal =
-    sequenceRail.activeOrdinalLabel;
-  root.dataset.m8aV410SequenceRailNextOrdinal = sequenceRail.nextOrdinalLabel;
-  root.dataset.m8aV410SequenceRailTransitionFromWindowId =
-    sequenceRail.transitionEvent.fromWindowId;
-  root.dataset.m8aV410SequenceRailTransitionToWindowId =
-    sequenceRail.transitionEvent.toWindowId;
-  root.dataset.m8aV410SequenceRailViewportPolicy =
-    sequenceRail.viewportPolicy;
-  root.dataset.m8aV410BoundaryAffordance = boundaryAffordance.version;
-  root.dataset.m8aV410BoundaryAffordanceScope =
-    boundaryAffordance.scope;
-  root.dataset.m8aV410BoundaryVisibleContent = serializeList([
-    ...boundaryAffordance.visibleContent
-  ]);
-  root.dataset.m8aV410BoundaryCompactCopy =
-    boundaryAffordance.compactCopy;
-  root.dataset.m8aV410BoundarySecondaryCopy =
-    boundaryAffordance.secondaryCopy;
-  root.dataset.m8aV410BoundaryDetailsBehavior =
-    boundaryAffordance.detailsBehavior;
-  root.dataset.m8aV410BoundaryFullTruthDisclosurePlacement =
-    boundaryAffordance.fullTruthDisclosurePlacement;
-  root.dataset.m8aV410BoundaryForbiddenBehavior = serializeList([
-    ...boundaryAffordance.forbiddenBehavior
-  ]);
-  root.dataset.m8aV411GlanceRankSurface =
-    M8A_V411_GLANCE_RANK_SURFACE_VERSION;
-  root.dataset.m8aV411SliceScope = "slice1-glance-rank-surface";
-  root.dataset.m8aV411SceneMicroCueCopy = microCueCopy;
-  root.dataset.m8aV411SceneMicroCueBudget = "max-width-180px|max-height-24px";
-  root.dataset.m8aV411SourceProvenanceBadge =
-    M8A_V411_SOURCE_PROVENANCE_BADGE;
-  root.dataset.m8aV411GroundOrbitEvidenceTriplet =
-    M8A_V411_GROUND_ORBIT_EVIDENCE_TRIPLET;
-  root.dataset.m8aV411GroundShortChipCopy =
-    M8A_V411_GROUND_STATION_SHORT_CHIP_COPY;
-  root.dataset.m8aV411GroundShortChipMaxWidthPx = String(
-    M8A_V411_GROUND_STATION_SHORT_CHIP_MAX_WIDTH_PX
-  );
-  root.dataset.m8aV411GroundShortChipMaxHeightPx = String(
-    M8A_V411_GROUND_STATION_SHORT_CHIP_MAX_HEIGHT_PX
-  );
-  root.dataset.m8aV411GroundShortChipFontSizePx = String(
-    M8A_V411_GROUND_STATION_SHORT_CHIP_FONT_SIZE_PX
-  );
-  root.dataset.m8aV411DemotedActorOpacity = String(
-    M8A_V411_DEMOTED_ACTOR_OPACITY
-  );
-  root.dataset.m8aV411OrbitClassChipCount = String(state.actors.length);
-  root.dataset.m8aV411VisualTokens = M8A_V411_VISUAL_TOKENS_VERSION;
-  root.dataset.m8aV411VisualTokenScope = "conv1-window-active-token";
-  root.dataset.m8aV411VisualTokenDataSourceName =
-    M8A_V411_VISUAL_TOKEN_DATA_SOURCE_NAME;
-  root.dataset.m8aV411VisualTokenActiveId =
-    visualTokenController.getActiveTokenId() ?? "none";
-  root.dataset.m8aV411VisualTokenW3RadiusMeters = String(
-    M8A_V411_W3_DISK_RADIUS_METERS
-  );
-  root.dataset.m8aV411VisualTokenW1MaxDistanceMeters = String(
-    M8A_V411_VISUAL_TOKEN_DEPTH_DISTANCES.w1MaxMeters
-  );
-  root.dataset.m8aV411VisualTokenW2MaxDistanceMeters = String(
-    M8A_V411_VISUAL_TOKEN_DEPTH_DISTANCES.w2MaxMeters
-  );
-  root.dataset.m8aV411VisualTokenW3MaxDistanceMeters = String(
-    M8A_V411_VISUAL_TOKEN_DEPTH_DISTANCES.w3MaxMeters
-  );
-  root.dataset.m8aV411VisualTokenW4MaxDistanceMeters = String(
-    M8A_V411_VISUAL_TOKEN_DEPTH_DISTANCES.w4MaxMeters
-  );
-  root.dataset.m8aV411VisualTokenW5MaxDistanceMeters = String(
-    M8A_V411_VISUAL_TOKEN_DEPTH_DISTANCES.w5MaxMeters
-  );
-  root.dataset.m8aV411SceneContextChip =
-    M8A_V411_SCENE_CONTEXT_CHIP_VERSION;
-  root.dataset.m8aV411SceneContextChipCopy =
-    M8A_V411_SCENE_CONTEXT_CHIP_COPY;
-  root.dataset.m8aV411SceneContextChipMaxWidthPx = String(
-    M8A_V411_SCENE_CONTEXT_CHIP_MAX_WIDTH_PX
-  );
-  root.dataset.m8aV411SceneContextChipMaxHeightPx = String(
-    M8A_V411_SCENE_CONTEXT_CHIP_MAX_HEIGHT_PX
-  );
-  root.dataset.m8aV411SceneContextChipFontSizePx = String(
-    M8A_V411_SCENE_CONTEXT_CHIP_FONT_SIZE_PX
-  );
-  root.dataset.m8aV411HoverPopover = M8A_V411_HOVER_POPOVER_VERSION;
-  root.dataset.m8aV411HoverSliceScope = "slice2-hover-popover";
-  root.dataset.m8aV411HoverConv2Schema = M8A_V411_HOVER_POPOVER_CONV2_SCHEMA;
-  root.dataset.m8aV411HoverDelayMs = String(M8A_V411_HOVER_POPOVER_DELAY_MS);
-  root.dataset.m8aV411HoverPopoverMaxWidthPx = String(
-    M8A_V411_HOVER_POPOVER_MAX_WIDTH_PX
-  );
-  root.dataset.m8aV411HoverPopoverMaxHeightPx = String(
-    M8A_V411_HOVER_POPOVER_MAX_HEIGHT_PX
-  );
-  root.dataset.m8aV411InspectorConcurrency =
-    M8A_V411_INSPECTOR_CONCURRENCY_VERSION;
-  root.dataset.m8aV411InspectorSliceScope =
-    "slice3-inspector-concurrency";
-  root.dataset.m8aV411InspectorConv2Behavior =
-    M8A_V411_INSPECTOR_CONCURRENCY_CONV2_BEHAVIOR;
-  root.dataset.m8aV411InspectorPrimaryRole = M8A_V411_INSPECTOR_PRIMARY_ROLE;
-  root.dataset.m8aV411InspectorRoles = serializeList([
-    "state-evidence",
-    "truth-boundary",
-    "sources"
-  ]);
-  root.dataset.m8aV411InspectorStateEvidenceState =
-    productUx.disclosure.detailsSheetState;
-  root.dataset.m8aV411InspectorTruthBoundaryState =
-    productUx.disclosure.boundarySurfaceState;
-  root.dataset.m8aV411InspectorActiveTab = selectedInspectorTab;
-  root.dataset.m8aV411InspectorVisiblePanels = serializeList(
-    [
-      decisionPanelOpen ? "decision" : "",
-      metricsPanelOpen ? "metrics" : "",
-      boundaryPanelOpen ? "boundary" : "",
-      evidencePanelOpen ? "evidence" : ""
-    ].filter(Boolean)
-  );
-  root.dataset.m8aV411FooterChipSystem = M8A_V411_FOOTER_CHIP_SYSTEM_VERSION;
-  root.dataset.m8aV411FooterChipTruthButtonRemoved = "true";
-  root.dataset.m8aV411SourcesRole = M8A_V411_SOURCES_ROLE_VERSION;
-  root.dataset.m8aV411SourcesAffordance =
-    "advanced-source-provenance-toggle-only";
-  root.dataset.m8aV411SourcesRoleState =
-    productUx.disclosure.sourcesRoleState;
-  root.dataset.m8aV411SourcesFilter = JSON.stringify(
-    productUx.disclosure.sourcesFilter
-  );
-  root.dataset.m8aV411InspectorCombinedOpen = String(sheetOpen);
-  root.dataset.m8aV411InspectorImplementationEvidenceDefaultOpen = String(
-    comprehension.inspectorLayer.debugEvidenceDefaultOpen
-  );
-  root.dataset.m8aV411InspectorMaxWidthPx = String(
-    M8A_V411_INSPECTOR_MAX_WIDTH_PX
-  );
-  root.dataset.m8aV411InspectorMaxHeightCss =
-    M8A_V411_INSPECTOR_MAX_HEIGHT_CSS;
-  root.dataset.m8aV411InspectorMaxCanvasWidthRatio = String(
-    M8A_V411_INSPECTOR_MAX_CANVAS_WIDTH_RATIO
-  );
-  root.dataset.m8aV411TransientSurface =
-    M8A_V411_TRANSIENT_SURFACE_VERSION;
-  root.dataset.m8aV411TransientSurfaceScope = "slice4-transition-toast";
-  root.dataset.m8aV411TransitionToastDurationMs = String(
-    M8A_V411_TRANSITION_TOAST_DURATION_MS
-  );
-  root.dataset.m8aV411TransitionToastMaxCount = String(
-    M8A_V411_TRANSITION_TOAST_MAX_COUNT
-  );
-  root.dataset.m8aV411TransitionToastMaxWidthPx = String(
-    M8A_V411_TRANSITION_TOAST_MAX_WIDTH_PX
-  );
-  root.dataset.m8aV411TransitionToastMaxCanvasWidthRatio = String(
-    M8A_V411_TRANSITION_TOAST_MAX_CANVAS_WIDTH_RATIO
-  );
-  root.dataset.m8aV411SceneCueMaxWidthPx = String(
-    M8A_V411_SCENE_CUE_MAX_WIDTH_PX
-  );
-  root.dataset.m8aV411SceneCueMaxHeightPx = String(
-    M8A_V411_SCENE_CUE_MAX_HEIGHT_PX
-  );
-  root.dataset.m8aV411SceneCueFadeInMs = String(
-    M8A_V411_SCENE_CUE_FADE_IN_MS
-  );
-  root.dataset.m8aV411SceneCuePersistMs = String(
-    M8A_V411_SCENE_CUE_PERSIST_MS
-  );
-  root.dataset.m8aV49WindowIds = serializeList(comprehension.windowIds);
-  root.dataset.m8aV49FirstReadMessage =
-    comprehension.activeWindowCopy.firstReadMessage;
-  root.dataset.m8aV49WatchCueLabel =
-    comprehension.activeWindowCopy.watchCueLabel;
-  root.dataset.m8aV410FirstReadLine =
-    comprehension.activeWindowCopy.firstReadMessage;
-  root.dataset.m8aV410WatchCueLine =
-    comprehension.activeWindowCopy.watchCueLabel;
-  root.dataset.m8aV410NextLine =
-    comprehension.activeWindowCopy.nextLine;
-  root.dataset.m8aV49OrbitClassToken =
-    comprehension.activeWindowCopy.orbitClassToken;
-  root.dataset.m8aV49PersistentAllowedContent = serializeList([
-    ...comprehension.persistentLayer.defaultVisibleContent
-  ]);
-  root.dataset.m8aV49PersistentDeniedDefaultContent = serializeList([
-    ...comprehension.persistentLayer.deniedDefaultVisibleContent
-  ]);
-  root.dataset.m8aV49PersistentTruthAffordance =
-    comprehension.persistentLayer.truthAffordanceLabel;
-  root.dataset.m8aV49SceneNearMeaningLayer =
-    comprehension.sceneNearMeaningLayer.scope;
-  root.dataset.m8aV49SceneNearReliableVisibleContent = serializeList([
-    ...comprehension.sceneNearMeaningLayer.reliableVisibleContent
-  ]);
-  root.dataset.m8aV49SceneNearFallbackVisibleContent = serializeList([
-    ...comprehension.sceneNearMeaningLayer.fallbackVisibleContent
-  ]);
-  root.dataset.m8aV49SceneNearReliableAnchorRequired = String(
-    comprehension.sceneNearMeaningLayer.reliableAnchorRequired
-  );
-  root.dataset.m8aV49SceneNearFallbackPolicy =
-    comprehension.sceneNearMeaningLayer.fallbackPolicy;
-  root.dataset.m8aV49SceneNearConnectorPolicy =
-    comprehension.sceneNearMeaningLayer.connectorPolicy;
-  root.dataset.m8aV49SceneNearActiveMeaning =
-    comprehension.sceneNearMeaningLayer.activeMeaning;
-  root.dataset.m8aV49SceneNearMode = sceneNear.mode;
-  root.dataset.m8aV49SceneNearMeaningVisible = String(
-    sceneNear.meaningVisible
-  );
-  root.dataset.m8aV49SceneNearCueVisible = String(sceneNear.cueVisible);
-  root.dataset.m8aV49SceneNearFallbackVisible = String(
-    sceneNear.fallbackVisible
-  );
-  root.dataset.m8aV49SceneNearAttachmentClaim =
-    sceneNear.attachmentClaim;
-  root.dataset.m8aV49TransitionEventLayer =
-    comprehension.transitionEventLayer.scope;
-  root.dataset.m8aV49TransitionEventTrigger =
-    comprehension.transitionEventLayer.trigger;
-  root.dataset.m8aV49TransitionEventDurationMs = String(
-    comprehension.transitionEventLayer.durationMs
-  );
-  root.dataset.m8aV49TransitionEventVisibleContent = serializeList([
-    ...comprehension.transitionEventLayer.visibleContent
-  ]);
-  root.dataset.m8aV49TransitionEventDeniedVisibleContent = serializeList([
-    ...comprehension.transitionEventLayer.deniedVisibleContent
-  ]);
-  root.dataset.m8aV49TransitionEventVisible =
-    String(transitionEventVisible);
-  root.dataset.m8aV49TransitionEventFromLabel =
-    transitionEvent?.fromProductLabel ?? "";
-  root.dataset.m8aV49TransitionEventToLabel =
-    transitionEvent?.toProductLabel ?? "";
-  root.dataset.m8aV49TransitionEventText =
-    transitionEvent?.summaryText ?? "";
-  root.dataset.m8aV49TransitionEventContext =
-    transitionEvent?.contextText ?? "";
-  root.dataset.m8aV49TransitionEventStateTruthSource =
-    comprehension.transitionEventLayer.currentStateTruthSource;
-  root.dataset.m8aV49TransitionEventNonBlocking =
-    comprehension.transitionEventLayer.blockingPolicy;
-  root.dataset.m8aV49InspectorLayer = comprehension.inspectorLayer.scope;
-  root.dataset.m8aV410InspectorEvidenceRedesign =
-    comprehension.inspectorLayer.v410EvidenceRedesignVersion;
-  root.dataset.m8aV410InspectorEvidenceStructure = serializeList([
-    ...comprehension.inspectorLayer.evidenceStructure
-  ]);
-  root.dataset.m8aV410InspectorFirstReadRole =
-    comprehension.inspectorLayer.firstReadRole;
-  root.dataset.m8aV410InspectorDeniedFirstReadRoles = serializeList([
-    ...comprehension.inspectorLayer.deniedFirstReadRoles
-  ]);
-  root.dataset.m8aV410InspectorNotClaimedContent = serializeList([
-    ...comprehension.inspectorLayer.notClaimedContent
-  ]);
-  root.dataset.m8aV410InspectorSurfaceSeparation =
-    comprehension.inspectorLayer.surfaceSeparation;
-  root.dataset.m8aV49InspectorPrimaryVisibleContent = serializeList([
-    ...comprehension.inspectorLayer.primaryVisibleContent
-  ]);
-  root.dataset.m8aV49InspectorDeniedPrimaryContent = serializeList([
-    ...comprehension.inspectorLayer.deniedPrimaryVisibleContent
-  ]);
-  root.dataset.m8aV49InspectorDebugEvidenceContent = serializeList([
-    ...comprehension.inspectorLayer.debugEvidenceContent
-  ]);
-  root.dataset.m8aV49InspectorDebugEvidenceDefaultOpen = String(
-    comprehension.inspectorLayer.debugEvidenceDefaultOpen
-  );
-  root.dataset.m8aV49InspectorTruthBoundaryPlacement =
-    comprehension.inspectorLayer.truthBoundaryPlacement;
-  root.dataset.m8aV49InspectorMetadataPolicy =
-    comprehension.inspectorLayer.metadataPolicy;
-  root.dataset.m8aV48ReviewWindowId = review.windowId;
-  root.dataset.m8aV48ReviewRepresentativeActorId =
-    review.representativeActor.actorId;
-  root.dataset.m8aV48ReviewCandidateContextActorIds =
-    serializeList(candidateActorIds);
-  root.dataset.m8aV48ReviewFallbackContextActorIds =
-    serializeList(fallbackActorIds);
-  root.dataset.m8aV48SceneAnchorState = review.sceneAnchorState.state;
-  root.dataset.m8aV48SelectedAnchorType = placement.selectedAnchorType;
-  root.dataset.m8aV48SelectedActorId = placement.selectedActorId;
-  root.dataset.m8aV48SelectedRelationCueId = placement.selectedRelationCueId;
-  root.dataset.m8aV48SelectedCorridorId = placement.selectedCorridorId;
-  root.dataset.m8aV48AnchorStatus = placement.anchorStatus;
-  root.dataset.m8aV48FallbackReason = placement.fallbackReason;
-  root.dataset.m8aV4ItriRequirementGapSurface =
-    requirementGapSurface.version;
-  root.dataset.m8aV4ItriRequirementGapTruthLabels = serializeList([
-    ...requirementGapSurface.truthBoundaryLabels
-  ]);
-  root.dataset.m8aV4ItriRequirementGapGroupIds = serializeList(
-    requirementGapSurface.groups.map((group) => group.groupId)
-  );
-  root.dataset.m8aV4ItriRequirementGapGroupStatuses = serializeList(
-    requirementGapSurface.groups.map((group) => `${group.groupId}:${group.status}`)
-  );
-  root.dataset.m8aV4ItriRequirementGapGroupDispositions = serializeList(
-    requirementGapSurface.groups.map(
-      (group) => `${group.groupId}:${group.disposition}`
-    )
-  );
-  root.dataset.m8aV4ItriRequirementGapOpenIds = serializeList(
-    requirementGapSurface.openRequirementIds
-  );
-  root.dataset.m8aV4ItriRequirementGapNotMountedIds = serializeList([
-    ...requirementIdsForGroup("not-mounted-route-gap")
-  ]);
-  root.dataset.m8aV4ItriRequirementGapExternalValidationIds = serializeList([
-    ...requirementIdsForGroup("external-validation-gap")
-  ]);
-  root.dataset.m8aV4ItriRequirementGapRepoSeamIds = serializeList([
-    ...requirementIdsForGroup("bounded-repo-owned-seam")
-  ]);
-  root.dataset.m8aV4ItriRequirementGapBoundedRouteIds = serializeList([
-    ...requirementIdsForGroup("bounded-route-representation")
-  ]);
-  root.dataset.m8aV4ItriRequirementGapRouteBaselineIds = serializeList([
-    ...requirementIdsForGroup("route-owned-visual-baseline")
-  ]);
-  root.dataset.m8aV4ItriDemoPolishDisposition =
-    requirementGapSurface.demoPolishDisposition;
-  root.dataset.m8aV4ItriRouteNativeMeasuredTruthClaimed = String(
-    requirementGapSurface.routeNativeMeasuredTruthClaimed
-  );
-  root.dataset.m8aV4ItriF09RateSurface = f09RateSurface.version;
-  root.dataset.m8aV4ItriF09RateDisposition = f09RateSurface.disposition;
-  root.dataset.m8aV4ItriF09ExternalTruthDisposition =
-    f09RateSurface.externalTruthDisposition;
-  root.dataset.m8aV4ItriF09CurrentWindowId = f09RateSurface.currentWindowId;
-  root.dataset.m8aV4ItriF09CurrentClass =
-    f09RateSurface.currentNetworkSpeedClass;
-  root.dataset.m8aV4ItriF09CurrentBucket =
-    f09RateSurface.currentBucketLabel;
-  root.dataset.m8aV4ItriF09Provenance = f09RateSurface.provenance;
-  root.dataset.m8aV4ItriF09MetricTruth = f09RateSurface.metricTruth;
-  root.dataset.m8aV4ItriF09MeasuredThroughputClaimed = String(
-    f09RateSurface.measuredThroughputClaimed
-  );
-  root.dataset.m8aV4ItriF09WindowClasses = serializeList(
-    f09RateSurface.rows.map(
-      (row) => `${row.windowId}:${row.networkSpeedClass}`
-    )
-  );
-  root.dataset.m8aV4ItriF16ExportSurface = f16ExportSurface.version;
-  root.dataset.m8aV4ItriF16ExportSchemaVersion =
-    f16ExportSurface.schemaVersion;
-  root.dataset.m8aV4ItriF16ExportDisposition =
-    f16ExportSurface.disposition;
-  root.dataset.m8aV4ItriF16ExternalTruthDisposition =
-    f16ExportSurface.externalTruthDisposition;
-  root.dataset.m8aV4ItriF16ExportArtifactTruth =
-    f16ExportSurface.artifactTruth;
-  root.dataset.m8aV4ItriF16ExportFormat = f16ExportSurface.exportFormat;
-  root.dataset.m8aV4ItriF16RouteOwnedStateOnly = String(
-    f16ExportSurface.routeOwnedStateOnly
-  );
-  root.dataset.m8aV4ItriF16MeasuredValuesIncluded = String(
-    f16ExportSurface.measuredValuesIncluded
-  );
-  root.dataset.m8aV4ItriF16ExternalReportTruthClaimed = String(
-    f16ExportSurface.externalReportSystemTruthClaimed
-  );
-  root.dataset.m8aV4ItriF16LastStatus = f16ExportSurface.lastStatus;
-  root.dataset.m8aV4ItriF16LastGeneratedAtUtc =
-    f16ExportSurface.lastGeneratedAtUtc;
-  root.dataset.m8aV4ItriF16LastFilename = f16ExportSurface.lastFilename;
-  root.dataset.m8aV4ItriPolicyRuleControlsSurface =
-    policyRuleControls.version;
-  root.dataset.m8aV4ItriPolicyRuleControlsDisposition =
-    policyRuleControls.disposition;
-  root.dataset.m8aV4ItriPolicyRuleExternalTruthDisposition =
-    policyRuleControls.externalTruthDisposition;
-  root.dataset.m8aV4ItriPolicyRuleTruthBoundary =
-    policyRuleControls.truthBoundary;
-  root.dataset.m8aV4ItriPolicyRuleExportAdjacentTruth =
-    policyRuleControls.exportAdjacentTruth;
-  root.dataset.m8aV4ItriF10PolicyPresetId =
-    policyRuleControls.activePolicyPreset.presetId;
-  root.dataset.m8aV4ItriF10PolicyPresetLabel =
-    policyRuleControls.activePolicyPreset.label;
-  root.dataset.m8aV4ItriF10PolicyPresetMode =
-    policyRuleControls.policyPresetMode;
-  root.dataset.m8aV4ItriF10PolicyPresetIds = serializeList(
-    policyRuleControls.policyPresets.map((preset) => preset.presetId)
-  );
-  root.dataset.m8aV4ItriF11RulePresetId =
-    policyRuleControls.activeRulePreset.presetId;
-  root.dataset.m8aV4ItriF11RulePresetLabel =
-    policyRuleControls.activeRulePreset.label;
-  root.dataset.m8aV4ItriF11RulePresetMode =
-    policyRuleControls.rulePresetMode;
-  root.dataset.m8aV4ItriF11RulePresetIds = serializeList(
-    policyRuleControls.rulePresets.map((preset) => preset.presetId)
-  );
-  root.dataset.m8aV4ItriF11RuleParameterChips = serializeList([
-    ...policyRuleControls.activeRulePreset.parameterChips
-  ]);
-  root.dataset.m8aV4ItriPolicyRuleRouteOwnedStateOnly = String(
-    policyRuleControls.routeOwnedStateOnly
-  );
-  root.dataset.m8aV4ItriPolicyRuleLiveControlClaimed = String(
-    policyRuleControls.liveControlClaimed
-  );
-  root.dataset.m8aV4ItriPolicyRuleBackendControlClaimed = String(
-    policyRuleControls.backendControlClaimed
-  );
-  root.dataset.m8aV4ItriPolicyRuleNetworkControlClaimed = String(
-    policyRuleControls.networkControlClaimed
-  );
-  root.dataset.m8aV4ItriPolicyRuleArbitraryRuleEditorClaimed = String(
-    policyRuleControls.arbitraryRuleEditorClaimed
-  );
-  root.dataset.m8aV4ItriPolicyRuleMeasuredDecisionTruthClaimed = String(
-    policyRuleControls.measuredDecisionTruthClaimed
-  );
-
-  renderProductUxDetailContent({
-    root,
-    state,
-    viewer,
-    visualTokenController,
-    sceneEndpoints,
-    productUx,
-    activeMultiplier,
-    playbackAction,
-    playbackLabel,
-    progressValue,
-    review,
-    focusChoreography,
-    comprehension,
-    boundaryAffordance,
-    stateEvidenceOpen,
-    truthBoundaryOpen,
-    sourcesRoleOpen,
-    selectedInspectorTab,
-    f09RateSurface,
-    placement,
-    sceneNear,
-    transitionEvent,
-    config: {
-      defaultTruthCopy: M8A_V4_CUSTOMER_DEMO_VIEW_DEFAULT_TRUTH_COPY,
-      fullReplaySimulatedSeconds:
-        M8A_V4_FULL_LEO_ORBIT_REPLAY_PROFILE.replayDurationMs / 1000
-    }
-  });
 }
 
 function buildRequirementGapSurfaceState(): M8aV4GroundStationSceneState["requirementGapSurface"] {
@@ -2262,19 +1068,6 @@ function downloadF16RouteExportBundle(
   }
 }
 
-function resolveActorById(
-  actors: ReadonlyArray<M8aV4OrbitActorProjection>,
-  actorId: M8aV46dActorId
-): M8aV4OrbitActorProjection {
-  const actor = actors.find((candidate) => candidate.actorId === actorId);
-
-  if (!actor) {
-    throw new Error(`Missing V4.6D display-context actor ${actorId}.`);
-  }
-
-  return actor;
-}
-
 export function createM8aV4GroundStationSceneController({
   viewer,
   hudFrame,
@@ -2296,20 +1089,6 @@ export function createM8aV4GroundStationSceneController({
     narrowVersion: M8A_V4_CUSTOMER_DEMO_VIEW_NARROW_VERSION
   });
   const listeners = new Set<(state: M8aV4GroundStationSceneState) => void>();
-  const actorSatrecs = new Map(
-    M8A_V4_GROUND_STATION_RUNTIME_PROJECTION.orbitActors.map((actor) => {
-      const lineage = actor.sourceLineage[0];
-
-      if (!lineage) {
-        throw new Error(`Missing V4 source lineage for ${actor.actorId}.`);
-      }
-
-      return [
-        actor.actorId,
-        twoline2satrec(lineage.tleLine1, lineage.tleLine2)
-      ];
-    })
-  );
   let disposed = false;
   let dataSourceAttached = false;
   let selectedPairOverlayState = createSelectedPairOverlayDebugState(
@@ -2414,379 +1193,21 @@ export function createM8aV4GroundStationSceneController({
     });
   });
 
-  const resolveSourceOrbitPosition = (
-    actor: M8aV4OrbitActorProjection,
-    time?: JulianDate,
-    result?: Cartesian3
-  ): PropagatedActorPosition => {
-    const satrec = actorSatrecs.get(actor.actorId);
-
-    if (!satrec) {
-      throw new Error(`Missing V4 satrec for ${actor.actorId}.`);
-    }
-
-    const propagationDate = time
-      ? JulianDate.toDate(time)
-      : new Date(toEpochMilliseconds(replayClock.getState().currentTime));
-    const propagated = propagate(satrec, propagationDate);
-    const target = result ?? new Cartesian3();
-
-    if (!propagated?.position) {
-      return {
-        cartesian: positionToCartesian(actor.sourcePosition),
-        propagationTimeUtc: propagationDate.toISOString()
-      };
-    }
-
-    const positionEcfKilometers = eciToEcf(
-      propagated.position,
-      gstime(propagationDate)
-    );
-    target.x = positionEcfKilometers.x * 1000;
-    target.y = positionEcfKilometers.y * 1000;
-    target.z = positionEcfKilometers.z * 1000;
-
-    return {
-      cartesian: target,
-      propagationTimeUtc: propagationDate.toISOString()
-    };
-  };
-
-  const resolveActorRenderPosition = (
-    actor: M8aV4OrbitActorProjection,
-    time?: JulianDate,
-    result?: Cartesian3
-  ): PropagatedActorPosition => {
-    const replayState = replayClock.getState();
-    const timeRatio = time
-      ? resolveReplayWindowRatio({
-          ...replayState,
-          currentTime: JulianDate.toDate(time).toISOString()
-        })
-      : resolveReplayWindowRatio(replayState);
-    const track = actor.runtimeDisplayTrack;
-    const displayMotion = resolveActorDisplayMotionState(actor, timeRatio);
-    const propagationTimeUtc = time
-      ? JulianDate.toDate(time).toISOString()
-      : toIsoTimestamp(replayState.currentTime);
-
-    if (track.trackKind === "east-asia-near-fixed-geo-anchor") {
-      // Source GEO altitude stays in sourcePosition; render height is compressed
-      // so one continuity anchor does not dominate the viewport framing.
-      return {
-        cartesian: Cartesian3.fromDegrees(
-          track.start.lon,
-          track.start.lat,
-          M8A_V4_DISPLAY_ORBIT_HEIGHT_METERS.geo.start,
-          undefined,
-          result ?? new Cartesian3()
-        ),
-        propagationTimeUtc
-      };
-    }
-
-    const loopRatio = displayMotion.pathProgress;
-    const heightMeters = resolveActorDisplayHeightMeters(
-      actor.orbitClass,
-      loopRatio,
-      loopRatio
-    );
-
-    return {
-      cartesian: Cartesian3.fromDegrees(
-        lerp(track.start.lon, track.stop.lon, loopRatio) +
-          (actor.orbitClass === "meo"
-            ? M8A_V4_MEO_DISPLAY_LANE_LONGITUDE_BIAS_DEGREES
-            : 0),
-        lerp(track.start.lat, track.stop.lat, loopRatio) +
-          (actor.orbitClass === "meo"
-            ? M8A_V4_MEO_DISPLAY_LANE_LATITUDE_BIAS_DEGREES
-            : 0),
-        heightMeters,
-        undefined,
-        result ?? new Cartesian3()
-      ),
-      propagationTimeUtc
-    };
-  };
-
-  const createActorPositionProperty = (
-    actor: M8aV4OrbitActorProjection
-  ): CallbackPositionProperty => {
-    return new CallbackPositionProperty((time, result) => {
-      return resolveActorRenderPosition(actor, time, result).cartesian;
-    }, false);
-  };
-
-  const initialEmphasisByActorId = new Map(
-    M8A_V4_GROUND_STATION_RUNTIME_PROJECTION.orbitActors.map((actor) => {
-      const emphasis = resolveActorEmphasis(actor, latestSimulationWindow);
-      return [actor.actorId, emphasis];
-    })
-  );
-  const actorHandles =
-    M8A_V4_GROUND_STATION_RUNTIME_PROJECTION.orbitActors.map(
-      (actor): ActorRenderHandle => {
-        const emphasis = initialEmphasisByActorId.get(actor.actorId);
-
-        if (!emphasis) {
-          throw new Error(`Missing V4 actor emphasis for ${actor.actorId}.`);
-        }
-
-        const entity = dataSource.entities.add(
-          createActorEntityOptions({
-            actor,
-            position: createActorPositionProperty(actor),
-            modelUri,
-            emphasis,
-            simulationWindow: latestSimulationWindow
-          })
-        );
-
-        return {
-          actor,
-          entity
-        };
-      }
-    );
-
-  const resolveRelationActorId = (
-    role: M8aV4RelationRole,
-    replayState: ReplayClockState
-  ): M8aV46dActorId => {
-    const simulationWindow = resolveSimulationHandoverWindow(replayState);
-
-    if (role === "displayRepresentative") {
-      return simulationWindow.displayRepresentativeActorId;
-    }
-
-    if (role === "candidateContext") {
-      return simulationWindow.candidateContextActorIds[0];
-    }
-
-    return simulationWindow.fallbackContextActorIds[0];
-  };
-
-  const createRelationPositions = (
-    role: M8aV4RelationRole
-  ): CallbackProperty => {
-    return new CallbackProperty((time) => {
-      const replayState = replayClock.getState();
-      const actor = resolveActorById(
-        M8A_V4_GROUND_STATION_RUNTIME_PROJECTION.orbitActors,
-        resolveRelationActorId(role, replayState)
-      );
-
-      return [
-        positionToCartesian(endpointA!.renderMarker.displayPosition),
-        resolveActorRenderPosition(actor, time).cartesian,
-        positionToCartesian(endpointB!.renderMarker.displayPosition)
-      ];
-    }, false);
-  };
-  const endpointALinkPosition = positionToCartesian(
-    endpointA.renderMarker.displayPosition
-  );
-  const endpointBLinkPosition = positionToCartesian(
-    endpointB.renderMarker.displayPosition
-  );
-  const resolveLinkFlowActor = (
-    role: M8aV4LinkFlowRelationRole,
-    replayState: ReplayClockState
-  ): M8aV4OrbitActorProjection => {
-    return resolveActorById(
-      M8A_V4_GROUND_STATION_RUNTIME_PROJECTION.orbitActors,
-      resolveRelationActorId(role, replayState)
-    );
-  };
-  const createLinkFlowSegmentPositions = (
-    role: M8aV4LinkFlowRelationRole,
-    direction: M8aV4LinkFlowDirection
-  ): CallbackProperty => {
-    return new CallbackProperty((time) => {
-      const actor = resolveLinkFlowActor(role, replayClock.getState());
-      const actorPosition = resolveActorRenderPosition(
-        actor,
-        time,
-        new Cartesian3()
-      ).cartesian;
-
-      return direction === "uplink"
-        ? [endpointALinkPosition, actorPosition]
-        : [actorPosition, endpointBLinkPosition];
-    }, false);
-  };
-  const resolveLinkFlowSegmentEndpoints = (
-    role: M8aV4LinkFlowRelationRole,
-    direction: M8aV4LinkFlowDirection,
-    time?: JulianDate
-  ): { start: Cartesian3; stop: Cartesian3 } => {
-    const actor = resolveLinkFlowActor(role, replayClock.getState());
-    const actorPosition = resolveActorRenderPosition(
-      actor,
-      time,
-      new Cartesian3()
-    ).cartesian;
-
-    return direction === "uplink"
-      ? { start: endpointALinkPosition, stop: actorPosition }
-      : { start: actorPosition, stop: endpointBLinkPosition };
-  };
-  const createLinkFlowPulseRotation = (
-    role: M8aV4LinkFlowRelationRole,
-    direction: M8aV4LinkFlowDirection
-  ): CallbackProperty => {
-    return new CallbackProperty((time) => {
-      const { start, stop } = resolveLinkFlowSegmentEndpoints(
-        role,
-        direction,
-        time
-      );
-      const startWindow = SceneTransforms.worldToWindowCoordinates(
-        viewer.scene,
-        start,
-        new Cartesian2()
-      );
-      const stopWindow = SceneTransforms.worldToWindowCoordinates(
-        viewer.scene,
-        stop,
-        new Cartesian2()
-      );
-
-      if (!startWindow || !stopWindow) {
-        return 0;
-      }
-
-      const dx = stopWindow.x - startWindow.x;
-      const dy = stopWindow.y - startWindow.y;
-
-      if (Math.abs(dx) < 0.001 && Math.abs(dy) < 0.001) {
-        return 0;
-      }
-
-      return Math.atan2(-dy, dx);
-    }, false);
-  };
-  const createLinkFlowPulsePosition = (
-    role: M8aV4LinkFlowRelationRole,
-    direction: M8aV4LinkFlowDirection,
-    pulseOffset: number
-  ): CallbackPositionProperty => {
-    return new CallbackPositionProperty((time, result) => {
-      const replayState = replayClock.getState();
-      const replayRatio = time
-        ? resolveReplayWindowRatio({
-            ...replayState,
-            currentTime: JulianDate.toDate(time).toISOString()
-          })
-        : resolveReplayWindowRatio(replayState);
-      const { start, stop } = resolveLinkFlowSegmentEndpoints(
-        role,
-        direction,
-        time,
-      );
-      const roleOffset = role === "displayRepresentative" ? 0 : 0.18;
-      const directionOffset = direction === "uplink" ? 0 : 0.11;
-      const phase = normalizeUnit(
-        replayRatio * M8A_V4_LINK_FLOW_REPLAY_CYCLES +
-          pulseOffset +
-          roleOffset +
-          directionOffset
-      );
-
-      return Cartesian3.lerp(start, stop, phase, result ?? new Cartesian3());
-    }, false);
-  };
-  const createGeoGuardCuePosition = (): CallbackPositionProperty => {
-    return new CallbackPositionProperty((time, result) => {
-      const actor = resolveActorById(
-        M8A_V4_GROUND_STATION_RUNTIME_PROJECTION.orbitActors,
-        resolveRelationActorId("fallbackContext", replayClock.getState())
-      );
-
-      return resolveActorRenderPosition(actor, time, result).cartesian;
-    }, false);
-  };
-  const relationHandles: ReadonlyArray<RelationRenderHandle> = [
-    "displayRepresentative",
-    "candidateContext"
-  ].map((role) => {
-    const relationRole = role as M8aV4RelationRole;
-    const entity = dataSource.entities.add(
-      createRelationEntityOptions(
-        relationRole,
-        createRelationPositions(relationRole)
-      )
-    );
-
-    return {
-      role: relationRole,
-      entity
-    };
+  const orbitRenderLayer = createGroundStationOrbitRenderLayer({
+    dataSource,
+    endpointA,
+    endpointB,
+    modelUri,
+    initialSimulationWindow: latestSimulationWindow,
+    replayClock,
+    viewer
   });
-  const linkFlowSegmentHandles: ReadonlyArray<LinkFlowSegmentRenderHandle> =
-    M8A_V4_LINK_FLOW_RELATION_ROLES.flatMap((role) =>
-      M8A_V4_LINK_FLOW_DIRECTIONS.map((direction) => {
-        const entity = dataSource.entities.add(
-          createLinkFlowSegmentEntityOptions({
-            role,
-            direction,
-            positions: createLinkFlowSegmentPositions(role, direction)
-          })
-        );
 
-        return {
-          role,
-          direction,
-          entity
-        };
-      })
-    );
-  const linkFlowPulseHandles: ReadonlyArray<LinkFlowPulseRenderHandle> =
-    M8A_V4_LINK_FLOW_RELATION_ROLES.flatMap((role) =>
-      M8A_V4_LINK_FLOW_DIRECTIONS.flatMap((direction) =>
-        M8A_V4_LINK_FLOW_PULSE_OFFSETS.map((pulseOffset, pulseIndex) => {
-          const entity = dataSource.entities.add(
-            createLinkFlowPulseEntityOptions({
-              role,
-              direction,
-              pulseIndex,
-              position: createLinkFlowPulsePosition(
-                role,
-                direction,
-                pulseOffset
-              ),
-              rotation: createLinkFlowPulseRotation(role, direction)
-            })
-          );
-
-          return {
-            role,
-            direction,
-            pulseIndex,
-            entity
-          };
-        })
-      )
-    );
-  const geoGuardCueEntity = dataSource.entities.add(
-    createGeoGuardCueEntityOptions(createGeoGuardCuePosition())
-  );
   function setFixtureDrivenEntitiesVisible(visible: boolean): void {
-    for (const handle of actorHandles) {
-      handle.entity.show = visible;
-    }
-    for (const handle of relationHandles) {
-      handle.entity.show = visible;
-    }
-    for (const handle of linkFlowSegmentHandles) {
-      handle.entity.show = visible;
-    }
-    for (const handle of linkFlowPulseHandles) {
-      handle.entity.show = visible;
-    }
-    geoGuardCueEntity.show =
-      visible && shouldShowGeoGuardCue(latestSimulationWindow);
+    orbitRenderLayer.setFixtureDrivenEntitiesVisible(
+      visible,
+      latestSimulationWindow
+    );
   }
 
   const clearFinalHoldTimer = (): void => {
@@ -3252,56 +1673,9 @@ export function createM8aV4GroundStationSceneController({
       reviewerModeState,
       narrowRailDrawerOpen
     });
-    const actorEmphasis =
-      M8A_V4_GROUND_STATION_RUNTIME_PROJECTION.orbitActors.map((actor) =>
-        resolveActorEmphasis(actor, simulationWindow)
-      );
-    const actorEmphasisById = new Map(
-      actorEmphasis.map((emphasis) => [emphasis.actorId, emphasis])
-    );
-    const actors = M8A_V4_GROUND_STATION_RUNTIME_PROJECTION.orbitActors.map(
-      (actor): M8aV4ActorRuntimeRecord => {
-        const sourcePropagated = resolveSourceOrbitPosition(actor);
-        const renderPropagated = resolveActorRenderPosition(actor);
-        const emphasis = actorEmphasisById.get(actor.actorId);
-
-        if (!emphasis) {
-          throw new Error(`Missing V4 emphasis for ${actor.actorId}.`);
-        }
-
-        return {
-          actorId: actor.actorId,
-          label: actor.label,
-          orbitClass: actor.orbitClass,
-          displayRole: actor.displayRole,
-          operatorContext: actor.operatorContext,
-          sourceEpochUtc: actor.sourceEpochUtc,
-          projectionEpochUtc: actor.projectionEpochUtc,
-          motionMode: actor.motionMode,
-          evidenceClass: actor.evidenceClass,
-          modelAssetId: actor.modelAssetId,
-          modelTruth: actor.modelTruth,
-          sourcePositionEcefMeters: positionToPlainMeters(
-            sourcePropagated.cartesian
-          ),
-          renderPositionEcefMeters: positionToPlainMeters(
-            renderPropagated.cartesian
-          ),
-          artifactRenderPosition: actor.artifactRenderPosition,
-          renderTrackBasis: actor.runtimeDisplayTrack.renderTrackBasis,
-          renderTrackIsSourceTruth:
-            actor.runtimeDisplayTrack.renderTrackIsSourceTruth,
-          displayMotion: resolveActorDisplayMotionState(
-            actor,
-            resolveReplayWindowRatio(replayState)
-          ),
-          propagationTimeUtc: sourcePropagated.propagationTimeUtc,
-          emphasis: emphasis.emphasis,
-          labelVisibility: shouldRenderActorLabel(actor, simulationWindow)
-            ? "always-visible"
-            : "hidden-context"
-        };
-      }
+    const actors = orbitRenderLayer.buildActorRuntimeRecords(
+      replayState,
+      simulationWindow
     );
     const orbitActorCounts = {
       leo: actors.filter((actor) => actor.orbitClass === "leo").length,
@@ -3460,38 +1834,7 @@ export function createM8aV4GroundStationSceneController({
     lastSyncReplayRatio = nextState.productUx.playback.replayRatio;
 
     latestSimulationWindow = nextState.simulationHandoverModel.window;
-    const emphasisById = new Map(
-      nextState.actors.map((actor) => [
-        actor.actorId,
-        resolveActorEmphasis(
-          M8A_V4_GROUND_STATION_RUNTIME_PROJECTION.orbitActors.find(
-            (projectionActor) => projectionActor.actorId === actor.actorId
-          ) ?? M8A_V4_GROUND_STATION_RUNTIME_PROJECTION.orbitActors[0],
-          latestSimulationWindow
-        )
-      ])
-    );
-
-    for (const handle of actorHandles) {
-      const emphasis = emphasisById.get(handle.actor.actorId);
-
-      if (emphasis) {
-        updateActorStyle(handle, emphasis, latestSimulationWindow);
-      }
-    }
-
-    for (const handle of relationHandles) {
-      updateRelationStyle(handle);
-    }
-
-    for (const handle of linkFlowSegmentHandles) {
-      updateLinkFlowSegmentStyle(handle);
-    }
-
-    for (const handle of linkFlowPulseHandles) {
-      updateLinkFlowPulseStyle(handle);
-    }
-
+    orbitRenderLayer.sync(latestSimulationWindow);
     setFixtureDrivenEntitiesVisible(!sceneEndpointContext.selectedPair);
 
     renderHud(hudRoot, nextState);
@@ -3500,7 +1843,14 @@ export function createM8aV4GroundStationSceneController({
       nextState,
       viewer,
       visualTokenController,
-      sceneEndpointContext.endpoints
+      sceneEndpointContext.endpoints,
+      {
+        defaultFocusVersion: M8A_V4_CUSTOMER_DEMO_VIEW_DEFAULT_FOCUS_VERSION,
+        narrowVersion: M8A_V4_CUSTOMER_DEMO_VIEW_NARROW_VERSION,
+        defaultTruthCopy: M8A_V4_CUSTOMER_DEMO_VIEW_DEFAULT_TRUTH_COPY,
+        fullReplaySimulatedSeconds:
+          M8A_V4_FULL_LEO_ORBIT_REPLAY_PROFILE.replayDurationMs / 1000
+      }
     );
     syncTelemetry(nextState);
     notifyListeners(listeners, nextState);

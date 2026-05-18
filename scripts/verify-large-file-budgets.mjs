@@ -27,10 +27,22 @@ const COMMON_RUNTIME_HELPERS = [
   "src/runtime/m8a-v4-ground-station-cesium-entities.ts",
   "src/runtime/m8a-v4-ground-station-placement.ts",
   "src/runtime/m8a-v4-ground-station-product-dom.ts",
+  "src/runtime/m8a-v4-ground-station-product-sync.ts",
+  "src/runtime/m8a-v4-ground-station-scene-frame.ts",
+  "src/runtime/m8a-v4-ground-station-orbit-render-layer.ts",
   "src/runtime/m8a-v4-ground-station-state-builders.ts",
   "src/runtime/m8a-v4-ground-station-event-handlers.ts",
   "src/runtime/m8a-v4-ground-station-replay-lifecycle.ts",
   "src/runtime/m8a-v4-ground-station-export-policy.ts"
+];
+const COMMON_SMOKE_HELPERS = [
+  "tests/smoke/helpers/m8a-v4-browser-capture-harness.mjs",
+  "tests/smoke/helpers/m8a-v4-product-comprehension-data.mjs",
+  "tests/smoke/helpers/m8a-v4-product-comprehension-inspector-checks.mjs",
+  "tests/smoke/helpers/m8a-v4-product-comprehension-interaction-checks.mjs",
+  "tests/smoke/helpers/m8a-v4-product-comprehension-navigation.mjs",
+  "tests/smoke/helpers/m8a-v4-product-comprehension-persistent-checks.mjs",
+  "tests/smoke/helpers/m8a-v4-product-comprehension-transition-checks.mjs"
 ];
 
 const budgets = profile === "final"
@@ -52,6 +64,11 @@ const budgets = profile === "final"
         path: "tests/smoke/verify-m8a-v4.9-product-comprehension-runtime.mjs",
         maxLines: 1200
       },
+      ...COMMON_SMOKE_HELPERS.map((path) => ({
+        id: "smoke-helper",
+        path,
+        maxLines: 1200
+      })),
       {
         id: "stylesheet-watch",
         path: "src/styles.css",
@@ -79,6 +96,12 @@ const budgets = profile === "final"
         maxLines: 3000,
         targetLines: 1200
       },
+      ...COMMON_SMOKE_HELPERS.map((path) => ({
+        id: "smoke-helper",
+        path,
+        maxLines: 1500,
+        targetLines: 1200
+      })),
       {
         id: "stylesheet-watch",
         path: "src/styles.css",
