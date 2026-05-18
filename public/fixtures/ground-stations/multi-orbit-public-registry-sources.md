@@ -412,3 +412,13 @@ that we could quote in this revision:
   are classified or not publicly disclosed, the registry lists the
   municipality / operator-family region center and tags
   `disclosurePrecision: "operator-family-region"`.
+
+## Station precision fields
+
+- `elevationM` is an integer metre value above sea level, populated from the
+  SRTM 1arcsec global DEM through `scripts/refresh-station-elevation.mjs`.
+  The script uses the Open-Elevation REST lookup service and records the
+  lookup timestamp in `station-elevations-cache.json`.
+- `terrainMaskDeg` is a single-value horizon mask in integer degrees. It
+  defaults to `0` for this bulk registry fill pending a future per-station
+  terrain audit.

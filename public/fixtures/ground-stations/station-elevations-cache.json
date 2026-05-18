@@ -1,0 +1,347 @@
+[
+  {
+    "stationId": "ksat-svalsat-svalbard",
+    "elevationM": 0,
+    "sourceAccessedUtc": "2026-05-18T23:03:47.857Z"
+  },
+  {
+    "stationId": "ksat-trollsat-antarctica",
+    "elevationM": 0,
+    "sourceAccessedUtc": "2026-05-18T23:03:47.857Z"
+  },
+  {
+    "stationId": "ksat-tromso",
+    "elevationM": 0,
+    "sourceAccessedUtc": "2026-05-18T23:03:47.857Z"
+  },
+  {
+    "stationId": "ksat-punta-arenas",
+    "elevationM": 13,
+    "sourceAccessedUtc": "2026-05-18T23:03:47.857Z"
+  },
+  {
+    "stationId": "ksat-inuvik",
+    "elevationM": 0,
+    "sourceAccessedUtc": "2026-05-18T23:03:47.857Z"
+  },
+  {
+    "stationId": "ksat-hartebeesthoek",
+    "elevationM": 1538,
+    "sourceAccessedUtc": "2026-05-18T23:03:47.857Z"
+  },
+  {
+    "stationId": "ksat-singapore",
+    "elevationM": 66,
+    "sourceAccessedUtc": "2026-05-18T23:03:47.857Z"
+  },
+  {
+    "stationId": "ksat-dubai",
+    "elevationM": 5,
+    "sourceAccessedUtc": "2026-05-18T23:03:47.857Z"
+  },
+  {
+    "stationId": "ksat-mauritius",
+    "elevationM": 572,
+    "sourceAccessedUtc": "2026-05-18T23:03:47.857Z"
+  },
+  {
+    "stationId": "ksat-fairbanks",
+    "elevationM": 0,
+    "sourceAccessedUtc": "2026-05-18T23:03:47.857Z"
+  },
+  {
+    "stationId": "ksat-awarua",
+    "elevationM": 11,
+    "sourceAccessedUtc": "2026-05-18T23:03:47.857Z"
+  },
+  {
+    "stationId": "ses-betzdorf",
+    "elevationM": 278,
+    "sourceAccessedUtc": "2026-05-18T23:03:47.857Z"
+  },
+  {
+    "stationId": "ses-manassas",
+    "elevationM": 97,
+    "sourceAccessedUtc": "2026-05-18T23:03:47.857Z"
+  },
+  {
+    "stationId": "ses-vernon-valley",
+    "elevationM": 215,
+    "sourceAccessedUtc": "2026-05-18T23:03:47.857Z"
+  },
+  {
+    "stationId": "ses-o3b-thermopylae",
+    "elevationM": 34,
+    "sourceAccessedUtc": "2026-05-18T23:03:47.857Z"
+  },
+  {
+    "stationId": "ses-o3b-dubbo",
+    "elevationM": 266,
+    "sourceAccessedUtc": "2026-05-18T23:03:47.857Z"
+  },
+  {
+    "stationId": "ses-o3b-merredin",
+    "elevationM": 321,
+    "sourceAccessedUtc": "2026-05-18T23:03:47.857Z"
+  },
+  {
+    "stationId": "ses-o3b-hawaii",
+    "elevationM": 164,
+    "sourceAccessedUtc": "2026-05-18T23:03:47.857Z"
+  },
+  {
+    "stationId": "ses-o3b-vernon-tx",
+    "elevationM": 376,
+    "sourceAccessedUtc": "2026-05-18T23:03:47.857Z"
+  },
+  {
+    "stationId": "ses-o3b-sintra",
+    "elevationM": 187,
+    "sourceAccessedUtc": "2026-05-18T23:03:47.857Z"
+  },
+  {
+    "stationId": "ses-o3b-fujairah",
+    "elevationM": 23,
+    "sourceAccessedUtc": "2026-05-18T23:03:47.857Z"
+  },
+  {
+    "stationId": "ses-o3b-gandoul-senegal",
+    "elevationM": 0,
+    "sourceAccessedUtc": "2026-05-18T23:03:47.857Z"
+  },
+  {
+    "stationId": "ses-o3b-lurin-peru",
+    "elevationM": 9,
+    "sourceAccessedUtc": "2026-05-18T23:03:47.857Z"
+  },
+  {
+    "stationId": "ses-o3b-hartebeesthoek",
+    "elevationM": 1538,
+    "sourceAccessedUtc": "2026-05-18T23:03:47.857Z"
+  },
+  {
+    "stationId": "ses-o3b-santiago",
+    "elevationM": 544,
+    "sourceAccessedUtc": "2026-05-18T23:03:47.857Z"
+  },
+  {
+    "stationId": "intelsat-fuchsstadt",
+    "elevationM": 337,
+    "sourceAccessedUtc": "2026-05-18T23:03:47.857Z"
+  },
+  {
+    "stationId": "intelsat-atlanta",
+    "elevationM": 241,
+    "sourceAccessedUtc": "2026-05-18T23:03:47.857Z"
+  },
+  {
+    "stationId": "intelsat-hagerstown",
+    "elevationM": 171,
+    "sourceAccessedUtc": "2026-05-18T23:03:47.857Z"
+  },
+  {
+    "stationId": "intelsat-riverside",
+    "elevationM": 464,
+    "sourceAccessedUtc": "2026-05-18T23:03:47.857Z"
+  },
+  {
+    "stationId": "eutelsat-rambouillet",
+    "elevationM": 163,
+    "sourceAccessedUtc": "2026-05-18T23:03:47.857Z"
+  },
+  {
+    "stationId": "eutelsat-cagliari",
+    "elevationM": 31,
+    "sourceAccessedUtc": "2026-05-18T23:03:47.857Z"
+  },
+  {
+    "stationId": "eutelsat-skypark-turin",
+    "elevationM": 248,
+    "sourceAccessedUtc": "2026-05-18T23:03:47.857Z"
+  },
+  {
+    "stationId": "eutelsat-martinique-lamentin",
+    "elevationM": 18,
+    "sourceAccessedUtc": "2026-05-18T23:03:47.857Z"
+  },
+  {
+    "stationId": "eutelsat-bercenay-en-othe",
+    "elevationM": 250,
+    "sourceAccessedUtc": "2026-05-18T23:03:47.857Z"
+  },
+  {
+    "stationId": "oneweb-svalbard-snp",
+    "elevationM": 0,
+    "sourceAccessedUtc": "2026-05-18T23:03:47.857Z"
+  },
+  {
+    "stationId": "oneweb-nuuk-snp",
+    "elevationM": 0,
+    "sourceAccessedUtc": "2026-05-18T23:03:47.857Z"
+  },
+  {
+    "stationId": "oneweb-yellowknife-snp",
+    "elevationM": 0,
+    "sourceAccessedUtc": "2026-05-18T23:03:47.857Z"
+  },
+  {
+    "stationId": "oneweb-ubon-snp",
+    "elevationM": 122,
+    "sourceAccessedUtc": "2026-05-18T23:03:47.857Z"
+  },
+  {
+    "stationId": "oneweb-tabuk-snp",
+    "elevationM": 771,
+    "sourceAccessedUtc": "2026-05-18T23:03:47.857Z"
+  },
+  {
+    "stationId": "oneweb-cali-zonamerica",
+    "elevationM": 1010,
+    "sourceAccessedUtc": "2026-05-18T23:03:47.857Z"
+  },
+  {
+    "stationId": "oneweb-marica-telespazio",
+    "elevationM": 14,
+    "sourceAccessedUtc": "2026-05-18T23:03:47.857Z"
+  },
+  {
+    "stationId": "oneweb-stara-zagora-vivacom",
+    "elevationM": 204,
+    "sourceAccessedUtc": "2026-05-18T23:03:47.857Z"
+  },
+  {
+    "stationId": "telesat-allan-park",
+    "elevationM": 311,
+    "sourceAccessedUtc": "2026-05-18T23:03:47.857Z"
+  },
+  {
+    "stationId": "telesat-mount-jackson",
+    "elevationM": 278,
+    "sourceAccessedUtc": "2026-05-18T23:03:47.857Z"
+  },
+  {
+    "stationId": "viasat-inmarsat-burum",
+    "elevationM": -2,
+    "sourceAccessedUtc": "2026-05-18T23:03:47.857Z"
+  },
+  {
+    "stationId": "viasat-inmarsat-paumalu",
+    "elevationM": 144,
+    "sourceAccessedUtc": "2026-05-18T23:03:47.857Z"
+  },
+  {
+    "stationId": "viasat-inmarsat-fucino",
+    "elevationM": 652,
+    "sourceAccessedUtc": "2026-05-18T23:03:47.857Z"
+  },
+  {
+    "stationId": "speedcast-mawson-lakes",
+    "elevationM": 11,
+    "sourceAccessedUtc": "2026-05-18T23:03:47.857Z"
+  },
+  {
+    "stationId": "speedcast-aberdeen",
+    "elevationM": 24,
+    "sourceAccessedUtc": "2026-05-18T23:03:47.857Z"
+  },
+  {
+    "stationId": "speedcast-biddinghuizen",
+    "elevationM": -2,
+    "sourceAccessedUtc": "2026-05-18T23:03:47.857Z"
+  },
+  {
+    "stationId": "speedcast-kuala-lumpur",
+    "elevationM": 41,
+    "sourceAccessedUtc": "2026-05-18T23:03:47.857Z"
+  },
+  {
+    "stationId": "speedcast-perth",
+    "elevationM": 27,
+    "sourceAccessedUtc": "2026-05-18T23:03:47.857Z"
+  },
+  {
+    "stationId": "goonhilly-cornwall",
+    "elevationM": 102,
+    "sourceAccessedUtc": "2026-05-18T23:03:47.857Z"
+  },
+  {
+    "stationId": "telespazio-rio-bt7",
+    "elevationM": 17,
+    "sourceAccessedUtc": "2026-05-18T23:03:47.857Z"
+  },
+  {
+    "stationId": "telespazio-scanzano",
+    "elevationM": 408,
+    "sourceAccessedUtc": "2026-05-18T23:03:47.857Z"
+  },
+  {
+    "stationId": "sansa-hartebeesthoek",
+    "elevationM": 1538,
+    "sourceAccessedUtc": "2026-05-18T23:03:47.857Z"
+  },
+  {
+    "stationId": "ssc-esrange-kiruna",
+    "elevationM": 0,
+    "sourceAccessedUtc": "2026-05-18T23:03:47.857Z"
+  },
+  {
+    "stationId": "ssc-inuvik",
+    "elevationM": 0,
+    "sourceAccessedUtc": "2026-05-18T23:03:47.857Z"
+  },
+  {
+    "stationId": "ssc-punta-arenas",
+    "elevationM": 13,
+    "sourceAccessedUtc": "2026-05-18T23:03:47.857Z"
+  },
+  {
+    "stationId": "ssc-yatharagga-wasc",
+    "elevationM": 268,
+    "sourceAccessedUtc": "2026-05-18T23:03:47.857Z"
+  },
+  {
+    "stationId": "telenor-nittedal",
+    "elevationM": 0,
+    "sourceAccessedUtc": "2026-05-18T23:03:47.857Z"
+  },
+  {
+    "stationId": "asiasat-tai-po",
+    "elevationM": 28,
+    "sourceAccessedUtc": "2026-05-18T23:03:47.857Z"
+  },
+  {
+    "stationId": "singtel-bukit-timah",
+    "elevationM": 58,
+    "sourceAccessedUtc": "2026-05-18T23:03:47.857Z"
+  },
+  {
+    "stationId": "singtel-seletar",
+    "elevationM": 23,
+    "sourceAccessedUtc": "2026-05-18T23:03:47.857Z"
+  },
+  {
+    "stationId": "kt-sat-kumsan",
+    "elevationM": 161,
+    "sourceAccessedUtc": "2026-05-18T23:03:47.857Z"
+  },
+  {
+    "stationId": "measat-cyberjaya",
+    "elevationM": 22,
+    "sourceAccessedUtc": "2026-05-18T23:03:47.857Z"
+  },
+  {
+    "stationId": "cht-yangmingshan",
+    "elevationM": 470,
+    "sourceAccessedUtc": "2026-05-18T23:03:47.857Z"
+  },
+  {
+    "stationId": "cht-fangshan",
+    "elevationM": 230,
+    "sourceAccessedUtc": "2026-05-18T23:03:47.857Z"
+  },
+  {
+    "stationId": "hispasat-arganda",
+    "elevationM": 762,
+    "sourceAccessedUtc": "2026-05-18T23:03:47.857Z"
+  }
+]
