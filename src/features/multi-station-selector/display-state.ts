@@ -116,6 +116,7 @@ export function subscribeDisplayState(
   let infoCardOpen = false;
   let replayClockIsPlaying = readIsPlaying(replayClock.getState());
   let lastState: DisplayState | null = null;
+  let lastResolvedPairKey: string | null = null;
 
   function readCurrentResolvedPair(): V4ResolvedStationPair | null {
     if (typeof window === "undefined") {
@@ -124,6 +125,12 @@ export function subscribeDisplayState(
     return resolveV4RouteSelection(
       new URLSearchParams(window.location.search)
     ).resolvedPair;
+  }
+
+  function resolvedPairKey(
+    pair: V4ResolvedStationPair | null
+  ): string | null {
+    return pair ? `${pair.stationA.id} ${pair.stationB.id}` : null;
   }
 
   function compute(): void {
@@ -136,11 +143,19 @@ export function subscribeDisplayState(
       infoCardOpen,
       replayClockIsPlaying
     });
-    if (next === lastState) {
+    const resolvedPair = readCurrentResolvedPair();
+    const pairKey = resolvedPairKey(resolvedPair);
+    // Fire onChange when EITHER the derived state OR the resolved pair
+    // identity changes. The pair-identity check lets a reselection
+    // within the same state (e.g. `replaying` → `replaying` with new
+    // stationA/stationB) propagate to the V4 panel + controller
+    // endpoint surfaces without forcing a full state transition.
+    if (next === lastState && pairKey === lastResolvedPairKey) {
       return;
     }
     lastState = next;
-    onChange(next, readCurrentResolvedPair());
+    lastResolvedPairKey = pairKey;
+    onChange(next, resolvedPair);
   }
 
   const unsubscribeStore = store.subscribe(() => {

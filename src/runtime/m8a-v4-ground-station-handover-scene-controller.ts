@@ -855,6 +855,17 @@ export interface M8aV4GroundStationSceneController {
   setDebugPlaybackMultiplier(
     multiplier: typeof M8A_V47_DEBUG_TEST_MULTIPLIER
   ): void;
+  /**
+   * Re-anchor the V4 scene's selected-pair surfaces (endpoint A/B
+   * markers, ribbon polyline, camera framing, selected-pair satellite
+   * overlay) to a new resolved pair without a page reload. Wave 2 §A.6
+   * extension — composition wires this to the selection-store so a
+   * reselection during an existing session hot-mounts new endpoints.
+   *
+   * Passing `null` is a no-op; selection clear continues to dispose the
+   * V4 controller via display-state.
+   */
+  setSelectedPair(pair: V4ResolvedStationPair | null): void;
   dispose(): void;
 }
 
@@ -6986,7 +6997,10 @@ export function createM8aV4GroundStationSceneController({
 }: M8aV4GroundStationSceneControllerOptions): M8aV4GroundStationSceneController {
   const modelUri = resolveModelUri();
   const dataSource = new CustomDataSource(M8A_V4_GROUND_STATION_DATA_SOURCE_NAME);
-  const sceneEndpointContext = buildSceneEndpointContext();
+  // sceneEndpointContext is reassigned by setSelectedPair (wave 2 §A.6
+  // extension) so endpoint A/B markers + ribbon + camera framing can
+  // re-anchor on a reselection without a page reload.
+  let sceneEndpointContext = buildSceneEndpointContext();
   const visualTokenController: M8aV411VisualTokenController =
     installM8aV411VisualTokens(viewer);
   const hudRoot = createHudRoot();
@@ -7063,10 +7077,14 @@ export function createM8aV4GroundStationSceneController({
   hudFrame.appendChild(hudRoot);
   hudFrame.appendChild(productUxRoot);
 
-  const endpointA = sceneEndpointContext.endpoints.find(
+  // endpointA / endpointB are reassigned by setSelectedPair so the closures
+  // captured below (createRelationPositions, createLinkFlowSegmentPositions,
+  // resolveLinkFlowSegmentEndpoints, etc.) read the current selected pair's
+  // render positions through their .renderMarker.displayPosition lookups.
+  let endpointA = sceneEndpointContext.endpoints.find(
     (endpoint) => endpoint.endpointRole === "endpoint-a"
   );
-  const endpointB = sceneEndpointContext.endpoints.find(
+  let endpointB = sceneEndpointContext.endpoints.find(
     (endpoint) => endpoint.endpointRole === "endpoint-b"
   );
 
@@ -7304,10 +7322,13 @@ export function createM8aV4GroundStationSceneController({
         resolveRelationActorId(role, replayState)
       );
 
+      // endpointA / endpointB are reassigned by applySelectedPair but
+      // always to non-null values (the function returns early without
+      // setting them undefined); the non-null assertions stay safe.
       return [
-        positionToCartesian(endpointA.renderMarker.displayPosition),
+        positionToCartesian(endpointA!.renderMarker.displayPosition),
         resolveActorRenderPosition(actor, time).cartesian,
-        positionToCartesian(endpointB.renderMarker.displayPosition)
+        positionToCartesian(endpointB!.renderMarker.displayPosition)
       ];
     }, false);
   };
@@ -8671,6 +8692,147 @@ export function createM8aV4GroundStationSceneController({
     syncState();
   });
 
+  /**
+   * Wave-2 selection re-anchor: rebuild the endpoint markers, ribbon
+   * polyline, camera framing, and selected-pair satellite overlay from a
+   * freshly resolved pair without disposing the controller. Touches the
+   * minimum entity surface — endpoint entities, ribbon entity, and the
+   * selected-pair overlay entities. Fixture-driven actors, relations,
+   * link-flow segments, and the productUx HUD are left untouched.
+   */
+  function applySelectedPair(pair: V4ResolvedStationPair | null): void {
+    if (disposed) {
+      return;
+    }
+    // Remove the existing endpoint + ribbon + selected-pair overlay
+    // entities. The selected-pair overlay tags its satellite entities with
+    // `m8a-v4-selected-pair-satellite-*` and a single
+    // `m8a-v4-selected-pair-runtime-link` polyline; iterate over a
+    // snapshot because removeById mutates the live list.
+    if (endpointA) {
+      dataSource.entities.removeById(`m8a-v4-endpoint-${endpointA.endpointId}`);
+    }
+    if (endpointB) {
+      dataSource.entities.removeById(`m8a-v4-endpoint-${endpointB.endpointId}`);
+    }
+    dataSource.entities.removeById(
+      "m8a-v4-operator-family-endpoint-context-ribbon"
+    );
+    const overlayEntityIds = dataSource.entities.values
+      .map((entity) => entity.id)
+      .filter((id) =>
+        typeof id === "string" &&
+        (id === "m8a-v4-selected-pair-runtime-link" ||
+          id.startsWith("m8a-v4-selected-pair-satellite-"))
+      );
+    for (const id of overlayEntityIds) {
+      dataSource.entities.removeById(id);
+    }
+
+    // Rebuild the scene endpoint context from the new pair. When pair is
+    // null, the runtime projection's fixture-driven endpoints take over,
+    // matching the bootstrap-time fallback shape from buildSceneEndpointContext.
+    if (pair) {
+      sceneEndpointContext = {
+        endpoints: [
+          createSelectedPairEndpointContext(pair.stationA, "endpoint-a"),
+          createSelectedPairEndpointContext(pair.stationB, "endpoint-b")
+        ],
+        selectedPair: pair
+      };
+    } else {
+      sceneEndpointContext = {
+        endpoints: M8A_V4_GROUND_STATION_RUNTIME_PROJECTION.endpoints,
+        selectedPair: null
+      };
+    }
+
+    endpointA = sceneEndpointContext.endpoints.find(
+      (endpoint) => endpoint.endpointRole === "endpoint-a"
+    );
+    endpointB = sceneEndpointContext.endpoints.find(
+      (endpoint) => endpoint.endpointRole === "endpoint-b"
+    );
+
+    if (!endpointA || !endpointB) {
+      return;
+    }
+
+    // Re-add the endpoint entities at the new positions.
+    for (const endpoint of sceneEndpointContext.endpoints) {
+      dataSource.entities.add({
+        id: `m8a-v4-endpoint-${endpoint.endpointId}`,
+        name: endpoint.renderMarker.label,
+        position: positionToCartesian(endpoint.renderMarker.displayPosition),
+        point: createEndpointPointStyle(endpoint),
+        ellipse: createEndpointEllipseStyle(endpoint),
+        label: createEndpointLabelStyle(endpoint),
+        description: new ConstantProperty(
+          `${endpoint.endpointLabel}; ${endpoint.renderMarker.requiredPrecisionBadge}; display context only.`
+        )
+      });
+    }
+
+    // Re-add the ribbon polyline at the new positions.
+    dataSource.entities.add({
+      id: "m8a-v4-operator-family-endpoint-context-ribbon",
+      name: sceneEndpointContext.selectedPair
+        ? "Selected pair endpoint context ribbon"
+        : "Operator-family endpoint context ribbon",
+      polyline: new PolylineGraphics({
+        positions: new ConstantProperty([
+          positionToCartesian(endpointA.renderMarker.displayPosition),
+          positionToCartesian(endpointB.renderMarker.displayPosition)
+        ]),
+        width: new ConstantProperty(1.4),
+        material: new PolylineDashMaterialProperty({
+          color: new ConstantProperty(
+            Color.fromCssColorString("#f4fbff").withAlpha(0.42)
+          ),
+          gapColor: new ConstantProperty(
+            Color.fromCssColorString("#06121a").withAlpha(0.06)
+          ),
+          dashLength: 20
+        }),
+        arcType: ArcType.GEODESIC,
+        clampToGround: false
+      }),
+      description: new ConstantProperty(
+        sceneEndpointContext.selectedPair
+          ? "Selected pair context ribbon; public registry coordinates; display context only."
+          : "Endpoint pair context ribbon; operator-family precision; display context only."
+      )
+    });
+
+    // Reset the overlay debug state to `loading` while the async overlay
+    // install re-runs; the onStateChange callback below resets it to
+    // `ready`/`empty`/`error` as the projection completes.
+    selectedPairOverlayState = createSelectedPairOverlayDebugState(
+      sceneEndpointContext.selectedPair ? "loading" : "not-requested"
+    );
+
+    void installSelectedPairSceneOverlay({
+      dataSource,
+      endpointA,
+      endpointB,
+      replayClock,
+      sceneEndpointContext,
+      viewer,
+      onStateChange: (state) => {
+        selectedPairOverlayState = state;
+      },
+      shouldSkip: () => disposed
+    }).catch((error) => {
+      selectedPairOverlayState = createSelectedPairOverlayDebugState("error", {
+        errorMessage:
+          error instanceof Error ? error.message : "unknown overlay error"
+      });
+    });
+
+    applyV4Camera(viewer, sceneEndpointContext);
+    viewer.scene.requestRender();
+  }
+
   return {
     getState(): M8aV4GroundStationSceneState {
       completeFinalHoldIfElapsed();
@@ -8706,6 +8868,9 @@ export function createM8aV4GroundStationSceneController({
       multiplier: typeof M8A_V47_DEBUG_TEST_MULTIPLIER
     ): void {
       setDebugTestPlaybackMultiplier(multiplier);
+    },
+    setSelectedPair(pair: V4ResolvedStationPair | null): void {
+      applySelectedPair(pair);
     },
     dispose(): void {
       disposed = true;

@@ -828,6 +828,10 @@ export function startBootstrapComposition(app: HTMLDivElement): BootstrapComposi
   // The subscription also writes body[data-display-state] so CSS can
   // branch on the surface state without per-tick JS (IA §3).
   let v4ProjectionSidePanel: V4ProjectionSidePanelHandle | null = null;
+  // Track the mounted pair so a reselection during an existing session
+  // (state stays projecting/replaying but slot ids change) disposes the
+  // stale panel and remounts with the fresh pair. Wave 2 §A.6 extension.
+  let v4ProjectionSidePanelMountedPairKey: string | null = null;
   let unsubscribeDisplayState: (() => void) | null = null;
   if (groundStationSelectionStore && groundStationInfoCard) {
     const registryResolves = (id: string): boolean =>
@@ -840,16 +844,39 @@ export function startBootstrapComposition(app: HTMLDivElement): BootstrapComposi
       (state: DisplayState, resolvedPair) => {
         document.body.dataset.displayState = state;
         const isPanelState = state === "projecting" || state === "replaying";
+        const pairKey = resolvedPair
+          ? `${resolvedPair.stationA.id} ${resolvedPair.stationB.id}`
+          : null;
         if (isPanelState && resolvedPair) {
+          if (
+            v4ProjectionSidePanel &&
+            v4ProjectionSidePanelMountedPairKey !== pairKey
+          ) {
+            // Pair changed mid-session — dispose stale panel so it
+            // remounts with the fresh pair header / window / stats.
+            v4ProjectionSidePanel.dispose();
+            v4ProjectionSidePanel = null;
+            v4ProjectionSidePanelMountedPairKey = null;
+          }
           if (!v4ProjectionSidePanel) {
             v4ProjectionSidePanel = mountV4ProjectionSidePanel(
               viewer.container as HTMLElement,
               { resolvedPair }
             );
+            v4ProjectionSidePanelMountedPairKey = pairKey;
           }
+          // wave 2 §A.6 extension: re-anchor the V4 controller's endpoint
+          // markers + ribbon + camera framing + selected-pair overlay
+          // through the controller's exported setSelectedPair. The
+          // controller mounts at most once per page life; this call is
+          // a no-op when the resolved pair matches the controller's
+          // existing endpoints because the entity-id keys land on the
+          // same entities and the camera framing converges.
+          m8aV4GroundStationScene?.setSelectedPair(resolvedPair);
         } else if (!isPanelState && v4ProjectionSidePanel) {
           v4ProjectionSidePanel.dispose();
           v4ProjectionSidePanel = null;
+          v4ProjectionSidePanelMountedPairKey = null;
         }
         groundStationSelectionChips?.setPanelMounted(
           v4ProjectionSidePanel !== null
@@ -894,6 +921,7 @@ export function startBootstrapComposition(app: HTMLDivElement): BootstrapComposi
       unsubscribeDisplayState?.();
       v4ProjectionSidePanel?.dispose();
       v4ProjectionSidePanel = null;
+      v4ProjectionSidePanelMountedPairKey = null;
       delete document.body.dataset.displayState;
       selectorChromeTelemetry?.dispose();
       groundStationMarkerHoverTooltip?.dispose();
