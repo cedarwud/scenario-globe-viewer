@@ -837,17 +837,14 @@ export function startBootstrapComposition(app: HTMLDivElement): BootstrapComposi
       firstIntakeReplayClock,
       groundStationInfoCard.openSignal,
       registryResolves,
-      (state: DisplayState) => {
+      (state: DisplayState, resolvedPair) => {
         document.body.dataset.displayState = state;
         const isPanelState = state === "projecting" || state === "replaying";
-        if (isPanelState && !v4ProjectionSidePanel) {
-          const currentSelection = resolveV4RouteSelection(
-            new URLSearchParams(window.location.search)
-          );
-          if (currentSelection.resolvedPair) {
+        if (isPanelState && resolvedPair) {
+          if (!v4ProjectionSidePanel) {
             v4ProjectionSidePanel = mountV4ProjectionSidePanel(
               viewer.container as HTMLElement,
-              { resolvedPair: currentSelection.resolvedPair }
+              { resolvedPair }
             );
           }
         } else if (!isPanelState && v4ProjectionSidePanel) {

@@ -14,7 +14,12 @@
 
 import type { ReplayClock, ReplayClockState } from "../time";
 
-import type { SelectionSnapshot, SelectionStore } from "./selection-store";
+import type {
+  SelectionSnapshot,
+  SelectionStore
+} from "./selection-store";
+import { resolveV4RouteSelection } from "./v4-route-selection";
+import type { V4ResolvedStationPair } from "./v4-route-selection";
 
 export type DisplayState =
   | "idle"
@@ -25,6 +30,14 @@ export type DisplayState =
 
 export interface DisplayStateInputs {
   readonly selection: SelectionSnapshot;
+  /**
+   * Raw URL slot values, BEFORE the registry scrub applied by
+   * `selection-store.ts:readSlotFromUrl`. Required so a deep-link like
+   * `/?stationA=bogus&stationB=bogus` surfaces as `invalid` rather than
+   * collapsing to `idle` after the scrub. Wave-2 §A.6 fix.
+   */
+  readonly rawStationA: string | null;
+  readonly rawStationB: string | null;
   readonly registryResolves: (id: string) => boolean;
   readonly infoCardOpen: boolean;
   readonly replayClockIsPlaying: boolean;
@@ -42,27 +55,31 @@ function bothSlotsFilled(snapshot: SelectionSnapshot): boolean {
   return snapshot.stationA !== null && snapshot.stationB !== null;
 }
 
-function anyUnresolvedSlot(
-  snapshot: SelectionSnapshot,
+function rawSlotPresentButUnresolved(
+  rawSlotValue: string | null,
   registryResolves: (id: string) => boolean
 ): boolean {
-  if (snapshot.stationA !== null && !registryResolves(snapshot.stationA)) {
-    return true;
-  }
-  if (snapshot.stationB !== null && !registryResolves(snapshot.stationB)) {
-    return true;
-  }
-  return false;
+  return rawSlotValue !== null && !registryResolves(rawSlotValue);
 }
 
 export function resolveDisplayState(inputs: DisplayStateInputs): DisplayState {
-  const { selection, registryResolves, infoCardOpen, replayClockIsPlaying } =
-    inputs;
+  const {
+    selection,
+    rawStationA,
+    rawStationB,
+    registryResolves,
+    infoCardOpen,
+    replayClockIsPlaying
+  } = inputs;
 
   // Invalid wins over every other state: a deep-link with a stale or
-  // unknown station id must surface as `invalid` so the IA's empty-state
-  // hint can replace the V4 panel.
-  if (anyUnresolvedSlot(selection, registryResolves)) {
+  // unknown station id (raw URL value present but not resolvable in the
+  // registry) surfaces as `invalid` so the IA's empty-state hint can
+  // replace the V4 panel and the user sees the bad-deep-link.
+  if (
+    rawSlotPresentButUnresolved(rawStationA, registryResolves) ||
+    rawSlotPresentButUnresolved(rawStationB, registryResolves)
+  ) {
     return "invalid";
   }
 
@@ -78,20 +95,43 @@ export function resolveDisplayState(inputs: DisplayStateInputs): DisplayState {
   return "idle";
 }
 
+/**
+ * Pipe the resolved pair through every `onChange` invocation so downstream
+ * consumers (composition, the V4 panel mount, the V4 controller selection
+ * subscription) do not need to re-parse `window.location.search` on every
+ * state transition. The resolved pair is non-null only when both raw URL
+ * slots resolve to registry entries — same predicate as
+ * `resolveV4RouteSelection(...).resolvedPair`. Slice E.
+ */
 export function subscribeDisplayState(
   store: SelectionStore,
   replayClock: ReplayClock,
   infoCardOpenSignal: OpenSignal,
   registryResolves: (id: string) => boolean,
-  onChange: (state: DisplayState) => void
+  onChange: (
+    state: DisplayState,
+    resolvedPair: V4ResolvedStationPair | null
+  ) => void
 ): () => void {
   let infoCardOpen = false;
   let replayClockIsPlaying = readIsPlaying(replayClock.getState());
   let lastState: DisplayState | null = null;
 
+  function readCurrentResolvedPair(): V4ResolvedStationPair | null {
+    if (typeof window === "undefined") {
+      return null;
+    }
+    return resolveV4RouteSelection(
+      new URLSearchParams(window.location.search)
+    ).resolvedPair;
+  }
+
   function compute(): void {
+    const raw = store.getRawUrlSnapshot();
     const next = resolveDisplayState({
       selection: store.getSnapshot(),
+      rawStationA: raw.rawStationA,
+      rawStationB: raw.rawStationB,
       registryResolves,
       infoCardOpen,
       replayClockIsPlaying
@@ -100,7 +140,7 @@ export function subscribeDisplayState(
       return;
     }
     lastState = next;
-    onChange(next);
+    onChange(next, readCurrentResolvedPair());
   }
 
   const unsubscribeStore = store.subscribe(() => {

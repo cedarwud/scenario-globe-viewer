@@ -7,8 +7,25 @@ export interface SelectionSnapshot {
   readonly stationB: string | null;
 }
 
+/**
+ * Raw URL snapshot — the literal `stationA` / `stationB` values present on the
+ * URL after normalization (trim, empty → null) but **before** the
+ * VALID_STATION_IDS scrub. This is what the display-state helper needs to fire
+ * the `invalid` branch when a deep-link carries a stale / unknown station id.
+ *
+ * The regular `getSnapshot()` continues to return the scrubbed snapshot so
+ * existing consumers (chips, list-picker, V4 route resolver) never see unknown
+ * ids, and `writeUrl` continues to scrub on commit so the persisted URL stays
+ * clean.
+ */
+export interface SelectionRawUrlSnapshot {
+  readonly rawStationA: string | null;
+  readonly rawStationB: string | null;
+}
+
 export interface SelectionStore {
   getSnapshot(): SelectionSnapshot;
+  getRawUrlSnapshot(): SelectionRawUrlSnapshot;
   subscribe(listener: (snapshot: SelectionSnapshot) => void): () => void;
   setStation(slot: SelectionSlot, stationId: string | null): void;
   clear(slot: SelectionSlot): void;
@@ -26,10 +43,16 @@ const VALID_STATION_IDS: ReadonlySet<string> = new Set(
   (registry.stations as ReadonlyArray<{ id: string }>).map((s) => s.id)
 );
 
-function readSlotFromUrl(slot: SelectionSlot): string | null {
+function readRawSlotFromUrl(slot: SelectionSlot): string | null {
   const params = new URLSearchParams(window.location.search);
   const raw = params.get(URL_PARAM_BY_SLOT[slot]);
-  if (!raw) {
+  const trimmed = raw?.trim();
+  return trimmed ? trimmed : null;
+}
+
+function readSlotFromUrl(slot: SelectionSlot): string | null {
+  const raw = readRawSlotFromUrl(slot);
+  if (raw === null) {
     return null;
   }
   return VALID_STATION_IDS.has(raw) ? raw : null;
@@ -56,6 +79,17 @@ function snapshotsEqual(a: SelectionSnapshot, b: SelectionSnapshot): boolean {
 }
 
 export function createSelectionStore(): SelectionStore {
+  // Capture the raw URL values BEFORE the bootstrap-time scrub rewrites
+  // the URL. A deep-link like `/?stationA=bogus&stationB=bogus` gets the
+  // bogus values scrubbed out of the persisted URL below, but the raw
+  // snapshot retains them in memory until the user takes a corrective
+  // action (popstate, setStation, clear) so the display-state helper can
+  // fire `invalid` for the duration of the bad-deep-link visit.
+  let rawSnapshot: SelectionRawUrlSnapshot = {
+    rawStationA: readRawSlotFromUrl("stationA"),
+    rawStationB: readRawSlotFromUrl("stationB")
+  };
+
   const initial: SelectionSnapshot = {
     stationA: readSlotFromUrl("stationA"),
     stationB: readSlotFromUrl("stationB")
@@ -71,6 +105,13 @@ export function createSelectionStore(): SelectionStore {
     }
     snapshot = next;
     writeUrl(snapshot);
+    // After any commit the URL holds only scrubbed values, so the raw
+    // snapshot collapses to match the snapshot — the `invalid` deep-link
+    // is resolved by the user's interaction.
+    rawSnapshot = {
+      rawStationA: snapshot.stationA,
+      rawStationB: snapshot.stationB
+    };
     for (const listener of listeners) {
       listener(snapshot);
     }
@@ -98,6 +139,13 @@ export function createSelectionStore(): SelectionStore {
   }
 
   function handlePopState(): void {
+    // popstate may carry a fresh URL with new (or new-bogus) station ids;
+    // refresh both the raw snapshot and the scrubbed snapshot from the
+    // URL so an `invalid` state can fire (or clear) without commit.
+    rawSnapshot = {
+      rawStationA: readRawSlotFromUrl("stationA"),
+      rawStationB: readRawSlotFromUrl("stationB")
+    };
     const next: SelectionSnapshot = {
       stationA: readSlotFromUrl("stationA"),
       stationB: readSlotFromUrl("stationB")
@@ -123,6 +171,9 @@ export function createSelectionStore(): SelectionStore {
   return {
     getSnapshot(): SelectionSnapshot {
       return snapshot;
+    },
+    getRawUrlSnapshot(): SelectionRawUrlSnapshot {
+      return rawSnapshot;
     },
     subscribe(listener: (snapshot: SelectionSnapshot) => void): () => void {
       listeners.add(listener);
