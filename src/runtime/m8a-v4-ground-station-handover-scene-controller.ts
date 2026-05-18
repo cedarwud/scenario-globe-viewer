@@ -18,6 +18,7 @@ import {
   LabelStyle,
   Math as CesiumMath,
   ModelGraphics,
+  PointGraphics,
   PolylineArrowMaterialProperty,
   PolylineDashMaterialProperty,
   PolylineGraphics,
@@ -45,10 +46,12 @@ import {
   parseRuntimeTleSources
 } from "../features/multi-station-selector/runtime-projection";
 import {
-  buildSelectedPairSceneOverlay,
-  type SelectedPairSceneOverlay,
-  type SelectedPairSceneSatellite
-} from "../features/multi-station-selector/selected-pair-scene-adapter";
+  buildTleFirstSceneViewModel,
+  type SceneActor,
+  type SceneActiveLink,
+  type SceneCameraHint,
+  type TleFirstSceneViewModel
+} from "../features/multi-station-selector/tle-first-scene-view-model";
 import {
   M8A_V4_GROUND_STATION_MODEL_PUBLIC_PATH,
   M8A_V4_GROUND_STATION_QUERY_PARAM,
@@ -463,9 +466,12 @@ type SelectedPairOverlayDebugStatus =
 interface SelectedPairOverlayDebugState {
   status: SelectedPairOverlayDebugStatus;
   satelliteCount: number;
+  actorCount: number;
   runtimeLinkVisible: boolean;
   positionSampleCount: number;
   activeSelectionSampleCount: number;
+  sourceMode: TleFirstSceneViewModel["sourceMode"] | "";
+  pairGeometry: SceneCameraHint["pairGeometry"] | "";
   errorMessage: string;
 }
 
@@ -1381,6 +1387,61 @@ function applyV4Camera(
   viewer.scene.requestRender();
 }
 
+function applySelectedPairCameraHint(
+  viewer: Viewer,
+  sceneEndpointContext: SceneEndpointContext,
+  cameraHint: SceneCameraHint
+): void {
+  if (!sceneEndpointContext.selectedPair || sceneEndpointContext.endpoints.length !== 2) {
+    return;
+  }
+
+  const [endpointA, endpointB] = sceneEndpointContext.endpoints;
+  const endpointAPosition = endpointA.renderMarker.displayPosition;
+  const endpointBPosition = endpointB.renderMarker.displayPosition;
+  let lonA = endpointAPosition.lon;
+  let lonB = endpointBPosition.lon;
+  if (Math.abs(lonA - lonB) > 180) {
+    if (lonA < lonB) {
+      lonA += 360;
+    } else {
+      lonB += 360;
+    }
+  }
+
+  const midpointLon = ((lonA + lonB) / 2 + 540) % 360 - 180;
+  const midpointLat = (endpointAPosition.lat + endpointBPosition.lat) / 2;
+  const isPolarLike =
+    cameraHint.pairGeometry === "polar" ||
+    cameraHint.pairGeometry === "antipodal" ||
+    cameraHint.pairGeometry === "empty-result";
+  const targetLat = isPolarLike
+    ? clamp(
+        Math.max(Math.abs(endpointAPosition.lat), Math.abs(endpointBPosition.lat)) >= 66
+          ? Math.sign(endpointAPosition.lat + endpointBPosition.lat || endpointAPosition.lat || 1) *
+              64
+          : midpointLat,
+        -74,
+        74
+      )
+    : clamp(midpointLat - M8A_V4_SELECTED_PAIR_CAMERA_LATITUDE_OFFSET_DEGREES, -82, 82);
+
+  viewer.camera.cancelFlight();
+  viewer.camera.setView({
+    destination: Cartesian3.fromDegrees(
+      midpointLon,
+      targetLat,
+      cameraHint.suggestedAltitudeKm * 1000
+    ),
+    orientation: {
+      heading: CesiumMath.toRadians(cameraHint.suggestedHeadingDeg),
+      pitch: CesiumMath.toRadians(cameraHint.suggestedPitchDeg),
+      roll: 0
+    }
+  });
+  viewer.scene.requestRender();
+}
+
 function resolveEndpointColor(
   endpointId: string,
   endpointRole?: EndpointRenderRole
@@ -1592,55 +1653,6 @@ function createEndpointLabelStyle(
 
 function formatSelectedPairSatelliteLabel(satelliteId: string): string {
   return satelliteId.length > 18 ? `${satelliteId.slice(0, 18)}…` : satelliteId;
-}
-
-function createSelectedPairSatelliteModelStyle(
-  modelUri: string,
-  satellite: SelectedPairSceneSatellite
-): ModelGraphics {
-  return new ModelGraphics({
-    uri: new ConstantProperty(modelUri),
-    scale: new ConstantProperty(
-      satellite.role === "link-selection-event" ? 1.18 : 0.96
-    ),
-    minimumPixelSize: new ConstantProperty(
-      satellite.orbitClass === "GEO"
-        ? 50
-        : satellite.orbitClass === "MEO"
-          ? 58
-          : 52
-    ),
-    maximumScale: new ConstantProperty(180_000)
-  });
-}
-
-function createSelectedPairSatelliteLabelStyle(
-  satellite: SelectedPairSceneSatellite
-): LabelGraphics | undefined {
-  if (satellite.role !== "link-selection-event") {
-    return undefined;
-  }
-
-  return new LabelGraphics({
-    text: new ConstantProperty(formatSelectedPairSatelliteLabel(satellite.satelliteId)),
-    font: "11px sans-serif",
-    style: LabelStyle.FILL_AND_OUTLINE,
-    fillColor: new ConstantProperty(Color.WHITE.withAlpha(0.95)),
-    outlineColor: new ConstantProperty(
-      Color.fromCssColorString("#06121a").withAlpha(0.96)
-    ),
-    outlineWidth: 2,
-    showBackground: true,
-    backgroundColor: new ConstantProperty(
-      Color.fromCssColorString("#0b1820").withAlpha(0.64)
-    ),
-    backgroundPadding: new Cartesian2(6, 3),
-    pixelOffset: new Cartesian2(0, -22),
-    horizontalOrigin: HorizontalOrigin.CENTER,
-    verticalOrigin: VerticalOrigin.BOTTOM,
-    disableDepthTestDistance: Number.POSITIVE_INFINITY,
-    distanceDisplayCondition: new DistanceDisplayCondition(0, 100_000_000)
-  });
 }
 
 function createActorGlowStyle(actor: M8aV4OrbitActorProjection): BillboardGraphics {
@@ -4807,12 +4819,12 @@ function resolveActorById(
 }
 
 function resolveSelectedPairProjectionDate(
-  overlay: SelectedPairSceneOverlay,
+  viewModel: TleFirstSceneViewModel,
   replayState: ReplayClockState,
   time?: JulianDate
 ): Date {
-  const projectionStartMs = Date.parse(overlay.timeWindow.startUtc);
-  const projectionStopMs = Date.parse(overlay.timeWindow.endUtc);
+  const projectionStartMs = Date.parse(viewModel.timeWindow.startUtc);
+  const projectionStopMs = Date.parse(viewModel.timeWindow.endUtc);
   const replayRatio = time
     ? resolveReplayWindowRatio({
         ...replayState,
@@ -4825,33 +4837,29 @@ function resolveSelectedPairProjectionDate(
   );
 }
 
-function resolveActiveSelectedPairSatelliteId(
-  overlay: SelectedPairSceneOverlay,
+function resolveActiveSelectedPairLink(
+  viewModel: TleFirstSceneViewModel,
   projectionDate: Date
-): string | null {
+): SceneActiveLink | null {
   const projectionMs = projectionDate.getTime();
-  let activeSatelliteId: string | null = null;
+  if (!Number.isFinite(projectionMs)) {
+    return null;
+  }
 
-  for (const event of overlay.linkEvents) {
-    const eventMs = Date.parse(event.atUtc);
-    if (Number.isFinite(eventMs) && eventMs <= projectionMs) {
-      activeSatelliteId = event.satelliteId;
+  for (const link of viewModel.activeLinks) {
+    const fromMs = Date.parse(link.fromUtc);
+    const toMs = Date.parse(link.toUtc);
+    if (
+      Number.isFinite(fromMs) &&
+      Number.isFinite(toMs) &&
+      fromMs <= projectionMs &&
+      projectionMs < toMs
+    ) {
+      return link;
     }
   }
 
-  if (activeSatelliteId) {
-    return activeSatelliteId;
-  }
-
-  let activeSampleId: string | null = null;
-  for (const sample of overlay.activeSelectionSamples) {
-    const sampleMs = Date.parse(sample.atUtc);
-    if (Number.isFinite(sampleMs) && sampleMs <= projectionMs) {
-      activeSampleId = sample.satelliteId;
-    }
-  }
-
-  return activeSampleId ?? overlay.satellites[0]?.satelliteId ?? null;
+  return null;
 }
 
 function createSelectedPairOverlayDebugState(
@@ -4861,90 +4869,189 @@ function createSelectedPairOverlayDebugState(
   return {
     status,
     satelliteCount: 0,
+    actorCount: 0,
     runtimeLinkVisible: false,
     positionSampleCount: 0,
     activeSelectionSampleCount: 0,
+    sourceMode: "",
+    pairGeometry: "",
     errorMessage: "",
     ...overrides
   };
 }
 
-function resolveSelectedPairSatelliteRenderHeightMeters(
-  satellite: SelectedPairSceneSatellite
-): number {
-  switch (satellite.orbitClass) {
+function sceneActorOrbitClassToDisplayOrbit(
+  actor: SceneActor
+): M8aV4OrbitClass {
+  switch (actor.orbitClass) {
     case "LEO":
-      return 650_000;
+      return "leo";
     case "MEO":
-      return 3_400_000;
+      return "meo";
     case "GEO":
-      return 5_400_000;
+      return "geo";
   }
 }
 
-function resolveSelectedPairSatelliteTrackRate(
-  satellite: SelectedPairSceneSatellite
-): number {
-  switch (satellite.orbitClass) {
-    case "LEO":
-      return 1.1;
-    case "MEO":
-      return 0.42;
-    case "GEO":
-      return 0.06;
+function resolveSceneActorPointColor(actor: SceneActor): Color {
+  if (actor.role === "active") {
+    return Color.fromCssColorString("#f7d46a").withAlpha(0.95);
   }
+  if (actor.role === "candidate" || actor.role === "continuity") {
+    return Color.fromCssColorString("#7ee2b8").withAlpha(0.86);
+  }
+  return Color.fromCssColorString("#9bc4e8").withAlpha(0.52);
 }
 
-function resolveSelectedPairSatelliteRenderPosition({
-  endpointA,
-  endpointB,
-  index,
-  replayState,
-  result,
-  satellite,
-  time
-}: {
-  readonly endpointA: EndpointRenderContext;
-  readonly endpointB: EndpointRenderContext;
-  readonly index: number;
-  readonly replayState: ReplayClockState;
-  readonly result?: Cartesian3;
-  readonly satellite: SelectedPairSceneSatellite;
-  readonly time?: JulianDate;
-}): Cartesian3 {
-  const endpointAPosition = endpointA.renderMarker.displayPosition;
-  const endpointBPosition = endpointB.renderMarker.displayPosition;
-  const replayRatio = time
-    ? resolveReplayWindowRatio({
-        ...replayState,
-        currentTime: JulianDate.toDate(time).toISOString()
-      })
-    : resolveReplayWindowRatio(replayState);
-  const progress = normalizeUnit(
-    replayRatio * resolveSelectedPairSatelliteTrackRate(satellite) + index * 0.17
-  );
-  const west = Math.min(endpointAPosition.lon, endpointBPosition.lon);
-  const east = Math.max(endpointAPosition.lon, endpointBPosition.lon);
-  const south = Math.min(endpointAPosition.lat, endpointBPosition.lat);
-  const north = Math.max(endpointAPosition.lat, endpointBPosition.lat);
-  const lonPadding = Math.max((east - west) * 0.28, 12);
-  const latPadding = Math.max((north - south) * 0.16, 3.2);
-  const laneOffset = (index % 3) * 1.9;
+function createSelectedPairActorPointStyle(actor: SceneActor): PointGraphics {
+  return new PointGraphics({
+    pixelSize: new ConstantProperty(actor.role === "active" ? 9 : 6),
+    color: new ConstantProperty(resolveSceneActorPointColor(actor)),
+    outlineColor: new ConstantProperty(
+      Color.fromCssColorString("#06121a").withAlpha(0.95)
+    ),
+    outlineWidth: new ConstantProperty(actor.role === "active" ? 2 : 1),
+    disableDepthTestDistance: Number.POSITIVE_INFINITY,
+    distanceDisplayCondition: new DistanceDisplayCondition(0, 100_000_000)
+  });
+}
 
-  return Cartesian3.fromDegrees(
-    lerp(west - lonPadding, east + lonPadding, progress),
-    clamp(north + latPadding + laneOffset, -78, 82),
-    resolveSelectedPairSatelliteRenderHeightMeters(satellite),
-    undefined,
-    result ?? new Cartesian3()
+function createSelectedPairActorGlowStyle(actor: SceneActor): BillboardGraphics {
+  const isActive = actor.role === "active";
+  return new BillboardGraphics({
+    image: new ConstantProperty(
+      createActorGlowImageUri(sceneActorOrbitClassToDisplayOrbit(actor))
+    ),
+    width: new ConstantProperty(isActive ? 34 : 24),
+    height: new ConstantProperty(isActive ? 34 : 24),
+    color: new ConstantProperty(Color.WHITE.withAlpha(isActive ? 0.72 : 0.38)),
+    disableDepthTestDistance: Number.POSITIVE_INFINITY,
+    distanceDisplayCondition: new DistanceDisplayCondition(0, 100_000_000)
+  });
+}
+
+function createSelectedPairActorLabelStyle(
+  actor: SceneActor,
+  shouldShow: boolean
+): LabelGraphics | undefined {
+  if (!shouldShow) {
+    return undefined;
+  }
+
+  return new LabelGraphics({
+    text: new ConstantProperty(formatSelectedPairSatelliteLabel(actor.satelliteId)),
+    font: "11px sans-serif",
+    style: LabelStyle.FILL_AND_OUTLINE,
+    fillColor: new ConstantProperty(Color.WHITE.withAlpha(0.9)),
+    outlineColor: new ConstantProperty(
+      Color.fromCssColorString("#06121a").withAlpha(0.96)
+    ),
+    outlineWidth: 2,
+    showBackground: true,
+    backgroundColor: new ConstantProperty(
+      Color.fromCssColorString("#0b1820").withAlpha(0.58)
+    ),
+    backgroundPadding: new Cartesian2(6, 3),
+    pixelOffset: new Cartesian2(0, -18),
+    horizontalOrigin: HorizontalOrigin.CENTER,
+    verticalOrigin: VerticalOrigin.BOTTOM,
+    disableDepthTestDistance: Number.POSITIVE_INFINITY,
+    distanceDisplayCondition: new DistanceDisplayCondition(0, 100_000_000)
+  });
+}
+
+function sceneSampleToCartesian(
+  sample: SceneActor["sourceSamples"][number],
+  viewModel: TleFirstSceneViewModel,
+  result?: Cartesian3
+): Cartesian3 {
+  const target = result ?? new Cartesian3();
+  const sourceX = sample.ecefKm.x * 1000;
+  const sourceY = sample.ecefKm.y * 1000;
+  const sourceZ = sample.ecefKm.z * 1000;
+
+  if (!viewModel.displayPolicy.altitudeCompressionEnabled) {
+    target.x = sourceX;
+    target.y = sourceY;
+    target.z = sourceZ;
+    return target;
+  }
+
+  const sourceRadiusMeters = Math.sqrt(
+    sourceX * sourceX + sourceY * sourceY + sourceZ * sourceZ
   );
+  const earthRadiusMeters = 6_371_000;
+  if (!Number.isFinite(sourceRadiusMeters) || sourceRadiusMeters <= 0) {
+    target.x = sourceX;
+    target.y = sourceY;
+    target.z = sourceZ;
+    return target;
+  }
+
+  const sourceAltitudeMeters = Math.max(sourceRadiusMeters - earthRadiusMeters, 0);
+  const displayRadiusMeters =
+    earthRadiusMeters +
+    sourceAltitudeMeters * viewModel.displayPolicy.altitudeCompressionFactor;
+  const scale = displayRadiusMeters / sourceRadiusMeters;
+  target.x = sourceX * scale;
+  target.y = sourceY * scale;
+  target.z = sourceZ * scale;
+  return target;
+}
+
+function resolveSceneActorRenderPosition(
+  actor: SceneActor,
+  viewModel: TleFirstSceneViewModel,
+  projectionDate: Date,
+  result?: Cartesian3
+): Cartesian3 | undefined {
+  const samples = actor.sourceSamples;
+  if (samples.length === 0) {
+    return undefined;
+  }
+
+  const projectionMs = projectionDate.getTime();
+  if (!Number.isFinite(projectionMs)) {
+    return sceneSampleToCartesian(samples[0], viewModel, result);
+  }
+
+  let previous = samples[0];
+  for (let i = 1; i < samples.length; i += 1) {
+    const next = samples[i];
+    const previousMs = Date.parse(previous.atUtc);
+    const nextMs = Date.parse(next.atUtc);
+    if (
+      Number.isFinite(previousMs) &&
+      Number.isFinite(nextMs) &&
+      previousMs <= projectionMs &&
+      projectionMs <= nextMs
+    ) {
+      const ratio = clamp((projectionMs - previousMs) / (nextMs - previousMs), 0, 1);
+      return sceneSampleToCartesian(
+        {
+          atUtc: projectionDate.toISOString(),
+          ecefKm: {
+            x: lerp(previous.ecefKm.x, next.ecefKm.x, ratio),
+            y: lerp(previous.ecefKm.y, next.ecefKm.y, ratio),
+            z: lerp(previous.ecefKm.z, next.ecefKm.z, ratio)
+          }
+        },
+        viewModel,
+        result
+      );
+    }
+    if (Number.isFinite(nextMs) && nextMs <= projectionMs) {
+      previous = next;
+    }
+  }
+
+  return sceneSampleToCartesian(previous, viewModel, result);
 }
 
 async function installSelectedPairSceneOverlay({
   dataSource,
   endpointA,
   endpointB,
-  modelUri,
   replayClock,
   sceneEndpointContext,
   viewer,
@@ -4954,7 +5061,6 @@ async function installSelectedPairSceneOverlay({
   readonly dataSource: CustomDataSource;
   readonly endpointA: EndpointRenderContext;
   readonly endpointB: EndpointRenderContext;
-  readonly modelUri: string;
   readonly replayClock: ReplayClock;
   readonly sceneEndpointContext: SceneEndpointContext;
   readonly viewer: Viewer;
@@ -4981,102 +5087,134 @@ async function installSelectedPairSceneOverlay({
     tleRecords,
     rainRateMmPerHour: 0
   });
-  const overlay = buildSelectedPairSceneOverlay(result, tleRecords);
-  if (shouldSkip() || overlay.satellites.length === 0) {
+  const viewModel = buildTleFirstSceneViewModel({
+    result,
+    tleRecords,
+    sourceMode: "tle-first-runtime"
+  });
+  const renderableActors = viewModel.actors.filter(
+    (actor) => actor.sourceSamples.length > 0
+  );
+  if (shouldSkip() || renderableActors.length === 0) {
     if (!shouldSkip()) {
       onStateChange(
         createSelectedPairOverlayDebugState("empty", {
-          positionSampleCount: overlay.positionSamples.length,
-          activeSelectionSampleCount: overlay.activeSelectionSamples.length
+          satelliteCount: renderableActors.length,
+          actorCount: viewModel.actors.length,
+          sourceMode: viewModel.sourceMode,
+          pairGeometry: viewModel.cameraHint.pairGeometry,
+          positionSampleCount: viewModel.actors.reduce(
+            (total, actor) => total + actor.sourceSamples.length,
+            0
+          ),
+          activeSelectionSampleCount: viewModel.activeLinks.length
         })
       );
+      applySelectedPairCameraHint(viewer, sceneEndpointContext, viewModel.cameraHint);
     }
     return;
   }
 
   const endpointAPosition = positionToCartesian(endpointA.renderMarker.displayPosition);
   const endpointBPosition = positionToCartesian(endpointB.renderMarker.displayPosition);
-  const satelliteIndexById = new Map(
-    overlay.satellites.map((satellite, index) => [satellite.satelliteId, index])
+  const actorsById = new Map(
+    renderableActors.map((actor) => [actor.satelliteId, actor])
   );
+  const maxLabelCount = viewModel.displayPolicy.maxVisibleActorLabels;
 
-  overlay.satellites.forEach((satellite, index) => {
+  renderableActors.forEach((actor, index) => {
+    const shouldShowLabel =
+      index < maxLabelCount ||
+      actor.role === "active" ||
+      actor.role === "candidate" ||
+      actor.role === "continuity";
     dataSource.entities.add({
-      id: `m8a-v4-selected-pair-satellite-${satellite.satelliteId}`,
-      name: `Selected pair ${satellite.orbitClass} ${satellite.satelliteId}`,
+      id: `m8a-v4-selected-pair-satellite-${actor.satelliteId}`,
+      name: `Selected pair ${actor.orbitClass} ${actor.satelliteId}`,
       position: new CallbackPositionProperty((time, positionResult) => {
-        return resolveSelectedPairSatelliteRenderPosition({
-          endpointA,
-          endpointB,
-          index,
-          replayState: replayClock.getState(),
-          result: positionResult,
-          satellite,
+        const projectionDate = resolveSelectedPairProjectionDate(
+          viewModel,
+          replayClock.getState(),
           time
-        });
+        );
+        return (
+          resolveSceneActorRenderPosition(
+            actor,
+            viewModel,
+            projectionDate,
+            positionResult
+          ) ?? endpointAPosition
+        );
       }, false),
-      model: createSelectedPairSatelliteModelStyle(modelUri, satellite),
-      label: createSelectedPairSatelliteLabelStyle(satellite),
+      billboard: createSelectedPairActorGlowStyle(actor),
+      point: createSelectedPairActorPointStyle(actor),
+      label: createSelectedPairActorLabelStyle(actor, shouldShowLabel),
       description: new ConstantProperty(
-        `${satellite.satelliteId}; selected from clear-sky TLE projection and rendered in a demo display lane.`
+        `${actor.satelliteId}; ${actor.sourceClass} actor rendered with ${actor.displayTransform?.transformClass ?? "source"} transform.`
       )
     });
   });
 
-  dataSource.entities.add({
-    id: "m8a-v4-selected-pair-runtime-link",
-    name: "Selected pair runtime link overlay",
-    polyline: new PolylineGraphics({
-      positions: new CallbackProperty((time) => {
-        const projectionDate = resolveSelectedPairProjectionDate(
-          overlay,
-          replayClock.getState(),
-          time
-        );
-        const satelliteId = resolveActiveSelectedPairSatelliteId(
-          overlay,
-          projectionDate
-        );
-        const satellite = overlay.satellites.find(
-          (candidate) => candidate.satelliteId === satelliteId
-        );
-        if (!satellite) {
-          return [endpointAPosition, endpointBPosition];
-        }
-        const index = satelliteIndexById.get(satellite.satelliteId) ?? 0;
-        return [
-          endpointAPosition,
-          resolveSelectedPairSatelliteRenderPosition({
-            endpointA,
-            endpointB,
-            index,
-            replayState: replayClock.getState(),
-            satellite,
+  if (viewModel.activeLinks.length > 0) {
+    dataSource.entities.add({
+      id: "m8a-v4-selected-pair-runtime-link",
+      name: "Selected pair runtime link overlay",
+      polyline: new PolylineGraphics({
+        show: new CallbackProperty((time) => {
+          const projectionDate = resolveSelectedPairProjectionDate(
+            viewModel,
+            replayClock.getState(),
             time
-          }),
-          endpointBPosition
-        ];
-      }, false),
-      width: new ConstantProperty(1.8),
-      material: new ColorMaterialProperty(
-        Color.fromCssColorString("#7ee2b8").withAlpha(0.32)
-      ),
-      arcType: ArcType.NONE
-    }),
-    description: new ConstantProperty(
-      "Selected-pair runtime link overlay; TLE-derived selection rendered in a demo display lane."
-    )
-  });
+          );
+          return resolveActiveSelectedPairLink(viewModel, projectionDate) !== null;
+        }, false),
+        positions: new CallbackProperty((time) => {
+          const projectionDate = resolveSelectedPairProjectionDate(
+            viewModel,
+            replayClock.getState(),
+            time
+          );
+          const activeLink = resolveActiveSelectedPairLink(viewModel, projectionDate);
+          if (!activeLink) {
+            return [];
+          }
+          const actor = actorsById.get(activeLink.satelliteId);
+          const actorPosition = actor
+            ? resolveSceneActorRenderPosition(actor, viewModel, projectionDate)
+            : undefined;
+          if (!actorPosition) {
+            return [];
+          }
+          return [endpointAPosition, actorPosition, endpointBPosition];
+        }, false),
+        width: new ConstantProperty(1.8),
+        material: new ColorMaterialProperty(
+          Color.fromCssColorString("#7ee2b8").withAlpha(0.32)
+        ),
+        arcType: ArcType.NONE
+      }),
+      description: new ConstantProperty(
+        "Selected-pair runtime link overlay; active only inside the scene view-model link windows."
+      )
+    });
+  }
 
   onStateChange(
     createSelectedPairOverlayDebugState("ready", {
-      satelliteCount: overlay.satellites.length,
-      runtimeLinkVisible: true,
-      positionSampleCount: overlay.positionSamples.length,
-      activeSelectionSampleCount: overlay.activeSelectionSamples.length
+      satelliteCount: viewModel.actors.length,
+      actorCount: viewModel.actors.length,
+      runtimeLinkVisible: viewModel.activeLinks.length > 0,
+      positionSampleCount: viewModel.actors.reduce(
+        (total, actor) => total + actor.sourceSamples.length,
+        0
+      ),
+      activeSelectionSampleCount: viewModel.activeLinks.length,
+      sourceMode: viewModel.sourceMode,
+      pairGeometry: viewModel.cameraHint.pairGeometry
     })
   );
 
+  applySelectedPairCameraHint(viewer, sceneEndpointContext, viewModel.cameraHint);
   viewer.scene.requestRender();
 }
 
@@ -5115,6 +5253,7 @@ export function createM8aV4GroundStationSceneController({
   let selectedPairOverlayState = createSelectedPairOverlayDebugState(
     sceneEndpointContext.selectedPair ? "loading" : "not-requested"
   );
+  let selectedPairOverlayInstallGeneration = 0;
   let detailsDisclosureOpen = false;
   let boundaryDisclosureOpen = false;
   let sourcesDisclosureOpen = false;
@@ -5226,18 +5365,20 @@ export function createM8aV4GroundStationSceneController({
     )
   });
 
+  const initialSelectedPairOverlayGeneration = ++selectedPairOverlayInstallGeneration;
   void installSelectedPairSceneOverlay({
     dataSource,
     endpointA,
     endpointB,
-    modelUri,
     replayClock,
     sceneEndpointContext,
     viewer,
     onStateChange: (state) => {
       selectedPairOverlayState = state;
     },
-    shouldSkip: () => disposed
+    shouldSkip: () =>
+      disposed ||
+      initialSelectedPairOverlayGeneration !== selectedPairOverlayInstallGeneration
   }).catch((error) => {
     selectedPairOverlayState = createSelectedPairOverlayDebugState("error", {
       errorMessage: error instanceof Error ? error.message : "unknown overlay error"
@@ -6922,18 +7063,20 @@ export function createM8aV4GroundStationSceneController({
       sceneEndpointContext.selectedPair ? "loading" : "not-requested"
     );
 
+    const selectedPairOverlayGeneration = ++selectedPairOverlayInstallGeneration;
     void installSelectedPairSceneOverlay({
       dataSource,
       endpointA,
       endpointB,
-      modelUri,
       replayClock,
       sceneEndpointContext,
       viewer,
       onStateChange: (state) => {
         selectedPairOverlayState = state;
       },
-      shouldSkip: () => disposed
+      shouldSkip: () =>
+        disposed ||
+        selectedPairOverlayGeneration !== selectedPairOverlayInstallGeneration
     }).catch((error) => {
       selectedPairOverlayState = createSelectedPairOverlayDebugState("error", {
         errorMessage:
