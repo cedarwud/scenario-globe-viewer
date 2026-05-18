@@ -183,7 +183,10 @@ source-authority tiers used throughout the V4 demo:
 - **Tier 3 geometric-derived** — cross-operator pair, visibility-derived
   only. Label "Geometric pair · visibility-derived only".
 
-Replay defaults: real-time window = wall-clock UTC `[now, now+20m]`;
+Replay defaults: real-time window = wall-clock UTC `[now, now+360m]`
+(per `docs/sdd/multi-station-selector/runtime-data-contract.md` §Resolved
+decisions #2; the prior `[now, now+20m]` value in this snapshot drifted
+from the canonical contract and was reconciled 2026-05-18);
 operator HUD exposes three bounded playback presets `30x / 60x / 120x`
 (see `src/runtime/m8a-v4-product-ux-model.ts:~60`), orthogonal to window
 selection. Underlying `replayClock.setMultiplier(x: number)` accepts
