@@ -206,6 +206,7 @@ The badge and non-claims render in the runtime projection side panel and in any 
 - `stationA` / `stationB` are optional URL params. When absent, the route falls back to the existing default operator-validated pair (no behavior change for unspecified entry).
 - Existing tier-1 fixture-driven assertions (phase6.x, m8a-v4.3 / .11 / .12, phase7.1 multi-orbit scale, scenario surfaces) continue to consume the fixture. Public registry pairs do not replace the V4 controller actor/timeline main scene.
 - The side panel renders a display-boundary note for this split: panel/CSV follow the selected-pair modeled projection, while main-globe selected-pair cues are TLE-derived demo display lanes; the main globe is not selected-pair measured service telemetry.
+- Convergence forward reference: `docs/sdd/multi-station-selector/tle-first-3d-pipeline.md` (proposed 2026-05-18) defines the target scene view-model that will eventually let both the fixed demo entry and the selected-pair entry share one TLE-first 3D presentation. Until that convergence ships, the selected-pair globe cues remain the model-render path described above, and the fixed demo entry remains fixture-driven.
 
 ## Resolved decisions (2026-05-16)
 
