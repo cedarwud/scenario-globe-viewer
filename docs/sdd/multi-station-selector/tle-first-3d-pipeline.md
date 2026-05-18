@@ -163,13 +163,6 @@ export interface SceneActor {
 }
 ```
 
-The key rule: if `sourceMode` is `tle-first-runtime`, actor identity and
-source samples must come from TLE records. Display transforms may change how an
-actor is drawn, but not which actor the scene claims is present.
-
-Referenced supporting interfaces (conservative shapes; Slice 1 may
-tighten):
-
 ```ts
 export interface SceneActiveLink {
   readonly fromUtc: string;
@@ -217,21 +210,19 @@ export interface SceneTruthBoundary {
 }
 ```
 
-These mirror the shapes the existing
-`src/features/multi-station-selector/selected-pair-scene-adapter.ts`
-and `runtime-projection.ts` modules already produce.
+**Migration vs. existing adapter**
 
-### Migration vs. existing adapter
+`TleFirstSceneViewModel` is the convergence target. Slice 1 introduces a new
+adapter alongside the existing
+`src/features/multi-station-selector/selected-pair-scene-adapter.ts`. Slice 2
+makes the renderer consume the new shape. Slice 5 removes the old
+`SelectedPairSceneOverlay` adapter once Slice 4 has decided whether the fixed
+demo entry is `tle-first-runtime` or `fixture-fallback`. The two adapters MUST
+NOT both feed the renderer at the same time after Slice 2.
 
-`TleFirstSceneViewModel` is the convergence target. Slice 1 introduces
-a new adapter alongside the existing
-`src/features/multi-station-selector/selected-pair-scene-adapter.ts`.
-Slice 2 makes the renderer consume the new shape. Slice 5 removes the
-old `SelectedPairSceneOverlay` adapter once Slice 4 has decided whether
-the fixed demo entry is `tle-first-runtime` or `fixture-fallback`. The
-two adapters MUST NOT both feed the renderer at the same time after
-Slice 2 — that intermediate window is the most common source of
-visual-grammar divergence during convergence work.
+The key rule: if `sourceMode` is `tle-first-runtime`, actor identity and
+source samples must come from TLE records. Display transforms may change how an
+actor is drawn, but not which actor the scene claims is present.
 
 ## 6. 3D Renderer Contract
 
@@ -303,7 +294,8 @@ Record this SDD and capture current route behavior:
 
 No runtime behavior changes in this slice.
 
-Smokes that must keep passing: `npm run build`.
+- Smokes that must keep passing: `npm run build` only, because this slice has
+  no runtime change.
 
 ### Slice 1 — Scene view-model adapter
 
@@ -317,8 +309,8 @@ Acceptance:
 - zero-window projections produce no active actors and no fake links;
 - tests assert actor ids resolve to TLE records.
 
-Smokes that must keep passing: `npm run build`;
-`verify-g1-bucket-a-coverage`; `verify-random-pair-projection-budget`.
+- Smokes that must keep passing: `npm run build`;
+  `verify-g1-bucket-a-coverage`; `verify-random-pair-projection-budget`.
 
 ### Slice 2 — Selected-pair 3D renderer v1
 
@@ -333,10 +325,10 @@ Acceptance:
   viewport;
 - the fixed demo entry remains unchanged.
 
-Smokes that must keep passing: `npm run build`;
-`verify-g1-bucket-a-coverage`; `verify-random-pair-projection-budget`;
-`verify-information-density`; visual diff vs
-`/tmp/sgv_demo*_post_wave3.png` for the five walkthrough pairs.
+- Smokes that must keep passing: `npm run build`;
+  `verify-g1-bucket-a-coverage`; `verify-random-pair-projection-budget`;
+  `verify-information-density`; visual diff vs
+  `/tmp/sgv_demo*_post_wave3.png` for the five walkthrough pairs.
 
 ### Slice 3 — Visual parity with fixed demo grammar
 
@@ -356,8 +348,9 @@ Acceptance:
   entry;
 - side panel events and 3D handover cues are driven by the same event list.
 
-Smokes that must keep passing: all of Slice 2 plus
-`verify-60x-replay-continuity`.
+- Smokes that must keep passing: `npm run build`;
+  `verify-g1-bucket-a-coverage`; `verify-random-pair-projection-budget`;
+  `verify-information-density`; `verify-60x-replay-continuity`.
 
 ### Slice 4 — Fixed demo route convergence
 
@@ -373,10 +366,8 @@ Acceptance:
   `fixture-fallback`;
 - the entry copy and side-panel truth boundary match the chosen mode.
 
-Smokes that must keep passing: all of G1-G5 plus an additional
-regression manifest pass for any `m8a-v4.*` smoke that the fixed demo
-entry exercises (capture the baseline pass on the pre-Slice-4 build
-before starting).
+- Smokes that must keep passing: all of G1-G5 plus an additional regression
+  manifest pass for any `m8a-v4.*` smoke that the fixed demo entry exercises.
 
 ### Slice 5 — Cleanup and regression hardening
 
@@ -389,12 +380,12 @@ Acceptance:
 - 60x replay continuity still passes;
 - route entry and copy-link behavior stay stable.
 
-Smokes that must keep passing: all of G1-G5; visual identity vs the
-Slice 3 baseline screenshots.
+- Smokes that must keep passing: all of G1-G5; visual identity vs the Slice 3
+  baseline screenshots.
 
 ## 9. Acceptance Criteria
 
-### A1. Data provenance (verifies §6 rules 2 and 6)
+### A1. Data provenance (verifies section 6 rules 2 and 6)
 
 For a selected-pair runtime route:
 
@@ -403,7 +394,7 @@ For a selected-pair runtime route:
 - zero-window projections render no fake active satellite;
 - modeled metrics remain labelled as modeled.
 
-### A2. Visual coherence (verifies §6 rule 5)
+### A2. Visual coherence (verifies section 6 rule 5)
 
 For the five existing walkthrough pairs:
 
@@ -412,7 +403,7 @@ For the five existing walkthrough pairs:
 - polar pairs do not place a row of large models across the top of the view;
 - empty-result scenes remain visually intentional.
 
-### A3. Route convergence (verifies §6 rule 1)
+### A3. Route convergence (verifies section 6 rule 1)
 
 The selected-pair route and the fixed demo entry use the same scene view-model
 contract, or the fixed demo entry explicitly reports `fixture-fallback`.
@@ -474,12 +465,7 @@ The UI or debug state exposes:
    current active and next handover candidate?
 5. Which route should be the canonical reviewer URL after convergence?
 
-> SDD inclination: the selected-pair short URL (`/?stationA=&stationB=`)
-> becomes canonical once Slice 4 lands, because A3 already targets one
-> shared scene view-model contract. The fixed-demo CTA then either
-> resolves to a default pair (option 1) or stays as a labelled
-> fixture-fallback (option 2). Final call is the user's at Slice 4
-> acceptance review.
+   > SDD inclination: the selected-pair short URL (`/?stationA=&stationB=`) becomes canonical once Slice 4 lands, because A3 already targets one shared scene view-model contract. The fixed-demo CTA then either resolves to a default pair (option 1) or stays as a labelled fixture-fallback (option 2). Final call is the user's at Slice 4 acceptance review.
 
 ## 13. References
 
