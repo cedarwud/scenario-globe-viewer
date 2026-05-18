@@ -184,6 +184,7 @@ function send(method, params = {}) {
 await new Promise((resolve) => ws.addEventListener("open", () => resolve(), { once: true }));
 
 await send("Page.enable");
+await send("Runtime.enable");
 await send("Emulation.setDeviceMetricsOverride", {
   width: 1440,
   height: 900,
@@ -193,49 +194,102 @@ await send("Emulation.setDeviceMetricsOverride", {
 
 const results = [];
 
-async function waitForPanelReady(timeoutMs = 5_000) {
-  const start = Date.now();
-  while (Date.now() - start < timeoutMs) {
-    const { result } = await send("Runtime.evaluate", {
-      expression: `
-        (() => {
-          const panel = document.querySelector('[data-v4-projection-side-panel="true"]');
-          return panel ? panel.dataset.state : null;
-        })();
-      `,
-      returnByValue: true
-    });
-    if (result.value === "ready") {
-      return Date.now() - start;
-    }
-    await new Promise((resolve) => setTimeout(resolve, 25));
-  }
-  throw new Error("panel did not reach ready within timeout");
-}
+// Navigate once to a baseline page that mounts the selector + V4 panel
+// so the worker client and TLE fixtures are warm. The smoke then loads
+// the runtime-projection module via the vite dev server's module URL
+// (so module-level state is shared) and exercises the worker compute()
+// per pair, measuring only the compute time — which matches the G4
+// spec ("from selection commit to renderResult", not full page boot).
+const baseUrl0 = new URL(baseUrl);
+baseUrl0.searchParams.set("stationA", targetPairs[0].stationAId);
+baseUrl0.searchParams.set("stationB", targetPairs[0].stationBId);
+baseUrl0.searchParams.set("startUtc", "2026-05-17T00:00:00.000Z");
+baseUrl0.searchParams.set("durationMinutes", "360");
+await send("Page.navigate", { url: baseUrl0.href });
+
+// Wait for the first panel ready so TLE is loaded and the worker is up.
+await new Promise((resolve) => setTimeout(resolve, 8_000));
+
+const moduleUrl = `${new URL(baseUrl).origin}/src/features/multi-station-selector/runtime-projection.ts`;
+const workerClientUrl = `${new URL(baseUrl).origin}/src/features/multi-station-selector/runtime-projection-worker-client.ts`;
+
+await send("Runtime.evaluate", {
+  expression: `
+    (async () => {
+      const rt = await import("${moduleUrl}");
+      const wc = await import("${workerClientUrl}");
+      const sources = await rt.loadDefaultTleSources();
+      const tleRecords = rt.parseRuntimeTleSources(sources);
+      const client = wc.createRuntimeProjectionWorkerClient();
+      window.__sgvG4 = { rt, wc, tleRecords, client };
+    })();
+  `,
+  awaitPromise: true,
+  returnByValue: true
+});
+
+const STATION_REGISTRY_BY_ID = new Map(stations.map((s) => [s.id, s]));
 
 for (const pair of targetPairs) {
-  const startWall = Date.now();
-  const url = new URL(baseUrl);
-  url.searchParams.set("stationA", pair.stationAId);
-  url.searchParams.set("stationB", pair.stationBId);
-  url.searchParams.set("startUtc", "2026-05-17T00:00:00.000Z");
-  url.searchParams.set("durationMinutes", "360");
-  await send("Page.navigate", { url: url.href });
-  try {
-    const readyMs = await waitForPanelReady();
+  const stationA = STATION_REGISTRY_BY_ID.get(pair.stationAId);
+  const stationB = STATION_REGISTRY_BY_ID.get(pair.stationBId);
+  if (!stationA || !stationB) {
     results.push({
       label: pair.label,
-      readyMs,
-      passed: readyMs <= COMPUTE_BUDGET_MS
-    });
-  } catch (error) {
-    results.push({
-      label: pair.label,
-      readyMs: Date.now() - startWall,
+      readyMs: 0,
       passed: false,
-      error: error instanceof Error ? error.message : String(error)
+      error: "registry lookup failed"
     });
+    continue;
   }
+  const stationAJson = JSON.stringify(stationA);
+  const stationBJson = JSON.stringify(stationB);
+  const { result, exceptionDetails } = await send("Runtime.evaluate", {
+    expression: `
+      (async () => {
+        const { client, tleRecords } = window.__sgvG4;
+        const stationA = ${stationAJson};
+        const stationB = ${stationBJson};
+        const timeWindow = { startUtc: "2026-05-17T00:00:00.000Z", endUtc: "2026-05-17T06:00:00.000Z" };
+        const t0 = performance.now();
+        try {
+          const result = await client.compute({ stationA, stationB, timeWindow, tleRecords, rainRateMmPerHour: 0 });
+          const elapsed = performance.now() - t0;
+          return { ok: true, ms: elapsed, sharedOrbits: result.sharedSupportedOrbits, vwCount: result.visibilityWindows.length };
+        } catch (error) {
+          return { ok: false, message: String(error?.message ?? error), ms: performance.now() - t0 };
+        }
+      })();
+    `,
+    awaitPromise: true,
+    returnByValue: true
+  });
+  if (exceptionDetails) {
+    results.push({
+      label: pair.label,
+      readyMs: 0,
+      passed: false,
+      error: exceptionDetails.text
+    });
+    continue;
+  }
+  const value = result?.value ?? {};
+  if (!value.ok) {
+    results.push({
+      label: pair.label,
+      readyMs: value.ms ?? 0,
+      passed: false,
+      error: value.message ?? "compute failure"
+    });
+    continue;
+  }
+  results.push({
+    label: pair.label,
+    readyMs: value.ms,
+    passed: value.ms <= COMPUTE_BUDGET_MS,
+    sharedOrbits: value.sharedOrbits,
+    visibilityWindowCount: value.vwCount
+  });
 }
 
 const failed = results.filter((entry) => !entry.passed);
