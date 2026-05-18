@@ -231,12 +231,28 @@ async function main() {
             const statusPanel = document.querySelector(
               "[data-hud-panel='status']"
             );
+            const statusPanelComputedVisibility =
+              statusPanel instanceof HTMLElement
+                ? getComputedStyle(statusPanel).visibility
+                : null;
+            const statusPanelComputedOpacity =
+              statusPanel instanceof HTMLElement
+                ? Number.parseFloat(getComputedStyle(statusPanel).opacity)
+                : null;
             const timelinePlaceholder = document.querySelector(
               "[data-time-placeholder='true']"
             );
             const stageStrip = document.querySelector(
               "[data-m8a-v35-orbit-context-stage-strip='true']"
             );
+            const leoActorCountChip = document.querySelector(
+              "[data-leo-actor-count-chip='true']"
+            );
+            const tleTelemetryChip = document.querySelector(
+              "[data-tle-telemetry-chip='true']"
+            );
+            const viewerMode =
+              document.documentElement.dataset.viewerMode ?? null;
             const v4Href =
               v4Entry instanceof HTMLAnchorElement
                 ? v4Entry.getAttribute("href")
@@ -268,18 +284,41 @@ async function main() {
                 root.dataset.m8aV44HomepageGroundStationEntrySurface === "true",
               "Homepage V4 entry must mount in the Cesium toolbar."
             );
-            assert(
+            // Post-wave-1 IA: chrome telemetry chips (LEO actor count + TLE
+            // date) mount on the homepage and the operator HUD mounts in
+            // status-only mode but is visually suppressed via
+            // data-viewer-mode="clean-home" (visibility:hidden + opacity:0).
+            // The pre-IA legacy path (display:none via hudVisibility="hidden"
+            // with width/height=0) remains a valid alternative the assertion
+            // accepts. The user-visible truth — "no bottom status HUD on the
+            // bare homepage" — is preserved in either path.
+            const hudVisuallySuppressedLegacy =
               hudFrame instanceof HTMLElement &&
-                hudFrame.dataset.hudVisibility === "hidden" &&
-                timelinePlaceholder === null &&
-                statusRect &&
-                statusRect.width === 0 &&
-                statusRect.height === 0,
+              hudFrame.dataset.hudVisibility === "hidden" &&
+              timelinePlaceholder === null &&
+              statusRect &&
+              statusRect.width === 0 &&
+              statusRect.height === 0;
+            const hudVisuallySuppressedPostWave1Chrome =
+              hudFrame instanceof HTMLElement &&
+              hudFrame.dataset.hudVisibility === "status-only" &&
+              viewerMode === "clean-home" &&
+              statusPanelComputedVisibility === "hidden" &&
+              statusPanelComputedOpacity === 0 &&
+              leoActorCountChip instanceof HTMLElement &&
+              tleTelemetryChip instanceof HTMLElement;
+            assert(
+              hudVisuallySuppressedLegacy || hudVisuallySuppressedPostWave1Chrome,
               "Bare homepage must not show the bottom status HUD: " +
                 JSON.stringify({
                   hudVisibility: hudFrame?.dataset?.hudVisibility,
                   hasTimelinePlaceholder: timelinePlaceholder !== null,
-                  statusRect
+                  statusRect,
+                  viewerMode,
+                  statusPanelComputedVisibility,
+                  statusPanelComputedOpacity,
+                  hasLeoActorCountChip: leoActorCountChip !== null,
+                  hasTleTelemetryChip: tleTelemetryChip !== null
                 })
             );
             assert(
