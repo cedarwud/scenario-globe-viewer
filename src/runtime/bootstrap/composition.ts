@@ -6,7 +6,10 @@ import { mountLightingToggle } from "../../features/globe/lighting-toggle";
 import { mountHomeButtonRouteOverride } from "../../features/globe/camera-language";
 import { mountGroundStationMarkers } from "../../features/multi-station-selector/station-markers";
 import { mountGroundStationInfoCard } from "../../features/multi-station-selector/station-info-card";
-import { createSelectionStore } from "../../features/multi-station-selector/selection-store";
+import {
+  createSelectionStore,
+  type SelectionSnapshot
+} from "../../features/multi-station-selector/selection-store";
 import { mountSelectionChips } from "../../features/multi-station-selector/selection-chips";
 import { mountStationListPicker } from "../../features/multi-station-selector/station-list-picker";
 import { mountMarkerHoverTooltip } from "../../features/multi-station-selector/marker-hover-tooltip";
@@ -88,10 +91,6 @@ import {
   createM8aV4GroundStationSceneController,
   isM8aV4GroundStationRuntimeRequested
 } from "../m8a-v4-ground-station-handover-scene-controller";
-import {
-  M8A_V4_GROUND_STATION_QUERY_PARAM,
-  M8A_V4_GROUND_STATION_QUERY_VALUE
-} from "../m8a-v4-ground-station-projection";
 
 type ViewerInstance = ReturnType<typeof createViewer>;
 
@@ -180,6 +179,8 @@ const M8A_V3_1_FIRST_CASE_SCENARIO_ID = "app-oneweb-intelsat-geo-aviation";
 const M8A_V3_1_AUTOPLAY_QUERY_PARAM = "firstIntakeAutoplay";
 const M8A_V3_1_CTA_SCENE_PRESET = "global";
 const M8A_V4_GROUND_STATION_CTA_SCENE_PRESET = "regional";
+const M8A_V4_GROUND_STATION_CTA_STATION_A_ID = "ksat-svalsat-svalbard";
+const M8A_V4_GROUND_STATION_CTA_STATION_B_ID = "ksat-tromso";
 
 function resolveBootstrapScenePreset(
   search: URLSearchParams,
@@ -224,13 +225,20 @@ function buildM8aV31AddressedHref(): string {
   return `/?${params.toString()}`;
 }
 
-function buildM8aV4GroundStationAddressedHref(): string {
+function buildM8aV4GroundStationAddressedHref(
+  selection?: SelectionSnapshot
+): string {
+  const stationAId =
+    selection?.stationA && selection.stationB
+      ? selection.stationA
+      : M8A_V4_GROUND_STATION_CTA_STATION_A_ID;
+  const stationBId =
+    selection?.stationA && selection.stationB
+      ? selection.stationB
+      : M8A_V4_GROUND_STATION_CTA_STATION_B_ID;
   const params = new URLSearchParams();
-  params.set("scenePreset", M8A_V4_GROUND_STATION_CTA_SCENE_PRESET);
-  params.set(
-    M8A_V4_GROUND_STATION_QUERY_PARAM,
-    M8A_V4_GROUND_STATION_QUERY_VALUE
-  );
+  params.set("stationA", stationAId);
+  params.set("stationB", stationBId);
   return `/?${params.toString()}`;
 }
 
@@ -950,7 +958,11 @@ export function startBootstrapComposition(app: HTMLDivElement): BootstrapComposi
         groundStationEntry: {
           addressedHref: buildM8aV4GroundStationAddressedHref(),
           onEnter: () => {
-            window.location.assign(buildM8aV4GroundStationAddressedHref());
+            window.location.assign(
+              buildM8aV4GroundStationAddressedHref(
+                groundStationSelectionStore?.getSnapshot()
+              )
+            );
           }
         }
       });

@@ -89,16 +89,16 @@ function createGroundStationEntry(
   anchor.dataset.homepageEntryKind = "v4-ground-station-multi-orbit";
   anchor.setAttribute(
     "aria-label",
-    `${iconOption.label}: Open V4 ground-station multi-orbit scene with Taiwan CHT and Singapore Speedcast operator-family endpoints`
+    `${iconOption.label}: Open V4 ground-station multi-orbit selected-pair scene`
   );
   anchor.title =
-    `${iconOption.tooltip}: Open V4 ground-station multi-orbit scene`;
+    `${iconOption.tooltip}: Open V4 ground-station selected-pair scene`;
 
   const icon = createIcon(iconOption.paths);
 
   const tooltip = document.createElement("span");
   tooltip.className = "homepage-entry-cta__tooltip";
-  tooltip.textContent = `${iconOption.tooltip} - V4 ground-station multi-orbit`;
+  tooltip.textContent = `${iconOption.tooltip} - selected-pair scene`;
 
   anchor.append(icon, tooltip);
   return anchor;

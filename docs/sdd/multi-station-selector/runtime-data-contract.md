@@ -389,13 +389,14 @@ pair change without page reload).
 
 Per IA §11.1–§11.2, the chips' Apply CTA in wave 1 acts only when the
 URL on landing did not carry a valid pair AND the user has now filled
-both slots from the picker / markers / list. In that case Apply triggers
-`window.location.assign(buildV4PairHref(...))` to perform a clean
-bootstrap with the V4 panel mounted from the start. When the URL already
-carried a valid pair (panel mounted from boot), Apply is hidden by the
-selection chips renderer; the panel is already there, and changing
-either slot through the chips, picker, or markers updates the URL via
-`selection-store.writeUrl` (already `history.replaceState`-based) and
+both slots from the picker / markers / list. After the single-route
+correction, Apply never adds the legacy explicit V4 flag; its fallback
+link uses the canonical short selected-pair URL
+`/?stationA=<id>&stationB=<id>`. When the URL already carried a valid
+pair, or the panel has already auto-mounted from pair completion, Apply is
+hidden by the selection chips renderer; the panel is already there, and
+changing either slot through the chips, picker, or markers updates the URL
+via `selection-store.writeUrl` (already `history.replaceState`-based) and
 triggers a panel recompute via the §A.6 subscription.
 
 There is no other Apply semantic. There is no full-reload during a

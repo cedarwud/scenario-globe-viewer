@@ -159,10 +159,9 @@ export function mountSelectionChips(
   viewerContainer.appendChild(liveRegion);
 
   // Wave 1 IA §4.1 / runtime-data-contract §A.7: when the V4 panel is
-  // mounted (URL already carries a valid pair), Apply is hidden — the
-  // panel reacts to the selection-store URL replace already. When the
-  // panel is not mounted (user is mid-selection on idle), Apply is the
-  // reload fallback that bootstraps the V4 surface from a clean URL.
+  // mounted, Apply is hidden — the panel reacts to the selection-store
+  // URL replace already. When the panel is not mounted, Apply remains a
+  // short-link fallback for the selected pair.
   let panelMounted = false;
 
   function applyTierBadge(snapshot: SelectionSnapshot): void {
