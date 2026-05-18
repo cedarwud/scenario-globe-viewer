@@ -99,38 +99,42 @@ Communication style for this repo defaults to caveman-compressed; switch to
 normal mode only when the user requests it explicitly or when the task
 requires multi-step safety prose.
 
-### R4. Multi-station selector — development state snapshot (2026-05-17)
+### R4. Multi-station selector — development state snapshot (2026-05-18)
 
 **Completed and committed to `main`:**
-- Collapsible filter panel (`src/features/multi-station-selector/marker-filter-panel.ts`):
-  `aside.gs-filter-panel` at `top:3.6rem; right:0.5rem` below Cesium toolbar.
-  Header row 1 = "Ground Stations" label; row 2 = vis toggle + "Filters▾".
-  Body: Orbit + Region (2-col grid) + Band chips, each group in `gs-filter-group` with label.
-- Band filter (`marker-band-chips.ts`): Ka/Ku/C/X/S/L, gold `#ffd166` accent.
-  `setBandFilter`/`getBandFilter` + `allowedBands` predicate in `station-markers.ts`.
-- Station markers: **BillboardCollection** + canvas circles + `HeightReference.CLAMP_TO_GROUND`.
-  Tri-orbit r=4.5px green `#7ee2b8`; dual-orbit r=3.5px blue `#9bc4e8`.
-  `findNearestVisible(windowPosition: Cartesian2, tolerancePx: number): string | null`
-  added to `GroundStationMarkersHandle` — screen-space proximity fallback for clicking.
-- `station-info-card.ts` pick: `scene.pick()` → fallback `markers.findNearestVisible(pos,22)`.
-  Hemisphere check: `dot(worldPos, cameraPos) > R²×0.85`.
-- `composition.ts`: single mount `mountMarkerFilterPanel`. `marker-toggle.ts` on disk, not imported.
-- Filter logic: orbit ∧ region ∧ band (AND across, OR within). Search removed from UI.
+- Single-route mount unified at `composition.ts`; no `isCleanHomeViewerMode`
+  gate. Markers, chips, list picker, info card, and hover tooltip mount on
+  every `/` entry except first-intake exclusive mode.
+- New module `src/features/multi-station-selector/display-state.ts` exports
+  `resolveDisplayState` and `subscribeDisplayState` for five states:
+  `idle`, `selecting`, `projecting`, `replaying`, `invalid`.
+- `body[data-display-state]` is the contract attribute downstream CSS keys off.
+- V4 projection side panel rewritten to five-row IA: row 1 header (title,
+  tier badge, ISO window, copy-link), row 2 rain slider, row 3 stats
+  (Comm time, Handovers), row 4 summary lists (next-3, V-MO1 pin),
+  row 5 three independent disclosures (Rain impact, All visibility,
+  Sources+non-claims), row 6 footer.
+- V4 controller `setSelectedPair(pair)` added. `composition.ts` subscribes
+  to the selection store so reselection re-anchors endpoint markers and
+  camera framing without page reload.
+- Chrome chips: LEO actor count chip `[data-leo-actor-count-chip]`,
+  TLE telemetry chip `[data-tle-telemetry-chip]`, soak summary path on
+  viewer root `[data-soak-summary-path]`.
+- New module `src/features/multi-station-selector/replay-event-pill.ts`
+  mounts at `chrome.bottomRight`; 4s fade lifecycle; cross-orbit migration
+  carries `data-v-mo1="true"`.
+- Wave 3 deleted 31 smoke manifest entries that asserted against removed
+  inspector-sheet / boundary-surface / reviewer-mode-status / handover-rail
+  DOM. Controller LOC dropped from 8908 -> 7012 (wave 3) -> 6991 (wave 5.1).
+- Acceptance gates G1 (19/19), G3, G4 (18/18), G5 all PASS as of
+  2026-05-18. Smokes:
+  `scripts/verify-{g1-bucket-a-coverage,60x-replay-continuity,random-pair-projection-budget,information-density}.mjs`.
 
-**Unresolved: edge station pick still unreliable.**
-Some stations at the globe limb still unclickable. Root cause: `scene.pick()` depth-fails;
-proximity fallback with 22px + dot>R²×0.85 still misses some. Suggested fix:
-make proximity search the primary path (not fallback), snap-to-nearest within 30px always,
-use `scene.pick()` only to confirm. Removes depth dependency entirely.
-
-**Pending blocks:**
-- **Block B — A11y**: focus trap on info-card open, global ESC, ARIA labels,
-  `aria-live` on selection store, keyboard nav for station list.
-- **Block D — Hover detail**: show orbit class badges + band chips in
-  `marker-hover-tooltip.ts` (currently shows name+operator only).
-- **Block A — V4 compute** (high risk, deferred): replace fixture-driven compute
-  in `m8a-v4-ground-station-handover-scene-controller.ts:~6444` with
-  `computeRuntimeProjection` from `runtime-projection.ts`.
+**Deferred (wave 6):**
+- `renderProductUx` `data-itri-*` writes plus
+  buildF09/F16/Policy/Acceptance/RequirementGap state functions and
+  telemetry-keys cleanup. Estimated 200-300 LOC. Requires explicit sign-off
+  because the writes feed a visible product UX root.
 
 (Memory entries in `.agent-memory/` are authoritative; this snapshot may lag.)
 
