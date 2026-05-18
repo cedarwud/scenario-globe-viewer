@@ -227,9 +227,9 @@ const { result: replayClockResult } = await send("Runtime.evaluate", {
   returnByValue: true
 });
 
-const frameTimes = JSON.parse(framesResult.value);
-const panelStates = JSON.parse(stateResult.value);
-const replayClockSamples = JSON.parse(replayClockResult.value);
+const frameTimes = JSON.parse(framesResult.value ?? "[]");
+const panelStates = JSON.parse(stateResult.value ?? "[]");
+const replayClockSamples = JSON.parse(replayClockResult.value ?? "[]");
 
 const intervals = [];
 for (let index = 1; index < frameTimes.length; index += 1) {
