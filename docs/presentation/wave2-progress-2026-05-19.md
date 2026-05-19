@@ -27,6 +27,26 @@ tier remains in chips, station info card, and the V4 panel.
 
 ---
 
+# Question Log — Q2
+
+Question: are there only two dot groups, and does "band" mean frequency band?
+
+Answer: yes, visually two main dot groups. Source:
+`station-compatibility.ts`, `marker-filter-chips.ts`,
+`marker-band-chips.ts`.
+
+| Term | Meaning |
+| --- | --- |
+| `tri-capable` | station can form at least one compatible pair with 3 shared handover orbits |
+| `dual-only` | station can form compatible pairs, but maxes out at 2 shared handover orbits |
+| `none` | no compatible pair; rendered with the blue dual-style dot |
+| Orbit filter | filters station support for LEO / MEO / GEO |
+| Band filter | RF frequency band filter: Ka, Ku, C, X, S, L |
+
+Current registry capability count: 21 tri-capable, 47 dual-only, 1 none.
+
+---
+
 # Wave-2 Scope
 
 Master SDD: `docs/sdd/multi-station-selector/tle-first-fidelity-uplift.md`.
