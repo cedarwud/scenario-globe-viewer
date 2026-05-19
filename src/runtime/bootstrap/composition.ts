@@ -10,7 +10,6 @@ import { createSelectionStore } from "../../features/multi-station-selector/sele
 import { mountSelectionChips } from "../../features/multi-station-selector/selection-chips";
 import { mountStationListPicker } from "../../features/multi-station-selector/station-list-picker";
 import { mountMarkerHoverTooltip } from "../../features/multi-station-selector/marker-hover-tooltip";
-import { mountMarkerFilterPanel } from "../../features/multi-station-selector/marker-filter-panel";
 import {
   mountV4ProjectionSidePanel,
   type V4ProjectionSidePanelHandle
@@ -801,8 +800,8 @@ export function startBootstrapComposition(app: HTMLDivElement): BootstrapComposi
   const disposeLightingRefresh = bindLightingRefresh(viewer);
 
   // Mount unification per IA §2 + §4.1 + runtime-data-contract §A.1:
-  // the marker layer, filter panel, selection chips, station list
-  // picker, info card, and hover tooltip mount whenever the first-intake
+  // the marker layer, selection chips, station list picker (including
+  // filters), info card, and hover tooltip mount whenever the first-intake
   // surface is not the active owner — independent of whether the URL
   // carries stationA/stationB. The V4 projection side panel mounts on
   // top of that base only when display state enters projecting/replaying
@@ -813,9 +812,6 @@ export function startBootstrapComposition(app: HTMLDivElement): BootstrapComposi
     : null;
   const groundStationSelectionStore = groundStationMarkers
     ? createSelectionStore()
-    : null;
-  const groundStationMarkerFilterPanel = groundStationMarkers
-    ? mountMarkerFilterPanel(viewer.container as HTMLElement, groundStationMarkers)
     : null;
   const groundStationSelectionChips =
     groundStationMarkers && groundStationSelectionStore
@@ -981,7 +977,6 @@ export function startBootstrapComposition(app: HTMLDivElement): BootstrapComposi
       groundStationInfoCard?.dispose();
       groundStationListPicker?.dispose();
       groundStationSelectionChips?.dispose();
-      groundStationMarkerFilterPanel?.dispose();
       groundStationSelectionStore?.dispose();
       groundStationMarkers?.dispose();
       disposeLightingRefresh();
