@@ -49,11 +49,11 @@ routing。
 
 ---
 
-# 問題紀錄 — Q3
+# 站點命名規則
 
-問題：station 的命名規則是什麼？為什麼不是用國家命名？
+用途：說明 station identity 為什麼採 site/operator-first，而不是 country-first。
 
-回答：station identity 採 site/operator-first，不採 country-first。來源：
+結論：station identity 採 site/operator-first，不採 country-first。來源：
 `multi-orbit-public-registry.json`、`station-list-picker.ts`、
 `station-info-card.ts`。
 
