@@ -4,11 +4,15 @@ Date: 2026-05-19
 HEAD after Task 1: `cf4e353`  
 Audience: technical reviewers already familiar with the selected-pair route.
 
+Deck shape: 15 required sections. Numeric claims cite a commit, SDD section,
+or spike report row.
+
 ---
 
 # Wave-2 Scope
 
 Master SDD: `docs/sdd/multi-station-selector/tle-first-fidelity-uplift.md`.
+Source anchors: SDD §7, §11, §12.1; 42-gap roll-up in SDD §14.
 
 Wave 2 decomposes:
 
@@ -18,7 +22,9 @@ Wave 2 decomposes:
 | 8 visual-evidence gaps | Slice F9 |
 | Data/legal/perf unknowns | Spikes S1, S2a, S2b, S3 |
 
-Status at `cf4e353`: F1, F7, F6 prep, S1, slice-0 baseline, and camera framing fix landed. F2/F3/F4/F5 remain gated by S2a/S2b/S3.
+Status at `cf4e353`: F1, F7, F6 prep, S1, slice-0 baseline, and the
+Task-1 framing regression fix landed. F2/F3/F4/F5 remain gated by
+S2a/S2b/S3.
 
 ---
 
@@ -49,6 +55,8 @@ Null rule: any null term forces `receivedPowerProxyDbm = null`; partial sums are
 # What Landed
 
 ![Current selected-pair route](wave2-progress-2026-05-19-assets/current-selected-pair-overview.png)
+
+Screenshot captured after `cf4e353`.
 
 - ✓ SDD v3 + F9 visual layer: `7c44d60`
 - ✓ F1 data shape: `db018a6`
@@ -92,7 +100,8 @@ Source: SDD §7 F7, commit `c6d731d`.
 - `scripts/refresh-tle.mjs` downloads CelesTrak GP snapshots for LEO/MEO/GEO.
 - `manifest.json` selects one explicit mode:
   `local-snapshot`, `network-snapshot`, or `fallback-local-snapshot`.
-- `scripts/refresh-satcat.mjs` reduces SATCAT from about 5 MB to about 250 KB.
+- `scripts/refresh-satcat.mjs` reduces SATCAT from ~5 MB CSV to ~250 KB
+  summary, per SDD §7 F7.
 - Retained SATCAT fields: NORAD id, object name, operator family, constellation, orbit class, decay date.
 - Attribution is exposed through the TLE chip and Row 5 source disclosure.
 
@@ -137,7 +146,8 @@ Baseline captures:
 | TLE health | LEO/MEO/GEO health |
 | sourceMode | route source mode |
 
-Purpose: immutable “before” pane for F9 §49 comparison view. It is not a claim that current output is better.
+Purpose: immutable “before” pane for F9 §49 comparison view; it is only the
+frozen baseline for a future comparison pane.
 
 ---
 
@@ -147,9 +157,9 @@ Source: `docs/spike/multi-station-selector/spike-S1-cap-cadence-perf.md`, commit
 
 | Config | Result |
 | --- | ---: |
-| C1: LEO 60 + 10 s | p95 795 ms PASS |
-| C4: LEO 200 + 30 s | p95 391 ms PASS |
-| C5: LEO 200 + 10 s | p95 1027 ms FAIL |
+| C1: LEO 60 + 10 s | p95 795.3 ms PASS |
+| C4: LEO 200 + 30 s | p95 391.2 ms PASS |
+| C5: LEO 200 + 10 s | p95 1027.3 ms FAIL |
 
 Flame profile:
 
@@ -160,9 +170,9 @@ Decision: F1 LEO 10 s at cap 60 is authorised; F8 LEO 200 at 30 s is authorised;
 
 ---
 
-# Camera Framing Fix
+# Task-1 Regression Note
 
-Source: Task 1 commit `cf4e353`.
+Source: Task 1 commit `cf4e353` message + before/after screenshots.
 
 | Before | After |
 | --- | --- |
@@ -170,13 +180,16 @@ Source: Task 1 commit `cf4e353`.
 
 Root cause: selected-pair camera framing applied a fixed 66° latitude offset to non-polar pairs and used edge-on pitch for regional geometry.
 
-Fix: frame non-polar pairs on the pair midpoint and use near-overhead pitch for short/long baselines. The five walkthrough visibility counts stayed `26/0/15/42/9`.
+Fix: frame non-polar pairs on the pair midpoint and use near-overhead pitch
+for short/long baselines. Five walkthrough visibility counts stayed
+`26/0/15/42/9`. No Task-2 camera/view work is included here.
 
 ---
 
 # Visual Evidence Today
 
-Source: slice-0 §6.2 + screenshots at `cf4e353`. F6 prep data exists; Row 6 elevation wiring is pending.
+Source: slice-0 §6.2 values frozen at `7c44d60`; screenshots recaptured at
+`cf4e353`. F6 prep data exists; Row 6 elevation wiring is pending.
 
 | URL | Row 3 | Row 5 d1 Mbps | Row 6 tier | Shot |
 | --- | --- | --- | --- | --- |
@@ -186,7 +199,9 @@ Source: slice-0 §6.2 + screenshots at `cf4e353`. F6 prep data exists; Row 6 ele
 | Bukit/Cyberjaya | 360m, 0 | LEO 198.932; GEO 48.841 | geometric | [4](wave2-progress-2026-05-19-assets/walkthrough-4-bukit-cyberjaya.png) |
 | Yangmingshan/Hartebeesthoek | 360m, 2 | LEO 198.932; MEO 99.712; GEO 48.841 | geometric | [5](wave2-progress-2026-05-19-assets/walkthrough-5-yangmingshan-hartebeesthoek.png) |
 
-Today’s user-facing surfaces: Row 5 disclosure, chrome chips, Row 6 footer. F9 visual primitives land incrementally.
+Today’s user-facing surfaces: Row 5 disclosure, chrome chips, Row 6 footer.
+F9 visual primitives land incrementally; F9 §49 comparison is forthcoming,
+not current comparative evidence.
 
 ---
 
