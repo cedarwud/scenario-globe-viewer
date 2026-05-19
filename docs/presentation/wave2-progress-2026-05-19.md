@@ -198,25 +198,25 @@ P.676 / P.618；handover policy 參考 TR 38.821 §7.3 的 trigger metrics [3][4
 
 ---
 
-# 問題紀錄 — Q6
+# Download CSV 稽核匯出
 
-問題：selected-pair 的 Download CSV 要怎麼解讀？它是真實資料嗎？
+用途：selected-pair 的 Download CSV 是 runtime projection 的 audit export，
+用來重現 panel values、檢查 provenance 與 truth boundary；它不是 packet
+capture、operator telemetry、或 commercial routing evidence [6]。
 
-回答：它是 runtime projection 的 audit export，不是 measured service
-telemetry。來源：`runtime-projection-csv.ts`。
-
-| CSV section | 解讀方式 |
+| CSV 區塊 | 解讀方式 |
 | --- | --- |
-| Runtime projection / station precision | public registry identity、precision、source-tier context |
-| TLE source manifest / actor provenance | public TLE inventory、parse health、cap、propagated sample metadata |
-| Visibility windows / provenance | 由 TLE samples 推導的 geometry-derived pair visibility |
-| Communication stats | visibility windows 的 derived summary，不是真實 traffic logs |
-| Link selection events | modeled policy events 與 reason codes |
-| Modeled outputs | 帶 model id、standards refs、input summary、non-claim 的估算 |
-| Display transforms | renderer choices only |
+| Runtime projection | Station A/B、time window、shared orbits、source tier、precision label |
+| Station precision | coordinates precision、raw lat/lon、render position 是否等於 source truth [1] |
+| TLE source manifest | CelesTrak path、record counts、cap、parse health、epoch / source health [2] |
+| Actor / visibility provenance | 哪些 satellite 被 propagated、sample cadence、A/B visibility source、pair intersection |
+| Communication / link events | comm time summary、handover reason；derived / modeled，不是 traffic logs [3][4] |
+| Modeled outputs | model id、standards refs、input summary、non-claim |
+| Display transforms | camera、lane、mesh、label 等 display-only choices |
 
-用途：稽核 provenance 並重現 panel values；不要把它讀成 packet capture、
-operator telemetry、或 commercial routing evidence。
+讀法：先看 source tier / precision label，再看 TLE manifest 是否 fresh / capped；
+接著用 actor / visibility provenance 對照右側 panel；最後看 Non-claims，
+確認哪些不能對外宣稱。
 
 ---
 
