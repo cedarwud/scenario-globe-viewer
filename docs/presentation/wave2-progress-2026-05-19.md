@@ -4,8 +4,26 @@ Date: 2026-05-19
 HEAD after Task 1: `cf4e353`  
 Audience: technical reviewers already familiar with the selected-pair route.
 
-Deck shape: 15 required sections. Numeric claims cite a commit, SDD section,
-or spike report row.
+Deck shape: front question log + 15 required sections. Numeric claims cite a
+commit, SDD section, spike report row, or local code path.
+
+---
+
+# Question Log — Q1
+
+Question: do homepage ground-station dots encode color or size, or are they
+uniform?
+
+Answer: not uniform. Source:
+`station-markers.ts` + `station-compatibility.ts`.
+
+| Encoding | Normal dot | Highlight / selected |
+| --- | --- | --- |
+| tri-capable | green, radius 4.5 px; current minority group gets pink outline | green, radius 7 px, yellow outline |
+| dual-only / none | blue, radius 3.5 px, dark outline | blue, radius 5.5 px, yellow outline |
+
+Boundary: this is handover-capability + hover/selection encoding only. Source
+tier remains in chips, station info card, and the V4 panel.
 
 ---
 
