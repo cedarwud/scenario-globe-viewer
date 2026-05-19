@@ -14,35 +14,38 @@ spike report row，或本地 code path。
 
 問題：首頁的 ground-station 圓點有用顏色或大小編碼嗎，還是全部一樣？
 
-回答：不是全部一樣。來源：`station-markers.ts` +
-`station-compatibility.ts`。
+回答：不是全部一樣；畫面上主要看成兩種 dot groups，但底層 capability
+classification 是三種。來源：`station-markers.ts` + `station-compatibility.ts`。
 
-| 編碼 | 一般圓點 | Highlight / selected |
-| --- | --- | --- |
-| tri-capable | green，radius 5.5 px；目前少數群組會有 pink outline | green，radius 8 px，yellow outline |
-| dual-only / none | blue，radius 4.5 px，dark outline | blue，radius 6.5 px，yellow outline |
+| 分類 | 一般圓點 | Highlight / selected | 意義 |
+| --- | --- | --- | --- |
+| `tri-capable` | green，radius 5.5 px；目前少數群組會有 pink outline | green，radius 8 px，yellow outline | 至少能和某個 pair 共享 3 種 handover orbits |
+| `dual-only` | blue，radius 4.5 px，dark outline | blue，radius 6.5 px，yellow outline | 可形成 compatible pairs，但最多共享 2 種 handover orbits |
+| `none` | 目前沿用 blue dual-style dot | blue selected style | 沒有 compatible pair |
 
-邊界：這只表示 handover-capability 與 hover/selection 狀態。Source tier
-仍然放在 chips、station info card、以及 V4 panel。
+目前 registry capability count：21 tri-capable、47 dual-only、1 none。邊界：
+這只表示 handover-capability 與 hover/selection 狀態；Source tier 仍放在 chips、
+station info card、以及 V4 panel。
 
 ---
 
 # 問題紀錄 — Q2
 
-問題：所以圓點只分兩種嗎？`band` 是指頻段嗎？
+問題：filters 有哪些項目？`band` 是指頻段嗎？
 
-回答：視覺上主要是兩個 dot groups。來源：`station-compatibility.ts`、
-`marker-filter-chips.ts`、`marker-band-chips.ts`。
+回答：是，Band 指 RF frequency band。來源：`station-list-picker.ts`、
+`marker-filter-chips.ts`、`marker-region-chips.ts`、`marker-band-chips.ts`。
 
-| 名稱 | 意義 |
-| --- | --- |
-| `tri-capable` | station 至少能和某個 pair 共享 3 種 handover orbits |
-| `dual-only` | station 可以形成 compatible pairs，但最多只共享 2 種 handover orbits |
-| `none` | 沒有 compatible pair；目前用 blue dual-style dot 呈現 |
-| Orbit filter | 篩選 station 是否支援 LEO / MEO / GEO |
-| Band filter | RF frequency band filter：Ka、Ku、C、X、S、L |
+| Filter group | UI items | 用途 |
+| --- | --- | --- |
+| Orbit | LEO、MEO、GEO | 篩選 station disclosed supported orbit classes |
+| Handover | 2-orbit、3-orbit | 篩選 pair compatibility 的 handover orbit count |
+| Region | Africa、Asia、Europe、N. America、Oceania、Antarctic、Arctic、S. America | 依 registry region 篩選 |
+| Band | Ka、Ku、C、X、S、L | 依 disclosed supported RF bands 篩選 |
 
-目前 registry capability count：21 tri-capable、47 dual-only、1 none。
+解讀邊界：Orbit / Band / Region 是 station registry metadata filter；Handover
+是相容 pair 的篩選。它們不等於 live service proof，也不代表 operator-validated
+routing。
 
 ---
 
