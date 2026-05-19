@@ -4,9 +4,9 @@
 Task 1 後的 HEAD：`cf4e353`  
 對象：已熟悉 selected-pair route 的技術 reviewer。
 
-Deck 結構：前段是問題紀錄，接著是整併後的 provenance 摘要與 15 個
-required sections。所有數字 claim 都要能追到 commit、SDD section、
-spike report row，或本地 code path [6]。
+Deck 結構：前段是 reviewer 問題整理與開發計畫摘要，接著是整併後的
+provenance 摘要與 15 個 required sections。所有數字 claim 都要能追到
+commit、SDD section、spike report row，或本地 code path [6]。
 
 ---
 
@@ -241,48 +241,22 @@ modeled output、display-only。
 
 ---
 
-# 問題紀錄 — Q8
+# TLE-first 開發中項目
 
-問題：selected-pair TLE-first 的 truth/data surfaces 還有沒有漏寫在 deck？
+用途：把 SDD 內「計畫中 / 開發中」的 TLE-first work 集中報告；前面
+selected-pair slides 只說目前可見的 truth boundary，不把未完成項目講成已落地 [6]。
 
-回答：主要 truth boundary 已覆蓋，但下列低階 audit signals 原本講得不夠明確。
-來源：`runtime-data-completeness.ts`、`runtime-projection-csv.ts`、
-`verify-tle-first-data-completeness.mjs`。
+已落地 foundation：F1 data shape、F7 TLE manifest / SATCAT、F6 prep、S1 perf、
+slice-0 baseline。這些支撐後續工作，但 F9 §49 comparison view 仍是
+forthcoming。
 
-| Audit signal | reviewer 可以在哪裡找到 |
+| 開發線 | 目前計畫 |
 | --- | --- |
-| route mode | panel dataset、debug payload、CSV `Data completeness` |
-| empty reason / no fake actor | debug payload + CSV `emptyReasonCode`、`fakeActorCount=0` |
-| TLE source health | source manifest / freshness state、TLE chip counts |
-| parser、cap、exclusion stats | TLE chip + CSV source manifest |
-| actor provenance | CSV/debug：source id、sample count、cadence、UTC range |
-| visibility provenance | station A/B window source、pair-intersection source |
-| display transforms | CSV 將 camera、lane、mesh、label choices 標為 display-only |
-
-報告 framing：這些不是新的 claim，而是 audit handles，避免 reviewer 把 local
-snapshots、empty states、或 renderer transforms 誤讀成 measured service evidence。
-
----
-
-# 問題紀錄 — Q9
-
-問題：為什麼 deck 感覺內容偏少？TLE-first / selected-pair 的 truth-data
-細節有寫進去嗎？
-
-回答：coverage 有，但刻意壓縮。Deck 沒有把完整 CSV/debug schema 整包貼進
-slides，而是依 reviewer question 分類。
-
-| Area | 目前 deck coverage |
-| --- | --- |
-| Station truth | Q3-Q4：naming、registry fields、precision、source links |
-| Pair runtime truth | Q5-Q7：TLE-derived、geometry-derived、modeled、display-only |
-| CSV/debug audit | Q6 + Q8：source manifest、actor/visibility provenance、empty reason |
-| Rain/model boundary | Q7 + Disclosure Boundary |
-| Data-completeness risks | Pending Work + Recommended Dispatches |
-
-如果需要更完整的版本，應該把 Q6/Q8 展開成 appendix slides，而不是增加生成插圖：
-station precision、TLE source health、actor provenance、visibility provenance、
-modeled outputs、display-only transforms 各一張。主線保持精簡。
+| F6 wiring | `elevationM` / `terrainMaskDeg` 接到 visibility altitude、rain station height、Row 6 disclosure、D6 |
+| F8 partial | LEO 200 cap at 30 s、cap disclosure、policy selector、alias canonicalisation |
+| F9 partial | TLE chip color、active badge、pre/post comparison shell；comparison evidence 尚未完成 |
+| F2 / F5 | 等 S2a EIRP / bandwidth / T_sys；S2b hysteresis；未解時顯示 unavailable |
+| F3 / F4 | 等 S3 legal decision 後才可處理 atmospheric / rain grids |
 
 ---
 
@@ -485,38 +459,9 @@ F9 visual primitives 會逐步落地；F9 §49 comparison 還是 forthcoming，
 
 ---
 
-# 待辦工作
-
-| 項目 | 相依條件 |
-| --- | --- |
-| F6 wiring | prep fields 已落地；runtime read paths 待做 |
-| F8 partial | S1 授權 cap 200 at 30 s；policy selector 待做 |
-| F9 partial | F45/F50/F49 已被 F7 + slice-0 解鎖 |
-| F2 | 先做 S2a anchor，再做 S2b retune |
-| F3/F4 | S3 legal decision on grid bundling |
-| F5 | S2a bandwidth/EIRP/T_sys anchors |
-
-S1 已關閉。S2a/S2b/S3 是剩餘的 spike bottlenecks。
-
----
-
-# 建議下一批工作
-
-1. F6 wiring：在 visibility、rain station height、Row 6、D6 中消費 `elevationM` / `terrainMaskDeg`。
-2. F8 partial：交付 LEO 200 cap at 30 s、cap disclosure、policy URL selector、alias canonicalisation。
-3. F9 partial：落地 F45 TLE chip color、F50 active badge、F49 pre/post comparison shell。
-
-主要 bottleneck：S3 legal decision gate F3 + F4，也 gate F2/F5 使用的任何
-3GPP/ITU table extraction path。
-
-在 F9 §49 實作並量測完成前，comparison language 一律保持 forward-looking。
-
----
-
 # 揭露邊界
 
-已與 Q4/Q5 整併：詳細 provenance 已放在前段；這張是 reviewer 應採用的
-rule-of-thumb。
+詳細 provenance 與開發計畫已放在前段；這張是 reviewer 應採用的 rule-of-thumb。
 
 | Claim type | 允許解讀方式 |
 | --- | --- |
