@@ -10,7 +10,7 @@ spike report row，或本地 code path。
 
 ---
 
-# Q1 Ground-station 圓點視覺編碼
+# Q1 站點圓點
 
 用途：說明首頁 ground-station dots 的顏色、大小與 capability classification。
 
@@ -29,7 +29,7 @@ station info card、以及 V4 panel。
 
 ---
 
-# Q2 Filter 項目與 Band 定義
+# Q2 篩選器
 
 用途：整理 station selection filters 的分類、UI items，以及 Band 的意義。
 
