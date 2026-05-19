@@ -263,6 +263,7 @@ async function collectLayoutSnapshot() {
             chips: rectFor(".ground-station-selection-chips"),
             picker: rectFor(".ground-station-list-picker"),
             strip: rectFor(".m8a-v47-product-ux__strip"),
+            cesiumToolbar: rectFor(".cesium-viewer-toolbar"),
             panel: rectFor(panelSelector)
           }
         };
@@ -395,6 +396,10 @@ function buildViewportResult(viewport, readyInfo, layout, wheelScroll) {
     isVisibleRect(layout.rects.picker) && isVisibleRect(layout.rects.strip)
       ? overlapRect(layout.rects.picker, layout.rects.strip)
       : { overlaps: true, width: null, height: null, area: null };
+  const toolbarPanelOverlap =
+    isVisibleRect(layout.rects.cesiumToolbar) && isVisibleRect(layout.rects.panel)
+      ? overlapRect(layout.rects.cesiumToolbar, layout.rects.panel)
+      : { overlaps: true, width: null, height: null, area: null };
 
   const leftRects = [
     ["selection-chips", layout.rects.chips],
@@ -503,6 +508,17 @@ function buildViewportResult(viewport, readyInfo, layout, wheelScroll) {
         afterScrollTop: wheelScroll?.afterScrollTop ?? null,
         panelClientHeight: wheelScroll?.panelClientHeight ?? null,
         panelScrollHeight: wheelScroll?.panelScrollHeight ?? null
+      }
+    ),
+    assertion(
+      "cesium-toolbar-projection-panel-no-overlap",
+      isVisibleRect(layout.rects.cesiumToolbar) &&
+        isVisibleRect(layout.rects.panel) &&
+        !toolbarPanelOverlap.overlaps,
+      {
+        toolbar: layout.rects.cesiumToolbar,
+        panel: layout.rects.panel,
+        overlap: toolbarPanelOverlap
       }
     ),
     assertion(

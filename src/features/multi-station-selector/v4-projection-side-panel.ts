@@ -66,11 +66,22 @@ const PANEL_CSS = `
    with root scrolling for expanded content. */
 .v4-projection-side-panel {
   height: auto;
-  max-height: calc(100dvh - 4rem);
+  max-height: none;
   overflow-y: auto;
   overscroll-behavior: contain;
   pointer-events: auto;
   scrollbar-gutter: stable;
+}
+@media (min-width: 721px) {
+  .v4-projection-side-panel {
+    top: 4rem;
+    max-height: calc(100dvh - 5rem);
+  }
+}
+@media (max-width: 720px) {
+  .v4-projection-side-panel {
+    max-height: 50vh;
+  }
 }
 .v4-projection-side-panel__row {
   display: flex;
