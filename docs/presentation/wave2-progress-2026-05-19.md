@@ -113,6 +113,29 @@ and F9 comparison evidence.
 
 ---
 
+# Question Log — Q6
+
+Question: how should reviewers read the selected-pair Download CSV, and is it
+real data?
+
+Answer: it is an audit export of the runtime projection, not measured service
+telemetry. Source: `runtime-projection-csv.ts`.
+
+| CSV section | How to read it |
+| --- | --- |
+| Runtime projection / station precision | public registry identity, precision, and source-tier context |
+| TLE source manifest / actor provenance | public TLE inventory, parse health, cap, propagated sample metadata |
+| Visibility windows / provenance | geometry-derived pair visibility from TLE samples |
+| Communication stats | derived summary of visibility windows, not real traffic logs |
+| Link selection events | modeled policy events and reason codes |
+| Modeled outputs | estimates with model id, standards refs, input summary, non-claim |
+| Display transforms | renderer choices only |
+
+Use it to audit provenance and reproduce panel values; do not read it as
+packet capture, operator telemetry, or commercial routing evidence.
+
+---
+
 # Wave-2 Scope
 
 Master SDD: `docs/sdd/multi-station-selector/tle-first-fidelity-uplift.md`.
@@ -344,6 +367,7 @@ rule-of-thumb reviewers should apply.
 | Claim type | Allowed reading |
 | --- | --- |
 | Station card | public registry + source links; coordinates may be exact or representative |
+| Download CSV | projection export for provenance and panel-value audit, not telemetry |
 | Satellite scene | TLE-derived identity/position where runtime data exists |
 | Metrics | modeled estimates unless explicitly tagged source-derived |
 | Moving packets / lanes / camera | display-only; not packet capture or traffic telemetry |
