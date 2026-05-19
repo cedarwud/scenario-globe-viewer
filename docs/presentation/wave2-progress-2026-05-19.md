@@ -136,6 +136,33 @@ packet capture, operator telemetry, or commercial routing evidence.
 
 ---
 
+# Question Log — Q7
+
+Question: what does Rain rate change, how should the right-side panel be read,
+and how real is it?
+
+Answer: Row 2 Rain rate is a model input, not weather telemetry. Source:
+`v4-projection-side-panel.ts`, `runtime-projection.ts`,
+`runtime-data-completeness.ts`.
+
+| Panel area | How to read it |
+| --- | --- |
+| Row 1 tier/window | pair identity, source tier, projection time window |
+| Row 2 Rain rate | mm/h control for modeled P.618 rain fade |
+| Row 3 stats | derived comm time and handover count after policy selection |
+| Row 4 summaries | next visibility and link-selection events from TLE geometry + policy |
+| Row 5 d1 | clear-sky vs rain throughput/jitter/comm-time estimates |
+| Row 5 d2/d3 | full windows, CSV, sources, non-claims, policy refs |
+| Row 6 footer | station precision and pair source tier |
+
+Reality boundary: stations and TLE identities are public/source-derived;
+windows are geometry-derived; stats and handover are model outputs; packets,
+lanes, and camera are display-only. Rain rate affects rain attenuation,
+throughput/jitter, and policy-selected comm/handover results when fade changes
+candidate ranking.
+
+---
+
 # Wave-2 Scope
 
 Master SDD: `docs/sdd/multi-station-selector/tle-first-fidelity-uplift.md`.
@@ -368,6 +395,7 @@ rule-of-thumb reviewers should apply.
 | --- | --- |
 | Station card | public registry + source links; coordinates may be exact or representative |
 | Download CSV | projection export for provenance and panel-value audit, not telemetry |
+| Rain rate | model control for fade, not measured weather |
 | Satellite scene | TLE-derived identity/position where runtime data exists |
 | Metrics | modeled estimates unless explicitly tagged source-derived |
 | Moving packets / lanes / camera | display-only; not packet capture or traffic telemetry |
