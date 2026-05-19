@@ -70,24 +70,30 @@ endpoint 來做 routing、screenshots、pair URLs；country 粒度太粗。
 
 ---
 
-# 問題紀錄 — Q4
+# 站點資訊卡
 
-問題：單點 station 後顯示哪些欄位？資料從哪裡來？都是真實的嗎？
+用途：單點 station 後，讓 reviewer 檢查 endpoint identity、public source、
+capability metadata、以及是否可選為 Station A/B。
 
-回答：info card 呈現 registry fields。來源：`station-info-card.ts`、
-`multi-orbit-public-registry.json`、`multi-orbit-public-registry-sources.md`。
+來源：`station-info-card.ts`、`multi-orbit-public-registry.json`、
+`multi-orbit-public-registry-sources.md` §Schema notes & non-claims。
 
-| Card 欄位群組 | 真實性邊界 |
+| 顯示區塊 | 內容與解讀 |
 | --- | --- |
-| name、operator、family、country、region | public registry，並有 source URL |
-| coordinates | public registry；依 disclosure precision 可能是 exact 或 representative |
-| supported orbits / bands | public-disclosure capability，不是 live service proof |
-| use case / notes | public disclosure summary |
-| elevation | SRTM/Open-Elevation cache，F6 prep 加入 |
-| terrain mask | 預設 `0`，等待 per-station terrain audit |
+| Title | `name`，public station / teleport / gateway display name |
+| Field list | `operator`、`operatorFamily`、`country`、`region`、coordinates、supported orbits、supported bands、disclosure precision |
+| Use case / notes | `primaryUseCase` 與 `publicDisclosureNotes`，是 public disclosure summary |
+| Source link | `Public source · sourceTier`，連到 registry 的 primary URL |
+| Actions / badge | Select as Station A/B；已選 pair 時顯示 pair source tier |
 
-Non-claim：card 不驗證 commercial routing，也不證明兩個站點之間存在 private
-service。
+真實性：每個 station 都有 primary public URL，且 registry 只收公開來源可支持
+≥2 of LEO/MEO/GEO 的 entries。Coordinates 依 `disclosurePrecision` 可能是 exact
+coords，也可能是 municipality / operator-family region representative coords。
+Supported orbits / bands 表示公開揭露能力，不是 live service proof。
+`elevationM` / `terrainMaskDeg` 已在 registry 作為 F6 prep data，但不是目前
+info card 的顯示欄位。
+
+Non-claim：card 不驗證 commercial routing、private service、或兩站間實際流量。
 
 ---
 
