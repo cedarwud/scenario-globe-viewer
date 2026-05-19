@@ -305,17 +305,17 @@ Refresh 是 build-step / manifest path；runtime hot path 不做網路抓取。
 
 ---
 
-# 對外說法邊界
+# 資料可信度說明
 
-這張是報告時應遵守的 rule-of-thumb：清楚分辨公開來源、模型推導、視覺效果。
+報告時要清楚分辨：哪些來自公開來源、哪些是模型推導、哪些只是視覺輔助。
 
-| Claim type | 允許解讀方式 |
+| 類型 | 可解讀方式 |
 | --- | --- |
-| Station card | 公開 registry + source links；座標可能是 exact 或 representative |
-| Download CSV | 用來稽核資料來源與 panel values，不是 telemetry |
+| Station card | 公開資料庫 + source links；座標可能是 exact 或 representative |
+| Download CSV | 用來稽核資料來源與 panel values，不是實測 telemetry |
 | Rain rate | 模型控制參數，不是實測天氣 |
 | Satellite scene | 衛星身份與位置來自公開 TLE 推導 |
-| Metrics | 除非明確標為 source-derived，否則是 modeled estimates |
+| Metrics | 除非明確標為 source-derived，否則是模型估算 |
 | Moving packets / lanes / camera | 視覺輔助，不是真實 packet capture 或 traffic telemetry |
 | Missing anchors | 顯示 unavailable / pending，不靜默補值 |
 
