@@ -241,225 +241,74 @@ modeled output、display-only。
 
 ---
 
-# TLE-first 開發中項目
+# TLE-first 主線總覽
 
-用途：把 SDD 內「計畫中 / 開發中」的 TLE-first work 集中報告；前面
-selected-pair slides 只說目前可見的 truth boundary，不把未完成項目講成已落地 [6]。
+來源：SDD §7、§11、§12.1；slice-0 §6.2；S1 spike report [6]。
 
-已落地 foundation：F1 data shape、F7 TLE manifest / SATCAT、F6 prep、S1 perf、
-slice-0 baseline。這些支撐後續工作，但 F9 §49 comparison view 仍是
-forthcoming。
+TLE-first 的目標是讓 selected-pair runtime 保持 source-explicit、
+model-explicit、display-transform-explicit。Wave 2 覆蓋 42 個 fidelity gaps
+與 8 個 visual-evidence gaps；不是宣稱現在已經完成全部 wave-2 比較證據。
 
-| 開發線 | 目前計畫 |
+| 層級 | 目前狀態 |
 | --- | --- |
-| F6 wiring | `elevationM` / `terrainMaskDeg` 接到 visibility altitude、rain station height、Row 6 disclosure、D6 |
-| F8 partial | LEO 200 cap at 30 s、cap disclosure、policy selector、alias canonicalisation |
-| F9 partial | TLE chip color、active badge、pre/post comparison shell；comparison evidence 尚未完成 |
-| F2 / F5 | 等 S2a EIRP / bandwidth / T_sys；S2b hysteresis；未解時顯示 unavailable |
-| F3 / F4 | 等 S3 legal decision 後才可處理 atmospheric / rain grids |
+| 已落地 foundation | F1 data shape、F7 TLE manifest / SATCAT、F6 prep、S1 perf、slice-0 baseline |
+| 開發中 | F6 wiring、F8 cap / policy surfacing、F9 visual evidence |
+| 受 gate 阻擋 | S2a EIRP / bandwidth / T_sys、S2b hysteresis、S3 grid / table policy |
+| 核心契約 | RF chain 任何必要 term 為 null，就顯示 unavailable；禁止 partial sums |
+
+F9 §49 comparison view 仍是 forthcoming；不能把目前畫面說成已經優於 wave-1。
 
 ---
 
-# Wave-2 範圍
-
-Master SDD：`docs/sdd/multi-station-selector/tle-first-fidelity-uplift.md`。
-Source anchors：SDD §7、§11、§12.1；42-gap roll-up 在 SDD §14。
-
-Wave 2 拆成：
-
-| 輸入 | 交付形態 |
-| --- | --- |
-| 42 audit gaps | Slices F1-F8 |
-| 8 visual-evidence gaps | Slice F9 |
-| Data/legal/perf unknowns | Spikes S1、S2a、S2b、S3 |
-
-`cf4e353` 狀態：F1、F7、F6 prep、S1、slice-0 baseline、以及 Task-1 framing
-regression fix 已落地。F2/F3/F4/F5 仍受 S2a/S2b/S3 gate。
-
----
-
-# 架構契約
-
-來源：SDD §4.1 + §5.1。
-
-| RF term | 真實性邊界 |
-| --- | --- |
-| `tx-eirp` | modeled，或等待 S2a 而 unavailable |
-| `free-space-path-loss` | TR 38.811 §6.6.2 |
-| `gas-absorption` | P.676-13 Annex 2 |
-| `atmospheric-composite` | P.618-14 §2.4 eq. 65 |
-| `rx-antenna-gain` | S.465-6 within range |
-
-公式：
-
-```text
-P_rx = EIRP - FSPL - A_gas
-     - sqrt((A_rain + A_cloud)^2 + A_scint^2)
-     + G_rx
-```
-
-Null rule：任何 term 是 null，就強制 `receivedPowerProxyDbm = null`；禁止 partial sums。
-
----
-
-# 已落地項目
+# TLE-first 已落地 foundation
 
 ![Current selected-pair route](wave2-progress-2026-05-19-assets/current-selected-pair-overview.png)
 
 Screenshot captured after `cf4e353`。
 
-- ✓ SDD v3 + F9 visual layer：`7c44d60`
-- ✓ F1 data shape：`db018a6`
-- ✓ F7 live TLE + manifest + SATCAT summary：`c6d731d`
-- ✓ F6 prep registry fields：`39733a7`
-- ✓ slice-0 §6.2 baseline：`ecbe41c`
-- ✓ S1 perf spike + SDD closure：`83ed47d`、`714ddec`
-- ✓ AsiaSat Tai Po ↔ CHT Fangshan camera fix：`cf4e353`
-
----
-
-# F1 重點
-
-來源：SDD §7 F1、commit `db018a6`、D6 smoke。
-
-- 關閉 12 個 gaps。
-- 新增 `visibility-cadence-multi.ts` wrapper。
-- Per-output `inputSummary`、NORAD + COSPAR exposure、max-epoch freshness。
-- Dynamic display transforms 會回填 live camera hint。
-
-Before / after shape：
-
-```ts
-// before
-displayTransforms: ["altitude", "camera", "labels"]
-
-// after
-displayTransforms: [{
-  sourceId: "selected-pair-scene-camera-framing",
-  inputSummary: { pairGeometry, suggestedAltitudeKm,
-                  suggestedHeadingDeg, suggestedPitchDeg }
-}]
-```
-
----
-
-# F7 重點
-
-來源：SDD §7 F7、commit `c6d731d`。
-
-- `scripts/refresh-tle.mjs` 下載 CelesTrak GP snapshots 給 LEO/MEO/GEO。
-- `manifest.json` 選定一種 explicit mode：
-  `local-snapshot`、`network-snapshot`、或 `fallback-local-snapshot`。
-- `scripts/refresh-satcat.mjs` 依 SDD §7 F7，把 SATCAT 從約 5 MB CSV
-  reduction 成約 250 KB summary。
-- 保留的 SATCAT fields：NORAD id、object name、operator family、constellation、orbit class、decay date。
-- Attribution 會顯示在 TLE chip 與 Row 5 source disclosure。
-
-不引入 runtime hot-path network fetch。
-
----
-
-# F6 Prep 重點
-
-來源：SDD §7 F6、commit `39733a7`。
-
-Registry 現在為全部 69 個 stations 帶有 station precision fields：
-
-| Field | 意義 |
+| Work | Trace |
 | --- | --- |
-| `elevationM` | DEM-derived station height |
-| `terrainMaskDeg` | single-value horizon mask，預設 `0` |
+| SDD v3 + F9 visual layer | `7c44d60` |
+| F1 data shape | `db018a6`；12 gaps、per-output input summary、dynamic display transforms |
+| F7 public TLE source path | `c6d731d`；CelesTrak GP、manifest mode、SATCAT summary |
+| F6 prep | `39733a7`；69 stations 帶 `elevationM` / `terrainMaskDeg` |
+| Slice-0 baseline | `ecbe41c`；五個 walkthrough URLs frozen for future F9 §49 |
+| S1 perf | `83ed47d`、`714ddec`；cap / cadence decision |
+| Task-1 framing fix | `cf4e353`；五個 walkthrough visibility counts 維持 `26/0/15/42/9` |
 
-Build-time support：
-
-- `scripts/refresh-station-elevation.mjs`
-- `public/fixtures/ground-stations/station-elevations-cache.json`
-
-Runtime wiring 仍待做：visibility altitude、rain station height、Row 6 precision
-disclosure、以及 D6 assertions 都屬於 F6 wiring。
-
----
-
-# Slice-0 §6.2 Baseline
-
-來源：`slice-0-baseline.md` §6.2、commit `ecbe41c`。
-
-五個 walkthrough URLs 已在 commit `7c44d60` frozen。
-
-Baseline 擷取內容：
-
-| Surface | frozen values |
-| --- | --- |
-| Row 3 | comm time、handover count、dwell |
-| Row 4 | event count + first 3 events |
-| Row 5 d1 | per-orbit throughput Mbps |
-| Row 6 | precision label + source tier |
-| TLE health | LEO/MEO/GEO health |
-| sourceMode | route source mode |
-
-用途：提供 F9 §49 comparison view 的 immutable before pane；它只是未來
-comparison pane 的 frozen baseline。
+F7 不引入 runtime hot-path network fetch；refresh 是 build-step / manifest path。
 
 ---
 
-# S1 Spike 結論
+# TLE-first 開發中與 gates
 
-來源：`docs/spike/multi-station-selector/spike-S1-cap-cadence-perf.md`、
-commit `83ed47d`、SDD closure `714ddec`。
-
-| 設定 | 結果 |
-| --- | ---: |
-| C1：LEO 60 + 10 s | p95 795.3 ms PASS |
-| C4：LEO 200 + 30 s | p95 391.2 ms PASS |
-| C5：LEO 200 + 10 s | p95 1027.3 ms FAIL |
-
-Flame profile：
-
-- `computeVisibilityWindowsForStation`：86.2% inclusive。
-- SGP4：38.1% self-cost。
-
-決策：F1 LEO 10 s at cap 60 已授權；F8 LEO 200 at 30 s 已授權；
-combined LEO 200 + 10 s 等待 §11 follow-up smoke。
+| 開發線 | 下一步 | Gate / 邊界 |
+| --- | --- | --- |
+| F6 wiring | `elevationM` / `terrainMaskDeg` 接到 visibility altitude、rain station height、Row 6、D6 | prep 已落地；runtime read paths 待做 |
+| F8 partial | LEO 200 cap at 30 s、cap disclosure、policy selector、alias canonicalisation | S1 C4 p95 391.2 ms PASS |
+| F9 partial | TLE chip color、active badge、pre/post comparison shell | §49 comparison evidence 尚未完成 |
+| F1 + F8 combined | LEO 200 cap + LEO 10 s cadence | S1 C5 p95 1027.3 ms FAIL；需 follow-up smoke |
+| F2 / F5 | RSRP、EIRP、bandwidth、T_sys、Shannon throughput | S2a / S2b；未解時顯示 unavailable |
+| F3 / F4 | atmospheric / rain grids | S3 legal decision 後才能處理 |
 
 ---
 
-# Task-1 Regression 註記
-
-來源：Task 1 commit `cf4e353` message + before/after screenshots。
-
-| Before | After |
-| --- | --- |
-| ![](wave2-progress-2026-05-19-assets/asiasat-fangshan-before.png) | ![](wave2-progress-2026-05-19-assets/asiasat-fangshan-after.png) |
-
-Root cause：selected-pair camera framing 對 non-polar pairs 套用了固定 66°
-latitude offset，並對 regional geometry 使用 edge-on pitch。
-
-Fix：non-polar pairs 改用 pair midpoint framing，short/long baselines 使用
-near-overhead pitch。五個 walkthrough visibility counts 維持
-`26/0/15/42/9`。這裡不包含 Task-2 camera/view work。
-
----
-
-# 目前視覺證據
+# TLE-first 可驗證 evidence
 
 來源：slice-0 §6.2 values frozen at `7c44d60`；screenshots 在 `cf4e353`
-重新擷取。F6 prep data 已存在；Row 6 elevation wiring 仍待做。
+重新擷取。這些是目前可引用的 baseline，不是 F9 §49 comparison result。
 
-| URL | Row 3 | Row 5 d1 Mbps | Row 6 tier | Shot |
-| --- | --- | --- | --- | --- |
-| Svalbard/Tromso | 360m, 1 | LEO 198.932; MEO 99.712; GEO 48.841 | public | [shot 1](wave2-progress-2026-05-19-assets/walkthrough-1-svalbard-tromso.png) |
-| Svalbard/Trollsat | 0s, 0 | N/A | public | [shot 2](wave2-progress-2026-05-19-assets/walkthrough-2-svalbard-trollsat.png) |
-| Fuchsstadt/Atlanta | 360m, 2 | MEO 99.712; GEO 48.841 | public | [shot 3](wave2-progress-2026-05-19-assets/walkthrough-3-fuchsstadt-atlanta.png) |
-| Bukit/Cyberjaya | 360m, 0 | LEO 198.932; GEO 48.841 | geometric | [shot 4](wave2-progress-2026-05-19-assets/walkthrough-4-bukit-cyberjaya.png) |
-| Yangmingshan/Hartebeesthoek | 360m, 2 | LEO 198.932; MEO 99.712; GEO 48.841 | geometric | [shot 5](wave2-progress-2026-05-19-assets/walkthrough-5-yangmingshan-hartebeesthoek.png) |
-
-目前 user-facing surfaces：Row 5 disclosure、chrome chips、Row 6 footer。
-F9 visual primitives 會逐步落地；F9 §49 comparison 還是 forthcoming，
-不是目前的 comparative evidence。
+| Evidence | 目前可說 |
+| --- | --- |
+| Current route shot | selected-pair route 可見 Row 5 disclosure、chrome chips、Row 6 footer |
+| Walkthrough rows | 五個 URL 的 Row 3 / Row 5 d1 / Row 6 values 已 frozen |
+| S1 perf envelope | LEO 60 + 10 s PASS；LEO 200 + 30 s PASS；LEO 200 + 10 s FAIL |
+| Camera regression | Task-1 `cf4e353` 已修 framing；不屬於 Task-2 camera/view work |
+| Comparison boundary | F9 visual primitives 逐步落地；§49 comparison 仍 forthcoming |
 
 ---
 
-# 揭露邊界
+# TLE-first 揭露邊界
 
 詳細 provenance 與開發計畫已放在前段；這張是 reviewer 應採用的 rule-of-thumb。
 
