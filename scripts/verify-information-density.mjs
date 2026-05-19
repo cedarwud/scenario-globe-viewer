@@ -190,6 +190,7 @@ async function collectLayoutSnapshot() {
             : String(element.className);
         };
         const panel = document.querySelector(panelSelector);
+        const panelStyle = panel ? window.getComputedStyle(panel) : null;
         const details = panel ? Array.from(panel.querySelectorAll("details")) : [];
         const initialOpenCount = details.filter((detail) => detail.open).length;
         const closed = panel
@@ -199,6 +200,8 @@ async function collectLayoutSnapshot() {
               panelClientHeight: panel.clientHeight,
               panelScrollHeight: panel.scrollHeight,
               panelNoScroll: panel.scrollHeight === panel.clientHeight,
+              panelMaxHeight: panelStyle ? panelStyle.maxHeight : null,
+              panelOverflowY: panelStyle ? panelStyle.overflowY : null,
               panelState: panel.dataset.state ?? null
             }
           : null;
@@ -270,6 +273,65 @@ async function collectLayoutSnapshot() {
   return result.value;
 }
 
+async function collectWheelScrollSnapshot() {
+  const { result: beforeResult } = await send("Runtime.evaluate", {
+    expression: `
+      (() => {
+        const panel = document.querySelector('[data-v4-projection-side-panel="true"]');
+        const details = panel ? Array.from(panel.querySelectorAll('[data-row="5"] details')) : [];
+        if (!panel || details.length === 0) {
+          return { ok: false, reason: "missing panel or disclosures" };
+        }
+        for (const detail of details) detail.open = false;
+        const target = details[1] ?? details[0];
+        target.open = true;
+        panel.scrollTop = 0;
+        const rect = panel.getBoundingClientRect();
+        return {
+          ok: true,
+          beforeScrollTop: panel.scrollTop,
+          panelClientHeight: panel.clientHeight,
+          panelScrollHeight: panel.scrollHeight,
+          x: Math.max(rect.left + 4, Math.min(rect.left + rect.width / 2, rect.right - 4)),
+          y: Math.max(rect.top + 4, Math.min(rect.top + rect.height / 2, rect.bottom - 4))
+        };
+      })();
+    `,
+    returnByValue: true
+  });
+  const before = beforeResult.value;
+  if (!before?.ok) {
+    return before;
+  }
+
+  await send("Input.dispatchMouseEvent", {
+    type: "mouseWheel",
+    x: before.x,
+    y: before.y,
+    deltaX: 0,
+    deltaY: 600
+  });
+  await delay(150);
+
+  const { result: afterResult } = await send("Runtime.evaluate", {
+    expression: `
+      (() => {
+        const panel = document.querySelector('[data-v4-projection-side-panel="true"]');
+        const details = panel ? Array.from(panel.querySelectorAll('[data-row="5"] details')) : [];
+        const afterScrollTop = panel ? panel.scrollTop : null;
+        for (const detail of details) detail.open = false;
+        return { afterScrollTop };
+      })();
+    `,
+    returnByValue: true
+  });
+
+  return {
+    ...before,
+    afterScrollTop: afterResult.value?.afterScrollTop ?? null
+  };
+}
+
 function isVisibleRect(rect) {
   return Boolean(rect && rect.exists && rect.visible);
 }
@@ -293,7 +355,7 @@ function assertion(name, passed, details) {
   return { name, passed: Boolean(passed), details };
 }
 
-function buildViewportResult(viewport, readyInfo, layout) {
+function buildViewportResult(viewport, readyInfo, layout, wheelScroll) {
   const closed = layout.closed;
   const disclosures = layout.disclosures;
   const longestDisclosure = disclosures.reduce((current, next) => {
@@ -316,8 +378,10 @@ function buildViewportResult(viewport, readyInfo, layout) {
       longestDisclosure.bodyClientHeight !== null &&
       longestDisclosure.bodyClientHeight < longestContentHeight
   );
-  const disclosurePanelNoScroll = disclosures.every(
-    (entry) => entry.panelNoScroll
+  const longestPanelScrolls = Boolean(
+    longestDisclosure &&
+      longestDisclosure.panelClientHeight !== null &&
+      longestDisclosure.panelScrollHeight > longestDisclosure.panelClientHeight
   );
   const disclosureBodiesExpandInFlow = disclosures.every(
     (entry) =>
@@ -369,20 +433,28 @@ function buildViewportResult(viewport, readyInfo, layout) {
         panelState: closed?.panelState ?? null,
         openCount: closed?.openCount ?? null,
         panelScrollHeight: closed?.panelScrollHeight ?? null,
-        panelClientHeight: closed?.panelClientHeight ?? null
+        panelClientHeight: closed?.panelClientHeight ?? null,
+        panelMaxHeight: closed?.panelMaxHeight ?? null,
+        panelOverflowY: closed?.panelOverflowY ?? null
       }
     ),
     assertion(
-      "row5-disclosure-natural-height",
+      "row5-disclosure-root-scroll",
       layout.panelExists &&
         closed &&
         closed.detailsCount === 3 &&
         disclosures.length === 3 &&
-        disclosurePanelNoScroll &&
+        closed.panelNoScroll &&
+        closed.panelOverflowY === "auto" &&
+        closed.panelMaxHeight !== "none" &&
+        longestPanelScrolls &&
         disclosureBodiesExpandInFlow,
       {
         detailsCount: closed?.detailsCount ?? null,
-        disclosurePanelNoScroll,
+        closedPanelNoScroll: closed?.panelNoScroll ?? null,
+        closedPanelMaxHeight: closed?.panelMaxHeight ?? null,
+        closedPanelOverflowY: closed?.panelOverflowY ?? null,
+        longestPanelScrolls,
         disclosureBodiesExpandInFlow,
         longestDisclosure: longestDisclosure
           ? {
@@ -396,7 +468,9 @@ function buildViewportResult(viewport, readyInfo, layout) {
               bodyFitsContent: longestDisclosure.bodyFitsContent,
               bodyMaxHeight: longestDisclosure.bodyMaxHeight,
               bodyPosition: longestDisclosure.bodyPosition,
-              bodyOverflowY: longestDisclosure.bodyOverflowY
+              bodyOverflowY: longestDisclosure.bodyOverflowY,
+              panelClientHeight: longestDisclosure.panelClientHeight,
+              panelScrollHeight: longestDisclosure.panelScrollHeight
             }
           : null,
         disclosures: disclosures.map((entry) => ({
@@ -415,6 +489,20 @@ function buildViewportResult(viewport, readyInfo, layout) {
           panelClientHeight: entry.panelClientHeight,
           panelNoScroll: entry.panelNoScroll
         }))
+      }
+    ),
+    assertion(
+      "row5-panel-wheel-scroll",
+      wheelScroll?.ok &&
+        wheelScroll.panelScrollHeight > wheelScroll.panelClientHeight &&
+        wheelScroll.afterScrollTop > wheelScroll.beforeScrollTop,
+      {
+        ok: wheelScroll?.ok ?? false,
+        reason: wheelScroll?.reason ?? null,
+        beforeScrollTop: wheelScroll?.beforeScrollTop ?? null,
+        afterScrollTop: wheelScroll?.afterScrollTop ?? null,
+        panelClientHeight: wheelScroll?.panelClientHeight ?? null,
+        panelScrollHeight: wheelScroll?.panelScrollHeight ?? null
       }
     ),
     assertion(
@@ -456,7 +544,8 @@ async function runViewport(viewport) {
   const readyInfo = await waitForPanelReady();
   await delay(LAYOUT_SETTLE_MS);
   const layout = await collectLayoutSnapshot();
-  return buildViewportResult(viewport, readyInfo, layout);
+  const wheelScroll = await collectWheelScrollSnapshot();
+  return buildViewportResult(viewport, readyInfo, layout, wheelScroll);
 }
 
 try {

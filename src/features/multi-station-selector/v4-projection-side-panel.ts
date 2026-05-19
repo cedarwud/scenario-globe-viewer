@@ -20,8 +20,8 @@
 // Style notes:
 // - Each row carries a `data-row="${1|2|3|4|5|6}"` attribute so probes can
 //   assert the layout without leaning on class hierarchies.
-// - The panel uses natural height; Row 5 disclosure bodies expand in flow
-//   so review content is not compressed by viewport fitting.
+// - Row 5 disclosure bodies expand in flow. The panel root handles wheel
+//   scrolling only when the expanded content exceeds the viewport.
 
 import {
   buildDefaultTimeWindow,
@@ -62,12 +62,15 @@ const PANEL_STYLE_ATTR = "data-v4-projection-side-panel-style";
 
 const PANEL_CSS = `
 /* Five-row panel layout per IA §5. Runtime style is injected after the
-   base stylesheet, so these root rules intentionally release the older
-   viewport-height cap. */
+   base stylesheet, so these root rules replace the older fixed-height cap
+   with root scrolling for expanded content. */
 .v4-projection-side-panel {
   height: auto;
-  max-height: none;
-  overflow: visible;
+  max-height: calc(100dvh - 4rem);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  pointer-events: auto;
+  scrollbar-gutter: stable;
 }
 .v4-projection-side-panel__row {
   display: flex;
@@ -431,6 +434,30 @@ function createPanelShell(): HTMLElement {
   root.setAttribute("role", "complementary");
   root.setAttribute("aria-label", "Runtime projection of the selected ground-station pair");
   return root;
+}
+
+function bindPanelWheelScroll(root: HTMLElement): () => void {
+  const onWheel = (event: WheelEvent): void => {
+    const maxScrollTop = root.scrollHeight - root.clientHeight;
+    if (maxScrollTop <= 0) {
+      return;
+    }
+
+    const before = root.scrollTop;
+    const next = Math.min(Math.max(before + event.deltaY, 0), maxScrollTop);
+    if (next === before) {
+      return;
+    }
+
+    root.scrollTop = next;
+    event.preventDefault();
+    event.stopPropagation();
+  };
+
+  root.addEventListener("wheel", onWheel, { passive: false });
+  return () => {
+    root.removeEventListener("wheel", onWheel);
+  };
 }
 
 function renderLoading(root: HTMLElement, pair: V4ResolvedStationPair): void {
@@ -1423,6 +1450,7 @@ export function mountV4ProjectionSidePanel(
   injectPanelStyleOnce();
 
   const root = createPanelShell();
+  const disposeWheelScroll = bindPanelWheelScroll(root);
   viewerContainer.appendChild(root);
 
   let disposed = false;
@@ -1573,6 +1601,7 @@ export function mountV4ProjectionSidePanel(
       }
       runtimeResultListeners.clear();
       projectionClient.dispose();
+      disposeWheelScroll();
       if (root.parentElement) {
         root.parentElement.removeChild(root);
       }
