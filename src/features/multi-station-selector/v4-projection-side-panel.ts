@@ -20,8 +20,8 @@
 // Style notes:
 // - Each row carries a `data-row="${1|2|3|4|5|6}"` attribute so probes can
 //   assert the layout without leaning on class hierarchies.
-// - The panel itself is `overflow:hidden`; only Row 5 disclosure bodies
-//   scroll internally when opened (IA §9.1, G5.2).
+// - The panel uses natural height; Row 5 disclosure bodies expand in flow
+//   so review content is not compressed by viewport fitting.
 
 import {
   buildDefaultTimeWindow,
@@ -61,8 +61,14 @@ const RAIN_IMPACT_STANDARD_CITATION = "ITU-R P.618-14 §2.2.1";
 const PANEL_STYLE_ATTR = "data-v4-projection-side-panel-style";
 
 const PANEL_CSS = `
-/* Five-row panel layout per IA §5. The panel root never scrolls; only
-   Row 5 disclosure bodies scroll internally. */
+/* Five-row panel layout per IA §5. Runtime style is injected after the
+   base stylesheet, so these root rules intentionally release the older
+   viewport-height cap. */
+.v4-projection-side-panel {
+  height: auto;
+  max-height: none;
+  overflow: visible;
+}
 .v4-projection-side-panel__row {
   display: flex;
   flex-direction: column;
@@ -297,28 +303,24 @@ const PANEL_CSS = `
 .v4-projection-side-panel__details + .v4-projection-side-panel__details {
   margin-top: 0.3rem;
 }
-/* G5 IA §9.1 + §9.2: rows 1-4 + 6 fit without internal panel scroll
-   when no disclosure is open. When one disclosure opens, row 4
-   (summary lists) shrinks with internal scroll and row 5 grows to
-   fill remaining height. The open disclosure body is positioned
-   absolutely inside its disclosure so its content size doesn't push
-   the panel layout past its fixed height. */
+/* Row 5 disclosures expand in normal flow. The panel may grow taller than
+   the viewport; do not squeeze disclosure bodies into a fixed-height shell. */
 .v4-projection-side-panel [data-row="4"] {
-  flex: 0 1 auto;
-  min-height: 0;
+  flex: 0 0 auto;
+  min-height: auto;
 }
 .v4-projection-side-panel:has([data-row="5"] details[open]) [data-row="4"] {
-  flex: 1 1 0;
-  min-height: 0;
-  overflow-y: auto;
+  flex: 0 0 auto;
+  min-height: auto;
+  overflow: visible;
 }
 .v4-projection-side-panel [data-row="5"] {
-  flex: 0 1 auto;
-  min-height: 0;
+  flex: 0 0 auto;
+  min-height: auto;
 }
 .v4-projection-side-panel:has([data-row="5"] details[open]) [data-row="5"] {
-  flex: 1 1 0;
-  min-height: 0;
+  flex: 0 0 auto;
+  min-height: auto;
   display: flex;
   flex-direction: column;
 }
@@ -326,10 +328,10 @@ const PANEL_CSS = `
   flex: 0 0 auto;
 }
 .v4-projection-side-panel [data-row="5"] > .v4-projection-side-panel__details[open] {
-  flex: 1 1 0;
-  min-height: 0;
-  position: relative;
-  overflow: hidden;
+  flex: 0 0 auto;
+  min-height: auto;
+  position: static;
+  overflow: visible;
 }
 .v4-projection-side-panel [data-row="5"] > .v4-projection-side-panel__details[open]
   > .v4-projection-side-panel__details-summary {
@@ -338,19 +340,12 @@ const PANEL_CSS = `
 }
 .v4-projection-side-panel [data-row="5"] > .v4-projection-side-panel__details[open]
   > .v4-projection-side-panel__details-body {
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: 1.6rem;
-  bottom: 0;
-  overflow-y: auto;
+  position: static;
+  overflow: visible;
 }
-/* Fallback body cap for the closed-to-open transition before the
-   absolute positioning above takes effect, and for environments
-   without :has() support. */
 .v4-projection-side-panel__details-body--scroll {
-  max-height: 11rem;
-  overflow-y: auto;
+  max-height: none;
+  overflow: visible;
 }
 .v4-projection-side-panel [data-row="5"] > .v4-projection-side-panel__details[open]
   > .v4-projection-side-panel__details-body--scroll {

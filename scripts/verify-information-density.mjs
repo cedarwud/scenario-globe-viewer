@@ -212,6 +212,7 @@ async function collectLayoutSnapshot() {
           detail.open = true;
           const summary = detail.querySelector("summary");
           const body = detail.querySelector(".v4-projection-side-panel__details-body");
+          const bodyStyle = body ? window.getComputedStyle(body) : null;
           const bodyRect = body ? body.getBoundingClientRect() : null;
           const children = body
             ? Array.from(body.children).map((child) => {
@@ -237,7 +238,11 @@ async function collectLayoutSnapshot() {
             bodyScrollHeight: body ? body.scrollHeight : null,
             bodyRectHeight: bodyRect ? bodyRect.height : null,
             childMaxHeight,
+            bodyMaxHeight: bodyStyle ? bodyStyle.maxHeight : null,
+            bodyPosition: bodyStyle ? bodyStyle.position : null,
+            bodyOverflowY: bodyStyle ? bodyStyle.overflowY : null,
             bodyScrolls: body ? body.scrollHeight > body.clientHeight : false,
+            bodyFitsContent: body ? body.clientHeight + 1 >= body.scrollHeight : false,
             panelClientHeight: panel ? panel.clientHeight : null,
             panelScrollHeight: panel ? panel.scrollHeight : null,
             panelNoScroll: panel ? panel.scrollHeight === panel.clientHeight : false,
@@ -314,6 +319,13 @@ function buildViewportResult(viewport, readyInfo, layout) {
   const disclosurePanelNoScroll = disclosures.every(
     (entry) => entry.panelNoScroll
   );
+  const disclosureBodiesExpandInFlow = disclosures.every(
+    (entry) =>
+      entry.bodyFitsContent &&
+      entry.bodyMaxHeight === "none" &&
+      entry.bodyPosition === "static" &&
+      entry.bodyOverflowY === "visible"
+  );
 
   const pickerStripOverlap =
     isVisibleRect(layout.rects.picker) && isVisibleRect(layout.rects.strip)
@@ -361,16 +373,17 @@ function buildViewportResult(viewport, readyInfo, layout) {
       }
     ),
     assertion(
-      "row5-disclosure-body-scroll",
+      "row5-disclosure-natural-height",
       layout.panelExists &&
         closed &&
         closed.detailsCount === 3 &&
         disclosures.length === 3 &&
         disclosurePanelNoScroll &&
-        longestBodyScrolls,
+        disclosureBodiesExpandInFlow,
       {
         detailsCount: closed?.detailsCount ?? null,
         disclosurePanelNoScroll,
+        disclosureBodiesExpandInFlow,
         longestDisclosure: longestDisclosure
           ? {
               index: longestDisclosure.index,
@@ -379,7 +392,11 @@ function buildViewportResult(viewport, readyInfo, layout) {
               bodyScrollHeight: longestDisclosure.bodyScrollHeight,
               childMaxHeight: longestDisclosure.childMaxHeight,
               contentHeight: longestContentHeight,
-              bodyScrolls: longestBodyScrolls
+              bodyScrolls: longestBodyScrolls,
+              bodyFitsContent: longestDisclosure.bodyFitsContent,
+              bodyMaxHeight: longestDisclosure.bodyMaxHeight,
+              bodyPosition: longestDisclosure.bodyPosition,
+              bodyOverflowY: longestDisclosure.bodyOverflowY
             }
           : null,
         disclosures: disclosures.map((entry) => ({
@@ -390,6 +407,10 @@ function buildViewportResult(viewport, readyInfo, layout) {
           bodyScrollHeight: entry.bodyScrollHeight,
           childMaxHeight: entry.childMaxHeight,
           bodyScrolls: entry.bodyScrolls,
+          bodyFitsContent: entry.bodyFitsContent,
+          bodyMaxHeight: entry.bodyMaxHeight,
+          bodyPosition: entry.bodyPosition,
+          bodyOverflowY: entry.bodyOverflowY,
           panelScrollHeight: entry.panelScrollHeight,
           panelClientHeight: entry.panelClientHeight,
           panelNoScroll: entry.panelNoScroll
