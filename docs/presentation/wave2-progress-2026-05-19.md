@@ -4,8 +4,9 @@ Date: 2026-05-19
 HEAD after Task 1: `cf4e353`  
 Audience: technical reviewers already familiar with the selected-pair route.
 
-Deck shape: front question log + 15 required sections. Numeric claims cite a
-commit, SDD section, spike report row, or local code path.
+Deck shape: front question log + merged provenance summary + 15 required
+sections. Numeric claims cite a commit, SDD section, spike report row, or
+local code path.
 
 ---
 
@@ -19,8 +20,8 @@ Answer: not uniform. Source:
 
 | Encoding | Normal dot | Highlight / selected |
 | --- | --- | --- |
-| tri-capable | green, radius 4.5 px; current minority group gets pink outline | green, radius 7 px, yellow outline |
-| dual-only / none | blue, radius 3.5 px, dark outline | blue, radius 5.5 px, yellow outline |
+| tri-capable | green, radius 5.5 px; current minority group gets pink outline | green, radius 8 px, yellow outline |
+| dual-only / none | blue, radius 4.5 px, dark outline | blue, radius 6.5 px, yellow outline |
 
 Boundary: this is handover-capability + hover/selection encoding only. Source
 tier remains in chips, station info card, and the V4 panel.
@@ -66,6 +67,49 @@ Why not country: one country can host multiple operators and multiple
 station sites, while one operator network spans many countries. The demo
 needs a unique physical endpoint for routing, screenshots, and pair URLs;
 country is too coarse.
+
+---
+
+# Question Log — Q4
+
+Question: what fields appear after single-clicking a station, where are they
+from, and are they real?
+
+Answer: the info card renders registry fields. Source:
+`station-info-card.ts`, `multi-orbit-public-registry.json`,
+`multi-orbit-public-registry-sources.md`.
+
+| Card field group | Truth boundary |
+| --- | --- |
+| name, operator, family, country, region | public registry, cited by source URL |
+| coordinates | public registry; exact or representative per disclosure precision |
+| supported orbits / bands | public-disclosure capability, not live service proof |
+| use case / notes | public disclosure summary |
+| elevation | SRTM/Open-Elevation cache, added in F6 prep |
+| terrain mask | default `0` until per-station terrain audit |
+
+Non-claim: the card does not validate commercial routing or private service
+between two sites.
+
+---
+
+# Question Log — Q5
+
+Question: after choosing two stations, which satellite, track, transmission,
+and packet-like surfaces are real, open-source-derived, or simulated?
+
+| Surface | Boundary |
+| --- | --- |
+| LEO/MEO/GEO identity + sampled positions | TLE-derived from local or refreshed CelesTrak snapshots |
+| constellation labels | CelesTrak SATCAT summary |
+| station endpoints | public registry + disclosure precision |
+| satellite tracks / visibility windows | TLE propagation + station geometry |
+| comm time | pair-window intersection from propagated visibility |
+| handover choice, throughput, jitter, latency, rain impact | modeled; not measured telemetry |
+| moving packet / link-flow pulses, camera, lanes, labels | display-only visual grammar |
+
+Pending anchors: EIRP / bandwidth / system temperature, full atmospheric grids,
+and F9 comparison evidence.
 
 ---
 
@@ -294,23 +338,20 @@ Keep comparison language forward-looking until F9 §49 is implemented and measur
 
 # Disclosure Boundary
 
-Wave 2 does not claim:
+Merged with Q4/Q5: detailed provenance is now upfront; this slide is the
+rule-of-thumb reviewers should apply.
 
-- measured operator telemetry;
-- measured throughput, jitter, or congestion;
-- live commercial routing;
-- live runtime Internet refresh;
-- operator-validated station-to-station service.
-
-Every output stays inside SDD §3 truth classes:
-
-| Class | Examples |
+| Claim type | Allowed reading |
 | --- | --- |
-| TLE-derived | satellite identity, sampled position |
-| public-registry-derived | station coordinates, station precision fields |
-| modeled | handover, throughput estimate, rain impact |
-| display-only | camera, labels, visual lanes |
-| unavailable | unresolved anchors |
+| Station card | public registry + source links; coordinates may be exact or representative |
+| Satellite scene | TLE-derived identity/position where runtime data exists |
+| Metrics | modeled estimates unless explicitly tagged source-derived |
+| Moving packets / lanes / camera | display-only; not packet capture or traffic telemetry |
+| Missing anchors | shown as unavailable or pending, not silently filled |
+
+Not claimed: measured operator telemetry, measured throughput / jitter /
+congestion, private gateway schedules, live commercial routing, runtime
+Internet refresh, or operator-validated station-to-station service.
 
 ---
 
@@ -319,7 +360,10 @@ Every output stays inside SDD §3 truth classes:
 - Master SDD: `docs/sdd/multi-station-selector/tle-first-fidelity-uplift.md` §3, §4.1, §5.1, §7, §11, §12.
 - 3D pipeline SDD: `docs/sdd/multi-station-selector/tle-first-3d-pipeline.md` §5-§6.
 - IA SDD: `docs/sdd/multi-station-selector/information-architecture.md` §4.2, §4.5, §5.
+- Data-completeness SDD: `docs/sdd/multi-station-selector/tle-first-data-completeness.md`.
+- Runtime data contract: `docs/sdd/multi-station-selector/runtime-data-contract.md`.
 - Slice-0 baseline: `docs/sdd/multi-station-selector/slice-0-baseline.md` §6.2.
 - S1 report: `docs/spike/multi-station-selector/spike-S1-cap-cadence-perf.md`.
+- Registry source notes: `public/fixtures/ground-stations/multi-orbit-public-registry-sources.md`.
 - Standards: 3GPP TR 38.811 / 38.821; ITU-R P.618 / P.676 / P.838 / S.1528 / S.465.
 - CelesTrak Terms of Use: `https://celestrak.org/terms-of-use.php`; refresh tools: `scripts/refresh-tle.mjs`, `scripts/refresh-satcat.mjs`.
