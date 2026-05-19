@@ -73,23 +73,23 @@ function drawCircle(
 }
 
 const TRI_ORBIT_IMAGES: ImageSet = {
-  normal: drawCircle(4.5, "rgba(126,226,184,0.92)", "rgba(2,20,31,0.94)", 1.5),
-  highlight: drawCircle(7, "rgba(126,226,184,0.92)", "rgba(255,209,102,0.98)", 3)
+  normal: drawCircle(5.5, "rgba(126,226,184,0.92)", "rgba(2,20,31,0.94)", 1.5),
+  highlight: drawCircle(8, "rgba(126,226,184,0.92)", "rgba(255,209,102,0.98)", 3)
 };
 
 const DUAL_ORBIT_IMAGES: ImageSet = {
-  normal: drawCircle(3.5, "rgba(155,196,232,0.86)", "rgba(2,20,31,0.90)", 1.25),
-  highlight: drawCircle(5.5, "rgba(155,196,232,0.86)", "rgba(255,209,102,0.98)", 3)
+  normal: drawCircle(4.5, "rgba(155,196,232,0.86)", "rgba(2,20,31,0.90)", 1.25),
+  highlight: drawCircle(6.5, "rgba(155,196,232,0.86)", "rgba(255,209,102,0.98)", 3)
 };
 
 const RARE_TRI_ORBIT_IMAGES: ImageSet = {
-  normal: drawCircle(4.5, "rgba(126,226,184,0.92)", "rgba(255,107,154,0.98)", 2.5),
-  highlight: drawCircle(7, "rgba(126,226,184,0.92)", "rgba(255,209,102,0.98)", 3)
+  normal: drawCircle(5.5, "rgba(126,226,184,0.92)", "rgba(255,107,154,0.98)", 2.5),
+  highlight: drawCircle(8, "rgba(126,226,184,0.92)", "rgba(255,209,102,0.98)", 3)
 };
 
 const RARE_DUAL_ORBIT_IMAGES: ImageSet = {
-  normal: drawCircle(3.8, "rgba(155,196,232,0.90)", "rgba(255,107,154,0.98)", 2.5),
-  highlight: drawCircle(5.8, "rgba(155,196,232,0.90)", "rgba(255,209,102,0.98)", 3)
+  normal: drawCircle(4.8, "rgba(155,196,232,0.90)", "rgba(255,107,154,0.98)", 2.5),
+  highlight: drawCircle(6.8, "rgba(155,196,232,0.90)", "rgba(255,209,102,0.98)", 3)
 };
 
 function resolveImageSetForStation(station: RegistryStation): ImageSet {
