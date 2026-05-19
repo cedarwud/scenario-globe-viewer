@@ -220,28 +220,24 @@ capture、operator telemetry、或 commercial routing evidence [6]。
 
 ---
 
-# 問題紀錄 — Q7
+# Rain rate 控制重點
 
-問題：Rain rate 會影響什麼？右側 panel 要怎麼讀？真實性如何？
+目前只開放 rain rate，是因為 station pair、time window、TLE pool、orbit
+support 都是 selected-pair 的 provenance inputs；若在同一個 view 用 slider
+任意改動，容易讓 reviewer 分不清來源資料與模擬假設。Rain rate 則是 bounded
+model input，可在不改 station / TLE source truth 的前提下展示 weather fade
+stress test [4][6]。
 
-回答：Row 2 Rain rate 是 model input，不是 weather telemetry。來源：
-`v4-projection-side-panel.ts`、`runtime-projection.ts`、
-`runtime-data-completeness.ts`。
-
-| Panel 區塊 | 解讀方式 |
+| 影響範圍 | 解讀方式 |
 | --- | --- |
-| Row 1 tier/window | pair identity、source tier、projection time window |
-| Row 2 Rain rate | modeled P.618 rain fade 的 mm/h 控制 |
-| Row 3 stats | policy selection 後的 derived comm time 與 handover count |
-| Row 4 summaries | 由 TLE geometry + policy 得到的下一批 visibility / link-selection events |
-| Row 5 d1 | clear-sky vs rain 的 throughput/jitter/comm-time estimates |
-| Row 5 d2/d3 | full windows、CSV、sources、non-claims、policy refs |
-| Row 6 footer | station precision 與 pair source tier |
+| 不會改變 | station coordinates、satellite identity、TLE propagation、visibility windows、candidate pool |
+| 直接影響 | ITU-R P.618 rain attenuation、Ku/Ka modeled throughput、jitter [4] |
+| 可能連帶影響 | 若 link score 改變，active satellite、comm time、handover count 可能跟著變動 [3][4] |
 
-真實性邊界：stations 與 TLE identities 是 public/source-derived；windows 是
-geometry-derived；stats 與 handover 是 model outputs；packets、lanes、camera
-是 display-only。Rain rate 會影響 rain attenuation、throughput/jitter；當 fade
-改變 candidate ranking 時，也會影響 policy-selected comm/handover results。
+右側 panel 報告策略：Row 2 Rain rate 與 Row 5 d1 Rain impact 要特別講；
+其他 rows 只帶過 identity / window、derived stats、visibility summaries、sources、
+non-claims、CSV audit export。重點是分類：public/source-derived、geometry-derived、
+modeled output、display-only。
 
 ---
 
