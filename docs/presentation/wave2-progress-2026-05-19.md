@@ -188,6 +188,29 @@ as measured service evidence.
 
 ---
 
+# Question Log — Q9
+
+Question: why does the deck feel light, and are TLE-first / selected-pair
+truth-data details included?
+
+Answer: yes for coverage, but intentionally compressed. The deck avoids copying
+the full CSV/debug schema into slides; it groups evidence by reviewer question.
+
+| Area | Current deck coverage |
+| --- | --- |
+| Station truth | Q3-Q4: naming, registry fields, precision, source links |
+| Pair runtime truth | Q5-Q7: TLE-derived, geometry-derived, modeled, display-only |
+| CSV/debug audit | Q6 + Q8: source manifest, actor/visibility provenance, empty reason |
+| Rain/model boundary | Q7 + Disclosure Boundary |
+| Data-completeness risks | Pending Work + Recommended Dispatches |
+
+If a fuller deck is needed, expand Q6/Q8 into appendix slides, not generated
+illustrations: one slide each for station precision, TLE source health,
+actor provenance, visibility provenance, modeled outputs, and display-only
+transforms. Keep the main story concise.
+
+---
+
 # Wave-2 Scope
 
 Master SDD: `docs/sdd/multi-station-selector/tle-first-fidelity-uplift.md`.
