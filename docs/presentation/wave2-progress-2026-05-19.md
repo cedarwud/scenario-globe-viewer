@@ -47,6 +47,28 @@ Current registry capability count: 21 tri-capable, 47 dual-only, 1 none.
 
 ---
 
+# Question Log — Q3
+
+Question: what is the station naming rule, and why not name by country?
+
+Answer: station identity is site/operator-first, not country-first. Source:
+`multi-orbit-public-registry.json`, `station-list-picker.ts`,
+`station-info-card.ts`.
+
+| Field | Role |
+| --- | --- |
+| `id` | stable route key, usually `operator-family + site/locality` slug |
+| `name` | reviewer-facing public station / teleport / gateway name |
+| `operator` / `operatorFamily` | network ownership and pair-tier inference |
+| `country` / `region` | metadata and filtering context, not endpoint identity |
+
+Why not country: one country can host multiple operators and multiple
+station sites, while one operator network spans many countries. The demo
+needs a unique physical endpoint for routing, screenshots, and pair URLs;
+country is too coarse.
+
+---
+
 # Wave-2 Scope
 
 Master SDD: `docs/sdd/multi-station-selector/tle-first-fidelity-uplift.md`.
