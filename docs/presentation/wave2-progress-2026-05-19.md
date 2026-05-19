@@ -163,6 +163,31 @@ candidate ranking.
 
 ---
 
+# Question Log — Q8
+
+Question: are any selected-pair TLE-first truth/data surfaces still missing
+from the deck?
+
+Answer: the main truth boundary is covered, but these lower-level audit
+signals were not explicit enough. Sources: `runtime-data-completeness.ts`,
+`runtime-projection-csv.ts`, `verify-tle-first-data-completeness.mjs`.
+
+| Audit signal | Where reviewers can find it |
+| --- | --- |
+| route mode | panel dataset, debug payload, CSV `Data completeness` |
+| empty reason / no fake actor | debug payload + CSV `emptyReasonCode`, `fakeActorCount=0` |
+| TLE source health | source manifest / freshness state, TLE chip counts |
+| parser, cap, exclusion stats | TLE chip + CSV source manifest |
+| actor provenance | CSV/debug: source id, sample count, cadence, UTC range |
+| visibility provenance | station A/B window source, pair-intersection source |
+| display transforms | CSV marks camera, lane, mesh, label choices as display-only |
+
+Report framing: these are not new claims; they are audit handles that prevent
+reviewers from reading local snapshots, empty states, or renderer transforms
+as measured service evidence.
+
+---
+
 # Wave-2 Scope
 
 Master SDD: `docs/sdd/multi-station-selector/tle-first-fidelity-uplift.md`.
