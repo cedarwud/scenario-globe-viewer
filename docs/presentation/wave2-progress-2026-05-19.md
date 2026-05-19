@@ -53,9 +53,10 @@ routing。
 
 用途：說明 station identity 為什麼採 site/operator-first，而不是 country-first。
 
-結論：station identity 採 site/operator-first，不採 country-first。來源：
-`multi-orbit-public-registry.json`、`station-list-picker.ts`、
-`station-info-card.ts`。
+結論：station identity 採 site/operator-first，不採 country-first。命名依據
+來自公開 operator facility / service pages、station public pages、Wikipedia /
+Wikidata 類地理資料、FCC / ITU filings、World Teleport Association profiles、
+以及產業新聞或 press releases。
 
 | 欄位 | 作用 |
 | --- | --- |
@@ -75,8 +76,10 @@ endpoint 來做 routing、screenshots、pair URLs；country 粒度太粗。
 用途：單點 station 後，讓 reviewer 檢查 endpoint identity、public source、
 capability metadata、以及是否可選為 Station A/B。
 
-來源：`station-info-card.ts`、`multi-orbit-public-registry.json`、
-`multi-orbit-public-registry-sources.md` §Schema notes & non-claims。
+資料來源類型：operator facility / service pages、公開 station pages、
+Wikipedia / Wikidata 類地理座標資料、FCC / ITU filings、World Teleport
+Association profiles、產業新聞與 press releases；高度資料來自 SRTM /
+Open-Elevation cache。
 
 | 顯示區塊 | 內容與解讀 |
 | --- | --- |
@@ -86,7 +89,7 @@ capability metadata、以及是否可選為 Station A/B。
 | Source link | `Public source · sourceTier`，連到 registry 的 primary URL |
 | Actions / badge | Select as Station A/B；已選 pair 時顯示 pair source tier |
 
-真實性：每個 station 都有 primary public URL，且 registry 只收公開來源可支持
+真實性：每個 station 都有一個 primary public source，且只收公開來源可支持
 ≥2 of LEO/MEO/GEO 的 entries。Coordinates 依 `disclosurePrecision` 可能是 exact
 coords，也可能是 municipality / operator-family region representative coords。
 Supported orbits / bands 表示公開揭露能力，不是 live service proof。
