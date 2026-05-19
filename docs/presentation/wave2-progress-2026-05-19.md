@@ -1,12 +1,12 @@
-# Selected-pair TLE-first fidelity uplift — wave 2 進度報告
+# Selected-pair 公開軌道資料模擬 — wave 2 進度報告
 
 日期：2026-05-19  
 Task 1 後的 HEAD：`cf4e353`  
-對象：已熟悉 selected-pair route 的技術 reviewer。
+對象：客戶技術審查與專案進度報告。
 
-Deck 結構：前段是 reviewer 問題整理與開發計畫摘要，接著是整併後的
-provenance 摘要與 15 個 required sections。所有數字 claim 都要能追到
-commit、SDD section、spike report row，或本地 code path [6]。
+Deck 結構：前段回答審查問題，後段整理公開軌道資料模擬的目前狀態、
+正在開發項目、以及不可宣稱的邊界。所有數字 claim 都要能追到 commit、
+SDD section、spike report row，或本地 code path [6]。
 
 ---
 
@@ -241,86 +241,83 @@ modeled output、display-only。
 
 ---
 
-# TLE-first 主線總覽
+# 公開軌道資料模擬目標
 
 來源：SDD §7、§11、§12.1；slice-0 §6.2；S1 spike report [6]。
 
-TLE-first 的目標是讓 selected-pair runtime 保持 source-explicit、
-model-explicit、display-transform-explicit。Wave 2 覆蓋 42 個 fidelity gaps
-與 8 個 visual-evidence gaps；不是宣稱現在已經完成全部 wave-2 比較證據。
+TLE-first 的意思：衛星身份與軌道先使用公開 TLE / SATCAT 資料，再用模型推導
+站點可視窗、連線選擇與天候影響。它不是營運商實測資料，也不是真實封包紀錄。
 
-| 層級 | 目前狀態 |
+| 問題 | 目前做法 |
 | --- | --- |
-| 已落地 foundation | F1 data shape、F7 TLE manifest / SATCAT、F6 prep、S1 perf、slice-0 baseline |
-| 開發中 | F6 wiring、F8 cap / policy surfacing、F9 visual evidence |
-| 受 gate 阻擋 | S2a EIRP / bandwidth / T_sys、S2b hysteresis、S3 grid / table policy |
-| 核心契約 | RF chain 任何必要 term 為 null，就顯示 unavailable；禁止 partial sums |
+| 衛星是否真實 | 使用 CelesTrak GP / SATCAT 的公開衛星身份與軌道資料 [2] |
+| 軌跡怎麼來 | 用 SGP4 依 TLE 推算位置，再與站點座標計算可視窗 |
+| 連線數字怎麼來 | latency、throughput、jitter、handover 是模型估算，會標示來源與限制 |
+| 缺資料怎麼處理 | EIRP / bandwidth / T_sys 等必要資料未確認時顯示 unavailable |
+| 視覺動畫怎麼看 | 線條、封包點、camera、label 是輔助理解，不是真實流量 |
 
-F9 §49 comparison view 仍是 forthcoming；不能把目前畫面說成已經優於 wave-1。
+目前只可說 foundation 已建立；完整前後比較畫面仍在開發中。
 
 ---
 
-# TLE-first 已落地 foundation
+# 目前已完成基礎
 
 ![Current selected-pair route](wave2-progress-2026-05-19-assets/current-selected-pair-overview.png)
 
 Screenshot captured after `cf4e353`。
 
-| Work | Trace |
+| 已完成 | 對報告的意義 | Trace |
 | --- | --- |
-| SDD v3 + F9 visual layer | `7c44d60` |
-| F1 data shape | `db018a6`；12 gaps、per-output input summary、dynamic display transforms |
-| F7 public TLE source path | `c6d731d`；CelesTrak GP、manifest mode、SATCAT summary |
-| F6 prep | `39733a7`；69 stations 帶 `elevationM` / `terrainMaskDeg` |
-| Slice-0 baseline | `ecbe41c`；五個 walkthrough URLs frozen for future F9 §49 |
-| S1 perf | `83ed47d`、`714ddec`；cap / cadence decision |
-| Task-1 framing fix | `cf4e353`；五個 walkthrough visibility counts 維持 `26/0/15/42/9` |
+| 公開 TLE / SATCAT source path | 衛星身份與軌道來源可追溯，不補 fake actor | `c6d731d` |
+| Runtime provenance shape | CSV / panel 可追到資料來源、模型、non-claim | `db018a6` |
+| Station elevation prep | 69 個站點已有高度與 horizon mask 欄位，等待 runtime 接線 | `39733a7` |
+| Slice-0 baseline | 五個 walkthrough URL 已 frozen，供後續 comparison 使用 | `ecbe41c` |
+| Performance spike | LEO 200 cap at 30 s 已有 p95 391.2 ms evidence | `83ed47d`、`714ddec` |
 
-F7 不引入 runtime hot-path network fetch；refresh 是 build-step / manifest path。
+Refresh 是 build-step / manifest path；runtime hot path 不做網路抓取。
 
 ---
 
-# TLE-first 開發中與 gates
+# 仍在開發與待確認
 
-| 開發線 | 下一步 | Gate / 邊界 |
+| 開發項目 | 要完成什麼 | 待確認條件 |
 | --- | --- | --- |
-| F6 wiring | `elevationM` / `terrainMaskDeg` 接到 visibility altitude、rain station height、Row 6、D6 | prep 已落地；runtime read paths 待做 |
-| F8 partial | LEO 200 cap at 30 s、cap disclosure、policy selector、alias canonicalisation | S1 C4 p95 391.2 ms PASS |
-| F9 partial | TLE chip color、active badge、pre/post comparison shell | §49 comparison evidence 尚未完成 |
-| F1 + F8 combined | LEO 200 cap + LEO 10 s cadence | S1 C5 p95 1027.3 ms FAIL；需 follow-up smoke |
-| F2 / F5 | RSRP、EIRP、bandwidth、T_sys、Shannon throughput | S2a / S2b；未解時顯示 unavailable |
-| F3 / F4 | atmospheric / rain grids | S3 legal decision 後才能處理 |
+| 站點高度 / 地形 | 把 `elevationM`、`terrainMaskDeg` 接到可視窗、雨衰減高度、Row 6 | Runtime read paths 待做 |
+| 衛星候選量與 policy | LEO 200 cap at 30 s、cap disclosure、policy selector | 目前 p95 391.2 ms PASS；LEO 200 + 10 s 尚未通過 |
+| 視覺證據 | TLE freshness、active badge、pre/post comparison shell | Comparison evidence 尚未完成 |
+| RSRP / throughput | EIRP、bandwidth、T_sys、Shannon throughput | S2a / S2b；未確認就顯示 unavailable |
+| 大氣 / 雨量格點 | cloud、scintillation、rain height、rain climatology grids | S3 決策後才能處理 |
 
 ---
 
-# TLE-first 可驗證 evidence
+# 目前可驗證證據
 
 來源：slice-0 §6.2 values frozen at `7c44d60`；screenshots 在 `cf4e353`
-重新擷取。這些是目前可引用的 baseline，不是 F9 §49 comparison result。
+重新擷取。這些是目前可引用的 baseline，不是完整 comparison result。
 
-| Evidence | 目前可說 |
+| 證據 | 可對外說法 |
 | --- | --- |
-| Current route shot | selected-pair route 可見 Row 5 disclosure、chrome chips、Row 6 footer |
-| Walkthrough rows | 五個 URL 的 Row 3 / Row 5 d1 / Row 6 values 已 frozen |
-| S1 perf envelope | LEO 60 + 10 s PASS；LEO 200 + 30 s PASS；LEO 200 + 10 s FAIL |
-| Camera regression | Task-1 `cf4e353` 已修 framing；不屬於 Task-2 camera/view work |
-| Comparison boundary | F9 visual primitives 逐步落地；§49 comparison 仍 forthcoming |
+| Current route shot | selected-pair route 已顯示資料來源、模型揭露、CSV audit |
+| Walkthrough baseline | 五組代表路徑的 Row 3 / Row 5 / Row 6 值已 frozen |
+| Performance evidence | LEO 60 + 10 s PASS；LEO 200 + 30 s PASS；LEO 200 + 10 s FAIL |
+| Source provenance | Station source、TLE source、SATCAT summary、CSV export 可交叉檢查 |
+| Comparison boundary | 前後比較畫面仍在開發中，目前不可宣稱已完成比較驗證 |
 
 ---
 
-# TLE-first 揭露邊界
+# 對外說法邊界
 
-詳細 provenance 與開發計畫已放在前段；這張是 reviewer 應採用的 rule-of-thumb。
+這張是報告時應遵守的 rule-of-thumb：清楚分辨公開來源、模型推導、視覺效果。
 
 | Claim type | 允許解讀方式 |
 | --- | --- |
-| Station card | public registry + source links；coordinates 可能是 exact 或 representative |
-| Download CSV | provenance 與 panel-value audit 的 projection export，不是 telemetry |
-| Rain rate | fade model control，不是 measured weather |
-| Satellite scene | runtime data 存在時，identity/position 是 TLE-derived |
+| Station card | 公開 registry + source links；座標可能是 exact 或 representative |
+| Download CSV | 用來稽核資料來源與 panel values，不是 telemetry |
+| Rain rate | 模型控制參數，不是實測天氣 |
+| Satellite scene | 衛星身份與位置來自公開 TLE 推導 |
 | Metrics | 除非明確標為 source-derived，否則是 modeled estimates |
-| Moving packets / lanes / camera | display-only；不是 packet capture 或 traffic telemetry |
-| Missing anchors | 顯示為 unavailable 或 pending，不會靜默補值 |
+| Moving packets / lanes / camera | 視覺輔助，不是真實 packet capture 或 traffic telemetry |
+| Missing anchors | 顯示 unavailable / pending，不靜默補值 |
 
 不宣稱：measured operator telemetry、measured throughput / jitter / congestion、
 private gateway schedules、live commercial routing、runtime Internet refresh、
