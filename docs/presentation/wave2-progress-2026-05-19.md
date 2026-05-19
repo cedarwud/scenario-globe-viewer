@@ -10,11 +10,11 @@ spike report row，或本地 code path。
 
 ---
 
-# 問題紀錄 — Q1
+# Q1 Ground-station 圓點視覺編碼
 
-問題：首頁的 ground-station 圓點有用顏色或大小編碼嗎，還是全部一樣？
+用途：說明首頁 ground-station dots 的顏色、大小與 capability classification。
 
-回答：不是全部一樣；畫面上主要看成兩種 dot groups，但底層 capability
+結論：不是全部一樣；畫面上主要看成兩種 dot groups，但底層 capability
 classification 是三種。來源：`station-markers.ts` + `station-compatibility.ts`。
 
 | 分類 | 一般圓點 | Highlight / selected | 意義 |
@@ -29,11 +29,11 @@ station info card、以及 V4 panel。
 
 ---
 
-# 問題紀錄 — Q2
+# Q2 Filter 項目與 Band 定義
 
-問題：filters 有哪些項目？`band` 是指頻段嗎？
+用途：整理 station selection filters 的分類、UI items，以及 Band 的意義。
 
-回答：是，Band 指 RF frequency band。來源：`station-list-picker.ts`、
+結論：Band 指 RF frequency band。來源：`station-list-picker.ts`、
 `marker-filter-chips.ts`、`marker-region-chips.ts`、`marker-band-chips.ts`。
 
 | Filter group | UI items | 用途 |
