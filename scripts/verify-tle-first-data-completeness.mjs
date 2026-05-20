@@ -139,6 +139,12 @@ const policySelectorCase = {
   policy: "leo-first"
 };
 
+const compareCase = {
+  ...walkthroughCases[3],
+  label: "F49 comparison - pre-wave-2 split pane",
+  compare: "pre-wave-2"
+};
+
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
@@ -227,6 +233,9 @@ function buildSelectedPairUrl(testCase) {
   url.searchParams.set("durationMinutes", "360");
   if (testCase.policy) {
     url.searchParams.set("policy", testCase.policy);
+  }
+  if (testCase.compare) {
+    url.searchParams.set("compare", testCase.compare);
   }
   return url.href;
 }
@@ -358,6 +367,7 @@ async function readSelectedPairState(client, terminalStatuses = ["ready", "empty
         const sourcesDisclosure = document.querySelector('[data-disclosure="sources-non-claims"]');
         const capDisclosure = document.querySelector('[data-cap-disclosure="true"]');
         const policyDisclosure = document.querySelector('[data-policy-disclosure="true"]');
+        const comparePanes = Array.from(document.querySelectorAll('[data-compare-pane]'));
         last = {
           hasCapture: Boolean(capture),
           hasController: Boolean(controller),
@@ -368,11 +378,19 @@ async function readSelectedPairState(client, terminalStatuses = ["ready", "empty
                 state: panel.dataset.state ?? null,
                 routeMode: panel.dataset.dataCompletenessRouteMode ?? null,
                 emptyReasonCode: panel.dataset.emptyReasonCode ?? null,
-                activePolicyId: panel.dataset.activePolicyId ?? null
+                activePolicyId: panel.dataset.activePolicyId ?? null,
+                compareMode: panel.dataset.compareMode ?? null
               }
             : null,
           footer: footer ? { ...footer.dataset } : null,
-          chip: chip ? { ...chip.dataset } : null,
+          chip: chip
+            ? { ...chip.dataset, backgroundColor: getComputedStyle(chip).backgroundColor }
+            : null,
+          comparePanes: comparePanes.map((pane) => ({
+            pane: pane.dataset.comparePane ?? null,
+            row: pane.closest('[data-row]')?.dataset.row ?? null,
+            text: pane.textContent ?? ""
+          })),
           capDisclosure: capDisclosure
             ? { dataset: { ...capDisclosure.dataset }, text: capDisclosure.textContent ?? "" }
             : null,
@@ -956,6 +974,52 @@ function assertRow5DisclosureDatasets(
   );
 }
 
+function assertTleChipVisualBand(label, state) {
+  const sourceMode = state.chip?.sourceMode;
+  const backgroundColor = state.chip?.backgroundColor ?? "";
+  assert(TLE_SOURCE_MODES.has(sourceMode), `${label}: TLE chip source mode missing`);
+  const expectedRgbByMode = {
+    "network-snapshot": "19, 83, 58",
+    "fallback-local-snapshot": "110, 76, 21",
+    "local-snapshot": "6, 18, 28"
+  };
+  assert(
+    backgroundColor.includes(expectedRgbByMode[sourceMode]),
+    `${label}: TLE chip background ${backgroundColor} does not match ${sourceMode}`
+  );
+}
+
+function assertDefaultComparisonHidden(label, state) {
+  assert(
+    (state.comparePanes ?? []).length === 0,
+    `${label}: compare panes should be hidden without compare param`
+  );
+}
+
+function assertPreWave2ComparisonVisible(label, state) {
+  const panes = state.comparePanes ?? [];
+  const paneKeys = new Set(panes.map((pane) => `${pane.row}:${pane.pane}`));
+  for (const row of ["3", "4"]) {
+    assert(
+      paneKeys.has(`${row}:current`) && paneKeys.has(`${row}:pre-wave-2`),
+      `${label}: missing compare panes for row ${row}`
+    );
+  }
+  assert(
+    state.panel?.compareMode === "pre-wave-2",
+    `${label}: panel compare mode missing`
+  );
+  assert(
+    panes.some((pane) => pane.text.includes("Pre-wave-2")) &&
+      panes.some((pane) => pane.text.includes("Current")),
+    `${label}: compare pane labels missing`
+  );
+  assert(
+    panes.some((pane) => pane.row === "4" && pane.text.includes("ASIASTAR")),
+    `${label}: pre-wave-2 event baseline missing`
+  );
+}
+
 function assertExpectedStationPrecision(testCase, data) {
   const stationsById = new Map(
     data.stationPrecision.map((station) => [station.stationId, station])
@@ -999,6 +1063,10 @@ function assertReadyCase(
   assertRow5DisclosureDatasets(testCase.label, state, expectedPolicyId);
   assert(state.chip?.sourceCount === "3", `${testCase.label}: TLE chip source count missing`);
   assert(state.chip?.sourceHealth, `${testCase.label}: TLE chip source health missing`);
+  assertTleChipVisualBand(testCase.label, state);
+  if (!testCase.compare) {
+    assertDefaultComparisonHidden(testCase.label, state);
+  }
   assert(
     TLE_SOURCE_MODES.has(state.chip?.sourceMode),
     `${testCase.label}: TLE chip sourceMode missing`
@@ -1040,6 +1108,10 @@ function assertEmptyCase(
   assertExpectedStationPrecision(testCase, state.overlay.dataCompleteness);
   assertStationPrecisionFooterDataset(testCase, state);
   assertRow5DisclosureDatasets(testCase.label, state, expectedPolicyId);
+  assertTleChipVisualBand(testCase.label, state);
+  if (!testCase.compare) {
+    assertDefaultComparisonHidden(testCase.label, state);
+  }
   assert(
     state.overlay.emptyReasonCode === testCase.expectedEmptyReasonCode,
     `${testCase.label}: expected empty reason ${testCase.expectedEmptyReasonCode}, received ${state.overlay.emptyReasonCode}`
@@ -1469,6 +1541,18 @@ try {
       policyState.overlay.dataCompleteness.policyDisclosure.activePolicyId,
     row5PolicyId: policyState.policyDisclosure?.dataset?.activePolicyId ?? null,
     linkSelectionEventCount: policyState.overlay.handoverEventCount
+  });
+
+  await navigate(client, buildSelectedPairUrl(compareCase));
+  const compareState = await readSelectedPairState(client);
+  assertReadyCase(compareCase, compareState);
+  assertPreWave2ComparisonVisible(compareCase.label, compareState);
+  results.push({
+    label: compareCase.label,
+    status: compareState.overlay.status,
+    compareMode: compareState.panel?.compareMode ?? null,
+    comparePaneCount: compareState.comparePanes?.length ?? 0,
+    currentLinkSelectionEventCount: compareState.overlay.handoverEventCount
   });
 
   await navigate(client, buildFixedDemoUrl(fixedDemoCase));

@@ -75,6 +75,21 @@ const CHROME_TELEMETRY_CSS = `
   font-variant-numeric: tabular-nums;
   pointer-events: none;
 }
+.gs-tle-telemetry-chip[data-source-mode="network-snapshot"] {
+  background: rgba(19, 83, 58, 0.82);
+  border-color: rgba(126, 226, 184, 0.42);
+  color: rgba(232, 255, 244, 0.88);
+}
+.gs-tle-telemetry-chip[data-source-mode="fallback-local-snapshot"] {
+  background: rgba(110, 76, 21, 0.84);
+  border-color: rgba(255, 190, 92, 0.48);
+  color: rgba(255, 240, 212, 0.9);
+}
+.gs-tle-telemetry-chip[data-source-mode="local-snapshot"] {
+  background: rgba(6, 18, 28, 0.72);
+  border-color: rgba(157, 196, 232, 0.22);
+  color: rgba(221, 233, 241, 0.72);
+}
 `;
 
 function injectChromeTelemetryStyleOnce(): void {

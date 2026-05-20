@@ -53,6 +53,8 @@ const MAX_DEMO_PROJECTION_DURATION_MINUTES = 480;
 const START_UTC_PARAM = "startUtc";
 const DURATION_MINUTES_PARAM = "durationMinutes";
 const POLICY_PARAM = "policy";
+const COMPARE_PARAM = "compare";
+const PRE_WAVE2_COMPARE_MODE = "pre-wave-2";
 
 const RAIN_RATE_MIN_MM_PER_HOUR = 0;
 const RAIN_RATE_MAX_MM_PER_HOUR = 100;
@@ -273,6 +275,35 @@ const PANEL_CSS = `
 .v4-projection-side-panel__stat[data-modifier="rain-degraded"]
   .v4-projection-side-panel__stat-value {
   color: #ffd166;
+}
+.v4-projection-side-panel__compare-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.45rem;
+}
+.v4-projection-side-panel__compare-pane {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.26rem;
+}
+.v4-projection-side-panel__compare-title {
+  margin: 0;
+  font-size: 0.62rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: rgba(157, 196, 232, 0.82);
+}
+.v4-projection-side-panel__compare-delta {
+  font-size: 0.62rem;
+  color: rgba(157, 196, 232, 0.8);
+}
+.v4-projection-side-panel__compare-delta[data-direction="up"] {
+  color: #7ee2b8;
+}
+.v4-projection-side-panel__compare-delta[data-direction="down"] {
+  color: #ff8b8b;
 }
 .v4-projection-side-panel__list-item[data-modifier="cross-orbit-migration"] {
   border-left: 3px solid #c9a0ff;
@@ -607,6 +638,16 @@ function resolveProjectionPolicyId(): RuntimeHandoverPolicyId {
   return resolveRuntimeHandoverPolicyId(search.get(POLICY_PARAM));
 }
 
+function resolveProjectionCompareMode(): CompareMode {
+  const search =
+    typeof window === "undefined"
+      ? new URLSearchParams()
+      : new URLSearchParams(window.location.search);
+  return search.get(COMPARE_PARAM) === PRE_WAVE2_COMPARE_MODE
+    ? PRE_WAVE2_COMPARE_MODE
+    : null;
+}
+
 function buildStatBlock(
   label: string,
   value: string,
@@ -625,6 +666,60 @@ function buildStatBlock(
   valueEl.textContent = value;
   block.append(labelEl, valueEl);
   return block;
+}
+
+function resolveWave1Baseline(result: RuntimeProjectionResult): Wave1Baseline | null {
+  return (
+    WAVE1_BASELINE_BY_PAIR.get(
+      baselineKey(result.pair.stationA.id, result.pair.stationB.id)
+    ) ?? null
+  );
+}
+
+function buildComparePane(
+  title: string,
+  paneId: "current" | "pre-wave-2",
+  children: ReadonlyArray<Node>
+): HTMLElement {
+  const pane = document.createElement("section");
+  pane.className = "v4-projection-side-panel__compare-pane";
+  pane.dataset.comparePane = paneId;
+  const heading = document.createElement("h3");
+  heading.className = "v4-projection-side-panel__compare-title";
+  heading.textContent = title;
+  pane.append(heading, ...children);
+  return pane;
+}
+
+function buildCompareDelta(delta: number, formatter: (value: number) => string): HTMLElement {
+  const span = document.createElement("span");
+  span.className = "v4-projection-side-panel__compare-delta";
+  const direction = delta > 0 ? "up" : delta < 0 ? "down" : "flat";
+  span.dataset.direction = direction;
+  span.textContent =
+    delta === 0
+      ? "Δ 0"
+      : `${delta > 0 ? "↑" : "↓"} ${formatter(Math.abs(delta))}`;
+  return span;
+}
+
+function buildCompareStatBlock(
+  label: string,
+  value: string,
+  delta: number,
+  formatter: (value: number) => string
+): HTMLElement {
+  const block = buildStatBlock(label, value);
+  block.append(buildCompareDelta(delta, formatter));
+  return block;
+}
+
+function formatCount(value: number): string {
+  return String(Math.round(value));
+}
+
+function formatMbpsValue(value: number): string {
+  return `${(Math.round(value * 10) / 10).toFixed(1)} Mbps`;
 }
 
 function downloadRuntimeProjectionCsv(result: RuntimeProjectionResult): void {
@@ -676,6 +771,148 @@ function formatSpeedMbps(mbps: number): string {
 }
 
 const ORBIT_DISPLAY_ORDER: ReadonlyArray<OrbitClass> = ["LEO", "MEO", "GEO"];
+
+type CompareMode = typeof PRE_WAVE2_COMPARE_MODE | null;
+
+interface Wave1BaselineEvent {
+  readonly handoverAtUtc: string;
+  readonly reasonKind: RuntimeProjectionResult["handoverEvents"][number]["reasonKind"];
+  readonly fromSatelliteId: string | null;
+  readonly toSatelliteId: string;
+}
+
+interface Wave1Baseline {
+  readonly stationAId: string;
+  readonly stationBId: string;
+  readonly totalCommunicatingMs: number;
+  readonly handoverCount: number;
+  readonly meanLinkDwellMs: number;
+  readonly linkSelectionEventCount: number;
+  readonly events: ReadonlyArray<Wave1BaselineEvent>;
+  readonly throughputMbps: Readonly<Partial<Record<OrbitClass, number>>>;
+}
+
+const WAVE1_BASELINES: ReadonlyArray<Wave1Baseline> = [
+  {
+    stationAId: "ksat-svalsat-svalbard",
+    stationBId: "ksat-tromso",
+    totalCommunicatingMs: 21_600_000,
+    handoverCount: 1,
+    meanLinkDwellMs: 10_800_000,
+    linkSelectionEventCount: 2,
+    events: [
+      {
+        handoverAtUtc: "2026-05-17T00:00:00.000Z",
+        reasonKind: "current-link-unavailable",
+        fromSatelliteId: null,
+        toSatelliteId: "GSAT0210 (GALILEO 13)"
+      },
+      {
+        handoverAtUtc: "2026-05-17T05:24:00.000Z",
+        reasonKind: "current-link-unavailable",
+        fromSatelliteId: "GSAT0210 (GALILEO 13)",
+        toSatelliteId: "GSAT0226 (GALILEO 31)"
+      }
+    ],
+    throughputMbps: { LEO: 198.932, MEO: 99.712, GEO: 48.841 }
+  },
+  {
+    stationAId: "ksat-svalsat-svalbard",
+    stationBId: "ksat-trollsat-antarctica",
+    totalCommunicatingMs: 0,
+    handoverCount: 0,
+    meanLinkDwellMs: 0,
+    linkSelectionEventCount: 0,
+    events: [],
+    throughputMbps: {}
+  },
+  {
+    stationAId: "intelsat-fuchsstadt",
+    stationBId: "intelsat-atlanta",
+    totalCommunicatingMs: 21_600_000,
+    handoverCount: 2,
+    meanLinkDwellMs: 7_200_000,
+    linkSelectionEventCount: 3,
+    events: [
+      {
+        handoverAtUtc: "2026-05-17T00:00:00.000Z",
+        reasonKind: "current-link-unavailable",
+        fromSatelliteId: null,
+        toSatelliteId: "GSAT0213 (GALILEO 17)"
+      },
+      {
+        handoverAtUtc: "2026-05-17T03:35:30.000Z",
+        reasonKind: "current-link-unavailable",
+        fromSatelliteId: "GSAT0213 (GALILEO 17)",
+        toSatelliteId: "GSAT0227 (GALILEO 30)"
+      },
+      {
+        handoverAtUtc: "2026-05-17T05:20:30.000Z",
+        reasonKind: "current-link-unavailable",
+        fromSatelliteId: "GSAT0227 (GALILEO 30)",
+        toSatelliteId: "GSAT0205 (GALILEO 9)"
+      }
+    ],
+    throughputMbps: { MEO: 99.712, GEO: 48.841 }
+  },
+  {
+    stationAId: "singtel-bukit-timah",
+    stationBId: "measat-cyberjaya",
+    totalCommunicatingMs: 21_600_000,
+    handoverCount: 0,
+    meanLinkDwellMs: 21_600_000,
+    linkSelectionEventCount: 1,
+    events: [
+      {
+        handoverAtUtc: "2026-05-17T00:00:00.000Z",
+        reasonKind: "current-link-unavailable",
+        fromSatelliteId: null,
+        toSatelliteId: "ASIASTAR"
+      }
+    ],
+    throughputMbps: { LEO: 198.932, GEO: 48.841 }
+  },
+  {
+    stationAId: "cht-yangmingshan",
+    stationBId: "sansa-hartebeesthoek",
+    totalCommunicatingMs: 21_600_000,
+    handoverCount: 2,
+    meanLinkDwellMs: 7_200_000,
+    linkSelectionEventCount: 3,
+    events: [
+      {
+        handoverAtUtc: "2026-05-17T00:00:00.000Z",
+        reasonKind: "current-link-unavailable",
+        fromSatelliteId: null,
+        toSatelliteId: "INMARSAT 3-F3"
+      },
+      {
+        handoverAtUtc: "2026-05-17T02:24:30.000Z",
+        reasonKind: "better-candidate-available",
+        fromSatelliteId: "INMARSAT 3-F3",
+        toSatelliteId: "GSAT0203 (GALILEO 7)"
+      },
+      {
+        handoverAtUtc: "2026-05-17T04:31:30.000Z",
+        reasonKind: "current-link-unavailable",
+        fromSatelliteId: "GSAT0203 (GALILEO 7)",
+        toSatelliteId: "INMARSAT 3-F3"
+      }
+    ],
+    throughputMbps: { LEO: 198.932, MEO: 99.712, GEO: 48.841 }
+  }
+];
+
+function baselineKey(stationAId: string, stationBId: string): string {
+  return [stationAId, stationBId].sort().join("|");
+}
+
+const WAVE1_BASELINE_BY_PAIR: ReadonlyMap<string, Wave1Baseline> = new Map(
+  WAVE1_BASELINES.map((baseline) => [
+    baselineKey(baseline.stationAId, baseline.stationBId),
+    baseline
+  ])
+);
 
 function computeProjectionPairMidpointHeightAboveSeaKm(
   result: RuntimeProjectionResult
@@ -986,7 +1223,109 @@ function buildRainControlRow(rainControl: RainControlElements): HTMLElement {
   return row;
 }
 
-function buildFlatStatsRow(result: RuntimeProjectionResult): HTMLElement {
+function computeClearSkyThroughputByOrbit(
+  result: RuntimeProjectionResult
+): Partial<Record<OrbitClass, number>> {
+  const stationHeightAboveSeaKm =
+    computeProjectionPairMidpointHeightAboveSeaKm(result);
+  const allowedOrbits = new Set(result.sharedSupportedOrbits);
+  const values: Partial<Record<OrbitClass, number>> = {};
+  for (const orbit of ORBIT_DISPLAY_ORDER) {
+    if (!allowedOrbits.has(orbit)) {
+      continue;
+    }
+    values[orbit] = computeLinkBudgetMetricsForOrbit(orbit, {
+      rainRateMmPerHour: 0,
+      stationHeightAboveSeaKm
+    }).networkSpeedMbps;
+  }
+  return values;
+}
+
+function buildCompareFlatStatsRow(
+  result: RuntimeProjectionResult,
+  baseline: Wave1Baseline | null
+): HTMLElement {
+  const row = document.createElement("section");
+  row.className = "v4-projection-side-panel__row";
+  row.dataset.row = "3";
+  row.dataset.compare = PRE_WAVE2_COMPARE_MODE;
+
+  if (!baseline) {
+    const stats = document.createElement("div");
+    stats.className = "v4-projection-side-panel__stats";
+    stats.append(
+      buildStatBlock(
+        "Comm time",
+        formatDurationMs(result.communicationStats.totalCommunicatingMs)
+      ),
+      buildStatBlock("Pre-wave-2", "baseline unavailable")
+    );
+    row.append(stats);
+    return row;
+  }
+
+  const currentThroughput = computeClearSkyThroughputByOrbit(result);
+  const currentPaneChildren: Node[] = [
+    buildCompareStatBlock(
+      "Comm time",
+      formatDurationMs(result.communicationStats.totalCommunicatingMs),
+      result.communicationStats.totalCommunicatingMs - baseline.totalCommunicatingMs,
+      formatDurationMs
+    ),
+    buildCompareStatBlock(
+      "Handovers",
+      String(result.communicationStats.handoverCount),
+      result.communicationStats.handoverCount - baseline.handoverCount,
+      formatCount
+    )
+  ];
+  const baselinePaneChildren: Node[] = [
+    buildStatBlock("Comm time", formatDurationMs(baseline.totalCommunicatingMs)),
+    buildStatBlock("Handovers", String(baseline.handoverCount))
+  ];
+
+  for (const orbit of ORBIT_DISPLAY_ORDER) {
+    const currentMbps = currentThroughput[orbit];
+    const baselineMbps = baseline.throughputMbps[orbit];
+    if (currentMbps === undefined && baselineMbps === undefined) {
+      continue;
+    }
+    currentPaneChildren.push(
+      currentMbps === undefined || baselineMbps === undefined
+        ? buildStatBlock(`${orbit} Mbps`, currentMbps === undefined ? "n/a" : formatMbpsValue(currentMbps))
+        : buildCompareStatBlock(
+            `${orbit} Mbps`,
+            formatMbpsValue(currentMbps),
+            currentMbps - baselineMbps,
+            formatMbpsValue
+          )
+    );
+    baselinePaneChildren.push(
+      buildStatBlock(
+        `${orbit} Mbps`,
+        baselineMbps === undefined ? "n/a" : formatMbpsValue(baselineMbps)
+      )
+    );
+  }
+
+  const grid = document.createElement("div");
+  grid.className = "v4-projection-side-panel__compare-grid";
+  grid.append(
+    buildComparePane("Current", "current", currentPaneChildren),
+    buildComparePane("Pre-wave-2", "pre-wave-2", baselinePaneChildren)
+  );
+  row.append(grid);
+  return row;
+}
+
+function buildFlatStatsRow(
+  result: RuntimeProjectionResult,
+  compareMode: CompareMode
+): HTMLElement {
+  if (compareMode === PRE_WAVE2_COMPARE_MODE) {
+    return buildCompareFlatStatsRow(result, resolveWave1Baseline(result));
+  }
   const row = document.createElement("section");
   row.className = "v4-projection-side-panel__row";
   row.dataset.row = "3";
@@ -1072,7 +1411,66 @@ function pickRow4HandoverEvents(
   return latestCrossOrbit ? [...head, latestCrossOrbit] : head;
 }
 
-function buildSummariesRow(result: RuntimeProjectionResult): HTMLElement {
+function buildCompareEventList(
+  events: ReadonlyArray<RuntimeProjectionResult["handoverEvents"][number]>
+): HTMLElement {
+  if (events.length === 0) {
+    const empty = document.createElement("p");
+    empty.className = "v4-projection-side-panel__empty";
+    empty.textContent = "No link selection events.";
+    return empty;
+  }
+  const list = document.createElement("ul");
+  list.className = "v4-projection-side-panel__list";
+  for (const event of events.slice(0, PANEL_ROW4_HANDOVER_PREVIEW_COUNT)) {
+    list.append(buildHandoverRow(event));
+  }
+  return list;
+}
+
+function buildCompareSummariesRow(
+  result: RuntimeProjectionResult,
+  baseline: Wave1Baseline | null
+): HTMLElement {
+  const row = document.createElement("section");
+  row.className = "v4-projection-side-panel__row";
+  row.dataset.row = "4";
+  row.dataset.compare = PRE_WAVE2_COMPARE_MODE;
+
+  const currentEvents = pickRow4HandoverEvents(result.handoverEvents);
+  const currentChildren: Node[] = [
+    buildCompareStatBlock(
+      "Events",
+      String(result.handoverEvents.length),
+      result.handoverEvents.length - (baseline?.linkSelectionEventCount ?? 0),
+      formatCount
+    ),
+    buildCompareEventList(currentEvents)
+  ];
+  const baselineChildren: Node[] = baseline
+    ? [
+        buildStatBlock("Events", String(baseline.linkSelectionEventCount)),
+        buildCompareEventList(baseline.events)
+      ]
+    : [buildStatBlock("Events", "baseline unavailable")];
+
+  const grid = document.createElement("div");
+  grid.className = "v4-projection-side-panel__compare-grid";
+  grid.append(
+    buildComparePane("Current", "current", currentChildren),
+    buildComparePane("Pre-wave-2", "pre-wave-2", baselineChildren)
+  );
+  row.append(grid);
+  return row;
+}
+
+function buildSummariesRow(
+  result: RuntimeProjectionResult,
+  compareMode: CompareMode
+): HTMLElement {
+  if (compareMode === PRE_WAVE2_COMPARE_MODE) {
+    return buildCompareSummariesRow(result, resolveWave1Baseline(result));
+  }
   const row = document.createElement("section");
   row.className = "v4-projection-side-panel__row";
   row.dataset.row = "4";
@@ -1489,6 +1887,7 @@ interface RenderResultOptions {
   readonly clearSky: RuntimeProjectionResult;
   readonly rainControl: RainControlElements;
   readonly durationMinutes: number;
+  readonly compareMode: CompareMode;
 }
 
 function renderResult(
@@ -1497,7 +1896,8 @@ function renderResult(
   result: RuntimeProjectionResult,
   options: RenderResultOptions
 ): void {
-  const { rainRateMmPerHour, clearSky, rainControl, durationMinutes } = options;
+  const { rainRateMmPerHour, clearSky, rainControl, durationMinutes, compareMode } =
+    options;
 
   // Preserve slider focus across re-renders: the rain control node is reused,
   // not recreated, so the user can keep dragging while the panel recomputes.
@@ -1511,6 +1911,7 @@ function renderResult(
   root.dataset.emptyReasonCode = result.dataCompleteness.emptyReasonCode ?? "";
   root.dataset.activePolicyId =
     result.dataCompleteness.policyDisclosure.activePolicyId;
+  root.dataset.compareMode = compareMode ?? "";
 
   syncTleTelemetryChip(result);
   setRainControlCaption(rainControl, result, rainRateMmPerHour);
@@ -1518,8 +1919,8 @@ function renderResult(
   root.append(
     buildHeaderRow(pair, result, durationMinutes),
     buildRainControlRow(rainControl),
-    buildFlatStatsRow(result),
-    buildSummariesRow(result),
+    buildFlatStatsRow(result, compareMode),
+    buildSummariesRow(result, compareMode),
     buildDisclosuresRow(result, rainRateMmPerHour, clearSky),
     buildFooterRow(result)
   );
@@ -1555,6 +1956,7 @@ export function mountV4ProjectionSidePanel(
   }
   const pair = input.resolvedPair;
   const policyId = resolveProjectionPolicyId();
+  const compareMode = resolveProjectionCompareMode();
 
   injectPanelStyleOnce();
 
@@ -1619,7 +2021,8 @@ export function mountV4ProjectionSidePanel(
         rainRateMmPerHour,
         clearSky: clearSkyResult,
         rainControl,
-        durationMinutes
+        durationMinutes,
+        compareMode
       });
       publishRuntimeResult(result);
     } catch (error) {
@@ -1671,7 +2074,8 @@ export function mountV4ProjectionSidePanel(
         rainRateMmPerHour: currentRainRate,
         clearSky: clearSkyResult,
         rainControl,
-        durationMinutes
+        durationMinutes,
+        compareMode
       });
       publishRuntimeResult(clearSkyResult);
     } catch (error) {
