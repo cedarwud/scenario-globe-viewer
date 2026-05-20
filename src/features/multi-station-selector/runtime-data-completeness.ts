@@ -1,4 +1,5 @@
 import { twoline2satrec } from "../../vendor/satellite-js-runtime";
+import type { HandoverPolicyConfig } from "../../runtime/link-budget/handover-policy";
 import type {
   SceneCameraHint,
   SceneDisplayPolicy,
@@ -153,6 +154,27 @@ export interface RuntimeStationPrecisionState {
   readonly provenance: RuntimeProvenanceTag;
 }
 
+export interface RuntimeCapDisclosureState {
+  readonly perOrbitCap: Readonly<Record<OrbitClass, number>>;
+  readonly perOrbitInventory: Readonly<Record<OrbitClass, number>>;
+  readonly cappedAtRuntime: Readonly<Record<OrbitClass, boolean>>;
+}
+
+export interface RuntimePolicyDisclosureThresholds {
+  readonly latencyBudgetMs: number | null;
+  readonly hysteresisDb: number;
+  readonly minVisibilityWindowMs: number;
+  readonly elevationThresholdDeg: number;
+}
+
+export interface RuntimePolicyDisclosureState {
+  readonly activePolicyId: HandoverPolicyConfig["policyId"];
+  readonly thresholds: RuntimePolicyDisclosureThresholds;
+  readonly thresholdSources: Readonly<
+    Record<keyof RuntimePolicyDisclosureThresholds, RuntimeProvenanceTag>
+  >;
+}
+
 export interface RuntimeActorProvenanceState {
   readonly satelliteId: string;
   readonly orbitClass: OrbitClass;
@@ -193,6 +215,8 @@ export interface RuntimeDataCompletenessState {
   readonly visibilityProvenance: ReadonlyArray<RuntimeVisibilityProvenanceState>;
   readonly modeledOutputs: ReadonlyArray<RuntimeModeledOutputMetadata>;
   readonly displayTransforms: ReadonlyArray<RuntimeDisplayTransformMetadata>;
+  readonly capDisclosure: RuntimeCapDisclosureState;
+  readonly policyDisclosure: RuntimePolicyDisclosureState;
   readonly visibilityCadenceSecondsByOrbit: Readonly<Record<OrbitClass, number>>;
   readonly emptyReasonCode: RuntimeEmptyReasonCode | null;
 }
@@ -225,6 +249,7 @@ export interface BuildRuntimeDataCompletenessInput {
   readonly stationAEffectiveElevationThresholdDeg: number;
   readonly stationBEffectiveElevationThresholdDeg: number;
   readonly elevationThresholdDeg: number;
+  readonly handoverPolicy: HandoverPolicyConfig;
   readonly propagationStatsBySatellite?: ReadonlyMap<string, TlePropagationStats>;
   readonly sourceHealthThresholdDays?: Partial<Record<OrbitClass, number>>;
   readonly sceneCameraHint?: SceneCameraHint;
@@ -434,6 +459,53 @@ function buildStationPrecisionState(
     provenance: {
       truthClass: "public-registry-derived",
       sourceId: `station-registry:${station.id}`
+    }
+  };
+}
+
+function buildCapDisclosure(
+  input: BuildRuntimeDataCompletenessInput
+): RuntimeCapDisclosureState {
+  const inventory = countByOrbit(input.allTleRecords);
+  const caps: Record<OrbitClass, number> = {
+    LEO: input.caps.LEO,
+    MEO: input.caps.MEO,
+    GEO: input.caps.GEO
+  };
+  return {
+    perOrbitCap: caps,
+    perOrbitInventory: inventory,
+    cappedAtRuntime: {
+      LEO: inventory.LEO > caps.LEO,
+      MEO: inventory.MEO > caps.MEO,
+      GEO: inventory.GEO > caps.GEO
+    }
+  };
+}
+
+function buildPolicyDisclosure(
+  input: BuildRuntimeDataCompletenessInput
+): RuntimePolicyDisclosureState {
+  const policy = input.handoverPolicy;
+  const provenance: RuntimeProvenanceTag = {
+    truthClass: "modeled",
+    sourceId: `handover-policy:${policy.policyId}`,
+    modelId: "3gpp-tr-38.821-v-mo1-policy",
+    nonClaim: "Runtime policy thresholds are modeled controls, not operator SLA."
+  };
+  return {
+    activePolicyId: policy.policyId,
+    thresholds: {
+      latencyBudgetMs: policy.latencyBudgetMs ?? null,
+      hysteresisDb: policy.hysteresisDb,
+      minVisibilityWindowMs: policy.minVisibilityWindowMs,
+      elevationThresholdDeg: policy.elevationThresholdDeg
+    },
+    thresholdSources: {
+      latencyBudgetMs: provenance,
+      hysteresisDb: provenance,
+      minVisibilityWindowMs: provenance,
+      elevationThresholdDeg: provenance
     }
   };
 }
@@ -668,9 +740,14 @@ function buildVisibilityProvenance(
 function buildModeledOutputs(
   input: BuildRuntimeDataCompletenessInput
 ): ReadonlyArray<RuntimeModeledOutputMetadata> {
+  const handoverModelId = `${input.handoverPolicy.policyId}-policy`;
   const baseInputSummary = () => ({
     rainRateMmPerHour: input.rainRateMmPerHour,
     handoverSampleStepSeconds: input.sampleStepSeconds,
+    activePolicyId: input.handoverPolicy.policyId,
+    policyLatencyBudgetMs: input.handoverPolicy.latencyBudgetMs ?? null,
+    policyHysteresisDb: input.handoverPolicy.hysteresisDb,
+    policyMinVisibilityWindowMs: input.handoverPolicy.minVisibilityWindowMs,
     leoCadenceSeconds: input.sampleCadenceSecondsByOrbit.LEO,
     meoCadenceSeconds: input.sampleCadenceSecondsByOrbit.MEO,
     geoCadenceSeconds: input.sampleCadenceSecondsByOrbit.GEO,
@@ -693,7 +770,7 @@ function buildModeledOutputs(
   return [
     {
       kind: "handover",
-      modelId: "cross-orbit-live-policy",
+      modelId: handoverModelId,
       standardsRef: ["3GPP TR 38.821 §7.3", "V-MO1"],
       inputSummary: {
         ...baseInputSummary(),
@@ -701,7 +778,7 @@ function buildModeledOutputs(
         eventCount: input.handoverEventCount
       },
       outputUnit: "event",
-      provenance: provenance("cross-orbit-live-policy"),
+      provenance: provenance(handoverModelId),
       nonClaim: modelNonClaim
     },
     {
@@ -893,6 +970,8 @@ export function buildRuntimeDataCompletenessState(
     visibilityProvenance: buildVisibilityProvenance(input),
     modeledOutputs: buildModeledOutputs(input),
     displayTransforms: buildDisplayTransforms(input),
+    capDisclosure: buildCapDisclosure(input),
+    policyDisclosure: buildPolicyDisclosure(input),
     visibilityCadenceSecondsByOrbit: input.sampleCadenceSecondsByOrbit,
     emptyReasonCode: resolveEmptyReasonCode(input)
   };

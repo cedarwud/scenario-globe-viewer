@@ -1,3 +1,4 @@
+import operatorFamilyAliases from "../../../public/fixtures/ground-stations/operator-family-aliases.json";
 import registry from "../../../public/fixtures/ground-stations/multi-orbit-public-registry.json";
 
 export type PublicPairSourceTier = "public-disclosed" | "geometric-derived";
@@ -42,6 +43,18 @@ const GEOMETRIC_DERIVED_ATTRIBUTION: PairSourceTierAttribution = {
 };
 
 const REGISTRY_STATIONS = registry.stations as ReadonlyArray<PublicRegistryStation>;
+const OPERATOR_FAMILY_ALIASES = (
+  operatorFamilyAliases as { readonly aliases?: Readonly<Record<string, string>> }
+).aliases ?? {};
+
+function normalizeOperatorFamilyKey(operatorFamily: string): string {
+  return operatorFamily.trim().toLowerCase();
+}
+
+export function canonicalizeOperatorFamily(operatorFamily: string): string {
+  const normalized = normalizeOperatorFamilyKey(operatorFamily);
+  return OPERATOR_FAMILY_ALIASES[normalized] ?? normalized;
+}
 
 export const PUBLIC_REGISTRY_BY_ID: ReadonlyMap<string, PublicRegistryStation> = new Map(
   REGISTRY_STATIONS.map((station) => [station.id, station])
@@ -51,7 +64,10 @@ export function inferPairSourceTier(
   stationA: PublicRegistryStation,
   stationB: PublicRegistryStation
 ): PairSourceTierAttribution {
-  if (stationA.operatorFamily === stationB.operatorFamily) {
+  if (
+    canonicalizeOperatorFamily(stationA.operatorFamily) ===
+    canonicalizeOperatorFamily(stationB.operatorFamily)
+  ) {
     return PUBLIC_DISCLOSED_ATTRIBUTION;
   }
   return GEOMETRIC_DERIVED_ATTRIBUTION;

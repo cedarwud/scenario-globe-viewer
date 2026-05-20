@@ -26,6 +26,12 @@ const TLE_SOURCE_MODES = new Set([
   "network-snapshot",
   "fallback-local-snapshot"
 ]);
+const DEFAULT_HANDOVER_POLICY_ID = "cross-orbit-live";
+const EXPECTED_CAP_DISCLOSURE = {
+  perOrbitCap: { LEO: 200, MEO: 100, GEO: 60 },
+  perOrbitInventory: { LEO: 600, MEO: 33, GEO: 30 },
+  cappedAtRuntime: { LEO: true, MEO: false, GEO: false }
+};
 const DEBUG_SERVER_PROBE = process.env.SGV_DEBUG_SERVER_PROBE === "1";
 
 const args = Object.fromEntries(
@@ -95,9 +101,9 @@ const walkthroughCases = [
     stationB: "measat-cyberjaya",
     expectedStatus: "ready",
     expectedRuntimeLinkVisible: true,
-    baselineVisibilityWindowCount: 42,
-    baselineLinkSelectionEventCount: 1,
-    baselineHandoverCount: 0,
+    baselineVisibilityWindowCount: 117,
+    baselineLinkSelectionEventCount: 7,
+    baselineHandoverCount: 6,
     expectedStationPrecision: [
       { stationId: "singtel-bukit-timah", elevationM: 58, terrainMaskDeg: 0 },
       { stationId: "measat-cyberjaya", elevationM: 22, terrainMaskDeg: 0 }
@@ -125,6 +131,12 @@ const fixedDemoCase = {
     scenePreset: "regional",
     m8aV4GroundStationScene: "1"
   }
+};
+
+const policySelectorCase = {
+  ...walkthroughCases[0],
+  label: "Policy selector - leo-first URL parameter",
+  policy: "leo-first"
 };
 
 function sleep(ms) {
@@ -213,6 +225,9 @@ function buildSelectedPairUrl(testCase) {
   url.searchParams.set("stationB", testCase.stationB);
   url.searchParams.set("startUtc", "2026-05-17T00:00:00.000Z");
   url.searchParams.set("durationMinutes", "360");
+  if (testCase.policy) {
+    url.searchParams.set("policy", testCase.policy);
+  }
   return url.href;
 }
 
@@ -341,6 +356,8 @@ async function readSelectedPairState(client, terminalStatuses = ["ready", "empty
         const footer = document.querySelector('[data-station-precision-disclosure="true"]');
         const chip = document.querySelector('[data-tle-telemetry-chip="true"]');
         const sourcesDisclosure = document.querySelector('[data-disclosure="sources-non-claims"]');
+        const capDisclosure = document.querySelector('[data-cap-disclosure="true"]');
+        const policyDisclosure = document.querySelector('[data-policy-disclosure="true"]');
         last = {
           hasCapture: Boolean(capture),
           hasController: Boolean(controller),
@@ -350,11 +367,18 @@ async function readSelectedPairState(client, terminalStatuses = ["ready", "empty
             ? {
                 state: panel.dataset.state ?? null,
                 routeMode: panel.dataset.dataCompletenessRouteMode ?? null,
-                emptyReasonCode: panel.dataset.emptyReasonCode ?? null
+                emptyReasonCode: panel.dataset.emptyReasonCode ?? null,
+                activePolicyId: panel.dataset.activePolicyId ?? null
               }
             : null,
           footer: footer ? { ...footer.dataset } : null,
           chip: chip ? { ...chip.dataset } : null,
+          capDisclosure: capDisclosure
+            ? { dataset: { ...capDisclosure.dataset }, text: capDisclosure.textContent ?? "" }
+            : null,
+          policyDisclosure: policyDisclosure
+            ? { dataset: { ...policyDisclosure.dataset }, text: policyDisclosure.textContent ?? "" }
+            : null,
           sourcesDisclosureText: sourcesDisclosure?.textContent ?? ""
         };
         const panelHasDataCompleteness =
@@ -543,7 +567,71 @@ function expectedSourceHealth(source, referenceUtc) {
   return ageDays <= source.healthThresholdDays ? "fresh" : "stale";
 }
 
-function assertDataCompletenessShape(label, state) {
+function assertCapDisclosurePayload(label, disclosure) {
+  assert(disclosure, `${label}: capDisclosure missing`);
+  for (const orbit of ["LEO", "MEO", "GEO"]) {
+    assert(
+      disclosure.perOrbitCap?.[orbit] === EXPECTED_CAP_DISCLOSURE.perOrbitCap[orbit],
+      `${label}: ${orbit} cap mismatch`
+    );
+    assert(
+      disclosure.perOrbitInventory?.[orbit] ===
+        EXPECTED_CAP_DISCLOSURE.perOrbitInventory[orbit],
+      `${label}: ${orbit} inventory mismatch`
+    );
+    assert(
+      disclosure.cappedAtRuntime?.[orbit] ===
+        EXPECTED_CAP_DISCLOSURE.cappedAtRuntime[orbit],
+      `${label}: ${orbit} cappedAtRuntime mismatch`
+    );
+  }
+}
+
+function assertPolicyDisclosurePayload(
+  label,
+  disclosure,
+  expectedPolicyId = DEFAULT_HANDOVER_POLICY_ID
+) {
+  assert(disclosure, `${label}: policyDisclosure missing`);
+  assert(
+    disclosure.activePolicyId === expectedPolicyId,
+    `${label}: active policy mismatch ${disclosure.activePolicyId}`
+  );
+  const thresholds = disclosure.thresholds;
+  assert(thresholds, `${label}: policy thresholds missing`);
+  assert(
+    thresholds.latencyBudgetMs === 600,
+    `${label}: latency threshold mismatch`
+  );
+  assert(thresholds.hysteresisDb === 2, `${label}: hysteresis threshold mismatch`);
+  assert(
+    thresholds.minVisibilityWindowMs === 60_000,
+    `${label}: min visibility threshold mismatch`
+  );
+  assert(
+    thresholds.elevationThresholdDeg === 10,
+    `${label}: policy elevation threshold mismatch`
+  );
+  for (const key of [
+    "latencyBudgetMs",
+    "hysteresisDb",
+    "minVisibilityWindowMs",
+    "elevationThresholdDeg"
+  ]) {
+    const source = disclosure.thresholdSources?.[key];
+    assert(source?.truthClass === "modeled", `${label}: ${key} source truth missing`);
+    assert(
+      source?.sourceId === `handover-policy:${expectedPolicyId}`,
+      `${label}: ${key} source id mismatch`
+    );
+  }
+}
+
+function assertDataCompletenessShape(
+  label,
+  state,
+  expectedPolicyId = DEFAULT_HANDOVER_POLICY_ID
+) {
   assert(state?.hasCapture, `${label}: missing capture seam`);
   assert(state?.hasController, `${label}: missing controller`);
   const overlay = state.overlay;
@@ -556,6 +644,8 @@ function assertDataCompletenessShape(label, state) {
     Array.isArray(data.tleFreshness) && data.tleFreshness.length === 3,
     `${label}: expected 3 TLE freshness rows`
   );
+  assertCapDisclosurePayload(label, data.capDisclosure);
+  assertPolicyDisclosurePayload(label, data.policyDisclosure, expectedPolicyId);
   for (const freshness of data.tleFreshness) {
     assert(
       TLE_SOURCE_MODES.has(freshness.sourceMode),
@@ -722,6 +812,11 @@ function assertDataCompletenessShape(label, state) {
   for (const kind of ["handover", "link-budget", "throughput", "jitter", "latency", "rain-impact"]) {
     assert(outputKinds.has(kind), `${label}: missing modeled output ${kind}`);
   }
+  const handoverOutput = data.modeledOutputs.find((output) => output.kind === "handover");
+  assert(
+    handoverOutput?.inputSummary?.activePolicyId === expectedPolicyId,
+    `${label}: handover modeled output policy mismatch`
+  );
   assert(
     data.modeledOutputs.every(
       (output) =>
@@ -802,6 +897,65 @@ function assertStationPrecisionFooterDataset(testCase, state) {
   }
 }
 
+function assertRow5DisclosureDatasets(
+  label,
+  state,
+  expectedPolicyId = DEFAULT_HANDOVER_POLICY_ID
+) {
+  assert(state.capDisclosure, `${label}: Row 5 cap disclosure missing`);
+  assert(state.policyDisclosure, `${label}: Row 5 policy disclosure missing`);
+
+  const capDataset = state.capDisclosure.dataset;
+  for (const orbit of ["leo", "meo", "geo"]) {
+    const key = orbit.toUpperCase();
+    assert(
+      Number.parseInt(capDataset[`${orbit}Cap`], 10) ===
+        EXPECTED_CAP_DISCLOSURE.perOrbitCap[key],
+      `${label}: Row 5 ${key} cap dataset mismatch`
+    );
+    assert(
+      Number.parseInt(capDataset[`${orbit}Inventory`], 10) ===
+        EXPECTED_CAP_DISCLOSURE.perOrbitInventory[key],
+      `${label}: Row 5 ${key} inventory dataset mismatch`
+    );
+    assert(
+      capDataset[`${orbit}CappedAtRuntime`] ===
+        String(EXPECTED_CAP_DISCLOSURE.cappedAtRuntime[key]),
+      `${label}: Row 5 ${key} capped dataset mismatch`
+    );
+  }
+  assert(
+    state.capDisclosure.text.includes("LEO: 200 cap / 600 inventory"),
+    `${label}: Row 5 cap text missing LEO counts`
+  );
+
+  const policyDataset = state.policyDisclosure.dataset;
+  assert(
+    policyDataset.activePolicyId === expectedPolicyId,
+    `${label}: Row 5 active policy dataset mismatch`
+  );
+  assert(
+    Number.parseInt(policyDataset.latencyBudgetMs, 10) === 600,
+    `${label}: Row 5 latency dataset mismatch`
+  );
+  assert(
+    Number.parseInt(policyDataset.minVisibilityWindowMs, 10) === 60_000,
+    `${label}: Row 5 min visibility dataset mismatch`
+  );
+  assert(
+    Number(policyDataset.hysteresisDb) === 2,
+    `${label}: Row 5 hysteresis dataset mismatch`
+  );
+  assert(
+    Number(policyDataset.elevationThresholdDeg) === 10,
+    `${label}: Row 5 elevation dataset mismatch`
+  );
+  assert(
+    state.policyDisclosure.text.includes(expectedPolicyId),
+    `${label}: Row 5 policy text missing active id`
+  );
+}
+
 function assertExpectedStationPrecision(testCase, data) {
   const stationsById = new Map(
     data.stationPrecision.map((station) => [station.stationId, station])
@@ -824,16 +978,25 @@ function assertExpectedStationPrecision(testCase, data) {
   }
 }
 
-function assertReadyCase(testCase, state) {
+function assertReadyCase(
+  testCase,
+  state,
+  expectedPolicyId = DEFAULT_HANDOVER_POLICY_ID
+) {
   assert(state.overlay?.status === testCase.expectedStatus, `${testCase.label}: status mismatch`);
   assert(
     state.overlay.runtimeLinkVisible === testCase.expectedRuntimeLinkVisible,
     `${testCase.label}: runtimeLinkVisible mismatch`
   );
-  assertDataCompletenessShape(testCase.label, state);
+  assertDataCompletenessShape(testCase.label, state, expectedPolicyId);
   assertExpectedStationPrecision(testCase, state.overlay.dataCompleteness);
   assert(state.panel?.routeMode === RUNTIME_MODE, `${testCase.label}: panel route mode missing`);
+  assert(
+    state.panel?.activePolicyId === expectedPolicyId,
+    `${testCase.label}: panel active policy missing`
+  );
   assertStationPrecisionFooterDataset(testCase, state);
+  assertRow5DisclosureDatasets(testCase.label, state, expectedPolicyId);
   assert(state.chip?.sourceCount === "3", `${testCase.label}: TLE chip source count missing`);
   assert(state.chip?.sourceHealth, `${testCase.label}: TLE chip source health missing`);
   assert(
@@ -863,15 +1026,20 @@ function assertReadyCase(testCase, state) {
   );
 }
 
-function assertEmptyCase(testCase, state) {
+function assertEmptyCase(
+  testCase,
+  state,
+  expectedPolicyId = DEFAULT_HANDOVER_POLICY_ID
+) {
   assert(state.overlay?.status === testCase.expectedStatus, `${testCase.label}: status mismatch`);
   assert(
     state.overlay.runtimeLinkVisible === testCase.expectedRuntimeLinkVisible,
     `${testCase.label}: runtimeLinkVisible mismatch`
   );
-  assertDataCompletenessShape(testCase.label, state);
+  assertDataCompletenessShape(testCase.label, state, expectedPolicyId);
   assertExpectedStationPrecision(testCase, state.overlay.dataCompleteness);
   assertStationPrecisionFooterDataset(testCase, state);
+  assertRow5DisclosureDatasets(testCase.label, state, expectedPolicyId);
   assert(
     state.overlay.emptyReasonCode === testCase.expectedEmptyReasonCode,
     `${testCase.label}: expected empty reason ${testCase.expectedEmptyReasonCode}, received ${state.overlay.emptyReasonCode}`
@@ -1143,6 +1311,19 @@ function assertCsvEvidence(label, evidence) {
     `${label}: CSV cadence summary mismatch`
   );
   assert(
+    summaryByField.get("capDisclosure") === JSON.stringify(data.capDisclosure),
+    `${label}: CSV cap disclosure summary mismatch`
+  );
+  assert(
+    summaryByField.get("activePolicyId") === data.policyDisclosure.activePolicyId,
+    `${label}: CSV active policy summary mismatch`
+  );
+  assert(
+    summaryByField.get("policyDisclosureThresholds") ===
+      JSON.stringify(data.policyDisclosure.thresholds),
+    `${label}: CSV policy thresholds summary mismatch`
+  );
+  assert(
     summaryByField.get("emptyReasonCode") === csvCellValue(data.emptyReasonCode),
     `${label}: CSV empty reason mismatch`
   );
@@ -1273,6 +1454,22 @@ try {
       missingSourceReason: missingSourceEvidence?.emptyReasonCode ?? null
     });
   }
+
+  await navigate(client, buildSelectedPairUrl(policySelectorCase));
+  const policyState = await readSelectedPairState(client);
+  assertReadyCase(policySelectorCase, policyState, policySelectorCase.policy);
+  assert(
+    policyState.panel?.activePolicyId === policySelectorCase.policy,
+    `${policySelectorCase.label}: panel policy dataset mismatch`
+  );
+  results.push({
+    label: policySelectorCase.label,
+    status: policyState.overlay.status,
+    activePolicyId:
+      policyState.overlay.dataCompleteness.policyDisclosure.activePolicyId,
+    row5PolicyId: policyState.policyDisclosure?.dataset?.activePolicyId ?? null,
+    linkSelectionEventCount: policyState.overlay.handoverEventCount
+  });
 
   await navigate(client, buildFixedDemoUrl(fixedDemoCase));
   const fixedState = await readSelectedPairState(client, ["not-requested", "error"]);

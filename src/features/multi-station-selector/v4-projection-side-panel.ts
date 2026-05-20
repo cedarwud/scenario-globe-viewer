@@ -29,6 +29,8 @@ import {
   computeLinkBudgetMetricsForOrbit,
   loadDefaultTleSources,
   parseRuntimeTleSources,
+  resolveRuntimeHandoverPolicyId,
+  type RuntimeHandoverPolicyId,
   type RuntimeProjectionResult
 } from "./runtime-projection";
 import {
@@ -50,6 +52,7 @@ const MIN_DEMO_PROJECTION_DURATION_MINUTES = 20;
 const MAX_DEMO_PROJECTION_DURATION_MINUTES = 480;
 const START_UTC_PARAM = "startUtc";
 const DURATION_MINUTES_PARAM = "durationMinutes";
+const POLICY_PARAM = "policy";
 
 const RAIN_RATE_MIN_MM_PER_HOUR = 0;
 const RAIN_RATE_MAX_MM_PER_HOUR = 100;
@@ -596,6 +599,14 @@ function resolveProjectionTimeWindowAndDuration(): {
   };
 }
 
+function resolveProjectionPolicyId(): RuntimeHandoverPolicyId {
+  const search =
+    typeof window === "undefined"
+      ? new URLSearchParams()
+      : new URLSearchParams(window.location.search);
+  return resolveRuntimeHandoverPolicyId(search.get(POLICY_PARAM));
+}
+
 function buildStatBlock(
   label: string,
   value: string,
@@ -1137,7 +1148,7 @@ function buildSummariesRow(result: RuntimeProjectionResult): HTMLElement {
     const empty = document.createElement("p");
     empty.className = "v4-projection-side-panel__empty";
     empty.textContent =
-      "No handover events triggered by the cross-orbit-live policy in this window.";
+      `No handover events triggered by the ${result.dataCompleteness.policyDisclosure.activePolicyId} policy in this window.`;
     handoverSection.append(empty);
   } else {
     const head = pickRow4HandoverEvents(result.handoverEvents);
@@ -1210,14 +1221,13 @@ function buildAllVisibilityList(
   return list;
 }
 
-function buildAllHandoverList(
-  events: RuntimeProjectionResult["handoverEvents"]
-): HTMLElement {
+function buildAllHandoverList(result: RuntimeProjectionResult): HTMLElement {
+  const events = result.handoverEvents;
   if (events.length === 0) {
     const empty = document.createElement("p");
     empty.className = "v4-projection-side-panel__empty";
     empty.textContent =
-      "No handover events triggered by the cross-orbit-live policy (TR 38.821 §7.3 + V-MO1) in this window.";
+      `No handover events triggered by the ${result.dataCompleteness.policyDisclosure.activePolicyId} policy (TR 38.821 §7.3 + V-MO1) in this window.`;
     return empty;
   }
   const sorted = [...events].sort(
@@ -1255,7 +1265,66 @@ function buildNonClaimsBlock(
   return wrapper;
 }
 
-function buildStandardsReferences(): HTMLElement {
+function buildPolicyDisclosureBlock(result: RuntimeProjectionResult): HTMLElement {
+  const disclosure = result.dataCompleteness.policyDisclosure;
+  const wrapper = document.createElement("section");
+  wrapper.className = "v4-projection-side-panel__section";
+  wrapper.dataset.policyDisclosure = "true";
+  wrapper.dataset.activePolicyId = disclosure.activePolicyId;
+  const thresholds = disclosure.thresholds;
+  wrapper.dataset.latencyBudgetMs = String(thresholds.latencyBudgetMs ?? "");
+  wrapper.dataset.hysteresisDb = String(thresholds.hysteresisDb);
+  wrapper.dataset.minVisibilityWindowMs = String(
+    thresholds.minVisibilityWindowMs
+  );
+  wrapper.dataset.elevationThresholdDeg = String(
+    thresholds.elevationThresholdDeg
+  );
+
+  const heading = document.createElement("h3");
+  heading.className = "v4-projection-side-panel__section-title";
+  heading.textContent = "Policy";
+
+  const summary = document.createElement("p");
+  summary.className = "v4-projection-side-panel__empty";
+  summary.textContent = `${disclosure.activePolicyId} · elevation ${thresholds.elevationThresholdDeg}° · hysteresis ${thresholds.hysteresisDb} dB · min window ${Math.round(thresholds.minVisibilityWindowMs / 1000)}s · latency ${thresholds.latencyBudgetMs ?? "n/a"} ms`;
+
+  wrapper.append(heading, summary);
+  return wrapper;
+}
+
+function buildCapDisclosureBlock(result: RuntimeProjectionResult): HTMLElement {
+  const disclosure = result.dataCompleteness.capDisclosure;
+  const wrapper = document.createElement("section");
+  wrapper.className = "v4-projection-side-panel__section";
+  wrapper.dataset.capDisclosure = "true";
+  for (const orbit of ORBIT_DISPLAY_ORDER) {
+    const prefix = orbit.toLowerCase();
+    wrapper.dataset[`${prefix}Cap`] = String(disclosure.perOrbitCap[orbit]);
+    wrapper.dataset[`${prefix}Inventory`] = String(
+      disclosure.perOrbitInventory[orbit]
+    );
+    wrapper.dataset[`${prefix}CappedAtRuntime`] = String(
+      disclosure.cappedAtRuntime[orbit]
+    );
+  }
+
+  const heading = document.createElement("h3");
+  heading.className = "v4-projection-side-panel__section-title";
+  heading.textContent = "Candidate cap";
+  const list = document.createElement("ul");
+  list.className = "v4-projection-side-panel__non-claim-list";
+  for (const orbit of ORBIT_DISPLAY_ORDER) {
+    const li = document.createElement("li");
+    const capped = disclosure.cappedAtRuntime[orbit] ? "capped" : "uncapped";
+    li.textContent = `${orbit}: ${disclosure.perOrbitCap[orbit]} cap / ${disclosure.perOrbitInventory[orbit]} inventory · ${capped}`;
+    list.append(li);
+  }
+  wrapper.append(heading, list);
+  return wrapper;
+}
+
+function buildStandardsReferences(result: RuntimeProjectionResult): HTMLElement {
   const wrapper = document.createElement("section");
   wrapper.className = "v4-projection-side-panel__section";
   const heading = document.createElement("h3");
@@ -1265,7 +1334,7 @@ function buildStandardsReferences(): HTMLElement {
   const list = document.createElement("ul");
   list.className = "v4-projection-side-panel__non-claim-list";
   const refs = [
-    "Handover policy: TR 38.821 §7.3 + V-MO1 (cross-orbit live)",
+    `Handover policy: TR 38.821 §7.3 + V-MO1 (${result.dataCompleteness.policyDisclosure.activePolicyId})`,
     "Rain attenuation: ITU-R P.618-14 §2.2.1",
     "Gas absorption: ITU-R P.676-13"
   ];
@@ -1361,14 +1430,23 @@ function buildDisclosuresRow(
   );
 
   // d3 Sources + non-claims
-  const handoverList = buildAllHandoverList(result.handoverEvents);
+  const handoverList = buildAllHandoverList(result);
+  const policyDisclosure = buildPolicyDisclosureBlock(result);
+  const capDisclosure = buildCapDisclosureBlock(result);
   const nonClaims = buildNonClaimsBlock(result.truthBoundary);
-  const standards = buildStandardsReferences();
+  const standards = buildStandardsReferences(result);
   const meanDwell = buildMeanDwellBlock(result);
   row.append(
     buildDisclosure(
       "Sources + non-claims",
-      [handoverList, nonClaims, standards, meanDwell],
+      [
+        handoverList,
+        policyDisclosure,
+        capDisclosure,
+        nonClaims,
+        standards,
+        meanDwell
+      ],
       true,
       { disclosure: "sources-non-claims" }
     )
@@ -1431,6 +1509,8 @@ function renderResult(
   root.dataset.rainRateMmPerHour = String(rainRateMmPerHour);
   root.dataset.dataCompletenessRouteMode = result.dataCompleteness.routeMode;
   root.dataset.emptyReasonCode = result.dataCompleteness.emptyReasonCode ?? "";
+  root.dataset.activePolicyId =
+    result.dataCompleteness.policyDisclosure.activePolicyId;
 
   syncTleTelemetryChip(result);
   setRainControlCaption(rainControl, result, rainRateMmPerHour);
@@ -1474,6 +1554,7 @@ export function mountV4ProjectionSidePanel(
     return null;
   }
   const pair = input.resolvedPair;
+  const policyId = resolveProjectionPolicyId();
 
   injectPanelStyleOnce();
 
@@ -1525,7 +1606,8 @@ export function mountV4ProjectionSidePanel(
         timeWindow,
         tleRecords,
         tleParseStats: tleParseStats ?? undefined,
-        rainRateMmPerHour
+        rainRateMmPerHour,
+        policyId
       });
       if (disposed || requestSeq !== computeRequestSeq || !rainControl) {
         return;
@@ -1578,7 +1660,8 @@ export function mountV4ProjectionSidePanel(
         timeWindow,
         tleRecords,
         tleParseStats,
-        rainRateMmPerHour: 0
+        rainRateMmPerHour: 0,
+        policyId
       });
       if (disposed || requestSeq !== computeRequestSeq) {
         return;

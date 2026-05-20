@@ -325,6 +325,12 @@ export function buildRuntimeProjectionCsv(result: RuntimeProjectionResult): stri
       "visibilityCadenceSecondsByOrbit",
       JSON.stringify(result.dataCompleteness.visibilityCadenceSecondsByOrbit)
     ],
+    ["capDisclosure", JSON.stringify(result.dataCompleteness.capDisclosure)],
+    ["activePolicyId", result.dataCompleteness.policyDisclosure.activePolicyId],
+    [
+      "policyDisclosureThresholds",
+      JSON.stringify(result.dataCompleteness.policyDisclosure.thresholds)
+    ],
     ["emptyReasonCode", result.dataCompleteness.emptyReasonCode]
   );
 

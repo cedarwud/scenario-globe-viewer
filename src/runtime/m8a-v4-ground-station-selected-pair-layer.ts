@@ -29,7 +29,8 @@ import {
   buildRuntimeTleSourceParseStats,
   computeRuntimeProjection,
   loadDefaultTleSources,
-  parseRuntimeTleSources
+  parseRuntimeTleSources,
+  resolveRuntimeHandoverPolicyId
 } from "../features/multi-station-selector/runtime-projection";
 import type { RuntimeDataCompletenessState } from "../features/multi-station-selector/runtime-data-completeness";
 import {
@@ -131,6 +132,10 @@ function resolveSelectedPairSceneDurationMinutes(search: URLSearchParams): numbe
     M8A_V4_SELECTED_PAIR_SCENE_MIN_DURATION_MINUTES,
     M8A_V4_SELECTED_PAIR_SCENE_MAX_DURATION_MINUTES
   );
+}
+
+function resolveSelectedPairScenePolicyId(search: URLSearchParams): string {
+  return resolveRuntimeHandoverPolicyId(search.get("policy"));
 }
 
 export function resolveSelectedPairSceneTimeWindow(): {
@@ -736,7 +741,12 @@ export async function installSelectedPairTleFirstSceneLayer({
     timeWindow: resolveSelectedPairSceneTimeWindow(),
     tleRecords,
     tleParseStats,
-    rainRateMmPerHour: 0
+    rainRateMmPerHour: 0,
+    policyId: resolveSelectedPairScenePolicyId(
+      typeof window === "undefined"
+        ? new URLSearchParams()
+        : new URLSearchParams(window.location.search)
+    )
   });
   const viewModel = buildTleFirstSceneViewModel({
     result,

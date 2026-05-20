@@ -7,7 +7,8 @@ import { computeRainAttenuationDb } from "../../runtime/link-budget/rain-attenua
 import {
   evaluateHandoverPolicy,
   type HandoverCandidate,
-  type HandoverDecision as LinkBudgetHandoverDecision
+  type HandoverDecision as LinkBudgetHandoverDecision,
+  type HandoverPolicyConfig
 } from "../../runtime/link-budget/handover-policy";
 
 import {
@@ -44,8 +45,8 @@ import {
 
 const DEFAULT_SAMPLE_STEP_SECONDS = 30;
 const DEFAULT_ELEVATION_THRESHOLD_DEG = 10;
-const DEFAULT_LEO_CAP = 60;
-const DEFAULT_MEO_CAP = 60;
+const DEFAULT_LEO_CAP = 200;
+const DEFAULT_MEO_CAP = 100;
 const DEFAULT_GEO_CAP = 60;
 const DEFAULT_TLE_CAPS: Readonly<Record<OrbitClass, number>> = {
   LEO: DEFAULT_LEO_CAP,
@@ -62,6 +63,8 @@ const MIN_NETWORK_SPEED_MBPS = 0.1;
 const RAIN_MODEL_MIN_FREQUENCY_GHZ = 10;
 const RAIN_MODEL_MAX_FREQUENCY_GHZ = 30;
 const RELATIVE_RSRP_REFERENCE_DBM = 0;
+
+export type RuntimeHandoverPolicyId = HandoverPolicyConfig["policyId"];
 
 const NOMINAL_ALTITUDE_KM_BY_ORBIT: Readonly<Record<OrbitClass, number>> = {
   LEO: 550,
@@ -81,12 +84,36 @@ const BASELINE_JITTER_MS_BY_ORBIT: Readonly<Record<OrbitClass, number>> = {
   GEO: 8
 };
 
-const CROSS_ORBIT_LIVE_POLICY_CONFIG = {
-  policyId: "cross-orbit-live",
-  hysteresisDb: 2,
-  minVisibilityWindowMs: 60_000,
-  latencyBudgetMs: 600
-} as const;
+type RuntimeHandoverPolicyProfile = Omit<
+  HandoverPolicyConfig,
+  "elevationThresholdDeg"
+>;
+
+const DEFAULT_RUNTIME_HANDOVER_POLICY_ID: RuntimeHandoverPolicyId =
+  "cross-orbit-live";
+
+const HANDOVER_POLICY_PROFILES: Readonly<
+  Record<RuntimeHandoverPolicyId, RuntimeHandoverPolicyProfile>
+> = {
+  "cross-orbit-live": {
+    policyId: "cross-orbit-live",
+    hysteresisDb: 2,
+    minVisibilityWindowMs: 60_000,
+    latencyBudgetMs: 600
+  },
+  "leo-first": {
+    policyId: "leo-first",
+    hysteresisDb: 2,
+    minVisibilityWindowMs: 60_000,
+    latencyBudgetMs: 600
+  },
+  "bootstrap-balanced-v1": {
+    policyId: "bootstrap-balanced-v1",
+    hysteresisDb: 2,
+    minVisibilityWindowMs: 60_000,
+    latencyBudgetMs: 600
+  }
+};
 
 export const TLE_FIXTURE_PATHS: Readonly<Record<OrbitClass, string>> = {
   LEO: "/fixtures/satellites/leo-scale/starlink-2026-05-12T12-35-35Z.tle",
@@ -140,6 +167,7 @@ export interface RuntimeProjectionInput {
   readonly sampleCadenceSecondsByOrbit?: Partial<Record<OrbitClass, number>>;
   readonly elevationThresholdDeg?: number;
   readonly rainRateMmPerHour?: number;
+  readonly policyId?: RuntimeHandoverPolicyId | string | null;
 }
 
 export interface RuntimeProjectionResult {
@@ -229,7 +257,7 @@ interface LinkBudgetDetails extends LinkBudgetMetrics {
 }
 
 interface HandoverSampleOptions {
-  readonly elevationThresholdDeg: number;
+  readonly policy: HandoverPolicyConfig;
   readonly rainRateMmPerHour: number;
   readonly stationHeightAboveSeaKm: number;
 }
@@ -275,6 +303,35 @@ function resolveBaseElevationThresholdDeg(value: number | undefined): number {
     return DEFAULT_ELEVATION_THRESHOLD_DEG;
   }
   return value;
+}
+
+export function resolveRuntimeHandoverPolicyId(
+  value: string | null | undefined
+): RuntimeHandoverPolicyId {
+  if (
+    value === "cross-orbit-live" ||
+    value === "leo-first" ||
+    value === "bootstrap-balanced-v1"
+  ) {
+    return value;
+  }
+  return DEFAULT_RUNTIME_HANDOVER_POLICY_ID;
+}
+
+function buildRuntimeHandoverPolicyConfig(
+  policyId: RuntimeHandoverPolicyId,
+  elevationThresholdDeg: number,
+  sampleStepSeconds: number
+): HandoverPolicyConfig {
+  const profile = HANDOVER_POLICY_PROFILES[policyId];
+  return {
+    ...profile,
+    elevationThresholdDeg,
+    minVisibilityWindowMs: Math.max(
+      profile.minVisibilityWindowMs,
+      sampleStepSeconds * 1000
+    )
+  };
 }
 
 function computeEffectiveElevationThresholdDeg(
@@ -547,7 +604,6 @@ function deriveHandoverEventsAtSampleStep(
   let totalCommunicatingMs = 0;
   let currentServingCandidateId: string | undefined;
 
-  // V-MO1: cross-orbit-live is the single runtime projection policy.
   for (let t = startMs; t < endMs; t += stepMs) {
     const sampleIso = new Date(t).toISOString();
     const visibleAtSample: PairVisibilityWindow[] = [];
@@ -577,14 +633,7 @@ function deriveHandoverEventsAtSampleStep(
           toLivePolicyCandidate(row.window, row.details, t)
         ),
         currentServingId: currentServingCandidateId,
-        policy: {
-          ...CROSS_ORBIT_LIVE_POLICY_CONFIG,
-          elevationThresholdDeg: options.elevationThresholdDeg,
-          minVisibilityWindowMs: Math.max(
-            CROSS_ORBIT_LIVE_POLICY_CONFIG.minVisibilityWindowMs,
-            stepMs
-          )
-        },
+        policy: options.policy,
         nowUtc: sampleIso
       });
       next = decision.selectedId;
@@ -620,7 +669,8 @@ function buildTruthBoundary(
   rainRateMmPerHour: number,
   sharedSupportedOrbits: ReadonlyArray<OrbitClass>,
   tleSourceMode: TleSourceMode,
-  tleParseStats: ReadonlyArray<RuntimeTleSourceParseStats> | undefined
+  tleParseStats: ReadonlyArray<RuntimeTleSourceParseStats> | undefined,
+  handoverPolicyId: RuntimeHandoverPolicyId
 ): TruthBoundary {
   const attribution = inferPairSourceTier(stationA, stationB);
   const precisionLabel: TruthBoundary["precisionLabel"] =
@@ -638,8 +688,8 @@ function buildTruthBoundary(
             : [])
         ];
   const metricNonClaims = [
-    "Per-orbit communication metrics are modeled-precision via 3GPP TR 38.811 + ITU-R P.618-14 / P.676-13 and handover decisions use the cross-orbit-live policy (TR 38.821 §7.3 + V-MO1 verbal addendum), not measured service telemetry.",
-    `Satellite candidates are limited to orbit classes disclosed by both selected stations (${sharedSupportedOrbits.join("/") || "none"}) and capped at 60 records per orbit for interactive compute.`,
+    `Per-orbit communication metrics are modeled-precision via 3GPP TR 38.811 + ITU-R P.618-14 / P.676-13 and handover decisions use the ${handoverPolicyId} policy (TR 38.821 §7.3 + V-MO1 verbal addendum), not measured service telemetry.`,
+    `Satellite candidates are limited to orbit classes disclosed by both selected stations (${sharedSupportedOrbits.join("/") || "none"}) and capped at LEO ${DEFAULT_TLE_CAPS.LEO}, MEO ${DEFAULT_TLE_CAPS.MEO}, GEO ${DEFAULT_TLE_CAPS.GEO} records for interactive compute.`,
     ...sourceAttributionNonClaims,
     ...(rainRateMmPerHour > 0
       ? [
@@ -783,6 +833,12 @@ export function computeRuntimeProjection(
     computeEffectiveElevationThresholdDeg(baseElevationThresholdDeg, input.stationA);
   const stationBEffectiveElevationThresholdDeg =
     computeEffectiveElevationThresholdDeg(baseElevationThresholdDeg, input.stationB);
+  const handoverPolicyId = resolveRuntimeHandoverPolicyId(input.policyId);
+  const handoverPolicy = buildRuntimeHandoverPolicyConfig(
+    handoverPolicyId,
+    baseElevationThresholdDeg,
+    sampleStepSeconds
+  );
   const pairMidpointHeightAboveSeaKm = computePairMidpointHeightAboveSeaKm(
     input.stationA,
     input.stationB
@@ -843,7 +899,7 @@ export function computeRuntimeProjection(
         // Station-specific terrain masks are already applied when pair windows
         // are sampled. Keep the policy gate at the base threshold so one
         // station's mask does not globally raise the other station's gate.
-        elevationThresholdDeg: baseElevationThresholdDeg,
+        policy: handoverPolicy,
         rainRateMmPerHour,
         stationHeightAboveSeaKm: pairMidpointHeightAboveSeaKm
       }
@@ -868,7 +924,8 @@ export function computeRuntimeProjection(
     rainRateMmPerHour,
     sharedSupportedOrbits,
     tleSourceMode,
-    input.tleParseStats
+    input.tleParseStats,
+    handoverPolicyId
   );
   const sourcePaths = resolveProjectionSourcePaths(input);
   const sceneCameraHint = buildSceneCameraHintForProjection({
@@ -909,6 +966,7 @@ export function computeRuntimeProjection(
     stationAEffectiveElevationThresholdDeg,
     stationBEffectiveElevationThresholdDeg,
     elevationThresholdDeg: baseElevationThresholdDeg,
+    handoverPolicy,
     propagationStatsBySatellite: stationAVisibility.propagationStatsBySatellite,
     sceneCameraHint,
     sceneDisplayPolicy
