@@ -32,6 +32,25 @@ const EXPECTED_CAP_DISCLOSURE = {
   perOrbitInventory: { LEO: 600, MEO: 33, GEO: 30 },
   cappedAtRuntime: { LEO: true, MEO: false, GEO: false }
 };
+const EXPECTED_ELEVATION_SOURCE_ID = "open-elevation-cache";
+const EXPECTED_ELEVATION_SOURCE_PATH =
+  "public/fixtures/ground-stations/station-elevations-cache.json";
+const EXPECTED_TERRAIN_MASK_SOURCE_ID = "default-unknown";
+const EXPECTED_RF_FIELD_SOURCE_ID = "unavailable-pending-operator-rf-profile";
+const EXPECTED_RF_CHAIN_TERM_KINDS = [
+  "tx-eirp",
+  "free-space-path-loss",
+  "gas-absorption",
+  "rain-attenuation",
+  "rx-antenna-gain"
+];
+const EXPECTED_ATMOSPHERIC_LOOKUP_SOURCES = [
+  "p835-6-annex-1",
+  "p836-6-rev-2017",
+  "p837-8",
+  "p839-4",
+  "p840-9"
+];
 const DEBUG_SERVER_PROBE = process.env.SGV_DEBUG_SERVER_PROBE === "1";
 
 const args = Object.fromEntries(
@@ -251,6 +270,14 @@ function buildFixedDemoUrl(testCase) {
 function csvCellValue(value) {
   return value === null || value === undefined ? "" : String(value);
 }
+
+const CSV_ORBIT_DISPLAY_ORDER = ["LEO", "MEO", "GEO"];
+const CSV_POLICY_DISCLOSURE_THRESHOLD_ORDER = [
+  "latencyBudgetMs",
+  "hysteresisDb",
+  "minVisibilityWindowMs",
+  "elevationThresholdDeg"
+];
 
 function parseCsvRows(text) {
   const rows = [];
@@ -645,6 +672,125 @@ function assertPolicyDisclosurePayload(
   }
 }
 
+function assertStationSourceMetadata(label, station) {
+  assert(
+    station.elevationSourceId === EXPECTED_ELEVATION_SOURCE_ID,
+    `${label}: station ${station.stationId} elevation source mismatch`
+  );
+  assert(
+    station.elevationSourcePath === EXPECTED_ELEVATION_SOURCE_PATH,
+    `${label}: station ${station.stationId} elevation source path mismatch`
+  );
+  assert(
+    typeof station.elevationSourceNote === "string" &&
+      station.elevationSourceNote.includes("Open-Elevation"),
+    `${label}: station ${station.stationId} elevation source note missing`
+  );
+  assert(
+    station.terrainMaskSourceId === EXPECTED_TERRAIN_MASK_SOURCE_ID,
+    `${label}: station ${station.stationId} terrain mask source mismatch`
+  );
+  assert(
+    station.terrainMaskIsDefault === (station.terrainMaskDeg === 0),
+    `${label}: station ${station.stationId} terrain mask default flag mismatch`
+  );
+  assert(
+    typeof station.terrainMaskNote === "string" &&
+      station.terrainMaskNote.includes("site-specific horizon mask"),
+    `${label}: station ${station.stationId} terrain mask note missing`
+  );
+}
+
+function assertA8UnavailablePlaceholders(label, data) {
+  const breakdown = data.rfChainBreakdown;
+  assert(breakdown, `${label}: RF chain breakdown missing`);
+  assert(
+    breakdown.carrierBand === null &&
+      breakdown.carrierFrequencyGHz === null &&
+      breakdown.receivedPowerProxyDbm === null,
+    `${label}: RF chain should expose unavailable carrier/power fields`
+  );
+  assert(
+    breakdown.provenance?.truthClass === "unavailable",
+    `${label}: RF chain provenance should be unavailable`
+  );
+  assert(
+    Array.isArray(breakdown.terms) &&
+      breakdown.terms.length === EXPECTED_RF_CHAIN_TERM_KINDS.length,
+    `${label}: RF chain term count mismatch`
+  );
+  for (const [index, term] of breakdown.terms.entries()) {
+    assert(
+      term.kind === EXPECTED_RF_CHAIN_TERM_KINDS[index],
+      `${label}: RF chain term order mismatch at ${index}`
+    );
+    assert(
+      term.contributionSignedDb === null &&
+        term.provenance?.truthClass === "unavailable" &&
+        term.provenance?.sourceId === EXPECTED_RF_FIELD_SOURCE_ID,
+      `${label}: RF chain term ${term.kind} should be unavailable`
+    );
+    assert(
+      Array.isArray(term.standardsRef) &&
+        term.standardsRef.length > 0 &&
+        term.nonClaim,
+      `${label}: RF chain term ${term.kind} metadata incomplete`
+    );
+  }
+
+  assert(
+    Array.isArray(data.atmosphericLookups) &&
+      data.atmosphericLookups.length === EXPECTED_ATMOSPHERIC_LOOKUP_SOURCES.length,
+    `${label}: atmospheric lookup placeholder count mismatch`
+  );
+  for (const source of EXPECTED_ATMOSPHERIC_LOOKUP_SOURCES) {
+    const lookup = data.atmosphericLookups.find((entry) => entry.source === source);
+    assert(lookup, `${label}: missing atmospheric lookup ${source}`);
+    assert(
+      lookup.midpointLatDeg === null &&
+        lookup.midpointLonDeg === null &&
+        lookup.cellLatDeg === null &&
+        lookup.cellLonDeg === null &&
+        lookup.lookupValue === null &&
+        lookup.lookupUnit === null &&
+        lookup.interpolation === "unavailable" &&
+        lookup.provenance?.truthClass === "unavailable",
+      `${label}: atmospheric lookup ${source} should be unavailable`
+    );
+  }
+
+  assert(
+    Array.isArray(data.stationRfProfiles) && data.stationRfProfiles.length === 2,
+    `${label}: station RF profiles missing`
+  );
+  const precisionById = new Map(
+    data.stationPrecision.map((station) => [station.stationId, station])
+  );
+  for (const profile of data.stationRfProfiles) {
+    const precision = precisionById.get(profile.stationId);
+    assert(precision, `${label}: station RF profile ${profile.stationId} has no precision row`);
+    assert(
+      profile.elevationM === precision.elevationM &&
+        profile.elevationSourceId === precision.elevationSourceId &&
+        profile.elevationSourcePath === precision.elevationSourcePath &&
+        profile.terrainMaskDeg === precision.terrainMaskDeg &&
+        profile.terrainMaskSourceId === precision.terrainMaskSourceId &&
+        profile.terrainMaskIsDefault === precision.terrainMaskIsDefault,
+      `${label}: station RF profile ${profile.stationId} station truth mismatch`
+    );
+    assert(
+      profile.antennaDiameterM === null &&
+        profile.antennaDiameterSourceId === EXPECTED_RF_FIELD_SOURCE_ID &&
+        profile.peakEirpDbm === null &&
+        profile.peakEirpSourceId === EXPECTED_RF_FIELD_SOURCE_ID &&
+        profile.txPolarization === null &&
+        profile.txPolarizationSourceId === EXPECTED_RF_FIELD_SOURCE_ID &&
+        profile.provenance?.truthClass === "unavailable",
+      `${label}: station RF profile ${profile.stationId} RF fields should be unavailable`
+    );
+  }
+}
+
 function assertDataCompletenessShape(
   label,
   state,
@@ -664,6 +810,7 @@ function assertDataCompletenessShape(
   );
   assertCapDisclosurePayload(label, data.capDisclosure);
   assertPolicyDisclosurePayload(label, data.policyDisclosure, expectedPolicyId);
+  assertA8UnavailablePlaceholders(label, data);
   for (const freshness of data.tleFreshness) {
     assert(
       TLE_SOURCE_MODES.has(freshness.sourceMode),
@@ -769,6 +916,7 @@ function assertDataCompletenessShape(
         baseElevationThresholdDeg + station.terrainMaskDeg,
       `${label}: station ${station.stationId} effective threshold mismatch`
     );
+    assertStationSourceMetadata(label, station);
   }
   assert(
     Array.isArray(data.actorProvenance),
@@ -895,10 +1043,21 @@ function assertStationPrecisionFooterDataset(testCase, state) {
     const effectiveElevationThresholdDeg = Number(
       state.footer?.[`station${slot}EffectiveElevationThresholdDeg`]
     );
+    const elevationSourceId = state.footer?.[`station${slot}ElevationSourceId`];
+    const elevationSourcePath = state.footer?.[`station${slot}ElevationSourcePath`];
+    const terrainMaskSourceId =
+      state.footer?.[`station${slot}TerrainMaskSourceId`];
+    const terrainMaskIsDefault =
+      state.footer?.[`station${slot}TerrainMaskIsDefault`];
     assert(expected, `${testCase.label}: footer station ${slot} missing debug match`);
     assert(
       Number.isInteger(elevationM) && elevationM === expected.elevationM,
       `${testCase.label}: footer station ${slot} elevationM missing`
+    );
+    assert(
+      elevationSourceId === expected.elevationSourceId &&
+        elevationSourcePath === expected.elevationSourcePath,
+      `${testCase.label}: footer station ${slot} elevation source missing`
     );
     assert(
       Number.isInteger(terrainMaskDeg) &&
@@ -906,6 +1065,11 @@ function assertStationPrecisionFooterDataset(testCase, state) {
         terrainMaskDeg <= 90 &&
         terrainMaskDeg === expected.terrainMaskDeg,
       `${testCase.label}: footer station ${slot} terrainMaskDeg missing`
+    );
+    assert(
+      terrainMaskSourceId === expected.terrainMaskSourceId &&
+        terrainMaskIsDefault === String(expected.terrainMaskIsDefault),
+      `${testCase.label}: footer station ${slot} terrain mask source missing`
     );
     assert(
       Number.isFinite(effectiveElevationThresholdDeg) &&
@@ -1211,6 +1375,46 @@ function assertCsvEvidence(label, evidence) {
     );
   }
 
+  const tleFreshness = requireCsvSection(sections, "# TLE freshness", label);
+  assert(
+    tleFreshness.rows.length === data.tleFreshness.length,
+    `${label}: CSV TLE freshness row count mismatch`
+  );
+  const freshnessBySource = new Map(
+    tleFreshness.rows.map((row) => [row.sourceId, row])
+  );
+  for (const freshness of data.tleFreshness) {
+    const row = freshnessBySource.get(freshness.provenance.sourceId);
+    assert(row, `${label}: CSV missing TLE freshness ${freshness.provenance.sourceId}`);
+    assert(row.sourceMode === freshness.sourceMode, `${label}: CSV TLE source mode mismatch`);
+    assert(
+      row.snapshotFetchedUtc === csvCellValue(freshness.snapshotFetchedUtc),
+      `${label}: CSV TLE snapshot fetched mismatch`
+    );
+    assert(row.snapshotPath === freshness.snapshotPath, `${label}: CSV TLE snapshot path mismatch`);
+    assert(row.maxEpochUtc === csvCellValue(freshness.maxEpochUtc), `${label}: CSV TLE max epoch mismatch`);
+    assert(
+      row.noradIdRangeSummary === JSON.stringify(freshness.noradIdRangeSummary),
+      `${label}: CSV TLE NORAD summary mismatch`
+    );
+    assert(
+      row.constellationMembership === JSON.stringify(freshness.constellationMembership),
+      `${label}: CSV TLE membership mismatch`
+    );
+    assert(
+      row.provenanceTruthClass === freshness.provenance.truthClass,
+      `${label}: CSV TLE freshness truth mismatch`
+    );
+    assert(
+      row.provenanceSourceId === freshness.provenance.sourceId,
+      `${label}: CSV TLE freshness source mismatch`
+    );
+    assert(
+      row.provenanceNonClaim === csvCellValue(freshness.provenance.nonClaim),
+      `${label}: CSV TLE freshness non-claim mismatch`
+    );
+  }
+
   const stationPrecision = requireCsvSection(sections, "# Station precision", label);
   assert(
     stationPrecision.rows.length === data.stationPrecision.length,
@@ -1243,6 +1447,18 @@ function assertCsvEvidence(label, evidence) {
       row.effectiveElevationThresholdDeg ===
         csvCellValue(station.effectiveElevationThresholdDeg),
       `${label}: CSV station effective threshold mismatch`
+    );
+    assert(
+      row.elevationSourceId === station.elevationSourceId &&
+        row.elevationSourcePath === station.elevationSourcePath &&
+        row.elevationSourceNote === station.elevationSourceNote,
+      `${label}: CSV station elevation source mismatch`
+    );
+    assert(
+      row.terrainMaskSourceId === station.terrainMaskSourceId &&
+        row.terrainMaskIsDefault === csvCellValue(station.terrainMaskIsDefault) &&
+        row.terrainMaskNote === station.terrainMaskNote,
+      `${label}: CSV station terrain mask source mismatch`
     );
   }
 
@@ -1352,6 +1568,106 @@ function assertCsvEvidence(label, evidence) {
     assert(row.nonClaim === output.nonClaim, `${label}: CSV output non-claim mismatch`);
   }
 
+  const rfChain = requireCsvSection(sections, "# RF chain breakdown", label);
+  assert(
+    rfChain.rows.length === data.rfChainBreakdown.terms.length,
+    `${label}: CSV RF chain row count mismatch`
+  );
+  for (const [index, term] of data.rfChainBreakdown.terms.entries()) {
+    const row = rfChain.rows[index];
+    assert(row.termKind === term.kind, `${label}: CSV RF chain term mismatch`);
+    assert(
+      row.carrierBand === csvCellValue(data.rfChainBreakdown.carrierBand) &&
+        row.carrierFrequencyGHz ===
+          csvCellValue(data.rfChainBreakdown.carrierFrequencyGHz) &&
+        row.receivedPowerProxyDbm ===
+          csvCellValue(data.rfChainBreakdown.receivedPowerProxyDbm),
+      `${label}: CSV RF chain carrier fields mismatch`
+    );
+    assert(
+      row.contributionSignedDb === csvCellValue(term.contributionSignedDb),
+      `${label}: CSV RF chain term contribution mismatch`
+    );
+    assert(row.modelId === term.modelId, `${label}: CSV RF chain model mismatch`);
+    assert(
+      row.standardsRef === term.standardsRef.join(" | "),
+      `${label}: CSV RF chain standards mismatch`
+    );
+    assert(
+      row.inputSummary === JSON.stringify(term.inputSummary),
+      `${label}: CSV RF chain input summary mismatch`
+    );
+    assert(
+      row.provenanceTruthClass === term.provenance.truthClass &&
+        row.provenanceSourceId === term.provenance.sourceId &&
+        row.provenanceModelId === csvCellValue(term.provenance.modelId) &&
+        row.provenanceNonClaim === csvCellValue(term.provenance.nonClaim),
+      `${label}: CSV RF chain provenance mismatch`
+    );
+    assert(row.nonClaim === term.nonClaim, `${label}: CSV RF chain non-claim mismatch`);
+  }
+
+  const atmosphericLookups = requireCsvSection(sections, "# Atmospheric lookups", label);
+  assert(
+    atmosphericLookups.rows.length === data.atmosphericLookups.length,
+    `${label}: CSV atmospheric lookup row count mismatch`
+  );
+  const lookupRowsBySource = new Map(
+    atmosphericLookups.rows.map((row) => [row.source, row])
+  );
+  for (const lookup of data.atmosphericLookups) {
+    const row = lookupRowsBySource.get(lookup.source);
+    assert(row, `${label}: CSV missing atmospheric lookup ${lookup.source}`);
+    assert(row.midpointLatDeg === csvCellValue(lookup.midpointLatDeg), `${label}: CSV atmospheric midpoint lat mismatch`);
+    assert(row.midpointLonDeg === csvCellValue(lookup.midpointLonDeg), `${label}: CSV atmospheric midpoint lon mismatch`);
+    assert(row.cellLatDeg === csvCellValue(lookup.cellLatDeg), `${label}: CSV atmospheric cell lat mismatch`);
+    assert(row.cellLonDeg === csvCellValue(lookup.cellLonDeg), `${label}: CSV atmospheric cell lon mismatch`);
+    assert(row.lookupValue === csvCellValue(lookup.lookupValue), `${label}: CSV atmospheric value mismatch`);
+    assert(row.lookupUnit === csvCellValue(lookup.lookupUnit), `${label}: CSV atmospheric unit mismatch`);
+    assert(row.interpolation === lookup.interpolation, `${label}: CSV atmospheric interpolation mismatch`);
+    assert(
+      row.provenanceTruthClass === lookup.provenance.truthClass &&
+        row.provenanceSourceId === lookup.provenance.sourceId &&
+        row.provenanceModelId === csvCellValue(lookup.provenance.modelId) &&
+        row.provenanceNonClaim === csvCellValue(lookup.provenance.nonClaim),
+      `${label}: CSV atmospheric provenance mismatch`
+    );
+  }
+
+  const stationRfProfiles = requireCsvSection(sections, "# Station RF profile", label);
+  assert(
+    stationRfProfiles.rows.length === data.stationRfProfiles.length,
+    `${label}: CSV station RF profile row count mismatch`
+  );
+  const stationRfRowsById = new Map(
+    stationRfProfiles.rows.map((row) => [row.stationId, row])
+  );
+  for (const profile of data.stationRfProfiles) {
+    const row = stationRfRowsById.get(profile.stationId);
+    assert(row, `${label}: CSV missing station RF profile ${profile.stationId}`);
+    assert(row.elevationM === csvCellValue(profile.elevationM), `${label}: CSV station RF elevation mismatch`);
+    assert(row.elevationSourceId === profile.elevationSourceId, `${label}: CSV station RF elevation source mismatch`);
+    assert(row.elevationSourcePath === profile.elevationSourcePath, `${label}: CSV station RF elevation path mismatch`);
+    assert(row.terrainMaskDeg === csvCellValue(profile.terrainMaskDeg), `${label}: CSV station RF terrain mismatch`);
+    assert(row.terrainMaskSourceId === profile.terrainMaskSourceId, `${label}: CSV station RF terrain source mismatch`);
+    assert(
+      row.terrainMaskIsDefault === csvCellValue(profile.terrainMaskIsDefault),
+      `${label}: CSV station RF terrain default mismatch`
+    );
+    assert(row.antennaDiameterM === csvCellValue(profile.antennaDiameterM), `${label}: CSV station RF antenna mismatch`);
+    assert(row.antennaDiameterSourceId === profile.antennaDiameterSourceId, `${label}: CSV station RF antenna source mismatch`);
+    assert(row.peakEirpDbm === csvCellValue(profile.peakEirpDbm), `${label}: CSV station RF EIRP mismatch`);
+    assert(row.peakEirpSourceId === profile.peakEirpSourceId, `${label}: CSV station RF EIRP source mismatch`);
+    assert(row.txPolarization === csvCellValue(profile.txPolarization), `${label}: CSV station RF polarization mismatch`);
+    assert(row.txPolarizationSourceId === profile.txPolarizationSourceId, `${label}: CSV station RF polarization source mismatch`);
+    assert(
+      row.provenanceTruthClass === profile.provenance.truthClass &&
+        row.provenanceSourceId === profile.provenance.sourceId &&
+        row.provenanceNonClaim === csvCellValue(profile.provenance.nonClaim),
+      `${label}: CSV station RF provenance mismatch`
+    );
+  }
+
   const displayTransforms = requireCsvSection(sections, "# Display transforms", label);
   assert(
     displayTransforms.rows.length === data.displayTransforms.length,
@@ -1368,6 +1684,69 @@ function assertCsvEvidence(label, evidence) {
     assert(
       row.inputSummary === JSON.stringify(transform.inputSummary),
       `${label}: CSV display transform input summary mismatch`
+    );
+  }
+
+  const capDisclosure = requireCsvSection(sections, "# Cap disclosure", label);
+  assert(
+    capDisclosure.rows.length === CSV_ORBIT_DISPLAY_ORDER.length,
+    `${label}: CSV cap disclosure row count mismatch`
+  );
+  const capRowsByOrbit = new Map(capDisclosure.rows.map((row) => [row.orbitClass, row]));
+  for (const orbit of CSV_ORBIT_DISPLAY_ORDER) {
+    const row = capRowsByOrbit.get(orbit);
+    assert(row, `${label}: CSV missing cap disclosure row ${orbit}`);
+    assert(
+      row.perOrbitCap === csvCellValue(data.capDisclosure.perOrbitCap[orbit]),
+      `${label}: CSV ${orbit} cap disclosure cap mismatch`
+    );
+    assert(
+      row.perOrbitInventory ===
+        csvCellValue(data.capDisclosure.perOrbitInventory[orbit]),
+      `${label}: CSV ${orbit} cap disclosure inventory mismatch`
+    );
+    assert(
+      row.cappedAtRuntime === csvCellValue(data.capDisclosure.cappedAtRuntime[orbit]),
+      `${label}: CSV ${orbit} cap disclosure capped flag mismatch`
+    );
+  }
+
+  const policyDisclosure = requireCsvSection(sections, "# Policy disclosure", label);
+  assert(
+    policyDisclosure.rows.length === CSV_POLICY_DISCLOSURE_THRESHOLD_ORDER.length,
+    `${label}: CSV policy disclosure row count mismatch`
+  );
+  const policyRowsByThreshold = new Map(
+    policyDisclosure.rows.map((row) => [row.thresholdKey, row])
+  );
+  for (const thresholdKey of CSV_POLICY_DISCLOSURE_THRESHOLD_ORDER) {
+    const row = policyRowsByThreshold.get(thresholdKey);
+    const source = data.policyDisclosure.thresholdSources[thresholdKey];
+    assert(row, `${label}: CSV missing policy disclosure row ${thresholdKey}`);
+    assert(
+      row.activePolicyId === data.policyDisclosure.activePolicyId,
+      `${label}: CSV policy disclosure active policy mismatch`
+    );
+    assert(
+      row.thresholdValue ===
+        csvCellValue(data.policyDisclosure.thresholds[thresholdKey]),
+      `${label}: CSV policy disclosure ${thresholdKey} value mismatch`
+    );
+    assert(
+      row.sourceTruthClass === source.truthClass,
+      `${label}: CSV policy disclosure ${thresholdKey} source truth mismatch`
+    );
+    assert(
+      row.sourceId === source.sourceId,
+      `${label}: CSV policy disclosure ${thresholdKey} source id mismatch`
+    );
+    assert(
+      row.sourceModelId === csvCellValue(source.modelId),
+      `${label}: CSV policy disclosure ${thresholdKey} source model mismatch`
+    );
+    assert(
+      row.sourceNonClaim === csvCellValue(source.nonClaim),
+      `${label}: CSV policy disclosure ${thresholdKey} source non-claim mismatch`
     );
   }
 
@@ -1394,6 +1773,21 @@ function assertCsvEvidence(label, evidence) {
     summaryByField.get("policyDisclosureThresholds") ===
       JSON.stringify(data.policyDisclosure.thresholds),
     `${label}: CSV policy thresholds summary mismatch`
+  );
+  assert(
+    summaryByField.get("rfChainTermCount") ===
+      csvCellValue(data.rfChainBreakdown.terms.length),
+    `${label}: CSV RF chain term summary mismatch`
+  );
+  assert(
+    summaryByField.get("atmosphericLookupCount") ===
+      csvCellValue(data.atmosphericLookups.length),
+    `${label}: CSV atmospheric lookup summary mismatch`
+  );
+  assert(
+    summaryByField.get("stationRfProfileCount") ===
+      csvCellValue(data.stationRfProfiles.length),
+    `${label}: CSV station RF profile summary mismatch`
   );
   assert(
     summaryByField.get("emptyReasonCode") === csvCellValue(data.emptyReasonCode),

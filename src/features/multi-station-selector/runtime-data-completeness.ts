@@ -144,7 +144,13 @@ export interface RuntimeStationPrecisionState {
   readonly rawLat: number;
   readonly rawLon: number;
   readonly elevationM: number;
+  readonly elevationSourceId: string;
+  readonly elevationSourcePath: string;
+  readonly elevationSourceNote: string;
   readonly terrainMaskDeg: number;
+  readonly terrainMaskSourceId: string;
+  readonly terrainMaskIsDefault: boolean;
+  readonly terrainMaskNote: string;
   readonly effectiveElevationThresholdDeg: number;
   readonly renderPositionIsSourceTruth: boolean;
   readonly coordinateUse:
@@ -173,6 +179,67 @@ export interface RuntimePolicyDisclosureState {
   readonly thresholdSources: Readonly<
     Record<keyof RuntimePolicyDisclosureThresholds, RuntimeProvenanceTag>
   >;
+}
+
+export type RuntimeRfChainTermKind =
+  | "tx-eirp"
+  | "free-space-path-loss"
+  | "gas-absorption"
+  | "rain-attenuation"
+  | "rx-antenna-gain";
+
+export interface RuntimeRfChainTermState {
+  readonly kind: RuntimeRfChainTermKind;
+  readonly contributionSignedDb: number | null;
+  readonly modelId: string;
+  readonly standardsRef: ReadonlyArray<string>;
+  readonly inputSummary: Readonly<Record<string, string | number | boolean | null>>;
+  readonly provenance: RuntimeProvenanceTag;
+  readonly nonClaim: string;
+}
+
+export interface RuntimeRfChainBreakdownState {
+  readonly carrierBand: string | null;
+  readonly carrierFrequencyGHz: number | null;
+  readonly receivedPowerProxyDbm: number | null;
+  readonly terms: ReadonlyArray<RuntimeRfChainTermState>;
+  readonly provenance: RuntimeProvenanceTag;
+}
+
+export type RuntimeAtmosphericLookupSource =
+  | "p835-6-annex-1"
+  | "p836-6-rev-2017"
+  | "p837-8"
+  | "p839-4"
+  | "p840-9";
+
+export interface RuntimeAtmosphericLookupState {
+  readonly source: RuntimeAtmosphericLookupSource;
+  readonly midpointLatDeg: number | null;
+  readonly midpointLonDeg: number | null;
+  readonly cellLatDeg: number | null;
+  readonly cellLonDeg: number | null;
+  readonly lookupValue: number | null;
+  readonly lookupUnit: string | null;
+  readonly interpolation: "unavailable";
+  readonly provenance: RuntimeProvenanceTag;
+}
+
+export interface RuntimeStationRfProfileState {
+  readonly stationId: string;
+  readonly elevationM: number;
+  readonly elevationSourceId: string;
+  readonly elevationSourcePath: string;
+  readonly terrainMaskDeg: number;
+  readonly terrainMaskSourceId: string;
+  readonly terrainMaskIsDefault: boolean;
+  readonly antennaDiameterM: number | null;
+  readonly antennaDiameterSourceId: string;
+  readonly peakEirpDbm: number | null;
+  readonly peakEirpSourceId: string;
+  readonly txPolarization: string | null;
+  readonly txPolarizationSourceId: string;
+  readonly provenance: RuntimeProvenanceTag;
 }
 
 export interface RuntimeActorProvenanceState {
@@ -206,6 +273,9 @@ export interface RuntimeDataCompletenessState {
   readonly stationPrecision: ReadonlyArray<RuntimeStationPrecisionState>;
   readonly tleSources: ReadonlyArray<RuntimeTleSourceManifestEntry>;
   readonly tleFreshness: ReadonlyArray<RuntimeTleSourceFreshness>;
+  readonly rfChainBreakdown: RuntimeRfChainBreakdownState;
+  readonly atmosphericLookups: ReadonlyArray<RuntimeAtmosphericLookupState>;
+  readonly stationRfProfiles: ReadonlyArray<RuntimeStationRfProfileState>;
   readonly actorSourceCoverage: {
     readonly renderedActorCount: number;
     readonly tleBackedActorCount: number;
@@ -257,6 +327,23 @@ export interface BuildRuntimeDataCompletenessInput {
 }
 
 const ORBIT_CLASSES: ReadonlyArray<OrbitClass> = ["LEO", "MEO", "GEO"];
+const ATMOSPHERIC_LOOKUP_SOURCES: ReadonlyArray<RuntimeAtmosphericLookupSource> = [
+  "p835-6-annex-1",
+  "p836-6-rev-2017",
+  "p837-8",
+  "p839-4",
+  "p840-9"
+];
+const STATION_ELEVATION_SOURCE_ID = "open-elevation-cache";
+const STATION_ELEVATION_SOURCE_PATH =
+  "public/fixtures/ground-stations/station-elevations-cache.json";
+const STATION_ELEVATION_SOURCE_NOTE =
+  "Open-Elevation REST lookup cached by scripts/refresh-station-elevation.mjs.";
+const TERRAIN_MASK_SOURCE_ID = "default-unknown";
+const TERRAIN_MASK_SOURCE_NOTE =
+  "0 means no site-specific horizon mask is available.";
+const RF_FIELD_SOURCE_ID = "unavailable-pending-operator-rf-profile";
+const ATMOSPHERIC_LOOKUP_SOURCE_ID = "unavailable-pending-itu-grid-bundle";
 
 const SOURCE_HEALTH_THRESHOLD_DAYS: Readonly<Record<OrbitClass, number>> = {
   LEO: 14,
@@ -452,13 +539,111 @@ function buildStationPrecisionState(
     rawLat: station.lat,
     rawLon: station.lon,
     elevationM: station.elevationM,
+    elevationSourceId: STATION_ELEVATION_SOURCE_ID,
+    elevationSourcePath: STATION_ELEVATION_SOURCE_PATH,
+    elevationSourceNote: STATION_ELEVATION_SOURCE_NOTE,
     terrainMaskDeg: station.terrainMaskDeg,
+    terrainMaskSourceId: TERRAIN_MASK_SOURCE_ID,
+    terrainMaskIsDefault: station.terrainMaskDeg === 0,
+    terrainMaskNote: TERRAIN_MASK_SOURCE_NOTE,
     effectiveElevationThresholdDeg,
     renderPositionIsSourceTruth: coordinateUse === "source-coordinate",
     coordinateUse,
     provenance: {
       truthClass: "public-registry-derived",
       sourceId: `station-registry:${station.id}`
+    }
+  };
+}
+
+function buildUnavailableRfChainBreakdown(): RuntimeRfChainBreakdownState {
+  const nonClaim =
+    "RF-chain breakdown is disclosed as unavailable; current link metrics remain modeled outputs, not received-power truth.";
+  const provenance: RuntimeProvenanceTag = {
+    truthClass: "unavailable",
+    sourceId: RF_FIELD_SOURCE_ID,
+    nonClaim
+  };
+  const term = (
+    kind: RuntimeRfChainTermKind,
+    modelId: string,
+    standardsRef: ReadonlyArray<string>
+  ): RuntimeRfChainTermState => ({
+    kind,
+    contributionSignedDb: null,
+    modelId,
+    standardsRef,
+    inputSummary: {
+      unavailableReason: "missing-station-rf-profile"
+    },
+    provenance,
+    nonClaim
+  });
+  return {
+    carrierBand: null,
+    carrierFrequencyGHz: null,
+    receivedPowerProxyDbm: null,
+    terms: [
+      term("tx-eirp", "pending-station-eirp", ["3GPP TR 38.821 §6.1"]),
+      term("free-space-path-loss", "pending-rf-chain-fspl-term", [
+        "3GPP TR 38.811 §6.6.2"
+      ]),
+      term("gas-absorption", "pending-rf-chain-gas-term", [
+        "ITU-R P.676-13 Annex 2"
+      ]),
+      term("rain-attenuation", "pending-rf-chain-rain-term", [
+        "ITU-R P.618-14 §2.2.1"
+      ]),
+      term("rx-antenna-gain", "pending-station-rx-antenna", [
+        "ITU-R S.1528",
+        "ITU-R S.465-6"
+      ])
+    ],
+    provenance
+  };
+}
+
+function buildAtmosphericLookups(): ReadonlyArray<RuntimeAtmosphericLookupState> {
+  return ATMOSPHERIC_LOOKUP_SOURCES.map((source) => ({
+    source,
+    midpointLatDeg: null,
+    midpointLonDeg: null,
+    cellLatDeg: null,
+    cellLonDeg: null,
+    lookupValue: null,
+    lookupUnit: null,
+    interpolation: "unavailable",
+    provenance: {
+      truthClass: "unavailable",
+      sourceId: `${ATMOSPHERIC_LOOKUP_SOURCE_ID}:${source}`,
+      nonClaim:
+        "Atmospheric grid lookup is not bundled; no grid cell value is claimed."
+    }
+  }));
+}
+
+function buildStationRfProfileState(
+  station: PublicRegistryStation
+): RuntimeStationRfProfileState {
+  return {
+    stationId: station.id,
+    elevationM: station.elevationM,
+    elevationSourceId: STATION_ELEVATION_SOURCE_ID,
+    elevationSourcePath: STATION_ELEVATION_SOURCE_PATH,
+    terrainMaskDeg: station.terrainMaskDeg,
+    terrainMaskSourceId: TERRAIN_MASK_SOURCE_ID,
+    terrainMaskIsDefault: station.terrainMaskDeg === 0,
+    antennaDiameterM: null,
+    antennaDiameterSourceId: RF_FIELD_SOURCE_ID,
+    peakEirpDbm: null,
+    peakEirpSourceId: RF_FIELD_SOURCE_ID,
+    txPolarization: null,
+    txPolarizationSourceId: RF_FIELD_SOURCE_ID,
+    provenance: {
+      truthClass: "unavailable",
+      sourceId: `station-rf-profile:${station.id}`,
+      nonClaim:
+        "Station RF hardware fields are unavailable; only elevation and terrain-mask registry fields are populated."
     }
   };
 }
@@ -961,6 +1146,12 @@ export function buildRuntimeDataCompletenessState(
     ],
     tleSources,
     tleFreshness: buildRuntimeTleSourceFreshness(input, tleSources),
+    rfChainBreakdown: buildUnavailableRfChainBreakdown(),
+    atmosphericLookups: buildAtmosphericLookups(),
+    stationRfProfiles: [
+      buildStationRfProfileState(input.stationA),
+      buildStationRfProfileState(input.stationB)
+    ],
     actorSourceCoverage: {
       renderedActorCount: visibleSatelliteIds.size,
       tleBackedActorCount: visibleSatelliteIds.size,

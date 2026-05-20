@@ -5,6 +5,12 @@ type CsvCell = string | number | null | undefined;
 
 const CSV_LINE_ENDING = "\r\n";
 const ORBIT_DISPLAY_ORDER = ["LEO", "MEO", "GEO"] as const;
+const POLICY_DISCLOSURE_THRESHOLD_ORDER = [
+  "latencyBudgetMs",
+  "hysteresisDb",
+  "minVisibilityWindowMs",
+  "elevationThresholdDeg"
+] as const;
 
 function quoteCsvCell(value: CsvCell): string {
   const text = value === null || value === undefined ? "" : String(value);
@@ -168,6 +174,37 @@ export function buildRuntimeProjectionCsv(result: RuntimeProjectionResult): stri
 
   rows.push(
     [],
+    ["# TLE freshness"],
+    [
+      "sourceId",
+      "sourceMode",
+      "snapshotFetchedUtc",
+      "snapshotPath",
+      "maxEpochUtc",
+      "noradIdRangeSummary",
+      "constellationMembership",
+      "provenanceTruthClass",
+      "provenanceSourceId",
+      "provenanceNonClaim"
+    ]
+  );
+  for (const freshness of result.dataCompleteness.tleFreshness) {
+    rows.push([
+      freshness.provenance.sourceId,
+      freshness.sourceMode,
+      freshness.snapshotFetchedUtc,
+      freshness.snapshotPath,
+      freshness.maxEpochUtc,
+      JSON.stringify(freshness.noradIdRangeSummary),
+      JSON.stringify(freshness.constellationMembership),
+      freshness.provenance.truthClass,
+      freshness.provenance.sourceId,
+      freshness.provenance.nonClaim
+    ]);
+  }
+
+  rows.push(
+    [],
     ["# Station precision"],
     [
       "stationId",
@@ -181,7 +218,13 @@ export function buildRuntimeProjectionCsv(result: RuntimeProjectionResult): stri
       "provenanceSourceId",
       "elevationM",
       "terrainMaskDeg",
-      "effectiveElevationThresholdDeg"
+      "effectiveElevationThresholdDeg",
+      "elevationSourceId",
+      "elevationSourcePath",
+      "elevationSourceNote",
+      "terrainMaskSourceId",
+      "terrainMaskIsDefault",
+      "terrainMaskNote"
     ]
   );
   for (const station of result.dataCompleteness.stationPrecision) {
@@ -197,7 +240,13 @@ export function buildRuntimeProjectionCsv(result: RuntimeProjectionResult): stri
       station.provenance.sourceId,
       station.elevationM,
       station.terrainMaskDeg,
-      station.effectiveElevationThresholdDeg
+      station.effectiveElevationThresholdDeg,
+      station.elevationSourceId,
+      station.elevationSourcePath,
+      station.elevationSourceNote,
+      station.terrainMaskSourceId,
+      station.terrainMaskIsDefault ? "true" : "false",
+      station.terrainMaskNote
     ]);
   }
 
@@ -296,6 +345,121 @@ export function buildRuntimeProjectionCsv(result: RuntimeProjectionResult): stri
 
   rows.push(
     [],
+    ["# RF chain breakdown"],
+    [
+      "carrierBand",
+      "carrierFrequencyGHz",
+      "receivedPowerProxyDbm",
+      "termKind",
+      "contributionSignedDb",
+      "modelId",
+      "standardsRef",
+      "inputSummary",
+      "provenanceTruthClass",
+      "provenanceSourceId",
+      "provenanceModelId",
+      "provenanceNonClaim",
+      "nonClaim"
+    ]
+  );
+  for (const term of result.dataCompleteness.rfChainBreakdown.terms) {
+    rows.push([
+      result.dataCompleteness.rfChainBreakdown.carrierBand,
+      result.dataCompleteness.rfChainBreakdown.carrierFrequencyGHz,
+      result.dataCompleteness.rfChainBreakdown.receivedPowerProxyDbm,
+      term.kind,
+      term.contributionSignedDb,
+      term.modelId,
+      term.standardsRef.join(" | "),
+      JSON.stringify(term.inputSummary),
+      term.provenance.truthClass,
+      term.provenance.sourceId,
+      term.provenance.modelId,
+      term.provenance.nonClaim,
+      term.nonClaim
+    ]);
+  }
+
+  rows.push(
+    [],
+    ["# Atmospheric lookups"],
+    [
+      "source",
+      "midpointLatDeg",
+      "midpointLonDeg",
+      "cellLatDeg",
+      "cellLonDeg",
+      "lookupValue",
+      "lookupUnit",
+      "interpolation",
+      "provenanceTruthClass",
+      "provenanceSourceId",
+      "provenanceModelId",
+      "provenanceNonClaim"
+    ]
+  );
+  for (const lookup of result.dataCompleteness.atmosphericLookups) {
+    rows.push([
+      lookup.source,
+      lookup.midpointLatDeg,
+      lookup.midpointLonDeg,
+      lookup.cellLatDeg,
+      lookup.cellLonDeg,
+      lookup.lookupValue,
+      lookup.lookupUnit,
+      lookup.interpolation,
+      lookup.provenance.truthClass,
+      lookup.provenance.sourceId,
+      lookup.provenance.modelId,
+      lookup.provenance.nonClaim
+    ]);
+  }
+
+  rows.push(
+    [],
+    ["# Station RF profile"],
+    [
+      "stationId",
+      "elevationM",
+      "elevationSourceId",
+      "elevationSourcePath",
+      "terrainMaskDeg",
+      "terrainMaskSourceId",
+      "terrainMaskIsDefault",
+      "antennaDiameterM",
+      "antennaDiameterSourceId",
+      "peakEirpDbm",
+      "peakEirpSourceId",
+      "txPolarization",
+      "txPolarizationSourceId",
+      "provenanceTruthClass",
+      "provenanceSourceId",
+      "provenanceNonClaim"
+    ]
+  );
+  for (const station of result.dataCompleteness.stationRfProfiles) {
+    rows.push([
+      station.stationId,
+      station.elevationM,
+      station.elevationSourceId,
+      station.elevationSourcePath,
+      station.terrainMaskDeg,
+      station.terrainMaskSourceId,
+      station.terrainMaskIsDefault ? "true" : "false",
+      station.antennaDiameterM,
+      station.antennaDiameterSourceId,
+      station.peakEirpDbm,
+      station.peakEirpSourceId,
+      station.txPolarization,
+      station.txPolarizationSourceId,
+      station.provenance.truthClass,
+      station.provenance.sourceId,
+      station.provenance.nonClaim
+    ]);
+  }
+
+  rows.push(
+    [],
     ["# Display transforms"],
     [
       "sourceId",
@@ -317,6 +481,48 @@ export function buildRuntimeProjectionCsv(result: RuntimeProjectionResult): stri
 
   rows.push(
     [],
+    ["# Cap disclosure"],
+    ["orbitClass", "perOrbitCap", "perOrbitInventory", "cappedAtRuntime"]
+  );
+  for (const orbitClass of ORBIT_DISPLAY_ORDER) {
+    const disclosure = result.dataCompleteness.capDisclosure;
+    rows.push([
+      orbitClass,
+      disclosure.perOrbitCap[orbitClass],
+      disclosure.perOrbitInventory[orbitClass],
+      disclosure.cappedAtRuntime[orbitClass] ? "true" : "false"
+    ]);
+  }
+
+  rows.push(
+    [],
+    ["# Policy disclosure"],
+    [
+      "activePolicyId",
+      "thresholdKey",
+      "thresholdValue",
+      "sourceTruthClass",
+      "sourceId",
+      "sourceModelId",
+      "sourceNonClaim"
+    ]
+  );
+  for (const thresholdKey of POLICY_DISCLOSURE_THRESHOLD_ORDER) {
+    const disclosure = result.dataCompleteness.policyDisclosure;
+    const source = disclosure.thresholdSources[thresholdKey];
+    rows.push([
+      disclosure.activePolicyId,
+      thresholdKey,
+      disclosure.thresholds[thresholdKey],
+      source.truthClass,
+      source.sourceId,
+      source.modelId,
+      source.nonClaim
+    ]);
+  }
+
+  rows.push(
+    [],
     ["# Data completeness"],
     ["field", "value"],
     ["routeMode", result.dataCompleteness.routeMode],
@@ -330,6 +536,18 @@ export function buildRuntimeProjectionCsv(result: RuntimeProjectionResult): stri
     [
       "policyDisclosureThresholds",
       JSON.stringify(result.dataCompleteness.policyDisclosure.thresholds)
+    ],
+    [
+      "rfChainTermCount",
+      result.dataCompleteness.rfChainBreakdown.terms.length
+    ],
+    [
+      "atmosphericLookupCount",
+      result.dataCompleteness.atmosphericLookups.length
+    ],
+    [
+      "stationRfProfileCount",
+      result.dataCompleteness.stationRfProfiles.length
     ],
     ["emptyReasonCode", result.dataCompleteness.emptyReasonCode]
   );

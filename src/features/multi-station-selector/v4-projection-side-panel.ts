@@ -1870,8 +1870,17 @@ function buildFooterRow(result: RuntimeProjectionResult): HTMLElement {
     );
     footer.dataset[`station${slot}CoordinateUse`] = station.coordinateUse;
     footer.dataset[`station${slot}ElevationM`] = String(station.elevationM);
+    footer.dataset[`station${slot}ElevationSourceId`] =
+      station.elevationSourceId;
+    footer.dataset[`station${slot}ElevationSourcePath`] =
+      station.elevationSourcePath;
     footer.dataset[`station${slot}TerrainMaskDeg`] = String(
       station.terrainMaskDeg
+    );
+    footer.dataset[`station${slot}TerrainMaskSourceId`] =
+      station.terrainMaskSourceId;
+    footer.dataset[`station${slot}TerrainMaskIsDefault`] = String(
+      station.terrainMaskIsDefault
     );
     footer.dataset[`station${slot}EffectiveElevationThresholdDeg`] = String(
       station.effectiveElevationThresholdDeg
