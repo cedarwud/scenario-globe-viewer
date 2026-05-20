@@ -21,7 +21,7 @@ This document and every new module, file, fixture, and UI label produced for thi
 | Concept | Term used in this feature |
 | --- | --- |
 | Pair attested by an external authority package | `operator-validated` (tier 1) |
-| Pair derivable from operator-published disclosure but not contract-validated | `public-disclosed` (tier 2) |
+| Pair with explicit pair-level public attestation but not contract-validated | `public-disclosed` (tier 2) |
 | Pair derived from geometry only | `geometric-derived` (tier 3) |
 
 The existing operator-validated pair (the one with a retained authority package — Taiwan CHT plus Singapore Speedcast) continues to flow through the existing fixture path; the selector neither reads nor exposes that customer-supplied package in any new module under this feature.
@@ -194,8 +194,16 @@ The non-claim labels are explicit:
 | Tier | UI badge text | Required non-claim strings |
 | --- | --- | --- |
 | `operator-validated` | "Authority-validated pair" | (none beyond the existing demo's non-claims) |
-| `public-disclosed` | "Public-disclosure pair · operator-stated capability" | "Pair shown from public operator disclosure. Commercial routing not validated by this surface." |
-| `geometric-derived` | "Geometric pair · visibility-derived only" | "Pair derivable from public station coordinates and satellite ephemerides only. No operator or contractual attestation." |
+| `public-disclosed` | "Public-disclosure pair · operator-stated capability" | "Pair-level public attestation exists for this station pair. Commercial routing, SLA, and contractual path are not validated by this surface." |
+| `geometric-derived` with same `operatorFamily` but no pair attestation | "Same operator family inferred · no pair attestation" | "Same operator family is an inference from public registry metadata, not pair-level routing, SLA, contractual path, or operator attestation." |
+| `geometric-derived` cross-family | "Geometric pair · visibility-derived only" | "Pair derivable from public station coordinates and satellite ephemerides only. No operator or contractual attestation." |
+
+`PublicPairSourceTier` remains the compatibility union
+`"public-disclosed" | "geometric-derived"`. The narrowing rule is that
+`public-disclosed` can only be emitted when a root `pairAttestations` entry
+matches the station-id pair. Same-family registry inference alone stays
+`geometric-derived` and carries `evidenceKind =
+"same-operator-family-inferred"`.
 
 The badge and non-claims render in the runtime projection side panel and in any export bundle's `truthBoundary` field.
 
@@ -414,9 +422,17 @@ on `RuntimeProjectionResult.dataCompleteness`.
 The payload records:
 
 - route source mode (`tle-first-runtime` for selected-pair runtime);
+- structured pair source attribution as
+  `pairSourceAttribution = { sourceTier, evidenceKind, badgeLabel, nonClaims }`;
+  `evidenceKind` is one of `explicit-pair-attestation`,
+  `same-operator-family-inferred`, or `cross-family-geometric`;
 - per-orbit TLE source manifest, runtime source path, cap, source timestamp,
   epoch range, accepted and rejected counts, parser failure count, and
   source-health state;
+- runtime inventory disclosure separating inventory source mode, network
+  snapshot inventory count, local fallback inventory count when separately
+  loaded, active inventory count, accepted record count, runtime cap,
+  capped-at-runtime flag, and visible actor count;
 - per-station disclosure precision and whether the rendered coordinate is
   source truth or a representative coordinate;
 - actor source coverage with `fakeActorCount === 0`;
@@ -426,6 +442,8 @@ The payload records:
   pair-intersection source id;
 - modeled output metadata for handover, link budget, throughput, jitter,
   latency, and rain impact;
+- metric anchor disclosure for model labels such as carrier selection,
+  capacity model, jitter model, delay model, and active policy thresholds;
 - display-only transform provenance for altitude compression, camera framing,
   label density, display lane or label offsets, and generic actor mesh choice;
 - empty reason codes for unsupported or no-window cases.
@@ -434,12 +452,18 @@ The V4 side panel and CSV export surface the same payload without changing the
 route shape:
 
 - Row 6 carries `[data-station-precision-disclosure="true"]`.
+- The side-panel root and Row 6 expose source attribution datasets:
+  `sourceTier`, `sourceEvidenceKind` / `evidenceKind`, and `badgeLabel`.
 - `[data-tle-telemetry-chip="true"]` is patched with source-count,
   accepted/rejected-count, parser-failure-count, timestamp, and health dataset
   fields after selected projection render.
 - CSV export includes `# TLE source manifest`, `# Station precision`,
   `# Actor provenance`, `# Visibility provenance`, `# Modeled outputs`, and
-  `# Data completeness` sections.
+  `# Pair source attribution`, `# Runtime inventory disclosure`,
+  `# Metric anchor disclosure`, and `# Data completeness` sections.
+  `# Data completeness` also carries the JSON summary
+  `pairSourceAttribution`. `# Cap disclosure` remains as a compatibility
+  section.
 
 The fixed demo entry remains `fixture-fallback`; it does not receive a hidden
 selected-pair data retrofit.

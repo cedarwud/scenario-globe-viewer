@@ -38,7 +38,6 @@ import {
   buildRuntimeProjectionCsvFilename
 } from "./runtime-projection-csv";
 import { createRuntimeProjectionWorkerClient } from "./runtime-projection-worker-client";
-import { inferPairSourceTier } from "./tier-inference";
 import type { OrbitClass, PairVisibilityWindow } from "./visibility-utils";
 import type { TleRecord } from "./visibility-utils";
 import type { V4ResolvedStationPair } from "./v4-route-selection";
@@ -119,6 +118,7 @@ const PANEL_CSS = `
 .v4-projection-side-panel__tier-badge {
   grid-area: badge;
   justify-self: start;
+  max-width: 100%;
   display: inline-flex;
   align-items: center;
   padding: 0.18rem 0.5rem;
@@ -129,6 +129,8 @@ const PANEL_CSS = `
   text-transform: uppercase;
   border: 1px solid transparent;
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .v4-projection-side-panel__tier-badge[data-tier="public-disclosed"] {
   background: rgba(126, 226, 184, 0.14);
@@ -1155,15 +1157,14 @@ function buildHeaderRow(
   title.textContent = titleText;
   title.title = titleText;
 
-  const tierAttribution = inferPairSourceTier(pair.stationA, pair.stationB);
+  const tierAttribution = result.dataCompleteness.pairSourceAttribution;
   const tierBadge = document.createElement("span");
   tierBadge.className = "v4-projection-side-panel__tier-badge";
   tierBadge.dataset.tier = tierAttribution.sourceTier;
-  const tierLabel =
-    tierAttribution.sourceTier === "public-disclosed"
-      ? "Public-disclosure"
-      : "Geometric";
+  tierBadge.dataset.evidenceKind = tierAttribution.evidenceKind;
+  const tierLabel = tierAttribution.badgeLabel;
   tierBadge.textContent = tierLabel;
+  tierBadge.title = tierLabel;
 
   const windowLine = document.createElement("p");
   windowLine.className = "v4-projection-side-panel__window";
@@ -1692,30 +1693,113 @@ function buildPolicyDisclosureBlock(result: RuntimeProjectionResult): HTMLElemen
 }
 
 function buildCapDisclosureBlock(result: RuntimeProjectionResult): HTMLElement {
-  const disclosure = result.dataCompleteness.capDisclosure;
+  const capDisclosure = result.dataCompleteness.capDisclosure;
+  const inventoryDisclosure = result.dataCompleteness.runtimeInventoryDisclosure;
   const wrapper = document.createElement("section");
   wrapper.className = "v4-projection-side-panel__section";
   wrapper.dataset.capDisclosure = "true";
+  wrapper.dataset.runtimeInventoryDisclosure = "true";
   for (const orbit of ORBIT_DISPLAY_ORDER) {
     const prefix = orbit.toLowerCase();
-    wrapper.dataset[`${prefix}Cap`] = String(disclosure.perOrbitCap[orbit]);
+    const inventory = inventoryDisclosure.perOrbit[orbit];
+    wrapper.dataset[`${prefix}InventorySourceMode`] =
+      inventory.inventorySourceMode;
+    wrapper.dataset[`${prefix}NetworkSnapshotInventoryCount`] = String(
+      inventory.networkSnapshotInventoryCount ?? ""
+    );
+    wrapper.dataset[`${prefix}LocalFallbackInventoryCount`] = String(
+      inventory.localFallbackInventoryCount ?? ""
+    );
+    wrapper.dataset[`${prefix}ActiveInventoryCount`] = String(
+      inventory.activeInventoryCount
+    );
+    wrapper.dataset[`${prefix}AcceptedRecordCount`] = String(
+      inventory.acceptedRecordCount
+    );
+    wrapper.dataset[`${prefix}RuntimeCap`] = String(inventory.runtimeCap);
+    wrapper.dataset[`${prefix}VisibleActorCount`] = String(
+      inventory.visibleActorCount
+    );
+    wrapper.dataset[`${prefix}Cap`] = String(capDisclosure.perOrbitCap[orbit]);
     wrapper.dataset[`${prefix}Inventory`] = String(
-      disclosure.perOrbitInventory[orbit]
+      capDisclosure.perOrbitInventory[orbit]
     );
     wrapper.dataset[`${prefix}CappedAtRuntime`] = String(
-      disclosure.cappedAtRuntime[orbit]
+      capDisclosure.cappedAtRuntime[orbit]
     );
   }
 
   const heading = document.createElement("h3");
   heading.className = "v4-projection-side-panel__section-title";
-  heading.textContent = "Candidate cap";
+  heading.textContent = "Runtime inventory";
+  const note = document.createElement("p");
+  note.className = "v4-projection-side-panel__empty";
+  note.textContent = inventoryDisclosure.note;
   const list = document.createElement("ul");
   list.className = "v4-projection-side-panel__non-claim-list";
   for (const orbit of ORBIT_DISPLAY_ORDER) {
+    const inventory = inventoryDisclosure.perOrbit[orbit];
     const li = document.createElement("li");
-    const capped = disclosure.cappedAtRuntime[orbit] ? "capped" : "uncapped";
-    li.textContent = `${orbit}: ${disclosure.perOrbitCap[orbit]} cap / ${disclosure.perOrbitInventory[orbit]} inventory · ${capped}`;
+    const capped = inventory.cappedAtRuntime ? "capped" : "uncapped";
+    const networkCount =
+      inventory.networkSnapshotInventoryCount === null
+        ? "unavailable"
+        : String(inventory.networkSnapshotInventoryCount);
+    const localFallbackCount =
+      inventory.localFallbackInventoryCount === null
+        ? "unavailable"
+        : String(inventory.localFallbackInventoryCount);
+    li.textContent =
+      `${orbit}: source ${inventory.inventorySourceMode} · network ${networkCount} · ` +
+      `local fallback ${localFallbackCount} · active ${inventory.activeInventoryCount} · ` +
+      `accepted ${inventory.acceptedRecordCount} · cap ${inventory.runtimeCap} · ` +
+      `${capped} · visible ${inventory.visibleActorCount}`;
+    list.append(li);
+  }
+  wrapper.append(heading, note, list);
+  return wrapper;
+}
+
+function buildMetricAnchorDisclosureBlock(result: RuntimeProjectionResult): HTMLElement {
+  const disclosure = result.dataCompleteness.metricAnchorDisclosure;
+  const wrapper = document.createElement("section");
+  wrapper.className = "v4-projection-side-panel__section";
+  wrapper.dataset.metricAnchorDisclosure = "true";
+  wrapper.dataset.carrierSelection = disclosure.carrierSelection ?? "";
+  wrapper.dataset.capacityModel = disclosure.capacityModel ?? "";
+  wrapper.dataset.jitterModel = disclosure.jitterModel ?? "";
+  wrapper.dataset.delayModel = disclosure.delayModel ?? "";
+  wrapper.dataset.activePolicyId = disclosure.activePolicyId;
+  wrapper.dataset.latencyBudgetMs = String(
+    disclosure.policyThresholds.latencyBudgetMs ?? ""
+  );
+  wrapper.dataset.hysteresisDb = String(disclosure.policyThresholds.hysteresisDb);
+  wrapper.dataset.minVisibilityWindowMs = String(
+    disclosure.policyThresholds.minVisibilityWindowMs
+  );
+  wrapper.dataset.elevationThresholdDeg = String(
+    disclosure.policyThresholds.elevationThresholdDeg
+  );
+
+  const heading = document.createElement("h3");
+  heading.className = "v4-projection-side-panel__section-title";
+  heading.textContent = "Metric anchors";
+  const list = document.createElement("ul");
+  list.className = "v4-projection-side-panel__non-claim-list";
+  const rows = [
+    ["Carrier selection", disclosure.carrierSelection],
+    ["Capacity model", disclosure.capacityModel],
+    ["Jitter model", disclosure.jitterModel],
+    ["Delay model", disclosure.delayModel],
+    [
+      "Policy thresholds",
+      `${disclosure.activePolicyId}: elevation ${disclosure.policyThresholds.elevationThresholdDeg}° · hysteresis ${disclosure.policyThresholds.hysteresisDb} dB · min window ${Math.round(disclosure.policyThresholds.minVisibilityWindowMs / 1000)}s · latency ${disclosure.policyThresholds.latencyBudgetMs ?? "n/a"} ms`
+    ],
+    ["Non-claim", disclosure.nonClaim]
+  ] as const;
+  for (const [label, value] of rows) {
+    const li = document.createElement("li");
+    li.textContent = `${label}: ${value ?? "unavailable"}`;
     list.append(li);
   }
   wrapper.append(heading, list);
@@ -1831,6 +1915,7 @@ function buildDisclosuresRow(
   const handoverList = buildAllHandoverList(result);
   const policyDisclosure = buildPolicyDisclosureBlock(result);
   const capDisclosure = buildCapDisclosureBlock(result);
+  const metricAnchorDisclosure = buildMetricAnchorDisclosureBlock(result);
   const nonClaims = buildNonClaimsBlock(result.truthBoundary);
   const standards = buildStandardsReferences(result);
   const meanDwell = buildMeanDwellBlock(result);
@@ -1841,6 +1926,7 @@ function buildDisclosuresRow(
         handoverList,
         policyDisclosure,
         capDisclosure,
+        metricAnchorDisclosure,
         nonClaims,
         standards,
         meanDwell
@@ -1859,8 +1945,11 @@ function buildFooterRow(result: RuntimeProjectionResult): HTMLElement {
   row.dataset.row = "6";
   const footer = document.createElement("p");
   footer.className = "v4-projection-side-panel__footer";
+  const tierAttribution = result.dataCompleteness.pairSourceAttribution;
   footer.dataset.stationPrecisionDisclosure = "true";
   footer.dataset.sourceTier = result.truthBoundary.sourceTier;
+  footer.dataset.evidenceKind = tierAttribution.evidenceKind;
+  footer.dataset.badgeLabel = tierAttribution.badgeLabel;
   for (const [index, station] of result.dataCompleteness.stationPrecision.entries()) {
     const slot = index === 0 ? "A" : "B";
     footer.dataset[`station${slot}Id`] = station.stationId;
@@ -1886,7 +1975,7 @@ function buildFooterRow(result: RuntimeProjectionResult): HTMLElement {
       station.effectiveElevationThresholdDeg
     );
   }
-  footer.textContent = `${result.truthBoundary.precisionLabel} · ${result.truthBoundary.sourceTier} · elevation/terrain mask`;
+  footer.textContent = `${result.truthBoundary.precisionLabel} · ${tierAttribution.badgeLabel} · elevation/terrain mask`;
   row.append(footer);
   return row;
 }
@@ -1913,8 +2002,11 @@ function renderResult(
   const sliderWasFocused = document.activeElement === rainControl.slider;
 
   root.replaceChildren();
+  const tierAttribution = result.dataCompleteness.pairSourceAttribution;
   root.dataset.state = "ready";
   root.dataset.sourceTier = result.truthBoundary.sourceTier;
+  root.dataset.sourceEvidenceKind = tierAttribution.evidenceKind;
+  root.dataset.sourceBadgeLabel = tierAttribution.badgeLabel;
   root.dataset.rainRateMmPerHour = String(rainRateMmPerHour);
   root.dataset.dataCompletenessRouteMode = result.dataCompleteness.routeMode;
   root.dataset.emptyReasonCode = result.dataCompleteness.emptyReasonCode ?? "";

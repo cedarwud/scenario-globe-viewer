@@ -1,13 +1,16 @@
 import { twoline2satrec } from "../../vendor/satellite-js-runtime";
+import networkTleManifest from "../../../public/fixtures/satellites-network/manifest.json";
 import type { HandoverPolicyConfig } from "../../runtime/link-budget/handover-policy";
 import type {
   SceneCameraHint,
   SceneDisplayPolicy,
   SceneSourceMode
 } from "./tle-first-scene-view-model";
-import type {
-  PairSourceTierAttribution,
-  PublicRegistryStation
+import {
+  inferPairSourceTier,
+  type PairSourceEvidenceKind,
+  type PairSourceTierAttribution,
+  type PublicRegistryStation
 } from "./tier-inference";
 import type {
   OrbitClass,
@@ -160,10 +163,45 @@ export interface RuntimeStationPrecisionState {
   readonly provenance: RuntimeProvenanceTag;
 }
 
+export interface RuntimePairSourceAttributionState {
+  readonly sourceTier: PairSourceTierAttribution["sourceTier"];
+  readonly evidenceKind: PairSourceEvidenceKind;
+  readonly badgeLabel: string;
+  readonly nonClaims: ReadonlyArray<string>;
+}
+
 export interface RuntimeCapDisclosureState {
   readonly perOrbitCap: Readonly<Record<OrbitClass, number>>;
   readonly perOrbitInventory: Readonly<Record<OrbitClass, number>>;
   readonly cappedAtRuntime: Readonly<Record<OrbitClass, boolean>>;
+}
+
+export interface RuntimeInventoryDisclosureOrbitState {
+  readonly orbitClass: OrbitClass;
+  readonly inventorySourceMode: TleSourceMode;
+  readonly networkSnapshotInventoryCount: number | null;
+  readonly localFallbackInventoryCount: number | null;
+  readonly localFallbackInventoryNote: string;
+  readonly activeInventoryCount: number;
+  readonly acceptedRecordCount: number;
+  readonly runtimeCap: number;
+  readonly cappedAtRuntime: boolean;
+  readonly visibleActorCount: number;
+}
+
+export interface RuntimeInventoryDisclosureState {
+  readonly perOrbit: Readonly<Record<OrbitClass, RuntimeInventoryDisclosureOrbitState>>;
+  readonly note: string;
+}
+
+export interface RuntimeMetricAnchorDisclosureState {
+  readonly carrierSelection: string | null;
+  readonly capacityModel: string | null;
+  readonly jitterModel: string | null;
+  readonly delayModel: string | null;
+  readonly activePolicyId: HandoverPolicyConfig["policyId"];
+  readonly policyThresholds: RuntimePolicyDisclosureThresholds;
+  readonly nonClaim: string;
 }
 
 export interface RuntimePolicyDisclosureThresholds {
@@ -270,6 +308,7 @@ export interface RuntimeVisibilityProvenanceState {
 
 export interface RuntimeDataCompletenessState {
   readonly routeMode: SceneSourceMode;
+  readonly pairSourceAttribution: RuntimePairSourceAttributionState;
   readonly stationPrecision: ReadonlyArray<RuntimeStationPrecisionState>;
   readonly tleSources: ReadonlyArray<RuntimeTleSourceManifestEntry>;
   readonly tleFreshness: ReadonlyArray<RuntimeTleSourceFreshness>;
@@ -286,6 +325,8 @@ export interface RuntimeDataCompletenessState {
   readonly modeledOutputs: ReadonlyArray<RuntimeModeledOutputMetadata>;
   readonly displayTransforms: ReadonlyArray<RuntimeDisplayTransformMetadata>;
   readonly capDisclosure: RuntimeCapDisclosureState;
+  readonly runtimeInventoryDisclosure: RuntimeInventoryDisclosureState;
+  readonly metricAnchorDisclosure: RuntimeMetricAnchorDisclosureState;
   readonly policyDisclosure: RuntimePolicyDisclosureState;
   readonly visibilityCadenceSecondsByOrbit: Readonly<Record<OrbitClass, number>>;
   readonly emptyReasonCode: RuntimeEmptyReasonCode | null;
@@ -344,11 +385,19 @@ const TERRAIN_MASK_SOURCE_NOTE =
   "0 means no site-specific horizon mask is available.";
 const RF_FIELD_SOURCE_ID = "unavailable-pending-operator-rf-profile";
 const ATMOSPHERIC_LOOKUP_SOURCE_ID = "unavailable-pending-itu-grid-bundle";
+const LOCAL_FALLBACK_INVENTORY_NOTE =
+  "Separate local fallback inventory is not loaded beside the active runtime source in this disclosure slice.";
 
 const SOURCE_HEALTH_THRESHOLD_DAYS: Readonly<Record<OrbitClass, number>> = {
   LEO: 14,
   MEO: 30,
   GEO: 30
+};
+
+const NETWORK_MANIFEST_KEY_BY_ORBIT: Readonly<Record<OrbitClass, "leo" | "meo" | "geo">> = {
+  LEO: "leo",
+  MEO: "meo",
+  GEO: "geo"
 };
 
 function countByOrbit(records: ReadonlyArray<TleRecord>): Record<OrbitClass, number> {
@@ -556,6 +605,18 @@ function buildStationPrecisionState(
   };
 }
 
+function buildPairSourceAttributionState(
+  input: BuildRuntimeDataCompletenessInput
+): RuntimePairSourceAttributionState {
+  const attribution = inferPairSourceTier(input.stationA, input.stationB);
+  return {
+    sourceTier: attribution.sourceTier,
+    evidenceKind: attribution.evidenceKind,
+    badgeLabel: attribution.badgeLabel,
+    nonClaims: [...attribution.nonClaims]
+  };
+}
+
 function buildUnavailableRfChainBreakdown(): RuntimeRfChainBreakdownState {
   const nonClaim =
     "RF-chain breakdown is disclosed as unavailable; current link metrics remain modeled outputs, not received-power truth.";
@@ -665,6 +726,68 @@ function buildCapDisclosure(
       MEO: inventory.MEO > caps.MEO,
       GEO: inventory.GEO > caps.GEO
     }
+  };
+}
+
+function resolveNetworkSnapshotInventoryCount(orbitClass: OrbitClass): number | null {
+  const key = NETWORK_MANIFEST_KEY_BY_ORBIT[orbitClass];
+  const entry = (
+    networkTleManifest as Readonly<
+      Record<string, { readonly recordCount?: number | undefined }>
+    >
+  )[key];
+  return Number.isInteger(entry?.recordCount) ? entry.recordCount ?? null : null;
+}
+
+function countVisibleActorsByOrbit(
+  windows: ReadonlyArray<PairVisibilityWindow>
+): Record<OrbitClass, number> {
+  const idsByOrbit: Record<OrbitClass, Set<string>> = {
+    LEO: new Set(),
+    MEO: new Set(),
+    GEO: new Set()
+  };
+  for (const window of windows) {
+    idsByOrbit[window.orbitClass].add(window.satelliteId);
+  }
+  return {
+    LEO: idsByOrbit.LEO.size,
+    MEO: idsByOrbit.MEO.size,
+    GEO: idsByOrbit.GEO.size
+  };
+}
+
+function buildRuntimeInventoryDisclosure(
+  input: BuildRuntimeDataCompletenessInput
+): RuntimeInventoryDisclosureState {
+  const sourceMode = resolveTleSourceMode(input);
+  const activeInventory = countByOrbit(input.allTleRecords);
+  const acceptedInventory = countByOrbit(input.acceptedTleRecords);
+  const visibleActors = countVisibleActorsByOrbit(input.visibilityWindows);
+  const perOrbit = Object.fromEntries(
+    ORBIT_CLASSES.map((orbitClass) => {
+      const runtimeCap = input.caps[orbitClass];
+      const activeInventoryCount = activeInventory[orbitClass];
+      const row: RuntimeInventoryDisclosureOrbitState = {
+        orbitClass,
+        inventorySourceMode: sourceMode,
+        networkSnapshotInventoryCount:
+          resolveNetworkSnapshotInventoryCount(orbitClass),
+        localFallbackInventoryCount: null,
+        localFallbackInventoryNote: LOCAL_FALLBACK_INVENTORY_NOTE,
+        activeInventoryCount,
+        acceptedRecordCount: acceptedInventory[orbitClass],
+        runtimeCap,
+        cappedAtRuntime: activeInventoryCount > runtimeCap,
+        visibleActorCount: visibleActors[orbitClass]
+      };
+      return [orbitClass, row];
+    })
+  ) as Record<OrbitClass, RuntimeInventoryDisclosureOrbitState>;
+  return {
+    perOrbit,
+    note:
+      "Network snapshot inventory, active runtime inventory, accepted records, runtime cap, and visible actor count are separate counts."
   };
 }
 
@@ -1042,6 +1165,40 @@ function buildModeledOutputs(
   ];
 }
 
+function stringInputSummaryValue(
+  modeledOutputs: ReadonlyArray<RuntimeModeledOutputMetadata>,
+  kind: RuntimeModeledOutputKind,
+  key: string
+): string | null {
+  const value = modeledOutputs.find((output) => output.kind === kind)
+    ?.inputSummary[key];
+  return typeof value === "string" ? value : null;
+}
+
+function buildMetricAnchorDisclosure(
+  modeledOutputs: ReadonlyArray<RuntimeModeledOutputMetadata>,
+  policyDisclosure: RuntimePolicyDisclosureState
+): RuntimeMetricAnchorDisclosureState {
+  return {
+    carrierSelection: stringInputSummaryValue(
+      modeledOutputs,
+      "link-budget",
+      "carrierSelection"
+    ),
+    capacityModel: stringInputSummaryValue(
+      modeledOutputs,
+      "throughput",
+      "capacityModel"
+    ),
+    jitterModel: stringInputSummaryValue(modeledOutputs, "jitter", "jitterModel"),
+    delayModel: stringInputSummaryValue(modeledOutputs, "latency", "delayModel"),
+    activePolicyId: policyDisclosure.activePolicyId,
+    policyThresholds: policyDisclosure.thresholds,
+    nonClaim:
+      "Metric anchors are model labels and policy controls, not measured throughput, jitter, latency, routing, or SLA truth."
+  };
+}
+
 function buildDisplayTransforms(
   input: BuildRuntimeDataCompletenessInput
 ): ReadonlyArray<RuntimeDisplayTransformMetadata> {
@@ -1130,17 +1287,21 @@ export function buildRuntimeDataCompletenessState(
     input.visibilityWindows.map((window) => window.satelliteId)
   );
   const tleSources = buildTleSourceManifest(input);
+  const modeledOutputs = buildModeledOutputs(input);
+  const policyDisclosure = buildPolicyDisclosure(input);
+  const pairSourceAttribution = buildPairSourceAttributionState(input);
   return {
     routeMode: input.routeMode,
+    pairSourceAttribution,
     stationPrecision: [
       buildStationPrecisionState(
         input.stationA,
-        input.pairSourceTier,
+        pairSourceAttribution.sourceTier,
         input.stationAEffectiveElevationThresholdDeg
       ),
       buildStationPrecisionState(
         input.stationB,
-        input.pairSourceTier,
+        pairSourceAttribution.sourceTier,
         input.stationBEffectiveElevationThresholdDeg
       )
     ],
@@ -1159,10 +1320,15 @@ export function buildRuntimeDataCompletenessState(
     },
     actorProvenance: buildActorProvenance(input),
     visibilityProvenance: buildVisibilityProvenance(input),
-    modeledOutputs: buildModeledOutputs(input),
+    modeledOutputs,
     displayTransforms: buildDisplayTransforms(input),
     capDisclosure: buildCapDisclosure(input),
-    policyDisclosure: buildPolicyDisclosure(input),
+    runtimeInventoryDisclosure: buildRuntimeInventoryDisclosure(input),
+    metricAnchorDisclosure: buildMetricAnchorDisclosure(
+      modeledOutputs,
+      policyDisclosure
+    ),
+    policyDisclosure,
     visibilityCadenceSecondsByOrbit: input.sampleCadenceSecondsByOrbit,
     emptyReasonCode: resolveEmptyReasonCode(input)
   };

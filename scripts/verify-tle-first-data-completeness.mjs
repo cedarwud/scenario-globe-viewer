@@ -26,11 +26,22 @@ const TLE_SOURCE_MODES = new Set([
   "network-snapshot",
   "fallback-local-snapshot"
 ]);
+const SOURCE_EVIDENCE_KINDS = new Set([
+  "explicit-pair-attestation",
+  "same-operator-family-inferred",
+  "cross-family-geometric"
+]);
 const DEFAULT_HANDOVER_POLICY_ID = "cross-orbit-live";
 const EXPECTED_CAP_DISCLOSURE = {
   perOrbitCap: { LEO: 200, MEO: 100, GEO: 60 },
   perOrbitInventory: { LEO: 600, MEO: 33, GEO: 30 },
   cappedAtRuntime: { LEO: true, MEO: false, GEO: false }
+};
+const EXPECTED_METRIC_ANCHORS = {
+  carrierSelection: "orbit-class-default",
+  capacityModel: "clear-sky-reference-with-fade-derating",
+  jitterModel: "orbit-baseline-with-rain-scale",
+  delayModel: "slant-range-one-way-plus-fixed-processing"
 };
 const EXPECTED_ELEVATION_SOURCE_ID = "open-elevation-cache";
 const EXPECTED_ELEVATION_SOURCE_PATH =
@@ -271,6 +282,25 @@ function csvCellValue(value) {
   return value === null || value === undefined ? "" : String(value);
 }
 
+function inventoryTextValue(value) {
+  return value === null || value === undefined ? "unavailable" : String(value);
+}
+
+function expectedSourceEvidenceKindForCase(testCase) {
+  if (testCase.stationA?.startsWith("ksat-") && testCase.stationB?.startsWith("ksat-")) {
+    return "same-operator-family-inferred";
+  }
+  if (
+    (testCase.stationA === "singtel-bukit-timah" &&
+      testCase.stationB === "measat-cyberjaya") ||
+    (testCase.stationA === "cht-yangmingshan" &&
+      testCase.stationB === "sansa-hartebeesthoek")
+  ) {
+    return "cross-family-geometric";
+  }
+  return null;
+}
+
 const CSV_ORBIT_DISPLAY_ORDER = ["LEO", "MEO", "GEO"];
 const CSV_POLICY_DISCLOSURE_THRESHOLD_ORDER = [
   "latencyBudgetMs",
@@ -394,6 +424,7 @@ async function readSelectedPairState(client, terminalStatuses = ["ready", "empty
         const sourcesDisclosure = document.querySelector('[data-disclosure="sources-non-claims"]');
         const capDisclosure = document.querySelector('[data-cap-disclosure="true"]');
         const policyDisclosure = document.querySelector('[data-policy-disclosure="true"]');
+        const metricAnchorDisclosure = document.querySelector('[data-metric-anchor-disclosure="true"]');
         const comparePanes = Array.from(document.querySelectorAll('[data-compare-pane]'));
         last = {
           hasCapture: Boolean(capture),
@@ -406,7 +437,10 @@ async function readSelectedPairState(client, terminalStatuses = ["ready", "empty
                 routeMode: panel.dataset.dataCompletenessRouteMode ?? null,
                 emptyReasonCode: panel.dataset.emptyReasonCode ?? null,
                 activePolicyId: panel.dataset.activePolicyId ?? null,
-                compareMode: panel.dataset.compareMode ?? null
+                compareMode: panel.dataset.compareMode ?? null,
+                sourceTier: panel.dataset.sourceTier ?? null,
+                sourceEvidenceKind: panel.dataset.sourceEvidenceKind ?? null,
+                sourceBadgeLabel: panel.dataset.sourceBadgeLabel ?? null
               }
             : null,
           footer: footer ? { ...footer.dataset } : null,
@@ -423,6 +457,9 @@ async function readSelectedPairState(client, terminalStatuses = ["ready", "empty
             : null,
           policyDisclosure: policyDisclosure
             ? { dataset: { ...policyDisclosure.dataset }, text: policyDisclosure.textContent ?? "" }
+            : null,
+          metricAnchorDisclosure: metricAnchorDisclosure
+            ? { dataset: { ...metricAnchorDisclosure.dataset }, text: metricAnchorDisclosure.textContent ?? "" }
             : null,
           sourcesDisclosureText: sourcesDisclosure?.textContent ?? ""
         };
@@ -632,6 +669,101 @@ function assertCapDisclosurePayload(label, disclosure) {
   }
 }
 
+function assertPairSourceAttributionPayload(label, attribution) {
+  assert(attribution, `${label}: pairSourceAttribution missing`);
+  assert(
+    attribution.sourceTier === "public-disclosed" ||
+      attribution.sourceTier === "geometric-derived",
+    `${label}: pair source tier invalid`
+  );
+  assert(
+    SOURCE_EVIDENCE_KINDS.has(attribution.evidenceKind),
+    `${label}: pair source evidence kind invalid`
+  );
+  assert(
+    typeof attribution.badgeLabel === "string" && attribution.badgeLabel.length > 0,
+    `${label}: pair source badge label missing`
+  );
+  assert(
+    Array.isArray(attribution.nonClaims),
+    `${label}: pair source non-claims missing`
+  );
+}
+
+function assertRuntimeInventoryDisclosurePayload(label, disclosure, data) {
+  assert(disclosure?.perOrbit, `${label}: runtimeInventoryDisclosure missing`);
+  for (const orbit of ["LEO", "MEO", "GEO"]) {
+    const row = disclosure.perOrbit[orbit];
+    const source = data.tleSources.find((candidate) => candidate.orbitClass === orbit);
+    assert(row, `${label}: ${orbit} runtime inventory row missing`);
+    assert(source, `${label}: ${orbit} TLE source missing for inventory parity`);
+    assert(
+      TLE_SOURCE_MODES.has(row.inventorySourceMode),
+      `${label}: ${orbit} inventory source mode invalid`
+    );
+    assert(
+      row.networkSnapshotInventoryCount === EXPECTED_CAP_DISCLOSURE.perOrbitInventory[orbit],
+      `${label}: ${orbit} network snapshot inventory mismatch`
+    );
+    assert(
+      row.localFallbackInventoryCount === null &&
+        typeof row.localFallbackInventoryNote === "string" &&
+        row.localFallbackInventoryNote.includes("not loaded"),
+      `${label}: ${orbit} local fallback inventory should be unavailable`
+    );
+    assert(
+      row.activeInventoryCount === source.recordCount,
+      `${label}: ${orbit} active inventory should match source recordCount`
+    );
+    assert(
+      row.acceptedRecordCount === source.acceptedRecordCount,
+      `${label}: ${orbit} accepted inventory should match source acceptedRecordCount`
+    );
+    assert(
+      row.runtimeCap === data.capDisclosure.perOrbitCap[orbit],
+      `${label}: ${orbit} runtime cap parity mismatch`
+    );
+    assert(
+      row.cappedAtRuntime === data.capDisclosure.cappedAtRuntime[orbit],
+      `${label}: ${orbit} capped parity mismatch`
+    );
+    assert(
+      Number.isInteger(row.visibleActorCount) && row.visibleActorCount >= 0,
+      `${label}: ${orbit} visible actor count invalid`
+    );
+  }
+}
+
+function assertMetricAnchorDisclosurePayload(
+  label,
+  disclosure,
+  expectedPolicyId = DEFAULT_HANDOVER_POLICY_ID
+) {
+  assert(disclosure, `${label}: metricAnchorDisclosure missing`);
+  for (const [key, expected] of Object.entries(EXPECTED_METRIC_ANCHORS)) {
+    assert(
+      disclosure[key] === expected,
+      `${label}: metric anchor ${key} mismatch`
+    );
+  }
+  assert(
+    disclosure.activePolicyId === expectedPolicyId,
+    `${label}: metric anchor active policy mismatch`
+  );
+  assert(
+    disclosure.policyThresholds?.latencyBudgetMs === 600 &&
+      disclosure.policyThresholds?.hysteresisDb === 2 &&
+      disclosure.policyThresholds?.minVisibilityWindowMs === 60_000 &&
+      disclosure.policyThresholds?.elevationThresholdDeg === 10,
+    `${label}: metric anchor policy thresholds mismatch`
+  );
+  assert(
+    typeof disclosure.nonClaim === "string" &&
+      disclosure.nonClaim.includes("not measured"),
+    `${label}: metric anchor non-claim missing`
+  );
+}
+
 function assertPolicyDisclosurePayload(
   label,
   disclosure,
@@ -802,6 +934,7 @@ function assertDataCompletenessShape(
   const data = overlay?.dataCompleteness;
   assert(data, `${label}: missing dataCompleteness debug payload`);
   assert(data.routeMode === RUNTIME_MODE, `${label}: wrong routeMode ${data.routeMode}`);
+  assertPairSourceAttributionPayload(label, data.pairSourceAttribution);
   assert(data.actorSourceCoverage?.fakeActorCount === 0, `${label}: fake actor count is not zero`);
   assert(Array.isArray(data.tleSources) && data.tleSources.length === 3, `${label}: expected 3 TLE sources`);
   assert(
@@ -809,6 +942,16 @@ function assertDataCompletenessShape(
     `${label}: expected 3 TLE freshness rows`
   );
   assertCapDisclosurePayload(label, data.capDisclosure);
+  assertRuntimeInventoryDisclosurePayload(
+    label,
+    data.runtimeInventoryDisclosure,
+    data
+  );
+  assertMetricAnchorDisclosurePayload(
+    label,
+    data.metricAnchorDisclosure,
+    expectedPolicyId
+  );
   assertPolicyDisclosurePayload(label, data.policyDisclosure, expectedPolicyId);
   assertA8UnavailablePlaceholders(label, data);
   for (const freshness of data.tleFreshness) {
@@ -1079,6 +1222,58 @@ function assertStationPrecisionFooterDataset(testCase, state) {
   }
 }
 
+function assertSourceAttributionParity(testCase, state) {
+  const attribution = state.overlay?.dataCompleteness?.pairSourceAttribution;
+  assertPairSourceAttributionPayload(testCase.label, attribution);
+  assert(
+    state.panel?.sourceTier === attribution.sourceTier &&
+      state.panel?.sourceEvidenceKind === attribution.evidenceKind &&
+      state.panel?.sourceBadgeLabel === attribution.badgeLabel,
+    `${testCase.label}: panel source attribution must match debug payload`
+  );
+  assert(
+    state.footer?.sourceTier === attribution.sourceTier &&
+      state.footer?.evidenceKind === attribution.evidenceKind &&
+      state.footer?.badgeLabel === attribution.badgeLabel,
+    `${testCase.label}: footer source attribution must match debug payload`
+  );
+  assert(
+    state.overlay.dataCompleteness.stationPrecision.every(
+      (station) => station.sourceTier === attribution.sourceTier
+    ),
+    `${testCase.label}: station precision rows should inherit pair source tier`
+  );
+
+  const expectedEvidenceKind = expectedSourceEvidenceKindForCase(testCase);
+  if (!expectedEvidenceKind) {
+    return;
+  }
+  assert(
+    attribution.evidenceKind === expectedEvidenceKind,
+    `${testCase.label}: expected ${expectedEvidenceKind}, received ${attribution.evidenceKind}`
+  );
+  if (expectedEvidenceKind === "same-operator-family-inferred") {
+    assert(
+      attribution.sourceTier === "geometric-derived" &&
+        /no pair attestation/i.test(attribution.badgeLabel),
+      `${testCase.label}: same-family inference should remain geometric-derived`
+    );
+    assert(
+      (state.sourcesDisclosureText ?? "").includes("Same operator family is an inference") &&
+        (state.sourcesDisclosureText ?? "").includes("not pair-level routing") &&
+        (state.sourcesDisclosureText ?? "").includes("operator attestation"),
+      `${testCase.label}: Row 5 non-claim should narrow same-family claim`
+    );
+  }
+  if (expectedEvidenceKind === "cross-family-geometric") {
+    assert(
+      attribution.sourceTier === "geometric-derived" &&
+        /visibility-derived only/i.test(attribution.badgeLabel),
+      `${testCase.label}: cross-family pair should remain geometric-derived`
+    );
+  }
+}
+
 function assertRow5DisclosureDatasets(
   label,
   state,
@@ -1086,29 +1281,87 @@ function assertRow5DisclosureDatasets(
 ) {
   assert(state.capDisclosure, `${label}: Row 5 cap disclosure missing`);
   assert(state.policyDisclosure, `${label}: Row 5 policy disclosure missing`);
+  assert(
+    state.metricAnchorDisclosure,
+    `${label}: Row 5 metric anchor disclosure missing`
+  );
+  const data = state.overlay?.dataCompleteness;
+  assert(data?.runtimeInventoryDisclosure?.perOrbit, `${label}: debug inventory missing`);
 
   const capDataset = state.capDisclosure.dataset;
   for (const orbit of ["leo", "meo", "geo"]) {
     const key = orbit.toUpperCase();
+    const inventory = data.runtimeInventoryDisclosure.perOrbit[key];
+    assert(inventory, `${label}: ${key} debug inventory row missing`);
     assert(
       Number.parseInt(capDataset[`${orbit}Cap`], 10) ===
-        EXPECTED_CAP_DISCLOSURE.perOrbitCap[key],
+        data.capDisclosure.perOrbitCap[key],
       `${label}: Row 5 ${key} cap dataset mismatch`
     );
     assert(
       Number.parseInt(capDataset[`${orbit}Inventory`], 10) ===
-        EXPECTED_CAP_DISCLOSURE.perOrbitInventory[key],
+        data.capDisclosure.perOrbitInventory[key],
       `${label}: Row 5 ${key} inventory dataset mismatch`
     );
     assert(
       capDataset[`${orbit}CappedAtRuntime`] ===
-        String(EXPECTED_CAP_DISCLOSURE.cappedAtRuntime[key]),
+        String(data.capDisclosure.cappedAtRuntime[key]),
       `${label}: Row 5 ${key} capped dataset mismatch`
     );
+    assert(
+      capDataset[`${orbit}InventorySourceMode`] === inventory.inventorySourceMode &&
+        TLE_SOURCE_MODES.has(inventory.inventorySourceMode),
+      `${label}: Row 5 ${key} source mode dataset mismatch`
+    );
+    assert(
+      Number.parseInt(capDataset[`${orbit}NetworkSnapshotInventoryCount`], 10) ===
+        inventory.networkSnapshotInventoryCount,
+      `${label}: Row 5 ${key} network inventory dataset mismatch`
+    );
+    assert(
+      inventory.networkSnapshotInventoryCount ===
+        EXPECTED_CAP_DISCLOSURE.perOrbitInventory[key],
+      `${label}: Row 5 ${key} network inventory fixture mismatch`
+    );
+    assert(
+      capDataset[`${orbit}LocalFallbackInventoryCount`] ===
+        csvCellValue(inventory.localFallbackInventoryCount),
+      `${label}: Row 5 ${key} local fallback inventory should be unavailable`
+    );
+    assert(
+      Number.parseInt(capDataset[`${orbit}ActiveInventoryCount`], 10) ===
+        inventory.activeInventoryCount,
+      `${label}: Row 5 ${key} active inventory dataset mismatch`
+    );
+    assert(
+      Number.parseInt(capDataset[`${orbit}AcceptedRecordCount`], 10) ===
+        inventory.acceptedRecordCount,
+      `${label}: Row 5 ${key} accepted record dataset mismatch`
+    );
+    assert(
+      Number.parseInt(capDataset[`${orbit}RuntimeCap`], 10) ===
+        inventory.runtimeCap,
+      `${label}: Row 5 ${key} runtime cap dataset mismatch`
+    );
+    assert(
+      Number.parseInt(capDataset[`${orbit}VisibleActorCount`], 10) ===
+        inventory.visibleActorCount,
+      `${label}: Row 5 ${key} visible actor dataset mismatch`
+    );
   }
+  const leoInventory = data.runtimeInventoryDisclosure.perOrbit.LEO;
+  const expectedLeoText =
+    `LEO: source ${leoInventory.inventorySourceMode} · ` +
+    `network ${inventoryTextValue(leoInventory.networkSnapshotInventoryCount)} · ` +
+    `local fallback ${inventoryTextValue(leoInventory.localFallbackInventoryCount)} · ` +
+    `active ${leoInventory.activeInventoryCount} · ` +
+    `accepted ${leoInventory.acceptedRecordCount} · ` +
+    `cap ${leoInventory.runtimeCap} · ` +
+    `${leoInventory.cappedAtRuntime ? "capped" : "uncapped"} · ` +
+    `visible ${leoInventory.visibleActorCount}`;
   assert(
-    state.capDisclosure.text.includes("LEO: 200 cap / 600 inventory"),
-    `${label}: Row 5 cap text missing LEO counts`
+    state.capDisclosure.text.includes(expectedLeoText),
+    `${label}: Row 5 inventory text missing LEO count breakdown`
   );
 
   const policyDataset = state.policyDisclosure.dataset;
@@ -1135,6 +1388,22 @@ function assertRow5DisclosureDatasets(
   assert(
     state.policyDisclosure.text.includes(expectedPolicyId),
     `${label}: Row 5 policy text missing active id`
+  );
+
+  const metricDataset = state.metricAnchorDisclosure.dataset;
+  for (const [key, expected] of Object.entries(EXPECTED_METRIC_ANCHORS)) {
+    assert(
+      metricDataset[key] === expected,
+      `${label}: Row 5 metric ${key} dataset mismatch`
+    );
+    assert(
+      state.metricAnchorDisclosure.text.includes(expected),
+      `${label}: Row 5 metric ${key} text missing`
+    );
+  }
+  assert(
+    metricDataset.activePolicyId === expectedPolicyId,
+    `${label}: Row 5 metric active policy dataset mismatch`
   );
 }
 
@@ -1225,6 +1494,7 @@ function assertReadyCase(
   );
   assertStationPrecisionFooterDataset(testCase, state);
   assertRow5DisclosureDatasets(testCase.label, state, expectedPolicyId);
+  assertSourceAttributionParity(testCase, state);
   assert(state.chip?.sourceCount === "3", `${testCase.label}: TLE chip source count missing`);
   assert(state.chip?.sourceHealth, `${testCase.label}: TLE chip source health missing`);
   assertTleChipVisualBand(testCase.label, state);
@@ -1272,6 +1542,7 @@ function assertEmptyCase(
   assertExpectedStationPrecision(testCase, state.overlay.dataCompleteness);
   assertStationPrecisionFooterDataset(testCase, state);
   assertRow5DisclosureDatasets(testCase.label, state, expectedPolicyId);
+  assertSourceAttributionParity(testCase, state);
   assertTleChipVisualBand(testCase.label, state);
   if (!testCase.compare) {
     assertDefaultComparisonHidden(testCase.label, state);
@@ -1324,6 +1595,33 @@ function assertCsvEvidence(label, evidence) {
   const data = evidence.dataCompleteness;
   assert(data, `${label}: CSV reference payload missing`);
   const sections = parseCsvSections(evidence.text);
+
+  const pairSourceAttribution = requireCsvSection(
+    sections,
+    "# Pair source attribution",
+    label
+  );
+  const pairSourceByField = new Map(
+    pairSourceAttribution.rows.map((row) => [row.field, row.value])
+  );
+  assert(
+    pairSourceByField.get("sourceTier") === data.pairSourceAttribution.sourceTier,
+    `${label}: CSV pair source tier mismatch`
+  );
+  assert(
+    pairSourceByField.get("evidenceKind") ===
+      data.pairSourceAttribution.evidenceKind,
+    `${label}: CSV pair source evidence kind mismatch`
+  );
+  assert(
+    pairSourceByField.get("badgeLabel") === data.pairSourceAttribution.badgeLabel,
+    `${label}: CSV pair source badge label mismatch`
+  );
+  assert(
+    pairSourceByField.get("nonClaims") ===
+      JSON.stringify(data.pairSourceAttribution.nonClaims),
+    `${label}: CSV pair source non-claims mismatch`
+  );
 
   const sourceManifest = requireCsvSection(sections, "# TLE source manifest", label);
   assert(
@@ -1711,6 +2009,92 @@ function assertCsvEvidence(label, evidence) {
     );
   }
 
+  const runtimeInventory = requireCsvSection(
+    sections,
+    "# Runtime inventory disclosure",
+    label
+  );
+  assert(
+    runtimeInventory.rows.length === CSV_ORBIT_DISPLAY_ORDER.length,
+    `${label}: CSV runtime inventory row count mismatch`
+  );
+  const inventoryRowsByOrbit = new Map(
+    runtimeInventory.rows.map((row) => [row.orbitClass, row])
+  );
+  for (const orbit of CSV_ORBIT_DISPLAY_ORDER) {
+    const row = inventoryRowsByOrbit.get(orbit);
+    const disclosure = data.runtimeInventoryDisclosure.perOrbit[orbit];
+    assert(row, `${label}: CSV missing runtime inventory row ${orbit}`);
+    assert(
+      row.inventorySourceMode === disclosure.inventorySourceMode,
+      `${label}: CSV ${orbit} runtime inventory source mode mismatch`
+    );
+    assert(
+      row.networkSnapshotInventoryCount ===
+        csvCellValue(disclosure.networkSnapshotInventoryCount),
+      `${label}: CSV ${orbit} network inventory mismatch`
+    );
+    assert(
+      row.localFallbackInventoryCount ===
+        csvCellValue(disclosure.localFallbackInventoryCount),
+      `${label}: CSV ${orbit} local fallback inventory mismatch`
+    );
+    assert(
+      row.localFallbackInventoryNote === disclosure.localFallbackInventoryNote,
+      `${label}: CSV ${orbit} local fallback note mismatch`
+    );
+    assert(
+      row.activeInventoryCount === csvCellValue(disclosure.activeInventoryCount),
+      `${label}: CSV ${orbit} active inventory mismatch`
+    );
+    assert(
+      row.acceptedRecordCount === csvCellValue(disclosure.acceptedRecordCount),
+      `${label}: CSV ${orbit} accepted count mismatch`
+    );
+    assert(
+      row.runtimeCap === csvCellValue(disclosure.runtimeCap),
+      `${label}: CSV ${orbit} runtime cap mismatch`
+    );
+    assert(
+      row.cappedAtRuntime === csvCellValue(disclosure.cappedAtRuntime),
+      `${label}: CSV ${orbit} runtime capped flag mismatch`
+    );
+    assert(
+      row.visibleActorCount === csvCellValue(disclosure.visibleActorCount),
+      `${label}: CSV ${orbit} visible actor mismatch`
+    );
+  }
+
+  const metricAnchors = requireCsvSection(
+    sections,
+    "# Metric anchor disclosure",
+    label
+  );
+  const metricAnchorByField = new Map(
+    metricAnchors.rows.map((row) => [row.field, row.value])
+  );
+  for (const [key, expected] of Object.entries(EXPECTED_METRIC_ANCHORS)) {
+    assert(
+      metricAnchorByField.get(key) === expected &&
+        data.metricAnchorDisclosure[key] === expected,
+      `${label}: CSV metric anchor ${key} mismatch`
+    );
+  }
+  assert(
+    metricAnchorByField.get("activePolicyId") ===
+      data.metricAnchorDisclosure.activePolicyId,
+    `${label}: CSV metric anchor policy mismatch`
+  );
+  assert(
+    metricAnchorByField.get("policyThresholds") ===
+      JSON.stringify(data.metricAnchorDisclosure.policyThresholds),
+    `${label}: CSV metric anchor threshold mismatch`
+  );
+  assert(
+    metricAnchorByField.get("nonClaim") === data.metricAnchorDisclosure.nonClaim,
+    `${label}: CSV metric anchor non-claim mismatch`
+  );
+
   const policyDisclosure = requireCsvSection(sections, "# Policy disclosure", label);
   assert(
     policyDisclosure.rows.length === CSV_POLICY_DISCLOSURE_THRESHOLD_ORDER.length,
@@ -1764,6 +2148,21 @@ function assertCsvEvidence(label, evidence) {
   assert(
     summaryByField.get("capDisclosure") === JSON.stringify(data.capDisclosure),
     `${label}: CSV cap disclosure summary mismatch`
+  );
+  assert(
+    summaryByField.get("pairSourceAttribution") ===
+      JSON.stringify(data.pairSourceAttribution),
+    `${label}: CSV pair source summary mismatch`
+  );
+  assert(
+    summaryByField.get("runtimeInventoryDisclosure") ===
+      JSON.stringify(data.runtimeInventoryDisclosure),
+    `${label}: CSV runtime inventory summary mismatch`
+  );
+  assert(
+    summaryByField.get("metricAnchorDisclosure") ===
+      JSON.stringify(data.metricAnchorDisclosure),
+    `${label}: CSV metric anchor summary mismatch`
   );
   assert(
     summaryByField.get("activePolicyId") === data.policyDisclosure.activePolicyId,
@@ -1901,6 +2300,7 @@ try {
       status: state.overlay.status,
       emptyReasonCode: state.overlay.emptyReasonCode,
       sourceTier: state.footer?.sourceTier ?? null,
+      sourceEvidenceKind: state.footer?.evidenceKind ?? null,
       sourceHealth: state.chip?.sourceHealth ?? null,
       sourceMode: state.chip?.sourceMode ?? state.overlay.sourceMode,
       modeledOutputCount: state.overlay.dataCompleteness.modeledOutputs.length,

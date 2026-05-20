@@ -47,6 +47,7 @@ function compactUtcForFilename(utc: string): string {
 }
 
 export function buildRuntimeProjectionCsv(result: RuntimeProjectionResult): string {
+  const pairSourceAttribution = result.dataCompleteness.pairSourceAttribution;
   const rows: CsvCell[][] = [
     ["# Runtime projection"],
     ["field", "value"],
@@ -61,7 +62,9 @@ export function buildRuntimeProjectionCsv(result: RuntimeProjectionResult): stri
       durationMs(result.timeWindow.startUtc, result.timeWindow.endUtc)
     ],
     ["sharedSupportedOrbits", result.sharedSupportedOrbits.join("/")],
-    ["sourceTier", result.truthBoundary.sourceTier],
+    ["sourceTier", pairSourceAttribution.sourceTier],
+    ["sourceEvidenceKind", pairSourceAttribution.evidenceKind],
+    ["sourceBadgeLabel", pairSourceAttribution.badgeLabel],
     ["precisionLabel", result.truthBoundary.precisionLabel],
     [],
     ["# Communication stats"],
@@ -120,6 +123,16 @@ export function buildRuntimeProjectionCsv(result: RuntimeProjectionResult): stri
   for (const nonClaim of result.truthBoundary.nonClaims) {
     rows.push([nonClaim]);
   }
+
+  rows.push(
+    [],
+    ["# Pair source attribution"],
+    ["field", "value"],
+    ["sourceTier", pairSourceAttribution.sourceTier],
+    ["evidenceKind", pairSourceAttribution.evidenceKind],
+    ["badgeLabel", pairSourceAttribution.badgeLabel],
+    ["nonClaims", JSON.stringify(pairSourceAttribution.nonClaims)]
+  );
 
   rows.push(
     [],
@@ -496,6 +509,61 @@ export function buildRuntimeProjectionCsv(result: RuntimeProjectionResult): stri
 
   rows.push(
     [],
+    ["# Runtime inventory disclosure"],
+    [
+      "orbitClass",
+      "inventorySourceMode",
+      "networkSnapshotInventoryCount",
+      "localFallbackInventoryCount",
+      "localFallbackInventoryNote",
+      "activeInventoryCount",
+      "acceptedRecordCount",
+      "runtimeCap",
+      "cappedAtRuntime",
+      "visibleActorCount"
+    ]
+  );
+  for (const orbitClass of ORBIT_DISPLAY_ORDER) {
+    const disclosure =
+      result.dataCompleteness.runtimeInventoryDisclosure.perOrbit[orbitClass];
+    rows.push([
+      orbitClass,
+      disclosure.inventorySourceMode,
+      disclosure.networkSnapshotInventoryCount,
+      disclosure.localFallbackInventoryCount,
+      disclosure.localFallbackInventoryNote,
+      disclosure.activeInventoryCount,
+      disclosure.acceptedRecordCount,
+      disclosure.runtimeCap,
+      disclosure.cappedAtRuntime ? "true" : "false",
+      disclosure.visibleActorCount
+    ]);
+  }
+
+  rows.push(
+    [],
+    ["# Metric anchor disclosure"],
+    ["field", "value"],
+    [
+      "carrierSelection",
+      result.dataCompleteness.metricAnchorDisclosure.carrierSelection
+    ],
+    ["capacityModel", result.dataCompleteness.metricAnchorDisclosure.capacityModel],
+    ["jitterModel", result.dataCompleteness.metricAnchorDisclosure.jitterModel],
+    ["delayModel", result.dataCompleteness.metricAnchorDisclosure.delayModel],
+    [
+      "activePolicyId",
+      result.dataCompleteness.metricAnchorDisclosure.activePolicyId
+    ],
+    [
+      "policyThresholds",
+      JSON.stringify(result.dataCompleteness.metricAnchorDisclosure.policyThresholds)
+    ],
+    ["nonClaim", result.dataCompleteness.metricAnchorDisclosure.nonClaim]
+  );
+
+  rows.push(
+    [],
     ["# Policy disclosure"],
     [
       "activePolicyId",
@@ -532,6 +600,18 @@ export function buildRuntimeProjectionCsv(result: RuntimeProjectionResult): stri
       JSON.stringify(result.dataCompleteness.visibilityCadenceSecondsByOrbit)
     ],
     ["capDisclosure", JSON.stringify(result.dataCompleteness.capDisclosure)],
+    [
+      "pairSourceAttribution",
+      JSON.stringify(result.dataCompleteness.pairSourceAttribution)
+    ],
+    [
+      "runtimeInventoryDisclosure",
+      JSON.stringify(result.dataCompleteness.runtimeInventoryDisclosure)
+    ],
+    [
+      "metricAnchorDisclosure",
+      JSON.stringify(result.dataCompleteness.metricAnchorDisclosure)
+    ],
     ["activePolicyId", result.dataCompleteness.policyDisclosure.activePolicyId],
     [
       "policyDisclosureThresholds",
