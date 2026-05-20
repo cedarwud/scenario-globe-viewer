@@ -17,6 +17,8 @@ export interface PublicRegistryStation {
   readonly region: string;
   readonly lat: number;
   readonly lon: number;
+  readonly elevationM: number;
+  readonly terrainMaskDeg: number;
   readonly supportedOrbits: ReadonlyArray<string>;
   readonly supportedBands: ReadonlyArray<string>;
   readonly disclosurePrecision: string;

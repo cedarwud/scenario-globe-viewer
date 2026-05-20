@@ -666,6 +666,12 @@ function formatSpeedMbps(mbps: number): string {
 
 const ORBIT_DISPLAY_ORDER: ReadonlyArray<OrbitClass> = ["LEO", "MEO", "GEO"];
 
+function computeProjectionPairMidpointHeightAboveSeaKm(
+  result: RuntimeProjectionResult
+): number {
+  return (result.pair.stationA.elevationM + result.pair.stationB.elevationM) / 2000;
+}
+
 /**
  * Per-orbit downlink-throughput contrast. `computeLinkBudgetMetricsForOrbit`
  * runs the same ITU-R P.618-14 model the projection uses; pricing it at
@@ -674,20 +680,24 @@ const ORBIT_DISPLAY_ORDER: ReadonlyArray<OrbitClass> = ["LEO", "MEO", "GEO"];
  */
 function buildRainSpeedComparison(
   rainRateMmPerHour: number,
-  sharedSupportedOrbits: ReadonlyArray<OrbitClass>
+  result: RuntimeProjectionResult
 ): HTMLElement {
   const list = document.createElement("ul");
   list.className = "v4-projection-side-panel__list";
-  const allowedOrbits = new Set(sharedSupportedOrbits);
+  const allowedOrbits = new Set(result.sharedSupportedOrbits);
+  const stationHeightAboveSeaKm =
+    computeProjectionPairMidpointHeightAboveSeaKm(result);
 
   for (const orbit of ORBIT_DISPLAY_ORDER.filter((orbitClass) =>
     allowedOrbits.has(orbitClass)
   )) {
     const clear = computeLinkBudgetMetricsForOrbit(orbit, {
-      rainRateMmPerHour: 0
+      rainRateMmPerHour: 0,
+      stationHeightAboveSeaKm
     });
     const wet = computeLinkBudgetMetricsForOrbit(orbit, {
-      rainRateMmPerHour
+      rainRateMmPerHour,
+      stationHeightAboveSeaKm
     });
     const dropFraction =
       clear.networkSpeedMbps > 0
@@ -750,7 +760,7 @@ function buildRainImpactBody(
     // Even at 0 mm/h still show the per-orbit downlink baseline so the
     // disclosure body is never empty.
     frag.append(
-      buildRainSpeedComparison(rainRateMmPerHour, current.sharedSupportedOrbits)
+      buildRainSpeedComparison(rainRateMmPerHour, current)
     );
     return frag;
   }
@@ -788,7 +798,7 @@ function buildRainImpactBody(
   // Per-orbit throughput contrast — always moves with rain, so the link
   // degradation stays visible even when comm-time is geometry-limited.
   frag.append(
-    buildRainSpeedComparison(rainRateMmPerHour, current.sharedSupportedOrbits)
+    buildRainSpeedComparison(rainRateMmPerHour, current)
   );
 
   const caption = document.createElement("p");
@@ -1383,8 +1393,15 @@ function buildFooterRow(result: RuntimeProjectionResult): HTMLElement {
       station.renderPositionIsSourceTruth
     );
     footer.dataset[`station${slot}CoordinateUse`] = station.coordinateUse;
+    footer.dataset[`station${slot}ElevationM`] = String(station.elevationM);
+    footer.dataset[`station${slot}TerrainMaskDeg`] = String(
+      station.terrainMaskDeg
+    );
+    footer.dataset[`station${slot}EffectiveElevationThresholdDeg`] = String(
+      station.effectiveElevationThresholdDeg
+    );
   }
-  footer.textContent = `${result.truthBoundary.precisionLabel} · ${result.truthBoundary.sourceTier}`;
+  footer.textContent = `${result.truthBoundary.precisionLabel} · ${result.truthBoundary.sourceTier} · elevation/terrain mask`;
   row.append(footer);
   return row;
 }

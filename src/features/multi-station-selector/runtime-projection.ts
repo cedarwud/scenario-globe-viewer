@@ -210,6 +210,7 @@ interface RuntimeTleSourceSelection {
 export interface LinkBudgetMetricOptions {
   readonly representativeElevationDeg?: number;
   readonly rainRateMmPerHour?: number;
+  readonly stationHeightAboveSeaKm?: number;
 }
 
 export interface LinkBudgetMetrics {
@@ -230,10 +231,11 @@ interface LinkBudgetDetails extends LinkBudgetMetrics {
 interface HandoverSampleOptions {
   readonly elevationThresholdDeg: number;
   readonly rainRateMmPerHour: number;
+  readonly stationHeightAboveSeaKm: number;
 }
 
 function toStationGeodetic(station: PublicRegistryStation): StationGeodetic {
-  return { lat: station.lat, lon: station.lon };
+  return { lat: station.lat, lon: station.lon, altMeters: station.elevationM };
 }
 
 function capTleRecords(
@@ -268,11 +270,39 @@ function normalizeRainRateMmPerHour(value: number | undefined): number {
   return Math.max(0, value);
 }
 
+function resolveBaseElevationThresholdDeg(value: number | undefined): number {
+  if (value === undefined || !Number.isFinite(value)) {
+    return DEFAULT_ELEVATION_THRESHOLD_DEG;
+  }
+  return value;
+}
+
+function computeEffectiveElevationThresholdDeg(
+  baseElevationThresholdDeg: number,
+  station: PublicRegistryStation
+): number {
+  return baseElevationThresholdDeg + station.terrainMaskDeg;
+}
+
 function normalizeElevationDeg(value: number | undefined): number {
   if (value === undefined || !Number.isFinite(value)) {
     return REPRESENTATIVE_ELEVATION_DEG;
   }
   return clampNumber(value, MIN_ELEVATION_FOR_MODEL_DEG, 90);
+}
+
+function computePairMidpointHeightAboveSeaKm(
+  stationA: PublicRegistryStation,
+  stationB: PublicRegistryStation
+): number {
+  return (stationA.elevationM + stationB.elevationM) / 2000;
+}
+
+function normalizeRainModelStationHeightAboveSeaKm(value: number | undefined): number {
+  if (value === undefined || !Number.isFinite(value)) {
+    return 0;
+  }
+  return Math.max(0, value);
 }
 
 function computeRepresentativeElevationDeg(
@@ -314,6 +344,7 @@ function computeRainAttenuationForCarrierDb(options: {
   readonly rainRateMmPerHour: number;
   readonly carrierFrequencyGHz: number;
   readonly elevationDeg: number;
+  readonly stationHeightAboveSeaKm: number;
 }): number {
   const rainRateMmPerHour = normalizeRainRateMmPerHour(options.rainRateMmPerHour);
   if (rainRateMmPerHour === 0) {
@@ -328,11 +359,14 @@ function computeRainAttenuationForCarrierDb(options: {
   }
 
   // ITU-R P.618-14 §2.2.1.1 / §2.2.1.2 -- rain specific attenuation and effective slant path.
+  // Rain attenuation uses one representative link-path height; only negative altitude is clamped for the rain model.
   return computeRainAttenuationDb({
     rainRateMmPerHour,
     carrierFrequencyGHz: options.carrierFrequencyGHz,
     elevationDeg: options.elevationDeg,
-    stationHeightAboveSeaKm: 0,
+    stationHeightAboveSeaKm: normalizeRainModelStationHeightAboveSeaKm(
+      options.stationHeightAboveSeaKm
+    ),
     polarization: "circular"
   });
 }
@@ -345,6 +379,11 @@ function computeLinkBudgetDetailsForOrbit(
     options.representativeElevationDeg
   );
   const rainRateMmPerHour = normalizeRainRateMmPerHour(options.rainRateMmPerHour);
+  const stationHeightAboveSeaKm =
+    options.stationHeightAboveSeaKm === undefined ||
+    !Number.isFinite(options.stationHeightAboveSeaKm)
+      ? 0
+      : options.stationHeightAboveSeaKm;
   const carrierFrequencyGHz =
     ORBIT_CLASS_CARRIER_DEFAULTS[orbitClass].carrierFrequencyGHz;
   const slantRangeKm = computeRepresentativeSlantRangeKm(
@@ -364,7 +403,8 @@ function computeLinkBudgetDetailsForOrbit(
   const rainAttenuationDb = computeRainAttenuationForCarrierDb({
     rainRateMmPerHour,
     carrierFrequencyGHz,
-    elevationDeg: representativeElevationDeg
+    elevationDeg: representativeElevationDeg,
+    stationHeightAboveSeaKm
   });
   const totalPathLossDb =
     freeSpacePathLossDb + gasAbsorptionDb + rainAttenuationDb;
@@ -448,11 +488,13 @@ function selectVisibleConstellations(
 
 function computeLinkBudgetDetailsForWindow(
   window: PairVisibilityWindow,
-  rainRateMmPerHour: number
+  rainRateMmPerHour: number,
+  stationHeightAboveSeaKm: number
 ): LinkBudgetDetails {
   return computeLinkBudgetDetailsForOrbit(window.orbitClass, {
     representativeElevationDeg: computeRepresentativeElevationDeg(window),
-    rainRateMmPerHour
+    rainRateMmPerHour,
+    stationHeightAboveSeaKm
   });
 }
 
@@ -519,7 +561,11 @@ function deriveHandoverEventsAtSampleStep(
 
     const linkBudgetRows = visibleAtSample.map((w) => ({
       window: w,
-      details: computeLinkBudgetDetailsForWindow(w, options.rainRateMmPerHour)
+      details: computeLinkBudgetDetailsForWindow(
+        w,
+        options.rainRateMmPerHour,
+        options.stationHeightAboveSeaKm
+      )
     }));
 
     let next: string | undefined;
@@ -730,8 +776,17 @@ export function computeRuntimeProjection(
   const sampleStepSeconds = input.sampleStepSeconds ?? DEFAULT_SAMPLE_STEP_SECONDS;
   const sampleCadenceSecondsByOrbit =
     resolveRuntimeVisibilityCadenceSecondsByOrbit(input);
-  const elevationThresholdDeg =
-    input.elevationThresholdDeg ?? DEFAULT_ELEVATION_THRESHOLD_DEG;
+  const baseElevationThresholdDeg = resolveBaseElevationThresholdDeg(
+    input.elevationThresholdDeg
+  );
+  const stationAEffectiveElevationThresholdDeg =
+    computeEffectiveElevationThresholdDeg(baseElevationThresholdDeg, input.stationA);
+  const stationBEffectiveElevationThresholdDeg =
+    computeEffectiveElevationThresholdDeg(baseElevationThresholdDeg, input.stationB);
+  const pairMidpointHeightAboveSeaKm = computePairMidpointHeightAboveSeaKm(
+    input.stationA,
+    input.stationB
+  );
   const rainRateMmPerHour = normalizeRainRateMmPerHour(input.rainRateMmPerHour);
 
   const sharedSupportedOrbits = resolveSharedSupportedOrbits(
@@ -748,22 +803,29 @@ export function computeRuntimeProjection(
     sharedSupportedOrbits
   );
 
-  const sampleConfig = {
+  const sampleConfigBase = {
     startUtc: input.timeWindow.startUtc,
     endUtc: input.timeWindow.endUtc,
-    elevationThresholdDeg,
     cadenceSecondsByOrbit: sampleCadenceSecondsByOrbit
+  };
+  const stationASampleConfig = {
+    ...sampleConfigBase,
+    elevationThresholdDeg: stationAEffectiveElevationThresholdDeg
+  };
+  const stationBSampleConfig = {
+    ...sampleConfigBase,
+    elevationThresholdDeg: stationBEffectiveElevationThresholdDeg
   };
 
   const stationAVisibility = computeVisibilityWindowsForStationByOrbitCadence(
     toStationGeodetic(input.stationA),
     cappedRecords,
-    sampleConfig
+    stationASampleConfig
   );
   const stationBVisibility = computeVisibilityWindowsForStationByOrbitCadence(
     toStationGeodetic(input.stationB),
     cappedRecords,
-    sampleConfig
+    stationBSampleConfig
   );
 
   const visibilityWindows = intersectStationWindowsForPair(
@@ -778,8 +840,12 @@ export function computeRuntimeProjection(
       input.timeWindow,
       sampleStepSeconds,
       {
-        elevationThresholdDeg,
-        rainRateMmPerHour
+        // Station-specific terrain masks are already applied when pair windows
+        // are sampled. Keep the policy gate at the base threshold so one
+        // station's mask does not globally raise the other station's gate.
+        elevationThresholdDeg: baseElevationThresholdDeg,
+        rainRateMmPerHour,
+        stationHeightAboveSeaKm: pairMidpointHeightAboveSeaKm
       }
     );
 
@@ -839,7 +905,10 @@ export function computeRuntimeProjection(
     rainRateControlMode: resolveRainRateControlMode(input.rainRateMmPerHour),
     sampleStepSeconds,
     sampleCadenceSecondsByOrbit,
-    elevationThresholdDeg,
+    baseElevationThresholdDeg,
+    stationAEffectiveElevationThresholdDeg,
+    stationBEffectiveElevationThresholdDeg,
+    elevationThresholdDeg: baseElevationThresholdDeg,
     propagationStatsBySatellite: stationAVisibility.propagationStatsBySatellite,
     sceneCameraHint,
     sceneDisplayPolicy

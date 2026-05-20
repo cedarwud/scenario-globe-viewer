@@ -45,22 +45,79 @@ if (!Number.isInteger(serverPort) || serverPort <= 0) {
 
 const baseUrl = `http://127.0.0.1:${serverPort}`;
 
-const readyCase = {
-  label: "Svalbard / Tromso ready pair",
-  stationA: "ksat-svalsat-svalbard",
-  stationB: "ksat-tromso",
-  expectedStatus: "ready",
-  expectedRuntimeLinkVisible: true
-};
-
-const emptyCase = {
-  label: "Svalbard / TrollSat zero-window pair",
-  stationA: "ksat-svalsat-svalbard",
-  stationB: "ksat-trollsat-antarctica",
-  expectedStatus: "empty",
-  expectedRuntimeLinkVisible: false,
-  expectedEmptyReasonCode: "no-pair-intersection"
-};
+const walkthroughCases = [
+  {
+    label: "Walkthrough 1 - Svalbard / Tromso ready pair",
+    stationA: "ksat-svalsat-svalbard",
+    stationB: "ksat-tromso",
+    expectedStatus: "ready",
+    expectedRuntimeLinkVisible: true,
+    baselineVisibilityWindowCount: 26,
+    baselineLinkSelectionEventCount: 2,
+    baselineHandoverCount: 1,
+    expectedStationPrecision: [
+      { stationId: "ksat-svalsat-svalbard", elevationM: 0, terrainMaskDeg: 0 },
+      { stationId: "ksat-tromso", elevationM: 0, terrainMaskDeg: 0 }
+    ]
+  },
+  {
+    label: "Walkthrough 2 - Svalbard / TrollSat zero-window pair",
+    stationA: "ksat-svalsat-svalbard",
+    stationB: "ksat-trollsat-antarctica",
+    expectedStatus: "empty",
+    expectedRuntimeLinkVisible: false,
+    expectedEmptyReasonCode: "no-pair-intersection",
+    baselineVisibilityWindowCount: 0,
+    baselineLinkSelectionEventCount: 0,
+    baselineHandoverCount: 0,
+    expectedStationPrecision: [
+      { stationId: "ksat-svalsat-svalbard", elevationM: 0, terrainMaskDeg: 0 },
+      { stationId: "ksat-trollsat-antarctica", elevationM: 0, terrainMaskDeg: 0 }
+    ]
+  },
+  {
+    label: "Walkthrough 3 - Intelsat DE / US ready pair",
+    stationA: "intelsat-fuchsstadt",
+    stationB: "intelsat-atlanta",
+    expectedStatus: "ready",
+    expectedRuntimeLinkVisible: true,
+    baselineVisibilityWindowCount: 15,
+    baselineLinkSelectionEventCount: 3,
+    baselineHandoverCount: 2,
+    expectedStationPrecision: [
+      { stationId: "intelsat-fuchsstadt", elevationM: 337, terrainMaskDeg: 0 },
+      { stationId: "intelsat-atlanta", elevationM: 241, terrainMaskDeg: 0 }
+    ]
+  },
+  {
+    label: "Walkthrough 4 - Singtel / Measat ready pair",
+    stationA: "singtel-bukit-timah",
+    stationB: "measat-cyberjaya",
+    expectedStatus: "ready",
+    expectedRuntimeLinkVisible: true,
+    baselineVisibilityWindowCount: 42,
+    baselineLinkSelectionEventCount: 1,
+    baselineHandoverCount: 0,
+    expectedStationPrecision: [
+      { stationId: "singtel-bukit-timah", elevationM: 58, terrainMaskDeg: 0 },
+      { stationId: "measat-cyberjaya", elevationM: 22, terrainMaskDeg: 0 }
+    ]
+  },
+  {
+    label: "Walkthrough 5 - CHT / SANSA ready pair",
+    stationA: "cht-yangmingshan",
+    stationB: "sansa-hartebeesthoek",
+    expectedStatus: "ready",
+    expectedRuntimeLinkVisible: true,
+    baselineVisibilityWindowCount: 9,
+    baselineLinkSelectionEventCount: 3,
+    baselineHandoverCount: 2,
+    expectedStationPrecision: [
+      { stationId: "cht-yangmingshan", elevationM: 470, terrainMaskDeg: 0 },
+      { stationId: "sansa-hartebeesthoek", elevationM: 1538, terrainMaskDeg: 0 }
+    ]
+  }
+];
 
 const fixedDemoCase = {
   label: "Fixed demo fixture fallback route",
@@ -342,6 +399,8 @@ async function readCsvEvidence(client, testCase) {
         text,
         dataCompleteness: result.dataCompleteness,
         visibilityWindowCount: result.visibilityWindows.length,
+        linkSelectionEventCount: result.handoverEvents.length,
+        handoverCount: result.communicationStats.handoverCount,
         defaultWindowDurationMinutes:
           (Date.parse(defaultWindow.endUtc) - Date.parse(defaultWindow.startUtc)) / 60000
       };
@@ -574,6 +633,35 @@ function assertDataCompletenessShape(label, state) {
     data.stationPrecision.every((station) => station.stationId && station.disclosurePrecision),
     `${label}: station precision row incomplete`
   );
+  const baseElevationThresholdDeg = Number(
+    data.modeledOutputs?.find((output) => output.kind === "handover")
+      ?.inputSummary?.baseElevationThresholdDeg
+  );
+  assert(
+    Number.isFinite(baseElevationThresholdDeg),
+    `${label}: base elevation threshold missing`
+  );
+  for (const station of data.stationPrecision) {
+    assert(
+      Number.isInteger(station.elevationM),
+      `${label}: station ${station.stationId} elevationM is not an integer`
+    );
+    assert(
+      Number.isInteger(station.terrainMaskDeg) &&
+        station.terrainMaskDeg >= 0 &&
+        station.terrainMaskDeg <= 90,
+      `${label}: station ${station.stationId} terrainMaskDeg is not 0..90`
+    );
+    assert(
+      Number.isFinite(station.effectiveElevationThresholdDeg),
+      `${label}: station ${station.stationId} effective threshold missing`
+    );
+    assert(
+      station.effectiveElevationThresholdDeg ===
+        baseElevationThresholdDeg + station.terrainMaskDeg,
+      `${label}: station ${station.stationId} effective threshold mismatch`
+    );
+  }
   assert(
     Array.isArray(data.actorProvenance),
     `${label}: actor provenance payload missing`
@@ -677,6 +765,65 @@ function assertDataCompletenessShape(label, state) {
   );
 }
 
+function assertStationPrecisionFooterDataset(testCase, state) {
+  assert(state.footer?.stationAId === testCase.stationA, `${testCase.label}: footer station A missing`);
+  assert(state.footer?.stationBId === testCase.stationB, `${testCase.label}: footer station B missing`);
+  const stationsById = new Map(
+    state.overlay?.dataCompleteness?.stationPrecision?.map((station) => [
+      station.stationId,
+      station
+    ]) ?? []
+  );
+  for (const slot of ["A", "B"]) {
+    const stationId = state.footer?.[`station${slot}Id`];
+    const expected = stationsById.get(stationId);
+    const elevationM = Number(state.footer?.[`station${slot}ElevationM`]);
+    const terrainMaskDeg = Number(state.footer?.[`station${slot}TerrainMaskDeg`]);
+    const effectiveElevationThresholdDeg = Number(
+      state.footer?.[`station${slot}EffectiveElevationThresholdDeg`]
+    );
+    assert(expected, `${testCase.label}: footer station ${slot} missing debug match`);
+    assert(
+      Number.isInteger(elevationM) && elevationM === expected.elevationM,
+      `${testCase.label}: footer station ${slot} elevationM missing`
+    );
+    assert(
+      Number.isInteger(terrainMaskDeg) &&
+        terrainMaskDeg >= 0 &&
+        terrainMaskDeg <= 90 &&
+        terrainMaskDeg === expected.terrainMaskDeg,
+      `${testCase.label}: footer station ${slot} terrainMaskDeg missing`
+    );
+    assert(
+      Number.isFinite(effectiveElevationThresholdDeg) &&
+        effectiveElevationThresholdDeg === expected.effectiveElevationThresholdDeg,
+      `${testCase.label}: footer station ${slot} effective threshold missing`
+    );
+  }
+}
+
+function assertExpectedStationPrecision(testCase, data) {
+  const stationsById = new Map(
+    data.stationPrecision.map((station) => [station.stationId, station])
+  );
+  for (const expected of testCase.expectedStationPrecision ?? []) {
+    const actual = stationsById.get(expected.stationId);
+    assert(actual, `${testCase.label}: missing station precision ${expected.stationId}`);
+    assert(
+      actual.elevationM === expected.elevationM,
+      `${testCase.label}: station ${expected.stationId} elevationM expected ${expected.elevationM}, received ${actual.elevationM}`
+    );
+    assert(
+      actual.terrainMaskDeg === expected.terrainMaskDeg,
+      `${testCase.label}: station ${expected.stationId} terrainMaskDeg expected ${expected.terrainMaskDeg}, received ${actual.terrainMaskDeg}`
+    );
+    assert(
+      actual.effectiveElevationThresholdDeg === 10 + expected.terrainMaskDeg,
+      `${testCase.label}: station ${expected.stationId} effective threshold mismatch`
+    );
+  }
+}
+
 function assertReadyCase(testCase, state) {
   assert(state.overlay?.status === testCase.expectedStatus, `${testCase.label}: status mismatch`);
   assert(
@@ -684,9 +831,9 @@ function assertReadyCase(testCase, state) {
     `${testCase.label}: runtimeLinkVisible mismatch`
   );
   assertDataCompletenessShape(testCase.label, state);
+  assertExpectedStationPrecision(testCase, state.overlay.dataCompleteness);
   assert(state.panel?.routeMode === RUNTIME_MODE, `${testCase.label}: panel route mode missing`);
-  assert(state.footer?.stationAId === testCase.stationA, `${testCase.label}: footer station A missing`);
-  assert(state.footer?.stationBId === testCase.stationB, `${testCase.label}: footer station B missing`);
+  assertStationPrecisionFooterDataset(testCase, state);
   assert(state.chip?.sourceCount === "3", `${testCase.label}: TLE chip source count missing`);
   assert(state.chip?.sourceHealth, `${testCase.label}: TLE chip source health missing`);
   assert(
@@ -723,6 +870,8 @@ function assertEmptyCase(testCase, state) {
     `${testCase.label}: runtimeLinkVisible mismatch`
   );
   assertDataCompletenessShape(testCase.label, state);
+  assertExpectedStationPrecision(testCase, state.overlay.dataCompleteness);
+  assertStationPrecisionFooterDataset(testCase, state);
   assert(
     state.overlay.emptyReasonCode === testCase.expectedEmptyReasonCode,
     `${testCase.label}: expected empty reason ${testCase.expectedEmptyReasonCode}, received ${state.overlay.emptyReasonCode}`
@@ -731,6 +880,39 @@ function assertEmptyCase(testCase, state) {
     state.overlay.dataCompleteness.emptyReasonCode === testCase.expectedEmptyReasonCode,
     `${testCase.label}: debug empty reason mismatch`
   );
+}
+
+function visibilityDeltaSummary(testCase, actualCount) {
+  const baseline = testCase.baselineVisibilityWindowCount;
+  const delta = actualCount - baseline;
+  const deltaPct =
+    baseline === 0
+      ? (actualCount === 0 ? 0 : Number.POSITIVE_INFINITY)
+      : delta / baseline;
+  return {
+    baselineVisibilityWindowCount: baseline,
+    visibilityWindowCount: actualCount,
+    visibilityWindowDelta: delta,
+    visibilityWindowDeltaPct: Number.isFinite(deltaPct)
+      ? Number(deltaPct.toFixed(3))
+      : "inf"
+  };
+}
+
+function assertVisibilityDeltaWithinTolerance(testCase, actualCount) {
+  const summary = visibilityDeltaSummary(testCase, actualCount);
+  if (testCase.baselineVisibilityWindowCount === 0) {
+    assert(
+      actualCount === 0,
+      `${testCase.label}: visibility window count changed from zero baseline to ${actualCount}`
+    );
+    return summary;
+  }
+  assert(
+    Math.abs(summary.visibilityWindowDeltaPct) <= 0.5,
+    `${testCase.label}: visibility window delta exceeds 50% baseline (${summary.visibilityWindowDeltaPct})`
+  );
+  return summary;
 }
 
 function assertCsvEvidence(label, evidence) {
@@ -811,6 +993,16 @@ function assertCsvEvidence(label, evidence) {
     assert(
       row.provenanceSourceId === station.provenance.sourceId,
       `${label}: CSV station provenance source mismatch`
+    );
+    assert(row.elevationM === csvCellValue(station.elevationM), `${label}: CSV station elevation mismatch`);
+    assert(
+      row.terrainMaskDeg === csvCellValue(station.terrainMaskDeg),
+      `${label}: CSV station terrain mask mismatch`
+    );
+    assert(
+      row.effectiveElevationThresholdDeg ===
+        csvCellValue(station.effectiveElevationThresholdDeg),
+      `${label}: CSV station effective threshold mismatch`
     );
   }
 
@@ -1026,34 +1218,61 @@ try {
     "fallback-local-snapshot: expected fallback-local-snapshot"
   );
 
-  await navigate(client, buildSelectedPairUrl(readyCase));
-  const readyState = await readSelectedPairState(client);
-  assertReadyCase(readyCase, readyState);
-  const readyCsv = await readCsvEvidence(client, readyCase);
-  assertCsvEvidence(readyCase.label, readyCsv);
-  const missingSourceEvidence = await readMissingSourceEvidence(client, readyCase);
-  assertMissingSourceEvidence(readyCase.label, missingSourceEvidence);
-  results.push({
-    label: readyCase.label,
-    status: readyState.overlay.status,
-    emptyReasonCode: readyState.overlay.emptyReasonCode,
-    sourceHealth: readyState.chip.sourceHealth,
-    sourceMode: readyState.chip.sourceMode,
-    modeledOutputCount: readyState.overlay.dataCompleteness.modeledOutputs.length,
-    actorProvenanceCount: readyState.overlay.dataCompleteness.actorProvenance.length,
-    visibilityProvenanceCount: readyState.overlay.dataCompleteness.visibilityProvenance.length,
-    missingSourceReason: missingSourceEvidence.emptyReasonCode
-  });
-
-  await navigate(client, buildSelectedPairUrl(emptyCase));
-  const emptyState = await readSelectedPairState(client);
-  assertEmptyCase(emptyCase, emptyState);
-  results.push({
-    label: emptyCase.label,
-    status: emptyState.overlay.status,
-    emptyReasonCode: emptyState.overlay.emptyReasonCode,
-    fakeActorCount: emptyState.overlay.dataCompleteness.actorSourceCoverage.fakeActorCount
-  });
+  for (const testCase of walkthroughCases) {
+    await navigate(client, buildSelectedPairUrl(testCase));
+    const state = await readSelectedPairState(client);
+    if (testCase.expectedStatus === "ready") {
+      assertReadyCase(testCase, state);
+    } else {
+      assertEmptyCase(testCase, state);
+    }
+    const csvEvidence = await readCsvEvidence(client, testCase);
+    assertCsvEvidence(testCase.label, csvEvidence);
+    assert(
+      state.overlay.handoverEventCount === csvEvidence.linkSelectionEventCount,
+      `${testCase.label}: overlay link-selection event count mismatch`
+    );
+    const actualVisibilityWindowCount =
+      state.overlay.dataCompleteness.visibilityProvenance.length;
+    assert(
+      actualVisibilityWindowCount === csvEvidence.visibilityWindowCount,
+      `${testCase.label}: debug/CSV visibility count mismatch`
+    );
+    const visibilityDelta = assertVisibilityDeltaWithinTolerance(
+      testCase,
+      actualVisibilityWindowCount
+    );
+    const missingSourceEvidence =
+      testCase === walkthroughCases[0]
+        ? await readMissingSourceEvidence(client, testCase)
+        : null;
+    if (missingSourceEvidence) {
+      assertMissingSourceEvidence(testCase.label, missingSourceEvidence);
+    }
+    results.push({
+      label: testCase.label,
+      status: state.overlay.status,
+      emptyReasonCode: state.overlay.emptyReasonCode,
+      sourceTier: state.footer?.sourceTier ?? null,
+      sourceHealth: state.chip?.sourceHealth ?? null,
+      sourceMode: state.chip?.sourceMode ?? state.overlay.sourceMode,
+      modeledOutputCount: state.overlay.dataCompleteness.modeledOutputs.length,
+      actorProvenanceCount: state.overlay.dataCompleteness.actorProvenance.length,
+      visibilityProvenanceCount: actualVisibilityWindowCount,
+      stationPrecision: state.overlay.dataCompleteness.stationPrecision.map((station) => ({
+        stationId: station.stationId,
+        elevationM: station.elevationM,
+        terrainMaskDeg: station.terrainMaskDeg,
+        effectiveElevationThresholdDeg: station.effectiveElevationThresholdDeg
+      })),
+      baselineLinkSelectionEventCount: testCase.baselineLinkSelectionEventCount,
+      linkSelectionEventCount: csvEvidence.linkSelectionEventCount,
+      baselineHandoverCount: testCase.baselineHandoverCount,
+      handoverCount: csvEvidence.handoverCount,
+      ...visibilityDelta,
+      missingSourceReason: missingSourceEvidence?.emptyReasonCode ?? null
+    });
+  }
 
   await navigate(client, buildFixedDemoUrl(fixedDemoCase));
   const fixedState = await readSelectedPairState(client, ["not-requested", "error"]);

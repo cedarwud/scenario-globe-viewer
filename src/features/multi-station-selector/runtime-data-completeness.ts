@@ -142,6 +142,9 @@ export interface RuntimeStationPrecisionState {
   readonly sourceTier: PairSourceTierAttribution["sourceTier"];
   readonly rawLat: number;
   readonly rawLon: number;
+  readonly elevationM: number;
+  readonly terrainMaskDeg: number;
+  readonly effectiveElevationThresholdDeg: number;
   readonly renderPositionIsSourceTruth: boolean;
   readonly coordinateUse:
     | "source-coordinate"
@@ -218,6 +221,9 @@ export interface BuildRuntimeDataCompletenessInput {
   readonly rainRateControlMode: RuntimeRainRateControlMode;
   readonly sampleStepSeconds: number;
   readonly sampleCadenceSecondsByOrbit: Readonly<Record<OrbitClass, number>>;
+  readonly baseElevationThresholdDeg: number;
+  readonly stationAEffectiveElevationThresholdDeg: number;
+  readonly stationBEffectiveElevationThresholdDeg: number;
   readonly elevationThresholdDeg: number;
   readonly propagationStatsBySatellite?: ReadonlyMap<string, TlePropagationStats>;
   readonly sourceHealthThresholdDays?: Partial<Record<OrbitClass, number>>;
@@ -410,7 +416,8 @@ function resolveCoordinateUse(
 
 function buildStationPrecisionState(
   station: PublicRegistryStation,
-  pairSourceTier: PairSourceTierAttribution["sourceTier"]
+  pairSourceTier: PairSourceTierAttribution["sourceTier"],
+  effectiveElevationThresholdDeg: number
 ): RuntimeStationPrecisionState {
   const coordinateUse = resolveCoordinateUse(station.disclosurePrecision);
   return {
@@ -419,6 +426,9 @@ function buildStationPrecisionState(
     sourceTier: pairSourceTier,
     rawLat: station.lat,
     rawLon: station.lon,
+    elevationM: station.elevationM,
+    terrainMaskDeg: station.terrainMaskDeg,
+    effectiveElevationThresholdDeg,
     renderPositionIsSourceTruth: coordinateUse === "source-coordinate",
     coordinateUse,
     provenance: {
@@ -664,6 +674,11 @@ function buildModeledOutputs(
     leoCadenceSeconds: input.sampleCadenceSecondsByOrbit.LEO,
     meoCadenceSeconds: input.sampleCadenceSecondsByOrbit.MEO,
     geoCadenceSeconds: input.sampleCadenceSecondsByOrbit.GEO,
+    baseElevationThresholdDeg: input.baseElevationThresholdDeg,
+    stationAEffectiveElevationThresholdDeg:
+      input.stationAEffectiveElevationThresholdDeg,
+    stationBEffectiveElevationThresholdDeg:
+      input.stationBEffectiveElevationThresholdDeg,
     elevationThresholdDeg: input.elevationThresholdDeg
   });
   const modelNonClaim =
@@ -856,8 +871,16 @@ export function buildRuntimeDataCompletenessState(
   return {
     routeMode: input.routeMode,
     stationPrecision: [
-      buildStationPrecisionState(input.stationA, input.pairSourceTier),
-      buildStationPrecisionState(input.stationB, input.pairSourceTier)
+      buildStationPrecisionState(
+        input.stationA,
+        input.pairSourceTier,
+        input.stationAEffectiveElevationThresholdDeg
+      ),
+      buildStationPrecisionState(
+        input.stationB,
+        input.pairSourceTier,
+        input.stationBEffectiveElevationThresholdDeg
+      )
     ],
     tleSources,
     tleFreshness: buildRuntimeTleSourceFreshness(input, tleSources),

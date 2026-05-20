@@ -178,7 +178,10 @@ export function buildRuntimeProjectionCsv(result: RuntimeProjectionResult): stri
       "renderPositionIsSourceTruth",
       "coordinateUse",
       "provenanceTruthClass",
-      "provenanceSourceId"
+      "provenanceSourceId",
+      "elevationM",
+      "terrainMaskDeg",
+      "effectiveElevationThresholdDeg"
     ]
   );
   for (const station of result.dataCompleteness.stationPrecision) {
@@ -191,7 +194,10 @@ export function buildRuntimeProjectionCsv(result: RuntimeProjectionResult): stri
       station.renderPositionIsSourceTruth ? "true" : "false",
       station.coordinateUse,
       station.provenance.truthClass,
-      station.provenance.sourceId
+      station.provenance.sourceId,
+      station.elevationM,
+      station.terrainMaskDeg,
+      station.effectiveElevationThresholdDeg
     ]);
   }
 
