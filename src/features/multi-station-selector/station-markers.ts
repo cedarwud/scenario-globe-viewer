@@ -4,7 +4,6 @@ import {
   Cartesian3,
   Color,
   EasingFunction,
-  HeightReference,
   LabelCollection,
   LabelStyle,
   Math as CesiumMath,
@@ -30,6 +29,7 @@ interface RegistryStation {
   readonly region: string;
   readonly lat: number;
   readonly lon: number;
+  readonly elevationM?: number;
   readonly supportedOrbits: ReadonlyArray<OrbitClass>;
   readonly supportedBands: ReadonlyArray<string>;
   readonly disclosurePrecision: string;
@@ -103,7 +103,7 @@ function resolveImageSetForStation(station: RegistryStation): ImageSet {
 }
 
 function toCartesian(station: RegistryStation): Cartesian3 {
-  return Cartesian3.fromDegrees(station.lon, station.lat);
+  return Cartesian3.fromDegrees(station.lon, station.lat, station.elevationM ?? 0);
 }
 
 export interface GroundStationMarkersHandle {
@@ -210,7 +210,6 @@ export function mountGroundStationMarkers(
       const billboard = billboards.add({
         position,
         image: imageSet.normal,
-        heightReference: HeightReference.CLAMP_TO_GROUND,
         verticalOrigin: VerticalOrigin.CENTER,
         id: `ground-station-marker:${station.id}`
       });

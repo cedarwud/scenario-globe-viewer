@@ -15,7 +15,6 @@ import {
   LabelGraphics,
   LabelStyle,
   ModelGraphics,
-  PointGraphics,
   PolylineArrowMaterialProperty,
   PolylineGraphics,
   SceneTransforms,
@@ -218,73 +217,8 @@ function sceneActorOrbitClassToDisplayOrbit(
   }
 }
 
-function resolveActorGlowHex(orbitClass: M8aV4OrbitClass): string {
-  switch (orbitClass) {
-    case "leo":
-      return "#ffffff";
-    case "meo":
-      return "#d46bff";
-    case "geo":
-      return "#ffb23f";
-  }
-}
-
-function createActorGlowImageUri(orbitClass: M8aV4OrbitClass): string {
-  const glowColor = resolveActorGlowHex(orbitClass);
-  const svg = [
-    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">',
-    '<defs><radialGradient id="g" cx="50%" cy="50%" r="50%">',
-    '<stop offset="0" stop-color="#ffffff" stop-opacity="0.82"/>',
-    `<stop offset="0.34" stop-color="${glowColor}" stop-opacity="0.62"/>`,
-    `<stop offset="0.72" stop-color="${glowColor}" stop-opacity="0.24"/>`,
-    `<stop offset="1" stop-color="${glowColor}" stop-opacity="0"/>`,
-    "</radialGradient></defs>",
-    '<circle cx="32" cy="32" r="32" fill="url(#g)"/>',
-    "</svg>"
-  ].join("");
-
-  return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
-}
-
 function formatSelectedPairSatelliteLabel(satelliteId: string): string {
   return satelliteId.length > 18 ? `${satelliteId.slice(0, 18)}…` : satelliteId;
-}
-
-function resolveSceneActorPointColor(actor: SceneActor): Color {
-  if (actor.role === "active") {
-    return Color.fromCssColorString("#f7d46a").withAlpha(0.95);
-  }
-  if (actor.role === "candidate" || actor.role === "continuity") {
-    return Color.fromCssColorString("#7ee2b8").withAlpha(0.86);
-  }
-  return Color.fromCssColorString("#9bc4e8").withAlpha(0.52);
-}
-
-function createSelectedPairActorPointStyle(actor: SceneActor): PointGraphics {
-  return new PointGraphics({
-    pixelSize: new ConstantProperty(actor.role === "active" ? 9 : 6),
-    color: new ConstantProperty(resolveSceneActorPointColor(actor)),
-    outlineColor: new ConstantProperty(
-      Color.fromCssColorString("#06121a").withAlpha(0.95)
-    ),
-    outlineWidth: new ConstantProperty(actor.role === "active" ? 2 : 1),
-    disableDepthTestDistance: Number.POSITIVE_INFINITY,
-    distanceDisplayCondition: new DistanceDisplayCondition(0, 100_000_000)
-  });
-}
-
-function createSelectedPairActorGlowStyle(actor: SceneActor): BillboardGraphics {
-  const isActive = actor.role === "active";
-  return new BillboardGraphics({
-    image: new ConstantProperty(
-      createActorGlowImageUri(sceneActorOrbitClassToDisplayOrbit(actor))
-    ),
-    width: new ConstantProperty(isActive ? 34 : 24),
-    height: new ConstantProperty(isActive ? 34 : 24),
-    color: new ConstantProperty(Color.WHITE.withAlpha(isActive ? 0.72 : 0.38)),
-    disableDepthTestDistance: Number.POSITIVE_INFINITY,
-    distanceDisplayCondition: new DistanceDisplayCondition(0, 100_000_000)
-  });
 }
 
 function createSelectedPairActorModelStyle(
@@ -882,8 +816,6 @@ export async function installSelectedPairTleFirstSceneLayer({
           ) ?? endpointAPosition
         );
       }, false),
-      billboard: createSelectedPairActorGlowStyle(actor),
-      point: createSelectedPairActorPointStyle(actor),
       model: createSelectedPairActorModelStyle(modelUri, actor),
       label: createSelectedPairActorLabelStyle(actor, shouldShowLabel),
       description: new ConstantProperty(

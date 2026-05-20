@@ -30,6 +30,10 @@ const M8A_V4_CAMERA_HEIGHT_METERS = 11_500_000;
 const M8A_V4_CAMERA_HEADING_DEGREES = 0;
 const M8A_V4_CAMERA_PITCH_DEGREES = -80;
 const M8A_V4_CAMERA_SCREEN_UP_PAN_METERS = 4_000_000;
+const M8A_V4_SELECTED_PAIR_CAMERA_LATITUDE_OFFSET_DEGREES = 66;
+const M8A_V4_SELECTED_PAIR_SCREEN_UP_PAN_METERS = 5_500_000;
+const M8A_V4_SELECTED_PAIR_SHORT_BASELINE_SCREEN_UP_PAN_METERS = 6_100_000;
+const M8A_V4_EMPTY_RESULT_SCREEN_UP_PAN_METERS = 3_000_000;
 const M8A_V4_SELECTED_PAIR_ENDPOINT_RADIUS_METERS = 90_000;
 const M8A_V46E_NARROW_VIEWPORT_MAX_WIDTH_PX = 560;
 
@@ -40,6 +44,109 @@ export interface SceneEndpointContext {
 
 function clamp(value: number, min: number, max: number): number {
   return Math.min(Math.max(value, min), max);
+}
+
+function normalizeLongitude(lon: number): number {
+  return ((lon + 540) % 360) - 180;
+}
+
+function resolveEndpointMidpoint(
+  endpointAPosition: EndpointRenderContext["renderMarker"]["displayPosition"],
+  endpointBPosition: EndpointRenderContext["renderMarker"]["displayPosition"]
+): { readonly lat: number; readonly lon: number } {
+  let lonA = endpointAPosition.lon;
+  let lonB = endpointBPosition.lon;
+  if (Math.abs(lonA - lonB) > 180) {
+    if (lonA < lonB) {
+      lonA += 360;
+    } else {
+      lonB += 360;
+    }
+  }
+
+  return {
+    lat: (endpointAPosition.lat + endpointBPosition.lat) / 2,
+    lon: normalizeLongitude((lonA + lonB) / 2)
+  };
+}
+
+function resolveSelectedPairDemoCameraLatitude(pairCenterLat: number): number {
+  return clamp(
+    pairCenterLat - M8A_V4_SELECTED_PAIR_CAMERA_LATITUDE_OFFSET_DEGREES,
+    -82,
+    82
+  );
+}
+
+function resolveEndpointDistanceDegrees(
+  endpointAPosition: EndpointRenderContext["renderMarker"]["displayPosition"],
+  endpointBPosition: EndpointRenderContext["renderMarker"]["displayPosition"]
+): number {
+  const latA = CesiumMath.toRadians(endpointAPosition.lat);
+  const latB = CesiumMath.toRadians(endpointBPosition.lat);
+  const deltaLat = latB - latA;
+  const deltaLon = CesiumMath.toRadians(endpointBPosition.lon - endpointAPosition.lon);
+  const haversine =
+    Math.sin(deltaLat / 2) ** 2 +
+    Math.cos(latA) * Math.cos(latB) * Math.sin(deltaLon / 2) ** 2;
+  return CesiumMath.toDegrees(2 * Math.atan2(Math.sqrt(haversine), Math.sqrt(1 - haversine)));
+}
+
+function resolveInitialSelectedPairScreenUpPanMeters(
+  endpointAPosition: EndpointRenderContext["renderMarker"]["displayPosition"],
+  endpointBPosition: EndpointRenderContext["renderMarker"]["displayPosition"]
+): number {
+  const isPolarPair =
+    Math.max(Math.abs(endpointAPosition.lat), Math.abs(endpointBPosition.lat)) >= 66;
+  if (isPolarPair) {
+    return M8A_V4_SELECTED_PAIR_SCREEN_UP_PAN_METERS;
+  }
+  return resolveEndpointDistanceDegrees(endpointAPosition, endpointBPosition) < 35
+    ? M8A_V4_SELECTED_PAIR_SHORT_BASELINE_SCREEN_UP_PAN_METERS
+    : M8A_V4_SELECTED_PAIR_SCREEN_UP_PAN_METERS;
+}
+
+function resolveSelectedPairScreenUpPanMeters(
+  pairGeometry: SceneCameraHint["pairGeometry"]
+): number {
+  if (pairGeometry === "empty-result") {
+    return M8A_V4_EMPTY_RESULT_SCREEN_UP_PAN_METERS;
+  }
+  if (pairGeometry === "short-baseline") {
+    return M8A_V4_SELECTED_PAIR_SHORT_BASELINE_SCREEN_UP_PAN_METERS;
+  }
+  return M8A_V4_SELECTED_PAIR_SCREEN_UP_PAN_METERS;
+}
+
+function applyDemoOrbitCamera(
+  viewer: Viewer,
+  camera: {
+    readonly lon: number;
+    readonly lat: number;
+    readonly heightMeters?: number;
+    readonly screenUpPanMeters?: number;
+  }
+): void {
+  const heightMeters = camera.heightMeters ?? M8A_V4_CAMERA_HEIGHT_METERS;
+  const panMeters =
+    camera.screenUpPanMeters ??
+    M8A_V4_CAMERA_SCREEN_UP_PAN_METERS *
+      Math.min(heightMeters / M8A_V4_CAMERA_HEIGHT_METERS, 1);
+
+  viewer.camera.setView({
+    destination: Cartesian3.fromDegrees(
+      camera.lon,
+      clamp(camera.lat, -82, 82),
+      heightMeters
+    ),
+    orientation: {
+      heading: CesiumMath.toRadians(M8A_V4_CAMERA_HEADING_DEGREES),
+      pitch: CesiumMath.toRadians(M8A_V4_CAMERA_PITCH_DEGREES),
+      roll: 0
+    }
+  });
+  viewer.camera.moveUp(panMeters);
+  viewer.scene.requestRender();
 }
 
 export function isM8aV4GroundStationRuntimeRequested(
@@ -178,44 +285,23 @@ export function applyV4Camera(
     const [endpointA, endpointB] = sceneEndpointContext.endpoints;
     const endpointAPosition = endpointA.renderMarker.displayPosition;
     const endpointBPosition = endpointB.renderMarker.displayPosition;
-    const west = Math.min(endpointAPosition.lon, endpointBPosition.lon);
-    const east = Math.max(endpointAPosition.lon, endpointBPosition.lon);
-    const south = Math.min(endpointAPosition.lat, endpointBPosition.lat);
-    const north = Math.max(endpointAPosition.lat, endpointBPosition.lat);
-    const pairCenterLon = (west + east) / 2;
-    const pairCenterLat = (south + north) / 2;
+    const pairCenter = resolveEndpointMidpoint(endpointAPosition, endpointBPosition);
 
-    viewer.camera.setView({
-      destination: Cartesian3.fromDegrees(
-        pairCenterLon,
-        clamp(pairCenterLat, -82, 82),
-        M8A_V4_CAMERA_HEIGHT_METERS
-      ),
-      orientation: {
-        heading: CesiumMath.toRadians(M8A_V4_CAMERA_HEADING_DEGREES),
-        pitch: CesiumMath.toRadians(M8A_V4_CAMERA_PITCH_DEGREES),
-        roll: 0
-      }
+    applyDemoOrbitCamera(viewer, {
+      lon: pairCenter.lon,
+      lat: resolveSelectedPairDemoCameraLatitude(pairCenter.lat),
+      screenUpPanMeters: resolveInitialSelectedPairScreenUpPanMeters(
+        endpointAPosition,
+        endpointBPosition
+      )
     });
-    viewer.camera.moveUp(M8A_V4_CAMERA_SCREEN_UP_PAN_METERS);
-    viewer.scene.requestRender();
     return;
   }
 
-  viewer.camera.setView({
-    destination: Cartesian3.fromDegrees(
-      M8A_V4_CAMERA_LONGITUDE,
-      M8A_V4_CAMERA_LATITUDE,
-      M8A_V4_CAMERA_HEIGHT_METERS
-    ),
-    orientation: {
-      heading: CesiumMath.toRadians(M8A_V4_CAMERA_HEADING_DEGREES),
-      pitch: CesiumMath.toRadians(M8A_V4_CAMERA_PITCH_DEGREES),
-      roll: 0
-    }
+  applyDemoOrbitCamera(viewer, {
+    lon: M8A_V4_CAMERA_LONGITUDE,
+    lat: M8A_V4_CAMERA_LATITUDE
   });
-  viewer.camera.moveUp(M8A_V4_CAMERA_SCREEN_UP_PAN_METERS);
-  viewer.scene.requestRender();
 }
 
 export function applySelectedPairCameraHint(
@@ -230,37 +316,37 @@ export function applySelectedPairCameraHint(
   const [endpointA, endpointB] = sceneEndpointContext.endpoints;
   const endpointAPosition = endpointA.renderMarker.displayPosition;
   const endpointBPosition = endpointB.renderMarker.displayPosition;
-  let lonA = endpointAPosition.lon;
-  let lonB = endpointBPosition.lon;
-  if (Math.abs(lonA - lonB) > 180) {
-    if (lonA < lonB) {
-      lonA += 360;
-    } else {
-      lonB += 360;
-    }
-  }
-
-  const midpointLon = ((lonA + lonB) / 2 + 540) % 360 - 180;
-  const midpointLat = (endpointAPosition.lat + endpointBPosition.lat) / 2;
-  const isPolarLike =
-    cameraHint.pairGeometry === "polar" ||
-    cameraHint.pairGeometry === "antipodal" ||
-    cameraHint.pairGeometry === "empty-result";
-  const targetLat = isPolarLike
-    ? clamp(
-        Math.max(Math.abs(endpointAPosition.lat), Math.abs(endpointBPosition.lat)) >= 66
-          ? Math.sign(endpointAPosition.lat + endpointBPosition.lat || endpointAPosition.lat || 1) *
-              64
-          : midpointLat,
-        -74,
-        74
-      )
-    : clamp(midpointLat, -82, 82);
+  const midpoint = resolveEndpointMidpoint(endpointAPosition, endpointBPosition);
+  const usesWideHintCamera =
+    cameraHint.pairGeometry === "antipodal";
 
   viewer.camera.cancelFlight();
+
+  if (!usesWideHintCamera) {
+    applyDemoOrbitCamera(viewer, {
+      lon: midpoint.lon,
+      lat: resolveSelectedPairDemoCameraLatitude(midpoint.lat),
+      heightMeters: Math.max(
+        M8A_V4_CAMERA_HEIGHT_METERS,
+        cameraHint.suggestedAltitudeKm * 1000
+      ),
+      screenUpPanMeters: resolveSelectedPairScreenUpPanMeters(cameraHint.pairGeometry)
+    });
+    return;
+  }
+
+  const targetLat = clamp(
+    Math.max(Math.abs(endpointAPosition.lat), Math.abs(endpointBPosition.lat)) >= 66
+      ? Math.sign(endpointAPosition.lat + endpointBPosition.lat || endpointAPosition.lat || 1) *
+          64
+      : midpoint.lat,
+    -74,
+    74
+  );
+
   viewer.camera.setView({
     destination: Cartesian3.fromDegrees(
-      midpointLon,
+      midpoint.lon,
       targetLat,
       cameraHint.suggestedAltitudeKm * 1000
     ),

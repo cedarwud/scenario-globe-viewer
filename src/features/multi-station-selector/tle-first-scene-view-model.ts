@@ -140,6 +140,9 @@ const DEFAULT_TLE_CAP_PER_ORBIT = 60;
 const DEFAULT_MAX_VISIBLE_ACTOR_LABELS = 6;
 const DEG_TO_RAD = Math.PI / 180;
 const RAD_TO_DEG = 180 / Math.PI;
+const DEMO_ORBIT_CAMERA_ALTITUDE_KM = 11_500;
+const DEMO_ORBIT_CAMERA_HEADING_DEGREES = 0;
+const DEMO_ORBIT_CAMERA_PITCH_DEGREES = -80;
 
 function resolveProjectionResult(
   input: BuildTleFirstSceneViewModelInput
@@ -410,19 +413,27 @@ export function buildSceneCameraHintForProjection(
           : "short-baseline";
 
   const altitudeByGeometry: Record<SceneCameraHint["pairGeometry"], number> = {
-    "short-baseline": 9_000,
+    "short-baseline": DEMO_ORBIT_CAMERA_ALTITUDE_KM,
     "long-baseline": 18_000,
     polar: 22_000,
     antipodal: 30_000,
     "empty-result": 26_000
   };
+  const usesDemoOrbitComposition =
+    pairGeometry === "short-baseline" ||
+    pairGeometry === "long-baseline" ||
+    pairGeometry === "polar" ||
+    pairGeometry === "empty-result";
 
   return {
     pairGeometry,
     suggestedAltitudeKm: altitudeByGeometry[pairGeometry],
-    suggestedHeadingDeg: initialHeadingDeg(stationA, stationB),
-    suggestedPitchDeg:
-      pairGeometry === "short-baseline" || pairGeometry === "long-baseline" ? -82 : -55
+    suggestedHeadingDeg: usesDemoOrbitComposition
+      ? DEMO_ORBIT_CAMERA_HEADING_DEGREES
+      : initialHeadingDeg(stationA, stationB),
+    suggestedPitchDeg: usesDemoOrbitComposition
+      ? DEMO_ORBIT_CAMERA_PITCH_DEGREES
+      : -55
   };
 }
 

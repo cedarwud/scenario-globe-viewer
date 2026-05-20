@@ -188,7 +188,9 @@ test("initial acquisition from null is retained and its target satellite has an 
 test("camera hint identifies polar, near-antipodal, or empty pair geometry", () => {
   const shortViewModel = build();
   assert.equal(shortViewModel.cameraHint.pairGeometry, "short-baseline");
-  assert.equal(shortViewModel.cameraHint.suggestedPitchDeg, -82);
+  assert.equal(shortViewModel.cameraHint.suggestedAltitudeKm, 11500);
+  assert.equal(shortViewModel.cameraHint.suggestedHeadingDeg, 0);
+  assert.equal(shortViewModel.cameraHint.suggestedPitchDeg, -80);
 
   const longViewModel = build({
     projection: {
@@ -197,7 +199,8 @@ test("camera hint identifies polar, near-antipodal, or empty pair geometry", () 
     }
   });
   assert.equal(longViewModel.cameraHint.pairGeometry, "long-baseline");
-  assert.equal(longViewModel.cameraHint.suggestedPitchDeg, -82);
+  assert.equal(longViewModel.cameraHint.suggestedHeadingDeg, 0);
+  assert.equal(longViewModel.cameraHint.suggestedPitchDeg, -80);
 
   const polarViewModel = build({
     projection: {
@@ -206,6 +209,8 @@ test("camera hint identifies polar, near-antipodal, or empty pair geometry", () 
     }
   });
   assert.equal(polarViewModel.cameraHint.pairGeometry, "polar");
+  assert.equal(polarViewModel.cameraHint.suggestedHeadingDeg, 0);
+  assert.equal(polarViewModel.cameraHint.suggestedPitchDeg, -80);
 
   const farViewModel = build({
     projection: {
@@ -214,6 +219,7 @@ test("camera hint identifies polar, near-antipodal, or empty pair geometry", () 
     }
   });
   assert.equal(farViewModel.cameraHint.pairGeometry, "antipodal");
+  assert.equal(farViewModel.cameraHint.suggestedPitchDeg, -55);
 
   const emptyViewModel = build({
     projection: {
@@ -222,6 +228,8 @@ test("camera hint identifies polar, near-antipodal, or empty pair geometry", () 
     }
   });
   assert.equal(emptyViewModel.cameraHint.pairGeometry, "empty-result");
+  assert.equal(emptyViewModel.cameraHint.suggestedHeadingDeg, 0);
+  assert.equal(emptyViewModel.cameraHint.suggestedPitchDeg, -80);
 });
 
 test("truth boundary and display policy expose source, cap, display, and modeled status", () => {
