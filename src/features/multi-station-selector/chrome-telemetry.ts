@@ -2,12 +2,15 @@
 //
 // IA §4.1 places three small machine-readable artefacts in the chrome:
 //
-//   1. LEO actor count chip — `[data-leo-actor-count-chip="true"]` with
-//      `data-leo-actor-count="<integer>"` carrying the LEO TLE record
-//      count (the denominator that satisfies R1-F1 / K-E1's ≥ 500 LEO
-//      claim). Source: LEO TLE fixture record count via fetch +
-//      3-line group parse. Cached on `window.__SGV_LEO_TLE_COUNT__` so
-//      the chip renderer stays sync across re-mounts.
+//   1. LEO source record count chip —
+//      `[data-leo-source-record-count-chip="true"]` with
+//      `data-leo-source-record-count="<integer>"` carrying the LEO TLE
+//      source-record count (the denominator that satisfies R1-F1 /
+//      K-E1's >= 500 LEO claim). Source: LEO TLE fixture record count
+//      via fetch + 3-line group parse. Cached on
+//      `window.__SGV_LEO_TLE_COUNT__` so the chip renderer stays sync
+//      across re-mounts. Legacy `data-leo-actor-count-*` attributes stay
+//      for older smoke compatibility only.
 //
 //   2. TLE telemetry chip — `[data-tle-telemetry-chip="true"]` with
 //      `data-tle-date="<ISO date>"` and `data-source-mode="<mode>"`.
@@ -29,7 +32,7 @@ const SOAK_SUMMARY_PATH =
 const CHROME_TELEMETRY_STYLE_ATTR = "data-gs-chrome-telemetry-style";
 
 const CHROME_TELEMETRY_CSS = `
-.gs-leo-actor-count-chip {
+.gs-leo-source-record-count-chip {
   position: absolute;
   top: 0.5rem;
   left: 50%;
@@ -48,13 +51,13 @@ const CHROME_TELEMETRY_CSS = `
   letter-spacing: 0.02em;
   pointer-events: none;
 }
-.gs-leo-actor-count-chip__label {
+.gs-leo-source-record-count-chip__label {
   color: rgba(157, 196, 232, 0.78);
   text-transform: uppercase;
   font-size: 0.6rem;
   letter-spacing: 0.08em;
 }
-.gs-leo-actor-count-chip__value {
+.gs-leo-source-record-count-chip__value {
   color: #7ee2b8;
   font-weight: 600;
   font-variant-numeric: tabular-nums;
@@ -142,25 +145,30 @@ async function loadLeoTleRecordCount(): Promise<number> {
   return count;
 }
 
-function createLeoActorCountChip(initialCount: number): HTMLElement {
+function createLeoSourceRecordCountChip(initialCount: number): HTMLElement {
   const chip = document.createElement("aside");
-  chip.className = "gs-leo-actor-count-chip";
+  chip.className = "gs-leo-source-record-count-chip";
+  chip.dataset.leoSourceRecordCountChip = "true";
+  chip.dataset.leoSourceRecordCount = String(initialCount);
   chip.dataset.leoActorCountChip = "true";
   chip.dataset.leoActorCount = String(initialCount);
-  chip.setAttribute("aria-label", `LEO actor count`);
+  chip.setAttribute("aria-label", "LEO source record count");
   const label = document.createElement("span");
-  label.className = "gs-leo-actor-count-chip__label";
-  label.textContent = "LEO actors";
+  label.className = "gs-leo-source-record-count-chip__label";
+  label.textContent = "LEO source records";
   const value = document.createElement("span");
-  value.className = "gs-leo-actor-count-chip__value";
+  value.className = "gs-leo-source-record-count-chip__value";
   value.textContent = initialCount > 0 ? String(initialCount) : "…";
   chip.append(label, value);
   return chip;
 }
 
-function setLeoActorCountChipValue(chip: HTMLElement, count: number): void {
+function setLeoSourceRecordCountChipValue(chip: HTMLElement, count: number): void {
+  chip.dataset.leoSourceRecordCount = String(count);
   chip.dataset.leoActorCount = String(count);
-  const value = chip.querySelector<HTMLElement>(".gs-leo-actor-count-chip__value");
+  const value = chip.querySelector<HTMLElement>(
+    ".gs-leo-source-record-count-chip__value"
+  );
   if (value) {
     value.textContent = String(count);
   }
@@ -222,7 +230,7 @@ export function mountSelectorChromeTelemetry(
   viewerRoot.dataset.soakSummaryPath = SOAK_SUMMARY_PATH;
 
   const initialCount = window[LEO_COUNT_CACHE_KEY] ?? 0;
-  const leoChip = createLeoActorCountChip(initialCount);
+  const leoChip = createLeoSourceRecordCountChip(initialCount);
   const tleChip = createTleTelemetryChip(extractTleDateFromLeoPath());
   syncTleTelemetryChipSource(tleChip);
 
@@ -237,7 +245,7 @@ export function mountSelectorChromeTelemetry(
         if (disposed) {
           return;
         }
-        setLeoActorCountChipValue(leoChip, count);
+        setLeoSourceRecordCountChipValue(leoChip, count);
       })
       .catch(() => {
         // Best-effort: leave the chip at the cached/0 value if the LEO

@@ -217,23 +217,53 @@ const G1_ROWS = [
   },
   {
     id: "R1-F1 / K-E1",
-    description: "LEO actor count chip reports at least 500 actors.",
+    description: "LEO source-record chip reports at least 500 source records.",
     evaluator: String.raw`
       (async () => {
         const startedAt = Date.now();
         let chip = null;
         let count = NaN;
+        let labelText = "";
+        let ariaLabel = "";
+        let hasSourceWording = false;
+        let hasActorWording = false;
         while (Date.now() - startedAt < 3000) {
-          chip = document.querySelector('[data-leo-actor-count-chip="true"]');
-          count = Number.parseInt(chip?.getAttribute("data-leo-actor-count") ?? "", 10);
-          if (Number.isInteger(count) && count >= 500) break;
+          chip =
+            document.querySelector('[data-leo-source-record-count-chip="true"]') ??
+            document.querySelector('[data-leo-actor-count-chip="true"]');
+          count = Number.parseInt(
+            chip?.getAttribute("data-leo-source-record-count") ??
+              chip?.getAttribute("data-leo-actor-count") ??
+              "",
+            10
+          );
+          labelText = chip?.textContent?.trim() ?? "";
+          ariaLabel = chip?.getAttribute("aria-label") ?? "";
+          const accessibleText = labelText + " " + ariaLabel;
+          hasSourceWording = /source record|inventory/i.test(accessibleText);
+          hasActorWording = /\bactor\b/i.test(accessibleText);
+          if (
+            Number.isInteger(count) &&
+            count >= 500 &&
+            hasSourceWording &&
+            !hasActorWording
+          ) break;
           await new Promise((resolve) => setTimeout(resolve, 50));
         }
         return {
-          passed: Boolean(chip) && Number.isInteger(count) && count >= 500,
+          passed:
+            Boolean(chip) &&
+            Number.isInteger(count) &&
+            count >= 500 &&
+            hasSourceWording &&
+            !hasActorWording,
           evidence: {
             exists: Boolean(chip),
-            count: Number.isFinite(count) ? count : null,
+            sourceRecordCount: Number.isFinite(count) ? count : null,
+            labelText,
+            ariaLabel,
+            hasSourceWording,
+            hasActorWording,
             waitedMs: Date.now() - startedAt
           }
         };
