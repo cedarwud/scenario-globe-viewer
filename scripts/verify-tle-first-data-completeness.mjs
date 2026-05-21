@@ -613,6 +613,10 @@ async function readMissingSourceEvidence(client, testCase) {
         sources: result.dataCompleteness.tleSources.map((source) => ({
           orbitClass: source.orbitClass,
           sourcePath: source.sourcePath,
+          format: source.format,
+          apiClass: source.apiClass,
+          sourcePolicy: source.sourcePolicy,
+          catalogNumberCompatibility: source.catalogNumberCompatibility,
           parserFailureCount: source.parserFailureCount,
           health: source.health
         }))
@@ -1123,6 +1127,15 @@ function assertDataCompletenessShape(
     Array.isArray(data.tleFreshness) && data.tleFreshness.length === 3,
     `${label}: expected 3 TLE freshness rows`
   );
+  for (const source of data.tleSources) {
+    assert(source.format === "tle-3le", `${label}: expected TLE source format`);
+    assert(source.apiClass === "celestrak-gp-tle", `${label}: expected TLE API class`);
+    assert(source.sourcePolicy, `${label}: source policy missing`);
+    assert(
+      source.catalogNumberCompatibility === "tle-limited-5-digit-catalog",
+      `${label}: expected TLE catalog compatibility disclosure`
+    );
+  }
   assertCapDisclosurePayload(label, data.capDisclosure);
   assertRuntimeInventoryDisclosurePayload(
     label,
@@ -1140,6 +1153,13 @@ function assertDataCompletenessShape(
     assert(
       TLE_SOURCE_MODES.has(freshness.sourceMode),
       `${label}: invalid TLE sourceMode ${freshness.sourceMode}`
+    );
+    assert(freshness.format === "tle-3le", `${label}: TLE freshness format missing`);
+    assert(freshness.apiClass === "celestrak-gp-tle", `${label}: TLE freshness API class missing`);
+    assert(freshness.sourcePolicy, `${label}: TLE freshness source policy missing`);
+    assert(
+      freshness.catalogNumberCompatibility === "tle-limited-5-digit-catalog",
+      `${label}: TLE freshness catalog compatibility missing`
     );
     assert(freshness.snapshotPath, `${label}: TLE freshness snapshot path missing`);
     assert(freshness.maxEpochUtc, `${label}: TLE freshness max epoch missing`);
@@ -1868,6 +1888,13 @@ function assertCsvEvidence(label, evidence) {
     assert(row, `${label}: CSV missing source row ${source.sourceId}`);
     assert(row.sourcePath === source.sourcePath, `${label}: CSV source path mismatch`);
     assert(row.orbitClass === source.orbitClass, `${label}: CSV orbit class mismatch`);
+    assert(row.format === source.format, `${label}: CSV source format mismatch`);
+    assert(row.apiClass === source.apiClass, `${label}: CSV source API class mismatch`);
+    assert(row.sourcePolicy === source.sourcePolicy, `${label}: CSV source policy mismatch`);
+    assert(
+      row.catalogNumberCompatibility === source.catalogNumberCompatibility,
+      `${label}: CSV catalog compatibility mismatch`
+    );
     assert(row.recordCount === csvCellValue(source.recordCount), `${label}: CSV record count mismatch`);
     assert(
       row.acceptedRecordCount === csvCellValue(source.acceptedRecordCount),
@@ -1919,6 +1946,13 @@ function assertCsvEvidence(label, evidence) {
     const row = freshnessBySource.get(freshness.provenance.sourceId);
     assert(row, `${label}: CSV missing TLE freshness ${freshness.provenance.sourceId}`);
     assert(row.sourceMode === freshness.sourceMode, `${label}: CSV TLE source mode mismatch`);
+    assert(row.format === freshness.format, `${label}: CSV TLE format mismatch`);
+    assert(row.apiClass === freshness.apiClass, `${label}: CSV TLE API class mismatch`);
+    assert(row.sourcePolicy === freshness.sourcePolicy, `${label}: CSV TLE source policy mismatch`);
+    assert(
+      row.catalogNumberCompatibility === freshness.catalogNumberCompatibility,
+      `${label}: CSV TLE catalog compatibility mismatch`
+    );
     assert(
       row.snapshotFetchedUtc === csvCellValue(freshness.snapshotFetchedUtc),
       `${label}: CSV TLE snapshot fetched mismatch`
@@ -2474,6 +2508,16 @@ function assertMissingSourceEvidence(label, evidence) {
   assert(
     [...sourcesByOrbit.values()].every((source) => source.health === "unknown-age"),
     `${label}: missing source health should be unknown-age`
+  );
+  assert(
+    [...sourcesByOrbit.values()].every(
+      (source) =>
+        source.format === "tle-3le" &&
+        source.apiClass === "celestrak-gp-tle" &&
+        source.sourcePolicy === "bundled-snapshot" &&
+        source.catalogNumberCompatibility === "tle-limited-5-digit-catalog"
+    ),
+    `${label}: missing source metadata fallback mismatch`
   );
 }
 

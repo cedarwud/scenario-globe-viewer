@@ -19,8 +19,6 @@ import {
 
 import {
   intersectStationWindowsForPair,
-  parseTleRecordMetadata,
-  parseTleListFromText,
   type OrbitClass,
   type PairVisibilityWindow,
   type StationGeodetic,
@@ -33,7 +31,6 @@ import {
 import {
   buildRuntimeDataCompletenessState,
   type RuntimeDataCompletenessState,
-  type RuntimeNoradIdRangeSummary,
   type RuntimeTleSourceParseStats,
   type TleSourceMode,
   type RuntimeRainRateControlMode
@@ -42,6 +39,11 @@ import {
   buildSceneCameraHintForProjection,
   buildSceneDisplayPolicy
 } from "./tle-first-scene-view-model";
+import {
+  parseOrbitSourceText,
+  toTleRecords,
+  type OrbitSourcePolicy
+} from "./orbit-source-parser";
 
 const DEFAULT_SAMPLE_STEP_SECONDS = 30;
 const DEFAULT_ELEVATION_THRESHOLD_DEG = 10;
@@ -1240,41 +1242,29 @@ export function parseRuntimeTleSources(
   sources: RuntimeTleSources
 ): ReadonlyArray<TleRecord> {
   return [
-    ...parseTleListFromText(sources.leoTleText, "LEO"),
-    ...parseTleListFromText(sources.meoTleText, "MEO"),
-    ...parseTleListFromText(sources.geoTleText, "GEO")
+    ...toTleRecords(parseOrbitSourceText(sources.leoTleText, {
+      orbitClass: "LEO",
+      sourcePolicy: sourcePolicyForMode(sources.sourceMode ?? "local-snapshot")
+    }).records),
+    ...toTleRecords(parseOrbitSourceText(sources.meoTleText, {
+      orbitClass: "MEO",
+      sourcePolicy: sourcePolicyForMode(sources.sourceMode ?? "local-snapshot")
+    }).records),
+    ...toTleRecords(parseOrbitSourceText(sources.geoTleText, {
+      orbitClass: "GEO",
+      sourcePolicy: sourcePolicyForMode(sources.sourceMode ?? "local-snapshot")
+    }).records)
   ];
 }
 
-function summarizeNoradIds(
-  ids: ReadonlyArray<number>
-): ReadonlyArray<RuntimeNoradIdRangeSummary> {
-  const sorted = ids.slice().sort((left, right) => left - right);
-  if (sorted.length === 0) {
-    return [];
-  }
-  const ranges: RuntimeNoradIdRangeSummary[] = [];
-  let start = sorted[0];
-  let end = sorted[0];
-  let count = 1;
-  for (let index = 1; index < sorted.length; index += 1) {
-    const id = sorted[index];
-    if (id === end + 1) {
-      end = id;
-      count += 1;
-      continue;
-    }
-    ranges.push({ start, end, count });
-    start = id;
-    end = id;
-    count = 1;
-  }
-  ranges.push({ start, end, count });
-  return ranges;
+function sourcePolicyForMode(sourceMode: TleSourceMode): OrbitSourcePolicy {
+  if (sourceMode === "network-snapshot") return "refresh-artifact";
+  if (sourceMode === "fallback-local-snapshot") return "fallback-local-snapshot";
+  return "bundled-snapshot";
 }
 
 function buildTleSourceParseStatsForText(
-  rawTleText: string,
+  rawText: string,
   orbitClass: OrbitClass,
   sourcePath: string,
   sourceMetadata: {
@@ -1284,60 +1274,19 @@ function buildTleSourceParseStatsForText(
     readonly satcatByNoradId: ReadonlyMap<number, RuntimeSatcatSummaryEntry>;
   }
 ): RuntimeTleSourceParseStats {
-  const lines = rawTleText
-    .split(/\r?\n/)
-    .map((line) => line.trim())
-    .filter((line) => line.length > 0);
-  let rawRecordGroupCount = 0;
-  let parsedRecordCount = 0;
-  let parserFailureCount = 0;
-  const noradIds: number[] = [];
-  const cosparDesignators: string[] = [];
-  const classificationCounts: Record<string, number> = {};
   const constellationMembership: Record<string, number> = {};
-  let meanMotionFirstDerivativeCount = 0;
-  let meanMotionSecondDerivativeCount = 0;
-  let bstarDragTermCount = 0;
-  for (let i = 0; i + 2 < lines.length; i += 3) {
-    rawRecordGroupCount += 1;
-    const nameLine = lines[i];
-    const line1 = lines[i + 1];
-    const line2 = lines[i + 2];
-    if (nameLine && line1?.startsWith("1 ") && line2?.startsWith("2 ")) {
-      const recordMetadata = parseTleRecordMetadata(line1);
-      parsedRecordCount += 1;
-      if (recordMetadata.noradCatalogId !== null) {
-        noradIds.push(recordMetadata.noradCatalogId);
-        const satcatEntry = sourceMetadata.satcatByNoradId.get(
-          recordMetadata.noradCatalogId
-        );
-        if (satcatEntry?.operatorFamily) {
-          constellationMembership[satcatEntry.operatorFamily] =
-            (constellationMembership[satcatEntry.operatorFamily] ?? 0) + 1;
-        }
+  const parsed = parseOrbitSourceText(rawText, {
+    orbitClass,
+    sourcePolicy: sourcePolicyForMode(sourceMetadata.sourceMode)
+  });
+  for (const record of parsed.records) {
+    if (record.noradCatalogId !== null) {
+      const satcatEntry = sourceMetadata.satcatByNoradId.get(record.noradCatalogId);
+      if (satcatEntry?.operatorFamily) {
+        constellationMembership[satcatEntry.operatorFamily] =
+          (constellationMembership[satcatEntry.operatorFamily] ?? 0) + 1;
       }
-      if (recordMetadata.cosparDesignator) {
-        cosparDesignators.push(recordMetadata.cosparDesignator);
-      }
-      const classification = recordMetadata.classification || "unknown";
-      classificationCounts[classification] =
-        (classificationCounts[classification] ?? 0) + 1;
-      if (recordMetadata.meanMotionFirstDerivative !== null) {
-        meanMotionFirstDerivativeCount += 1;
-      }
-      if (recordMetadata.meanMotionSecondDerivative !== null) {
-        meanMotionSecondDerivativeCount += 1;
-      }
-      if (recordMetadata.bstarDragTerm !== null) {
-        bstarDragTermCount += 1;
-      }
-    } else {
-      parserFailureCount += 1;
     }
-  }
-  const trailingLineCount = lines.length % 3;
-  if (trailingLineCount > 0) {
-    parserFailureCount += 1;
   }
   return {
     sourceId: `tle:${orbitClass.toLowerCase()}`,
@@ -1346,19 +1295,19 @@ function buildTleSourceParseStatsForText(
     sourceMode: sourceMetadata.sourceMode,
     snapshotFetchedUtc: sourceMetadata.snapshotFetchedUtc,
     snapshotPath: sourceMetadata.snapshotPath,
-    rawRecordGroupCount,
-    parsedRecordCount,
-    parserFailureCount,
-    noradIdRangeSummary: summarizeNoradIds(noradIds),
+    rawRecordGroupCount: parsed.stats.rawRecordGroupCount,
+    parsedRecordCount: parsed.stats.parsedRecordCount,
+    parserFailureCount: parsed.stats.parserFailureCount,
+    format: parsed.format,
+    apiClass: parsed.apiClass,
+    sourcePolicy: parsed.sourcePolicy,
+    catalogNumberCompatibility: parsed.catalogNumberCompatibility,
+    noradIdRangeSummary: parsed.stats.noradIdRangeSummary,
     constellationMembership,
-    cosparDesignatorCount: new Set(cosparDesignators).size,
-    cosparDesignatorSamples: [...new Set(cosparDesignators)].slice(0, 8),
-    classificationCounts,
-    dragTermFieldCoverage: {
-      meanMotionFirstDerivativeCount,
-      meanMotionSecondDerivativeCount,
-      bstarDragTermCount
-    }
+    cosparDesignatorCount: parsed.stats.cosparDesignatorCount,
+    cosparDesignatorSamples: parsed.stats.cosparDesignatorSamples,
+    classificationCounts: parsed.stats.classificationCounts,
+    dragTermFieldCoverage: parsed.stats.dragTermFieldCoverage
   };
 }
 

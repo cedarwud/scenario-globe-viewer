@@ -20,6 +20,12 @@ import type {
   TlePropagationStats,
   TleRecord
 } from "./visibility-utils";
+import type {
+  CatalogNumberCompatibility,
+  OrbitSourceApiClass,
+  OrbitSourceFormat,
+  OrbitSourcePolicy
+} from "./orbit-source-parser";
 
 export type RuntimeTruthClass =
   | "tle-derived"
@@ -139,6 +145,10 @@ export interface RuntimeTleSourceManifestEntry {
   readonly sourceId: string;
   readonly sourcePath: string;
   readonly orbitClass: OrbitClass;
+  readonly format: OrbitSourceFormat;
+  readonly apiClass: OrbitSourceApiClass;
+  readonly sourcePolicy: OrbitSourcePolicy;
+  readonly catalogNumberCompatibility: CatalogNumberCompatibility;
   readonly recordCount: number;
   readonly acceptedRecordCount: number;
   readonly rejectedRecordCount: number;
@@ -161,6 +171,10 @@ export interface RuntimeTleSourceManifestEntry {
 
 export interface RuntimeTleSourceFreshness {
   readonly sourceMode: TleSourceMode;
+  readonly format: OrbitSourceFormat;
+  readonly apiClass: OrbitSourceApiClass;
+  readonly sourcePolicy: OrbitSourcePolicy;
+  readonly catalogNumberCompatibility: CatalogNumberCompatibility;
   readonly snapshotFetchedUtc: string | null;
   readonly snapshotPath: string;
   readonly maxEpochUtc: string | null;
@@ -173,6 +187,10 @@ export interface RuntimeTleSourceParseStats {
   readonly sourceId: string;
   readonly sourcePath: string;
   readonly orbitClass: OrbitClass;
+  readonly format: OrbitSourceFormat;
+  readonly apiClass: OrbitSourceApiClass;
+  readonly sourcePolicy: OrbitSourcePolicy;
+  readonly catalogNumberCompatibility: CatalogNumberCompatibility;
   readonly sourceMode?: TleSourceMode;
   readonly snapshotFetchedUtc?: string | null;
   readonly snapshotPath?: string;
@@ -550,6 +568,12 @@ const NETWORK_MANIFEST_KEY_BY_ORBIT: Readonly<Record<OrbitClass, "leo" | "meo" |
   MEO: "meo",
   GEO: "geo"
 };
+
+function sourcePolicyForMode(sourceMode: TleSourceMode): OrbitSourcePolicy {
+  if (sourceMode === "network-snapshot") return "refresh-artifact";
+  if (sourceMode === "fallback-local-snapshot") return "fallback-local-snapshot";
+  return "bundled-snapshot";
+}
 
 function countByOrbit(records: ReadonlyArray<TleRecord>): Record<OrbitClass, number> {
   const counts: Record<OrbitClass, number> = { LEO: 0, MEO: 0, GEO: 0 };
@@ -1094,6 +1118,12 @@ function buildTleSourceManifest(
       sourceId: `tle:${orbitClass.toLowerCase()}`,
       sourcePath,
       orbitClass,
+      format: parseStats?.format ?? "tle-3le",
+      apiClass: parseStats?.apiClass ?? "celestrak-gp-tle",
+      sourcePolicy:
+        parseStats?.sourcePolicy ?? sourcePolicyForMode(resolveTleSourceMode(input)),
+      catalogNumberCompatibility:
+        parseStats?.catalogNumberCompatibility ?? "tle-limited-5-digit-catalog",
       recordCount: totalCount,
       acceptedRecordCount: acceptedCount,
       rejectedRecordCount: capExcludedCount + unsupportedOrbitCount,
@@ -1179,6 +1209,10 @@ export function buildRuntimeTleSourceFreshness(
     );
     return {
       sourceMode,
+      format: source.format,
+      apiClass: source.apiClass,
+      sourcePolicy: source.sourcePolicy,
+      catalogNumberCompatibility: source.catalogNumberCompatibility,
       snapshotFetchedUtc,
       snapshotPath: stats?.snapshotPath ?? source.sourcePath,
       maxEpochUtc: source.epochEndUtc,
