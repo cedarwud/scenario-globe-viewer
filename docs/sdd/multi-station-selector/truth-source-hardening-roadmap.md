@@ -237,7 +237,8 @@ Risk:
 
 ### Slice TH3 - DEM Elevation Provenance Replacement
 
-Status: ready for research/design, not a quick implementation.
+Status: docs-only source/license gate closed as of 2026-05-21; numeric
+replacement remains blocked. See `th3-dem-source-license-gate.md`.
 
 Purpose:
 

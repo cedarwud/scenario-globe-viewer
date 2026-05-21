@@ -4,6 +4,10 @@ Status: prep baseline. No numeric elevation replacement in this slice.
 Capture date: 2026-05-21.
 Commit baseline: `ef79573`.
 
+Gate note: `th3-dem-source-license-gate.md` records the 2026-05-21 docs-only
+source/license decision. It supersedes this baseline's source-link details
+without authorizing numeric value replacement.
+
 ## Current Fixture State
 
 - Registry rows: 69.
