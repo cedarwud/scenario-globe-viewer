@@ -276,7 +276,7 @@ test("OMM JSON source metadata flows to runtime accepted propagation records", (
   const legacyNamedRecords = parseRuntimeTleSources(sources);
   const stats = buildRuntimeTleSourceParseStats(sources);
   const [stationA, stationB] = stationRegistry.stations.filter((station) =>
-    ["ksat-svalsat-svalbard", "ksat-tromso"].includes(station.id)
+    ["ksat-dubai", "oneweb-tabuk-snp"].includes(station.id)
   );
 
   assert.equal(runtimeRecords.length, 3);
@@ -294,7 +294,7 @@ test("OMM JSON source metadata flows to runtime accepted propagation records", (
     stationB,
     timeWindow: {
       startUtc: "2026-05-20T00:00:00.000Z",
-      endUtc: "2026-05-20T00:01:00.000Z"
+      endUtc: "2026-05-20T01:00:00.000Z"
     },
     tleRecords: runtimeRecords,
     tleParseStats: stats,
@@ -322,16 +322,24 @@ test("OMM JSON source metadata flows to runtime accepted propagation records", (
   assert.equal(leoFreshness?.provenance.truthClass, "omm-derived");
   assert.equal(leoFreshness?.provenance.sourceId, "omm:leo");
 
-  for (const actor of result.dataCompleteness.actorProvenance.filter(
+  const ommActorProvenance = result.dataCompleteness.actorProvenance.filter(
     (row) => row.orbitClass === "LEO"
-  )) {
+  );
+  assert.ok(ommActorProvenance.length > 0, "expected OMM LEO actor provenance");
+  for (const actor of ommActorProvenance) {
     assert.equal(actor.sourceId, "omm:leo");
     assert.equal(actor.provenance.truthClass, "omm-derived");
     assert.equal(actor.provenance.sourceId, "omm:leo");
   }
-  for (const visibility of result.dataCompleteness.visibilityProvenance.filter(
-    (row) => row.orbitClass === "LEO"
-  )) {
+  const ommVisibilityProvenance =
+    result.dataCompleteness.visibilityProvenance.filter(
+      (row) => row.orbitClass === "LEO"
+    );
+  assert.ok(
+    ommVisibilityProvenance.length > 0,
+    "expected OMM LEO visibility provenance"
+  );
+  for (const visibility of ommVisibilityProvenance) {
     assert.equal(visibility.sourceId, "omm:leo");
     assert.equal(visibility.provenance.truthClass, "omm-derived");
     assert.equal(visibility.provenance.sourceId, "omm:leo");
