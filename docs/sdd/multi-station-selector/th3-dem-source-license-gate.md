@@ -3,6 +3,12 @@
 Status: gate closed, docs-only.
 Decision date: 2026-05-21.
 
+Handoff templates for the future operator live under
+`deliverable/ground-station-elevation/th3/`:
+
+- `copernicus-dem-access-license-acceptance-template.md`
+- `dem-sampling-runbook.md`
+
 ## Decision
 
 TH3 remains blocked for numeric replacement. The repo may document the source
