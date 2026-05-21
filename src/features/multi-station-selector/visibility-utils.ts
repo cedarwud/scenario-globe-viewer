@@ -1,4 +1,5 @@
-import { twoline2satrec, propagate, gstime, eciToEcf } from "../../vendor/satellite-js-runtime";
+import { propagate, gstime, eciToEcf } from "../../vendor/satellite-js-runtime";
+import { createRuntimeSatrec } from "./orbit-propagation";
 
 export type OrbitClass = "LEO" | "MEO" | "GEO";
 
@@ -23,8 +24,10 @@ export interface PairVisibilityWindow {
 export interface TleRecord {
   readonly satelliteId: string;
   readonly orbitClass: OrbitClass;
+  readonly format?: "tle-3le";
   readonly tleLine1: string;
   readonly tleLine2: string;
+  readonly epochUtc?: string | null;
   readonly noradCatalogId?: number | null;
   readonly classification?: string | null;
   readonly cosparDesignator?: string | null;
@@ -35,6 +38,24 @@ export interface TleRecord {
   readonly bstarDragTerm?: number | null;
   readonly bstarDragTermRaw?: string | null;
 }
+export type OmmPropagationFields = Readonly<Record<string, string | number | null>>;
+export interface OmmRuntimeOrbitRecord {
+  readonly satelliteId: string;
+  readonly orbitClass: OrbitClass;
+  readonly format: "omm-json" | "omm-csv";
+  readonly ommFields: OmmPropagationFields;
+  readonly epochUtc: string | null;
+  readonly noradCatalogId?: number | null;
+  readonly classification?: string | null;
+  readonly cosparDesignator?: string | null;
+  readonly meanMotionFirstDerivative?: number | null;
+  readonly meanMotionFirstDerivativeRaw?: string | null;
+  readonly meanMotionSecondDerivative?: number | null;
+  readonly meanMotionSecondDerivativeRaw?: string | null;
+  readonly bstarDragTerm?: number | null;
+  readonly bstarDragTermRaw?: string | null;
+}
+export type RuntimeOrbitRecord = TleRecord | OmmRuntimeOrbitRecord;
 export interface VisibilitySampleConfig {
   readonly startUtc: string;
   readonly endUtc: string;
@@ -187,7 +208,7 @@ function collapseSamplesToWindows(sampleTimesMs: ReadonlyArray<number>, sampleEl
 
 export function computeVisibilityWindowsForStationWithStats(
   station: StationGeodetic,
-  tleRecords: ReadonlyArray<TleRecord>,
+  tleRecords: ReadonlyArray<RuntimeOrbitRecord>,
   config: VisibilitySampleConfig
 ): StationVisibilityComputationResult {
   // WHY: uniform-step sampling is robust across LEO/MEO/GEO without per-orbit-class closed-form pass predictors that satellite.js does not expose.
@@ -197,7 +218,7 @@ export function computeVisibilityWindowsForStationWithStats(
   const stepMs = config.stepSeconds * 1000;
   const windowsBySatellite = new Map<string, ReadonlyArray<VisibilityWindow>>();
   const propagationStatsBySatellite = new Map<string, TlePropagationStats>();
-  const emptyStats = (rec: TleRecord, sgp4ErrorCode: number | null): TlePropagationStats => ({
+  const emptyStats = (rec: RuntimeOrbitRecord, sgp4ErrorCode: number | null): TlePropagationStats => ({
     satelliteId: rec.satelliteId,
     orbitClass: rec.orbitClass,
     sampleCadenceSeconds: config.stepSeconds,
@@ -218,16 +239,10 @@ export function computeVisibilityWindowsForStationWithStats(
   const sampleTimesMs: number[] = [];
   for (let t = startMs; t < endMs; t += stepMs) sampleTimesMs.push(t);
   for (const rec of tleRecords) {
-    let satrec: ReturnType<typeof twoline2satrec> | null;
-    try { satrec = twoline2satrec(rec.tleLine1, rec.tleLine2); }
-    catch {
+    const { satrec, errorCode } = createRuntimeSatrec(rec);
+    if (!satrec) {
       windowsBySatellite.set(rec.satelliteId, []);
-      propagationStatsBySatellite.set(rec.satelliteId, emptyStats(rec, -1));
-      continue;
-    }
-    if (!satrec || satrec.error) {
-      windowsBySatellite.set(rec.satelliteId, []);
-      propagationStatsBySatellite.set(rec.satelliteId, emptyStats(rec, satrec?.error ?? -1));
+      propagationStatsBySatellite.set(rec.satelliteId, emptyStats(rec, errorCode));
       continue;
     }
     const elevs: number[] = new Array(sampleTimesMs.length);
@@ -272,7 +287,7 @@ export function computeVisibilityWindowsForStationWithStats(
 
 export function computeVisibilityWindowsForStation(
   station: StationGeodetic,
-  tleRecords: ReadonlyArray<TleRecord>,
+  tleRecords: ReadonlyArray<RuntimeOrbitRecord>,
   config: VisibilitySampleConfig
 ): Map<string, ReadonlyArray<VisibilityWindow>> {
   return computeVisibilityWindowsForStationWithStats(station, tleRecords, config).windowsBySatellite;
@@ -281,7 +296,7 @@ export function computeVisibilityWindowsForStation(
 export function intersectStationWindowsForPair(
   stationAWindows: Map<string, ReadonlyArray<VisibilityWindow>>,
   stationBWindows: Map<string, ReadonlyArray<VisibilityWindow>>,
-  tleRecords: ReadonlyArray<TleRecord>
+  tleRecords: ReadonlyArray<RuntimeOrbitRecord>
 ): ReadonlyArray<PairVisibilityWindow> {
   const orbitById = new Map<string, OrbitClass>();
   for (const rec of tleRecords) orbitById.set(rec.satelliteId, rec.orbitClass);

@@ -2,18 +2,19 @@ import type { RuntimeProjectionResult } from "./runtime-projection";
 import type {
   OrbitClass,
   PairVisibilityWindow,
-  TleRecord
+  RuntimeOrbitRecord
 } from "./visibility-utils";
+import { createRuntimeSatrec } from "./orbit-propagation";
 import {
   eciToEcf,
   gstime,
-  propagate,
-  twoline2satrec
+  propagate
 } from "../../vendor/satellite-js-runtime";
 
 export type SceneSourceMode = "tle-first-runtime" | "fixture-fallback";
 export type SceneTruthClass =
   | "tle-derived"
+  | "omm-derived"
   | "public-registry-derived"
   | "modeled"
   | "display-only"
@@ -42,7 +43,7 @@ export interface SceneActor {
   readonly orbitClass: OrbitClass;
   readonly role: SceneActorRole;
   readonly sourceId: string;
-  readonly sourceClass: Extract<SceneTruthClass, "tle-derived" | "fixture-fallback">;
+  readonly sourceClass: Extract<SceneTruthClass, "tle-derived" | "omm-derived" | "fixture-fallback">;
   readonly sourceSamples: ReadonlyArray<SceneActorSourceSample>;
   readonly visibilityWindows: ReadonlyArray<SceneActorVisibilityWindow>;
   readonly displayTransform?: {
@@ -119,7 +120,7 @@ export interface TleFirstSceneViewModel {
 export interface BuildTleFirstSceneViewModelInput {
   readonly projection?: RuntimeProjectionResult;
   readonly result?: RuntimeProjectionResult;
-  readonly tleRecords: ReadonlyArray<TleRecord>;
+  readonly tleRecords: ReadonlyArray<RuntimeOrbitRecord>;
   readonly sourceMode?: SceneSourceMode;
   readonly sampleStepSeconds?: number;
   readonly tleCapPerOrbit?: number;
@@ -202,16 +203,11 @@ function isFiniteEcefPosition(position: unknown): position is SceneEcefKm {
 }
 
 function buildSourceSamplesForRecord(
-  record: TleRecord,
+  record: RuntimeOrbitRecord,
   sampleTimesMs: ReadonlyArray<number>
 ): ReadonlyArray<SceneActorSourceSample> {
-  let satrec: ReturnType<typeof twoline2satrec> | null;
-  try {
-    satrec = twoline2satrec(record.tleLine1, record.tleLine2);
-  } catch {
-    return [];
-  }
-  if (!satrec || satrec.error) {
+  const { satrec } = createRuntimeSatrec(record);
+  if (!satrec) {
     return [];
   }
 
@@ -307,7 +303,7 @@ function resolveActorRole(
 
 function buildHandoverEvents(
   result: RuntimeProjectionResult,
-  recordsById: ReadonlyMap<string, TleRecord>
+  recordsById: ReadonlyMap<string, RuntimeOrbitRecord>
 ): ReadonlyArray<SceneHandoverEvent> {
   return result.handoverEvents
     .filter((event) => recordsById.has(event.toSatelliteId))
@@ -358,8 +354,25 @@ function buildActiveLinks(
       stationBId: result.pair.stationB.id
     });
   }
-
   return links;
+}
+
+function resolveRuntimeOrbitSourceId(record: RuntimeOrbitRecord): string {
+  const prefix =
+    record.format === "omm-json" || record.format === "omm-csv" ? "omm" : "tle";
+  return `${prefix}:${record.orbitClass.toLowerCase()}`;
+}
+
+function resolveRuntimeOrbitSourceClass(
+  record: RuntimeOrbitRecord,
+  sourceMode: SceneSourceMode
+): SceneActor["sourceClass"] {
+  if (sourceMode === "fixture-fallback") {
+    return "fixture-fallback";
+  }
+  return record.format === "omm-json" || record.format === "omm-csv"
+    ? "omm-derived"
+    : "tle-derived";
 }
 
 function greatCircleDistanceDeg(
@@ -544,8 +557,8 @@ export function buildTleFirstSceneViewModel(
         continuityIds,
         handoverTargetIds
       ),
-      sourceId: `tle:${record.orbitClass.toLowerCase()}`,
-      sourceClass: sourceMode === "fixture-fallback" ? "fixture-fallback" : "tle-derived",
+      sourceId: resolveRuntimeOrbitSourceId(record),
+      sourceClass: resolveRuntimeOrbitSourceClass(record, sourceMode),
       sourceSamples: buildSourceSamplesForRecord(record, sampleTimesMs),
       visibilityWindows: mergeActorWindows(pairWindows),
       displayTransform: {

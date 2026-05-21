@@ -21,6 +21,7 @@ import {
   intersectStationWindowsForPair,
   type OrbitClass,
   type PairVisibilityWindow,
+  type RuntimeOrbitRecord,
   type StationGeodetic,
   type TleRecord
 } from "./visibility-utils";
@@ -42,6 +43,7 @@ import {
 import {
   parseOrbitSourceText,
   toTleRecords,
+  toRuntimeOrbitRecords,
   type OrbitSourceMetadata,
   type OrbitSourcePolicy
 } from "./orbit-source-parser";
@@ -169,7 +171,7 @@ export interface RuntimeProjectionInput {
   readonly stationA: PublicRegistryStation;
   readonly stationB: PublicRegistryStation;
   readonly timeWindow: { startUtc: string; endUtc: string };
-  readonly tleRecords: ReadonlyArray<TleRecord>;
+  readonly tleRecords: ReadonlyArray<RuntimeOrbitRecord>;
   readonly tleParseStats?: ReadonlyArray<RuntimeTleSourceParseStats>;
   readonly sourcePaths?: Readonly<Record<OrbitClass, string>>;
   readonly sampleStepSeconds?: number;
@@ -282,11 +284,11 @@ function toStationGeodetic(station: PublicRegistryStation): StationGeodetic {
 }
 
 function capTleRecords(
-  records: ReadonlyArray<TleRecord>,
+  records: ReadonlyArray<RuntimeOrbitRecord>,
   caps: Record<OrbitClass, number>
-): ReadonlyArray<TleRecord> {
+): ReadonlyArray<RuntimeOrbitRecord> {
   const counts: Record<OrbitClass, number> = { LEO: 0, MEO: 0, GEO: 0 };
-  const kept: TleRecord[] = [];
+  const kept: RuntimeOrbitRecord[] = [];
   for (const record of records) {
     const c = counts[record.orbitClass];
     if (c >= caps[record.orbitClass]) {
@@ -522,16 +524,20 @@ export function computeLinkBudgetMetricsForOrbit(
 
 function selectVisibleConstellations(
   windows: ReadonlyArray<PairVisibilityWindow>,
-  records: ReadonlyArray<TleRecord>
+  records: ReadonlyArray<RuntimeOrbitRecord>
 ): Record<
   OrbitClass,
   ReadonlyArray<{ readonly satelliteId: string; readonly tleSource: string }>
 > {
   const tleSourceById = new Map<string, string>();
   for (const r of records) {
+    const sourceSnippet =
+      "ommFields" in r
+        ? `${r.format}:NORAD ${r.noradCatalogId ?? "unknown"}`
+        : `${r.tleLine1.slice(0, 16)}…/${r.tleLine2.slice(0, 8)}…`;
     tleSourceById.set(
       r.satelliteId,
-      `${r.tleLine1.slice(0, 16)}…/${r.tleLine2.slice(0, 8)}…`
+      sourceSnippet
     );
   }
   const seenByOrbit: Record<OrbitClass, Set<string>> = {
@@ -759,9 +765,9 @@ function resolveSharedSupportedOrbits(
 }
 
 function filterRecordsByOrbit(
-  records: ReadonlyArray<TleRecord>,
+  records: ReadonlyArray<RuntimeOrbitRecord>,
   allowedOrbits: ReadonlyArray<OrbitClass>
-): ReadonlyArray<TleRecord> {
+): ReadonlyArray<RuntimeOrbitRecord> {
   const allowed = new Set(allowedOrbits);
   return records.filter((record) => allowed.has(record.orbitClass));
 }
@@ -1316,18 +1322,53 @@ export function parseRuntimeTleSources(
   sources: RuntimeTleSources
 ): ReadonlyArray<TleRecord> {
   return [
-    ...toTleRecords(parseOrbitSourceText(sources.leoTleText, {
-      orbitClass: "LEO",
-      sourcePolicy: sourcePolicyForMode(sources.sourceMode ?? "local-snapshot")
-    }).records),
-    ...toTleRecords(parseOrbitSourceText(sources.meoTleText, {
-      orbitClass: "MEO",
-      sourcePolicy: sourcePolicyForMode(sources.sourceMode ?? "local-snapshot")
-    }).records),
-    ...toTleRecords(parseOrbitSourceText(sources.geoTleText, {
-      orbitClass: "GEO",
-      sourcePolicy: sourcePolicyForMode(sources.sourceMode ?? "local-snapshot")
-    }).records)
+    ...parseRuntimeTleText(sources.leoTleText, "LEO", sources),
+    ...parseRuntimeTleText(sources.meoTleText, "MEO", sources),
+    ...parseRuntimeTleText(sources.geoTleText, "GEO", sources)
+  ];
+}
+
+function parseRuntimeTleText(
+  rawText: string,
+  orbitClass: OrbitClass,
+  sources: RuntimeTleSources
+): ReadonlyArray<TleRecord> {
+  const metadata = sources.sourceMetadataByOrbit?.[orbitClass];
+  return toTleRecords(
+    parseOrbitSourceText(rawText, {
+      orbitClass,
+      format: metadata?.format,
+      sourcePolicy:
+        metadata?.sourcePolicy ??
+        sourcePolicyForMode(sources.sourceMode ?? "local-snapshot")
+    }).records
+  );
+}
+
+function parseRuntimeOrbitText(
+  rawText: string,
+  orbitClass: OrbitClass,
+  sources: RuntimeTleSources
+): ReadonlyArray<RuntimeOrbitRecord> {
+  const metadata = sources.sourceMetadataByOrbit?.[orbitClass];
+  return toRuntimeOrbitRecords(
+    parseOrbitSourceText(rawText, {
+      orbitClass,
+      format: metadata?.format,
+      sourcePolicy:
+        metadata?.sourcePolicy ??
+        sourcePolicyForMode(sources.sourceMode ?? "local-snapshot")
+    }).records
+  );
+}
+
+export function parseRuntimeOrbitSources(
+  sources: RuntimeTleSources
+): ReadonlyArray<RuntimeOrbitRecord> {
+  return [
+    ...parseRuntimeOrbitText(sources.leoTleText, "LEO", sources),
+    ...parseRuntimeOrbitText(sources.meoTleText, "MEO", sources),
+    ...parseRuntimeOrbitText(sources.geoTleText, "GEO", sources)
   ];
 }
 
@@ -1335,6 +1376,14 @@ function sourcePolicyForMode(sourceMode: TleSourceMode): OrbitSourcePolicy {
   if (sourceMode === "network-snapshot") return "refresh-artifact";
   if (sourceMode === "fallback-local-snapshot") return "fallback-local-snapshot";
   return "bundled-snapshot";
+}
+
+function resolveOrbitSourceId(
+  orbitClass: OrbitClass,
+  format: OrbitSourceMetadata["format"]
+): string {
+  const prefix = format === "omm-json" || format === "omm-csv" ? "omm" : "tle";
+  return `${prefix}:${orbitClass.toLowerCase()}`;
 }
 
 function buildTleSourceParseStatsForText(
@@ -1369,7 +1418,7 @@ function buildTleSourceParseStatsForText(
     }
   }
   return {
-    sourceId: `tle:${orbitClass.toLowerCase()}`,
+    sourceId: resolveOrbitSourceId(orbitClass, orbitSourceMetadata.format),
     sourcePath,
     orbitClass,
     sourceMode: sourceMetadata.sourceMode,

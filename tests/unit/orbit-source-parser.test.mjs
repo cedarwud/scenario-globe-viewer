@@ -3,6 +3,7 @@ import { strict as assert } from "node:assert";
 
 import {
   parseOrbitSourceText,
+  toRuntimeOrbitRecords,
   toTleRecords
 } from "../../src/features/multi-station-selector/orbit-source-parser.ts";
 
@@ -67,9 +68,15 @@ test("OMM JSON source parses and preserves a 6-digit catalog number", () => {
   assert.deepEqual(parsed.stats.noradIdRangeSummary, [
     { start: 123456, end: 123456, count: 1 }
   ]);
+  const runtimeRecords = toRuntimeOrbitRecords(parsed.records);
+  assert.equal(runtimeRecords.length, 1);
+  assert.equal(runtimeRecords[0].format, "omm-json");
+  assert.equal(runtimeRecords[0].noradCatalogId, 123456);
+  assert.equal(runtimeRecords[0].ommFields.NORAD_CAT_ID, 123456);
+  assert.equal(toTleRecords(parsed.records).length, 0);
 });
 
-test("OMM CSV source parses with the same metadata as OMM JSON", () => {
+test("OMM CSV source parses with the same metadata as OMM JSON and converts to runtime records", () => {
   const parsed = parseOrbitSourceText(OMM_CSV, {
     orbitClass: "LEO",
     format: "omm-csv",
@@ -82,6 +89,12 @@ test("OMM CSV source parses with the same metadata as OMM JSON", () => {
   assert.equal(parsed.stats.parsedRecordCount, 1);
   assert.equal(parsed.stats.parserFailureCount, 0);
   assert.equal(parsed.records[0].noradCatalogId, 123456);
+  const runtimeRecords = toRuntimeOrbitRecords(parsed.records);
+  assert.equal(runtimeRecords.length, 1);
+  assert.equal(runtimeRecords[0].format, "omm-csv");
+  assert.equal(runtimeRecords[0].noradCatalogId, 123456);
+  assert.equal(runtimeRecords[0].ommFields.NORAD_CAT_ID, "123456");
+  assert.equal(toTleRecords(parsed.records).length, 0);
 });
 
 test("malformed TLE input increments parser failure count", () => {
@@ -106,4 +119,19 @@ test("malformed OMM input increments parser failure count or rejects explicitly"
     () => parseOrbitSourceText("{not json", { orbitClass: "LEO", format: "omm-json" }),
     /JSON/
   );
+});
+
+test("mixed OMM JSON source keeps valid rows and counts invalid rows", () => {
+  const parsed = parseOrbitSourceText(
+    JSON.stringify([OMM_ROW, { OBJECT_NAME: "missing required orbit fields" }]),
+    {
+      orbitClass: "LEO",
+      format: "omm-json",
+      sourcePolicy: "refresh-artifact"
+    }
+  );
+
+  assert.equal(parsed.stats.parsedRecordCount, 1);
+  assert.equal(parsed.stats.parserFailureCount, 1);
+  assert.equal(parsed.records[0].noradCatalogId, 123456);
 });

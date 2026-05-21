@@ -136,7 +136,7 @@ export function buildRuntimeProjectionCsv(result: RuntimeProjectionResult): stri
 
   rows.push(
     [],
-    ["# TLE source manifest"],
+    ["# Orbit source manifest"],
     [
       "sourceId",
       "sourcePath",
@@ -195,7 +195,7 @@ export function buildRuntimeProjectionCsv(result: RuntimeProjectionResult): stri
 
   rows.push(
     [],
-    ["# TLE freshness"],
+    ["# Orbit source freshness"],
     [
       "sourceId",
       "sourceMode",

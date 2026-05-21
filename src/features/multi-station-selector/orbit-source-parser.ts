@@ -1,7 +1,9 @@
-import { json2satrec } from "../../vendor/satellite-js-runtime";
+import { createRuntimeSatrec } from "./orbit-propagation";
 import {
   parseTleRecordMetadata,
+  type OmmPropagationFields,
   type OrbitClass,
+  type RuntimeOrbitRecord,
   type TleRecord
 } from "./visibility-utils";
 import type {
@@ -42,6 +44,7 @@ export interface OrbitSourceRecord {
   readonly bstarDragTermRaw: string | null;
   readonly tleLine1?: string;
   readonly tleLine2?: string;
+  readonly ommFields?: OmmPropagationFields;
 }
 
 export interface OrbitSourceParseStats extends OrbitSourceMetadata {
@@ -67,6 +70,19 @@ interface ParseOptions {
 }
 
 type OmmRow = Record<string, unknown>;
+
+const REQUIRED_OMM_NUMERIC_FIELDS = [
+  "NORAD_CAT_ID",
+  "MEAN_MOTION",
+  "ECCENTRICITY",
+  "INCLINATION",
+  "RA_OF_ASC_NODE",
+  "ARG_OF_PERICENTER",
+  "MEAN_ANOMALY",
+  "BSTAR",
+  "MEAN_MOTION_DOT",
+  "MEAN_MOTION_DDOT"
+] as const;
 
 const FORMAT_METADATA: Readonly<
   Record<OrbitSourceFormat, Pick<OrbitSourceMetadata, "apiClass" | "catalogNumberCompatibility">>
@@ -231,10 +247,30 @@ function readNumber(row: OmmRow, key: string): number | null {
   return Number.isFinite(parsed) ? parsed : null;
 }
 
-function normalizeOmmRow(row: OmmRow): OmmRow {
+function normalizeOmmRow(row: OmmRow): OmmPropagationFields {
   return Object.fromEntries(
-    Object.entries(row).map(([key, value]) => [key.trim().toUpperCase(), value])
+    Object.entries(row).map(([key, value]) => {
+      const normalizedKey = key.trim().toUpperCase();
+      if (typeof value === "number" && Number.isFinite(value)) {
+        return [normalizedKey, value];
+      }
+      if (value === null || value === undefined) {
+        return [normalizedKey, null];
+      }
+      return [normalizedKey, String(value).trim()];
+    })
   );
+}
+
+function parseOmmEpochUtc(row: OmmPropagationFields): string | null {
+  const epochUtc = readString(row, "EPOCH");
+  if (!epochUtc) return null;
+  const parsed = new Date(epochUtc.endsWith("Z") ? epochUtc : `${epochUtc}Z`);
+  return Number.isFinite(parsed.valueOf()) ? parsed.toISOString() : null;
+}
+
+function hasRequiredOmmFields(row: OmmPropagationFields): boolean {
+  return REQUIRED_OMM_NUMERIC_FIELDS.every((key) => readNumber(row, key) !== null);
 }
 
 function parseOmmRows(
@@ -247,37 +283,33 @@ function parseOmmRows(
   for (const rawRow of rows) {
     const row = normalizeOmmRow(rawRow);
     const noradCatalogId = readNumber(row, "NORAD_CAT_ID");
-    const epochUtc = readString(row, "EPOCH");
-    if (!Number.isInteger(noradCatalogId) || !epochUtc) {
+    const epochUtc = parseOmmEpochUtc(row);
+    if (!Number.isInteger(noradCatalogId) || !epochUtc || !hasRequiredOmmFields(row)) {
       parserFailureCount += 1;
       continue;
     }
-    try {
-      const satrec = json2satrec(row as Parameters<typeof json2satrec>[0]);
-      if (!satrec || satrec.error) {
-        parserFailureCount += 1;
-        continue;
-      }
-    } catch {
-      parserFailureCount += 1;
-      continue;
-    }
-    records.push({
+    const record: OrbitSourceRecord = {
       satelliteId:
         readString(row, "OBJECT_NAME") ?? readString(row, "OBJECT_ID") ?? `NORAD ${noradCatalogId}`,
       orbitClass,
       format: metadata.format,
+      ommFields: row,
       noradCatalogId,
       classification: readString(row, "CLASSIFICATION_TYPE"),
       cosparDesignator: readString(row, "OBJECT_ID"),
-      epochUtc: new Date(epochUtc.endsWith("Z") ? epochUtc : `${epochUtc}Z`).toISOString(),
+      epochUtc,
       meanMotionFirstDerivative: readNumber(row, "MEAN_MOTION_DOT"),
       meanMotionFirstDerivativeRaw: readString(row, "MEAN_MOTION_DOT"),
       meanMotionSecondDerivative: readNumber(row, "MEAN_MOTION_DDOT"),
       meanMotionSecondDerivativeRaw: readString(row, "MEAN_MOTION_DDOT"),
       bstarDragTerm: readNumber(row, "BSTAR"),
       bstarDragTermRaw: readString(row, "BSTAR")
-    });
+    };
+    if (!createRuntimeSatrec(toRuntimeOrbitRecord(record)).satrec) {
+      parserFailureCount += 1;
+      continue;
+    }
+    records.push(record);
   }
   return {
     ...metadata,
@@ -401,4 +433,51 @@ export function toTleRecords(
       bstarDragTerm: record.bstarDragTerm,
       bstarDragTermRaw: record.bstarDragTermRaw
     }));
+}
+
+function toRuntimeOrbitRecord(record: OrbitSourceRecord): RuntimeOrbitRecord {
+  if (record.tleLine1 && record.tleLine2) {
+    return {
+      satelliteId: record.satelliteId,
+      orbitClass: record.orbitClass,
+      format: "tle-3le",
+      tleLine1: record.tleLine1,
+      tleLine2: record.tleLine2,
+      epochUtc: record.epochUtc,
+      noradCatalogId: record.noradCatalogId,
+      classification: record.classification,
+      cosparDesignator: record.cosparDesignator,
+      meanMotionFirstDerivative: record.meanMotionFirstDerivative,
+      meanMotionFirstDerivativeRaw: record.meanMotionFirstDerivativeRaw,
+      meanMotionSecondDerivative: record.meanMotionSecondDerivative,
+      meanMotionSecondDerivativeRaw: record.meanMotionSecondDerivativeRaw,
+      bstarDragTerm: record.bstarDragTerm,
+      bstarDragTermRaw: record.bstarDragTermRaw
+    };
+  }
+  if (!record.ommFields || record.format === "tle-3le") {
+    throw new Error("Orbit source record is not runtime-propagatable");
+  }
+  return {
+    satelliteId: record.satelliteId,
+    orbitClass: record.orbitClass,
+    format: record.format,
+    ommFields: record.ommFields,
+    epochUtc: record.epochUtc,
+    noradCatalogId: record.noradCatalogId,
+    classification: record.classification,
+    cosparDesignator: record.cosparDesignator,
+    meanMotionFirstDerivative: record.meanMotionFirstDerivative,
+    meanMotionFirstDerivativeRaw: record.meanMotionFirstDerivativeRaw,
+    meanMotionSecondDerivative: record.meanMotionSecondDerivative,
+    meanMotionSecondDerivativeRaw: record.meanMotionSecondDerivativeRaw,
+    bstarDragTerm: record.bstarDragTerm,
+    bstarDragTermRaw: record.bstarDragTermRaw
+  };
+}
+
+export function toRuntimeOrbitRecords(
+  records: ReadonlyArray<OrbitSourceRecord>
+): ReadonlyArray<RuntimeOrbitRecord> {
+  return records.map(toRuntimeOrbitRecord);
 }

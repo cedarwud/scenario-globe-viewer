@@ -6,6 +6,7 @@ import {
   buildRuntimeTleSourceParseStats,
   computeRuntimeProjection,
   loadDefaultTleSources,
+  parseRuntimeOrbitSources,
   parseRuntimeTleSources
 } from "../../src/features/multi-station-selector/runtime-projection.ts";
 import { buildRuntimeProjectionCsv } from "../../src/features/multi-station-selector/runtime-projection-csv.ts";
@@ -21,6 +22,26 @@ const TLE_TEXT = [
   "1 25544U 98067A   26138.00000000  .00010000  00000+0  10000-3 0  9991",
   "2 25544  51.6400 120.0000 0006000  40.0000  80.0000 15.50000000400000"
 ].join("\n");
+
+const OMM_ROW = {
+  OBJECT_NAME: "GP DEMO 123456",
+  OBJECT_ID: "2026-001A",
+  NORAD_CAT_ID: 123456,
+  CLASSIFICATION_TYPE: "U",
+  EPOCH: "2026-05-20T00:00:00.000",
+  MEAN_MOTION: 15.5,
+  ECCENTRICITY: 0.0006,
+  INCLINATION: 51.64,
+  RA_OF_ASC_NODE: 120,
+  ARG_OF_PERICENTER: 40,
+  MEAN_ANOMALY: 80,
+  EPHEMERIS_TYPE: 0,
+  ELEMENT_SET_NO: 999,
+  REV_AT_EPOCH: 40000,
+  BSTAR: 0.0001,
+  MEAN_MOTION_DOT: 0.0001,
+  MEAN_MOTION_DDOT: 0
+};
 
 function oldManifest() {
   return {
@@ -215,6 +236,111 @@ test("manifest metadata flows through parse stats, data completeness, and CSV", 
   assert.match(csv, /celestrak-gp-tle/);
   assert.match(csv, /refresh-artifact/);
   assert.match(csv, /tle-limited-5-digit-catalog/);
+});
+
+test("OMM JSON source metadata flows to runtime accepted propagation records", () => {
+  const sources = {
+    leoTleText: JSON.stringify([OMM_ROW]),
+    meoTleText: TLE_TEXT,
+    geoTleText: TLE_TEXT,
+    sourceMode: "network-snapshot",
+    sourcePaths: {
+      LEO: "/fixtures/satellites-network/leo-old.json",
+      MEO: "/fixtures/satellites-network/meo-old.tle",
+      GEO: "/fixtures/satellites-network/geo-old.tle"
+    },
+    snapshotFetchedUtc: "2026-05-20T00:00:00.000Z",
+    manifestPath: "/fixtures/satellites-network/manifest.json",
+    sourceMetadataByOrbit: {
+      LEO: {
+        format: "omm-json",
+        apiClass: "celestrak-gp",
+        sourcePolicy: "refresh-artifact",
+        catalogNumberCompatibility: "omm-nine-digit-catalog-capable"
+      },
+      MEO: {
+        format: "tle-3le",
+        apiClass: "celestrak-gp-tle",
+        sourcePolicy: "refresh-artifact",
+        catalogNumberCompatibility: "tle-limited-5-digit-catalog"
+      },
+      GEO: {
+        format: "tle-3le",
+        apiClass: "celestrak-gp-tle",
+        sourcePolicy: "refresh-artifact",
+        catalogNumberCompatibility: "tle-limited-5-digit-catalog"
+      }
+    }
+  };
+  const runtimeRecords = parseRuntimeOrbitSources(sources);
+  const legacyNamedRecords = parseRuntimeTleSources(sources);
+  const stats = buildRuntimeTleSourceParseStats(sources);
+  const [stationA, stationB] = stationRegistry.stations.filter((station) =>
+    ["ksat-svalsat-svalbard", "ksat-tromso"].includes(station.id)
+  );
+
+  assert.equal(runtimeRecords.length, 3);
+  assert.equal(runtimeRecords[0].format, "omm-json");
+  assert.equal(runtimeRecords[0].noradCatalogId, 123456);
+  assert.equal(legacyNamedRecords.length, 2);
+  assert.ok(legacyNamedRecords.every((record) => record.format !== "omm-json"));
+  assert.equal(stats[0].format, "omm-json");
+  assert.equal(stats[0].sourceId, "omm:leo");
+  assert.equal(stats[0].parsedRecordCount, 1);
+  assert.equal(stats[0].parserFailureCount, 0);
+
+  const result = computeRuntimeProjection({
+    stationA,
+    stationB,
+    timeWindow: {
+      startUtc: "2026-05-20T00:00:00.000Z",
+      endUtc: "2026-05-20T00:01:00.000Z"
+    },
+    tleRecords: runtimeRecords,
+    tleParseStats: stats,
+    sourcePaths: sources.sourcePaths,
+    sampleStepSeconds: 60
+  });
+
+  const leoSource = result.dataCompleteness.tleSources.find(
+    (source) => source.orbitClass === "LEO"
+  );
+  assert.equal(leoSource?.format, "omm-json");
+  assert.equal(leoSource?.sourceId, "omm:leo");
+  assert.equal(leoSource?.apiClass, "celestrak-gp");
+  assert.equal(
+    leoSource?.catalogNumberCompatibility,
+    "omm-nine-digit-catalog-capable"
+  );
+  assert.equal(leoSource?.recordCount, 1);
+  assert.equal(leoSource?.acceptedRecordCount, 1);
+  assert.equal(leoSource?.sgp4ErrorCount, 0);
+
+  const leoFreshness = result.dataCompleteness.tleFreshness.find(
+    (freshness) => freshness.format === "omm-json"
+  );
+  assert.equal(leoFreshness?.provenance.truthClass, "omm-derived");
+  assert.equal(leoFreshness?.provenance.sourceId, "omm:leo");
+
+  for (const actor of result.dataCompleteness.actorProvenance.filter(
+    (row) => row.orbitClass === "LEO"
+  )) {
+    assert.equal(actor.sourceId, "omm:leo");
+    assert.equal(actor.provenance.truthClass, "omm-derived");
+    assert.equal(actor.provenance.sourceId, "omm:leo");
+  }
+  for (const visibility of result.dataCompleteness.visibilityProvenance.filter(
+    (row) => row.orbitClass === "LEO"
+  )) {
+    assert.equal(visibility.sourceId, "omm:leo");
+    assert.equal(visibility.provenance.truthClass, "omm-derived");
+    assert.equal(visibility.provenance.sourceId, "omm:leo");
+  }
+
+  const csv = buildRuntimeProjectionCsv(result);
+  assert.match(csv, /omm:leo/);
+  assert.match(csv, /omm-derived/);
+  assert.doesNotMatch(csv, /tle:leo/);
 });
 
 test("default source behavior has no OMM, CSV, or Space-Track source path", async () => {

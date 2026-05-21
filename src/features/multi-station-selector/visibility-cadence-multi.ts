@@ -1,9 +1,9 @@
 import {
   computeVisibilityWindowsForStationWithStats,
   type OrbitClass,
+  type RuntimeOrbitRecord,
   type StationGeodetic,
   type StationVisibilityComputationResult,
-  type TleRecord,
   type TlePropagationStats,
   type VisibilityWindow
 } from "./visibility-utils";
@@ -62,7 +62,7 @@ function mergeResult(
 
 export function computeVisibilityWindowsForStationByOrbitCadence(
   station: StationGeodetic,
-  tleRecords: ReadonlyArray<TleRecord>,
+  tleRecords: ReadonlyArray<RuntimeOrbitRecord>,
   config: MultiOrbitVisibilitySampleConfig
 ): MultiOrbitVisibilityComputationResult {
   const cadenceSecondsByOrbit = resolveVisibilityCadenceSecondsByOrbit(

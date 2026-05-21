@@ -440,6 +440,19 @@ function requireCsvSection(sections, sectionName, label) {
   return section;
 }
 
+function requireCsvSectionOneOf(sections, sectionNames, label) {
+  for (const sectionName of sectionNames) {
+    const section = sections.get(sectionName);
+    if (section) {
+      return section;
+    }
+  }
+  assert(
+    false,
+    `${label}: CSV missing one of ${sectionNames.join(", ")}`
+  );
+}
+
 async function navigate(client, url) {
   await client.send("Page.navigate", { url });
   await sleep(500);
@@ -1877,7 +1890,11 @@ function assertCsvEvidence(label, evidence) {
     `${label}: CSV pair source non-claims mismatch`
   );
 
-  const sourceManifest = requireCsvSection(sections, "# TLE source manifest", label);
+  const sourceManifest = requireCsvSectionOneOf(
+    sections,
+    ["# Orbit source manifest", "# TLE source manifest"],
+    label
+  );
   assert(
     sourceManifest.rows.length === data.tleSources.length,
     `${label}: CSV source manifest row count mismatch`
@@ -1934,7 +1951,11 @@ function assertCsvEvidence(label, evidence) {
     );
   }
 
-  const tleFreshness = requireCsvSection(sections, "# TLE freshness", label);
+  const tleFreshness = requireCsvSectionOneOf(
+    sections,
+    ["# Orbit source freshness", "# TLE freshness"],
+    label
+  );
   assert(
     tleFreshness.rows.length === data.tleFreshness.length,
     `${label}: CSV TLE freshness row count mismatch`

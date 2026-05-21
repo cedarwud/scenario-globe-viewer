@@ -28,7 +28,7 @@ import {
   buildRuntimeTleSourceParseStats,
   computeLinkBudgetMetricsForOrbit,
   loadDefaultTleSources,
-  parseRuntimeTleSources,
+  parseRuntimeOrbitSources,
   resolveRuntimeHandoverPolicyId,
   type RuntimeHandoverPolicyId,
   type RuntimeProjectionResult
@@ -38,8 +38,11 @@ import {
   buildRuntimeProjectionCsvFilename
 } from "./runtime-projection-csv";
 import { createRuntimeProjectionWorkerClient } from "./runtime-projection-worker-client";
-import type { OrbitClass, PairVisibilityWindow } from "./visibility-utils";
-import type { TleRecord } from "./visibility-utils";
+import type {
+  OrbitClass,
+  PairVisibilityWindow,
+  RuntimeOrbitRecord
+} from "./visibility-utils";
 import type { V4ResolvedStationPair } from "./v4-route-selection";
 
 const PANEL_ROW4_VISIBILITY_PREVIEW_COUNT = 3;
@@ -2166,7 +2169,7 @@ export function mountV4ProjectionSidePanel(
   // Inputs cached after the first load so the projection can re-run without
   // re-fetching TLE fixtures while the worker keeps compute off the UI thread.
   const projectionClient = createRuntimeProjectionWorkerClient();
-  let tleRecords: ReadonlyArray<TleRecord> | null = null;
+  let tleRecords: ReadonlyArray<RuntimeOrbitRecord> | null = null;
   let tleParseStats: ReturnType<typeof buildRuntimeTleSourceParseStats> | null = null;
   let timeWindow: { startUtc: string; endUtc: string } | null = null;
   let durationMinutes = DEFAULT_DEMO_PROJECTION_DURATION_MINUTES;
@@ -2247,7 +2250,7 @@ export function mountV4ProjectionSidePanel(
       if (disposed) {
         return;
       }
-      tleRecords = parseRuntimeTleSources(sources);
+      tleRecords = parseRuntimeOrbitSources(sources);
       tleParseStats = buildRuntimeTleSourceParseStats(sources);
       const resolved = resolveProjectionTimeWindowAndDuration();
       timeWindow = resolved.window;

@@ -1,4 +1,4 @@
-import { twoline2satrec } from "../../vendor/satellite-js-runtime";
+import { createRuntimeSatrec } from "./orbit-propagation";
 import networkTleManifest from "../../../public/fixtures/satellites-network/manifest.json";
 import stationCoordinateAuthorityFixture from "../../../public/fixtures/ground-stations/multi-orbit-public-registry-coordinate-authority.json";
 import stationElevationCacheFixture from "../../../public/fixtures/ground-stations/station-elevations-cache.json";
@@ -17,8 +17,8 @@ import {
 import type {
   OrbitClass,
   PairVisibilityWindow,
+  RuntimeOrbitRecord,
   TlePropagationStats,
-  TleRecord
 } from "./visibility-utils";
 import type {
   CatalogNumberCompatibility,
@@ -29,6 +29,7 @@ import type {
 
 export type RuntimeTruthClass =
   | "tle-derived"
+  | "omm-derived"
   | "public-registry-derived"
   | "modeled"
   | "display-only"
@@ -477,9 +478,9 @@ export interface BuildRuntimeDataCompletenessInput {
   readonly stationA: PublicRegistryStation;
   readonly stationB: PublicRegistryStation;
   readonly pairSourceTier: PairSourceTierAttribution["sourceTier"];
-  readonly allTleRecords: ReadonlyArray<TleRecord>;
-  readonly cappedTleRecords: ReadonlyArray<TleRecord>;
-  readonly acceptedTleRecords: ReadonlyArray<TleRecord>;
+  readonly allTleRecords: ReadonlyArray<RuntimeOrbitRecord>;
+  readonly cappedTleRecords: ReadonlyArray<RuntimeOrbitRecord>;
+  readonly acceptedTleRecords: ReadonlyArray<RuntimeOrbitRecord>;
   readonly tleParseStats?: ReadonlyArray<RuntimeTleSourceParseStats>;
   readonly sourcePaths: Readonly<Record<OrbitClass, string>>;
   readonly tleSourceMode?: TleSourceMode;
@@ -575,7 +576,7 @@ function sourcePolicyForMode(sourceMode: TleSourceMode): OrbitSourcePolicy {
   return "bundled-snapshot";
 }
 
-function countByOrbit(records: ReadonlyArray<TleRecord>): Record<OrbitClass, number> {
+function countByOrbit(records: ReadonlyArray<RuntimeOrbitRecord>): Record<OrbitClass, number> {
   const counts: Record<OrbitClass, number> = { LEO: 0, MEO: 0, GEO: 0 };
   for (const record of records) {
     counts[record.orbitClass] += 1;
@@ -599,10 +600,12 @@ function parseTleEpochUtc(line1: string): string | null {
 }
 
 function resolveEpochRange(
-  records: ReadonlyArray<TleRecord>
+  records: ReadonlyArray<RuntimeOrbitRecord>
 ): { epochStartUtc: string | null; epochEndUtc: string | null } {
   const epochs = records
-    .map((record) => parseTleEpochUtc(record.tleLine1))
+    .map((record) =>
+      "tleLine1" in record ? parseTleEpochUtc(record.tleLine1) : record.epochUtc
+    )
     .filter((epoch): epoch is string => epoch !== null)
     .sort();
   return {
@@ -659,7 +662,7 @@ function resolveHealthThresholdDays(
 }
 
 function summarizeNoradIds(
-  records: ReadonlyArray<TleRecord>
+  records: ReadonlyArray<RuntimeOrbitRecord>
 ): ReadonlyArray<RuntimeNoradIdRangeSummary> {
   const ids = records
     .map((record) => record.noradCatalogId)
@@ -688,7 +691,7 @@ function summarizeNoradIds(
   return ranges;
 }
 
-function countClassification(records: ReadonlyArray<TleRecord>): Record<string, number> {
+function countClassification(records: ReadonlyArray<RuntimeOrbitRecord>): Record<string, number> {
   const counts: Record<string, number> = {};
   for (const record of records) {
     const key = record.classification || "unknown";
@@ -698,7 +701,7 @@ function countClassification(records: ReadonlyArray<TleRecord>): Record<string, 
 }
 
 function buildDragTermCoverage(
-  records: ReadonlyArray<TleRecord>
+  records: ReadonlyArray<RuntimeOrbitRecord>
 ): RuntimeTleDragTermFieldCoverage {
   return {
     meanMotionFirstDerivativeCount: records.filter(
@@ -713,7 +716,7 @@ function buildDragTermCoverage(
   };
 }
 
-function resolveCosparSamples(records: ReadonlyArray<TleRecord>): ReadonlyArray<string> {
+function resolveCosparSamples(records: ReadonlyArray<RuntimeOrbitRecord>): ReadonlyArray<string> {
   return [
     ...new Set(
       records
@@ -723,15 +726,10 @@ function resolveCosparSamples(records: ReadonlyArray<TleRecord>): ReadonlyArray<
   ].slice(0, 8);
 }
 
-function countSgp4ErrorRecords(records: ReadonlyArray<TleRecord>): number {
+function countSgp4ErrorRecords(records: ReadonlyArray<RuntimeOrbitRecord>): number {
   let count = 0;
   for (const record of records) {
-    try {
-      const satrec = twoline2satrec(record.tleLine1, record.tleLine2);
-      if (satrec?.error) {
-        count += 1;
-      }
-    } catch {
+    if (!createRuntimeSatrec(record).satrec) {
       count += 1;
     }
   }
@@ -1105,6 +1103,8 @@ function buildTleSourceManifest(
       ...(capExcludedCount > 0 ? ["per-orbit-cap"] : []),
       ...(unsupportedOrbitCount > 0 ? ["not-shared-supported-orbit"] : [])
     ];
+    const format =
+      parseStats?.format ?? allRecords[0]?.format ?? "tle-3le";
     const sourcePath = input.sourcePaths[orbitClass];
     const sourceTimestampUtc = extractSourceTimestampUtc(sourcePath);
     const healthThresholdDays = resolveHealthThresholdDays(
@@ -1115,10 +1115,10 @@ function buildTleSourceManifest(
     const cosparDesignatorSamples =
       parseStats?.cosparDesignatorSamples ?? resolveCosparSamples(allRecords);
     return {
-      sourceId: `tle:${orbitClass.toLowerCase()}`,
+      sourceId: resolveSourceIdForOrbit(orbitClass, format),
       sourcePath,
       orbitClass,
-      format: parseStats?.format ?? "tle-3le",
+      format,
       apiClass: parseStats?.apiClass ?? "celestrak-gp-tle",
       sourcePolicy:
         parseStats?.sourcePolicy ?? sourcePolicyForMode(resolveTleSourceMode(input)),
@@ -1219,7 +1219,7 @@ export function buildRuntimeTleSourceFreshness(
       noradIdRangeSummary: source.noradIdRangeSummary,
       constellationMembership: resolveConstellationMembership(stats),
       provenance: {
-        truthClass: "tle-derived",
+        truthClass: resolveTruthClassForFormat(source.format),
         sourceId: source.sourceId,
         nonClaim:
           sourceMode === "local-snapshot"
@@ -1230,8 +1230,26 @@ export function buildRuntimeTleSourceFreshness(
   });
 }
 
-function resolveSourceIdForOrbit(orbitClass: OrbitClass): string {
-  return `tle:${orbitClass.toLowerCase()}`;
+function resolveTruthClassForFormat(
+  format: OrbitSourceFormat | undefined
+): Extract<RuntimeTruthClass, "tle-derived" | "omm-derived"> {
+  return format === "omm-json" || format === "omm-csv"
+    ? "omm-derived"
+    : "tle-derived";
+}
+
+function resolveSourceIdForOrbit(
+  orbitClass: OrbitClass,
+  format: OrbitSourceFormat | undefined
+): string {
+  const prefix = format === "omm-json" || format === "omm-csv" ? "omm" : "tle";
+  return `${prefix}:${orbitClass.toLowerCase()}`;
+}
+
+function buildAcceptedRecordBySatelliteId(
+  records: ReadonlyArray<RuntimeOrbitRecord>
+): ReadonlyMap<string, RuntimeOrbitRecord> {
+  return new Map(records.map((record) => [record.satelliteId, record]));
 }
 
 function resolveProjectionSampleCount(
@@ -1257,6 +1275,9 @@ function buildActorProvenance(
   input: BuildRuntimeDataCompletenessInput
 ): ReadonlyArray<RuntimeActorProvenanceState> {
   const windowsBySatellite = new Map<string, ReadonlyArray<PairVisibilityWindow>>();
+  const acceptedRecordBySatelliteId = buildAcceptedRecordBySatelliteId(
+    input.acceptedTleRecords
+  );
   for (const window of input.visibilityWindows) {
     windowsBySatellite.set(window.satelliteId, [
       ...(windowsBySatellite.get(window.satelliteId) ?? []),
@@ -1267,7 +1288,9 @@ function buildActorProvenance(
     .map((entry): RuntimeActorProvenanceState => {
       const [satelliteId, windows] = entry;
       const orbitClass = windows[0]?.orbitClass ?? "LEO";
-      const sourceId = resolveSourceIdForOrbit(orbitClass);
+      const record = acceptedRecordBySatelliteId.get(satelliteId);
+      const format = record?.format ?? "tle-3le";
+      const sourceId = resolveSourceIdForOrbit(orbitClass, format);
       const propagationStats = input.propagationStatsBySatellite?.get(satelliteId);
       const sampleCount = resolveProjectionSampleCount(input, orbitClass);
       return {
@@ -1287,7 +1310,7 @@ function buildActorProvenance(
           (sampleCount > 0 ? input.timeWindow.endUtc : null),
         visibilityWindowCount: windows.length,
         provenance: {
-          truthClass: "tle-derived",
+          truthClass: resolveTruthClassForFormat(format),
           sourceId
         }
       };
@@ -1298,8 +1321,13 @@ function buildActorProvenance(
 function buildVisibilityProvenance(
   input: BuildRuntimeDataCompletenessInput
 ): ReadonlyArray<RuntimeVisibilityProvenanceState> {
+  const acceptedRecordBySatelliteId = buildAcceptedRecordBySatelliteId(
+    input.acceptedTleRecords
+  );
   return input.visibilityWindows.map((window) => {
-    const sourceId = resolveSourceIdForOrbit(window.orbitClass);
+    const format =
+      acceptedRecordBySatelliteId.get(window.satelliteId)?.format ?? "tle-3le";
+    const sourceId = resolveSourceIdForOrbit(window.orbitClass, format);
     return {
       satelliteId: window.satelliteId,
       orbitClass: window.orbitClass,
@@ -1312,7 +1340,7 @@ function buildVisibilityProvenance(
       intersectionStartUtc: window.intersectionStartUtc,
       intersectionEndUtc: window.intersectionEndUtc,
       provenance: {
-        truthClass: "tle-derived",
+        truthClass: resolveTruthClassForFormat(format),
         sourceId
       }
     };
