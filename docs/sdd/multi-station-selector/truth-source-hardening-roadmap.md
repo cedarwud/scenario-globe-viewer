@@ -1,7 +1,9 @@
 # Multi-Station Selector — Truth-Source Hardening Roadmap
 
 Draft date: 2026-05-20
-Status: proposed v1, SDD-only. No implementation in this slice.
+Reconciled: 2026-05-21 after TH1/TH2/TH3/TH5/TH7 gates.
+Status: SDD/docs status only. No implementation is authorized by this
+document.
 
 ## Scope
 
@@ -30,6 +32,18 @@ This is not a greenfield replacement for
 The goal is to reduce the amount of modeled/default data and to make every
 remaining modeled/default/unavailable field impossible to mistake for real
 operator/customer truth.
+
+## 0. Gate Status Snapshot
+
+| Slice | Current status | Evidence / blocker |
+| --- | --- | --- |
+| TH1 | Done / accepted. | Selected-pair source disclosure narrowing, pair-attestation gating, and same-family downgrade landed in `48e113b`; LEO source record chip clarification landed in `8755377`. |
+| TH2 | Done / accepted. | Station coordinate source authority plus test/smoke coverage landed in `b330941`. |
+| TH3 | Source/license gate closed; numeric replacement blocked. | Gate docs landed through `ef79573`, `63dd1e1`, `f00e128`, `f05019d`, and `d99e0df`; numeric DEM replacement still needs Copernicus access/license clearance and a complete 69-row provenance artifact. |
+| TH4 | Blocked. | Depends on the TH3 numeric DEM pipeline. |
+| TH5 | Parser/manifest/runtime-provenance readiness done; default-source migration blocked. | Readiness landed in `b14f777`, `3aacf31`, `62de863`, and `1e50f1a`; default-source migration remains gated by `th5-orbit-source-policy-gate.md`, recorded in `c44c2cf`. |
+| TH6 | Blocked. | Depends on S3 legal/redistribution decision. |
+| TH7 | Docs-only RF filing gate recorded; numeric RF proxy blocked. | Source gate landed in `6cfcea2`; S2a/S2b remain open and no RF values are authorized. |
 
 ## 1. Verdict Framing
 
@@ -103,9 +117,11 @@ baseline for future implementation prompts:
     snapshot for LEO, and `requirements-consolidated.md` records roughly
     11015 local Starlink + OneWeb satellites.
 12. `buildDefaultTimeWindow` resolves to 360 minutes.
-13. `inferPairSourceTier` currently returns `public-disclosed` when station A
-    and station B share canonical `operatorFamily`.
-14. Same `operatorFamily` is an inference, not pair-level operator attestation.
+13. `inferPairSourceTier` gates `public-disclosed` on explicit
+    `pairAttestations`.
+14. Same `operatorFamily` without pair attestation resolves to
+    `geometric-derived`; same-family inference is a non-claim, not pair-level
+    operator attestation.
 15. The public station registry methodology mixes operator disclosures,
     Wikipedia, FCC/ITU filings, WTA profiles, news, and other public sources.
 16. Station elevation source is currently `open-elevation-cache`.
@@ -137,7 +153,7 @@ until re-verified by a slice:
 | A5 | Current 600 ms / 2 dB / 60 s handover thresholds are repo-owned defaults, not numeric 3GPP mandates. | Reframe as `modeled-control` unless a standard/operator anchor is supplied. |
 | A6 | Measured packet trace, real service latency/jitter/throughput, pair routing, and SLA truth cannot be replaced by public data. | Keep as unavailable until an authority package is delivered. |
 
-## 5. Open Questions And Blockers
+## 5. Open Questions, Resolved Items, And Blockers
 
 | ID | Question | Blocks |
 | --- | --- | --- |
@@ -145,9 +161,9 @@ until re-verified by a slice:
 | Q2 | What is a defensible satellite `peakEirpDbm` anchor? The older TR 38.821 table interpretation is not accepted as EIRP truth. | TH7, existing F2 |
 | Q3 | Does the 2 dB cross-orbit hysteresis survive once EIRP and antenna gain enter the proxy? | TH7, existing F2/F5 |
 | Q4 | Should this roadmap supersede wave-2 F-slices, or remain a narrow source-hardening overlay? | SDD governance |
-| Q5 | Should same-family pairs be renamed to `inferred-same-operator-family`, or should `public-disclosed` be gated by an explicit `pairAttestation` field? | TH1 |
+| Q5 | Resolved by TH1: `public-disclosed` is gated by explicit `pairAttestations`; unattested same-family pairs remain `geometric-derived`. | Accepted in `48e113b`; related chip copy clarified in `8755377`. |
 | Q6 | Is Space-Track migration in scope now, given account/rate-limit/parser blast radius, or deferred after CelesTrak OMM/JSON support? | Resolved for now by TH5 policy gate: migration remains blocked/gated. |
-| Q7 | Should station `sourceAuthority` be in the first implementation slice, even though it requires re-authoring 69 registry rows? | TH1/TH2 |
+| Q7 | Resolved by TH2: station coordinate source authority is accepted as a separate completed slice. | Accepted in `b330941`. |
 | Q8 | Should report-layer requirements R1-D5/K-F8 be covered by this SDD, or tracked in a separate delivery/report SDD? | SDD scope |
 
 ## 6. Risk Register
@@ -165,7 +181,7 @@ until re-verified by a slice:
 
 ### Slice TH1 - Disclosure Narrowing + Inventory Disambiguation
 
-Status: ready to design. No S2a/S2b/S3 dependency.
+Status: done / accepted as of 2026-05-21.
 
 Purpose:
 
@@ -174,14 +190,15 @@ Purpose:
   runtime cap, and visible actor count.
 - Surface orbit-class carrier defaults and modeled metric anchors more clearly.
 
-Decision point:
+Landed path:
 
-- Option A: add explicit `pairAttestation` data and gate `public-disclosed` on
-  that field.
-- Option B: keep registry unchanged and rename unattested same-family pairs to
-  `inferred-same-operator-family`.
+- Explicit pair attestations gate `public-disclosed`.
+- Same-family without attestation is downgraded to `geometric-derived` and
+  surfaced only as an inference/non-claim.
+- LEO source-record chip copy was clarified after the source-tier narrowing
+  landed.
 
-Acceptance:
+Acceptance evidence:
 
 - Same-family pairs without pair-level attestation no longer display copy that
   implies operator-validated pair capability.
@@ -191,51 +208,30 @@ Acceptance:
   fallback inventory when both are relevant.
 - Carrier selection text (`orbit-class-default`) is visible in Row 5 or an
   equivalent disclosure, not only in raw CSV/debug.
-- D6 smoke asserts the new source-tier/cap/inventory/carrier disclosures.
-
-Likely files:
-
-- `src/features/multi-station-selector/tier-inference.ts`
-- `src/features/multi-station-selector/runtime-data-completeness.ts`
-- `src/features/multi-station-selector/runtime-projection-csv.ts`
-- `src/features/multi-station-selector/v4-projection-side-panel.ts`
-- `scripts/verify-tle-first-data-completeness.mjs`
-- registry schema only if Option A is selected.
-
-Do not touch R6 hot files unless a later prompt explicitly scopes that work.
+- Landed commits: `48e113b`, `8755377`.
 
 ### Slice TH2 - Station Source Authority
 
-Status: ready for prep design, implementation should be separate from TH1 unless
-Option A requires a minimal schema field.
+Status: done / accepted as of 2026-05-21.
 
 Purpose:
 
 - Add station-level source authority labels so `exact-coords` does not imply
   official filing truth when the source is secondary.
 
-Candidate values:
+Landed path:
 
-- `official-filing`
-- `operator-web`
-- `teleport-directory`
-- `secondary-web`
-- `wikipedia`
-- `news`
-- `mixed-public`
-- `unknown-public`
+- Station coordinate source authority is tracked separately from coordinate
+  precision.
+- Runtime station precision state and CSV export include the authority field.
+- Coverage was added with focused test/smoke checks.
 
-Acceptance:
+Acceptance evidence:
 
 - Every station row has `coordinateSourceAuthority`.
-- Runtime station precision state and CSV export include the authority field.
 - UI disclosure explains precision separately from source authority.
 - D6 asserts the field is present and non-empty.
-
-Risk:
-
-- Requires a 69-station registry prep pass. Keep it isolated from runtime
-  wiring.
+- Landed commit: `b330941`.
 
 ### Slice TH3 - DEM Elevation Provenance Replacement
 
@@ -406,7 +402,7 @@ Every implementation slice derived from this SDD must include:
 - no silent downgrade from a stronger source to a weaker source;
 - explicit blocked/unavailable status when source data is missing.
 
-Minimum smoke set for TH1:
+Baseline smoke set for future visible source-semantics slices:
 
 - `npm run build`
 - `node scripts/verify-tle-first-data-completeness.mjs --port=<port>`
@@ -427,19 +423,20 @@ loading, or large fixture data.
 - Documentation may refer to external authority requirements when needed, but
   implementation identifiers should remain neutral.
 
-## 10. Recommended First Implementation Slice
+## 10. Current Controller Recommendation
 
-Start with TH1.
+No implementation slice is currently unblocked by this roadmap.
 
-Reasons:
+Next progress requires external evidence or decision packages:
 
-- It closes the highest-severity semantic risk: same-family inference presented
-  too strongly.
-- It has no S2a/S2b/S3 blocker.
-- It mostly extends existing disclosure surfaces that already pass D6.
-- It reduces reviewer confusion before larger data ingestion work.
-- It can be reviewed without changing physics, RF math, DEM processing, or
-  orbit propagation.
+- Copernicus DEM access/license clearance plus a sample provenance artifact
+  sufficient to design the complete 69-row elevation replacement.
+- S3 legal/redistribution decision for atmospheric lookup data.
+- S2a/S2b RF spikes before any RF proxy values or station RF defaults are
+  authorized.
+- Space-Track account, redistribution/storage, and default-migration decision
+  before changing the orbit-source default.
 
-Do not start with TH3/TH4/TH5/TH6/TH7 until TH1 is accepted, because those
-slices have larger data, licensing, or parser blast radius.
+Future implementation work must receive a new scoped prompt. This SDD records
+status and blockers only; it does not authorize runtime, default-source,
+fixture, schema, script, or test changes.
