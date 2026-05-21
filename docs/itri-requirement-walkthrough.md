@@ -388,14 +388,14 @@ TLE-derived selected-pair display-lane satellite cue 與 runtime link cue;既有
    `/?stationA=cht-yangmingshan&stationB=sansa-hartebeesthoek&startUtc=2026-05-17T00%3A00%3A00.000Z&durationMinutes=360`
 
 固定時間窗 `2026-05-17T00:00:00.000Z` + `durationMinutes=360` 的 expected
-counts (2026-05-17 runtime-projection compute):
+counts (aligned to the 2026-05-21 TH3b prep baseline):
 
 | # | stationA / stationB | shared orbit | source tier | mutual windows | link-selection events | handovers |
 | --- | --- | --- | --- | ---: | ---: | ---: |
 | 1 | ksat-svalsat-svalbard / ksat-tromso | LEO/MEO/GEO | geometric-derived | 26 | 2 | 1 |
 | 2 | ksat-svalsat-svalbard / ksat-trollsat-antarctica | LEO/MEO/GEO | geometric-derived | 0 | 0 | 0 |
 | 3 | intelsat-fuchsstadt / intelsat-atlanta | MEO/GEO | geometric-derived | 15 | 3 | 2 |
-| 4 | singtel-bukit-timah / measat-cyberjaya | LEO/GEO | geometric-derived | 42 | 1 | 0 |
+| 4 | singtel-bukit-timah / measat-cyberjaya | LEO/GEO | geometric-derived | 117 | 7 | 6 |
 | 5 | cht-yangmingshan / sansa-hartebeesthoek | LEO/MEO/GEO | geometric-derived | 9 | 3 | 2 |
 
 TH1 後,同 operator-family 但沒有 explicit pair attestation 的 pair 不再算
