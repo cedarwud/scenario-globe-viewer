@@ -27,6 +27,12 @@ const DEFAULT_RETAIN_COUNT = 3;
 const ATTRIBUTION_COMMENT =
   "# Data source: CelesTrak (celestrak.org), Terms of Use: https://celestrak.org/terms-of-use.php";
 const CELESTRAK_USER_AGENT = "scenario-globe-viewer-f7-refresh/1.0";
+const SNAPSHOT_MANIFEST_METADATA = {
+  format: "tle-3le",
+  apiClass: "celestrak-gp-tle",
+  sourcePolicy: "refresh-artifact",
+  catalogNumberCompatibility: "tle-limited-5-digit-catalog"
+};
 
 function parseArgs(argv) {
   const args = {};
@@ -154,10 +160,29 @@ async function buildGroupSnapshot(groupKey, generatedAtUtc, sampleLimit) {
     body,
     manifestEntry: {
       path,
+      ...SNAPSHOT_MANIFEST_METADATA,
       recordCount: records.length,
       epochRangeUtc: epochRangeUtc(records)
     }
   };
+}
+
+function withSnapshotManifestMetadata(entry) {
+  if (!entry || typeof entry !== "object") {
+    return entry;
+  }
+  return {
+    ...entry,
+    ...SNAPSHOT_MANIFEST_METADATA
+  };
+}
+
+export function withSnapshotMetadataForManifest(manifest) {
+  const normalized = { ...manifest };
+  for (const groupKey of Object.keys(GROUPS)) {
+    normalized[groupKey] = withSnapshotManifestMetadata(normalized[groupKey]);
+  }
+  return normalized;
 }
 
 async function retainRecentSnapshots(outputDir, groupKey, retainCount) {
@@ -228,7 +253,7 @@ async function main() {
     }
   }
 
-  const manifestText = `${JSON.stringify(manifest, null, 2)}\n`;
+  const manifestText = `${JSON.stringify(withSnapshotMetadataForManifest(manifest), null, 2)}\n`;
   if (args["dry-run"]) {
     console.log(manifestText);
     return;
@@ -253,7 +278,9 @@ async function main() {
   );
 }
 
-main().catch((error) => {
-  console.error(error instanceof Error ? error.message : String(error));
-  process.exit(1);
-});
+if (import.meta.url === `file://${process.argv[1]}`) {
+  main().catch((error) => {
+    console.error(error instanceof Error ? error.message : String(error));
+    process.exit(1);
+  });
+}

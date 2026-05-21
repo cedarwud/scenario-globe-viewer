@@ -42,6 +42,7 @@ import {
 import {
   parseOrbitSourceText,
   toTleRecords,
+  type OrbitSourceMetadata,
   type OrbitSourcePolicy
 } from "./orbit-source-parser";
 
@@ -127,6 +128,12 @@ const NETWORK_TLE_MANIFEST_PATH = "/fixtures/satellites-network/manifest.json";
 const NETWORK_TLE_BASE_PATH = "/fixtures/satellites-network/";
 const NETWORK_SATCAT_SUMMARY_PATH =
   "/fixtures/satellites-network/satcat-summary.json";
+const DEFAULT_TLE_SOURCE_METADATA: OrbitSourceMetadata = {
+  format: "tle-3le",
+  apiClass: "celestrak-gp-tle",
+  sourcePolicy: "refresh-artifact",
+  catalogNumberCompatibility: "tle-limited-5-digit-catalog"
+};
 
 const SOURCE_HEALTH_THRESHOLD_DAYS: Readonly<Record<OrbitClass, number>> = {
   LEO: 14,
@@ -200,6 +207,7 @@ export interface RuntimeTleSources {
   readonly sourcePaths?: Readonly<Record<OrbitClass, string>>;
   readonly snapshotFetchedUtc?: string | null;
   readonly manifestPath?: string | null;
+  readonly sourceMetadataByOrbit?: Readonly<Record<OrbitClass, OrbitSourceMetadata>>;
   readonly satcatSummaryPath?: string | null;
   readonly satcatSummary?: ReadonlyArray<RuntimeSatcatSummaryEntry>;
 }
@@ -215,6 +223,10 @@ export interface RuntimeSatcatSummaryEntry {
 
 interface RuntimeTleNetworkManifestEntry {
   readonly path: string;
+  readonly format?: OrbitSourceMetadata["format"];
+  readonly apiClass?: OrbitSourceMetadata["apiClass"];
+  readonly sourcePolicy?: OrbitSourceMetadata["sourcePolicy"];
+  readonly catalogNumberCompatibility?: OrbitSourceMetadata["catalogNumberCompatibility"];
   readonly recordCount: number;
   readonly epochRangeUtc: {
     readonly startUtc: string | null;
@@ -235,6 +247,7 @@ interface RuntimeTleSourceSelection {
   readonly snapshotFetchedUtc: string | null;
   readonly manifestPath: string | null;
   readonly manifest: RuntimeTleNetworkManifest | null;
+  readonly sourceMetadataByOrbit: Readonly<Record<OrbitClass, OrbitSourceMetadata>>;
 }
 
 export interface LinkBudgetMetricOptions {
@@ -1000,6 +1013,22 @@ function isIsoOrNull(value: unknown): value is string | null {
   return value === null || (typeof value === "string" && Number.isFinite(Date.parse(value)));
 }
 
+function isSupportedManifestMetadata(value: unknown): boolean {
+  if (!value || typeof value !== "object") {
+    return false;
+  }
+  const candidate = value as Partial<RuntimeTleNetworkManifestEntry>;
+  return (
+    (candidate.format === undefined || candidate.format === "tle-3le") &&
+    (candidate.apiClass === undefined ||
+      candidate.apiClass === "celestrak-gp-tle") &&
+    (candidate.sourcePolicy === undefined ||
+      candidate.sourcePolicy === "refresh-artifact") &&
+    (candidate.catalogNumberCompatibility === undefined ||
+      candidate.catalogNumberCompatibility === "tle-limited-5-digit-catalog")
+  );
+}
+
 function isManifestEntry(value: unknown): value is RuntimeTleNetworkManifestEntry {
   if (!value || typeof value !== "object") {
     return false;
@@ -1015,7 +1044,8 @@ function isManifestEntry(value: unknown): value is RuntimeTleNetworkManifestEntr
     recordCount > 0 &&
     Boolean(candidate.epochRangeUtc) &&
     isIsoOrNull(candidate.epochRangeUtc?.startUtc) &&
-    isIsoOrNull(candidate.epochRangeUtc?.endUtc)
+    isIsoOrNull(candidate.epochRangeUtc?.endUtc) &&
+    isSupportedManifestMetadata(value)
   );
 }
 
@@ -1038,6 +1068,41 @@ function manifestEntryForOrbit(
   orbitClass: OrbitClass
 ): RuntimeTleNetworkManifestEntry {
   return manifest[orbitClass.toLowerCase() as "leo" | "meo" | "geo"];
+}
+
+function manifestSourceMetadataForOrbit(
+  manifest: RuntimeTleNetworkManifest,
+  orbitClass: OrbitClass
+): OrbitSourceMetadata {
+  const entry = manifestEntryForOrbit(manifest, orbitClass);
+  return {
+    format: entry.format ?? DEFAULT_TLE_SOURCE_METADATA.format,
+    apiClass: entry.apiClass ?? DEFAULT_TLE_SOURCE_METADATA.apiClass,
+    sourcePolicy: entry.sourcePolicy ?? DEFAULT_TLE_SOURCE_METADATA.sourcePolicy,
+    catalogNumberCompatibility:
+      entry.catalogNumberCompatibility ??
+      DEFAULT_TLE_SOURCE_METADATA.catalogNumberCompatibility
+  };
+}
+
+function defaultTleSourceMetadataByOrbit(
+  sourcePolicy: OrbitSourcePolicy
+): Readonly<Record<OrbitClass, OrbitSourceMetadata>> {
+  return {
+    LEO: { ...DEFAULT_TLE_SOURCE_METADATA, sourcePolicy },
+    MEO: { ...DEFAULT_TLE_SOURCE_METADATA, sourcePolicy },
+    GEO: { ...DEFAULT_TLE_SOURCE_METADATA, sourcePolicy }
+  };
+}
+
+function manifestSourceMetadataByOrbit(
+  manifest: RuntimeTleNetworkManifest
+): Readonly<Record<OrbitClass, OrbitSourceMetadata>> {
+  return {
+    LEO: manifestSourceMetadataForOrbit(manifest, "LEO"),
+    MEO: manifestSourceMetadataForOrbit(manifest, "MEO"),
+    GEO: manifestSourceMetadataForOrbit(manifest, "GEO")
+  };
 }
 
 function normalizeNetworkTlePath(path: string): string {
@@ -1081,7 +1146,10 @@ function localTleSourceSelection(
     sourcePaths: TLE_FIXTURE_PATHS,
     snapshotFetchedUtc: manifest?.generatedAtUtc ?? null,
     manifestPath: manifest ? NETWORK_TLE_MANIFEST_PATH : null,
-    manifest
+    manifest,
+    sourceMetadataByOrbit: defaultTleSourceMetadataByOrbit(
+      sourcePolicyForMode(sourceMode)
+    )
   };
 }
 
@@ -1119,7 +1187,8 @@ async function resolveTleSourceSelection(
     sourcePaths: manifestSourcePaths(manifest),
     snapshotFetchedUtc: manifest.generatedAtUtc,
     manifestPath: NETWORK_TLE_MANIFEST_PATH,
-    manifest
+    manifest,
+    sourceMetadataByOrbit: manifestSourceMetadataByOrbit(manifest)
   };
 }
 
@@ -1193,6 +1262,7 @@ async function loadDefaultTleSourcesUncached(
         sourcePaths: selection.sourcePaths,
         snapshotFetchedUtc: selection.snapshotFetchedUtc,
         manifestPath: selection.manifestPath,
+        sourceMetadataByOrbit: selection.sourceMetadataByOrbit,
         satcatSummaryPath: satcatSummary.length > 0 ? NETWORK_SATCAT_SUMMARY_PATH : null,
         satcatSummary
       };
@@ -1204,6 +1274,9 @@ async function loadDefaultTleSourcesUncached(
         sourcePaths: TLE_FIXTURE_PATHS,
         snapshotFetchedUtc: selection.snapshotFetchedUtc,
         manifestPath: selection.manifestPath,
+        sourceMetadataByOrbit: defaultTleSourceMetadataByOrbit(
+          sourcePolicyForMode("fallback-local-snapshot")
+        ),
         satcatSummaryPath: satcatSummary.length > 0 ? NETWORK_SATCAT_SUMMARY_PATH : null,
         satcatSummary
       };
@@ -1216,6 +1289,7 @@ async function loadDefaultTleSourcesUncached(
     sourcePaths: selection.sourcePaths,
     snapshotFetchedUtc: selection.snapshotFetchedUtc,
     manifestPath: selection.manifestPath,
+    sourceMetadataByOrbit: selection.sourceMetadataByOrbit,
     satcatSummaryPath: satcatSummary.length > 0 ? NETWORK_SATCAT_SUMMARY_PATH : null,
     satcatSummary
   };
@@ -1271,13 +1345,19 @@ function buildTleSourceParseStatsForText(
     readonly sourceMode: TleSourceMode;
     readonly snapshotFetchedUtc: string | null;
     readonly snapshotPath: string;
+    readonly orbitSourceMetadata?: OrbitSourceMetadata;
     readonly satcatByNoradId: ReadonlyMap<number, RuntimeSatcatSummaryEntry>;
   }
 ): RuntimeTleSourceParseStats {
   const constellationMembership: Record<string, number> = {};
+  const orbitSourceMetadata = sourceMetadata.orbitSourceMetadata ?? {
+    ...DEFAULT_TLE_SOURCE_METADATA,
+    sourcePolicy: sourcePolicyForMode(sourceMetadata.sourceMode)
+  };
   const parsed = parseOrbitSourceText(rawText, {
     orbitClass,
-    sourcePolicy: sourcePolicyForMode(sourceMetadata.sourceMode)
+    format: orbitSourceMetadata.format,
+    sourcePolicy: orbitSourceMetadata.sourcePolicy
   });
   for (const record of parsed.records) {
     if (record.noradCatalogId !== null) {
@@ -1298,10 +1378,10 @@ function buildTleSourceParseStatsForText(
     rawRecordGroupCount: parsed.stats.rawRecordGroupCount,
     parsedRecordCount: parsed.stats.parsedRecordCount,
     parserFailureCount: parsed.stats.parserFailureCount,
-    format: parsed.format,
-    apiClass: parsed.apiClass,
-    sourcePolicy: parsed.sourcePolicy,
-    catalogNumberCompatibility: parsed.catalogNumberCompatibility,
+    format: orbitSourceMetadata.format,
+    apiClass: orbitSourceMetadata.apiClass,
+    sourcePolicy: orbitSourceMetadata.sourcePolicy,
+    catalogNumberCompatibility: orbitSourceMetadata.catalogNumberCompatibility,
     noradIdRangeSummary: parsed.stats.noradIdRangeSummary,
     constellationMembership,
     cosparDesignatorCount: parsed.stats.cosparDesignatorCount,
@@ -1315,6 +1395,11 @@ export function buildRuntimeTleSourceParseStats(
   sources: RuntimeTleSources
 ): ReadonlyArray<RuntimeTleSourceParseStats> {
   const sourcePaths = sources.sourcePaths ?? TLE_FIXTURE_PATHS;
+  const fallbackMetadataByOrbit = defaultTleSourceMetadataByOrbit(
+    sourcePolicyForMode(sources.sourceMode ?? "local-snapshot")
+  );
+  const sourceMetadataByOrbit =
+    sources.sourceMetadataByOrbit ?? fallbackMetadataByOrbit;
   const sourceMetadata = {
     sourceMode: sources.sourceMode ?? "local-snapshot",
     snapshotFetchedUtc: sources.snapshotFetchedUtc ?? null,
@@ -1328,19 +1413,31 @@ export function buildRuntimeTleSourceParseStats(
       sources.leoTleText,
       "LEO",
       sourcePaths.LEO,
-      { ...sourceMetadata, snapshotPath: sourcePaths.LEO }
+      {
+        ...sourceMetadata,
+        snapshotPath: sourcePaths.LEO,
+        orbitSourceMetadata: sourceMetadataByOrbit.LEO
+      }
     ),
     buildTleSourceParseStatsForText(
       sources.meoTleText,
       "MEO",
       sourcePaths.MEO,
-      { ...sourceMetadata, snapshotPath: sourcePaths.MEO }
+      {
+        ...sourceMetadata,
+        snapshotPath: sourcePaths.MEO,
+        orbitSourceMetadata: sourceMetadataByOrbit.MEO
+      }
     ),
     buildTleSourceParseStatsForText(
       sources.geoTleText,
       "GEO",
       sourcePaths.GEO,
-      { ...sourceMetadata, snapshotPath: sourcePaths.GEO }
+      {
+        ...sourceMetadata,
+        snapshotPath: sourcePaths.GEO,
+        orbitSourceMetadata: sourceMetadataByOrbit.GEO
+      }
     )
   ];
 }
