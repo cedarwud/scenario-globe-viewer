@@ -5,6 +5,7 @@
 //   node scripts/verify-tle-first-data-completeness.mjs [--port=9712]
 
 import { spawn } from "node:child_process";
+import { readFile } from "node:fs/promises";
 import { createConnection } from "node:net";
 
 import {
@@ -30,6 +31,16 @@ const SOURCE_EVIDENCE_KINDS = new Set([
   "explicit-pair-attestation",
   "same-operator-family-inferred",
   "cross-family-geometric"
+]);
+const COORDINATE_SOURCE_AUTHORITIES = new Set([
+  "official-filing",
+  "operator-web",
+  "teleport-directory",
+  "secondary-web",
+  "wikipedia",
+  "news",
+  "mixed-public",
+  "unknown-public"
 ]);
 const DEFAULT_HANDOVER_POLICY_ID = "cross-orbit-live";
 const EXPECTED_CAP_DISCLOSURE = {
@@ -62,6 +73,14 @@ const EXPECTED_ATMOSPHERIC_LOOKUP_SOURCES = [
   "p839-4",
   "p840-9"
 ];
+const REGISTRY_FIXTURE_URL = new URL(
+  "../public/fixtures/ground-stations/multi-orbit-public-registry.json",
+  import.meta.url
+);
+const COORDINATE_AUTHORITY_FIXTURE_URL = new URL(
+  "../public/fixtures/ground-stations/multi-orbit-public-registry-coordinate-authority.json",
+  import.meta.url
+);
 const DEBUG_SERVER_PROBE = process.env.SGV_DEBUG_SERVER_PROBE === "1";
 
 const args = Object.fromEntries(
@@ -80,6 +99,38 @@ if (!Number.isInteger(serverPort) || serverPort <= 0) {
 }
 
 const baseUrl = `http://127.0.0.1:${serverPort}`;
+
+async function readJsonFixture(url) {
+  return JSON.parse(await readFile(url, "utf8"));
+}
+
+async function assertCoordinateAuthorityFixtureCoverage() {
+  const registry = await readJsonFixture(REGISTRY_FIXTURE_URL);
+  const authority = await readJsonFixture(COORDINATE_AUTHORITY_FIXTURE_URL);
+  const registryIds = new Set(registry.stations.map((station) => station.id));
+  const authorityIds = new Set(authority.stations.map((station) => station.stationId));
+
+  assert(registry.stations.length === 69, "registry station count should remain 69");
+  assert(
+    authority.stations.length === registry.stations.length,
+    "coordinate authority fixture row count mismatch"
+  );
+  for (const station of authority.stations) {
+    assert(registryIds.has(station.stationId), `orphan coordinate authority row ${station.stationId}`);
+    assert(
+      COORDINATE_SOURCE_AUTHORITIES.has(station.coordinateSourceAuthority),
+      `invalid coordinate source authority ${station.coordinateSourceAuthority}`
+    );
+    assert(
+      typeof station.coordinateSourceNote === "string" &&
+        station.coordinateSourceNote.length > 0,
+      `missing coordinate source note ${station.stationId}`
+    );
+  }
+  for (const stationId of registryIds) {
+    assert(authorityIds.has(stationId), `missing coordinate authority row ${stationId}`);
+  }
+}
 
 const walkthroughCases = [
   {
@@ -422,6 +473,7 @@ async function readSelectedPairState(client, terminalStatuses = ["ready", "empty
         const footer = document.querySelector('[data-station-precision-disclosure="true"]');
         const chip = document.querySelector('[data-tle-telemetry-chip="true"]');
         const sourcesDisclosure = document.querySelector('[data-disclosure="sources-non-claims"]');
+        const stationCoordinateSourceDisclosure = document.querySelector('[data-station-coordinate-source-disclosure="true"]');
         const capDisclosure = document.querySelector('[data-cap-disclosure="true"]');
         const policyDisclosure = document.querySelector('[data-policy-disclosure="true"]');
         const metricAnchorDisclosure = document.querySelector('[data-metric-anchor-disclosure="true"]');
@@ -443,7 +495,7 @@ async function readSelectedPairState(client, terminalStatuses = ["ready", "empty
                 sourceBadgeLabel: panel.dataset.sourceBadgeLabel ?? null
               }
             : null,
-          footer: footer ? { ...footer.dataset } : null,
+          footer: footer ? { ...footer.dataset, text: footer.textContent ?? "" } : null,
           chip: chip
             ? { ...chip.dataset, backgroundColor: getComputedStyle(chip).backgroundColor }
             : null,
@@ -460,6 +512,12 @@ async function readSelectedPairState(client, terminalStatuses = ["ready", "empty
             : null,
           metricAnchorDisclosure: metricAnchorDisclosure
             ? { dataset: { ...metricAnchorDisclosure.dataset }, text: metricAnchorDisclosure.textContent ?? "" }
+            : null,
+          stationCoordinateSourceDisclosure: stationCoordinateSourceDisclosure
+            ? {
+                dataset: { ...stationCoordinateSourceDisclosure.dataset },
+                text: stationCoordinateSourceDisclosure.textContent ?? ""
+              }
             : null,
           sourcesDisclosureText: sourcesDisclosure?.textContent ?? ""
         };
@@ -805,6 +863,20 @@ function assertPolicyDisclosurePayload(
 }
 
 function assertStationSourceMetadata(label, station) {
+  assert(
+    COORDINATE_SOURCE_AUTHORITIES.has(station.coordinateSourceAuthority),
+    `${label}: station ${station.stationId} coordinate source authority invalid`
+  );
+  assert(
+    typeof station.coordinateSourceNote === "string" &&
+      station.coordinateSourceNote.length > 0,
+    `${label}: station ${station.stationId} coordinate source note missing`
+  );
+  assert(
+    station.coordinateSourceUrl === null ||
+      typeof station.coordinateSourceUrl === "string",
+    `${label}: station ${station.stationId} coordinate source URL invalid`
+  );
   assert(
     station.elevationSourceId === EXPECTED_ELEVATION_SOURCE_ID,
     `${label}: station ${station.stationId} elevation source mismatch`
@@ -1219,7 +1291,57 @@ function assertStationPrecisionFooterDataset(testCase, state) {
         effectiveElevationThresholdDeg === expected.effectiveElevationThresholdDeg,
       `${testCase.label}: footer station ${slot} effective threshold missing`
     );
+    assert(
+      state.footer?.[`station${slot}CoordinateSourceAuthority`] ===
+        expected.coordinateSourceAuthority,
+      `${testCase.label}: footer station ${slot} coordinate authority mismatch`
+    );
+    if (expected.coordinateSourceUrl) {
+      assert(
+        state.footer?.[`station${slot}CoordinateSourceUrl`] ===
+          expected.coordinateSourceUrl,
+        `${testCase.label}: footer station ${slot} coordinate source URL mismatch`
+      );
+    }
+    if (expected.coordinateSourceNote.length <= 180) {
+      assert(
+        state.footer?.[`station${slot}CoordinateSourceNote`] ===
+          expected.coordinateSourceNote,
+        `${testCase.label}: footer station ${slot} coordinate source note mismatch`
+      );
+    }
   }
+}
+
+function assertStationCoordinateSourceDisclosure(testCase, state) {
+  assert(
+    state.stationCoordinateSourceDisclosure,
+    `${testCase.label}: Row 5 station coordinate source block missing`
+  );
+  assert(
+    (state.stationCoordinateSourceDisclosure.text ?? "").includes(
+      "Coordinate precision describes coordinate use"
+    ) &&
+      (state.stationCoordinateSourceDisclosure.text ?? "").includes(
+        "coordinate source authority"
+      ),
+    `${testCase.label}: Row 5 coordinate source distinction missing`
+  );
+  for (const station of state.overlay.dataCompleteness.stationPrecision) {
+    assert(
+      (state.stationCoordinateSourceDisclosure.text ?? "").includes(station.stationId) &&
+        (state.stationCoordinateSourceDisclosure.text ?? "").includes(
+          station.coordinateSourceAuthority
+        ),
+      `${testCase.label}: Row 5 coordinate authority missing for ${station.stationId}`
+    );
+  }
+  assert(
+    (state.footer?.text ?? "").includes("precision != coord authority") ||
+      (state.footer?.stationACoordinateSourceAuthority &&
+        state.footer?.stationBCoordinateSourceAuthority),
+    `${testCase.label}: Row 6 coordinate authority distinction missing`
+  );
 }
 
 function assertSourceAttributionParity(testCase, state) {
@@ -1493,6 +1615,7 @@ function assertReadyCase(
     `${testCase.label}: panel active policy missing`
   );
   assertStationPrecisionFooterDataset(testCase, state);
+  assertStationCoordinateSourceDisclosure(testCase, state);
   assertRow5DisclosureDatasets(testCase.label, state, expectedPolicyId);
   assertSourceAttributionParity(testCase, state);
   assert(state.chip?.sourceCount === "3", `${testCase.label}: TLE chip source count missing`);
@@ -1541,6 +1664,7 @@ function assertEmptyCase(
   assertDataCompletenessShape(testCase.label, state, expectedPolicyId);
   assertExpectedStationPrecision(testCase, state.overlay.dataCompleteness);
   assertStationPrecisionFooterDataset(testCase, state);
+  assertStationCoordinateSourceDisclosure(testCase, state);
   assertRow5DisclosureDatasets(testCase.label, state, expectedPolicyId);
   assertSourceAttributionParity(testCase, state);
   assertTleChipVisualBand(testCase.label, state);
@@ -1757,6 +1881,12 @@ function assertCsvEvidence(label, evidence) {
         row.terrainMaskIsDefault === csvCellValue(station.terrainMaskIsDefault) &&
         row.terrainMaskNote === station.terrainMaskNote,
       `${label}: CSV station terrain mask source mismatch`
+    );
+    assert(
+      row.coordinateSourceAuthority === station.coordinateSourceAuthority &&
+        row.coordinateSourceUrl === csvCellValue(station.coordinateSourceUrl) &&
+        row.coordinateSourceNote === station.coordinateSourceNote,
+      `${label}: CSV station coordinate source authority mismatch`
     );
   }
 
@@ -2222,6 +2352,8 @@ function assertMissingSourceEvidence(label, evidence) {
   );
 }
 
+await assertCoordinateAuthorityFixtureCoverage();
+
 const server = await startServerIfNeeded();
 const browserCommand = findHeadlessBrowser();
 const browser = await startHeadlessBrowser(browserCommand, [
@@ -2308,6 +2440,7 @@ try {
       visibilityProvenanceCount: actualVisibilityWindowCount,
       stationPrecision: state.overlay.dataCompleteness.stationPrecision.map((station) => ({
         stationId: station.stationId,
+        coordinateSourceAuthority: station.coordinateSourceAuthority,
         elevationM: station.elevationM,
         terrainMaskDeg: station.terrainMaskDeg,
         effectiveElevationThresholdDeg: station.effectiveElevationThresholdDeg

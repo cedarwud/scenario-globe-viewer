@@ -1664,6 +1664,35 @@ function buildNonClaimsBlock(
   return wrapper;
 }
 
+function buildStationCoordinateSourceBlock(result: RuntimeProjectionResult): HTMLElement {
+  const wrapper = document.createElement("section");
+  wrapper.className = "v4-projection-side-panel__section";
+  wrapper.dataset.stationCoordinateSourceDisclosure = "true";
+
+  const heading = document.createElement("h3");
+  heading.className = "v4-projection-side-panel__section-title";
+  heading.textContent = "Station coordinate sources";
+
+  const summary = document.createElement("p");
+  summary.className = "v4-projection-side-panel__empty";
+  summary.textContent =
+    "Coordinate precision describes coordinate use; coordinate source authority describes the public source class.";
+
+  const list = document.createElement("ul");
+  list.className = "v4-projection-side-panel__non-claim-list";
+  for (const [index, station] of result.dataCompleteness.stationPrecision.entries()) {
+    const slot = index === 0 ? "A" : "B";
+    const li = document.createElement("li");
+    li.textContent =
+      `${slot} ${station.stationId}: ${station.coordinateSourceAuthority} · ` +
+      `${station.disclosurePrecision} · ${station.coordinateSourceNote}`;
+    list.append(li);
+  }
+
+  wrapper.append(heading, summary, list);
+  return wrapper;
+}
+
 function buildPolicyDisclosureBlock(result: RuntimeProjectionResult): HTMLElement {
   const disclosure = result.dataCompleteness.policyDisclosure;
   const wrapper = document.createElement("section");
@@ -1916,6 +1945,7 @@ function buildDisclosuresRow(
   const policyDisclosure = buildPolicyDisclosureBlock(result);
   const capDisclosure = buildCapDisclosureBlock(result);
   const metricAnchorDisclosure = buildMetricAnchorDisclosureBlock(result);
+  const stationCoordinateSources = buildStationCoordinateSourceBlock(result);
   const nonClaims = buildNonClaimsBlock(result.truthBoundary);
   const standards = buildStandardsReferences(result);
   const meanDwell = buildMeanDwellBlock(result);
@@ -1927,6 +1957,7 @@ function buildDisclosuresRow(
         policyDisclosure,
         capDisclosure,
         metricAnchorDisclosure,
+        stationCoordinateSources,
         nonClaims,
         standards,
         meanDwell
@@ -1937,6 +1968,16 @@ function buildDisclosuresRow(
   );
 
   return row;
+}
+
+function maybeSetConciseDatasetValue(
+  element: HTMLElement,
+  key: string,
+  value: string | null
+): void {
+  if (value && value.length <= 180) {
+    element.dataset[key] = value;
+  }
 }
 
 function buildFooterRow(result: RuntimeProjectionResult): HTMLElement {
@@ -1973,6 +2014,18 @@ function buildFooterRow(result: RuntimeProjectionResult): HTMLElement {
     );
     footer.dataset[`station${slot}EffectiveElevationThresholdDeg`] = String(
       station.effectiveElevationThresholdDeg
+    );
+    footer.dataset[`station${slot}CoordinateSourceAuthority`] =
+      station.coordinateSourceAuthority;
+    maybeSetConciseDatasetValue(
+      footer,
+      `station${slot}CoordinateSourceUrl`,
+      station.coordinateSourceUrl
+    );
+    maybeSetConciseDatasetValue(
+      footer,
+      `station${slot}CoordinateSourceNote`,
+      station.coordinateSourceNote
     );
   }
   footer.textContent = `${result.truthBoundary.precisionLabel} · ${tierAttribution.badgeLabel} · elevation/terrain mask`;

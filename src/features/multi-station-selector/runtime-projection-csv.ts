@@ -237,7 +237,10 @@ export function buildRuntimeProjectionCsv(result: RuntimeProjectionResult): stri
       "elevationSourceNote",
       "terrainMaskSourceId",
       "terrainMaskIsDefault",
-      "terrainMaskNote"
+      "terrainMaskNote",
+      "coordinateSourceAuthority",
+      "coordinateSourceUrl",
+      "coordinateSourceNote"
     ]
   );
   for (const station of result.dataCompleteness.stationPrecision) {
@@ -259,7 +262,10 @@ export function buildRuntimeProjectionCsv(result: RuntimeProjectionResult): stri
       station.elevationSourceNote,
       station.terrainMaskSourceId,
       station.terrainMaskIsDefault ? "true" : "false",
-      station.terrainMaskNote
+      station.terrainMaskNote,
+      station.coordinateSourceAuthority,
+      station.coordinateSourceUrl,
+      station.coordinateSourceNote
     ]);
   }
 

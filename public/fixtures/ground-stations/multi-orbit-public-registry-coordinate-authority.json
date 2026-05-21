@@ -1,0 +1,430 @@
+{
+  "schemaVersion": "station-coordinate-authority.v1",
+  "generatedAt": "2026-05-21T00:00:00Z",
+  "authorityEnum": [
+    "official-filing",
+    "operator-web",
+    "teleport-directory",
+    "secondary-web",
+    "wikipedia",
+    "news",
+    "mixed-public",
+    "unknown-public"
+  ],
+  "stations": [
+    {
+      "stationId": "ksat-svalsat-svalbard",
+      "coordinateSourceAuthority": "wikipedia",
+      "coordinateSourceUrl": "https://en.wikipedia.org/wiki/Svalbard_Satellite_Station",
+      "coordinateSourceNote": "Coordinate-specific public encyclopedia/geodata source is separated from pair capability claims."
+    },
+    {
+      "stationId": "ksat-trollsat-antarctica",
+      "coordinateSourceAuthority": "wikipedia",
+      "coordinateSourceUrl": "https://en.wikipedia.org/wiki/Troll_Satellite_Station",
+      "coordinateSourceNote": "Coordinate-specific public encyclopedia/geodata source is separated from pair capability claims."
+    },
+    {
+      "stationId": "ksat-tromso",
+      "coordinateSourceAuthority": "wikipedia",
+      "coordinateSourceUrl": "https://en.wikipedia.org/wiki/Troms%C3%B8_Satellite_Station",
+      "coordinateSourceNote": "Coordinate-specific public encyclopedia/geodata source is separated from pair capability claims."
+    },
+    {
+      "stationId": "ksat-punta-arenas",
+      "coordinateSourceAuthority": "mixed-public",
+      "coordinateSourceUrl": null,
+      "coordinateSourceNote": "Representative regional coordinate; coordinate-specific source is not separated in the current registry."
+    },
+    {
+      "stationId": "ksat-inuvik",
+      "coordinateSourceAuthority": "mixed-public",
+      "coordinateSourceUrl": null,
+      "coordinateSourceNote": "Coordinate-specific source is not separated in the current registry; coordinate is treated as a conservative public-derived value."
+    },
+    {
+      "stationId": "ksat-hartebeesthoek",
+      "coordinateSourceAuthority": "mixed-public",
+      "coordinateSourceUrl": null,
+      "coordinateSourceNote": "Coordinate-specific source is not separated in the current registry; coordinate is treated as a conservative public-derived value."
+    },
+    {
+      "stationId": "ksat-singapore",
+      "coordinateSourceAuthority": "mixed-public",
+      "coordinateSourceUrl": null,
+      "coordinateSourceNote": "Representative regional coordinate; coordinate-specific source is not separated in the current registry."
+    },
+    {
+      "stationId": "ksat-dubai",
+      "coordinateSourceAuthority": "mixed-public",
+      "coordinateSourceUrl": null,
+      "coordinateSourceNote": "Representative regional coordinate; coordinate-specific source is not separated in the current registry."
+    },
+    {
+      "stationId": "ksat-mauritius",
+      "coordinateSourceAuthority": "mixed-public",
+      "coordinateSourceUrl": null,
+      "coordinateSourceNote": "Representative regional coordinate; coordinate-specific source is not separated in the current registry."
+    },
+    {
+      "stationId": "ksat-fairbanks",
+      "coordinateSourceAuthority": "mixed-public",
+      "coordinateSourceUrl": null,
+      "coordinateSourceNote": "Representative regional coordinate; coordinate-specific source is not separated in the current registry."
+    },
+    {
+      "stationId": "ksat-awarua",
+      "coordinateSourceAuthority": "wikipedia",
+      "coordinateSourceUrl": "https://en.wikipedia.org/wiki/Awarua_Tracking_Station",
+      "coordinateSourceNote": "Coordinate-specific public encyclopedia/geodata source is separated from pair capability claims."
+    },
+    {
+      "stationId": "ses-betzdorf",
+      "coordinateSourceAuthority": "mixed-public",
+      "coordinateSourceUrl": null,
+      "coordinateSourceNote": "Coordinate-specific source is not separated in the current registry; coordinate is treated as a conservative public-derived value."
+    },
+    {
+      "stationId": "ses-manassas",
+      "coordinateSourceAuthority": "mixed-public",
+      "coordinateSourceUrl": null,
+      "coordinateSourceNote": "Representative regional coordinate; coordinate-specific source is not separated in the current registry."
+    },
+    {
+      "stationId": "ses-vernon-valley",
+      "coordinateSourceAuthority": "mixed-public",
+      "coordinateSourceUrl": null,
+      "coordinateSourceNote": "Coordinate-specific source is not separated in the current registry; coordinate is treated as a conservative public-derived value."
+    },
+    {
+      "stationId": "ses-o3b-thermopylae",
+      "coordinateSourceAuthority": "mixed-public",
+      "coordinateSourceUrl": null,
+      "coordinateSourceNote": "Representative regional coordinate; coordinate-specific source is not separated in the current registry."
+    },
+    {
+      "stationId": "ses-o3b-dubbo",
+      "coordinateSourceAuthority": "mixed-public",
+      "coordinateSourceUrl": null,
+      "coordinateSourceNote": "Representative regional coordinate; coordinate-specific source is not separated in the current registry."
+    },
+    {
+      "stationId": "ses-o3b-merredin",
+      "coordinateSourceAuthority": "mixed-public",
+      "coordinateSourceUrl": null,
+      "coordinateSourceNote": "Representative regional coordinate; coordinate-specific source is not separated in the current registry."
+    },
+    {
+      "stationId": "ses-o3b-hawaii",
+      "coordinateSourceAuthority": "mixed-public",
+      "coordinateSourceUrl": null,
+      "coordinateSourceNote": "Representative regional coordinate; coordinate-specific source is not separated in the current registry."
+    },
+    {
+      "stationId": "ses-o3b-vernon-tx",
+      "coordinateSourceAuthority": "mixed-public",
+      "coordinateSourceUrl": null,
+      "coordinateSourceNote": "Representative regional coordinate; coordinate-specific source is not separated in the current registry."
+    },
+    {
+      "stationId": "ses-o3b-sintra",
+      "coordinateSourceAuthority": "mixed-public",
+      "coordinateSourceUrl": null,
+      "coordinateSourceNote": "Representative regional coordinate; coordinate-specific source is not separated in the current registry."
+    },
+    {
+      "stationId": "ses-o3b-fujairah",
+      "coordinateSourceAuthority": "mixed-public",
+      "coordinateSourceUrl": null,
+      "coordinateSourceNote": "Representative regional coordinate; coordinate-specific source is not separated in the current registry."
+    },
+    {
+      "stationId": "ses-o3b-gandoul-senegal",
+      "coordinateSourceAuthority": "mixed-public",
+      "coordinateSourceUrl": null,
+      "coordinateSourceNote": "Representative regional coordinate; coordinate-specific source is not separated in the current registry."
+    },
+    {
+      "stationId": "ses-o3b-lurin-peru",
+      "coordinateSourceAuthority": "mixed-public",
+      "coordinateSourceUrl": null,
+      "coordinateSourceNote": "Representative regional coordinate; coordinate-specific source is not separated in the current registry."
+    },
+    {
+      "stationId": "ses-o3b-hartebeesthoek",
+      "coordinateSourceAuthority": "mixed-public",
+      "coordinateSourceUrl": null,
+      "coordinateSourceNote": "Representative regional coordinate; coordinate-specific source is not separated in the current registry."
+    },
+    {
+      "stationId": "ses-o3b-santiago",
+      "coordinateSourceAuthority": "mixed-public",
+      "coordinateSourceUrl": null,
+      "coordinateSourceNote": "Representative regional coordinate; coordinate-specific source is not separated in the current registry."
+    },
+    {
+      "stationId": "intelsat-fuchsstadt",
+      "coordinateSourceAuthority": "mixed-public",
+      "coordinateSourceUrl": null,
+      "coordinateSourceNote": "Representative regional coordinate; coordinate-specific source is not separated in the current registry."
+    },
+    {
+      "stationId": "intelsat-atlanta",
+      "coordinateSourceAuthority": "operator-web",
+      "coordinateSourceUrl": "https://www.intelsat.com/global-network/terrestrial-network/teleport-chart/",
+      "coordinateSourceNote": "Coordinate source is operator or facility web disclosure; pair capability remains separate."
+    },
+    {
+      "stationId": "intelsat-hagerstown",
+      "coordinateSourceAuthority": "operator-web",
+      "coordinateSourceUrl": "https://www.intelsat.com/global-network/terrestrial-network/teleport-chart/",
+      "coordinateSourceNote": "Coordinate source is operator or facility web disclosure; pair capability remains separate."
+    },
+    {
+      "stationId": "intelsat-riverside",
+      "coordinateSourceAuthority": "mixed-public",
+      "coordinateSourceUrl": null,
+      "coordinateSourceNote": "Representative regional coordinate; coordinate-specific source is not separated in the current registry."
+    },
+    {
+      "stationId": "eutelsat-rambouillet",
+      "coordinateSourceAuthority": "mixed-public",
+      "coordinateSourceUrl": null,
+      "coordinateSourceNote": "Representative regional coordinate; coordinate-specific source is not separated in the current registry."
+    },
+    {
+      "stationId": "eutelsat-cagliari",
+      "coordinateSourceAuthority": "mixed-public",
+      "coordinateSourceUrl": null,
+      "coordinateSourceNote": "Representative regional coordinate; coordinate-specific source is not separated in the current registry."
+    },
+    {
+      "stationId": "eutelsat-skypark-turin",
+      "coordinateSourceAuthority": "mixed-public",
+      "coordinateSourceUrl": null,
+      "coordinateSourceNote": "Representative regional coordinate; coordinate-specific source is not separated in the current registry."
+    },
+    {
+      "stationId": "eutelsat-martinique-lamentin",
+      "coordinateSourceAuthority": "mixed-public",
+      "coordinateSourceUrl": null,
+      "coordinateSourceNote": "Representative regional coordinate; coordinate-specific source is not separated in the current registry."
+    },
+    {
+      "stationId": "eutelsat-bercenay-en-othe",
+      "coordinateSourceAuthority": "mixed-public",
+      "coordinateSourceUrl": null,
+      "coordinateSourceNote": "Representative regional coordinate; coordinate-specific source is not separated in the current registry."
+    },
+    {
+      "stationId": "oneweb-svalbard-snp",
+      "coordinateSourceAuthority": "mixed-public",
+      "coordinateSourceUrl": null,
+      "coordinateSourceNote": "Coordinate-specific source is not separated in the current registry; coordinate is treated as a conservative public-derived value."
+    },
+    {
+      "stationId": "oneweb-nuuk-snp",
+      "coordinateSourceAuthority": "mixed-public",
+      "coordinateSourceUrl": null,
+      "coordinateSourceNote": "Representative regional coordinate; coordinate-specific source is not separated in the current registry."
+    },
+    {
+      "stationId": "oneweb-yellowknife-snp",
+      "coordinateSourceAuthority": "mixed-public",
+      "coordinateSourceUrl": null,
+      "coordinateSourceNote": "Representative regional coordinate; coordinate-specific source is not separated in the current registry."
+    },
+    {
+      "stationId": "oneweb-ubon-snp",
+      "coordinateSourceAuthority": "mixed-public",
+      "coordinateSourceUrl": null,
+      "coordinateSourceNote": "Representative regional coordinate; coordinate-specific source is not separated in the current registry."
+    },
+    {
+      "stationId": "oneweb-tabuk-snp",
+      "coordinateSourceAuthority": "mixed-public",
+      "coordinateSourceUrl": null,
+      "coordinateSourceNote": "Representative regional coordinate; coordinate-specific source is not separated in the current registry."
+    },
+    {
+      "stationId": "oneweb-cali-zonamerica",
+      "coordinateSourceAuthority": "mixed-public",
+      "coordinateSourceUrl": null,
+      "coordinateSourceNote": "Representative regional coordinate; coordinate-specific source is not separated in the current registry."
+    },
+    {
+      "stationId": "oneweb-marica-telespazio",
+      "coordinateSourceAuthority": "mixed-public",
+      "coordinateSourceUrl": null,
+      "coordinateSourceNote": "Representative regional coordinate; coordinate-specific source is not separated in the current registry."
+    },
+    {
+      "stationId": "oneweb-stara-zagora-vivacom",
+      "coordinateSourceAuthority": "mixed-public",
+      "coordinateSourceUrl": null,
+      "coordinateSourceNote": "Representative regional coordinate; coordinate-specific source is not separated in the current registry."
+    },
+    {
+      "stationId": "telesat-allan-park",
+      "coordinateSourceAuthority": "mixed-public",
+      "coordinateSourceUrl": null,
+      "coordinateSourceNote": "Representative regional coordinate; coordinate-specific source is not separated in the current registry."
+    },
+    {
+      "stationId": "telesat-mount-jackson",
+      "coordinateSourceAuthority": "mixed-public",
+      "coordinateSourceUrl": null,
+      "coordinateSourceNote": "Coordinate-specific source is not separated in the current registry; coordinate is treated as a conservative public-derived value."
+    },
+    {
+      "stationId": "viasat-inmarsat-burum",
+      "coordinateSourceAuthority": "secondary-web",
+      "coordinateSourceUrl": "https://spacenews.com/inmarsat-agrees-plan-to-move-ground-station-out-of-netherlands/",
+      "coordinateSourceNote": "Coordinate comes from secondary public web disclosure; not treated as official filing truth."
+    },
+    {
+      "stationId": "viasat-inmarsat-paumalu",
+      "coordinateSourceAuthority": "secondary-web",
+      "coordinateSourceUrl": "http://wikimapia.org/3755213/Inmarsat-Satellite-Access-Station-Paumalu",
+      "coordinateSourceNote": "Coordinate-specific secondary public geodata source is separated from pair capability claims."
+    },
+    {
+      "stationId": "viasat-inmarsat-fucino",
+      "coordinateSourceAuthority": "wikipedia",
+      "coordinateSourceUrl": "https://en.wikipedia.org/wiki/Fucino_Space_Centre",
+      "coordinateSourceNote": "Coordinate-specific public encyclopedia/geodata source is separated from pair capability claims."
+    },
+    {
+      "stationId": "speedcast-mawson-lakes",
+      "coordinateSourceAuthority": "mixed-public",
+      "coordinateSourceUrl": null,
+      "coordinateSourceNote": "Representative regional coordinate; coordinate-specific source is not separated in the current registry."
+    },
+    {
+      "stationId": "speedcast-aberdeen",
+      "coordinateSourceAuthority": "mixed-public",
+      "coordinateSourceUrl": null,
+      "coordinateSourceNote": "Representative regional coordinate; coordinate-specific source is not separated in the current registry."
+    },
+    {
+      "stationId": "speedcast-biddinghuizen",
+      "coordinateSourceAuthority": "mixed-public",
+      "coordinateSourceUrl": null,
+      "coordinateSourceNote": "Representative regional coordinate; coordinate-specific source is not separated in the current registry."
+    },
+    {
+      "stationId": "speedcast-kuala-lumpur",
+      "coordinateSourceAuthority": "mixed-public",
+      "coordinateSourceUrl": null,
+      "coordinateSourceNote": "Representative regional coordinate; coordinate-specific source is not separated in the current registry."
+    },
+    {
+      "stationId": "speedcast-perth",
+      "coordinateSourceAuthority": "mixed-public",
+      "coordinateSourceUrl": null,
+      "coordinateSourceNote": "Representative regional coordinate; coordinate-specific source is not separated in the current registry."
+    },
+    {
+      "stationId": "goonhilly-cornwall",
+      "coordinateSourceAuthority": "mixed-public",
+      "coordinateSourceUrl": null,
+      "coordinateSourceNote": "Coordinate-specific source is not separated in the current registry; coordinate is treated as a conservative public-derived value."
+    },
+    {
+      "stationId": "telespazio-rio-bt7",
+      "coordinateSourceAuthority": "mixed-public",
+      "coordinateSourceUrl": null,
+      "coordinateSourceNote": "Representative regional coordinate; coordinate-specific source is not separated in the current registry."
+    },
+    {
+      "stationId": "telespazio-scanzano",
+      "coordinateSourceAuthority": "mixed-public",
+      "coordinateSourceUrl": null,
+      "coordinateSourceNote": "Representative regional coordinate; coordinate-specific source is not separated in the current registry."
+    },
+    {
+      "stationId": "sansa-hartebeesthoek",
+      "coordinateSourceAuthority": "operator-web",
+      "coordinateSourceUrl": "https://www.sansa.org.za/products-services2/spaceoperations/",
+      "coordinateSourceNote": "Coordinate source is operator or facility web disclosure; pair capability remains separate."
+    },
+    {
+      "stationId": "ssc-esrange-kiruna",
+      "coordinateSourceAuthority": "operator-web",
+      "coordinateSourceUrl": "https://sscspace.com/services/satellite-ground-stations/our-stations/esrange-ground-station/",
+      "coordinateSourceNote": "Coordinate source is operator or facility web disclosure; pair capability remains separate."
+    },
+    {
+      "stationId": "ssc-inuvik",
+      "coordinateSourceAuthority": "operator-web",
+      "coordinateSourceUrl": "https://sscspace.com/services/satellite-ground-stations/our-stations/inuvik-station/",
+      "coordinateSourceNote": "Coordinate source is operator or facility web disclosure; pair capability remains separate."
+    },
+    {
+      "stationId": "ssc-punta-arenas",
+      "coordinateSourceAuthority": "mixed-public",
+      "coordinateSourceUrl": null,
+      "coordinateSourceNote": "Representative regional coordinate; coordinate-specific source is not separated in the current registry."
+    },
+    {
+      "stationId": "ssc-yatharagga-wasc",
+      "coordinateSourceAuthority": "operator-web",
+      "coordinateSourceUrl": "https://sscspace.com/services/satellite-ground-stations/our-stations/wasc/",
+      "coordinateSourceNote": "Coordinate source is operator or facility web disclosure; pair capability remains separate."
+    },
+    {
+      "stationId": "telenor-nittedal",
+      "coordinateSourceAuthority": "mixed-public",
+      "coordinateSourceUrl": null,
+      "coordinateSourceNote": "Representative regional coordinate; coordinate-specific source is not separated in the current registry."
+    },
+    {
+      "stationId": "asiasat-tai-po",
+      "coordinateSourceAuthority": "mixed-public",
+      "coordinateSourceUrl": null,
+      "coordinateSourceNote": "Representative regional coordinate; coordinate-specific source is not separated in the current registry."
+    },
+    {
+      "stationId": "singtel-bukit-timah",
+      "coordinateSourceAuthority": "secondary-web",
+      "coordinateSourceUrl": "https://www.worldteleport.org/news/423834/Singtel-Achieves-Full-Certification-of-its-Bukit-Timah-and-Seletar-Teleports-in-Singapore-from-WTA.htm",
+      "coordinateSourceNote": "Coordinate comes from secondary public web disclosure; not treated as official filing truth."
+    },
+    {
+      "stationId": "singtel-seletar",
+      "coordinateSourceAuthority": "mixed-public",
+      "coordinateSourceUrl": null,
+      "coordinateSourceNote": "Representative regional coordinate; coordinate-specific source is not separated in the current registry."
+    },
+    {
+      "stationId": "kt-sat-kumsan",
+      "coordinateSourceAuthority": "mixed-public",
+      "coordinateSourceUrl": null,
+      "coordinateSourceNote": "Representative regional coordinate; coordinate-specific source is not separated in the current registry."
+    },
+    {
+      "stationId": "measat-cyberjaya",
+      "coordinateSourceAuthority": "mixed-public",
+      "coordinateSourceUrl": null,
+      "coordinateSourceNote": "Representative regional coordinate; coordinate-specific source is not separated in the current registry."
+    },
+    {
+      "stationId": "cht-yangmingshan",
+      "coordinateSourceAuthority": "mixed-public",
+      "coordinateSourceUrl": null,
+      "coordinateSourceNote": "Representative regional coordinate; coordinate-specific source is not separated in the current registry."
+    },
+    {
+      "stationId": "cht-fangshan",
+      "coordinateSourceAuthority": "mixed-public",
+      "coordinateSourceUrl": null,
+      "coordinateSourceNote": "Representative regional coordinate; coordinate-specific source is not separated in the current registry."
+    },
+    {
+      "stationId": "hispasat-arganda",
+      "coordinateSourceAuthority": "operator-web",
+      "coordinateSourceUrl": "https://www.hispasat.com/en/press-room/press-releases/archivo-2019/367/hispamar-starts-operating-from-its-new-teleport-and-satellite-control-centre-in-serviente-rio-de-janeiro",
+      "coordinateSourceNote": "Coordinate source is operator or facility web disclosure; pair capability remains separate."
+    }
+  ]
+}

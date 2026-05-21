@@ -1,5 +1,6 @@
 import { twoline2satrec } from "../../vendor/satellite-js-runtime";
 import networkTleManifest from "../../../public/fixtures/satellites-network/manifest.json";
+import stationCoordinateAuthorityFixture from "../../../public/fixtures/ground-stations/multi-orbit-public-registry-coordinate-authority.json";
 import type { HandoverPolicyConfig } from "../../runtime/link-budget/handover-policy";
 import type {
   SceneCameraHint,
@@ -40,6 +41,23 @@ export type RuntimeEmptyReasonCode =
   | "no-visibility-windows"
   | "no-pair-intersection"
   | "no-handover-event";
+
+export type RuntimeCoordinateSourceAuthority =
+  | "official-filing"
+  | "operator-web"
+  | "teleport-directory"
+  | "secondary-web"
+  | "wikipedia"
+  | "news"
+  | "mixed-public"
+  | "unknown-public";
+
+interface StationCoordinateAuthorityEntry {
+  readonly stationId: string;
+  readonly coordinateSourceAuthority: RuntimeCoordinateSourceAuthority;
+  readonly coordinateSourceUrl: string | null;
+  readonly coordinateSourceNote: string;
+}
 
 export interface RuntimeNoradIdRangeSummary {
   readonly start: number;
@@ -144,6 +162,9 @@ export interface RuntimeStationPrecisionState {
   readonly stationId: string;
   readonly disclosurePrecision: PublicRegistryStation["disclosurePrecision"];
   readonly sourceTier: PairSourceTierAttribution["sourceTier"];
+  readonly coordinateSourceAuthority: RuntimeCoordinateSourceAuthority;
+  readonly coordinateSourceUrl: string | null;
+  readonly coordinateSourceNote: string;
   readonly rawLat: number;
   readonly rawLon: number;
   readonly elevationM: number;
@@ -387,6 +408,23 @@ const RF_FIELD_SOURCE_ID = "unavailable-pending-operator-rf-profile";
 const ATMOSPHERIC_LOOKUP_SOURCE_ID = "unavailable-pending-itu-grid-bundle";
 const LOCAL_FALLBACK_INVENTORY_NOTE =
   "Separate local fallback inventory is not loaded beside the active runtime source in this disclosure slice.";
+const UNKNOWN_COORDINATE_AUTHORITY: StationCoordinateAuthorityEntry = {
+  stationId: "",
+  coordinateSourceAuthority: "unknown-public",
+  coordinateSourceUrl: null,
+  coordinateSourceNote:
+    "Coordinate authority fixture has no row for this station; source authority is unknown."
+};
+const STATION_COORDINATE_AUTHORITY_BY_ID: ReadonlyMap<
+  string,
+  StationCoordinateAuthorityEntry
+> = new Map(
+  (
+    stationCoordinateAuthorityFixture as {
+      readonly stations: ReadonlyArray<StationCoordinateAuthorityEntry>;
+    }
+  ).stations.map((entry) => [entry.stationId, entry])
+);
 
 const SOURCE_HEALTH_THRESHOLD_DAYS: Readonly<Record<OrbitClass, number>> = {
   LEO: 14,
@@ -575,16 +613,26 @@ function resolveCoordinateUse(
   return "regional-coordinate";
 }
 
+function resolveCoordinateSourceAuthority(
+  stationId: string
+): StationCoordinateAuthorityEntry {
+  return STATION_COORDINATE_AUTHORITY_BY_ID.get(stationId) ?? UNKNOWN_COORDINATE_AUTHORITY;
+}
+
 function buildStationPrecisionState(
   station: PublicRegistryStation,
   pairSourceTier: PairSourceTierAttribution["sourceTier"],
   effectiveElevationThresholdDeg: number
 ): RuntimeStationPrecisionState {
   const coordinateUse = resolveCoordinateUse(station.disclosurePrecision);
+  const coordinateSource = resolveCoordinateSourceAuthority(station.id);
   return {
     stationId: station.id,
     disclosurePrecision: station.disclosurePrecision,
     sourceTier: pairSourceTier,
+    coordinateSourceAuthority: coordinateSource.coordinateSourceAuthority,
+    coordinateSourceUrl: coordinateSource.coordinateSourceUrl,
+    coordinateSourceNote: coordinateSource.coordinateSourceNote,
     rawLat: station.lat,
     rawLon: station.lon,
     elevationM: station.elevationM,
