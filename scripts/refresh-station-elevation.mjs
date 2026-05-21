@@ -46,6 +46,14 @@ const ELEVATION_METADATA_KEYS = [
   "elevationProvenanceStatus",
   "elevationNonClaim"
 ];
+const DRY_RUN_COLUMNS = [
+  "stationId",
+  "elevationM",
+  "sourceAccessedUtc",
+  ...ELEVATION_METADATA_KEYS
+];
+const ISO_UTC_TIMESTAMP_PATTERN =
+  /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{3})?Z$/;
 
 function usage() {
   return [
@@ -188,8 +196,29 @@ function validateRequiredNumber(value, key, stationId) {
 }
 
 function validateIsoTimestamp(value, key, stationId) {
-  if (typeof value !== "string" || Number.isNaN(Date.parse(value))) {
-    throw new Error(`${stationId}: ${key} must be an ISO timestamp`);
+  if (typeof value !== "string" || !ISO_UTC_TIMESTAMP_PATTERN.test(value)) {
+    throw new Error(`${stationId}: ${key} must be an ISO UTC timestamp`);
+  }
+  const parsed = Date.parse(value);
+  if (Number.isNaN(parsed)) {
+    throw new Error(`${stationId}: ${key} must be a valid ISO UTC timestamp`);
+  }
+  const normalized = value.includes(".") ? value : value.replace("Z", ".000Z");
+  if (new Date(parsed).toISOString() !== normalized) {
+    throw new Error(`${stationId}: ${key} must be a valid ISO UTC timestamp`);
+  }
+}
+
+function validateHttpUrl(value, key, stationId) {
+  validateNonEmptyString(value, key, stationId);
+  let parsed;
+  try {
+    parsed = new URL(value);
+  } catch {
+    throw new Error(`${stationId}: ${key} must be a valid URL`);
+  }
+  if (parsed.protocol !== "https:" && parsed.protocol !== "http:") {
+    throw new Error(`${stationId}: ${key} must be an HTTP(S) URL`);
   }
 }
 
@@ -337,6 +366,9 @@ function validateInputElevationMetadata(entry, stationId) {
   }
   validateElevationMetadata(entry, stationId);
   validateNonEmptyString(entry.elevationDatasetId, "elevationDatasetId", stationId);
+  if (entry.elevationDatasetId.toLowerCase().includes("legacy")) {
+    throw new Error(`${stationId}: dem-derived elevationDatasetId must not carry a legacy marker`);
+  }
   validateNonEmptyString(entry.elevationDatasetVersion, "elevationDatasetVersion", stationId);
   validateRequiredNumber(entry.elevationDatasetResolutionM, "elevationDatasetResolutionM", stationId);
   if (entry.elevationDatasetResolutionM <= 0) {
@@ -356,7 +388,7 @@ function validateInputElevationMetadata(entry, stationId) {
   validateIsoTimestamp(entry.elevationSampledAtUtc, "elevationSampledAtUtc", stationId);
   validateIsoTimestamp(entry.elevationCacheGeneratedUtc, "elevationCacheGeneratedUtc", stationId);
   validateNonEmptyString(entry.elevationLicenseId, "elevationLicenseId", stationId);
-  validateNonEmptyString(entry.elevationLicenseUrl, "elevationLicenseUrl", stationId);
+  validateHttpUrl(entry.elevationLicenseUrl, "elevationLicenseUrl", stationId);
   validateNonEmptyString(entry.elevationCitation, "elevationCitation", stationId);
   validateNonEmptyString(entry.elevationNonClaim, "elevationNonClaim", stationId);
 }
@@ -378,9 +410,7 @@ function validateCacheEntries(entries, stations, cachePath, options = {}) {
     if (!registryIds.has(entry.stationId)) {
       throw new Error(`${entry.stationId}: elevation row is not present in registry`);
     }
-    if (typeof entry.sourceAccessedUtc !== "string" || Number.isNaN(Date.parse(entry.sourceAccessedUtc))) {
-      throw new Error(`${entry.stationId}: sourceAccessedUtc must be an ISO timestamp`);
-    }
+    validateIsoTimestamp(entry.sourceAccessedUtc, "sourceAccessedUtc", entry.stationId);
     if (byId.has(entry.stationId)) {
       throw new Error(`${entry.stationId}: duplicate cache entry`);
     }
@@ -711,12 +741,21 @@ async function writeIfChanged(filePath, text) {
 }
 
 function printDryRun(entries, log = console.log) {
-  log("stationId,elevationM,sourceAccessedUtc,elevationSourceKind,elevationDatasetId,elevationProvenanceStatus");
+  log(DRY_RUN_COLUMNS.join(","));
   for (const entry of entries) {
-    log(
-      `${entry.stationId},${entry.elevationM},${entry.sourceAccessedUtc},${entry.elevationSourceKind},${entry.elevationDatasetId},${entry.elevationProvenanceStatus}`
-    );
+    log(DRY_RUN_COLUMNS.map((column) => csvValue(entry[column])).join(","));
   }
+}
+
+function csvValue(value) {
+  if (value === null || value === undefined) {
+    return "";
+  }
+  const text = String(value);
+  if (/[",\n\r]/.test(text)) {
+    return `"${text.replaceAll("\"", "\"\"")}"`;
+  }
+  return text;
 }
 
 export async function runRefreshStationElevation(argv = process.argv.slice(2), { log = console.log } = {}) {

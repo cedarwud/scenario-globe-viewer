@@ -520,6 +520,8 @@ const STATION_ELEVATION_SOURCE_PATH =
   "public/fixtures/ground-stations/station-elevations-cache.json";
 const STATION_ELEVATION_SOURCE_NOTE =
   "Legacy service-cache elevation; upstream DEM source, tile, version, resolution, and vertical datum are unverified.";
+const DEM_STATION_ELEVATION_SOURCE_NOTE =
+  "DEM-derived elevation with row-level dataset, version, resolution, datum, tile/cell, license, citation, and non-claim metadata.";
 const MISSING_STATION_ELEVATION_SOURCE_ID = "legacy-elevation-cache-missing";
 const MISSING_STATION_ELEVATION_SOURCE_NOTE =
   "No elevation cache row is available for this station; registry elevation is carried with legacy-unknown provenance.";
@@ -794,7 +796,10 @@ function resolveStationElevationMetadata(
     elevationM: entry.elevationM,
     elevationSourceId: entry.elevationDatasetId,
     elevationSourcePath: STATION_ELEVATION_SOURCE_PATH,
-    elevationSourceNote: STATION_ELEVATION_SOURCE_NOTE,
+    elevationSourceNote:
+      entry.elevationSourceKind === "dem-derived"
+        ? DEM_STATION_ELEVATION_SOURCE_NOTE
+        : STATION_ELEVATION_SOURCE_NOTE,
     elevationSourceAccessedUtc: entry.sourceAccessedUtc,
     elevationSourceKind: entry.elevationSourceKind,
     elevationDatasetId: entry.elevationDatasetId,

@@ -79,3 +79,15 @@ Official source links:
 - Capture value deltas against the five D6 walkthrough pins before any write.
 - Do not bundle raw DEM tiles in the app repo unless a later scope explicitly
   asks for that artifact.
+
+## Prep Hardening Acceptance
+
+- Strict `--input` mode accepts complete DEM-derived rows and still allows
+  negative `elevationM` values inside the existing sanity range.
+- Strict `--input` mode rejects partial DEM metadata, invalid UTC timestamps,
+  invalid sample coordinates, non-positive resolution, legacy markers,
+  duplicate rows, orphan rows, and missing station rows.
+- Dry-run output includes the full provenance column set so metadata loss is
+  visible before any cache replacement slice.
+- D6 remains compatible with the current legacy cache until a separately
+  scoped DEM-derived 69-row cache replacement lands.
