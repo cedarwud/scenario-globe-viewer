@@ -2,7 +2,7 @@
 
 import { readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 
 const PROJECT_ROOT = path.resolve(fileURLToPath(new URL("..", import.meta.url)));
 const REGISTRY_PATH = path.join(
@@ -49,13 +49,14 @@ const ELEVATION_METADATA_KEYS = [
 
 function usage() {
   return [
-    "Usage: node scripts/refresh-station-elevation.mjs [--dry-run] [--no-network] [--output <path>]",
+    "Usage: node scripts/refresh-station-elevation.mjs [--dry-run] [--no-network] [--input <path>] [--output <path>]",
     "",
     "Updates public/fixtures/ground-stations/multi-orbit-public-registry.json",
     "with integer elevationM values and writes a sidecar cache.",
     "",
     "Flags:",
     "  --dry-run     Print proposed elevations without writing files.",
+    "  --input       Read a complete 69-row DEM sample JSON; implies no network.",
     "  --output      Cache path; defaults to public/fixtures/ground-stations/station-elevations-cache.json.",
     "  --no-network  Read elevations from the cache only.",
   ].join("\n");
@@ -64,6 +65,7 @@ function usage() {
 function parseArgs(argv) {
   const options = {
     dryRun: false,
+    inputPath: null,
     noNetwork: false,
     outputPath: DEFAULT_CACHE_PATH,
   };
@@ -76,6 +78,15 @@ function parseArgs(argv) {
     }
     if (arg === "--no-network") {
       options.noNetwork = true;
+      continue;
+    }
+    if (arg === "--input") {
+      const value = argv[index + 1];
+      if (!value || value.startsWith("--")) {
+        throw new Error("--input requires a path");
+      }
+      options.inputPath = path.resolve(process.cwd(), value);
+      index += 1;
       continue;
     }
     if (arg === "--output") {
@@ -170,6 +181,12 @@ function validateNullableNumber(value, key, stationId) {
   }
 }
 
+function validateRequiredNumber(value, key, stationId) {
+  if (!Number.isFinite(value)) {
+    throw new Error(`${stationId}: ${key} must be a finite number`);
+  }
+}
+
 function validateIsoTimestamp(value, key, stationId) {
   if (typeof value !== "string" || Number.isNaN(Date.parse(value))) {
     throw new Error(`${stationId}: ${key} must be an ISO timestamp`);
@@ -231,9 +248,9 @@ function validateCommonElevationMetadata(entry, stationId) {
   validateNonEmptyString(entry.elevationNonClaim, "elevationNonClaim", stationId);
 }
 
-function normalizeElevationEntry(entry, station) {
+function normalizeElevationEntry(entry, station, { requireRegistryElevationMatch }) {
   validateElevation(entry, station.id);
-  if (station.elevationM !== entry.elevationM) {
+  if (requireRegistryElevationMatch && station.elevationM !== entry.elevationM) {
     throw new Error(
       `${station.id}: registry elevationM ${station.elevationM} disagrees with cache elevationM ${entry.elevationM}`
     );
@@ -253,6 +270,16 @@ function normalizeElevationEntry(entry, station) {
     throw new Error(`${station.id}: incomplete elevation metadata; missing ${missing.join(", ")}`);
   }
   validateElevationMetadata(entry, station.id);
+  return entry;
+}
+
+function normalizeInputElevationEntry(entry, station) {
+  validateElevation(entry, station.id);
+  if (!hasCompleteElevationMetadata(entry)) {
+    const missing = ELEVATION_METADATA_KEYS.filter((key) => !Object.hasOwn(entry, key));
+    throw new Error(`${station.id}: input row must contain complete DEM metadata; missing ${missing.join(", ")}`);
+  }
+  validateInputElevationMetadata(entry, station.id);
   return entry;
 }
 
@@ -301,10 +328,45 @@ function validateElevationMetadata(entry, stationId) {
   }
 }
 
-function validateCacheEntries(entries, stations, cachePath) {
+function validateInputElevationMetadata(entry, stationId) {
+  if (entry.elevationSourceKind !== "dem-derived") {
+    throw new Error(`${stationId}: input elevationSourceKind must be dem-derived`);
+  }
+  if (entry.elevationProvenanceStatus !== "dem-provenance-complete") {
+    throw new Error(`${stationId}: input elevationProvenanceStatus must be dem-provenance-complete`);
+  }
+  validateElevationMetadata(entry, stationId);
+  validateNonEmptyString(entry.elevationDatasetId, "elevationDatasetId", stationId);
+  validateNonEmptyString(entry.elevationDatasetVersion, "elevationDatasetVersion", stationId);
+  validateRequiredNumber(entry.elevationDatasetResolutionM, "elevationDatasetResolutionM", stationId);
+  if (entry.elevationDatasetResolutionM <= 0) {
+    throw new Error(`${stationId}: elevationDatasetResolutionM must be greater than 0`);
+  }
+  validateNonEmptyString(entry.elevationVerticalDatum, "elevationVerticalDatum", stationId);
+  validateNonEmptyString(entry.elevationTileId, "elevationTileId", stationId);
+  validateNonEmptyString(entry.elevationCellId, "elevationCellId", stationId);
+  validateRequiredNumber(entry.elevationSampleLat, "elevationSampleLat", stationId);
+  validateRequiredNumber(entry.elevationSampleLon, "elevationSampleLon", stationId);
+  if (entry.elevationSampleLat < -90 || entry.elevationSampleLat > 90) {
+    throw new Error(`${stationId}: elevationSampleLat must be a WGS84 latitude`);
+  }
+  if (entry.elevationSampleLon < -180 || entry.elevationSampleLon > 180) {
+    throw new Error(`${stationId}: elevationSampleLon must be a WGS84 longitude`);
+  }
+  validateIsoTimestamp(entry.elevationSampledAtUtc, "elevationSampledAtUtc", stationId);
+  validateIsoTimestamp(entry.elevationCacheGeneratedUtc, "elevationCacheGeneratedUtc", stationId);
+  validateNonEmptyString(entry.elevationLicenseId, "elevationLicenseId", stationId);
+  validateNonEmptyString(entry.elevationLicenseUrl, "elevationLicenseUrl", stationId);
+  validateNonEmptyString(entry.elevationCitation, "elevationCitation", stationId);
+  validateNonEmptyString(entry.elevationNonClaim, "elevationNonClaim", stationId);
+}
+
+function validateCacheEntries(entries, stations, cachePath, options = {}) {
+  const { requireRegistryElevationMatch = true, strictDemInput = false } = options;
   if (!Array.isArray(entries)) {
     throw new Error(`${cachePath} must be an array`);
   }
+  const registryIds = new Set(stations.map((station) => station.id));
   const byId = new Map();
   for (const entry of entries) {
     if (!entry || typeof entry !== "object" || Array.isArray(entry)) {
@@ -312,6 +374,9 @@ function validateCacheEntries(entries, stations, cachePath) {
     }
     if (typeof entry.stationId !== "string" || entry.stationId.length === 0) {
       throw new Error(`${cachePath}: cache entry stationId must be a non-empty string`);
+    }
+    if (!registryIds.has(entry.stationId)) {
+      throw new Error(`${entry.stationId}: elevation row is not present in registry`);
     }
     if (typeof entry.sourceAccessedUtc !== "string" || Number.isNaN(Date.parse(entry.sourceAccessedUtc))) {
       throw new Error(`${entry.stationId}: sourceAccessedUtc must be an ISO timestamp`);
@@ -330,7 +395,12 @@ function validateCacheEntries(entries, stations, cachePath) {
     throw new Error(`${cachePath}: expected ${stations.length} entries, found ${entries.length}`);
   }
 
-  return stations.map((station) => normalizeElevationEntry(byId.get(station.id), station));
+  return stations.map((station) => {
+    const entry = byId.get(station.id);
+    return strictDemInput
+      ? normalizeInputElevationEntry(entry, station)
+      : normalizeElevationEntry(entry, station, { requireRegistryElevationMatch });
+  });
 }
 
 async function readCache(cachePath, stations) {
@@ -343,7 +413,25 @@ async function readCache(cachePath, stations) {
     }
     throw error;
   }
-  return validateCacheEntries(parseJson(text, cachePath), stations, cachePath);
+  return validateCacheEntries(parseJson(text, cachePath), stations, cachePath, {
+    requireRegistryElevationMatch: true
+  });
+}
+
+async function readInput(inputPath, stations) {
+  let text;
+  try {
+    text = await readFile(inputPath, "utf8");
+  } catch (error) {
+    if (error?.code === "ENOENT") {
+      throw new Error(`Input file not found: ${inputPath}`);
+    }
+    throw error;
+  }
+  return validateCacheEntries(parseJson(text, inputPath), stations, inputPath, {
+    requireRegistryElevationMatch: false,
+    strictDemInput: true
+  });
 }
 
 function sleep(ms) {
@@ -622,31 +710,33 @@ async function writeIfChanged(filePath, text) {
   return true;
 }
 
-function printDryRun(entries) {
-  console.log("stationId,elevationM,sourceAccessedUtc,elevationSourceKind,elevationDatasetId,elevationProvenanceStatus");
+function printDryRun(entries, log = console.log) {
+  log("stationId,elevationM,sourceAccessedUtc,elevationSourceKind,elevationDatasetId,elevationProvenanceStatus");
   for (const entry of entries) {
-    console.log(
+    log(
       `${entry.stationId},${entry.elevationM},${entry.sourceAccessedUtc},${entry.elevationSourceKind},${entry.elevationDatasetId},${entry.elevationProvenanceStatus}`
     );
   }
 }
 
-async function main() {
-  const options = parseArgs(process.argv.slice(2));
+export async function runRefreshStationElevation(argv = process.argv.slice(2), { log = console.log } = {}) {
+  const options = parseArgs(argv);
   const { registry, text: registryText } = await readRegistry();
   const stations = registry.stations;
   stations.forEach(validateStation);
 
-  const entries = options.noNetwork
-    ? await readCache(options.outputPath, stations)
-    : cacheEntriesFromResponse(
-        await postOpenElevation(stations),
-        stations,
-        new Date().toISOString()
-      );
+  const entries = options.inputPath
+    ? await readInput(options.inputPath, stations)
+    : options.noNetwork
+      ? await readCache(options.outputPath, stations)
+      : cacheEntriesFromResponse(
+          await postOpenElevation(stations),
+          stations,
+          new Date().toISOString()
+        );
 
   if (options.dryRun) {
-    printDryRun(entries);
+    printDryRun(entries, log);
     return;
   }
 
@@ -656,17 +746,23 @@ async function main() {
   const wroteRegistry = await writeIfChanged(REGISTRY_PATH, nextRegistryText);
   const wroteCache = await writeIfChanged(options.outputPath, cacheText);
 
-  console.log(`${wroteRegistry ? "Updated" : "Unchanged"} ${path.relative(PROJECT_ROOT, REGISTRY_PATH)}`);
-  if (options.noNetwork) {
-    console.log(
+  log(`${wroteRegistry ? "Updated" : "Unchanged"} ${path.relative(PROJECT_ROOT, REGISTRY_PATH)}`);
+  if (options.inputPath) {
+    log(
+      `${wroteCache ? "Updated" : "Unchanged"} ${path.relative(PROJECT_ROOT, options.outputPath)} from ${entries.length} input elevations`
+    );
+  } else if (options.noNetwork) {
+    log(
       `${wroteCache ? "Updated" : "Unchanged"} ${path.relative(PROJECT_ROOT, options.outputPath)} from ${entries.length} cached elevations`
     );
   } else {
-    console.log(`${wroteCache ? "Updated" : "Unchanged"} ${path.relative(PROJECT_ROOT, options.outputPath)}`);
+    log(`${wroteCache ? "Updated" : "Unchanged"} ${path.relative(PROJECT_ROOT, options.outputPath)}`);
   }
 }
 
-main().catch((error) => {
-  console.error(error.message);
-  process.exit(1);
-});
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  runRefreshStationElevation().catch((error) => {
+    console.error(error.message);
+    process.exit(1);
+  });
+}
