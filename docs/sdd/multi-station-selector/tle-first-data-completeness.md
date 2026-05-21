@@ -618,7 +618,7 @@ followed by one review-hardening commit:
   and controller debug payload.
 - `27075c1` — D6 smoke gate
   `scripts/verify-tle-first-data-completeness.mjs`.
-- Review-hardening follow-up — adds per-actor provenance,
+- `a28afa1` and `e338766` — review-hardening follow-up: add per-actor provenance,
   per-visibility-window provenance, TLE parser stats propagation,
   custom missing/unsupported source-path smoke coverage, and row-level CSV
   provenance assertions after independent review.

@@ -177,11 +177,14 @@ source-authority tiers used throughout the V4 demo:
 - **Tier 1 operator-validated** — legacy Taiwan CHT + Singapore Speedcast
   pair via existing fixture
   `public/fixtures/ground-station-projections/m8a-v4.6b-taiwan-cht-speedcast-singapore-...json`. Do not touch.
-- **Tier 2 public-disclosed** — both stations from the 69-station public
-  registry AND share same `operatorFamily`. Label
-  "Public-disclosure pair · operator-stated capability".
-- **Tier 3 geometric-derived** — cross-operator pair, visibility-derived
-  only. Label "Geometric pair · visibility-derived only".
+- **Tier 2 public-disclosed** — explicit pair-level public attestation in
+  `pairAttestations`. Same `operatorFamily` alone no longer qualifies;
+  unattested same-family pairs resolve as `geometric-derived` with a
+  same-family inference non-claim. Label "Public-disclosure pair ·
+  operator-stated capability".
+- **Tier 3 geometric-derived** — unattested same-family or cross-operator
+  pair, visibility-derived only. Label "Geometric pair · visibility-derived
+  only".
 
 Replay defaults: real-time window = wall-clock UTC `[now, now+360m]`
 (per `docs/sdd/multi-station-selector/runtime-data-contract.md` §Resolved

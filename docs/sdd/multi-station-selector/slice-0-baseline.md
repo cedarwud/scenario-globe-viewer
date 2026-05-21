@@ -5,6 +5,12 @@ This document is the Slice 0 deliverable named by
 Slice 0. No runtime change is made here; this records current behaviour before
 the TLE-first convergence work begins.
 
+Post-TH1 addendum (2026-05-21): any `public-disclosure pair` or
+`public-disclosed` labels below are historical pre-TH1 capture observations.
+Current source-tier logic requires explicit pair attestation; unattested
+same-family pairs resolve as `geometric-derived` with a same-family inference
+non-claim.
+
 ## 1. Capture metadata
 
 - Capture date: 2026-05-18

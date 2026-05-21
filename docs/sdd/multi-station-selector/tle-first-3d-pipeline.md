@@ -1,7 +1,9 @@
 # Multi-Station Selector — TLE-First 3D Pipeline
 
 Draft date: 2026-05-18
-Status: proposed SDD
+Status: accepted/landed through Slice 5; audit follow-up closed enough for the
+current truth-source roadmap. This document is historical architecture context,
+not new implementation authorization.
 
 ## Scope
 

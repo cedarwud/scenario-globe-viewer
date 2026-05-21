@@ -12,6 +12,10 @@ legal-spike S3 pending per §12.1; TH5 orbit source policy gate recorded
 source gate recorded in `th7-public-rf-filing-source-gate.md` with no numeric
 RF implementation authorized)
 
+Current roadmap sync: see `truth-source-hardening-roadmap.md`. TH1/TH2 are
+accepted; TH3/TH5/TH7 gates are recorded; TH4/TH6 remain blocked; no
+implementation slice remains available without external evidence or decisions.
+
 ## Scope
 
 This document defines the wave-2 fidelity uplift for the selected-pair runtime
@@ -135,7 +139,7 @@ detail sits in §7.
 | F3 | Atmospheric chain | 5 | ITU-R P.835-6, P.836-6, P.840-9 (LEGAL-SPIKE S3) | none |
 | F4 | Rain climatology | 2 | ITU-R P.837-8, P.839-4 (LEGAL-SPIKE S3) | none |
 | F5 | Throughput + handover policy | 9 | 3GPP TR 38.821 §6.1.5 / §7.3 / Table 6.1.6.1.2-1 | none |
-| F6 | Station precision + DEM | 3 | NASA SRTM 1arcsec | registry +2 fields; **prep-PR before F6 wiring** |
+| F6 | Station precision + DEM | 3 | Copernicus DEM GLO-30 primary; GLO-90 fallback; SRTM audit/cross-check only | registry +2 fields; numeric replacement blocked pending Copernicus access/license acceptance and complete 69-row provenance |
 | F7 | Live TLE + constellation | 2 | CelesTrak GP + SATCAT | none; build-step downloader + generated manifest; TH5 policy gate keeps the current CelesTrak refreshed artifact as default |
 | F8 | Tier + cap surfacing | 4 | none | none; UI cap-disclosure row; S1 authorises LEO 200 cap at cadence 30 s; combined LEO 200 + LEO 10 s gated on PERF-FOLLOWUP-PENDING |
 | F9 | Visual evidence layer | 8 (F43-F50) | none | none; Cesium actor styling + SVG plots + Row 5 / Row 6 extensions; **depends on F2/F3/F5/F7 outputs** |
@@ -254,21 +258,21 @@ Each station carries five public-registry-derived fields beyond lat / lon:
 - `elevationM` — station altitude above sea level (DEM-derived for the
   registry entry, frozen into the registry snapshot);
 - `terrainMaskDeg` — single-value horizon elevation mask (0° if unknown);
-- `antennaDiameterM` — operator-disclosed or, where unavailable, a heuristic
-  derived from `disclosurePrecision` (`exact-coords` → 13 m, `operator-family-region`
-  → 4.5 m), with the heuristic recorded as the `provenance.nonClaim`;
+- `antennaDiameterM` — official filing/operator-disclosed value only; null
+  / unavailable when no per-field source exists;
 - `peakEirpDbm` — Effective Isotropic Radiated Power per Tx beam (dBm).
-  When operator-disclosed value is unavailable, the field is null and the
-  station's row tags as `unavailable` per §3 truth class until §12.1 spike
-  S2a returns a defensible anchor. The v1 SDD cited "3GPP TR 38.821 Table
+  Official filing/operator-disclosed value only; null / unavailable when no
+  per-field source exists. No heuristic/default numeric RF value is
+  authorized. The v1 SDD cited "3GPP TR 38.821 Table
   6.1.1.1-9 LEO Set-1 30 dBi / MEO 35 dBi / GEO 38 dBi"; codex-challenge
   2026-05-18 flagged two errors with that citation: Table 6.1.1.1-9 is the
   calibration-cases index (not the EIRP table; the system-parameter source
   is §6.1.1 Set-1 / Set-2), and the cited values are antenna gains (dBi),
   not EIRP (dBm). The seed is therefore unresolved; F2 implementation is
   BLOCKED on S2a;
-- `txPolarization` — `circular` ∨ `linear-h` ∨ `linear-v` ∨ `dual` (defaults
-  to `circular` when the operator does not disclose).
+- `txPolarization` — `circular` ∨ `linear-h` ∨ `linear-v` ∨ `dual`, from
+  official filing/operator source only; null / unavailable when no per-field
+  source exists.
 
 The registry JSON `multi-orbit-public-registry.json` is the single authoring
 surface for the five fields; they are not computed at runtime.
@@ -285,26 +289,23 @@ health = sourceAgeDays ≤ threshold[orbitClass] ? "fresh" : "stale"
 Thresholds: LEO 14, MEO 30, GEO 30 days (carried over from `tle-first-data-completeness.md`
 §12 #1).
 
-The build-step downloader at `scripts/refresh-tle.mjs` (added in F7) fetches
-fresh snapshots from CelesTrak and writes them into
-`public/fixtures/satellites-network/`. The runtime cannot dynamically probe
-the browser bundle filesystem; selection is driven by a generated manifest at
-`public/fixtures/satellites-network/manifest.json` (also written by the
-downloader). At bootstrap the runtime fetches the manifest once: when
-`manifest.json` is present and lists a fresh entry per orbit class, the
-runtime resolves TLE URLs to `satellites-network/`; otherwise it falls back
-to the in-bundle `satellites/` paths. Both paths render a chip dataset
-attribute so the review surface stays explicit. The manifest carries
-`generatedAtUtc`, per-orbit `path`, `recordCount`, and `epochRangeUtc`
-fields so the runtime can compute `health` without re-parsing the TLE.
+Historical F7 design target: a build-step downloader at
+`scripts/refresh-tle.mjs` would fetch fresh snapshots from CelesTrak, write
+them into `public/fixtures/satellites-network/`, and emit
+`public/fixtures/satellites-network/manifest.json` so a future runtime could
+choose an explicit snapshot path without any hot-path live network fetch. The
+manifest shape remains useful readiness work: `generatedAtUtc`, per-orbit
+`path`, `recordCount`, and `epochRangeUtc` let review surfaces compute
+`health` without re-parsing the TLE.
 
 2026-05-21 TH5 policy addendum: OMM-capable parser, manifest, propagation,
-and provenance readiness has landed, but this SDD does not switch the runtime
-or default source. The current CelesTrak refreshed artifact remains the
-repo-bundled/demo default. Space-Track direct GP/OMM ingestion remains gated
-by account/user-agreement review, rate-limit compliance, redistribution and
-storage permission, and a local acquisition flow that keeps private
-credentials outside git. See
+and provenance readiness has landed, but this SDD does not authorize
+runtime/default-source migration or manifest-driven switching. The current
+repo-bundled/demo default remains in force unless a later source-policy
+decision explicitly changes it. Space-Track direct GP/OMM ingestion remains
+gated by account/user-agreement review, rate-limit compliance,
+redistribution and storage permission, and a local acquisition flow that keeps
+private credentials outside git. See
 `docs/sdd/multi-station-selector/th5-orbit-source-policy-gate.md`.
 
 ### 4.6 Fixture fallback boundary (unchanged)
@@ -402,21 +403,20 @@ export interface StationRfProfile {
   readonly stationId: string;
   readonly elevationM: number;
   readonly terrainMaskDeg: number;
-  readonly antennaDiameterM: number;
-  readonly antennaDiameterSource: "operator-disclosed" | "precision-heuristic";
-  readonly peakEirpDbm: number;
-  readonly peakEirpSource: "operator-disclosed" | "orbit-class-anchor";
-  readonly txPolarization: TxPolarization;
-  readonly txPolarizationSource: "operator-disclosed" | "fallback-circular";
+  readonly antennaDiameterM: number | null;
+  readonly antennaDiameterSource: "official-filing" | "operator-disclosed" | "unavailable";
+  readonly peakEirpDbm: number | null;
+  readonly peakEirpSource: "official-filing" | "operator-disclosed" | "unavailable";
+  readonly txPolarization: TxPolarization | null;
+  readonly txPolarizationSource: "official-filing" | "operator-disclosed" | "unavailable";
   readonly provenance: RuntimeProvenanceTag;
 }
 ```
 
-Each `*Source` field documents whether the value is operator-disclosed or
-project-applied. The Row 6 footer carries an aggregate `disclosure-coverage`
-chip — count of `operator-disclosed` fields divided by total fields across
-both stations — so the truth-tier anchor reflects how much of the chain is
-authored vs. anchored.
+Each `*Source` field documents whether the value is official/operator-sourced
+or unavailable. The Row 6 footer carries an aggregate `disclosure-coverage`
+chip — count of sourced fields divided by total fields across both stations —
+so the truth-tier anchor reflects how much of the chain is sourced.
 
 ### 5.4 TLE freshness source
 
@@ -492,7 +492,8 @@ correct table identification).
 | ITU-R P.840-9 cloud liquid water | `https://www.itu.int/rec/R-REC-P.840` | **LEGAL-SPIKE-PENDING S3** | columnar grid, ≈ 200 KB | static (Rec frozen) | F3 |
 | ITU-R P.837-8 (2023) rain rate exceedance | `https://www.itu.int/rec/R-REC-P.837` | **LEGAL-SPIKE-PENDING S3**; supersedes P.837-7 | native 0.125° × 0.125°; resampling method TBD per S3 | static (2023) | F4 |
 | ITU-R P.839-4 mean rain height | `https://www.itu.int/rec/R-REC-P.839` | **LEGAL-SPIKE-PENDING S3** | 0.5° × 0.5° grid, ≈ 200 KB | static (Rec frozen) | F4 |
-| NASA SRTM 1arcsec global DEM | `https://earthexplorer.usgs.gov/` (also `https://srtm.csi.cgiar.org/`) | USGS public domain | pre-baked 69-station elevation + terrain mask table (≈ 4 KB) | static; refresh during registry edit | F6 |
+| Copernicus DEM GLO-30 / GLO-90 | CDSE S3/OData raw tile path preferred for future tile/cell traceability | Access/license acceptance pending; numeric replacement blocked until a complete 69-row provenance artifact exists | pre-baked 69-station elevation + terrain mask table (≈ 4 KB) | static; refresh during registry edit | F6 / TH3 |
+| NASA SRTM 1arcsec global DEM | `https://earthexplorer.usgs.gov/` (also `https://srtm.csi.cgiar.org/`) | USGS public domain | audit/cross-check only; not primary because high-latitude/Antarctic coverage is insufficient | static; review only | F6 / TH3 |
 | 3GPP TR 38.821 §6.1.1 / §6.1.5 / §6.1.6.1.2 / §7.3 | `https://www.3gpp.org/ftp/Specs/archive/38_series/38.821/` | **PENDING-SPIKE S2a + S3**; 3GPP IPR Article 3.2.2 — OPs jointly own TR copyright; SDD permits §-anchor citation, not table redistribution; per-value extraction (e.g., bandwidth, latency) policy TBD | inline citations only (target) | static (Rel-16 frozen) | F2 + F5 |
 | 3GPP TR 38.811 §6.6.2 / §6.7 | `https://www.3gpp.org/ftp/Specs/archive/38_series/38.811/` | same | inline citations only | static | already in F-A baseline |
 
@@ -506,8 +507,9 @@ License compliance checklist (post-S3):
   policy. F3 / F4 implementation must not land before S3 closes.
 - 3GPP TR: cite by §-anchor only; numerical extractions from tables held
   pending S2a + S3 outcome.
-- USGS SRTM: public domain, no attribution required; record the source URL in
-  `slice-0-baseline.md` §6 inventory appendix for the elevation table.
+- DEM: numeric replacement remains blocked until Copernicus access/license
+  acceptance and complete 69-row provenance exist. SRTM is retained for
+  audit/cross-check only.
 
 ## 7. Implementation Slices
 
@@ -577,7 +579,14 @@ LOC estimate: ≈ 600 (all small-class edits) + ≈ 80 for the new
 
 Covers gaps F09, F10, F11, F12, F16.
 
-Acceptance:
+Current status: blocked by TH7 plus S2a/S2b. This section is historical
+architecture / future acceptance only; it does not authorize numeric RF proxy
+work, RF defaults, registry RF-field backfills, runtime wiring, or smoke
+changes now. RF fields (`antennaDiameterM`, `peakEirpDbm`,
+`txPolarization`) must remain null / unavailable unless a per-field official
+filing/operator source exists.
+
+Future acceptance, after the RF gates close:
 
 - `runtime-projection.ts` consumes `computeEarthStationAntennaGainDb` (S.465-6)
   from `src/runtime/link-budget/antenna-pattern.ts` to produce the
@@ -626,15 +635,17 @@ Acceptance:
   swamping the original 2 dB threshold. S2b deliverable returns the
   re-tuned hysteresis value with cross-orbit RSRP-delta distribution for
   the 5 walkthrough URLs;
-- polarization comes from `stationA.txPolarization ∩ stationB.txPolarization`
-  (with `circular` as the fallback when one side is `dual`);
-- registry JSON gains `antennaDiameterM`, `peakEirpDbm`, `txPolarization` per
-  station;
-- D6 smoke asserts `RfChainBreakdown.terms` contains the five expected
-  kinds (per §5.1 ordering), and that
+- polarization comes from sourced `stationA.txPolarization ∩
+  stationB.txPolarization`; if either side is missing a per-field
+  official/operator source, the value is null / unavailable;
+- registry JSON may carry `antennaDiameterM`, `peakEirpDbm`, and
+  `txPolarization` only for per-field official filing/operator sources; no
+  heuristic/default numeric RF values are authorized;
+- a future D6 smoke may assert `RfChainBreakdown.terms` contains the five
+  expected kinds (per §5.1 ordering), and that
   `RfChainBreakdown.receivedPowerProxyDbm = Σ(terms[*].contributionSignedDb)`
   within 0.5 dB rounding error, OR `receivedPowerProxyDbm = null` when any
-  term is null.
+  term is null. This is not a current test authorization.
 
 Smokes that must keep passing: same set as F1, plus a new fixture-baseline
 diff for Row 5 d1 throughput numbers (captured in slice-0 before F2 lands).
@@ -786,28 +797,37 @@ LOC estimate: ≈ 500.
 
 Covers gaps F07, F08, F40.
 
-**Prep-PR requirement**: the 69-station registry JSON edit must land as a
-separate prep-PR BEFORE the F6 wiring PR. R6 concurrent-session caution
-(AGENTS.md §5 R6) applies to `multi-orbit-public-registry.json` because
-parallel sessions may be editing the marker UI atop the same registry rows;
-splitting the prep into a dedicated, name-staged commit ensures the wiring
-PR does not touch the registry simultaneously with marker-UI work.
+Current status: numeric DEM replacement is blocked by the TH3 evidence
+package. Future work requires Copernicus access/license acceptance plus a
+complete 69-row provenance artifact, and should prefer CDSE S3/OData raw
+Copernicus DEM tile paths for tile/cell traceability. Sentinel Hub point
+output alone is insufficient. This section is historical architecture /
+future acceptance only; it does not authorize registry edits, cache
+generation, runtime wiring, or tests now.
 
-Acceptance:
+Historical prep-PR requirement, if TH3 later unblocks implementation: the
+69-station registry JSON edit should land as a separate prep-PR before F6
+wiring. R6 concurrent-session caution (AGENTS.md §5 R6) applies to
+`multi-orbit-public-registry.json` because parallel sessions may be editing
+the marker UI atop the same registry rows.
 
-- registry JSON gains `elevationM` (DEM-derived) and `terrainMaskDeg`
+Future acceptance, after TH3 evidence closure:
+
+- registry JSON would gain `elevationM` (DEM-derived) and `terrainMaskDeg`
   (single-value horizon mask, defaulted to `0` per §4.4) per station,
   authored in a dedicated prep-PR;
-- new `scripts/refresh-station-elevation.mjs` re-runs the DEM lookup for the
-  69 stations and writes a `public/fixtures/ground-stations/station-elevations.json`
-  cache; the script is a build-time tool, not runtime;
-- `visibility-utils.ts:48-61` reads `altMeters` from `elevationM`;
-- `rain-attenuation.ts:274` reads `stationHeightAboveSeaKm` from `elevationM / 1000`;
-- elevation threshold per look-angle now combines `DEFAULT_ELEVATION_THRESHOLD_DEG`
+- a future acquisition/sampling workflow would produce the reviewed 69-row
+  input artifact, and `scripts/refresh-station-elevation.mjs` would
+  validate/import it into
+  `public/fixtures/ground-stations/station-elevations-cache.json`; the script
+  is a build-time tool, not runtime;
+- `visibility-utils.ts:48-61` would read `altMeters` from `elevationM`;
+- `rain-attenuation.ts:274` would read `stationHeightAboveSeaKm` from `elevationM / 1000`;
+- elevation threshold per look-angle would combine `DEFAULT_ELEVATION_THRESHOLD_DEG`
   (10°) with per-station `terrainMaskDeg`;
-- `RuntimeStationPrecisionState` gains `elevationM` and `terrainMaskDeg`;
-- Row 6 footer + `[data-station-precision-disclosure]` expose the values;
-- D6 smoke asserts both values appear per station.
+- `RuntimeStationPrecisionState` would gain `elevationM` and `terrainMaskDeg`;
+- Row 6 footer + `[data-station-precision-disclosure]` would expose the values;
+- future D6 smoke would assert both values appear per station.
 
 Smokes that must keep passing: same as F5 set. Bundle size: + ≈ 4 KB for
 the elevation cache.
@@ -1155,10 +1175,12 @@ For every selected-pair runtime route:
 
 Both stations on the selected-pair route expose:
 
-- non-null `elevationM`, `terrainMaskDeg`, `antennaDiameterM`, `peakEirpDbm`,
-  `txPolarization`;
-- the `*Source` field for each value documents `operator-disclosed` vs
-  project-applied path;
+- non-null `elevationM` and `terrainMaskDeg`;
+- `antennaDiameterM`, `peakEirpDbm`, and `txPolarization` as sourced values
+  or null / unavailable when no per-field official filing/operator source
+  exists;
+- the `*Source` field for each value documents official/operator source vs
+  unavailable state;
 - the Row 6 footer aggregate disclosure-coverage chip is non-null.
 
 ### A4. TLE source freshness
@@ -1281,7 +1303,7 @@ Per-slice smoke deltas:
 | F8 cap raise breaks G4 budget | G4 fails post-merge | tighten compute path before merge; raise cap incrementally LEO 60 → 120 → 200 if needed |
 | Polar / antipodal pair degenerates rain-height grid lookup | `interpolation = fallback-global` | non-claim copy explains fallback; smoke covers both walkthrough antarctic-arctic and tropical URLs |
 | Schema delta breaks existing fixture path | `operator-validated` fixture stops compiling | the fixture path types retain their existing shape; wave-2 types are additive |
-| `txPolarization` registry default `circular` overrides operator-disclosed linear | misleading polarization metadata | seed registry with `txPolarization: "circular"` only where no operator disclosure exists, otherwise carry operator value; `txPolarizationSource` records which path applied |
+| `txPolarization` default would override operator-disclosed linear | misleading polarization metadata | do not seed defaults; keep null / unavailable unless a per-field official/operator source exists |
 | Multiple Claude / Codex sessions edit registry JSON concurrently | parallel-session collision (R6 caution applies to registry too) | always `git add` registry JSON by name; never `git add -A` |
 | **F9 Cesium per-sat recolor at 60× replay** can drop fps below 30 if recolor runs per replay tick | replay continuity G3 + G5 visual-density regress | F43 acceptance pins recolor to event-driven on `receivedPowerProxyDbm` change (driven by `runtime-projection-worker-client` compute events, not per-tick); new `verify-replay-fps.mjs` smoke gates ≥ 30 fps p95 |
 | F9 color encoding excludes color-blind reviewers | accessibility regression | F43 + F46 acceptance require non-color redundancy (shape for F43 actors, pill text for F46 reasonKind); D6 smoke asserts shape attribute presence |
@@ -1291,11 +1313,10 @@ Per-slice smoke deltas:
 
 1. **Registry schema delta is +5 fields per station**: `elevationM`,
    `terrainMaskDeg`, `antennaDiameterM`, `peakEirpDbm`, `txPolarization`.
-   Antenna diameter falls back to a documented heuristic when the operator
-   does not disclose; `peakEirpDbm` falls back to `null` (tagged
-   `unavailable` per §3) pending §12.1 spike S2a. The `*Source` field per
-   profile records which path applied. (Open Q #8 resolved (a); EIRP seed
-   path moved to S2a.)
+   TH7 blocks numeric RF defaults: `antennaDiameterM`, `peakEirpDbm`, and
+   `txPolarization` stay null / unavailable unless a per-field official
+   filing/operator source exists. No heuristic/default numeric RF values are
+   authorized. The `*Source` field per profile records which path applied.
 2. **Rain-rate slider default remains 0 mm/h** in Row 2 to preserve the G1
    baseline. The pair-midpoint P.837-8 R_0.01 reference value renders as a
    **display-only climatology anchor** in Row 5 d1 disclosure body header
@@ -1325,9 +1346,8 @@ Per-slice smoke deltas:
 6. **Cap-disclosure UI surface lands in Row 5 d3** as a small additional
    line, not as a chip in chrome. The selector `[data-cap-disclosure]` is
    the smoke target. (Open Q #5 resolved.)
-7. **Antenna diameter heuristic by precision**: `exact-coords` → 13 m,
-   `operator-family-region` → 4.5 m. Operator-disclosed diameter overrides.
-   (Open Q #8 — heuristic component resolved.)
+7. **Antenna diameter has no heuristic fallback** after TH7. It remains null /
+   unavailable unless a per-field official filing/operator source exists.
 8. **Satellite EIRP / bandwidth / T_sys anchors UNRESOLVED — tracked as
    §12.1 spikes S2a (anchors) + S2b (hysteresis re-tune).** The v1 SDD
    cited 3GPP TR 38.821 Table 6.1.1.1-9 LEO Set-1 30 dBi / MEO 35 dBi /
@@ -1339,14 +1359,13 @@ Per-slice smoke deltas:
    hysteresis re-tune with the anchors was over-scoped; v3 splits to
    S2a + S2b. F2 + F5 BLOCKED on S2a (with the F5 `unavailable`
    fallback path per §7 F5 non-shipping condition).
-9. **DEM dataset is pre-baked**: `public/fixtures/ground-stations/station-elevations.json`
-   stores the 69 station elevations from a one-time SRTM lookup, refreshed via
-   `scripts/refresh-station-elevation.mjs` when the registry edits. The
-   runtime does not open a DEM connection. (Open Q #10 resolved.)
-10. **Polarization registry field defaults to operator-disclosed value where
-    available**, falls back to `circular` for stations without a disclosed
-    polarization. The `txPolarizationSource` field records which path applied.
-    (Open Q #7 resolved.)
+9. **DEM replacement remains blocked** after TH3 docs closure. Future numeric
+   replacement should prefer CDSE S3/OData raw Copernicus DEM tiles for
+   traceable tile/cell evidence; Sentinel Hub point output alone is
+   insufficient for tile/cell traceability. GLO-30 is primary, GLO-90 fallback,
+   and SRTM is audit/cross-check only.
+10. **Polarization registry field has no default** after TH7. It remains null /
+    unavailable unless a per-field official filing/operator source exists.
 11. **Atmospheric chain composition follows ITU-R P.618-14 §2.4 eq. 65**
     (quadrature for {rain, cloud, scint}; linear-additive for gas). Sum
     convention: `RfChainTerm.contributionSignedDb` is signed so

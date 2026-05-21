@@ -392,11 +392,15 @@ counts (2026-05-17 runtime-projection compute):
 
 | # | stationA / stationB | shared orbit | source tier | mutual windows | link-selection events | handovers |
 | --- | --- | --- | --- | ---: | ---: | ---: |
-| 1 | ksat-svalsat-svalbard / ksat-tromso | LEO/MEO/GEO | public-disclosed | 26 | 2 | 1 |
-| 2 | ksat-svalsat-svalbard / ksat-trollsat-antarctica | LEO/MEO/GEO | public-disclosed | 0 | 0 | 0 |
-| 3 | intelsat-fuchsstadt / intelsat-atlanta | MEO/GEO | public-disclosed | 15 | 3 | 2 |
+| 1 | ksat-svalsat-svalbard / ksat-tromso | LEO/MEO/GEO | geometric-derived | 26 | 2 | 1 |
+| 2 | ksat-svalsat-svalbard / ksat-trollsat-antarctica | LEO/MEO/GEO | geometric-derived | 0 | 0 | 0 |
+| 3 | intelsat-fuchsstadt / intelsat-atlanta | MEO/GEO | geometric-derived | 15 | 3 | 2 |
 | 4 | singtel-bukit-timah / measat-cyberjaya | LEO/GEO | geometric-derived | 42 | 1 | 0 |
 | 5 | cht-yangmingshan / sansa-hartebeesthoek | LEO/MEO/GEO | geometric-derived | 9 | 3 | 2 |
+
+TH1 後,同 operator-family 但沒有 explicit pair attestation 的 pair 不再算
+`public-disclosed`;目前 source tier 以 `geometric-derived` 呈現,並保留
+same-family inference non-claim。
 
 每條 URL 進入後,可拉雨衰滑桿 0 → 80 mm/h 切換 rain/clear 情境,觀察共同
 支援 orbit 的 downlink throughput 與 jitter 變化 (Ka/Ku 帶內),以及
