@@ -18,8 +18,10 @@ This is not a greenfield replacement for
 - F4 rain climatology remains blocked by legal spike S3.
 - F6 elevation + terrain already shipped a runtime wiring layer but still
   needs stronger upstream DEM provenance.
-- F7 live TLE + constellation already shipped a CelesTrak snapshot layer but
-  does not yet provide GP/OMM-first ingestion.
+- F7 live TLE + constellation already shipped a CelesTrak snapshot layer.
+  TH5 parser/manifest/runtime-provenance readiness has since landed, but
+  default-source migration remains gated by
+  `th5-orbit-source-policy-gate.md`.
 - F8 cap + policy surfacing already shipped Row 5/CSV disclosures, but the
   inventory/cap language needs stronger disambiguation.
 - F9 visual evidence already shipped selected evidence surfaces; this SDD only
@@ -128,8 +130,8 @@ until re-verified by a slice:
 
 | ID | Assumption | Required follow-up |
 | --- | --- | --- |
-| A1 | CelesTrak terms allow the current redistributed snapshot pattern with attribution. | Reconfirm in F7/TH5 source-policy notes. |
-| A2 | Space-Track GP/GP_History and OMM are stable enough to design a GP/OMM-first ingestion path. | Confirm account, rate-limit, and redistribution constraints before implementation. |
+| A1 | CelesTrak policy allows the current repo-bundled/demo default only when refresh cadence, error-stop behavior, and attribution stay explicit. | Recorded in `th5-orbit-source-policy-gate.md`; reconfirm if refresh tooling changes. |
+| A2 | Space-Track GP/GP_HISTORY and OMM are stable enough to design a GP/OMM-capable path, but direct use is not yet authorized. | Gate on account/user-agreement review, rate-limit compliance, redistribution/storage permission, and no committed private credentials. |
 | A3 | Copernicus DEM GLO-30/90 derived elevation cache can be bundled with citation. | Confirm derived-cache license posture before replacing the elevation source. |
 | A4 | USGS 3DEP can improve US-resident station elevation/horizon masks. | Audit US-station coverage and fallback behavior. |
 | A5 | Current 600 ms / 2 dB / 60 s handover thresholds are repo-owned defaults, not numeric 3GPP mandates. | Reframe as `modeled-control` unless a standard/operator anchor is supplied. |
@@ -144,7 +146,7 @@ until re-verified by a slice:
 | Q3 | Does the 2 dB cross-orbit hysteresis survive once EIRP and antenna gain enter the proxy? | TH7, existing F2/F5 |
 | Q4 | Should this roadmap supersede wave-2 F-slices, or remain a narrow source-hardening overlay? | SDD governance |
 | Q5 | Should same-family pairs be renamed to `inferred-same-operator-family`, or should `public-disclosed` be gated by an explicit `pairAttestation` field? | TH1 |
-| Q6 | Is Space-Track migration in scope now, given account/rate-limit/parser blast radius, or deferred after CelesTrak OMM/JSON support? | TH5 |
+| Q6 | Is Space-Track migration in scope now, given account/rate-limit/parser blast radius, or deferred after CelesTrak OMM/JSON support? | Resolved for now by TH5 policy gate: migration remains blocked/gated. |
 | Q7 | Should station `sourceAuthority` be in the first implementation slice, even though it requires re-authoring 69 registry rows? | TH1/TH2 |
 | Q8 | Should report-layer requirements R1-D5/K-F8 be covered by this SDD, or tracked in a separate delivery/report SDD? | SDD scope |
 
@@ -154,7 +156,7 @@ until re-verified by a slice:
 | --- | --- | --- |
 | R1 | Bundling ITU grids before S3 closes may violate redistribution terms. | Treat TH6 as blocked until S3 is resolved. |
 | R2 | FCC/ITU station RF data will be incomplete and jurisdictionally uneven. | Store per-field provenance and keep missing fields `unavailable`. |
-| R3 | GP/OMM-first migration touches parser, manifest, freshness, and smoke tests. | Split TH5 into parser-addition and default-source-switch sub-slices. |
+| R3 | GP/OMM-first migration touches parser, manifest, freshness, source policy, and smoke tests. | Parser/manifest/runtime-provenance readiness is done; default-source switch remains gated by `th5-orbit-source-policy-gate.md`. |
 | R4 | Registry schema changes can collide with concurrent sessions. | Use prep-PR pattern and specific `git add` only. |
 | R5 | Renaming source tiers can break tests and user-facing copy. | Add compatibility aliases and update D6/G1 smokes in the same slice. |
 | R6 | UI may still imply real KPI through precise values. | Move modeled-anchor disclosures into Row 5/CSV/debug before changing formulas. |
@@ -289,21 +291,30 @@ Relationship to existing F6:
 
 ### Slice TH5 - GP/OMM-First Orbit Source
 
-Status: design needed. Higher blast radius than TH1-TH4.
+Status: policy gate recorded as of 2026-05-21. Parser, manifest, and
+runtime-provenance readiness is done; default-source migration remains
+blocked/gated. See `th5-orbit-source-policy-gate.md`.
 
 Purpose:
 
 - Move from TLE/3LE-first ingestion to GP/OMM/JSON/CSV-capable ingestion while
   preserving bundled snapshots and fallback behavior.
 
-Candidate path:
+Recorded path:
 
-1. Add parser support for CelesTrak OMM/JSON/CSV output while keeping existing
-   TLE parser.
-2. Extend manifest schema with `format`, `apiClass`, `sourcePolicy`, and
-   `catalogNumberCompatibility`.
-3. Only after parser and smokes are stable, consider Space-Track GP/OMM as an
-   optional official-public refresh source.
+1. Parser support, manifest schema fields, runtime propagation bridge, and
+   provenance coverage landed in commits `b14f777`, `3aacf31`, `62de863`,
+   and `1e50f1a`.
+2. The current CelesTrak refreshed artifact remains the repo-bundled/demo
+   default.
+3. CelesTrak OMM-capable formats are preferred for future-proofing, but do
+   not become the default until runtime disclosure, CSV, D6, and Row 5/6
+   semantics are updated together.
+4. Space-Track direct GP/OMM ingestion is gated by account/user-agreement
+   review, rate-limit compliance, redistribution/storage permission, and an
+   acquisition flow that keeps private credentials outside git.
+5. No live Space-Track or CelesTrak browser/runtime fetch is authorized by
+   this roadmap entry.
 
 Acceptance:
 
@@ -312,11 +323,16 @@ Acceptance:
 - A smoke covers a catalog number that would be unsafe in legacy TLE-only
   assumptions.
 - D6 compares manifest/debug/CSV for the new fields.
+- Future default-source work also runs `npm run build`,
+  `node --test tests/unit/orbit-source-parser.test.mjs tests/unit/runtime-tle-manifest-compat.test.mjs`,
+  and `node scripts/verify-tle-first-data-completeness.mjs --port=<port>`.
+  Add G1 and information-density smokes if visible source semantics change.
 
 Relationship to existing F7:
 
 - F7 shipped CelesTrak snapshot refresh.
 - TH5 extends F7 toward GP/OMM-first source robustness.
+- TH5 does not authorize a runtime/default source switch by itself.
 
 ### Slice TH6 - Atmospheric Lookup Layer
 

@@ -7,7 +7,8 @@ and `tle-first-data-completeness.md` D7; v1 codex-challenge findings reconciled
 schema nullability + cadence-gating contradictions resolved; Slice F9 visual
 evidence layer + gaps F43-F50 added 2026-05-19; perf-spike S1,
 EIRP/bandwidth/T_sys-anchor spike S2a, hysteresis re-tune spike S2b,
-legal-spike S3 pending per §12.1)
+legal-spike S3 pending per §12.1; TH5 orbit source policy gate recorded
+2026-05-21 with no default-source migration authorized)
 
 ## Scope
 
@@ -133,7 +134,7 @@ detail sits in §7.
 | F4 | Rain climatology | 2 | ITU-R P.837-8, P.839-4 (LEGAL-SPIKE S3) | none |
 | F5 | Throughput + handover policy | 9 | 3GPP TR 38.821 §6.1.5 / §7.3 / Table 6.1.6.1.2-1 | none |
 | F6 | Station precision + DEM | 3 | NASA SRTM 1arcsec | registry +2 fields; **prep-PR before F6 wiring** |
-| F7 | Live TLE + constellation | 2 | CelesTrak GP + SATCAT | none; build-step downloader + generated manifest |
+| F7 | Live TLE + constellation | 2 | CelesTrak GP + SATCAT | none; build-step downloader + generated manifest; TH5 policy gate keeps the current CelesTrak refreshed artifact as default |
 | F8 | Tier + cap surfacing | 4 | none | none; UI cap-disclosure row; S1 authorises LEO 200 cap at cadence 30 s; combined LEO 200 + LEO 10 s gated on PERF-FOLLOWUP-PENDING |
 | F9 | Visual evidence layer | 8 (F43-F50) | none | none; Cesium actor styling + SVG plots + Row 5 / Row 6 extensions; **depends on F2/F3/F5/F7 outputs** |
 
@@ -294,6 +295,15 @@ to the in-bundle `satellites/` paths. Both paths render a chip dataset
 attribute so the review surface stays explicit. The manifest carries
 `generatedAtUtc`, per-orbit `path`, `recordCount`, and `epochRangeUtc`
 fields so the runtime can compute `health` without re-parsing the TLE.
+
+2026-05-21 TH5 policy addendum: OMM-capable parser, manifest, propagation,
+and provenance readiness has landed, but this SDD does not switch the runtime
+or default source. The current CelesTrak refreshed artifact remains the
+repo-bundled/demo default. Space-Track direct GP/OMM ingestion remains gated
+by account/user-agreement review, rate-limit compliance, redistribution and
+storage permission, and a local acquisition flow that keeps private
+credentials outside git. See
+`docs/sdd/multi-station-selector/th5-orbit-source-policy-gate.md`.
 
 ### 4.6 Fixture fallback boundary (unchanged)
 
@@ -473,8 +483,8 @@ correct table identification).
 
 | Dataset | Canonical URL | License posture | Payload | Refresh | Slice |
 | --- | --- | --- | --- | --- | --- |
-| CelesTrak GP (active / GNSS / GEO) | `https://celestrak.org/NORAD/elements/gp.php?GROUP=<group>&FORMAT=tle` | CelesTrak Terms of Use — free redistribution with attribution required | ≤ 500 KB / group | daily | F7 |
-| CelesTrak SATCAT | `https://celestrak.org/satcat/satcat.csv` | same | ≈ 5 MB CSV | weekly | F7 |
+| CelesTrak GP (active / GNSS / GEO) | `https://celestrak.org/NORAD/elements/gp.php?GROUP=<group>&FORMAT=tle` | CelesTrak Usage Policy: download only needed data once per update, GP cadence 2 hours, stop on HTTP errors; runtime disclosure keeps existing CelesTrak attribution | <= 500 KB / group | build-step only | F7 / TH5 |
+| CelesTrak SATCAT | `https://celestrak.org/satcat/satcat.csv` | same policy posture; no runtime/browser fetch | about 5 MB CSV | build-step only | F7 / TH5 |
 | ITU-R P.835-6 Annex 1 reference atmospheres | `https://www.itu.int/rec/R-REC-P.835` | **LEGAL-SPIKE-PENDING S3**; ITU-R Recommendation text is Free / non-commercial only; embedded numerical table small but redistribution status to be confirmed | embedded table, < 2 KB | static (Rec frozen) | F3 |
 | ITU-R P.836-6 surface water vapour density (rev 2017) | `https://www.itu.int/oth/R0A0400000F` | **LEGAL-SPIKE-PENDING S3**; ITU "free download for personal/educational/non-commercial use" wording — bundling status TBD | 360 × 720 grid, ≈ 250 KB | static (rev 2017) | F3 |
 | ITU-R P.840-9 cloud liquid water | `https://www.itu.int/rec/R-REC-P.840` | **LEGAL-SPIKE-PENDING S3** | columnar grid, ≈ 200 KB | static (Rec frozen) | F3 |
@@ -486,7 +496,8 @@ correct table identification).
 
 License compliance checklist (post-S3):
 
-- CelesTrak: include attribution string in `[data-tle-telemetry-chip]` dataset
+- CelesTrak: honor usage-policy cadence and HTTP error-stop behavior; include
+  attribution string in `[data-tle-telemetry-chip]` dataset
   (`data-tle-attribution="CelesTrak"`) and in Row 5 d3 source list when
   `sourceMode = network-snapshot`.
 - ITU-R grids: held pending S3 outcome; do not bundle until S3 returns a
@@ -1246,6 +1257,9 @@ Per-slice smoke deltas:
 - It does not redistribute 3GPP TR table content; it cites §-anchors only.
 - It does not require Internet access at runtime; CelesTrak refresh runs at
   build time, runtime stays offline-safe.
+- It does not switch the default orbit source to Space-Track, nor does it
+  switch the default runtime format to OMM/JSON/CSV. TH5 keeps that migration
+  gated by `th5-orbit-source-policy-gate.md`.
 
 ## 11. Risks
 
@@ -1294,6 +1308,8 @@ Per-slice smoke deltas:
    manifest at `satellites-network/manifest.json` (single HTTP GET at
    bootstrap, not a filesystem probe). (Open Q #3 resolved (α); manifest
    shape per §4.5.)
+   TH5 source-policy closure keeps this decision in force: no Space-Track or
+   CelesTrak live browser/runtime fetch is authorized by this SDD.
 4. **Carrier band selection picks the narrowest mutually-supported band**
    from `stationA.supportedBands ∩ stationB.supportedBands`. The previous
    per-orbit canonical default (LEO Ku, MEO L, GEO Ka) becomes a fallback
@@ -1425,6 +1441,9 @@ that has not picked up the patch yet.
 - `docs/sdd/multi-station-selector/acceptance-criteria.md` — gate G1-G7.
 - `docs/sdd/multi-station-selector/slice-0-baseline.md` §6 — TLE source
   inventory appendix (extended in F1 with NORAD/COSPAR coverage).
+- `docs/sdd/multi-station-selector/th5-orbit-source-policy-gate.md` — source
+  policy gate for CelesTrak default retention, OMM-capable future path, and
+  Space-Track direct-ingestion blockers.
 - `src/features/multi-station-selector/runtime-projection.ts` — selected-pair
   compute entry.
 - `src/features/multi-station-selector/runtime-data-completeness.ts` — wave-1
