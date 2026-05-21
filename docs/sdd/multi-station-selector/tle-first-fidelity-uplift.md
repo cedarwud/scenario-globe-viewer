@@ -8,7 +8,9 @@ schema nullability + cadence-gating contradictions resolved; Slice F9 visual
 evidence layer + gaps F43-F50 added 2026-05-19; perf-spike S1,
 EIRP/bandwidth/T_sys-anchor spike S2a, hysteresis re-tune spike S2b,
 legal-spike S3 pending per §12.1; TH5 orbit source policy gate recorded
-2026-05-21 with no default-source migration authorized)
+2026-05-21 with no default-source migration authorized; TH7 public RF filing
+source gate recorded in `th7-public-rf-filing-source-gate.md` with no numeric
+RF implementation authorized)
 
 ## Scope
 

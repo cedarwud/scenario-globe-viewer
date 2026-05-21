@@ -363,8 +363,10 @@ Relationship to existing F3/F4:
 
 ### Slice TH7 - Station RF Profile + Carrier Authority
 
-Status: blocked by S2a/S2b for numeric RF proxy, partially open for public
-filing research.
+Status: docs-only public RF filing source gate recorded in
+`th7-public-rf-filing-source-gate.md`; numeric RF proxy remains blocked by
+S2a/S2b. Public filing research is limited to an availability/provenance
+matrix until a later implementation slice is authorized.
 
 Purpose:
 
@@ -373,9 +375,9 @@ Purpose:
 
 Candidate sources:
 
-- FCC IBFS/ULS for US earth stations.
-- ITU filings where accessible.
-- Operator teleport specs or official web disclosures.
+- FCC ICFS/Form 312/Schedule B for US earth stations.
+- ITU BR IFIC/SNL where accessible.
+- Official operator teleport specs or technical sheets.
 
 Acceptance:
 
@@ -384,6 +386,8 @@ Acceptance:
 - Carrier selection becomes station/pair/satellite-family aware where a
   defensible source exists.
 - RSRP/EIRP proxy remains disabled until S2a/S2b closes.
+- Source research must not add runtime values, fixtures, schema defaults, or
+  copied RF numbers.
 
 Relationship to existing F2/F5:
 
