@@ -1980,6 +1980,10 @@ function maybeSetConciseDatasetValue(
   }
 }
 
+function datasetScalar(value: string | number | boolean | null): string {
+  return value === null ? "" : String(value);
+}
+
 function buildFooterRow(result: RuntimeProjectionResult): HTMLElement {
   const row = document.createElement("section");
   row.className = "v4-projection-side-panel__row";
@@ -2004,6 +2008,44 @@ function buildFooterRow(result: RuntimeProjectionResult): HTMLElement {
       station.elevationSourceId;
     footer.dataset[`station${slot}ElevationSourcePath`] =
       station.elevationSourcePath;
+    footer.dataset[`station${slot}ElevationSourceNote`] =
+      station.elevationSourceNote;
+    footer.dataset[`station${slot}ElevationSourceAccessedUtc`] =
+      datasetScalar(station.elevationSourceAccessedUtc);
+    footer.dataset[`station${slot}ElevationSourceKind`] =
+      station.elevationSourceKind;
+    footer.dataset[`station${slot}ElevationDatasetId`] =
+      station.elevationDatasetId;
+    footer.dataset[`station${slot}ElevationDatasetVersion`] =
+      datasetScalar(station.elevationDatasetVersion);
+    footer.dataset[`station${slot}ElevationDatasetResolutionM`] =
+      datasetScalar(station.elevationDatasetResolutionM);
+    footer.dataset[`station${slot}ElevationVerticalDatum`] =
+      datasetScalar(station.elevationVerticalDatum);
+    footer.dataset[`station${slot}ElevationTileId`] =
+      datasetScalar(station.elevationTileId);
+    footer.dataset[`station${slot}ElevationCellId`] =
+      datasetScalar(station.elevationCellId);
+    footer.dataset[`station${slot}ElevationSampleLat`] =
+      datasetScalar(station.elevationSampleLat);
+    footer.dataset[`station${slot}ElevationSampleLon`] =
+      datasetScalar(station.elevationSampleLon);
+    footer.dataset[`station${slot}ElevationSamplingMethod`] =
+      station.elevationSamplingMethod;
+    footer.dataset[`station${slot}ElevationSampledAtUtc`] =
+      datasetScalar(station.elevationSampledAtUtc);
+    footer.dataset[`station${slot}ElevationCacheGeneratedUtc`] =
+      datasetScalar(station.elevationCacheGeneratedUtc);
+    footer.dataset[`station${slot}ElevationLicenseId`] =
+      station.elevationLicenseId;
+    footer.dataset[`station${slot}ElevationLicenseUrl`] =
+      datasetScalar(station.elevationLicenseUrl);
+    footer.dataset[`station${slot}ElevationCitation`] =
+      station.elevationCitation;
+    footer.dataset[`station${slot}ElevationProvenanceStatus`] =
+      station.elevationProvenanceStatus;
+    footer.dataset[`station${slot}ElevationNonClaim`] =
+      station.elevationNonClaim;
     footer.dataset[`station${slot}TerrainMaskDeg`] = String(
       station.terrainMaskDeg
     );
@@ -2028,7 +2070,7 @@ function buildFooterRow(result: RuntimeProjectionResult): HTMLElement {
       station.coordinateSourceNote
     );
   }
-  footer.textContent = `${result.truthBoundary.precisionLabel} · ${tierAttribution.badgeLabel} · elevation/terrain mask`;
+  footer.textContent = `${result.truthBoundary.precisionLabel} · ${tierAttribution.badgeLabel}`;
   row.append(footer);
   return row;
 }

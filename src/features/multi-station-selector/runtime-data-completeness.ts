@@ -1,6 +1,7 @@
 import { twoline2satrec } from "../../vendor/satellite-js-runtime";
 import networkTleManifest from "../../../public/fixtures/satellites-network/manifest.json";
 import stationCoordinateAuthorityFixture from "../../../public/fixtures/ground-stations/multi-orbit-public-registry-coordinate-authority.json";
+import stationElevationCacheFixture from "../../../public/fixtures/ground-stations/station-elevations-cache.json";
 import type { HandoverPolicyConfig } from "../../runtime/link-budget/handover-policy";
 import type {
   SceneCameraHint,
@@ -52,11 +53,74 @@ export type RuntimeCoordinateSourceAuthority =
   | "mixed-public"
   | "unknown-public";
 
+export type RuntimeElevationSourceKind =
+  | "legacy-service-cache"
+  | "dem-derived"
+  | "legacy-unknown";
+
+export type RuntimeElevationSamplingMethod =
+  | "service-response"
+  | "dem-cell-sample"
+  | "unavailable";
+
+export type RuntimeElevationProvenanceStatus =
+  | "legacy-upstream-dem-unknown"
+  | "dem-provenance-complete"
+  | "legacy-unknown";
+
 interface StationCoordinateAuthorityEntry {
   readonly stationId: string;
   readonly coordinateSourceAuthority: RuntimeCoordinateSourceAuthority;
   readonly coordinateSourceUrl: string | null;
   readonly coordinateSourceNote: string;
+}
+
+interface StationElevationCacheEntry {
+  readonly stationId: string;
+  readonly elevationM: number;
+  readonly sourceAccessedUtc: string;
+  readonly elevationSourceKind: RuntimeElevationSourceKind;
+  readonly elevationDatasetId: string;
+  readonly elevationDatasetVersion: string | null;
+  readonly elevationDatasetResolutionM: number | null;
+  readonly elevationVerticalDatum: string | null;
+  readonly elevationTileId: string | null;
+  readonly elevationCellId: string | null;
+  readonly elevationSampleLat: number | null;
+  readonly elevationSampleLon: number | null;
+  readonly elevationSamplingMethod: RuntimeElevationSamplingMethod;
+  readonly elevationSampledAtUtc: string | null;
+  readonly elevationCacheGeneratedUtc: string | null;
+  readonly elevationLicenseId: string;
+  readonly elevationLicenseUrl: string | null;
+  readonly elevationCitation: string;
+  readonly elevationProvenanceStatus: RuntimeElevationProvenanceStatus;
+  readonly elevationNonClaim: string;
+}
+
+export interface RuntimeStationElevationMetadata {
+  readonly elevationM: number;
+  readonly elevationSourceId: string;
+  readonly elevationSourcePath: string;
+  readonly elevationSourceNote: string;
+  readonly elevationSourceAccessedUtc: string | null;
+  readonly elevationSourceKind: RuntimeElevationSourceKind;
+  readonly elevationDatasetId: string;
+  readonly elevationDatasetVersion: string | null;
+  readonly elevationDatasetResolutionM: number | null;
+  readonly elevationVerticalDatum: string | null;
+  readonly elevationTileId: string | null;
+  readonly elevationCellId: string | null;
+  readonly elevationSampleLat: number | null;
+  readonly elevationSampleLon: number | null;
+  readonly elevationSamplingMethod: RuntimeElevationSamplingMethod;
+  readonly elevationSampledAtUtc: string | null;
+  readonly elevationCacheGeneratedUtc: string | null;
+  readonly elevationLicenseId: string;
+  readonly elevationLicenseUrl: string | null;
+  readonly elevationCitation: string;
+  readonly elevationProvenanceStatus: RuntimeElevationProvenanceStatus;
+  readonly elevationNonClaim: string;
 }
 
 export interface RuntimeNoradIdRangeSummary {
@@ -167,10 +231,28 @@ export interface RuntimeStationPrecisionState {
   readonly coordinateSourceNote: string;
   readonly rawLat: number;
   readonly rawLon: number;
-  readonly elevationM: number;
-  readonly elevationSourceId: string;
-  readonly elevationSourcePath: string;
-  readonly elevationSourceNote: string;
+  readonly elevationM: RuntimeStationElevationMetadata["elevationM"];
+  readonly elevationSourceId: RuntimeStationElevationMetadata["elevationSourceId"];
+  readonly elevationSourcePath: RuntimeStationElevationMetadata["elevationSourcePath"];
+  readonly elevationSourceNote: RuntimeStationElevationMetadata["elevationSourceNote"];
+  readonly elevationSourceAccessedUtc: RuntimeStationElevationMetadata["elevationSourceAccessedUtc"];
+  readonly elevationSourceKind: RuntimeStationElevationMetadata["elevationSourceKind"];
+  readonly elevationDatasetId: RuntimeStationElevationMetadata["elevationDatasetId"];
+  readonly elevationDatasetVersion: RuntimeStationElevationMetadata["elevationDatasetVersion"];
+  readonly elevationDatasetResolutionM: RuntimeStationElevationMetadata["elevationDatasetResolutionM"];
+  readonly elevationVerticalDatum: RuntimeStationElevationMetadata["elevationVerticalDatum"];
+  readonly elevationTileId: RuntimeStationElevationMetadata["elevationTileId"];
+  readonly elevationCellId: RuntimeStationElevationMetadata["elevationCellId"];
+  readonly elevationSampleLat: RuntimeStationElevationMetadata["elevationSampleLat"];
+  readonly elevationSampleLon: RuntimeStationElevationMetadata["elevationSampleLon"];
+  readonly elevationSamplingMethod: RuntimeStationElevationMetadata["elevationSamplingMethod"];
+  readonly elevationSampledAtUtc: RuntimeStationElevationMetadata["elevationSampledAtUtc"];
+  readonly elevationCacheGeneratedUtc: RuntimeStationElevationMetadata["elevationCacheGeneratedUtc"];
+  readonly elevationLicenseId: RuntimeStationElevationMetadata["elevationLicenseId"];
+  readonly elevationLicenseUrl: RuntimeStationElevationMetadata["elevationLicenseUrl"];
+  readonly elevationCitation: RuntimeStationElevationMetadata["elevationCitation"];
+  readonly elevationProvenanceStatus: RuntimeStationElevationMetadata["elevationProvenanceStatus"];
+  readonly elevationNonClaim: RuntimeStationElevationMetadata["elevationNonClaim"];
   readonly terrainMaskDeg: number;
   readonly terrainMaskSourceId: string;
   readonly terrainMaskIsDefault: boolean;
@@ -286,9 +368,28 @@ export interface RuntimeAtmosphericLookupState {
 
 export interface RuntimeStationRfProfileState {
   readonly stationId: string;
-  readonly elevationM: number;
-  readonly elevationSourceId: string;
-  readonly elevationSourcePath: string;
+  readonly elevationM: RuntimeStationElevationMetadata["elevationM"];
+  readonly elevationSourceId: RuntimeStationElevationMetadata["elevationSourceId"];
+  readonly elevationSourcePath: RuntimeStationElevationMetadata["elevationSourcePath"];
+  readonly elevationSourceNote: RuntimeStationElevationMetadata["elevationSourceNote"];
+  readonly elevationSourceAccessedUtc: RuntimeStationElevationMetadata["elevationSourceAccessedUtc"];
+  readonly elevationSourceKind: RuntimeStationElevationMetadata["elevationSourceKind"];
+  readonly elevationDatasetId: RuntimeStationElevationMetadata["elevationDatasetId"];
+  readonly elevationDatasetVersion: RuntimeStationElevationMetadata["elevationDatasetVersion"];
+  readonly elevationDatasetResolutionM: RuntimeStationElevationMetadata["elevationDatasetResolutionM"];
+  readonly elevationVerticalDatum: RuntimeStationElevationMetadata["elevationVerticalDatum"];
+  readonly elevationTileId: RuntimeStationElevationMetadata["elevationTileId"];
+  readonly elevationCellId: RuntimeStationElevationMetadata["elevationCellId"];
+  readonly elevationSampleLat: RuntimeStationElevationMetadata["elevationSampleLat"];
+  readonly elevationSampleLon: RuntimeStationElevationMetadata["elevationSampleLon"];
+  readonly elevationSamplingMethod: RuntimeStationElevationMetadata["elevationSamplingMethod"];
+  readonly elevationSampledAtUtc: RuntimeStationElevationMetadata["elevationSampledAtUtc"];
+  readonly elevationCacheGeneratedUtc: RuntimeStationElevationMetadata["elevationCacheGeneratedUtc"];
+  readonly elevationLicenseId: RuntimeStationElevationMetadata["elevationLicenseId"];
+  readonly elevationLicenseUrl: RuntimeStationElevationMetadata["elevationLicenseUrl"];
+  readonly elevationCitation: RuntimeStationElevationMetadata["elevationCitation"];
+  readonly elevationProvenanceStatus: RuntimeStationElevationMetadata["elevationProvenanceStatus"];
+  readonly elevationNonClaim: RuntimeStationElevationMetadata["elevationNonClaim"];
   readonly terrainMaskDeg: number;
   readonly terrainMaskSourceId: string;
   readonly terrainMaskIsDefault: boolean;
@@ -396,11 +497,15 @@ const ATMOSPHERIC_LOOKUP_SOURCES: ReadonlyArray<RuntimeAtmosphericLookupSource> 
   "p839-4",
   "p840-9"
 ];
-const STATION_ELEVATION_SOURCE_ID = "open-elevation-cache";
 const STATION_ELEVATION_SOURCE_PATH =
   "public/fixtures/ground-stations/station-elevations-cache.json";
 const STATION_ELEVATION_SOURCE_NOTE =
-  "Open-Elevation REST lookup cached by scripts/refresh-station-elevation.mjs.";
+  "Legacy service-cache elevation; upstream DEM source, tile, version, resolution, and vertical datum are unverified.";
+const MISSING_STATION_ELEVATION_SOURCE_ID = "legacy-elevation-cache-missing";
+const MISSING_STATION_ELEVATION_SOURCE_NOTE =
+  "No elevation cache row is available for this station; registry elevation is carried with legacy-unknown provenance.";
+const MISSING_STATION_ELEVATION_NON_CLAIM =
+  "No elevation cache metadata is available for this station; upstream DEM, tile, version, resolution, and vertical datum are not verified.";
 const TERRAIN_MASK_SOURCE_ID = "default-unknown";
 const TERRAIN_MASK_SOURCE_NOTE =
   "0 means no site-specific horizon mask is available.";
@@ -424,6 +529,14 @@ const STATION_COORDINATE_AUTHORITY_BY_ID: ReadonlyMap<
       readonly stations: ReadonlyArray<StationCoordinateAuthorityEntry>;
     }
   ).stations.map((entry) => [entry.stationId, entry])
+);
+const STATION_ELEVATION_CACHE_BY_ID: ReadonlyMap<
+  string,
+  StationElevationCacheEntry
+> = new Map(
+  (stationElevationCacheFixture as ReadonlyArray<StationElevationCacheEntry>).map(
+    (entry) => [entry.stationId, entry]
+  )
 );
 
 const SOURCE_HEALTH_THRESHOLD_DAYS: Readonly<Record<OrbitClass, number>> = {
@@ -619,6 +732,68 @@ function resolveCoordinateSourceAuthority(
   return STATION_COORDINATE_AUTHORITY_BY_ID.get(stationId) ?? UNKNOWN_COORDINATE_AUTHORITY;
 }
 
+function buildMissingElevationMetadata(
+  station: PublicRegistryStation
+): RuntimeStationElevationMetadata {
+  return {
+    elevationM: station.elevationM,
+    elevationSourceId: MISSING_STATION_ELEVATION_SOURCE_ID,
+    elevationSourcePath: STATION_ELEVATION_SOURCE_PATH,
+    elevationSourceNote: MISSING_STATION_ELEVATION_SOURCE_NOTE,
+    elevationSourceAccessedUtc: null,
+    elevationSourceKind: "legacy-unknown",
+    elevationDatasetId: MISSING_STATION_ELEVATION_SOURCE_ID,
+    elevationDatasetVersion: null,
+    elevationDatasetResolutionM: null,
+    elevationVerticalDatum: null,
+    elevationTileId: null,
+    elevationCellId: null,
+    elevationSampleLat: station.lat,
+    elevationSampleLon: station.lon,
+    elevationSamplingMethod: "unavailable",
+    elevationSampledAtUtc: null,
+    elevationCacheGeneratedUtc: null,
+    elevationLicenseId: "legacy-unverified",
+    elevationLicenseUrl: null,
+    elevationCitation: "Registry elevation carried without a matching elevation-cache row.",
+    elevationProvenanceStatus: "legacy-unknown",
+    elevationNonClaim: MISSING_STATION_ELEVATION_NON_CLAIM
+  };
+}
+
+function resolveStationElevationMetadata(
+  station: PublicRegistryStation
+): RuntimeStationElevationMetadata {
+  const entry = STATION_ELEVATION_CACHE_BY_ID.get(station.id);
+  if (!entry || entry.elevationM !== station.elevationM) {
+    return buildMissingElevationMetadata(station);
+  }
+  return {
+    elevationM: entry.elevationM,
+    elevationSourceId: entry.elevationDatasetId,
+    elevationSourcePath: STATION_ELEVATION_SOURCE_PATH,
+    elevationSourceNote: STATION_ELEVATION_SOURCE_NOTE,
+    elevationSourceAccessedUtc: entry.sourceAccessedUtc,
+    elevationSourceKind: entry.elevationSourceKind,
+    elevationDatasetId: entry.elevationDatasetId,
+    elevationDatasetVersion: entry.elevationDatasetVersion,
+    elevationDatasetResolutionM: entry.elevationDatasetResolutionM,
+    elevationVerticalDatum: entry.elevationVerticalDatum,
+    elevationTileId: entry.elevationTileId,
+    elevationCellId: entry.elevationCellId,
+    elevationSampleLat: entry.elevationSampleLat,
+    elevationSampleLon: entry.elevationSampleLon,
+    elevationSamplingMethod: entry.elevationSamplingMethod,
+    elevationSampledAtUtc: entry.elevationSampledAtUtc,
+    elevationCacheGeneratedUtc: entry.elevationCacheGeneratedUtc,
+    elevationLicenseId: entry.elevationLicenseId,
+    elevationLicenseUrl: entry.elevationLicenseUrl,
+    elevationCitation: entry.elevationCitation,
+    elevationProvenanceStatus: entry.elevationProvenanceStatus,
+    elevationNonClaim: entry.elevationNonClaim
+  };
+}
+
 function buildStationPrecisionState(
   station: PublicRegistryStation,
   pairSourceTier: PairSourceTierAttribution["sourceTier"],
@@ -626,6 +801,7 @@ function buildStationPrecisionState(
 ): RuntimeStationPrecisionState {
   const coordinateUse = resolveCoordinateUse(station.disclosurePrecision);
   const coordinateSource = resolveCoordinateSourceAuthority(station.id);
+  const elevationMetadata = resolveStationElevationMetadata(station);
   return {
     stationId: station.id,
     disclosurePrecision: station.disclosurePrecision,
@@ -635,10 +811,7 @@ function buildStationPrecisionState(
     coordinateSourceNote: coordinateSource.coordinateSourceNote,
     rawLat: station.lat,
     rawLon: station.lon,
-    elevationM: station.elevationM,
-    elevationSourceId: STATION_ELEVATION_SOURCE_ID,
-    elevationSourcePath: STATION_ELEVATION_SOURCE_PATH,
-    elevationSourceNote: STATION_ELEVATION_SOURCE_NOTE,
+    ...elevationMetadata,
     terrainMaskDeg: station.terrainMaskDeg,
     terrainMaskSourceId: TERRAIN_MASK_SOURCE_ID,
     terrainMaskIsDefault: station.terrainMaskDeg === 0,
@@ -732,16 +905,35 @@ function buildAtmosphericLookups(): ReadonlyArray<RuntimeAtmosphericLookupState>
 }
 
 function buildStationRfProfileState(
-  station: PublicRegistryStation
+  station: RuntimeStationPrecisionState
 ): RuntimeStationRfProfileState {
   return {
-    stationId: station.id,
+    stationId: station.stationId,
     elevationM: station.elevationM,
-    elevationSourceId: STATION_ELEVATION_SOURCE_ID,
-    elevationSourcePath: STATION_ELEVATION_SOURCE_PATH,
+    elevationSourceId: station.elevationSourceId,
+    elevationSourcePath: station.elevationSourcePath,
+    elevationSourceNote: station.elevationSourceNote,
+    elevationSourceAccessedUtc: station.elevationSourceAccessedUtc,
+    elevationSourceKind: station.elevationSourceKind,
+    elevationDatasetId: station.elevationDatasetId,
+    elevationDatasetVersion: station.elevationDatasetVersion,
+    elevationDatasetResolutionM: station.elevationDatasetResolutionM,
+    elevationVerticalDatum: station.elevationVerticalDatum,
+    elevationTileId: station.elevationTileId,
+    elevationCellId: station.elevationCellId,
+    elevationSampleLat: station.elevationSampleLat,
+    elevationSampleLon: station.elevationSampleLon,
+    elevationSamplingMethod: station.elevationSamplingMethod,
+    elevationSampledAtUtc: station.elevationSampledAtUtc,
+    elevationCacheGeneratedUtc: station.elevationCacheGeneratedUtc,
+    elevationLicenseId: station.elevationLicenseId,
+    elevationLicenseUrl: station.elevationLicenseUrl,
+    elevationCitation: station.elevationCitation,
+    elevationProvenanceStatus: station.elevationProvenanceStatus,
+    elevationNonClaim: station.elevationNonClaim,
     terrainMaskDeg: station.terrainMaskDeg,
-    terrainMaskSourceId: TERRAIN_MASK_SOURCE_ID,
-    terrainMaskIsDefault: station.terrainMaskDeg === 0,
+    terrainMaskSourceId: station.terrainMaskSourceId,
+    terrainMaskIsDefault: station.terrainMaskIsDefault,
     antennaDiameterM: null,
     antennaDiameterSourceId: RF_FIELD_SOURCE_ID,
     peakEirpDbm: null,
@@ -750,7 +942,7 @@ function buildStationRfProfileState(
     txPolarizationSourceId: RF_FIELD_SOURCE_ID,
     provenance: {
       truthClass: "unavailable",
-      sourceId: `station-rf-profile:${station.id}`,
+      sourceId: `station-rf-profile:${station.stationId}`,
       nonClaim:
         "Station RF hardware fields are unavailable; only elevation and terrain-mask registry fields are populated."
     }
@@ -1338,28 +1530,29 @@ export function buildRuntimeDataCompletenessState(
   const modeledOutputs = buildModeledOutputs(input);
   const policyDisclosure = buildPolicyDisclosure(input);
   const pairSourceAttribution = buildPairSourceAttributionState(input);
+  const stationPrecision = [
+    buildStationPrecisionState(
+      input.stationA,
+      pairSourceAttribution.sourceTier,
+      input.stationAEffectiveElevationThresholdDeg
+    ),
+    buildStationPrecisionState(
+      input.stationB,
+      pairSourceAttribution.sourceTier,
+      input.stationBEffectiveElevationThresholdDeg
+    )
+  ] as const;
   return {
     routeMode: input.routeMode,
     pairSourceAttribution,
-    stationPrecision: [
-      buildStationPrecisionState(
-        input.stationA,
-        pairSourceAttribution.sourceTier,
-        input.stationAEffectiveElevationThresholdDeg
-      ),
-      buildStationPrecisionState(
-        input.stationB,
-        pairSourceAttribution.sourceTier,
-        input.stationBEffectiveElevationThresholdDeg
-      )
-    ],
+    stationPrecision,
     tleSources,
     tleFreshness: buildRuntimeTleSourceFreshness(input, tleSources),
     rfChainBreakdown: buildUnavailableRfChainBreakdown(),
     atmosphericLookups: buildAtmosphericLookups(),
     stationRfProfiles: [
-      buildStationRfProfileState(input.stationA),
-      buildStationRfProfileState(input.stationB)
+      buildStationRfProfileState(stationPrecision[0]),
+      buildStationRfProfileState(stationPrecision[1])
     ],
     actorSourceCoverage: {
       renderedActorCount: visibleSatelliteIds.size,

@@ -18,6 +18,34 @@ const MAX_RATE_LIMIT_RETRIES = 5;
 const REQUEST_TIMEOUT_MS = 30_000;
 const MIN_ELEVATION_M = -500;
 const MAX_ELEVATION_M = 5000;
+const LEGACY_ELEVATION_SOURCE_KIND = "legacy-service-cache";
+const LEGACY_ELEVATION_DATASET_ID = "legacy-elevation-service-cache-v1";
+const LEGACY_ELEVATION_LICENSE_ID = "legacy-unverified";
+const LEGACY_ELEVATION_CITATION =
+  "Legacy elevation service cache; upstream DEM, tile, version, and vertical datum are not verified.";
+const LEGACY_ELEVATION_NON_CLAIM =
+  "This row preserves a legacy service-cache elevation. The upstream DEM, tile id, dataset version, resolution, and vertical datum are not verified.";
+const LEGACY_ELEVATION_PROVENANCE_STATUS = "legacy-upstream-dem-unknown";
+const LEGACY_ELEVATION_SAMPLING_METHOD = "service-response";
+const ELEVATION_METADATA_KEYS = [
+  "elevationSourceKind",
+  "elevationDatasetId",
+  "elevationDatasetVersion",
+  "elevationDatasetResolutionM",
+  "elevationVerticalDatum",
+  "elevationTileId",
+  "elevationCellId",
+  "elevationSampleLat",
+  "elevationSampleLon",
+  "elevationSamplingMethod",
+  "elevationSampledAtUtc",
+  "elevationCacheGeneratedUtc",
+  "elevationLicenseId",
+  "elevationLicenseUrl",
+  "elevationCitation",
+  "elevationProvenanceStatus",
+  "elevationNonClaim"
+];
 
 function usage() {
   return [
@@ -124,6 +152,155 @@ function validateElevation(entry, stationId) {
   }
 }
 
+function validateNullableString(value, key, stationId) {
+  if (value !== null && typeof value !== "string") {
+    throw new Error(`${stationId}: ${key} must be a string or null`);
+  }
+}
+
+function validateNonEmptyString(value, key, stationId) {
+  if (typeof value !== "string" || value.trim().length === 0) {
+    throw new Error(`${stationId}: ${key} must be a non-empty string`);
+  }
+}
+
+function validateNullableNumber(value, key, stationId) {
+  if (value !== null && !Number.isFinite(value)) {
+    throw new Error(`${stationId}: ${key} must be a finite number or null`);
+  }
+}
+
+function validateIsoTimestamp(value, key, stationId) {
+  if (typeof value !== "string" || Number.isNaN(Date.parse(value))) {
+    throw new Error(`${stationId}: ${key} must be an ISO timestamp`);
+  }
+}
+
+function buildLegacyElevationMetadata(station, sourceAccessedUtc) {
+  return {
+    elevationSourceKind: LEGACY_ELEVATION_SOURCE_KIND,
+    elevationDatasetId: LEGACY_ELEVATION_DATASET_ID,
+    elevationDatasetVersion: null,
+    elevationDatasetResolutionM: null,
+    elevationVerticalDatum: null,
+    elevationTileId: null,
+    elevationCellId: null,
+    elevationSampleLat: station.lat,
+    elevationSampleLon: station.lon,
+    elevationSamplingMethod: LEGACY_ELEVATION_SAMPLING_METHOD,
+    elevationSampledAtUtc: sourceAccessedUtc,
+    elevationCacheGeneratedUtc: sourceAccessedUtc,
+    elevationLicenseId: LEGACY_ELEVATION_LICENSE_ID,
+    elevationLicenseUrl: null,
+    elevationCitation: LEGACY_ELEVATION_CITATION,
+    elevationProvenanceStatus: LEGACY_ELEVATION_PROVENANCE_STATUS,
+    elevationNonClaim: LEGACY_ELEVATION_NON_CLAIM
+  };
+}
+
+function hasElevationMetadata(entry) {
+  return ELEVATION_METADATA_KEYS.some((key) => Object.hasOwn(entry, key));
+}
+
+function hasCompleteElevationMetadata(entry) {
+  return ELEVATION_METADATA_KEYS.every((key) => Object.hasOwn(entry, key));
+}
+
+function validateCommonElevationMetadata(entry, stationId) {
+  validateNullableString(entry.elevationDatasetVersion, "elevationDatasetVersion", stationId);
+  validateNullableNumber(entry.elevationDatasetResolutionM, "elevationDatasetResolutionM", stationId);
+  validateNullableString(entry.elevationVerticalDatum, "elevationVerticalDatum", stationId);
+  validateNullableString(entry.elevationTileId, "elevationTileId", stationId);
+  validateNullableString(entry.elevationCellId, "elevationCellId", stationId);
+  validateNullableNumber(entry.elevationSampleLat, "elevationSampleLat", stationId);
+  validateNullableNumber(entry.elevationSampleLon, "elevationSampleLon", stationId);
+  if (entry.elevationSampleLat !== null && (entry.elevationSampleLat < -90 || entry.elevationSampleLat > 90)) {
+    throw new Error(`${stationId}: elevationSampleLat must be a WGS84 latitude or null`);
+  }
+  if (entry.elevationSampleLon !== null && (entry.elevationSampleLon < -180 || entry.elevationSampleLon > 180)) {
+    throw new Error(`${stationId}: elevationSampleLon must be a WGS84 longitude or null`);
+  }
+  for (const key of ["elevationSampledAtUtc", "elevationCacheGeneratedUtc"]) {
+    if (entry[key] !== null) {
+      validateIsoTimestamp(entry[key], key, stationId);
+    }
+  }
+  validateNullableString(entry.elevationLicenseUrl, "elevationLicenseUrl", stationId);
+  validateNonEmptyString(entry.elevationLicenseId, "elevationLicenseId", stationId);
+  validateNonEmptyString(entry.elevationCitation, "elevationCitation", stationId);
+  validateNonEmptyString(entry.elevationNonClaim, "elevationNonClaim", stationId);
+}
+
+function normalizeElevationEntry(entry, station) {
+  validateElevation(entry, station.id);
+  if (station.elevationM !== entry.elevationM) {
+    throw new Error(
+      `${station.id}: registry elevationM ${station.elevationM} disagrees with cache elevationM ${entry.elevationM}`
+    );
+  }
+  if (!hasElevationMetadata(entry)) {
+    const normalized = {
+      stationId: station.id,
+      elevationM: entry.elevationM,
+      sourceAccessedUtc: entry.sourceAccessedUtc,
+      ...buildLegacyElevationMetadata(station, entry.sourceAccessedUtc)
+    };
+    validateElevationMetadata(normalized, station.id);
+    return normalized;
+  }
+  if (!hasCompleteElevationMetadata(entry)) {
+    const missing = ELEVATION_METADATA_KEYS.filter((key) => !Object.hasOwn(entry, key));
+    throw new Error(`${station.id}: incomplete elevation metadata; missing ${missing.join(", ")}`);
+  }
+  validateElevationMetadata(entry, station.id);
+  return entry;
+}
+
+function validateElevationMetadata(entry, stationId) {
+  validateCommonElevationMetadata(entry, stationId);
+  if (entry.elevationSourceKind === LEGACY_ELEVATION_SOURCE_KIND) {
+    if (entry.elevationDatasetId !== LEGACY_ELEVATION_DATASET_ID) {
+      throw new Error(`${stationId}: elevationDatasetId must be ${LEGACY_ELEVATION_DATASET_ID}`);
+    }
+    if (entry.elevationSamplingMethod !== LEGACY_ELEVATION_SAMPLING_METHOD) {
+      throw new Error(`${stationId}: elevationSamplingMethod must be ${LEGACY_ELEVATION_SAMPLING_METHOD}`);
+    }
+    validateIsoTimestamp(entry.elevationSampledAtUtc, "elevationSampledAtUtc", stationId);
+    validateIsoTimestamp(entry.elevationCacheGeneratedUtc, "elevationCacheGeneratedUtc", stationId);
+    if (entry.elevationLicenseId !== LEGACY_ELEVATION_LICENSE_ID) {
+      throw new Error(`${stationId}: elevationLicenseId must be ${LEGACY_ELEVATION_LICENSE_ID}`);
+    }
+    if (entry.elevationProvenanceStatus !== LEGACY_ELEVATION_PROVENANCE_STATUS) {
+      throw new Error(
+        `${stationId}: elevationProvenanceStatus must be ${LEGACY_ELEVATION_PROVENANCE_STATUS}`
+      );
+    }
+    return;
+  }
+  if (entry.elevationSourceKind !== "dem-derived") {
+    throw new Error(`${stationId}: elevationSourceKind must be ${LEGACY_ELEVATION_SOURCE_KIND} or dem-derived`);
+  }
+  validateNonEmptyString(entry.elevationDatasetId, "elevationDatasetId", stationId);
+  if (entry.elevationDatasetId === LEGACY_ELEVATION_DATASET_ID) {
+    throw new Error(`${stationId}: dem-derived elevationDatasetId must not use the legacy cache id`);
+  }
+  if (entry.elevationSamplingMethod !== "dem-cell-sample") {
+    throw new Error(`${stationId}: dem-derived elevationSamplingMethod must be dem-cell-sample`);
+  }
+  if (entry.elevationProvenanceStatus !== "dem-provenance-complete") {
+    throw new Error(`${stationId}: dem-derived elevationProvenanceStatus must be dem-provenance-complete`);
+  }
+  validateIsoTimestamp(entry.elevationSampledAtUtc, "elevationSampledAtUtc", stationId);
+  validateIsoTimestamp(entry.elevationCacheGeneratedUtc, "elevationCacheGeneratedUtc", stationId);
+  if (
+    entry.elevationSourceKind === LEGACY_ELEVATION_SOURCE_KIND ||
+    entry.elevationProvenanceStatus === LEGACY_ELEVATION_PROVENANCE_STATUS ||
+    entry.elevationSamplingMethod === LEGACY_ELEVATION_SAMPLING_METHOD
+  ) {
+    throw new Error(`${stationId}: dem-derived row must not carry legacy source kind, sampling, or status`);
+  }
+}
+
 function validateCacheEntries(entries, stations, cachePath) {
   if (!Array.isArray(entries)) {
     throw new Error(`${cachePath} must be an array`);
@@ -139,7 +316,6 @@ function validateCacheEntries(entries, stations, cachePath) {
     if (typeof entry.sourceAccessedUtc !== "string" || Number.isNaN(Date.parse(entry.sourceAccessedUtc))) {
       throw new Error(`${entry.stationId}: sourceAccessedUtc must be an ISO timestamp`);
     }
-    validateElevation(entry, entry.stationId);
     if (byId.has(entry.stationId)) {
       throw new Error(`${entry.stationId}: duplicate cache entry`);
     }
@@ -154,7 +330,7 @@ function validateCacheEntries(entries, stations, cachePath) {
     throw new Error(`${cachePath}: expected ${stations.length} entries, found ${entries.length}`);
   }
 
-  return stations.map((station) => byId.get(station.id));
+  return stations.map((station) => normalizeElevationEntry(byId.get(station.id), station));
 }
 
 async function readCache(cachePath, stations) {
@@ -269,8 +445,10 @@ function cacheEntriesFromResponse(payload, stations, sourceAccessedUtc) {
       stationId: station.id,
       elevationM,
       sourceAccessedUtc,
+      ...buildLegacyElevationMetadata(station, sourceAccessedUtc)
     };
     validateElevation(entry, station.id);
+    validateElevationMetadata(entry, station.id);
     return entry;
   });
 }
@@ -445,9 +623,11 @@ async function writeIfChanged(filePath, text) {
 }
 
 function printDryRun(entries) {
-  console.log("stationId,elevationM,sourceAccessedUtc");
+  console.log("stationId,elevationM,sourceAccessedUtc,elevationSourceKind,elevationDatasetId,elevationProvenanceStatus");
   for (const entry of entries) {
-    console.log(`${entry.stationId},${entry.elevationM},${entry.sourceAccessedUtc}`);
+    console.log(
+      `${entry.stationId},${entry.elevationM},${entry.sourceAccessedUtc},${entry.elevationSourceKind},${entry.elevationDatasetId},${entry.elevationProvenanceStatus}`
+    );
   }
 }
 
@@ -474,11 +654,13 @@ async function main() {
   const cacheText = `${stringifyInlineArrays(entries)}\n`;
 
   const wroteRegistry = await writeIfChanged(REGISTRY_PATH, nextRegistryText);
-  const wroteCache = options.noNetwork ? false : await writeIfChanged(options.outputPath, cacheText);
+  const wroteCache = await writeIfChanged(options.outputPath, cacheText);
 
   console.log(`${wroteRegistry ? "Updated" : "Unchanged"} ${path.relative(PROJECT_ROOT, REGISTRY_PATH)}`);
   if (options.noNetwork) {
-    console.log(`Read ${entries.length} cached elevations from ${path.relative(PROJECT_ROOT, options.outputPath)}`);
+    console.log(
+      `${wroteCache ? "Updated" : "Unchanged"} ${path.relative(PROJECT_ROOT, options.outputPath)} from ${entries.length} cached elevations`
+    );
   } else {
     console.log(`${wroteCache ? "Updated" : "Unchanged"} ${path.relative(PROJECT_ROOT, options.outputPath)}`);
   }

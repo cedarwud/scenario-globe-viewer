@@ -54,7 +54,11 @@ const EXPECTED_METRIC_ANCHORS = {
   jitterModel: "orbit-baseline-with-rain-scale",
   delayModel: "slant-range-one-way-plus-fixed-processing"
 };
-const EXPECTED_ELEVATION_SOURCE_ID = "open-elevation-cache";
+const EXPECTED_ELEVATION_SOURCE_KIND = "legacy-service-cache";
+const EXPECTED_ELEVATION_DATASET_ID = "legacy-elevation-service-cache-v1";
+const EXPECTED_ELEVATION_PROVENANCE_STATUS = "legacy-upstream-dem-unknown";
+const EXPECTED_ELEVATION_SAMPLING_METHOD = "service-response";
+const EXPECTED_ELEVATION_LICENSE_ID = "legacy-unverified";
 const EXPECTED_ELEVATION_SOURCE_PATH =
   "public/fixtures/ground-stations/station-elevations-cache.json";
 const EXPECTED_TERRAIN_MASK_SOURCE_ID = "default-unknown";
@@ -862,6 +866,84 @@ function assertPolicyDisclosurePayload(
   }
 }
 
+function assertElevationProvenanceMetadata(label, station) {
+  assert(
+    station.elevationSourceId === EXPECTED_ELEVATION_DATASET_ID,
+    `${label}: station ${station.stationId} elevation source id mismatch`
+  );
+  assert(
+    station.elevationSourcePath === EXPECTED_ELEVATION_SOURCE_PATH,
+    `${label}: station ${station.stationId} elevation source path mismatch`
+  );
+  assert(
+    typeof station.elevationSourceNote === "string" &&
+      station.elevationSourceNote.includes("Legacy service-cache") &&
+      !station.elevationSourceNote.includes("Open-Elevation"),
+    `${label}: station ${station.stationId} elevation source note should be legacy-neutral`
+  );
+  assert(
+    typeof station.elevationSourceAccessedUtc === "string" &&
+      !Number.isNaN(Date.parse(station.elevationSourceAccessedUtc)),
+    `${label}: station ${station.stationId} elevation source timestamp missing`
+  );
+  assert(
+    station.elevationSourceKind === EXPECTED_ELEVATION_SOURCE_KIND,
+    `${label}: station ${station.stationId} elevation source kind mismatch`
+  );
+  assert(
+    station.elevationSourceKind !== "dem-derived",
+    `${label}: station ${station.stationId} must not be dem-derived in TH3a`
+  );
+  assert(
+    station.elevationDatasetId === EXPECTED_ELEVATION_DATASET_ID,
+    `${label}: station ${station.stationId} elevation dataset id mismatch`
+  );
+  assert(
+    station.elevationDatasetVersion === null &&
+      station.elevationDatasetResolutionM === null &&
+      station.elevationVerticalDatum === null &&
+      station.elevationTileId === null &&
+      station.elevationCellId === null,
+    `${label}: station ${station.stationId} legacy DEM fields should remain null`
+  );
+  assert(
+    Number.isFinite(station.elevationSampleLat) &&
+      Number.isFinite(station.elevationSampleLon),
+    `${label}: station ${station.stationId} elevation sample coordinate missing`
+  );
+  assert(
+    station.elevationSamplingMethod === EXPECTED_ELEVATION_SAMPLING_METHOD,
+    `${label}: station ${station.stationId} elevation sampling method mismatch`
+  );
+  assert(
+    station.elevationSampledAtUtc === station.elevationSourceAccessedUtc &&
+      station.elevationCacheGeneratedUtc === station.elevationSourceAccessedUtc,
+    `${label}: station ${station.stationId} elevation timestamps should mirror source access`
+  );
+  assert(
+    station.elevationLicenseId === EXPECTED_ELEVATION_LICENSE_ID &&
+      station.elevationLicenseUrl === null,
+    `${label}: station ${station.stationId} elevation license metadata mismatch`
+  );
+  assert(
+    typeof station.elevationCitation === "string" &&
+      station.elevationCitation.includes("Legacy elevation service cache") &&
+      station.elevationCitation.includes("not verified"),
+    `${label}: station ${station.stationId} elevation citation missing`
+  );
+  assert(
+    station.elevationProvenanceStatus === EXPECTED_ELEVATION_PROVENANCE_STATUS,
+    `${label}: station ${station.stationId} elevation provenance status mismatch`
+  );
+  assert(
+    typeof station.elevationNonClaim === "string" &&
+      station.elevationNonClaim.includes("upstream DEM") &&
+      station.elevationNonClaim.includes("vertical datum") &&
+      !station.elevationNonClaim.includes("Open-Elevation"),
+    `${label}: station ${station.stationId} elevation non-claim missing`
+  );
+}
+
 function assertStationSourceMetadata(label, station) {
   assert(
     COORDINATE_SOURCE_AUTHORITIES.has(station.coordinateSourceAuthority),
@@ -877,19 +959,7 @@ function assertStationSourceMetadata(label, station) {
       typeof station.coordinateSourceUrl === "string",
     `${label}: station ${station.stationId} coordinate source URL invalid`
   );
-  assert(
-    station.elevationSourceId === EXPECTED_ELEVATION_SOURCE_ID,
-    `${label}: station ${station.stationId} elevation source mismatch`
-  );
-  assert(
-    station.elevationSourcePath === EXPECTED_ELEVATION_SOURCE_PATH,
-    `${label}: station ${station.stationId} elevation source path mismatch`
-  );
-  assert(
-    typeof station.elevationSourceNote === "string" &&
-      station.elevationSourceNote.includes("Open-Elevation"),
-    `${label}: station ${station.stationId} elevation source note missing`
-  );
+  assertElevationProvenanceMetadata(label, station);
   assert(
     station.terrainMaskSourceId === EXPECTED_TERRAIN_MASK_SOURCE_ID,
     `${label}: station ${station.stationId} terrain mask source mismatch`
@@ -903,6 +973,43 @@ function assertStationSourceMetadata(label, station) {
       station.terrainMaskNote.includes("site-specific horizon mask"),
     `${label}: station ${station.stationId} terrain mask note missing`
   );
+}
+
+const ELEVATION_METADATA_FIELDS = [
+  "elevationSourceId",
+  "elevationSourcePath",
+  "elevationSourceNote",
+  "elevationSourceAccessedUtc",
+  "elevationSourceKind",
+  "elevationDatasetId",
+  "elevationDatasetVersion",
+  "elevationDatasetResolutionM",
+  "elevationVerticalDatum",
+  "elevationTileId",
+  "elevationCellId",
+  "elevationSampleLat",
+  "elevationSampleLon",
+  "elevationSamplingMethod",
+  "elevationSampledAtUtc",
+  "elevationCacheGeneratedUtc",
+  "elevationLicenseId",
+  "elevationLicenseUrl",
+  "elevationCitation",
+  "elevationProvenanceStatus",
+  "elevationNonClaim"
+];
+
+function assertElevationMetadataParity(label, actual, expected, context) {
+  assert(
+    actual.elevationM === expected.elevationM,
+    `${label}: ${context} elevationM mismatch`
+  );
+  for (const field of ELEVATION_METADATA_FIELDS) {
+    assert(
+      actual[field] === expected[field],
+      `${label}: ${context} ${field} mismatch`
+    );
+  }
 }
 
 function assertA8UnavailablePlaceholders(label, data) {
@@ -973,11 +1080,14 @@ function assertA8UnavailablePlaceholders(label, data) {
   for (const profile of data.stationRfProfiles) {
     const precision = precisionById.get(profile.stationId);
     assert(precision, `${label}: station RF profile ${profile.stationId} has no precision row`);
+    assertElevationMetadataParity(
+      label,
+      profile,
+      precision,
+      `station RF profile ${profile.stationId}`
+    );
     assert(
-      profile.elevationM === precision.elevationM &&
-        profile.elevationSourceId === precision.elevationSourceId &&
-        profile.elevationSourcePath === precision.elevationSourcePath &&
-        profile.terrainMaskDeg === precision.terrainMaskDeg &&
+      profile.terrainMaskDeg === precision.terrainMaskDeg &&
         profile.terrainMaskSourceId === precision.terrainMaskSourceId &&
         profile.terrainMaskIsDefault === precision.terrainMaskIsDefault,
       `${label}: station RF profile ${profile.stationId} station truth mismatch`
@@ -1258,8 +1368,6 @@ function assertStationPrecisionFooterDataset(testCase, state) {
     const effectiveElevationThresholdDeg = Number(
       state.footer?.[`station${slot}EffectiveElevationThresholdDeg`]
     );
-    const elevationSourceId = state.footer?.[`station${slot}ElevationSourceId`];
-    const elevationSourcePath = state.footer?.[`station${slot}ElevationSourcePath`];
     const terrainMaskSourceId =
       state.footer?.[`station${slot}TerrainMaskSourceId`];
     const terrainMaskIsDefault =
@@ -1270,9 +1378,11 @@ function assertStationPrecisionFooterDataset(testCase, state) {
       `${testCase.label}: footer station ${slot} elevationM missing`
     );
     assert(
-      elevationSourceId === expected.elevationSourceId &&
-        elevationSourcePath === expected.elevationSourcePath,
-      `${testCase.label}: footer station ${slot} elevation source missing`
+      ELEVATION_METADATA_FIELDS.every((field) => {
+        const footerKey = `station${slot}${field[0].toUpperCase()}${field.slice(1)}`;
+        return state.footer?.[footerKey] === csvCellValue(expected[field]);
+      }),
+      `${testCase.label}: footer station ${slot} elevation metadata mismatch`
     );
     assert(
       Number.isInteger(terrainMaskDeg) &&
@@ -1870,12 +1980,12 @@ function assertCsvEvidence(label, evidence) {
         csvCellValue(station.effectiveElevationThresholdDeg),
       `${label}: CSV station effective threshold mismatch`
     );
-    assert(
-      row.elevationSourceId === station.elevationSourceId &&
-        row.elevationSourcePath === station.elevationSourcePath &&
-        row.elevationSourceNote === station.elevationSourceNote,
-      `${label}: CSV station elevation source mismatch`
-    );
+    for (const field of ELEVATION_METADATA_FIELDS) {
+      assert(
+        row[field] === csvCellValue(station[field]),
+        `${label}: CSV station ${field} mismatch`
+      );
+    }
     assert(
       row.terrainMaskSourceId === station.terrainMaskSourceId &&
         row.terrainMaskIsDefault === csvCellValue(station.terrainMaskIsDefault) &&
@@ -2070,12 +2180,27 @@ function assertCsvEvidence(label, evidence) {
   const stationRfRowsById = new Map(
     stationRfProfiles.rows.map((row) => [row.stationId, row])
   );
+  const precisionByIdForRf = new Map(
+    data.stationPrecision.map((station) => [station.stationId, station])
+  );
   for (const profile of data.stationRfProfiles) {
     const row = stationRfRowsById.get(profile.stationId);
+    const precision = precisionByIdForRf.get(profile.stationId);
     assert(row, `${label}: CSV missing station RF profile ${profile.stationId}`);
+    assert(precision, `${label}: CSV station RF profile ${profile.stationId} missing precision row`);
+    assertElevationMetadataParity(
+      label,
+      profile,
+      precision,
+      `CSV station RF profile ${profile.stationId}`
+    );
     assert(row.elevationM === csvCellValue(profile.elevationM), `${label}: CSV station RF elevation mismatch`);
-    assert(row.elevationSourceId === profile.elevationSourceId, `${label}: CSV station RF elevation source mismatch`);
-    assert(row.elevationSourcePath === profile.elevationSourcePath, `${label}: CSV station RF elevation path mismatch`);
+    for (const field of ELEVATION_METADATA_FIELDS) {
+      assert(
+        row[field] === csvCellValue(profile[field]),
+        `${label}: CSV station RF ${field} mismatch`
+      );
+    }
     assert(row.terrainMaskDeg === csvCellValue(profile.terrainMaskDeg), `${label}: CSV station RF terrain mismatch`);
     assert(row.terrainMaskSourceId === profile.terrainMaskSourceId, `${label}: CSV station RF terrain source mismatch`);
     assert(
