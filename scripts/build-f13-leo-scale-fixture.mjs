@@ -9,7 +9,7 @@ const repoRoot = path.resolve(__dirname, "..");
 
 const DEFAULT_CAP = 600;
 const DEFAULT_SOURCE_URL =
-  "https://celestrak.org/NORAD/elements/gp.php?GROUP=starlink&FORMAT=tle";
+  "https://celestrak.org/NORAD/elements/gp.php?GROUP=oneweb&FORMAT=tle";
 const outputRoot = path.join(repoRoot, "public/fixtures/satellites/leo-scale");
 
 function parseArgs(argv) {
@@ -105,10 +105,14 @@ function main() {
       ? DEFAULT_CAP
       : parsePositiveInteger(options.cap, "--cap");
   const capturedAt = normalizeCapturedAt(options["captured-at"] ?? new Date().toISOString());
+  const isOneWeb = input.toLowerCase().includes("oneweb");
+  const prefix = isOneWeb ? "oneweb" : "starlink";
   const sourceUrl =
     typeof options["source-url"] === "string" && options["source-url"].length > 0
       ? options["source-url"]
-      : DEFAULT_SOURCE_URL;
+      : (isOneWeb
+          ? "https://celestrak.org/NORAD/elements/gp.php?GROUP=oneweb&FORMAT=tle"
+          : DEFAULT_SOURCE_URL);
 
   const records = parseTleRecords(readFileSync(input, "utf8"));
   assert(
@@ -119,7 +123,7 @@ function main() {
   const subset = records
     .toSorted((left, right) => left.noradId - right.noradId || left.name.localeCompare(right.name))
     .slice(0, cap);
-  const fixtureFile = `starlink-${toFileTimestamp(capturedAt)}.tle`;
+  const fixtureFile = `${prefix}-${toFileTimestamp(capturedAt)}.tle`;
   const fixturePath = path.join(outputRoot, fixtureFile);
   const provenancePath = path.join(outputRoot, "provenance.json");
 

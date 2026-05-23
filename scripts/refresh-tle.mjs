@@ -7,8 +7,8 @@ import { join, resolve } from "node:path";
 const GROUPS = {
   leo: {
     orbitClass: "LEO",
-    celestrakGroup: "active",
-    url: "https://celestrak.org/NORAD/elements/gp.php?GROUP=active&FORMAT=tle"
+    celestrakGroup: "oneweb",
+    url: "https://celestrak.org/NORAD/elements/gp.php?GROUP=oneweb&FORMAT=tle"
   },
   meo: {
     orbitClass: "MEO",

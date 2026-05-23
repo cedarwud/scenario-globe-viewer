@@ -125,7 +125,7 @@ function fallbackRoutes(manifest) {
     ["/fixtures/satellites-network/meo-old.tle", response(500, "failed")],
     ["/fixtures/satellites-network/geo-old.tle", response(500, "failed")],
     [
-      "/fixtures/satellites/leo-scale/starlink-2026-05-12T12-35-35Z.tle",
+      "/fixtures/satellites/leo-scale/oneweb-2026-05-15T12-00-00Z.tle",
       TLE_TEXT
     ],
     [

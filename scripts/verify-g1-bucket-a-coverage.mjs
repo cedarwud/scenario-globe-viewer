@@ -68,7 +68,7 @@ const G1_ROWS = [
         const satelliteId = text.split("\u00b7")[0]?.trim() ?? "";
         const idShapeOk = /^[A-Z0-9_-]+(?:\s+\([^)]+\))?$/.test(satelliteId);
         const paths = [
-          "/fixtures/satellites/leo-scale/starlink-2026-05-12T12-35-35Z.tle",
+          "/fixtures/satellites/leo-scale/oneweb-2026-05-15T12-00-00Z.tle",
           "/fixtures/satellites/multi-orbit/meo/galileo-2026-05-13T01-28-37Z.tle",
           "/fixtures/satellites/multi-orbit/geo/commercial-geo-top30-2026-05-13T01-28-37Z.tle"
         ];
@@ -502,7 +502,7 @@ const G1_ROWS = [
         const text = first?.textContent?.trim() ?? "";
         const satelliteId = text.split("\u00b7")[0]?.trim() ?? "";
         const paths = [
-          "/fixtures/satellites/leo-scale/starlink-2026-05-12T12-35-35Z.tle",
+          "/fixtures/satellites/leo-scale/oneweb-2026-05-15T12-00-00Z.tle",
           "/fixtures/satellites/multi-orbit/meo/galileo-2026-05-13T01-28-37Z.tle",
           "/fixtures/satellites/multi-orbit/geo/commercial-geo-top30-2026-05-13T01-28-37Z.tle"
         ];

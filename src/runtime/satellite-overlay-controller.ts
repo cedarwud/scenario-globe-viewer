@@ -356,7 +356,7 @@ async function loadMultiOrbitScaleFixture(): Promise<{
       kind: "tle",
       catalogs: [
         {
-          sourceId: "leo-starlink",
+          sourceId: "leo-oneweb",
           tleText: leoFixture.tleText,
           expectedOrbitClass: "leo"
         },
@@ -402,7 +402,7 @@ async function resolveOverlayFixture(
   if (mode === LEO_SCALE_OVERLAY_MODE) {
     const { provenance, tleText } = await loadLeoScaleFixture();
     return {
-      detail: `Loaded ${provenance.epochCount} public Celestrak Starlink TLE records from ${provenance.capturedAt} as bounded route-native LEO point primitives.`,
+      detail: `Loaded ${provenance.epochCount} public Celestrak OneWeb TLE records from ${provenance.capturedAt} as bounded route-native LEO point primitives.`,
       fixture: {
         kind: "tle",
         tleText,

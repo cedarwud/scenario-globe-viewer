@@ -143,9 +143,9 @@ const walkthroughCases = [
     stationB: "ksat-tromso",
     expectedStatus: "ready",
     expectedRuntimeLinkVisible: true,
-    baselineVisibilityWindowCount: 26,
-    baselineLinkSelectionEventCount: 2,
-    baselineHandoverCount: 1,
+    baselineVisibilityWindowCount: 709,
+    baselineLinkSelectionEventCount: 55,
+    baselineHandoverCount: 54,
     expectedStationPrecision: [
       { stationId: "ksat-svalsat-svalbard", elevationM: 0, terrainMaskDeg: 0 },
       { stationId: "ksat-tromso", elevationM: 0, terrainMaskDeg: 0 }
@@ -186,9 +186,9 @@ const walkthroughCases = [
     stationB: "measat-cyberjaya",
     expectedStatus: "ready",
     expectedRuntimeLinkVisible: true,
-    baselineVisibilityWindowCount: 117,
-    baselineLinkSelectionEventCount: 7,
-    baselineHandoverCount: 6,
+    baselineVisibilityWindowCount: 211,
+    baselineLinkSelectionEventCount: 13,
+    baselineHandoverCount: 12,
     expectedStationPrecision: [
       { stationId: "singtel-bukit-timah", elevationM: 58, terrainMaskDeg: 0 },
       { stationId: "measat-cyberjaya", elevationM: 22, terrainMaskDeg: 0 }
@@ -657,7 +657,7 @@ async function readSourceModeResolutionEvidence(client) {
         geo: { path: "geo-frozen.tle", recordCount: 1, epochRangeUtc: { startUtc: now, endUtc: now } }
       };
       const localPaths = {
-        LEO: "/fixtures/satellites/leo-scale/starlink-2026-05-12T12-35-35Z.tle",
+        LEO: "/fixtures/satellites/leo-scale/oneweb-2026-05-15T12-00-00Z.tle",
         MEO: "/fixtures/satellites/multi-orbit/meo/galileo-2026-05-13T01-28-37Z.tle",
         GEO: "/fixtures/satellites/multi-orbit/geo/commercial-geo-top30-2026-05-13T01-28-37Z.tle"
       };

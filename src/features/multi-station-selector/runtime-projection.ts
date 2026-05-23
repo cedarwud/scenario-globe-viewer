@@ -121,7 +121,7 @@ const HANDOVER_POLICY_PROFILES: Readonly<
 };
 
 export const TLE_FIXTURE_PATHS: Readonly<Record<OrbitClass, string>> = {
-  LEO: "/fixtures/satellites/leo-scale/starlink-2026-05-12T12-35-35Z.tle",
+  LEO: "/fixtures/satellites/leo-scale/oneweb-2026-05-15T12-00-00Z.tle",
   MEO: "/fixtures/satellites/multi-orbit/meo/galileo-2026-05-13T01-28-37Z.tle",
   GEO: "/fixtures/satellites/multi-orbit/geo/commercial-geo-top30-2026-05-13T01-28-37Z.tle"
 };
