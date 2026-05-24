@@ -9,6 +9,8 @@
     "test": "npm run build && node scripts/verify-phase0.mjs",
     "verify:large-file-budgets": "node scripts/verify-large-file-budgets.mjs --profile=interim",
     "verify:large-file-budgets:final": "node scripts/verify-large-file-budgets.mjs --profile=final",
+    "verify:g1": "node scripts/verify-g1-bucket-a-coverage.mjs",
+    "verify:tle": "node scripts/verify-tle-first-data-completeness.mjs",
     "test:phase1": "node scripts/site-hook-guard.mjs --context=phase1-baseline && npm run build && node tests/smoke/bootstrap-loads-assets-and-workers.mjs --suite=baseline",
     "test:phase1:showcase": "node scripts/phase1-cleanup-orchestration.mjs --flow=showcase",
     "test:phase1:site-dataset": "node scripts/phase1-cleanup-orchestration.mjs --flow=site-dataset",
