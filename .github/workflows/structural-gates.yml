@@ -1,0 +1,42 @@
+name: Structural Gates
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+concurrency:
+  group: structural-gates-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  structural-gates:
+    name: Build, Budgets, Smoke
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Check browser availability
+        run: google-chrome --version || chromium --version || chromium-browser --version
+
+      - name: Build
+        run: npm run build
+
+      - name: Enforce final large-file budgets
+        run: npm run verify:large-file-budgets:final
+
+      - name: Run baseline browser smoke
+        run: node tests/smoke/bootstrap-loads-assets-and-workers.mjs --suite=baseline

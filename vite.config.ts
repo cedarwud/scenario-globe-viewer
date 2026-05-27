@@ -41,6 +41,48 @@ export default defineConfig({
       ]
     })
   ],
+  build: {
+    // Cesium is intentionally kept as one vendor chunk. Arbitrary engine-internal
+    // splitting breaks browser smoke constructor wiring, while app/runtime code
+    // is split below into smaller project-owned chunks.
+    chunkSizeWarningLimit: 4200,
+    rolldownOptions: {
+      output: {
+        codeSplitting: {
+          minSize: 20_000,
+          groups: [
+            {
+              name: "cesium-runtime",
+              test: /node_modules[\\/](?:cesium|@cesium)[\\/]/,
+              priority: 30
+            },
+            {
+              name: "satellite-runtime",
+              test: /src[\\/]vendor[\\/]satellite-js-runtime\.ts$/,
+              priority: 20
+            },
+            {
+              name: "app-runtime",
+              test: /src[\\/]runtime[\\/]/,
+              priority: 10,
+              maxSize: 450_000
+            },
+            {
+              name: "app-features",
+              test: /src[\\/]features[\\/]/,
+              priority: 8,
+              maxSize: 450_000
+            },
+            {
+              name: "app-core",
+              test: /src[\\/]core[\\/]/,
+              priority: 6
+            }
+          ]
+        }
+      }
+    }
+  },
   server: {
     host: "127.0.0.1"
   }
