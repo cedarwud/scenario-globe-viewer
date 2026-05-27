@@ -30,7 +30,8 @@ import {
   computeRuntimeProjection,
   loadDefaultTleSources,
   parseRuntimeTleSources,
-  resolveRuntimeHandoverPolicyId
+  resolveRuntimeHandoverPolicyId,
+  SELECTED_PAIR_DEMO_HANDOVER_POLICY_ID
 } from "../features/multi-station-selector/runtime-projection";
 import type { RuntimeDataCompletenessState } from "../features/multi-station-selector/runtime-data-completeness";
 import {
@@ -57,7 +58,7 @@ import {
 
 const M8A_V4_SELECTED_PAIR_SCENE_DEFAULT_DURATION_MINUTES = 360;
 const M8A_V4_SELECTED_PAIR_SCENE_MIN_DURATION_MINUTES = 20;
-const M8A_V4_SELECTED_PAIR_SCENE_MAX_DURATION_MINUTES = 480;
+const M8A_V4_SELECTED_PAIR_SCENE_MAX_DURATION_MINUTES = 1440;
 
 type SelectedPairLinkFlowRole = "displayRepresentative";
 
@@ -135,7 +136,9 @@ function resolveSelectedPairSceneDurationMinutes(search: URLSearchParams): numbe
 }
 
 function resolveSelectedPairScenePolicyId(search: URLSearchParams): string {
-  return resolveRuntimeHandoverPolicyId(search.get("policy"));
+  return resolveRuntimeHandoverPolicyId(
+    search.get("policy") ?? SELECTED_PAIR_DEMO_HANDOVER_POLICY_ID
+  );
 }
 
 export function resolveSelectedPairSceneTimeWindow(): {

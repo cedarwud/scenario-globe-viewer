@@ -10,7 +10,7 @@
 [data-replay-event-pill="true"] {
   position: absolute;
   bottom: 4rem;
-  right: 1rem;
+  right: calc(1.75rem + clamp(24rem, 36vw, 31rem));
   z-index: 20;
   min-width: 12rem;
   max-width: 22rem;
@@ -19,7 +19,7 @@
   background: rgba(6, 18, 28, 0.92);
   border: 1px solid rgba(126, 226, 184, 0.32);
   color: #dde9f1;
-  font-size: 0.78rem;
+  font-size: 1rem;
   font-family: Inter, system-ui, sans-serif;
   letter-spacing: 0.01em;
   display: flex;
@@ -27,6 +27,15 @@
   gap: 0.28rem;
   opacity: 1;
   pointer-events: none;
+}
+
+@media (max-width: 720px) {
+  [data-replay-event-pill="true"] {
+    left: 0.75rem;
+    right: 0.75rem;
+    bottom: 0.75rem;
+    max-width: none;
+  }
 }
 
 [data-replay-event-pill="true"][data-v-mo1="true"] {
@@ -47,7 +56,7 @@
 [data-replay-event-pill="true"] .replay-event-pill__chip {
   display: inline-block;
   align-self: flex-start;
-  font-size: 0.68rem;
+  font-size: 0.9rem;
   font-variant-numeric: tabular-nums;
   background: rgba(126, 226, 184, 0.14);
   border: 1px solid rgba(126, 226, 184, 0.32);

@@ -1,5 +1,7 @@
 import type { ValidationState } from "../features/validation-state";
-import type { BootstrapOperatorControllerState } from "./bootstrap-operator-controller";
+import type {
+  BootstrapOperatorControllerState
+} from "../features/operator/bootstrap-operator-contract";
 import type { BootstrapScenarioCatalog } from "./resolve-bootstrap-scenario";
 import {
   createBootstrapValidationStateSourceCatalog,

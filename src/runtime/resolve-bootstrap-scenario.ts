@@ -1,8 +1,15 @@
 import type { ScenePresetKey } from "../features/globe/scene-preset";
+import type {
+  BootstrapScenarioMode,
+  BootstrapScenarioOption
+} from "../features/operator/bootstrap-operator-contract";
 import type { ClockTimestamp, ReplayClockState } from "../features/time";
 import type { BootstrapScenarioDefinition } from "./scenario-bootstrap-session";
 
-export type BootstrapScenarioMode = "real-time" | "prerecorded";
+export type {
+  BootstrapScenarioMode,
+  BootstrapScenarioOption
+} from "../features/operator/bootstrap-operator-contract";
 
 export interface BootstrapScenarioRange {
   start: ClockTimestamp;
@@ -13,12 +20,6 @@ export interface BootstrapScenarioSeedOptions {
   scenePresetKey: ScenePresetKey;
   mode?: BootstrapScenarioMode;
   range?: BootstrapScenarioRange;
-}
-
-export interface BootstrapScenarioOption {
-  presetKey: ScenePresetKey;
-  label: string;
-  scenarioIdsByMode: Record<BootstrapScenarioMode, string>;
 }
 
 export interface BootstrapScenarioCatalog {

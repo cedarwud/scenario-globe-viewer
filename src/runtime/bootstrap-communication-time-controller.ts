@@ -4,7 +4,7 @@ import {
 } from "../features/communication-time/communication-time";
 import type {
   BootstrapOperatorControllerState
-} from "./bootstrap-operator-controller";
+} from "../features/operator/bootstrap-operator-contract";
 import type { BootstrapScenarioCatalog } from "./resolve-bootstrap-scenario";
 import {
   type BootstrapProxyCommunicationTimeSourceCatalog,

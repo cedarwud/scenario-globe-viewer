@@ -47,14 +47,14 @@ const CHROME_TELEMETRY_CSS = `
   border: 1px solid rgba(126, 226, 184, 0.32);
   color: #dde9f1;
   font-family: "IBM Plex Sans", system-ui, -apple-system, sans-serif;
-  font-size: 0.72rem;
+  font-size: 0.94rem;
   letter-spacing: 0.02em;
   pointer-events: none;
 }
 .gs-leo-source-record-count-chip__label {
   color: rgba(157, 196, 232, 0.78);
   text-transform: uppercase;
-  font-size: 0.6rem;
+  font-size: 0.84rem;
   letter-spacing: 0.08em;
 }
 .gs-leo-source-record-count-chip__value {
@@ -73,7 +73,7 @@ const CHROME_TELEMETRY_CSS = `
   border: 1px solid rgba(157, 196, 232, 0.22);
   color: rgba(221, 233, 241, 0.72);
   font-family: "IBM Plex Sans", system-ui, -apple-system, sans-serif;
-  font-size: 0.66rem;
+  font-size: 0.9rem;
   letter-spacing: 0.04em;
   font-variant-numeric: tabular-nums;
   pointer-events: none;

@@ -1,4 +1,4 @@
-import type { ScenarioContextRef } from "../scenario";
+import type { ScenarioContextRef } from "../scenario/scenario";
 import {
   FIRST_INTAKE_ENDPOINT_OVERLAY_SEEDS,
   FIRST_INTAKE_INFRASTRUCTURE_OVERLAY_SEEDS

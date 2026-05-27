@@ -1,5 +1,7 @@
 import type { PhysicalInputState } from "../features/physical-input/physical-input";
-import type { BootstrapOperatorControllerState } from "./bootstrap-operator-controller";
+import type {
+  BootstrapOperatorControllerState
+} from "../features/operator/bootstrap-operator-contract";
 import type { BootstrapScenarioCatalog } from "./resolve-bootstrap-scenario";
 import {
   createBootstrapPhysicalInputSourceCatalog,

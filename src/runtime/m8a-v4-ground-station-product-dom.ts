@@ -4,7 +4,9 @@ import {
   M8A_V4_GROUND_STATION_REQUIRED_PRECISION_BADGE,
   type M8aV46dSimulationHandoverWindow
 } from "./m8a-v4-ground-station-projection";
-import type { M8aV4GroundStationSceneState } from "./m8a-v4-ground-station-handover-scene-controller";
+import type {
+  M8aV4GroundStationSceneState
+} from "./m8a-v4-ground-station-scene-state";
 import {
   positionToCartesian,
   type EndpointRenderContext

@@ -1,4 +1,6 @@
-import type { BootstrapOperatorControllerState } from "./bootstrap-operator-controller";
+import type {
+  BootstrapOperatorControllerState
+} from "../features/operator/bootstrap-operator-contract";
 import {
   BOOTSTRAP_SCENE_STARTER_FEED,
   BOOTSTRAP_SCENE_STARTER_SCOPE

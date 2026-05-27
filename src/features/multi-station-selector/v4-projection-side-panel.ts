@@ -1,28 +1,11 @@
-// V4 projection side panel — five-row information layering per IA §5.
+// V4 selected-pair panel — bounded decision surface.
 //
-// Row 1 — header: title (`A ↔ B`), tier badge pill, ISO window line,
-//   `Copy link` icon button (top-right of header).
-// Row 2 — rain control: rain rate slider (single row).
-// Row 3 — flat stats: `Comm time` + `Handovers` (two values).
-// Row 4 — summary lists: visibility windows (next 3 by chronological start)
-//   and link selection events (next 3 by chronological time PLUS the most
-//   recent `cross-orbit-migration` event if not in the top 3).
-// Row 5 — three independent disclosures:
-//   d1 `Rain impact`: rain-impact stats + per-orbit downlink contrast +
-//      body-header line carrying the K-E6 citation `ITU-R P.618-14 §2.2.1`
-//      so the rain-effect source is reachable without opening another panel.
-//   d2 `All visibility windows`: full sorted list with internal scroll +
-//      CSV download button at the top of the disclosure body.
-//   d3 `Sources + non-claims`: full handover events list + non-claims +
-//      policy citation chain + Mean dwell stat as a small secondary block.
-// Row 6 — footer: dim one-liner `${precisionLabel} · ${sourceTier}`.
-//
-// Style notes:
-// - Each row carries a `data-row="${1|2|3|4|5|6}"` attribute so probes can
-//   assert the layout without leaning on class hierarchies.
-// - Row 5 disclosure bodies expand in flow. The panel root handles wheel
-//   scrolling only when the expanded content exceeds the viewport.
+// The default panel renders only a compact view model derived from
+// RuntimeProjectionResult. Full visibility, handover, and provenance lists stay
+// behind the Evidence action so the panel root can fit without scrolling.
 
+import { JulianDate, type Viewer } from "cesium";
+import "./v4-projection-side-panel.css";
 import {
   buildDefaultTimeWindow,
   buildRuntimeTleSourceParseStats,
@@ -30,28 +13,55 @@ import {
   loadDefaultTleSources,
   parseRuntimeOrbitSources,
   resolveRuntimeHandoverPolicyId,
+  SELECTED_PAIR_DEMO_HANDOVER_POLICY_ID,
   type RuntimeHandoverPolicyId,
   type RuntimeProjectionResult
 } from "./runtime-projection";
 import {
-  buildRuntimeProjectionCsv,
-  buildRuntimeProjectionCsvFilename
-} from "./runtime-projection-csv";
+  buildRuntimeProjectionEvidenceReportFilename,
+  buildRuntimeProjectionEvidenceReportHtml
+} from "./runtime-projection-evidence-report";
 import { createRuntimeProjectionWorkerClient } from "./runtime-projection-worker-client";
+import { buildReplayControlRow } from "./v4-projection-replay-controls";
+import {
+  buildDisclosuresRow,
+  PANEL_EVIDENCE_DRAWER_ID,
+  syncTleTelemetryChip
+} from "./v4-projection-evidence-drawer";
+import {
+  clampPercent,
+  formatCount,
+  formatCountLabel,
+  formatDurationMs,
+  formatIsoSecond,
+  formatIsoShort,
+  formatMbpsValue,
+  formatReasonLabel,
+  formatSatelliteShort,
+  formatSignedPercent,
+  formatSpeedMbps,
+  formatStationPanelName,
+  formatSummaryCountLabel,
+  formatUtcClock,
+  formatUtcClockWithSeconds,
+  formatUtcMidpointClock,
+  sampleEvenly
+} from "./v4-projection-formatters";
 import type {
   OrbitClass,
-  PairVisibilityWindow,
   RuntimeOrbitRecord
 } from "./visibility-utils";
 import type { V4ResolvedStationPair } from "./v4-route-selection";
 
+const PANEL_DECISION_CARD_LIMIT = 3;
+const PANEL_TIMELINE_SEGMENT_LIMIT = 18;
+const PANEL_TIMELINE_TICK_LIMIT = 12;
 const PANEL_ROW4_VISIBILITY_PREVIEW_COUNT = 3;
 const PANEL_ROW4_HANDOVER_PREVIEW_COUNT = 3;
-const PANEL_ROW5_VISIBILITY_MAX_ROWS = 64;
-const PANEL_ROW5_HANDOVER_MAX_ROWS = 64;
 const DEFAULT_DEMO_PROJECTION_DURATION_MINUTES = 360;
 const MIN_DEMO_PROJECTION_DURATION_MINUTES = 20;
-const MAX_DEMO_PROJECTION_DURATION_MINUTES = 480;
+const MAX_DEMO_PROJECTION_DURATION_MINUTES = 1440;
+const DEMO_PROJECTION_DURATION_PRESETS_MINUTES = [360, 720, 1440] as const;
 const START_UTC_PARAM = "startUtc";
 const DURATION_MINUTES_PARAM = "durationMinutes";
 const POLICY_PARAM = "policy";
@@ -65,561 +75,7 @@ const RAIN_RECOMPUTE_DEBOUNCE_MS = 150;
 
 const RAIN_IMPACT_STANDARD_CITATION = "ITU-R P.618-14 §2.2.1";
 
-const PANEL_STYLE_ATTR = "data-v4-projection-side-panel-style";
 
-const PANEL_CSS = `
-/* Five-row panel layout per IA §5. Runtime style is injected after the
-   base stylesheet, so these root rules replace the older fixed-height cap
-   with root scrolling for expanded content. */
-.v4-projection-side-panel {
-  height: auto;
-  max-height: none;
-  overflow-y: auto;
-  overscroll-behavior: contain;
-  pointer-events: auto;
-  scrollbar-gutter: stable;
-  /* Premium glassmorphic container styling and font increase */
-  width: clamp(20rem, 28vw, 24rem);
-  font-family: "IBM Plex Sans", system-ui, -apple-system, sans-serif;
-  font-size: 0.9rem;
-  line-height: 1.45;
-  background: rgba(8, 20, 32, 0.92);
-  border: 1px solid rgba(126, 226, 184, 0.18);
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.65), inset 0 1px 0 rgba(255, 255, 255, 0.05);
-  backdrop-filter: blur(12px);
-  padding: 1.1rem 1.3rem;
-  gap: 0.6rem;
-}
-@media (min-width: 721px) {
-  .v4-projection-side-panel {
-    top: 4rem;
-    max-height: calc(100dvh - 5rem);
-  }
-}
-@media (max-width: 720px) {
-  .v4-projection-side-panel {
-    max-height: 50vh;
-    width: auto;
-  }
-}
-.v4-projection-side-panel__row {
-  display: flex;
-  flex-direction: column;
-  gap: 0.45rem;
-}
-.v4-projection-side-panel__header {
-  display: grid;
-  grid-template-columns: 1fr auto;
-  grid-template-areas:
-    "title  copy"
-    "badge  copy"
-    "window window";
-  align-items: center;
-  column-gap: 0.5rem;
-  row-gap: 0.22rem;
-}
-.v4-projection-side-panel__title {
-  grid-area: title;
-  margin: 0;
-  font-size: 1.15rem;
-  font-weight: 700;
-  letter-spacing: -0.01em;
-  background: linear-gradient(135deg, #ffffff 0%, #a5d6ff 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  min-width: 0;
-}
-.v4-projection-side-panel__tier-badge {
-  grid-area: badge;
-  justify-self: start;
-  max-width: 100%;
-  display: inline-flex;
-  align-items: center;
-  padding: 0.22rem 0.65rem;
-  border-radius: 999px;
-  font-size: 0.72rem;
-  font-weight: 600;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  border: 1px solid transparent;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.v4-projection-side-panel__tier-badge[data-tier="public-disclosed"] {
-  background: rgba(126, 226, 184, 0.14);
-  color: #c9ffe8;
-  border-color: rgba(126, 226, 184, 0.45);
-}
-.v4-projection-side-panel__tier-badge[data-tier="geometric-derived"] {
-  background: rgba(255, 209, 102, 0.12);
-  color: #ffe8a3;
-  border-color: rgba(255, 209, 102, 0.4);
-}
-.v4-projection-side-panel__window {
-  grid-area: window;
-  margin: 0;
-  font-size: 0.82rem;
-  color: rgba(157, 196, 232, 0.9);
-  font-variant-numeric: tabular-nums;
-}
-.v4-projection-side-panel__plain-text-separator {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  overflow: hidden;
-  clip: rect(0 0 0 0);
-  clip-path: inset(50%);
-  white-space: nowrap;
-}
-.v4-projection-side-panel__copy-link {
-  grid-area: copy;
-  align-self: start;
-  width: 2rem;
-  height: 2rem;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0;
-  border-radius: 0.4rem;
-  border: 1px solid rgba(126, 226, 184, 0.32);
-  background: rgba(126, 226, 184, 0.08);
-  color: #c9ffe8;
-  font-size: 0.95rem;
-  cursor: pointer;
-  transition: all 0.15s ease;
-}
-.v4-projection-side-panel__copy-link:hover,
-.v4-projection-side-panel__copy-link:focus-visible {
-  background: rgba(126, 226, 184, 0.18);
-  border-color: rgba(126, 226, 184, 0.55);
-  transform: scale(1.05);
-  outline: none;
-}
-.v4-projection-side-panel__copy-link[data-copied="true"] {
-  background: rgba(255, 209, 102, 0.18);
-  border-color: rgba(255, 209, 102, 0.55);
-  color: #ffd166;
-}
-.v4-projection-side-panel__rain-control {
-  display: flex;
-  flex-direction: column;
-  gap: 0.4rem;
-  padding: 0.65rem 0.85rem;
-  border-radius: 0.5rem;
-  background: rgba(157, 196, 232, 0.04);
-  border: 1px solid rgba(126, 226, 184, 0.15);
-  transition: all 0.2s ease;
-}
-.v4-projection-side-panel__rain-control[data-rain-active="true"] {
-  background: rgba(255, 209, 102, 0.06);
-  border-color: rgba(255, 209, 102, 0.3);
-  box-shadow: 0 0 10px rgba(255, 209, 102, 0.05);
-}
-.v4-projection-side-panel__rain-head {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 0.5rem;
-}
-.v4-projection-side-panel__rain-label {
-  font-size: 0.75rem;
-  font-weight: 600;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  color: rgba(157, 196, 232, 0.85);
-}
-.v4-projection-side-panel__rain-value {
-  font-size: 0.95rem;
-  font-weight: 600;
-  color: #f0f7fb;
-  font-variant-numeric: tabular-nums;
-}
-.v4-projection-side-panel__rain-control[data-rain-active="true"]
-  .v4-projection-side-panel__rain-value {
-  color: #ffd166;
-}
-.v4-projection-side-panel__rain-slider {
-  -webkit-appearance: none;
-  appearance: none;
-  width: 100%;
-  height: 0.35rem;
-  border-radius: 0.35rem;
-  background: rgba(126, 226, 184, 0.22);
-  outline: none;
-  cursor: pointer;
-}
-.v4-projection-side-panel__rain-slider:focus-visible {
-  box-shadow: 0 0 0 2px rgba(126, 226, 184, 0.55);
-}
-.v4-projection-side-panel__rain-slider::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  appearance: none;
-  width: 0.95rem;
-  height: 0.95rem;
-  border-radius: 50%;
-  background: #7ee2b8;
-  border: 2px solid rgba(6, 18, 28, 0.94);
-  cursor: pointer;
-}
-.v4-projection-side-panel__rain-slider::-moz-range-thumb {
-  width: 0.85rem;
-  height: 0.85rem;
-  border-radius: 50%;
-  background: #7ee2b8;
-  border: 2px solid rgba(6, 18, 28, 0.94);
-  cursor: pointer;
-}
-.v4-projection-side-panel__rain-control[data-rain-active="true"]
-  .v4-projection-side-panel__rain-slider::-webkit-slider-thumb {
-  background: #ffd166;
-}
-.v4-projection-side-panel__rain-control[data-rain-active="true"]
-  .v4-projection-side-panel__rain-slider::-moz-range-thumb {
-  background: #ffd166;
-}
-.v4-projection-side-panel__rain-caption {
-  margin: 0;
-  font-size: 0.78rem;
-  color: rgba(157, 196, 232, 0.75);
-  font-variant-numeric: tabular-nums;
-  line-height: 1.4;
-}
-.v4-projection-side-panel__rain-control[data-rain-active="true"]
-  .v4-projection-side-panel__rain-caption {
-  color: rgba(255, 209, 102, 0.9);
-}
-.v4-projection-side-panel__stat {
-  display: flex;
-  flex-direction: column;
-  gap: 0.2rem;
-  padding: 0.6rem 0.8rem;
-  border-radius: 0.5rem;
-  background: linear-gradient(135deg, rgba(126, 226, 184, 0.08) 0%, rgba(126, 226, 184, 0.02) 100%);
-  border: 1px solid rgba(126, 226, 184, 0.18);
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-  transition: all 0.2s ease;
-}
-.v4-projection-side-panel__stat:hover {
-  border-color: rgba(126, 226, 184, 0.35);
-  transform: translateY(-1px);
-}
-.v4-projection-side-panel__stat-label {
-  font-size: 0.72rem;
-  font-weight: 600;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: rgba(157, 196, 232, 0.85);
-}
-.v4-projection-side-panel__stat-value {
-  font-size: 1.25rem;
-  font-weight: 700;
-  color: #ffffff;
-  font-variant-numeric: tabular-nums;
-}
-.v4-projection-side-panel__stat[data-modifier="rain-degraded"] {
-  background: linear-gradient(135deg, rgba(255, 209, 102, 0.12) 0%, rgba(255, 209, 102, 0.04) 100%);
-  border-color: rgba(255, 209, 102, 0.32);
-  box-shadow: 0 4px 10px rgba(255, 209, 102, 0.05);
-}
-.v4-projection-side-panel__stat[data-modifier="rain-degraded"]
-  .v4-projection-side-panel__stat-value {
-  color: #ffd166;
-}
-.v4-projection-side-panel__compare-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0.5rem;
-}
-.v4-projection-side-panel__compare-pane {
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 0.32rem;
-}
-.v4-projection-side-panel__compare-title {
-  margin: 0;
-  font-size: 0.72rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: rgba(157, 196, 232, 0.82);
-}
-.v4-projection-side-panel__compare-delta {
-  font-size: 0.72rem;
-  color: rgba(157, 196, 232, 0.8);
-}
-.v4-projection-side-panel__compare-delta[data-direction="up"] {
-  color: #7ee2b8;
-}
-.v4-projection-side-panel__compare-delta[data-direction="down"] {
-  color: #ff8b8b;
-}
-.v4-projection-side-panel__list-item[data-modifier="cross-orbit-migration"] {
-  border-left: 3px solid #c9a0ff;
-  padding-left: 0.55rem;
-  background: rgba(201, 160, 255, 0.07);
-}
-.v4-projection-side-panel__list-item[data-modifier="cross-orbit-migration"]
-  .v4-projection-side-panel__list-secondary {
-  color: #c9a0ff;
-  font-weight: 600;
-}
-.v4-projection-side-panel__list-count {
-  margin: 0;
-  font-size: 0.76rem;
-  color: rgba(157, 196, 232, 0.8);
-  font-variant-numeric: tabular-nums;
-  margin-bottom: 0.15rem;
-}
-.v4-projection-side-panel__summary-section {
-  display: flex;
-  flex-direction: column;
-  gap: 0.32rem;
-}
-.v4-projection-side-panel__summary-heading {
-  margin: 0;
-  font-size: 0.8rem;
-  font-weight: 600;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  color: rgba(221, 233, 241, 0.85);
-}
-[data-row="4"] .v4-projection-side-panel__list {
-  gap: 0.32rem;
-}
-[data-row="4"] .v4-projection-side-panel__list-item {
-  padding: 0.4rem 0.65rem;
-  border-radius: 0.4rem;
-  background: rgba(157, 196, 232, 0.05);
-  border: 1px solid rgba(157, 196, 232, 0.08);
-  transition: all 0.2s ease;
-}
-[data-row="4"] .v4-projection-side-panel__list-item:hover {
-  background: rgba(157, 196, 232, 0.08);
-  border-color: rgba(157, 196, 232, 0.18);
-}
-[data-row="4"] .v4-projection-side-panel__list-primary {
-  font-size: 0.85rem;
-  line-height: 1.3;
-  font-weight: 600;
-  color: #f0f7fb;
-}
-[data-row="4"] .v4-projection-side-panel__list-secondary {
-  font-size: 0.76rem;
-  line-height: 1.3;
-  color: rgba(157, 196, 232, 0.8);
-}
-.v4-projection-side-panel__details + .v4-projection-side-panel__details {
-  margin-top: 0.4rem;
-}
-/* Row 5 disclosures expand in normal flow. The panel may grow taller than
-   the viewport; do not squeeze disclosure bodies into a fixed-height shell. */
-.v4-projection-side-panel [data-row="4"] {
-  flex: 0 0 auto;
-  min-height: auto;
-}
-.v4-projection-side-panel:has([data-row="5"] details[open]) [data-row="4"] {
-  flex: 0 0 auto;
-  min-height: auto;
-  overflow: visible;
-}
-.v4-projection-side-panel [data-row="5"] {
-  flex: 0 0 auto;
-  min-height: auto;
-}
-.v4-projection-side-panel:has([data-row="5"] details[open]) [data-row="5"] {
-  flex: 0 0 auto;
-  min-height: auto;
-  display: flex;
-  flex-direction: column;
-}
-.v4-projection-side-panel [data-row="5"] > .v4-projection-side-panel__details {
-  flex: 0 0 auto;
-}
-.v4-projection-side-panel [data-row="5"] > .v4-projection-side-panel__details[open] {
-  flex: 0 0 auto;
-  min-height: auto;
-  position: static;
-  overflow: visible;
-}
-.v4-projection-side-panel [data-row="5"] > .v4-projection-side-panel__details[open]
-  > .v4-projection-side-panel__details-summary {
-  position: relative;
-  z-index: 1;
-}
-.v4-projection-side-panel [data-row="5"] > .v4-projection-side-panel__details[open]
-  > .v4-projection-side-panel__details-body {
-  position: static;
-  overflow: visible;
-}
-.v4-projection-side-panel__details-body--scroll {
-  max-height: none;
-  overflow: visible;
-}
-.v4-projection-side-panel [data-row="5"] > .v4-projection-side-panel__details[open]
-  > .v4-projection-side-panel__details-body--scroll {
-  max-height: none;
-}
-.v4-projection-side-panel__citation {
-  margin: 0;
-  font-size: 0.78rem;
-  color: rgba(157, 196, 232, 0.85);
-  font-variant-numeric: tabular-nums;
-  font-weight: 500;
-}
-.v4-projection-side-panel__download-csv {
-  width: 100%;
-  min-height: 2.2rem;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0.5rem 0.8rem;
-  border-radius: 0.4rem;
-  border: 1px solid rgba(126, 226, 184, 0.32);
-  background: rgba(126, 226, 184, 0.1);
-  color: #e6f7f1;
-  font: inherit;
-  font-size: 0.85rem;
-  font-weight: 600;
-  letter-spacing: 0.02em;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-.v4-projection-side-panel__download-csv:hover {
-  background: rgba(126, 226, 184, 0.16);
-  border-color: rgba(126, 226, 184, 0.48);
-  box-shadow: 0 4px 12px rgba(126, 226, 184, 0.15);
-}
-.v4-projection-side-panel__download-csv:focus-visible {
-  outline: none;
-  box-shadow: 0 0 0 2px rgba(126, 226, 184, 0.55);
-}
-.v4-projection-side-panel__footer {
-  margin: 0;
-  padding-top: 0.5rem;
-  border-top: 1px solid rgba(157, 196, 232, 0.16);
-  font-size: 0.76rem;
-  color: rgba(157, 196, 232, 0.72);
-  font-variant-numeric: tabular-nums;
-  letter-spacing: 0.03em;
-}
-.v4-projection-side-panel__mean-dwell {
-  display: flex;
-  flex-direction: column;
-  gap: 0.15rem;
-  padding: 0.45rem 0.65rem;
-  border-radius: 0.4rem;
-  background: rgba(157, 196, 232, 0.06);
-}
-.v4-projection-side-panel__mean-dwell-label {
-  font-size: 0.72rem;
-  font-weight: 600;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: rgba(157, 196, 232, 0.75);
-}
-.v4-projection-side-panel__mean-dwell-value {
-  font-size: 0.92rem;
-  font-weight: 600;
-  color: #f0f7fb;
-  font-variant-numeric: tabular-nums;
-}
-
-/* Premium accordion and chevron rules */
-.v4-projection-side-panel__details {
-  border-radius: 0.5rem;
-  border: 1px solid rgba(126, 226, 184, 0.18);
-  background: rgba(126, 226, 184, 0.03);
-  margin-bottom: 0.4rem;
-  transition: border-color 0.2s ease, background-color 0.2s ease;
-}
-.v4-projection-side-panel__details:hover {
-  border-color: rgba(126, 226, 184, 0.32);
-  background: rgba(126, 226, 184, 0.05);
-}
-.v4-projection-side-panel__details-summary {
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: #e6f7f1;
-  padding: 0.5rem 0.8rem;
-  position: relative;
-  cursor: pointer;
-  list-style: none;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-.v4-projection-side-panel__details-summary::-webkit-details-marker {
-  display: none;
-}
-.v4-projection-side-panel__details-summary::after {
-  content: "";
-  width: 0.45rem;
-  height: 0.45rem;
-  border-right: 2px solid rgba(126, 226, 184, 0.8);
-  border-bottom: 2px solid rgba(126, 226, 184, 0.8);
-  transform: rotate(45deg);
-  transition: transform 0.2s ease;
-  margin-left: 0.5rem;
-  flex-shrink: 0;
-}
-.v4-projection-side-panel__details[open] .v4-projection-side-panel__details-summary::after {
-  transform: rotate(-135deg);
-}
-
-/* Monospace systems engineering terminal blocks for the Sources + non-claims disclosures */
-.v4-projection-side-panel__details[data-disclosure="sources-non-claims"] .v4-projection-side-panel__section {
-  background: rgba(4, 12, 20, 0.6);
-  border: 1px solid rgba(157, 196, 232, 0.15);
-  border-radius: 0.4rem;
-  padding: 0.65rem 0.85rem;
-  margin-bottom: 0.5rem;
-}
-.v4-projection-side-panel__details[data-disclosure="sources-non-claims"] .v4-projection-side-panel__section-title {
-  font-size: 0.8rem;
-  font-family: "IBM Plex Mono", monospace;
-  color: #7ee2b8;
-  border-bottom: 1px solid rgba(126, 226, 184, 0.15);
-  padding-bottom: 0.25rem;
-  margin-bottom: 0.35rem;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  font-weight: 600;
-}
-.v4-projection-side-panel__details[data-disclosure="sources-non-claims"] .v4-projection-side-panel__non-claim-list {
-  font-family: "IBM Plex Mono", monospace;
-  font-size: 0.74rem;
-  color: #a5d6ff;
-  background: rgba(2, 6, 12, 0.7);
-  border-left: 2px solid #ff8b8b;
-  padding: 0.5rem 0.6rem 0.5rem 1.4rem;
-  border-radius: 0.2rem;
-  margin: 0;
-}
-.v4-projection-side-panel__details[data-disclosure="sources-non-claims"] .v4-projection-side-panel__section[data-station-coordinate-source-disclosure="true"] .v4-projection-side-panel__non-claim-list {
-  border-left-color: #ffd166;
-}
-.v4-projection-side-panel__details[data-disclosure="sources-non-claims"] .v4-projection-side-panel__section[data-cap-disclosure="true"] .v4-projection-side-panel__non-claim-list {
-  border-left-color: #7ee2b8;
-}
-.v4-projection-side-panel__details[data-disclosure="sources-non-claims"] .v4-projection-side-panel__section[data-metric-anchor-disclosure="true"] .v4-projection-side-panel__non-claim-list {
-  border-left-color: #c9a0ff;
-}
-`;
-
-function injectPanelStyleOnce(): void {
-  if (document.head.querySelector(`[${PANEL_STYLE_ATTR}="true"]`)) {
-    return;
-  }
-  const style = document.createElement("style");
-  style.setAttribute(PANEL_STYLE_ATTR, "true");
-  style.textContent = PANEL_CSS;
-  document.head.appendChild(style);
-}
 
 function createPanelShell(): HTMLElement {
   const root = document.createElement("aside");
@@ -630,31 +86,16 @@ function createPanelShell(): HTMLElement {
   return root;
 }
 
-function bindPanelWheelScroll(root: HTMLElement): () => void {
-  const onWheel = (event: WheelEvent): void => {
-    const maxScrollTop = root.scrollHeight - root.clientHeight;
-    if (maxScrollTop <= 0) {
-      return;
-    }
+function removeEvidenceDrawer(ownerDocument: Document): void {
+  ownerDocument.getElementById(PANEL_EVIDENCE_DRAWER_ID)?.remove();
+}
 
-    const before = root.scrollTop;
-    const next = Math.min(Math.max(before + event.deltaY, 0), maxScrollTop);
-    if (next === before) {
-      return;
-    }
-
-    root.scrollTop = next;
-    event.preventDefault();
-    event.stopPropagation();
-  };
-
-  root.addEventListener("wheel", onWheel, { passive: false });
-  return () => {
-    root.removeEventListener("wheel", onWheel);
-  };
+function bindPanelWheelScroll(): () => void {
+  return () => undefined;
 }
 
 function renderLoading(root: HTMLElement, pair: V4ResolvedStationPair): void {
+  removeEvidenceDrawer(root.ownerDocument);
   root.replaceChildren();
   root.dataset.state = "loading";
 
@@ -670,6 +111,7 @@ function renderLoading(root: HTMLElement, pair: V4ResolvedStationPair): void {
 }
 
 function renderError(root: HTMLElement, message: string): void {
+  removeEvidenceDrawer(root.ownerDocument);
   root.replaceChildren();
   root.dataset.state = "error";
 
@@ -684,58 +126,51 @@ function renderError(root: HTMLElement, message: string): void {
   root.append(title, status);
 }
 
-function formatDurationMs(ms: number): string {
-  if (ms <= 0) {
-    return "0s";
-  }
-  const totalSec = Math.round(ms / 1000);
-  if (totalSec < 60) {
-    return `${totalSec}s`;
-  }
-  const minutes = Math.floor(totalSec / 60);
-  const sec = totalSec - minutes * 60;
-  return sec === 0 ? `${minutes}m` : `${minutes}m ${sec}s`;
+interface PanelTimelineSegment {
+  readonly satelliteId: string;
+  readonly orbitClass: OrbitClass;
+  readonly startUtc: string;
+  readonly endUtc: string;
+  readonly startPercent: number;
+  readonly widthPercent: number;
+  readonly modifier: string | null;
 }
 
-function formatIsoShort(iso: string): string {
-  const ms = Date.parse(iso);
-  if (!Number.isFinite(ms)) {
-    return iso;
-  }
-  const normalized = new Date(ms).toISOString();
-  return `${normalized.slice(0, 10)} ${normalized.slice(11, 19)}Z`;
+interface PanelTimelineTick {
+  readonly handoverAtUtc: string;
+  readonly leftPercent: number;
+  readonly modifier: string | null;
+  readonly label: string;
 }
 
-function formatIsoSecond(iso: string): string {
-  const ms = Date.parse(iso);
-  if (!Number.isFinite(ms)) {
-    return iso;
-  }
-  return `${new Date(ms).toISOString().slice(0, 19)}Z`;
+
+interface PanelDecisionCard {
+  readonly label: string;
+  readonly timeLabel: string;
+  readonly primary: string;
+  readonly secondary: string;
+  readonly modifier: string | null;
 }
 
-function formatStationPanelName(name: string): string {
-  return name
-    .replace(/\s*\([^)]*\)/g, "")
-    .replace(/\bSatellite Station\b/g, "")
-    .trim();
-}
-
-function formatCountLabel(count: number, singular: string, plural: string): string {
-  return `${count} ${count === 1 ? singular : plural}`;
-}
-
-function formatSummaryCountLabel(
-  count: number,
-  previewLimit: number,
-  singular: string,
-  plural: string
-): string {
-  const base = formatCountLabel(count, singular, plural);
-  if (count === 0) {
-    return base;
-  }
-  return `${base} · showing next ${Math.min(count, previewLimit)}`;
+interface SelectedPairPanelViewModel {
+  readonly pairLabel: string;
+  readonly sourceBadge: string;
+  readonly windowLabel: string;
+  readonly timeWindowStartUtc: string;
+  readonly timeWindowEndUtc: string;
+  readonly durationMinutes: number;
+  readonly durationLabel: string;
+  readonly timelineAxisStartLabel: string;
+  readonly timelineAxisMidLabel: string;
+  readonly timelineAxisEndLabel: string;
+  readonly availabilityLabel: string;
+  readonly handoverCountLabel: string;
+  readonly nextLinkLabel: string;
+  readonly timelineSummary: string;
+  readonly timelineSegments: ReadonlyArray<PanelTimelineSegment>;
+  readonly timelineTicks: ReadonlyArray<PanelTimelineTick>;
+  readonly decisionCards: ReadonlyArray<PanelDecisionCard>;
+  readonly conciseBoundary: string;
 }
 
 function buildPlainTextSeparator(): HTMLSpanElement {
@@ -753,6 +188,25 @@ function clampDurationMinutes(value: number): number {
     Math.max(Math.round(value), MIN_DEMO_PROJECTION_DURATION_MINUTES),
     MAX_DEMO_PROJECTION_DURATION_MINUTES
   );
+}
+
+function formatDurationPresetLabel(durationMinutes: number): string {
+  return durationMinutes % 60 === 0
+    ? `${durationMinutes / 60}h`
+    : `${durationMinutes}m`;
+}
+
+function syncDurationMinutesParam(durationMinutes: number): void {
+  if (typeof window === "undefined") {
+    return;
+  }
+  const url = new URL(window.location.href);
+  if (durationMinutes === DEFAULT_DEMO_PROJECTION_DURATION_MINUTES) {
+    url.searchParams.delete(DURATION_MINUTES_PARAM);
+  } else {
+    url.searchParams.set(DURATION_MINUTES_PARAM, String(durationMinutes));
+  }
+  window.history.replaceState(window.history.state, "", `${url.pathname}${url.search}${url.hash}`);
 }
 
 function resolveProjectionTimeWindowAndDuration(): {
@@ -784,7 +238,9 @@ function resolveProjectionPolicyId(): RuntimeHandoverPolicyId {
     typeof window === "undefined"
       ? new URLSearchParams()
       : new URLSearchParams(window.location.search);
-  return resolveRuntimeHandoverPolicyId(search.get(POLICY_PARAM));
+  return resolveRuntimeHandoverPolicyId(
+    search.get(POLICY_PARAM) ?? SELECTED_PAIR_DEMO_HANDOVER_POLICY_ID
+  );
 }
 
 function resolveProjectionCompareMode(): CompareMode {
@@ -863,21 +319,15 @@ function buildCompareStatBlock(
   return block;
 }
 
-function formatCount(value: number): string {
-  return String(Math.round(value));
-}
-
-function formatMbpsValue(value: number): string {
-  return `${(Math.round(value * 10) / 10).toFixed(1)} Mbps`;
-}
-
-function downloadRuntimeProjectionCsv(result: RuntimeProjectionResult): void {
-  const csv = buildRuntimeProjectionCsv(result);
-  const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+function downloadRuntimeProjectionEvidenceReport(
+  result: RuntimeProjectionResult
+): void {
+  const html = buildRuntimeProjectionEvidenceReportHtml(result);
+  const blob = new Blob([html], { type: "text/html;charset=utf-8" });
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
   link.href = url;
-  link.download = buildRuntimeProjectionCsvFilename(result);
+  link.download = buildRuntimeProjectionEvidenceReportFilename(result);
   link.style.display = "none";
   document.body.appendChild(link);
   try {
@@ -888,38 +338,441 @@ function downloadRuntimeProjectionCsv(result: RuntimeProjectionResult): void {
   }
 }
 
-function buildDownloadCsvButton(result: RuntimeProjectionResult): HTMLButtonElement {
+function buildDownloadEvidenceReportButton(
+  result: RuntimeProjectionResult,
+  label = "Download evidence report"
+): HTMLButtonElement {
   const button = document.createElement("button");
   button.type = "button";
-  button.className = "v4-projection-side-panel__download-csv";
-  button.textContent = "Download CSV";
+  button.className = "v4-projection-side-panel__download-report";
+  button.textContent = label;
+  button.setAttribute("aria-label", "Download evidence report");
   button.addEventListener("click", () => {
-    downloadRuntimeProjectionCsv(result);
+    downloadRuntimeProjectionEvidenceReport(result);
   });
   return button;
 }
 
-function formatSignedPercent(fraction: number): string {
-  const pct = fraction * 100;
-  const rounded = Math.round(pct * 10) / 10;
-  if (rounded === 0) {
-    return "0%";
-  }
-  const sign = rounded > 0 ? "+" : "−";
-  return `${sign}${Math.abs(rounded)}%`;
-}
-
-function formatSpeedMbps(mbps: number): string {
-  if (mbps >= 100) {
-    return `${Math.round(mbps)} Mbps`;
-  }
-  if (mbps >= 10) {
-    return `${(Math.round(mbps * 10) / 10).toFixed(1)} Mbps`;
-  }
-  return `${(Math.round(mbps * 100) / 100).toFixed(2)} Mbps`;
-}
-
 const ORBIT_DISPLAY_ORDER: ReadonlyArray<OrbitClass> = ["LEO", "MEO", "GEO"];
+
+function resolveSourceBadgeLabel(
+  attribution: RuntimeProjectionResult["dataCompleteness"]["pairSourceAttribution"]
+): string {
+  if (attribution.sourceTier === "public-disclosed") {
+    return "Public source";
+  }
+  if (attribution.evidenceKind === "same-operator-family-inferred") {
+    return "Same-family inferred";
+  }
+  return "Geometry only";
+}
+
+function resolveSatelliteOrbitClass(
+  result: RuntimeProjectionResult,
+  satelliteId: string
+): OrbitClass {
+  const windowOrbit = result.visibilityWindows.find(
+    (entry) => entry.satelliteId === satelliteId
+  )?.orbitClass;
+  if (windowOrbit) {
+    return windowOrbit;
+  }
+  for (const orbit of ORBIT_DISPLAY_ORDER) {
+    if (
+      result.visibleConstellations[orbit].some(
+        (entry) => entry.satelliteId === satelliteId
+      )
+    ) {
+      return orbit;
+    }
+  }
+  return result.sharedSupportedOrbits[0] ?? "LEO";
+}
+
+function createTimelineSegment(
+  result: RuntimeProjectionResult,
+  satelliteId: string,
+  startUtc: string,
+  endUtc: string,
+  modifier: string | null
+): PanelTimelineSegment | null {
+  const windowStartMs = Date.parse(result.timeWindow.startUtc);
+  const windowEndMs = Date.parse(result.timeWindow.endUtc);
+  const startMs = Math.max(Date.parse(startUtc), windowStartMs);
+  const endMs = Math.min(Date.parse(endUtc), windowEndMs);
+  const windowDurationMs = windowEndMs - windowStartMs;
+  if (
+    !Number.isFinite(startMs) ||
+    !Number.isFinite(endMs) ||
+    !Number.isFinite(windowDurationMs) ||
+    windowDurationMs <= 0 ||
+    endMs <= startMs
+  ) {
+    return null;
+  }
+  const startPercent = clampPercent(
+    ((startMs - windowStartMs) / windowDurationMs) * 100
+  );
+  const endPercent = clampPercent(
+    ((endMs - windowStartMs) / windowDurationMs) * 100
+  );
+  return {
+    satelliteId,
+    orbitClass: resolveSatelliteOrbitClass(result, satelliteId),
+    startUtc: new Date(startMs).toISOString(),
+    endUtc: new Date(endMs).toISOString(),
+    startPercent,
+    widthPercent: Math.max(0.2, endPercent - startPercent),
+    modifier
+  };
+}
+
+function mergeTimelineSegments(
+  segments: ReadonlyArray<PanelTimelineSegment>
+): ReadonlyArray<PanelTimelineSegment> {
+  const merged: PanelTimelineSegment[] = [];
+  for (const segment of segments) {
+    const previous = merged[merged.length - 1];
+    if (
+      previous &&
+      previous.orbitClass === segment.orbitClass &&
+      previous.modifier === null &&
+      segment.modifier === null &&
+      Date.parse(segment.startUtc) - Date.parse(previous.endUtc) <= 90_000
+    ) {
+      merged[merged.length - 1] = {
+        ...previous,
+        endUtc: segment.endUtc,
+        widthPercent:
+          segment.startPercent + segment.widthPercent - previous.startPercent
+      };
+      continue;
+    }
+    merged.push(segment);
+  }
+  return merged;
+}
+
+function compressTimelineSegmentsForOverview(
+  result: RuntimeProjectionResult,
+  segments: ReadonlyArray<PanelTimelineSegment>
+): ReadonlyArray<PanelTimelineSegment> {
+  const merged = mergeTimelineSegments(segments);
+  if (merged.length <= PANEL_TIMELINE_SEGMENT_LIMIT) {
+    return merged;
+  }
+
+  const windowStartMs = Date.parse(result.timeWindow.startUtc);
+  const windowEndMs = Date.parse(result.timeWindow.endUtc);
+  const windowDurationMs = windowEndMs - windowStartMs;
+  if (
+    !Number.isFinite(windowStartMs) ||
+    !Number.isFinite(windowEndMs) ||
+    windowDurationMs <= 0
+  ) {
+    return sampleEvenly(merged, PANEL_TIMELINE_SEGMENT_LIMIT);
+  }
+
+  const compressed: PanelTimelineSegment[] = [];
+  for (let index = 0; index < PANEL_TIMELINE_SEGMENT_LIMIT; index += 1) {
+    const binStartMs =
+      windowStartMs + (windowDurationMs * index) / PANEL_TIMELINE_SEGMENT_LIMIT;
+    const binEndMs =
+      windowStartMs +
+      (windowDurationMs * (index + 1)) / PANEL_TIMELINE_SEGMENT_LIMIT;
+    const overlapByOrbit: Record<OrbitClass, number> = {
+      LEO: 0,
+      MEO: 0,
+      GEO: 0
+    };
+    const overlapBySatellite = new Map<string, number>();
+
+    for (const segment of merged) {
+      const segmentStartMs = Date.parse(segment.startUtc);
+      const segmentEndMs = Date.parse(segment.endUtc);
+      if (!Number.isFinite(segmentStartMs) || !Number.isFinite(segmentEndMs)) {
+        continue;
+      }
+      const overlapMs =
+        Math.min(binEndMs, segmentEndMs) -
+        Math.max(binStartMs, segmentStartMs);
+      if (overlapMs <= 0) {
+        continue;
+      }
+      overlapByOrbit[segment.orbitClass] += overlapMs;
+      const satelliteKey = `${segment.orbitClass}\u0000${segment.satelliteId}`;
+      overlapBySatellite.set(
+        satelliteKey,
+        (overlapBySatellite.get(satelliteKey) ?? 0) + overlapMs
+      );
+    }
+
+    const orbitClass = ORBIT_DISPLAY_ORDER.reduce((best, orbit) =>
+      overlapByOrbit[orbit] > overlapByOrbit[best] ? orbit : best
+    );
+    if (overlapByOrbit[orbitClass] <= 0) {
+      continue;
+    }
+
+    let satelliteId = "";
+    let satelliteOverlapMs = -1;
+    for (const [key, overlapMs] of overlapBySatellite.entries()) {
+      const [orbit, candidateSatelliteId] = key.split("\u0000");
+      if (orbit !== orbitClass || overlapMs <= satelliteOverlapMs) {
+        continue;
+      }
+      satelliteId = candidateSatelliteId;
+      satelliteOverlapMs = overlapMs;
+    }
+
+    if (!satelliteId) {
+      continue;
+    }
+
+    const startPercent = clampPercent(
+      ((binStartMs - windowStartMs) / windowDurationMs) * 100
+    );
+    const endPercent = clampPercent(
+      ((binEndMs - windowStartMs) / windowDurationMs) * 100
+    );
+    compressed.push({
+      satelliteId,
+      orbitClass,
+      startUtc: new Date(binStartMs).toISOString(),
+      endUtc: new Date(binEndMs).toISOString(),
+      startPercent,
+      widthPercent: Math.max(0.2, endPercent - startPercent),
+      modifier: null
+    });
+  }
+
+  return mergeTimelineSegments(compressed);
+}
+
+function buildTimelineSegments(
+  result: RuntimeProjectionResult
+): ReadonlyArray<PanelTimelineSegment> {
+  const sortedEvents = [...result.handoverEvents].sort(
+    (a, b) => Date.parse(a.handoverAtUtc) - Date.parse(b.handoverAtUtc)
+  );
+  const segments: PanelTimelineSegment[] = [];
+
+  if (sortedEvents.length > 0) {
+    for (let index = 0; index < sortedEvents.length; index += 1) {
+      const event = sortedEvents[index];
+      const nextEvent = sortedEvents[index + 1] ?? null;
+      const segment = createTimelineSegment(
+        result,
+        event.toSatelliteId,
+        event.handoverAtUtc,
+        nextEvent?.handoverAtUtc ?? result.timeWindow.endUtc,
+        null
+      );
+      if (segment) {
+        segments.push(segment);
+      }
+    }
+  } else {
+    const windows = [...result.visibilityWindows].sort(
+      (a, b) =>
+        Date.parse(a.intersectionStartUtc) -
+        Date.parse(b.intersectionStartUtc)
+    );
+    for (const windowEntry of windows) {
+      const segment = createTimelineSegment(
+        result,
+        windowEntry.satelliteId,
+        windowEntry.intersectionStartUtc,
+        windowEntry.intersectionEndUtc,
+        null
+      );
+      if (segment) {
+        segments.push(segment);
+      }
+    }
+  }
+
+  return compressTimelineSegmentsForOverview(result, segments);
+}
+
+function buildTimelineTicks(
+  result: RuntimeProjectionResult
+): ReadonlyArray<PanelTimelineTick> {
+  const windowStartMs = Date.parse(result.timeWindow.startUtc);
+  const windowEndMs = Date.parse(result.timeWindow.endUtc);
+  const windowDurationMs = windowEndMs - windowStartMs;
+  if (!Number.isFinite(windowDurationMs) || windowDurationMs <= 0) {
+    return [];
+  }
+  const sorted = [...result.handoverEvents]
+    .filter((event) => event.fromSatelliteId !== null)
+    .sort((a, b) => Date.parse(a.handoverAtUtc) - Date.parse(b.handoverAtUtc));
+  const sampled = [...sampleEvenly(sorted, PANEL_TIMELINE_TICK_LIMIT)];
+  const crossOrbit = sorted.find(
+    (event) => event.reasonKind === "cross-orbit-migration"
+  );
+  if (
+    crossOrbit &&
+    !sampled.some((event) => event.handoverAtUtc === crossOrbit.handoverAtUtc)
+  ) {
+    sampled.splice(Math.max(sampled.length - 1, 0), 1, crossOrbit);
+  }
+  return sampled
+    .sort((a, b) => Date.parse(a.handoverAtUtc) - Date.parse(b.handoverAtUtc))
+    .map((event) => {
+      const eventMs = Date.parse(event.handoverAtUtc);
+      return {
+        handoverAtUtc: event.handoverAtUtc,
+        leftPercent: clampPercent(
+          ((eventMs - windowStartMs) / windowDurationMs) * 100
+        ),
+        modifier: null,
+        label: `${formatUtcClockWithSeconds(event.handoverAtUtc)} UTC · ${formatReasonLabel(event.reasonKind, event.fromSatelliteId)}`
+      };
+    });
+}
+
+function buildDecisionCards(
+  result: RuntimeProjectionResult
+): ReadonlyArray<PanelDecisionCard> {
+  const sortedEvents = [...result.handoverEvents].sort(
+    (a, b) => Date.parse(a.handoverAtUtc) - Date.parse(b.handoverAtUtc)
+  );
+  const cards: PanelDecisionCard[] = [];
+  const pushEventCard = (
+    label: string,
+    event: RuntimeProjectionResult["handoverEvents"][number] | null
+  ): void => {
+    if (!event) {
+      return;
+    }
+    const modifier =
+      event.reasonKind === "cross-orbit-migration"
+        ? "cross-orbit-migration"
+        : null;
+    const fromLabel = formatSatelliteShort(event.fromSatelliteId);
+    const toLabel = formatSatelliteShort(event.toSatelliteId);
+    cards.push({
+      label,
+      timeLabel: `${formatUtcClockWithSeconds(event.handoverAtUtc)} UTC`,
+      primary:
+        event.fromSatelliteId === null
+          ? `Use ${toLabel}`
+          : `${fromLabel} -> ${toLabel}`,
+      secondary: `${resolveSatelliteOrbitClass(result, event.toSatelliteId)} · ${formatReasonLabel(event.reasonKind, event.fromSatelliteId)}`,
+      modifier
+    });
+  };
+
+  if (sortedEvents.length === 0) {
+    const firstWindow = [...result.visibilityWindows].sort(
+      (a, b) =>
+        Date.parse(a.intersectionStartUtc) -
+        Date.parse(b.intersectionStartUtc)
+    )[0];
+    if (firstWindow) {
+      cards.push({
+        label: "Start link",
+        timeLabel: `${formatUtcClockWithSeconds(firstWindow.intersectionStartUtc)} UTC`,
+        primary: `${formatSatelliteShort(firstWindow.satelliteId)} · ${firstWindow.orbitClass}`,
+        secondary: `${formatDurationMs(Date.parse(firstWindow.intersectionEndUtc) - Date.parse(firstWindow.intersectionStartUtc))} mutual visibility`,
+        modifier: null
+      });
+    } else {
+      cards.push({
+        label: "No link",
+        timeLabel: "No link",
+        primary: "No mutual visibility",
+        secondary:
+          result.dataCompleteness.emptyReasonCode ??
+          "No shared satellite window in this projection.",
+        modifier: null
+      });
+    }
+    return cards;
+  }
+
+  pushEventCard("Start link", sortedEvents[0] ?? null);
+  pushEventCard(
+    "Next handover",
+    sortedEvents.find((event) => event.fromSatelliteId !== null) ?? null
+  );
+  pushEventCard(
+    "Cross-orbit",
+    sortedEvents.find((event) => event.reasonKind === "cross-orbit-migration") ??
+      null
+  );
+
+  const seen = new Set<string>();
+  return cards.filter((card) => {
+    const key = `${card.timeLabel}|${card.primary}`;
+    if (seen.has(key)) {
+      return false;
+    }
+    seen.add(key);
+    return true;
+  }).slice(0, PANEL_DECISION_CARD_LIMIT);
+}
+
+function buildSelectedPairPanelViewModel(
+  pair: V4ResolvedStationPair,
+  result: RuntimeProjectionResult,
+  durationMinutes: number
+): SelectedPairPanelViewModel {
+  const sortedEvents = [...result.handoverEvents].sort(
+    (a, b) => Date.parse(a.handoverAtUtc) - Date.parse(b.handoverAtUtc)
+  );
+  const nextEvent =
+    sortedEvents.find((event) => event.fromSatelliteId !== null) ??
+    sortedEvents[0] ??
+    null;
+  const firstWindow = [...result.visibilityWindows].sort(
+    (a, b) =>
+      Date.parse(a.intersectionStartUtc) -
+      Date.parse(b.intersectionStartUtc)
+  )[0];
+  const attribution = result.dataCompleteness.pairSourceAttribution;
+  const sourceBadge = resolveSourceBadgeLabel(attribution);
+  const durationLabel = formatDurationPresetLabel(durationMinutes);
+  const windowLabel = `${formatUtcClock(result.timeWindow.startUtc)}-${formatUtcClock(result.timeWindow.endUtc)} UTC · ${durationLabel}`;
+  const timelineSegments = buildTimelineSegments(result);
+  const handoverCount = result.communicationStats.handoverCount;
+
+  return {
+    pairLabel: `${formatStationPanelName(pair.stationA.name)} ↔ ${formatStationPanelName(pair.stationB.name)}`,
+    sourceBadge,
+    windowLabel,
+    timeWindowStartUtc: result.timeWindow.startUtc,
+    timeWindowEndUtc: result.timeWindow.endUtc,
+    durationMinutes,
+    durationLabel,
+    timelineAxisStartLabel: formatUtcClock(result.timeWindow.startUtc),
+    timelineAxisMidLabel: formatUtcMidpointClock(
+      result.timeWindow.startUtc,
+      result.timeWindow.endUtc
+    ),
+    timelineAxisEndLabel: formatUtcClock(result.timeWindow.endUtc),
+    availabilityLabel: formatDurationMs(
+      result.communicationStats.totalCommunicatingMs
+    ),
+    handoverCountLabel: String(handoverCount),
+    nextLinkLabel: nextEvent
+      ? formatSatelliteShort(nextEvent.toSatelliteId)
+      : firstWindow
+      ? formatSatelliteShort(firstWindow.satelliteId)
+      : "No mutual link",
+    timelineSummary:
+      result.visibilityWindows.length === 0
+        ? result.dataCompleteness.emptyReasonCode ?? "No pair intersection"
+        : `${formatCountLabel(result.visibilityWindows.length, "window", "windows")} · ${formatCountLabel(result.handoverEvents.length, "event", "events")}`,
+    timelineSegments,
+    timelineTicks: buildTimelineTicks(result),
+    decisionCards: buildDecisionCards(result),
+    conciseBoundary:
+      result.truthBoundary.nonClaims[0] ??
+      `${result.truthBoundary.precisionLabel} · ${sourceBadge}`
+  };
+}
 
 type CompareMode = typeof PRE_WAVE2_COMPARE_MODE | null;
 
@@ -1111,102 +964,19 @@ function buildRainSpeedComparison(
 
     const primary = document.createElement("span");
     primary.className = "v4-projection-side-panel__list-primary";
-    primary.textContent = `${orbit} downlink  ${formatSpeedMbps(clear.networkSpeedMbps)} → ${formatSpeedMbps(wet.networkSpeedMbps)}`;
+    primary.textContent = `${orbit} ${formatSpeedMbps(clear.networkSpeedMbps)} -> ${formatSpeedMbps(wet.networkSpeedMbps)}`;
 
     const secondary = document.createElement("span");
     secondary.className = "v4-projection-side-panel__list-secondary";
     secondary.textContent = rainTransparent
-      ? "Below the 10–30 GHz rain band — fade does not apply."
-      : `${formatSignedPercent(-dropFraction)} throughput · jitter ${clear.jitterMs.toFixed(1)} → ${wet.jitterMs.toFixed(1)} ms`;
+      ? "No rain-band fade."
+      : `${formatSignedPercent(-dropFraction)} Mbps · jitter ${clear.jitterMs.toFixed(1)} -> ${wet.jitterMs.toFixed(1)} ms`;
 
     li.append(primary, secondary);
     list.append(li);
   }
 
   return list;
-}
-
-/**
- * Rain-attenuation impact body (Row 5 disclosure 1). Contrasts a
- * clear-sky baseline projection (0 mm/h) against the current rain rate so
- * the user can see the degradation. The K-E6 citation `ITU-R P.618-14
- * §2.2.1` appears as a body-header line per IA §5 Row 5 d1 + §9.5.
- */
-function buildRainImpactBody(
-  rainRateMmPerHour: number,
-  current: RuntimeProjectionResult,
-  clearSky: RuntimeProjectionResult
-): DocumentFragment {
-  const frag = document.createDocumentFragment();
-
-  const citation = document.createElement("p");
-  citation.className = "v4-projection-side-panel__citation";
-  citation.textContent = `Standard: ${RAIN_IMPACT_STANDARD_CITATION}`;
-  frag.append(citation);
-
-  const clearMs = clearSky.communicationStats.totalCommunicatingMs;
-  const currentMs = current.communicationStats.totalCommunicatingMs;
-
-  if (rainRateMmPerHour <= 0) {
-    const note = document.createElement("p");
-    note.className = "v4-projection-side-panel__empty";
-    note.textContent =
-      "Clear sky — no rain attenuation applied. Raise the rain rate (Row 2) to model a fade.";
-    frag.append(note);
-
-    // Even at 0 mm/h still show the per-orbit downlink baseline so the
-    // disclosure body is never empty.
-    frag.append(
-      buildRainSpeedComparison(rainRateMmPerHour, current)
-    );
-    return frag;
-  }
-
-  const lostMs = Math.max(0, clearMs - currentMs);
-  const lossFraction = clearMs > 0 ? lostMs / clearMs : 0;
-
-  const stats = document.createElement("div");
-  stats.className = "v4-projection-side-panel__stats";
-  stats.append(
-    buildStatBlock("Clear-sky comm", formatDurationMs(clearMs)),
-    buildStatBlock(
-      `Comm @ ${rainRateMmPerHour} mm/h`,
-      formatDurationMs(currentMs),
-      lostMs > 0 ? "rain-degraded" : undefined
-    ),
-    buildStatBlock(
-      "Comm-time lost",
-      formatDurationMs(lostMs),
-      lostMs > 0 ? "rain-degraded" : undefined
-    ),
-    buildStatBlock(
-      "Comm-time impact",
-      clearMs > 0 ? formatSignedPercent(-lossFraction) : "n/a",
-      lostMs > 0 ? "rain-degraded" : undefined
-    )
-  );
-  frag.append(stats);
-
-  const speedHeading = document.createElement("p");
-  speedHeading.className = "v4-projection-side-panel__rain-caption";
-  speedHeading.textContent = `Modeled downlink throughput · clear sky → ${rainRateMmPerHour} mm/h`;
-  frag.append(speedHeading);
-
-  // Per-orbit throughput contrast — always moves with rain, so the link
-  // degradation stays visible even when comm-time is geometry-limited.
-  frag.append(
-    buildRainSpeedComparison(rainRateMmPerHour, current)
-  );
-
-  const caption = document.createElement("p");
-  caption.className = "v4-projection-side-panel__rain-caption";
-  caption.textContent =
-    lostMs > 0
-      ? `Rain fade removes ${formatDurationMs(lostMs)} of usable communication and cuts per-orbit throughput versus clear sky.`
-      : "Comm-time is geometry-limited in this window, so rain fade shows up as the per-orbit throughput and jitter loss above.";
-  frag.append(caption);
-
-  return frag;
 }
 
 interface RainControlElements {
@@ -1289,9 +1059,8 @@ function setRainControlCaption(
 // ---------------------------------------------------------------------------
 
 function buildHeaderRow(
-  pair: V4ResolvedStationPair,
   result: RuntimeProjectionResult,
-  durationMinutes: number
+  viewModel: SelectedPairPanelViewModel
 ): HTMLElement {
   const row = document.createElement("section");
   row.className =
@@ -1300,7 +1069,7 @@ function buildHeaderRow(
 
   const title = document.createElement("h2");
   title.className = "v4-projection-side-panel__title";
-  const titleText = `${formatStationPanelName(pair.stationA.name)} ↔ ${formatStationPanelName(pair.stationB.name)}`;
+  const titleText = viewModel.pairLabel;
   title.textContent = titleText;
   title.title = titleText;
 
@@ -1309,56 +1078,23 @@ function buildHeaderRow(
   tierBadge.className = "v4-projection-side-panel__tier-badge";
   tierBadge.dataset.tier = tierAttribution.sourceTier;
   tierBadge.dataset.evidenceKind = tierAttribution.evidenceKind;
-  const tierLabel = tierAttribution.badgeLabel;
+  const tierLabel = viewModel.sourceBadge;
   tierBadge.textContent = tierLabel;
-  tierBadge.title = tierLabel;
+  tierBadge.title = tierAttribution.badgeLabel;
 
   const windowLine = document.createElement("p");
   windowLine.className = "v4-projection-side-panel__window";
-  const windowText = `${formatIsoSecond(result.timeWindow.startUtc)} → ${formatIsoSecond(result.timeWindow.endUtc)} UTC · ${durationMinutes}m`;
+  const windowText = viewModel.windowLabel;
   windowLine.textContent = windowText;
+  windowLine.title = `${formatIsoSecond(result.timeWindow.startUtc)} to ${formatIsoSecond(result.timeWindow.endUtc)}`;
   row.setAttribute("aria-label", `${titleText} · ${tierLabel} · ${windowText}`);
-
-  const copyLink = document.createElement("button");
-  copyLink.type = "button";
-  copyLink.className = "v4-projection-side-panel__copy-link";
-  copyLink.title = "Copy link to clipboard";
-  copyLink.setAttribute("aria-label", "Copy link to clipboard");
-  copyLink.textContent = "📋";
-  copyLink.addEventListener("click", () => {
-    const href =
-      typeof window !== "undefined" ? window.location.href : "";
-    if (!href) {
-      return;
-    }
-    const navigatorClipboard = (
-      typeof navigator !== "undefined" ? navigator.clipboard : undefined
-    );
-    if (!navigatorClipboard) {
-      return;
-    }
-    void navigatorClipboard.writeText(href).then(
-      () => {
-        copyLink.dataset.copied = "true";
-        copyLink.textContent = "✓";
-        window.setTimeout(() => {
-          copyLink.dataset.copied = "false";
-          copyLink.textContent = "📋";
-        }, 1200);
-      },
-      () => {
-        // clipboard write may fail in some sandboxes; leave the icon as-is.
-      }
-    );
-  });
 
   row.append(
     title,
     buildPlainTextSeparator(),
     tierBadge,
     buildPlainTextSeparator(),
-    windowLine,
-    copyLink
+    windowLine
   );
   return row;
 }
@@ -1368,6 +1104,369 @@ function buildRainControlRow(rainControl: RainControlElements): HTMLElement {
   row.className = "v4-projection-side-panel__row";
   row.dataset.row = "2";
   row.append(rainControl.control);
+  return row;
+}
+
+function buildOutcomeRow(viewModel: SelectedPairPanelViewModel): HTMLElement {
+  const row = document.createElement("section");
+  row.className = "v4-projection-side-panel__row";
+  row.dataset.row = "2";
+  row.setAttribute(
+    "aria-label",
+    `Available ${viewModel.availabilityLabel}; handovers ${viewModel.handoverCountLabel}; next link ${viewModel.nextLinkLabel}`
+  );
+
+  const grid = document.createElement("div");
+  grid.className = "v4-projection-side-panel__outcome-grid";
+  const available = buildStatBlock("Available", viewModel.availabilityLabel);
+  const handovers = buildStatBlock("Handovers", viewModel.handoverCountLabel);
+  const next = buildStatBlock("Next link", viewModel.nextLinkLabel);
+  next.title = viewModel.nextLinkLabel;
+  grid.append(available, handovers, next);
+  row.append(grid);
+  return row;
+}
+
+function buildDurationPresetControl(
+  activeDurationMinutes: number,
+  onDurationChange: (durationMinutes: number) => void
+): HTMLElement {
+  const control = document.createElement("div");
+  control.className = "v4-projection-side-panel__duration-presets";
+  control.setAttribute("role", "group");
+  control.setAttribute("aria-label", "Projection duration");
+
+  for (const durationMinutes of DEMO_PROJECTION_DURATION_PRESETS_MINUTES) {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "v4-projection-side-panel__duration-preset";
+    button.textContent = formatDurationPresetLabel(durationMinutes);
+    button.setAttribute(
+      "aria-label",
+      `Show ${formatDurationPresetLabel(durationMinutes)} projection`
+    );
+    button.setAttribute(
+      "aria-pressed",
+      durationMinutes === activeDurationMinutes ? "true" : "false"
+    );
+    button.addEventListener("click", () => {
+      if (durationMinutes !== activeDurationMinutes) {
+        onDurationChange(durationMinutes);
+      }
+    });
+    control.append(button);
+  }
+
+  return control;
+}
+
+function buildTimelineCurrentMarker(
+  viewModel: SelectedPairPanelViewModel
+): HTMLElement {
+  const marker = document.createElement("span");
+  marker.className = "v4-projection-side-panel__timeline-current";
+  marker.dataset.v4TimelineCurrentMarker = "true";
+  marker.dataset.windowStartUtc = viewModel.timeWindowStartUtc;
+  marker.dataset.windowEndUtc = viewModel.timeWindowEndUtc;
+  marker.dataset.windowState = "inside";
+  marker.style.setProperty("--current-left", "0%");
+  marker.setAttribute("aria-hidden", "true");
+  marker.title = "Current replay time";
+  return marker;
+}
+
+function buildTimelineRow(
+  viewModel: SelectedPairPanelViewModel,
+  onDurationChange: (durationMinutes: number) => void
+): HTMLElement {
+  const row = document.createElement("section");
+  row.className =
+    "v4-projection-side-panel__row v4-projection-side-panel__timeline-map";
+  row.dataset.row = "3";
+  row.dataset.timelineMap = "true";
+  row.setAttribute(
+    "aria-label",
+    `${viewModel.durationLabel} link map: ${viewModel.timelineSummary}`
+  );
+
+  const wrapper = document.createElement("div");
+  wrapper.className = "v4-projection-side-panel__timeline";
+  wrapper.setAttribute(
+    "aria-label",
+    `Projection timeline: ${viewModel.timelineSummary}`
+  );
+
+  const head = document.createElement("div");
+  head.className = "v4-projection-side-panel__timeline-head";
+  const copy = document.createElement("div");
+  copy.className = "v4-projection-side-panel__timeline-copy";
+  const title = document.createElement("h3");
+  title.className = "v4-projection-side-panel__timeline-title";
+  title.textContent = `${viewModel.durationLabel} link map`;
+  const caption = document.createElement("p");
+  caption.className = "v4-projection-side-panel__timeline-caption";
+  caption.textContent = viewModel.timelineSummary;
+  copy.append(title, caption);
+  head.append(
+    copy,
+    buildDurationPresetControl(viewModel.durationMinutes, onDurationChange)
+  );
+
+  const track = document.createElement("div");
+  track.className = "v4-projection-side-panel__timeline-track";
+  if (viewModel.timelineSegments.length === 0) {
+    const empty = document.createElement("div");
+    empty.className = "v4-projection-side-panel__timeline-empty";
+    empty.textContent = viewModel.timelineSummary;
+    track.append(empty);
+  } else {
+    for (const orbitClass of ORBIT_DISPLAY_ORDER) {
+      const lane = document.createElement("div");
+      lane.className = "v4-projection-side-panel__timeline-lane";
+      lane.dataset.orbit = orbitClass;
+      const laneSegments = viewModel.timelineSegments.filter(
+        (segment) => segment.orbitClass === orbitClass
+      );
+      lane.dataset.active = laneSegments.length > 0 ? "true" : "false";
+
+      const label = document.createElement("span");
+      label.className = "v4-projection-side-panel__timeline-lane-label";
+      label.textContent = orbitClass;
+
+      const rail = document.createElement("div");
+      rail.className = "v4-projection-side-panel__timeline-lane-rail";
+      for (const segment of laneSegments) {
+        const span = document.createElement("span");
+        span.className = "v4-projection-side-panel__timeline-segment";
+        span.dataset.orbit = segment.orbitClass;
+        span.dataset.satelliteId = segment.satelliteId;
+        span.setAttribute("aria-hidden", "true");
+        if (segment.modifier) {
+          span.dataset.modifier = segment.modifier;
+        }
+        span.style.setProperty(
+          "--segment-start",
+          `${segment.startPercent.toFixed(3)}%`
+        );
+        span.style.setProperty(
+          "--segment-width",
+          `${segment.widthPercent.toFixed(3)}%`
+        );
+        span.title = `${formatSatelliteShort(segment.satelliteId)} · ${segment.orbitClass} · ${formatUtcClockWithSeconds(segment.startUtc)}-${formatUtcClockWithSeconds(segment.endUtc)} UTC`;
+        rail.append(span);
+      }
+
+      lane.append(label, rail);
+      track.append(lane);
+    }
+
+  }
+
+  const markerLayer = document.createElement("div");
+  markerLayer.className =
+    "v4-projection-side-panel__timeline-marker-layer";
+  markerLayer.setAttribute("aria-hidden", "true");
+  markerLayer.append(buildTimelineCurrentMarker(viewModel));
+  for (const tick of viewModel.timelineTicks) {
+    const span = document.createElement("span");
+    span.className = "v4-projection-side-panel__timeline-tick";
+    if (tick.modifier) {
+      span.dataset.modifier = tick.modifier;
+    }
+    span.style.setProperty("--tick-left", `${tick.leftPercent.toFixed(3)}%`);
+    span.title = tick.label;
+    markerLayer.append(span);
+  }
+  track.append(markerLayer);
+
+  const axis = document.createElement("div");
+  axis.className = "v4-projection-side-panel__timeline-axis";
+  axis.setAttribute("aria-label", "Timeline axis labels in UTC");
+  const start = document.createElement("span");
+  start.textContent = `${viewModel.timelineAxisStartLabel} start`;
+  const mid = document.createElement("span");
+  mid.textContent = `${viewModel.timelineAxisMidLabel} mid`;
+  const end = document.createElement("span");
+  end.textContent = `${viewModel.timelineAxisEndLabel} end`;
+  axis.append(start, mid, end);
+
+  const legend = document.createElement("div");
+  legend.className = "v4-projection-side-panel__timeline-legend";
+  legend.setAttribute("aria-label", "Timeline legend");
+  const addLegendItem = (label: string, kind: string): void => {
+    const item = document.createElement("span");
+    item.className = "v4-projection-side-panel__timeline-legend-item";
+    const marker = document.createElement("span");
+    marker.className = "v4-projection-side-panel__timeline-legend-marker";
+    marker.dataset.kind = kind;
+    marker.setAttribute("aria-hidden", "true");
+    const text = document.createElement("span");
+    text.textContent = label;
+    item.append(marker, text);
+    legend.append(item);
+  };
+  addLegendItem("LEO", "LEO");
+  addLegendItem("MEO", "MEO");
+  addLegendItem("GEO", "GEO");
+  addLegendItem("Handover", "handover");
+
+  wrapper.append(head, track, axis, legend);
+  row.append(wrapper);
+  return row;
+}
+
+function getViewerClockDate(viewer: Viewer | undefined): Date {
+  if (!viewer || viewer.isDestroyed()) {
+    return new Date();
+  }
+  try {
+    return JulianDate.toDate(viewer.clock.currentTime);
+  } catch {
+    return new Date();
+  }
+}
+
+function syncTimelineCurrentMarkers(root: HTMLElement, viewer: Viewer | undefined): void {
+  const currentDate = getViewerClockDate(viewer);
+  const currentMs = currentDate.getTime();
+  const currentUtc = currentDate.toISOString();
+
+  for (const marker of root.querySelectorAll<HTMLElement>(
+    "[data-v4-timeline-current-marker='true']"
+  )) {
+    const startMs = Date.parse(marker.dataset.windowStartUtc ?? "");
+    const endMs = Date.parse(marker.dataset.windowEndUtc ?? "");
+    const durationMs = endMs - startMs;
+    if (
+      !Number.isFinite(currentMs) ||
+      !Number.isFinite(startMs) ||
+      !Number.isFinite(endMs) ||
+      durationMs <= 0
+    ) {
+      marker.style.setProperty("--current-left", "0%");
+      marker.dataset.windowState = "before";
+      marker.dataset.currentUtc = currentUtc;
+      continue;
+    }
+
+    const rawPercent = ((currentMs - startMs) / durationMs) * 100;
+    const currentPercent = clampPercent(rawPercent);
+    marker.style.setProperty("--current-left", `${currentPercent.toFixed(3)}%`);
+    marker.dataset.currentUtc = currentUtc;
+    marker.dataset.windowState =
+      rawPercent < 0 ? "before" : rawPercent > 100 ? "after" : "inside";
+    marker.title = `${formatUtcClockWithSeconds(currentUtc)} UTC · current replay time`;
+  }
+}
+
+function bindTimelineCurrentMarkerSync(
+  root: HTMLElement,
+  viewer: Viewer | undefined
+): () => void {
+  syncTimelineCurrentMarkers(root, viewer);
+  if (viewer && !viewer.isDestroyed()) {
+    const removeClockListener = viewer.clock.onTick.addEventListener(() => {
+      syncTimelineCurrentMarkers(root, viewer);
+    });
+    return () => {
+      removeClockListener();
+    };
+  }
+
+  const ownerWindow = root.ownerDocument.defaultView;
+  if (!ownerWindow) {
+    return () => {};
+  }
+  const intervalId = ownerWindow.setInterval(() => {
+    syncTimelineCurrentMarkers(root, viewer);
+  }, 1_000);
+  return () => {
+    ownerWindow.clearInterval(intervalId);
+  };
+}
+
+function buildDecisionCardsRow(
+  viewModel: SelectedPairPanelViewModel
+): HTMLElement {
+  const row = document.createElement("section");
+  row.className =
+    "v4-projection-side-panel__row v4-projection-side-panel__link-plan";
+  row.dataset.row = "4";
+  row.setAttribute(
+    "aria-label",
+    "Next six-hour link plan with current link and upcoming handovers"
+  );
+
+  const head = document.createElement("div");
+  head.className = "v4-projection-side-panel__link-plan-head";
+  const title = document.createElement("h3");
+  title.className = "v4-projection-side-panel__link-plan-title";
+  title.textContent = "Next 6h link plan";
+  const caption = document.createElement("p");
+  caption.className = "v4-projection-side-panel__link-plan-caption";
+  caption.textContent = "UTC schedule";
+  head.append(title, caption);
+
+  const list = document.createElement("div");
+  list.className = "v4-projection-side-panel__decision-list";
+  for (const card of viewModel.decisionCards.slice(0, PANEL_DECISION_CARD_LIMIT)) {
+    const item = document.createElement("article");
+    item.className = "v4-projection-side-panel__decision-card";
+    if (card.modifier) {
+      item.dataset.modifier = card.modifier;
+    }
+    const kicker = document.createElement("div");
+    kicker.className = "v4-projection-side-panel__decision-kicker";
+    const label = document.createElement("span");
+    label.className = "v4-projection-side-panel__decision-label";
+    label.textContent = card.label;
+    const time = document.createElement("span");
+    time.className = "v4-projection-side-panel__decision-time";
+    time.textContent = card.timeLabel;
+    kicker.append(label, time);
+
+    const primary = document.createElement("span");
+    primary.className = "v4-projection-side-panel__decision-primary";
+    primary.textContent = card.primary;
+    primary.title = card.primary;
+    const secondary = document.createElement("span");
+    secondary.className = "v4-projection-side-panel__decision-secondary";
+    secondary.textContent = card.secondary;
+    item.append(kicker, primary, secondary);
+    list.append(item);
+  }
+  row.append(head, list);
+  return row;
+}
+
+function buildRainImpactMainRow(
+  rainControl: RainControlElements,
+  result: RuntimeProjectionResult,
+  rainRateMmPerHour: number,
+  clearSky: RuntimeProjectionResult
+): HTMLElement {
+  const row = document.createElement("section");
+  row.className =
+    "v4-projection-side-panel__row v4-projection-side-panel__rain-impact";
+  row.dataset.row = "5";
+
+  const clearMs = clearSky.communicationStats.totalCommunicatingMs;
+  const currentMs = result.communicationStats.totalCommunicatingMs;
+  const lostMs = Math.max(0, clearMs - currentMs);
+  const summary = document.createElement("p");
+  summary.className = "v4-projection-side-panel__rain-caption";
+  summary.textContent =
+    rainRateMmPerHour <= 0
+      ? `Clear sky baseline · ${RAIN_IMPACT_STANDARD_CITATION}`
+      : lostMs > 0
+      ? `${formatDurationMs(lostMs)} communication time lost · ${RAIN_IMPACT_STANDARD_CITATION}`
+      : `Throughput/jitter delta only · ${RAIN_IMPACT_STANDARD_CITATION}`;
+
+  row.append(
+    rainControl.control,
+    summary,
+    buildRainSpeedComparison(rainRateMmPerHour, result)
+  );
   return row;
 }
 
@@ -1710,413 +1809,6 @@ function buildSummariesRow(
   return row;
 }
 
-function buildDisclosure(
-  label: string,
-  bodyChildren: ReadonlyArray<Node>,
-  bodyScroll: boolean,
-  detailsAttrs?: { [key: string]: string }
-): HTMLDetailsElement {
-  const details = document.createElement("details");
-  details.className = "v4-projection-side-panel__details";
-  if (detailsAttrs) {
-    for (const [k, v] of Object.entries(detailsAttrs)) {
-      details.dataset[k] = v;
-    }
-  }
-  const summary = document.createElement("summary");
-  summary.className = "v4-projection-side-panel__details-summary";
-  summary.textContent = label;
-  const body = document.createElement("div");
-  body.className = bodyScroll
-    ? "v4-projection-side-panel__details-body v4-projection-side-panel__details-body--scroll"
-    : "v4-projection-side-panel__details-body";
-  for (const child of bodyChildren) {
-    body.append(child);
-  }
-  details.append(summary, body);
-  return details;
-}
-
-function buildAllVisibilityList(
-  windows: ReadonlyArray<PairVisibilityWindow>
-): HTMLElement {
-  if (windows.length === 0) {
-    const empty = document.createElement("p");
-    empty.className = "v4-projection-side-panel__empty";
-    empty.textContent = "No mutual visibility windows in this projection.";
-    return empty;
-  }
-  const sorted = [...windows]
-    .sort(
-      (a, b) =>
-        Date.parse(a.intersectionStartUtc) - Date.parse(b.intersectionStartUtc)
-    )
-    .slice(0, PANEL_ROW5_VISIBILITY_MAX_ROWS);
-  const list = document.createElement("ul");
-  list.className = "v4-projection-side-panel__list";
-  for (const w of sorted) {
-    list.append(
-      buildVisibilityRow(
-        w.satelliteId,
-        w.orbitClass,
-        w.intersectionStartUtc,
-        w.intersectionEndUtc
-      )
-    );
-  }
-  return list;
-}
-
-function buildAllHandoverList(result: RuntimeProjectionResult): HTMLElement {
-  const events = result.handoverEvents;
-  if (events.length === 0) {
-    const empty = document.createElement("p");
-    empty.className = "v4-projection-side-panel__empty";
-    empty.textContent =
-      `No handover events triggered by the ${result.dataCompleteness.policyDisclosure.activePolicyId} policy (TR 38.821 §7.3 + V-MO1) in this window.`;
-    return empty;
-  }
-  const sorted = [...events].sort(
-    (a, b) => Date.parse(a.handoverAtUtc) - Date.parse(b.handoverAtUtc)
-  );
-  const list = document.createElement("ul");
-  list.className = "v4-projection-side-panel__list";
-  for (const event of sorted.slice(0, PANEL_ROW5_HANDOVER_MAX_ROWS)) {
-    list.append(buildHandoverRow(event));
-  }
-  return list;
-}
-
-function buildNonClaimsBlock(
-  truthBoundary: RuntimeProjectionResult["truthBoundary"]
-): HTMLElement {
-  const wrapper = document.createElement("section");
-  wrapper.className =
-    "v4-projection-side-panel__section v4-projection-side-panel__section--non-claims";
-  const heading = document.createElement("h3");
-  heading.className = "v4-projection-side-panel__section-title";
-  heading.textContent = `Non-claims · ${truthBoundary.sourceTier}`;
-  wrapper.append(heading);
-  if (truthBoundary.nonClaims.length === 0) {
-    return wrapper;
-  }
-  const list = document.createElement("ul");
-  list.className = "v4-projection-side-panel__non-claim-list";
-  for (const note of truthBoundary.nonClaims) {
-    const li = document.createElement("li");
-    li.textContent = note;
-    list.append(li);
-  }
-  wrapper.append(list);
-  return wrapper;
-}
-
-function buildStationCoordinateSourceBlock(result: RuntimeProjectionResult): HTMLElement {
-  const wrapper = document.createElement("section");
-  wrapper.className = "v4-projection-side-panel__section";
-  wrapper.dataset.stationCoordinateSourceDisclosure = "true";
-
-  const heading = document.createElement("h3");
-  heading.className = "v4-projection-side-panel__section-title";
-  heading.textContent = "Station coordinate sources";
-
-  const summary = document.createElement("p");
-  summary.className = "v4-projection-side-panel__empty";
-  summary.textContent =
-    "Coordinate precision describes coordinate use; coordinate source authority describes the public source class.";
-
-  const list = document.createElement("ul");
-  list.className = "v4-projection-side-panel__non-claim-list";
-  for (const [index, station] of result.dataCompleteness.stationPrecision.entries()) {
-    const slot = index === 0 ? "A" : "B";
-    const li = document.createElement("li");
-    li.textContent =
-      `${slot} ${station.stationId}: ${station.coordinateSourceAuthority} · ` +
-      `${station.disclosurePrecision} · ${station.coordinateSourceNote}`;
-    list.append(li);
-  }
-
-  wrapper.append(heading, summary, list);
-  return wrapper;
-}
-
-function buildPolicyDisclosureBlock(result: RuntimeProjectionResult): HTMLElement {
-  const disclosure = result.dataCompleteness.policyDisclosure;
-  const wrapper = document.createElement("section");
-  wrapper.className = "v4-projection-side-panel__section";
-  wrapper.dataset.policyDisclosure = "true";
-  wrapper.dataset.activePolicyId = disclosure.activePolicyId;
-  const thresholds = disclosure.thresholds;
-  wrapper.dataset.latencyBudgetMs = String(thresholds.latencyBudgetMs ?? "");
-  wrapper.dataset.hysteresisDb = String(thresholds.hysteresisDb);
-  wrapper.dataset.minVisibilityWindowMs = String(
-    thresholds.minVisibilityWindowMs
-  );
-  wrapper.dataset.elevationThresholdDeg = String(
-    thresholds.elevationThresholdDeg
-  );
-
-  const heading = document.createElement("h3");
-  heading.className = "v4-projection-side-panel__section-title";
-  heading.textContent = "Policy";
-
-  const summary = document.createElement("p");
-  summary.className = "v4-projection-side-panel__empty";
-  summary.textContent = `${disclosure.activePolicyId} · elevation ${thresholds.elevationThresholdDeg}° · hysteresis ${thresholds.hysteresisDb} dB · min window ${Math.round(thresholds.minVisibilityWindowMs / 1000)}s · latency ${thresholds.latencyBudgetMs ?? "n/a"} ms`;
-
-  wrapper.append(heading, summary);
-  return wrapper;
-}
-
-function buildCapDisclosureBlock(result: RuntimeProjectionResult): HTMLElement {
-  const capDisclosure = result.dataCompleteness.capDisclosure;
-  const inventoryDisclosure = result.dataCompleteness.runtimeInventoryDisclosure;
-  const wrapper = document.createElement("section");
-  wrapper.className = "v4-projection-side-panel__section";
-  wrapper.dataset.capDisclosure = "true";
-  wrapper.dataset.runtimeInventoryDisclosure = "true";
-  for (const orbit of ORBIT_DISPLAY_ORDER) {
-    const prefix = orbit.toLowerCase();
-    const inventory = inventoryDisclosure.perOrbit[orbit];
-    wrapper.dataset[`${prefix}InventorySourceMode`] =
-      inventory.inventorySourceMode;
-    wrapper.dataset[`${prefix}NetworkSnapshotInventoryCount`] = String(
-      inventory.networkSnapshotInventoryCount ?? ""
-    );
-    wrapper.dataset[`${prefix}LocalFallbackInventoryCount`] = String(
-      inventory.localFallbackInventoryCount ?? ""
-    );
-    wrapper.dataset[`${prefix}ActiveInventoryCount`] = String(
-      inventory.activeInventoryCount
-    );
-    wrapper.dataset[`${prefix}AcceptedRecordCount`] = String(
-      inventory.acceptedRecordCount
-    );
-    wrapper.dataset[`${prefix}RuntimeCap`] = String(inventory.runtimeCap);
-    wrapper.dataset[`${prefix}VisibleActorCount`] = String(
-      inventory.visibleActorCount
-    );
-    wrapper.dataset[`${prefix}Cap`] = String(capDisclosure.perOrbitCap[orbit]);
-    wrapper.dataset[`${prefix}Inventory`] = String(
-      capDisclosure.perOrbitInventory[orbit]
-    );
-    wrapper.dataset[`${prefix}CappedAtRuntime`] = String(
-      capDisclosure.cappedAtRuntime[orbit]
-    );
-  }
-
-  const heading = document.createElement("h3");
-  heading.className = "v4-projection-side-panel__section-title";
-  heading.textContent = "Runtime inventory";
-  const note = document.createElement("p");
-  note.className = "v4-projection-side-panel__empty";
-  note.textContent = inventoryDisclosure.note;
-  const list = document.createElement("ul");
-  list.className = "v4-projection-side-panel__non-claim-list";
-  for (const orbit of ORBIT_DISPLAY_ORDER) {
-    const inventory = inventoryDisclosure.perOrbit[orbit];
-    const li = document.createElement("li");
-    const capped = inventory.cappedAtRuntime ? "capped" : "uncapped";
-    const networkCount =
-      inventory.networkSnapshotInventoryCount === null
-        ? "unavailable"
-        : String(inventory.networkSnapshotInventoryCount);
-    const localFallbackCount =
-      inventory.localFallbackInventoryCount === null
-        ? "unavailable"
-        : String(inventory.localFallbackInventoryCount);
-    li.textContent =
-      `${orbit}: source ${inventory.inventorySourceMode} · network ${networkCount} · ` +
-      `local fallback ${localFallbackCount} · active ${inventory.activeInventoryCount} · ` +
-      `accepted ${inventory.acceptedRecordCount} · cap ${inventory.runtimeCap} · ` +
-      `${capped} · visible ${inventory.visibleActorCount}`;
-    list.append(li);
-  }
-  wrapper.append(heading, note, list);
-  return wrapper;
-}
-
-function buildMetricAnchorDisclosureBlock(result: RuntimeProjectionResult): HTMLElement {
-  const disclosure = result.dataCompleteness.metricAnchorDisclosure;
-  const wrapper = document.createElement("section");
-  wrapper.className = "v4-projection-side-panel__section";
-  wrapper.dataset.metricAnchorDisclosure = "true";
-  wrapper.dataset.carrierSelection = disclosure.carrierSelection ?? "";
-  wrapper.dataset.capacityModel = disclosure.capacityModel ?? "";
-  wrapper.dataset.jitterModel = disclosure.jitterModel ?? "";
-  wrapper.dataset.delayModel = disclosure.delayModel ?? "";
-  wrapper.dataset.activePolicyId = disclosure.activePolicyId;
-  wrapper.dataset.latencyBudgetMs = String(
-    disclosure.policyThresholds.latencyBudgetMs ?? ""
-  );
-  wrapper.dataset.hysteresisDb = String(disclosure.policyThresholds.hysteresisDb);
-  wrapper.dataset.minVisibilityWindowMs = String(
-    disclosure.policyThresholds.minVisibilityWindowMs
-  );
-  wrapper.dataset.elevationThresholdDeg = String(
-    disclosure.policyThresholds.elevationThresholdDeg
-  );
-
-  const heading = document.createElement("h3");
-  heading.className = "v4-projection-side-panel__section-title";
-  heading.textContent = "Metric anchors";
-  const list = document.createElement("ul");
-  list.className = "v4-projection-side-panel__non-claim-list";
-  const rows = [
-    ["Carrier selection", disclosure.carrierSelection],
-    ["Capacity model", disclosure.capacityModel],
-    ["Jitter model", disclosure.jitterModel],
-    ["Delay model", disclosure.delayModel],
-    [
-      "Policy thresholds",
-      `${disclosure.activePolicyId}: elevation ${disclosure.policyThresholds.elevationThresholdDeg}° · hysteresis ${disclosure.policyThresholds.hysteresisDb} dB · min window ${Math.round(disclosure.policyThresholds.minVisibilityWindowMs / 1000)}s · latency ${disclosure.policyThresholds.latencyBudgetMs ?? "n/a"} ms`
-    ],
-    ["Non-claim", disclosure.nonClaim]
-  ] as const;
-  for (const [label, value] of rows) {
-    const li = document.createElement("li");
-    li.textContent = `${label}: ${value ?? "unavailable"}`;
-    list.append(li);
-  }
-  wrapper.append(heading, list);
-  return wrapper;
-}
-
-function buildStandardsReferences(result: RuntimeProjectionResult): HTMLElement {
-  const wrapper = document.createElement("section");
-  wrapper.className = "v4-projection-side-panel__section";
-  const heading = document.createElement("h3");
-  heading.className = "v4-projection-side-panel__section-title";
-  heading.textContent = "Standards references";
-  wrapper.append(heading);
-  const list = document.createElement("ul");
-  list.className = "v4-projection-side-panel__non-claim-list";
-  const refs = [
-    `Handover policy: TR 38.821 §7.3 + V-MO1 (${result.dataCompleteness.policyDisclosure.activePolicyId})`,
-    "Rain attenuation: ITU-R P.618-14 §2.2.1",
-    "Gas absorption: ITU-R P.676-13"
-  ];
-  for (const ref of refs) {
-    const li = document.createElement("li");
-    li.textContent = ref;
-    list.append(li);
-  }
-  wrapper.append(list);
-  return wrapper;
-}
-
-function buildMeanDwellBlock(result: RuntimeProjectionResult): HTMLElement {
-  const block = document.createElement("div");
-  block.className = "v4-projection-side-panel__mean-dwell";
-  const label = document.createElement("span");
-  label.className = "v4-projection-side-panel__mean-dwell-label";
-  label.textContent = "Mean dwell";
-  const value = document.createElement("span");
-  value.className = "v4-projection-side-panel__mean-dwell-value";
-  value.textContent = formatDurationMs(
-    result.communicationStats.meanLinkDwellMs
-  );
-  block.append(label, value);
-  return block;
-}
-
-function syncTleTelemetryChip(result: RuntimeProjectionResult): void {
-  const chip = document.querySelector<HTMLElement>('[data-tle-telemetry-chip="true"]');
-  if (!chip) {
-    return;
-  }
-  const sources = result.dataCompleteness.tleSources;
-  const acceptedCount = sources.reduce(
-    (total, source) => total + source.acceptedRecordCount,
-    0
-  );
-  const rejectedCount = sources.reduce(
-    (total, source) => total + source.rejectedRecordCount,
-    0
-  );
-  const parserFailureCount = sources.reduce(
-    (total, source) => total + (source.parserFailureCount ?? 0),
-    0
-  );
-  const healthSummary = sources.map((source) => source.health).join("/");
-  const newestTimestamp = sources
-    .map((source) => source.sourceTimestampUtc)
-    .filter((timestamp): timestamp is string => timestamp !== null)
-    .sort()
-    .pop();
-
-  chip.dataset.sourceCount = String(sources.length);
-  chip.dataset.acceptedRecordCount = String(acceptedCount);
-  chip.dataset.rejectedRecordCount = String(rejectedCount);
-  chip.dataset.parserFailureCount = String(parserFailureCount);
-  chip.dataset.sourceHealth = healthSummary;
-  chip.dataset.stalenessState = healthSummary;
-  if (newestTimestamp) {
-    chip.dataset.sourceTimestampUtc = newestTimestamp;
-  }
-  chip.textContent = `${chip.textContent?.split(" · ")[0] ?? "TLE"} · ${healthSummary}`;
-}
-
-function buildDisclosuresRow(
-  result: RuntimeProjectionResult,
-  rainRateMmPerHour: number,
-  clearSky: RuntimeProjectionResult
-): HTMLElement {
-  const row = document.createElement("section");
-  row.className = "v4-projection-side-panel__row";
-  row.dataset.row = "5";
-
-  // d1 Rain impact — scroll mode so the body caps at the same height as
-  // d2/d3 and the panel root never overflows when any single disclosure
-  // is open (G5 IA §9.1 + IA §9.2). The rain-impact body is shorter than
-  // the cap on typical pairs so scroll only engages at extreme content
-  // heights.
-  const rainBody = buildRainImpactBody(rainRateMmPerHour, result, clearSky);
-  row.append(
-    buildDisclosure("Rain impact", [rainBody], true, {
-      disclosure: "rain-impact"
-    })
-  );
-
-  // d2 All visibility windows
-  const csvButton = buildDownloadCsvButton(result);
-  const visList = buildAllVisibilityList(result.visibilityWindows);
-  row.append(
-    buildDisclosure("All visibility windows", [csvButton, visList], true, {
-      disclosure: "all-visibility"
-    })
-  );
-
-  // d3 Sources + non-claims
-  const handoverList = buildAllHandoverList(result);
-  const policyDisclosure = buildPolicyDisclosureBlock(result);
-  const capDisclosure = buildCapDisclosureBlock(result);
-  const metricAnchorDisclosure = buildMetricAnchorDisclosureBlock(result);
-  const stationCoordinateSources = buildStationCoordinateSourceBlock(result);
-  const nonClaims = buildNonClaimsBlock(result.truthBoundary);
-  const standards = buildStandardsReferences(result);
-  const meanDwell = buildMeanDwellBlock(result);
-  row.append(
-    buildDisclosure(
-      "Sources + non-claims",
-      [
-        handoverList,
-        policyDisclosure,
-        capDisclosure,
-        metricAnchorDisclosure,
-        stationCoordinateSources,
-        nonClaims,
-        standards,
-        meanDwell
-      ],
-      true,
-      { disclosure: "sources-non-claims" }
-    )
-  );
-
-  return row;
-}
-
 function maybeSetConciseDatasetValue(
   element: HTMLElement,
   key: string,
@@ -2217,8 +1909,47 @@ function buildFooterRow(result: RuntimeProjectionResult): HTMLElement {
       station.coordinateSourceNote
     );
   }
-  footer.textContent = `${result.truthBoundary.precisionLabel} · ${tierAttribution.badgeLabel}`;
+  footer.textContent = `${result.truthBoundary.precisionLabel} · ${resolveSourceBadgeLabel(tierAttribution)}`;
   row.append(footer);
+  return row;
+}
+
+function buildEvidenceEntryRow(
+  result: RuntimeProjectionResult,
+  evidenceDrawer: HTMLElement
+): HTMLElement {
+  const row = buildFooterRow(result);
+  const actions = document.createElement("div");
+  actions.className = "v4-projection-side-panel__evidence-actions";
+
+  const evidenceButton = document.createElement("button");
+  evidenceButton.type = "button";
+  evidenceButton.className = "v4-projection-side-panel__evidence-button";
+  evidenceButton.textContent = "Details & sources";
+  evidenceButton.setAttribute("aria-label", "Open details and sources");
+  evidenceButton.setAttribute("aria-controls", evidenceDrawer.id);
+  evidenceButton.setAttribute("aria-expanded", "false");
+  evidenceButton.addEventListener("click", () => {
+    const opening = evidenceDrawer.hidden;
+    evidenceDrawer.hidden = !opening;
+    evidenceDrawer.dataset.open = opening ? "true" : "false";
+    evidenceButton.setAttribute("aria-expanded", opening ? "true" : "false");
+    evidenceButton.textContent = opening ? "Hide details" : "Details & sources";
+    evidenceButton.setAttribute(
+      "aria-label",
+      opening ? "Close details and sources" : "Open details and sources"
+    );
+    if (opening) {
+      const closeButton = evidenceDrawer.querySelector<HTMLButtonElement>(
+        ".v4-projection-side-panel__evidence-close"
+      );
+      closeButton?.focus();
+    }
+  });
+
+  const reportButton = buildDownloadEvidenceReportButton(result, "Report");
+  actions.append(evidenceButton, reportButton);
+  row.prepend(actions);
   return row;
 }
 
@@ -2228,6 +1959,8 @@ interface RenderResultOptions {
   readonly rainControl: RainControlElements;
   readonly durationMinutes: number;
   readonly compareMode: CompareMode;
+  readonly viewer?: Viewer;
+  readonly onDurationChange: (durationMinutes: number) => void;
 }
 
 function renderResult(
@@ -2236,16 +1969,27 @@ function renderResult(
   result: RuntimeProjectionResult,
   options: RenderResultOptions
 ): void {
-  const { rainRateMmPerHour, clearSky, rainControl, durationMinutes, compareMode } =
-    options;
+  const {
+    rainRateMmPerHour,
+    clearSky,
+    rainControl,
+    durationMinutes,
+    compareMode,
+    viewer,
+    onDurationChange
+  } = options;
 
   // Preserve slider focus across re-renders: the rain control node is reused,
   // not recreated, so the user can keep dragging while the panel recomputes.
   const sliderWasFocused = document.activeElement === rainControl.slider;
 
+  removeEvidenceDrawer(root.ownerDocument);
   root.replaceChildren();
   const tierAttribution = result.dataCompleteness.pairSourceAttribution;
-  root.dataset.state = "ready";
+  const isEmptyResult =
+    result.visibilityWindows.length === 0 &&
+    result.communicationStats.totalCommunicatingMs <= 0;
+  root.dataset.state = isEmptyResult ? "empty-result" : "ready";
   root.dataset.sourceTier = result.truthBoundary.sourceTier;
   root.dataset.sourceEvidenceKind = tierAttribution.evidenceKind;
   root.dataset.sourceBadgeLabel = tierAttribution.badgeLabel;
@@ -2258,15 +2002,36 @@ function renderResult(
 
   syncTleTelemetryChip(result);
   setRainControlCaption(rainControl, result, rainRateMmPerHour);
-
-  root.append(
-    buildHeaderRow(pair, result, durationMinutes),
-    buildRainControlRow(rainControl),
-    buildFlatStatsRow(result, compareMode),
-    buildSummariesRow(result, compareMode),
-    buildDisclosuresRow(result, rainRateMmPerHour, clearSky),
-    buildFooterRow(result)
+  const viewModel = buildSelectedPairPanelViewModel(
+    pair,
+    result,
+    durationMinutes
   );
+  const evidenceDrawer = buildDisclosuresRow(result, rainRateMmPerHour);
+
+  if (compareMode === PRE_WAVE2_COMPARE_MODE) {
+    root.append(
+      buildHeaderRow(result, viewModel),
+      buildRainControlRow(rainControl),
+      buildFlatStatsRow(result, compareMode),
+      buildReplayControlRow(root.ownerDocument),
+      buildSummariesRow(result, compareMode),
+      buildEvidenceEntryRow(result, evidenceDrawer)
+    );
+  } else {
+    root.append(
+      buildHeaderRow(result, viewModel),
+      buildOutcomeRow(viewModel),
+      buildReplayControlRow(root.ownerDocument),
+      buildTimelineRow(viewModel, onDurationChange),
+      buildDecisionCardsRow(viewModel),
+      buildRainImpactMainRow(rainControl, result, rainRateMmPerHour, clearSky),
+      buildEvidenceEntryRow(result, evidenceDrawer)
+    );
+  }
+
+  root.ownerDocument.body.appendChild(evidenceDrawer);
+  syncTimelineCurrentMarkers(root, viewer);
 
   if (sliderWasFocused) {
     rainControl.slider.focus();
@@ -2275,6 +2040,7 @@ function renderResult(
 
 export interface V4ProjectionSidePanelInput {
   readonly resolvedPair: V4ResolvedStationPair | null;
+  readonly viewer?: Viewer;
 }
 
 export interface V4ProjectionSidePanelHandle {
@@ -2301,10 +2067,12 @@ export function mountV4ProjectionSidePanel(
   const policyId = resolveProjectionPolicyId();
   const compareMode = resolveProjectionCompareMode();
 
-  injectPanelStyleOnce();
-
   const root = createPanelShell();
-  const disposeWheelScroll = bindPanelWheelScroll(root);
+  const disposeWheelScroll = bindPanelWheelScroll();
+  const disposeTimelineCurrentMarkerSync = bindTimelineCurrentMarkerSync(
+    root,
+    input.viewer
+  );
   viewerContainer.appendChild(root);
 
   let disposed = false;
@@ -2365,7 +2133,79 @@ export function mountV4ProjectionSidePanel(
         clearSky: clearSkyResult,
         rainControl,
         durationMinutes,
-        compareMode
+        compareMode,
+        viewer: input.viewer,
+        onDurationChange: setProjectionDurationMinutes
+      });
+      publishRuntimeResult(result);
+    } catch (error) {
+      if (disposed || requestSeq !== computeRequestSeq) {
+        return;
+      }
+      const message =
+        error instanceof Error ? error.message : "Unknown failure while computing runtime projection.";
+      renderError(root, message);
+    }
+  }
+
+  async function setProjectionDurationMinutes(
+    nextDurationMinutes: number
+  ): Promise<void> {
+    if (disposed || !tleRecords || !timeWindow || !rainControl) {
+      return;
+    }
+    const normalizedDurationMinutes = clampDurationMinutes(nextDurationMinutes);
+    if (normalizedDurationMinutes === durationMinutes) {
+      return;
+    }
+
+    const nextTimeWindow = buildDefaultTimeWindow(
+      timeWindow.startUtc,
+      normalizedDurationMinutes
+    );
+    durationMinutes = normalizedDurationMinutes;
+    timeWindow = nextTimeWindow;
+    syncDurationMinutesParam(normalizedDurationMinutes);
+    root.dataset.state = "loading";
+
+    const requestSeq = ++computeRequestSeq;
+    try {
+      const nextClearSkyResult = await projectionClient.compute({
+        stationA: pair.stationA,
+        stationB: pair.stationB,
+        timeWindow: nextTimeWindow,
+        tleRecords,
+        tleParseStats: tleParseStats ?? undefined,
+        rainRateMmPerHour: 0,
+        policyId
+      });
+      if (disposed || requestSeq !== computeRequestSeq || !rainControl) {
+        return;
+      }
+      clearSkyResult = nextClearSkyResult;
+      const result =
+        currentRainRate > 0
+          ? await projectionClient.compute({
+              stationA: pair.stationA,
+              stationB: pair.stationB,
+              timeWindow: nextTimeWindow,
+              tleRecords,
+              tleParseStats: tleParseStats ?? undefined,
+              rainRateMmPerHour: currentRainRate,
+              policyId
+            })
+          : nextClearSkyResult;
+      if (disposed || requestSeq !== computeRequestSeq || !rainControl) {
+        return;
+      }
+      renderResult(root, pair, result, {
+        rainRateMmPerHour: currentRainRate,
+        clearSky: nextClearSkyResult,
+        rainControl,
+        durationMinutes,
+        compareMode,
+        viewer: input.viewer,
+        onDurationChange: setProjectionDurationMinutes
       });
       publishRuntimeResult(result);
     } catch (error) {
@@ -2418,7 +2258,9 @@ export function mountV4ProjectionSidePanel(
         clearSky: clearSkyResult,
         rainControl,
         durationMinutes,
-        compareMode
+        compareMode,
+        viewer: input.viewer,
+        onDurationChange: setProjectionDurationMinutes
       });
       publishRuntimeResult(clearSkyResult);
     } catch (error) {
@@ -2460,6 +2302,8 @@ export function mountV4ProjectionSidePanel(
       runtimeResultListeners.clear();
       projectionClient.dispose();
       disposeWheelScroll();
+      disposeTimelineCurrentMarkerSync();
+      removeEvidenceDrawer(root.ownerDocument);
       if (root.parentElement) {
         root.parentElement.removeChild(root);
       }

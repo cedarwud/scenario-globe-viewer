@@ -10,7 +10,7 @@ export interface HandoverCandidate {
 }
 
 export interface HandoverPolicyConfig {
-  policyId: 'bootstrap-balanced-v1' | 'leo-first' | 'cross-orbit-live';
+  policyId: 'bootstrap-balanced-v1' | 'leo-first' | 'cross-orbit-live' | 'demo-balanced-v1';
   elevationThresholdDeg: number; hysteresisDb: number; minVisibilityWindowMs: number;
   latencyBudgetMs?: number;
 }
@@ -26,7 +26,7 @@ type Scored = Readonly<{ candidate: HandoverCandidate; score: number; components
 type Selection = Readonly<{ selected: Scored; reasonKind: HandoverDecision['reasonKind'] }>;
 
 const ORBITS: ReadonlyArray<Orbit> = ['LEO', 'MEO', 'GEO'];
-const POLICIES: ReadonlyArray<HandoverPolicyConfig['policyId']> = ['bootstrap-balanced-v1', 'leo-first', 'cross-orbit-live'];
+const POLICIES: ReadonlyArray<HandoverPolicyConfig['policyId']> = ['bootstrap-balanced-v1', 'leo-first', 'cross-orbit-live', 'demo-balanced-v1'];
 const DEFAULT_VISIBILITY_SCALE_MS = 60_000;
 const DEFAULT_LATENCY_SCALE_MS = 600;
 const DEFAULT_JITTER_SCALE_MS = 100;

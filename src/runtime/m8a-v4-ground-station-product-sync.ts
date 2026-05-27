@@ -1,6 +1,8 @@
 import type { Viewer } from "cesium";
 
-import type { M8aV4GroundStationSceneState } from "./m8a-v4-ground-station-handover-scene-controller";
+import type {
+  M8aV4GroundStationSceneState
+} from "./m8a-v4-ground-station-scene-state";
 import type { EndpointRenderContext } from "./m8a-v4-ground-station-cesium-entities";
 import {
   ensureProductUxStructure,

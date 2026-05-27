@@ -2,7 +2,7 @@ import {
   json2satrec,
   twoline2satrec
 } from "../../vendor/satellite-js-runtime";
-import type { RuntimeOrbitRecord } from "./visibility-utils";
+import type { RuntimeOrbitRecord } from "./orbit-types";
 
 type RuntimeSatrec = ReturnType<typeof twoline2satrec>;
 

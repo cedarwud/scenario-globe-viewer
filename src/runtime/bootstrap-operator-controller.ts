@@ -12,71 +12,28 @@ import {
   type HandoverRuleConfig,
   type SelectableHandoverPolicyId
 } from "../features/handover-decision";
+import {
+  BOOTSTRAP_REPLAY_SPEED_PRESETS,
+  type BootstrapOperatorController,
+  type BootstrapOperatorControllerState,
+  type BootstrapReplaySpeedPreset,
+  type BootstrapScenarioMode
+} from "../features/operator/bootstrap-operator-contract";
 import type { ScenarioSession } from "../features/scenario";
-import type {
-  ClockMode,
-  ClockTimestamp,
-  ReplayClock
-} from "../features/time";
+import type { ReplayClock } from "../features/time";
 import type {
   BootstrapScenarioCatalog,
-  BootstrapScenarioMode,
   BootstrapScenarioOption
 } from "./resolve-bootstrap-scenario";
 
-export const BOOTSTRAP_REPLAY_SPEED_PRESETS = [
-  0.25,
-  0.5,
-  1,
-  2,
-  4
-] as const;
-
-export type BootstrapReplaySpeedPreset =
-  (typeof BOOTSTRAP_REPLAY_SPEED_PRESETS)[number];
-
-export interface BootstrapOperatorControllerState {
-  scenarioId: string;
-  scenarioLabel: string;
-  scenePresetKey: ScenePresetKey;
-  replayMode: ClockMode;
-  currentTime: ClockTimestamp;
-  startTime: ClockTimestamp;
-  stopTime: ClockTimestamp;
-  replayMultiplier: number;
-  isPlaying: boolean;
-  handoverPolicyId: SelectableHandoverPolicyId;
-  handoverPolicyLabel: string;
-  handoverPolicySummary: string;
-  handoverRuleConfig: HandoverRuleConfig;
-}
-
-export interface BootstrapOperatorController {
-  getState(): BootstrapOperatorControllerState;
-  getScenarioOptions(): ReadonlyArray<BootstrapScenarioOption>;
-  getReplaySpeedPresets(): ReadonlyArray<BootstrapReplaySpeedPreset>;
-  getHandoverPolicyOptions(): ReadonlyArray<HandoverPolicyDescriptor>;
-  selectScenarioPreset(
-    presetKey: ScenePresetKey
-  ): Promise<BootstrapOperatorControllerState>;
-  selectReplayMode(
-    mode: BootstrapScenarioMode
-  ): Promise<BootstrapOperatorControllerState>;
-  selectReplaySpeed(
-    multiplier: BootstrapReplaySpeedPreset
-  ): BootstrapOperatorControllerState;
-  selectHandoverPolicy(
-    policyId: SelectableHandoverPolicyId
-  ): BootstrapOperatorControllerState;
-  applyHandoverRuleConfig(
-    config: HandoverRuleConfig
-  ): BootstrapOperatorControllerState;
-  resetHandoverRuleConfig(): BootstrapOperatorControllerState;
-  subscribe(
-    listener: (state: BootstrapOperatorControllerState) => void
-  ): () => void;
-  dispose(): void;
-}
+export {
+  BOOTSTRAP_REPLAY_SPEED_PRESETS
+} from "../features/operator/bootstrap-operator-contract";
+export type {
+  BootstrapOperatorController,
+  BootstrapOperatorControllerState,
+  BootstrapReplaySpeedPreset
+} from "../features/operator/bootstrap-operator-contract";
 
 export interface BootstrapOperatorControllerOptions {
   replayClock: ReplayClock;

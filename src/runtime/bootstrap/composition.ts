@@ -874,7 +874,7 @@ export function startBootstrapComposition(app: HTMLDivElement): BootstrapComposi
         document.body.dataset.displayState = state;
         const isPanelState = state === "projecting" || state === "replaying";
         const pairKey = resolvedPair
-          ? `${resolvedPair.stationA.id} ${resolvedPair.stationB.id}`
+          ? `${resolvedPair.stationA.id}::${resolvedPair.stationB.id}`
           : null;
         if (isPanelState && resolvedPair) {
           if (
@@ -895,7 +895,7 @@ export function startBootstrapComposition(app: HTMLDivElement): BootstrapComposi
           if (!v4ProjectionSidePanel) {
             v4ProjectionSidePanel = mountV4ProjectionSidePanel(
               viewer.container as HTMLElement,
-              { resolvedPair }
+              { resolvedPair, viewer }
             );
             v4ProjectionSidePanelMountedPairKey = pairKey;
             // Wire the pill to the panel's runtime-result observer so it

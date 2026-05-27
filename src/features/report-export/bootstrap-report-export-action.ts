@@ -1,4 +1,4 @@
-import type { BootstrapOperatorController } from "../../runtime/bootstrap-operator-controller";
+import type { BootstrapOperatorController } from "../operator/bootstrap-operator-contract";
 import type { CommunicationTimeReport } from "../communication-time";
 import type { HandoverDecisionReport } from "../handover-decision";
 import type { PhysicalInputReport } from "../physical-input";

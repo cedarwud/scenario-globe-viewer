@@ -1,0 +1,107 @@
+.ground-station-band-filter {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  pointer-events: none;
+}
+
+.ground-station-band-filter__chip {
+  pointer-events: auto;
+  display: inline-flex;
+  align-items: center;
+  padding: 0.28rem 0.55rem;
+  border-radius: 999px;
+  background: rgba(6, 18, 28, 0.88);
+  color: #dde9f1;
+  font-family: "IBM Plex Sans", system-ui, -apple-system, sans-serif;
+  font-size: 0.68rem;
+  border: 1px solid rgba(255, 209, 102, 0.3);
+  cursor: pointer;
+  transition: background 80ms ease, color 80ms ease, border-color 80ms ease;
+  outline: none;
+}
+
+.ground-station-band-filter__chip[data-active="true"] {
+  background: rgba(255, 209, 102, 0.14);
+  color: #ffd166;
+  border-color: rgba(255, 209, 102, 0.65);
+}
+
+.ground-station-band-filter__chip[data-active="false"] {
+  background: rgba(6, 18, 28, 0.55);
+  color: rgba(157, 196, 232, 0.45);
+  text-decoration: line-through;
+}
+
+.ground-station-band-filter__chip:disabled {
+  cursor: not-allowed;
+  opacity: 0.44;
+  filter: none;
+}
+
+.ground-station-band-filter__chip:not(:disabled):hover,
+.ground-station-band-filter__chip:not(:disabled):focus-visible {
+  filter: brightness(1.15);
+  outline: 2px solid #ffd166;
+  outline-offset: 1px;
+}
+
+.ground-station-band-filter__count {
+  display: inline;
+  color: rgba(255, 209, 102, 0.65);
+  margin-left: 0.25rem;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Selected-pair readability pass: keep operational chrome above tiny-caption size. */
+.ground-station-selection-chip,
+.ground-station-selection-apply,
+.ground-station-list-picker__select,
+.ground-station-search__input {
+  font-size: 1rem;
+}
+
+.ground-station-selection-chip__slot,
+.ground-station-list-picker__title,
+.ground-station-list-picker__label,
+.ground-station-list-picker__filters-button,
+.gs-filter-panel__title,
+.gs-filter-panel__expand-btn,
+.ground-station-orbit-filter__chip,
+.ground-station-region-filter__chip,
+.ground-station-band-filter__chip {
+  font-size: 0.94rem;
+}
+
+.gs-filter-group__label,
+.ground-station-list-picker__chevron,
+.gs-filter-panel__chevron {
+  font-size: 0.84rem;
+}
+
+.ground-station-list-picker {
+  width: min(22rem, calc(100vw - 2rem));
+  gap: 0.62rem;
+  padding: 0.8rem 0.85rem;
+}
+
+.ground-station-selection-chips {
+  top: 0.45rem;
+}
+
+.ground-station-list-picker__select {
+  min-height: 2.65rem;
+  padding: 0.52rem 0.62rem;
+}
+
+.ground-station-list-picker__filters-button {
+  min-height: 2.5rem;
+  padding: 0.44rem 0.82rem;
+}
+
+.ground-station-search__clear,
+.ground-station-selection-chip__clear {
+  width: 1.45rem;
+  height: 1.45rem;
+}

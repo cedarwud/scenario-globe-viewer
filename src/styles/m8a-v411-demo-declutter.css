@@ -5,10 +5,8 @@
 }
 
 .m8a-v47-product-ux .m8a-v47-product-ux__strip {
-  /* Wave 4 G5: stack the strip below the list-picker (~12-16rem tall);
-     15rem of clearance lines the strip up under the picker without
-     overlap at 1280x800 and 1920x1080. */
-  top: calc(var(--hud-frame-gap) + 15rem);
+  /* Stack the strip below the larger readable list-picker. */
+  top: calc(var(--hud-frame-gap) + 20rem);
   left: var(--hud-frame-gap) !important;
   right: auto !important;
   width: auto;

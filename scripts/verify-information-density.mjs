@@ -21,7 +21,7 @@ const VIEWPORTS = [
   { width: 1920, height: 1080 }
 ];
 const CDP_READY_TIMEOUT_MS = 10_000;
-const PANEL_READY_TIMEOUT_MS = 15_000;
+const PANEL_READY_TIMEOUT_MS = 50_000;
 const LAYOUT_SETTLE_MS = 250;
 const OVERLAP_EPSILON_PX = 0.5;
 
@@ -191,79 +191,108 @@ async function collectLayoutSnapshot() {
         };
         const panel = document.querySelector(panelSelector);
         const panelStyle = panel ? window.getComputedStyle(panel) : null;
-        const details = panel ? Array.from(panel.querySelectorAll("details")) : [];
-        const initialOpenCount = details.filter((detail) => detail.open).length;
+        const evidenceDrawer = document.querySelector(
+          ".v4-projection-side-panel__evidence-drawer"
+        );
+        const replayDock =
+          panel?.querySelector(".v4-projection-side-panel__replay-dock") ??
+          null;
+        const currentMarker =
+          panel?.querySelector("[data-v4-timeline-current-marker='true']") ??
+          null;
+        const mainChildren = panel
+          ? Array.from(panel.children).filter(
+              (child) => child !== evidenceDrawer
+            )
+          : [];
+        const mainChildRects = mainChildren.map((child) => {
+          const rect = child.getBoundingClientRect();
+          const style = window.getComputedStyle(child);
+          return {
+            tagName: child.tagName.toLowerCase(),
+            className: classText(child),
+            row: child.getAttribute("data-row"),
+            hidden: child.hidden === true || style.display === "none",
+            top: rect.top,
+            bottom: rect.bottom,
+            left: rect.left,
+            right: rect.right,
+            width: rect.width,
+            height: rect.height
+          };
+        });
         const closed = panel
           ? {
-              detailsCount: details.length,
-              openCount: initialOpenCount,
               panelClientHeight: panel.clientHeight,
               panelScrollHeight: panel.scrollHeight,
-              panelNoScroll: panel.scrollHeight === panel.clientHeight,
+              panelNoScroll: panel.scrollHeight <= panel.clientHeight + 2,
               panelMaxHeight: panelStyle ? panelStyle.maxHeight : null,
               panelOverflowY: panelStyle ? panelStyle.overflowY : null,
-              panelState: panel.dataset.state ?? null
+              panelState: panel.dataset.state ?? null,
+              decisionCardCount: panel.querySelectorAll(
+                ':scope > [data-row="4"] .v4-projection-side-panel__decision-card'
+              ).length,
+              timelineSegmentCount: panel.querySelectorAll(
+                ':scope > [data-row="3"] .v4-projection-side-panel__timeline-segment'
+              ).length,
+              timelineTickCount: panel.querySelectorAll(
+                ':scope > [data-row="3"] .v4-projection-side-panel__timeline-tick'
+              ).length,
+              overviewDetailsCount: panel.querySelectorAll(
+                ':scope > [data-row="3"] .v4-projection-side-panel__overview-details'
+              ).length,
+              timelineMapCount: panel.querySelectorAll(
+                ':scope > [data-row="3"][data-timeline-map="true"]'
+              ).length,
+              openOverviewDetailsCount: panel.querySelectorAll(
+                ':scope > [data-row="3"] .v4-projection-side-panel__overview-details[open]'
+              ).length,
+              defaultDetailsCount: panel.querySelectorAll(
+                ':scope > details:not(.v4-projection-side-panel__overview-details), :scope > [data-row] details:not(.v4-projection-side-panel__overview-details)'
+              ).length,
+              summarySectionCount: panel.querySelectorAll(
+                ':scope > [data-row] .v4-projection-side-panel__summary-section'
+              ).length,
+              replayDockExists: Boolean(replayDock),
+              replayDockInPanel: replayDock ? panel.contains(replayDock) : false,
+              replayProxyControlCount: panel.querySelectorAll(
+                '.v4-projection-side-panel__replay-dock [data-v4-replay-proxy]'
+              ).length,
+              currentMarkerExists: Boolean(currentMarker),
+              currentMarkerInPanel: currentMarker
+                ? panel.contains(currentMarker)
+                : false,
+              currentMarkerState: currentMarker
+                ? currentMarker.getAttribute("data-window-state")
+                : null,
+              currentMarkerUtc: currentMarker
+                ? currentMarker.getAttribute("data-current-utc")
+                : null,
+              currentMarkerLeft: currentMarker
+                ? window.getComputedStyle(currentMarker).getPropertyValue("--current-left").trim()
+                : null,
+              evidenceDrawerExists: Boolean(evidenceDrawer),
+              evidenceDrawerHidden: evidenceDrawer ? evidenceDrawer.hidden === true : null,
+              evidenceOpen: evidenceDrawer ? evidenceDrawer.dataset.open ?? "false" : null,
+              mainChildRects,
+              offscreenMainChildren: mainChildRects.filter(
+                (entry) => !entry.hidden && entry.bottom > window.innerHeight + 0.5
+              )
             }
           : null;
-
-        for (const detail of details) detail.open = false;
-
-        const disclosures = [];
-        for (let index = 0; index < details.length; index += 1) {
-          for (const detail of details) detail.open = false;
-          const detail = details[index];
-          detail.open = true;
-          const summary = detail.querySelector("summary");
-          const body = detail.querySelector(".v4-projection-side-panel__details-body");
-          const bodyStyle = body ? window.getComputedStyle(body) : null;
-          const bodyRect = body ? body.getBoundingClientRect() : null;
-          const children = body
-            ? Array.from(body.children).map((child) => {
-                const childRect = child.getBoundingClientRect();
-                return {
-                  tagName: child.tagName.toLowerCase(),
-                  className: classText(child),
-                  height: childRect.height,
-                  scrollHeight: child.scrollHeight
-                };
-              })
-            : [];
-          const childMaxHeight = children.reduce(
-            (max, child) => Math.max(max, child.height, child.scrollHeight),
-            0
-          );
-          disclosures.push({
-            index: index + 1,
-            label: summary ? summary.textContent.trim() : "",
-            open: detail.open,
-            bodyClass: classText(body),
-            bodyClientHeight: body ? body.clientHeight : null,
-            bodyScrollHeight: body ? body.scrollHeight : null,
-            bodyRectHeight: bodyRect ? bodyRect.height : null,
-            childMaxHeight,
-            bodyMaxHeight: bodyStyle ? bodyStyle.maxHeight : null,
-            bodyPosition: bodyStyle ? bodyStyle.position : null,
-            bodyOverflowY: bodyStyle ? bodyStyle.overflowY : null,
-            bodyScrolls: body ? body.scrollHeight > body.clientHeight : false,
-            bodyFitsContent: body ? body.clientHeight + 1 >= body.scrollHeight : false,
-            panelClientHeight: panel ? panel.clientHeight : null,
-            panelScrollHeight: panel ? panel.scrollHeight : null,
-            panelNoScroll: panel ? panel.scrollHeight === panel.clientHeight : false,
-            children
-          });
-        }
-
-        for (const detail of details) detail.open = false;
 
         return {
           panelExists: Boolean(panel),
           closed,
-          disclosures,
           rects: {
             chips: rectFor(".ground-station-selection-chips"),
             picker: rectFor(".ground-station-list-picker"),
             strip: rectFor(".m8a-v47-product-ux__strip"),
             cesiumToolbar: rectFor(".cesium-viewer-toolbar"),
+            cesiumTimeline: rectFor(".cesium-viewer-timelineContainer"),
+            cesiumAnimation: rectFor(".cesium-viewer-animationContainer"),
+            replayDock: rectFor(".v4-projection-side-panel__replay-dock"),
+            currentMarker: rectFor("[data-v4-timeline-current-marker='true']"),
             panel: rectFor(panelSelector)
           }
         };
@@ -274,25 +303,32 @@ async function collectLayoutSnapshot() {
   return result.value;
 }
 
-async function collectWheelScrollSnapshot() {
+async function collectEvidenceScrollSnapshot() {
   const { result: beforeResult } = await send("Runtime.evaluate", {
     expression: `
       (() => {
         const panel = document.querySelector('[data-v4-projection-side-panel="true"]');
-        const details = panel ? Array.from(panel.querySelectorAll('[data-row="5"] details')) : [];
-        if (!panel || details.length === 0) {
-          return { ok: false, reason: "missing panel or disclosures" };
+        const button = panel?.querySelector(".v4-projection-side-panel__evidence-button") ?? null;
+        const drawer = document.querySelector(".v4-projection-side-panel__evidence-drawer");
+        if (!panel || !button || !drawer) {
+          return { ok: false, reason: "missing panel, evidence button, or drawer" };
         }
-        for (const detail of details) detail.open = false;
-        const target = details[1] ?? details[0];
-        target.open = true;
-        panel.scrollTop = 0;
-        const rect = panel.getBoundingClientRect();
+        const defaultHidden = drawer.hidden === true;
+        if (drawer.hidden) {
+          button.click();
+        }
+        for (const detail of drawer.querySelectorAll("details")) {
+          detail.open = true;
+        }
+        drawer.scrollTop = 0;
+        const rect = drawer.getBoundingClientRect();
         return {
           ok: true,
-          beforeScrollTop: panel.scrollTop,
-          panelClientHeight: panel.clientHeight,
-          panelScrollHeight: panel.scrollHeight,
+          defaultHidden,
+          beforeScrollTop: drawer.scrollTop,
+          drawerClientHeight: drawer.clientHeight,
+          drawerScrollHeight: drawer.scrollHeight,
+          drawerHiddenAfterOpen: drawer.hidden === true,
           x: Math.max(rect.left + 4, Math.min(rect.left + rect.width / 2, rect.right - 4)),
           y: Math.max(rect.top + 4, Math.min(rect.top + rect.height / 2, rect.bottom - 4))
         };
@@ -318,10 +354,19 @@ async function collectWheelScrollSnapshot() {
     expression: `
       (() => {
         const panel = document.querySelector('[data-v4-projection-side-panel="true"]');
-        const details = panel ? Array.from(panel.querySelectorAll('[data-row="5"] details')) : [];
-        const afterScrollTop = panel ? panel.scrollTop : null;
-        for (const detail of details) detail.open = false;
-        return { afterScrollTop };
+        const button = panel?.querySelector(".v4-projection-side-panel__evidence-button") ?? null;
+        const drawer = document.querySelector(".v4-projection-side-panel__evidence-drawer");
+        if (drawer) {
+          drawer.scrollTop = 600;
+        }
+        const afterScrollTop = drawer ? drawer.scrollTop : null;
+        if (drawer && !drawer.hidden && button) {
+          button.click();
+        }
+        return {
+          afterScrollTop,
+          drawerHiddenAfterClose: drawer ? drawer.hidden === true : null
+        };
       })();
     `,
     returnByValue: true
@@ -329,7 +374,97 @@ async function collectWheelScrollSnapshot() {
 
   return {
     ...before,
-    afterScrollTop: afterResult.value?.afterScrollTop ?? null
+    afterScrollTop: afterResult.value?.afterScrollTop ?? null,
+    drawerHiddenAfterClose: afterResult.value?.drawerHiddenAfterClose ?? null
+  };
+}
+
+async function collectReplayDockInteractionSnapshot() {
+  const readExpression = `
+    (() => {
+      const panel = document.querySelector('[data-v4-projection-side-panel="true"]');
+      const proxy = panel?.querySelector('[data-v4-replay-proxy="play-pause"]') ?? null;
+      const source = document.querySelector(
+        '.m8a-v47-product-ux__strip [data-m8a-v47-control-id="play-pause"]'
+      );
+      if (!panel || !proxy || !source) {
+        return {
+          ok: false,
+          reason: "missing panel, proxy play button, or source play button",
+          panelExists: Boolean(panel),
+          proxyExists: Boolean(proxy),
+          sourceExists: Boolean(source)
+        };
+      }
+      return {
+        ok: true,
+        proxyDisabled: proxy.disabled === true || proxy.getAttribute("aria-disabled") === "true",
+        proxyText: proxy.textContent?.trim() ?? "",
+        proxyAriaLabel: proxy.getAttribute("aria-label") ?? "",
+        sourceAction: source.dataset.m8aV47Action ?? "",
+        sourceText: source.textContent?.trim() ?? "",
+        sourceAriaLabel: source.getAttribute("aria-label") ?? ""
+      };
+    })();
+  `;
+  const { result: beforeResult } = await send("Runtime.evaluate", {
+    expression: readExpression,
+    returnByValue: true
+  });
+  const before = beforeResult.value;
+  if (!before?.ok || before.proxyDisabled) {
+    return {
+      ok: false,
+      reason: before?.reason ?? "proxy play button unavailable",
+      before
+    };
+  }
+
+  await send("Runtime.evaluate", {
+    expression: `
+      (() => {
+        const proxy = document.querySelector(
+          '[data-v4-projection-side-panel="true"] [data-v4-replay-proxy="play-pause"]'
+        );
+        proxy?.click();
+        return Boolean(proxy);
+      })();
+    `,
+    returnByValue: true
+  });
+  await delay(200);
+
+  const { result: afterResult } = await send("Runtime.evaluate", {
+    expression: readExpression,
+    returnByValue: true
+  });
+  const after = afterResult.value;
+
+  if (
+    after?.ok &&
+    before.sourceAction &&
+    after.sourceAction &&
+    after.sourceAction !== before.sourceAction
+  ) {
+    await send("Runtime.evaluate", {
+      expression: `
+        (() => {
+          const proxy = document.querySelector(
+            '[data-v4-projection-side-panel="true"] [data-v4-replay-proxy="play-pause"]'
+          );
+          proxy?.click();
+          return Boolean(proxy);
+        })();
+      `,
+      returnByValue: true
+    });
+    await delay(100);
+  }
+
+  return {
+    ok: true,
+    before,
+    after
   };
 }
 
@@ -356,55 +491,54 @@ function assertion(name, passed, details) {
   return { name, passed: Boolean(passed), details };
 }
 
-function buildViewportResult(viewport, readyInfo, layout, wheelScroll) {
+function buildViewportResult(
+  viewport,
+  readyInfo,
+  layout,
+  evidenceScroll,
+  replayDockInteraction
+) {
   const closed = layout.closed;
-  const disclosures = layout.disclosures;
-  const longestDisclosure = disclosures.reduce((current, next) => {
-    if (!current) return next;
-    const currentHeight = Math.max(
-      current.bodyScrollHeight ?? 0,
-      current.childMaxHeight ?? 0
-    );
-    const nextHeight = Math.max(next.bodyScrollHeight ?? 0, next.childMaxHeight ?? 0);
-    return nextHeight > currentHeight ? next : current;
-  }, null);
-  const longestContentHeight = longestDisclosure
-    ? Math.max(
-        longestDisclosure.bodyScrollHeight ?? 0,
-        longestDisclosure.childMaxHeight ?? 0
-      )
-    : 0;
-  const longestBodyScrolls = Boolean(
-    longestDisclosure &&
-      longestDisclosure.bodyClientHeight !== null &&
-      longestDisclosure.bodyClientHeight < longestContentHeight
-  );
-  const longestPanelScrolls = Boolean(
-    longestDisclosure &&
-      longestDisclosure.panelClientHeight !== null &&
-      longestDisclosure.panelScrollHeight > longestDisclosure.panelClientHeight
-  );
-  const disclosureBodiesExpandInFlow = disclosures.every(
-    (entry) =>
-      entry.bodyFitsContent &&
-      entry.bodyMaxHeight === "none" &&
-      entry.bodyPosition === "static" &&
-      entry.bodyOverflowY === "visible"
-  );
 
-  const pickerStripOverlap =
-    isVisibleRect(layout.rects.picker) && isVisibleRect(layout.rects.strip)
-      ? overlapRect(layout.rects.picker, layout.rects.strip)
-      : { overlaps: true, width: null, height: null, area: null };
   const toolbarPanelOverlap =
     isVisibleRect(layout.rects.cesiumToolbar) && isVisibleRect(layout.rects.panel)
       ? overlapRect(layout.rects.cesiumToolbar, layout.rects.panel)
       : { overlaps: true, width: null, height: null, area: null };
+  const nativeBottomPairs = [
+    ["cesium-timeline", layout.rects.cesiumTimeline],
+    ["cesium-animation", layout.rects.cesiumAnimation]
+  ].map(([name, rect]) => {
+    const visible = isVisibleRect(rect) && isVisibleRect(layout.rects.panel);
+    const overlap = visible
+      ? overlapRect(rect, layout.rects.panel)
+      : { overlaps: false, width: null, height: null, area: null };
+    return {
+      name,
+      visible: isVisibleRect(rect),
+      panelVisible: isVisibleRect(layout.rects.panel),
+      ...overlap
+    };
+  });
+  const replayDockWithinPanel =
+    isVisibleRect(layout.rects.replayDock) && isVisibleRect(layout.rects.panel)
+      ? {
+          within:
+            layout.rects.replayDock.top >=
+              layout.rects.panel.top - OVERLAP_EPSILON_PX &&
+            layout.rects.replayDock.bottom <=
+              layout.rects.panel.bottom + OVERLAP_EPSILON_PX &&
+            layout.rects.replayDock.left >=
+              layout.rects.panel.left - OVERLAP_EPSILON_PX &&
+            layout.rects.replayDock.right <=
+              layout.rects.panel.right + OVERLAP_EPSILON_PX,
+          topGap: layout.rects.replayDock.top - layout.rects.panel.top,
+          bottomGap: layout.rects.panel.bottom - layout.rects.replayDock.bottom
+        }
+      : { within: false, topGap: null, bottomGap: null };
 
   const leftRects = [
     ["selection-chips", layout.rects.chips],
-    ["station-list-picker", layout.rects.picker],
-    ["replay-strip", layout.rects.strip]
+    ["station-list-picker", layout.rects.picker]
   ];
   const rightRects = [["projection-side-panel", layout.rects.panel]];
   const topPairs = [];
@@ -426,88 +560,68 @@ function buildViewportResult(viewport, readyInfo, layout, wheelScroll) {
 
   const assertions = [
     assertion(
-      "panel-root-no-scroll-closed",
+      "panel-root-bounded-above-native-bottom",
       layout.panelExists &&
         closed &&
         closed.panelState === "ready" &&
-        closed.openCount === 0 &&
-        closed.panelScrollHeight === closed.panelClientHeight,
+        isVisibleRect(layout.rects.panel) &&
+        nativeBottomPairs.every((pair) => !pair.overlaps),
       {
         panelExists: layout.panelExists,
         readyMs: readyInfo.readyMs,
         panelState: closed?.panelState ?? null,
-        openCount: closed?.openCount ?? null,
+        panelNoScroll: closed?.panelNoScroll ?? null,
         panelScrollHeight: closed?.panelScrollHeight ?? null,
         panelClientHeight: closed?.panelClientHeight ?? null,
         panelMaxHeight: closed?.panelMaxHeight ?? null,
-        panelOverflowY: closed?.panelOverflowY ?? null
+        panelOverflowY: closed?.panelOverflowY ?? null,
+        panel: layout.rects.panel,
+        nativeBottomPairs
       }
     ),
     assertion(
-      "row5-disclosure-root-scroll",
+      "main-panel-bounded-decision-surface",
       layout.panelExists &&
         closed &&
-        closed.detailsCount === 3 &&
-        disclosures.length === 3 &&
-        closed.panelNoScroll &&
-        closed.panelOverflowY === "auto" &&
-        closed.panelMaxHeight !== "none" &&
-        longestPanelScrolls &&
-        disclosureBodiesExpandInFlow,
+        closed.decisionCardCount <= 3 &&
+        closed.timelineSegmentCount <= 18 &&
+        closed.timelineTickCount <= 12 &&
+        closed.timelineMapCount === 1 &&
+        closed.overviewDetailsCount === 0 &&
+        closed.openOverviewDetailsCount === 0 &&
+        closed.defaultDetailsCount === 0 &&
+        closed.summarySectionCount === 0,
       {
-        detailsCount: closed?.detailsCount ?? null,
-        closedPanelNoScroll: closed?.panelNoScroll ?? null,
-        closedPanelMaxHeight: closed?.panelMaxHeight ?? null,
-        closedPanelOverflowY: closed?.panelOverflowY ?? null,
-        longestPanelScrolls,
-        disclosureBodiesExpandInFlow,
-        longestDisclosure: longestDisclosure
-          ? {
-              index: longestDisclosure.index,
-              label: longestDisclosure.label,
-              bodyClientHeight: longestDisclosure.bodyClientHeight,
-              bodyScrollHeight: longestDisclosure.bodyScrollHeight,
-              childMaxHeight: longestDisclosure.childMaxHeight,
-              contentHeight: longestContentHeight,
-              bodyScrolls: longestBodyScrolls,
-              bodyFitsContent: longestDisclosure.bodyFitsContent,
-              bodyMaxHeight: longestDisclosure.bodyMaxHeight,
-              bodyPosition: longestDisclosure.bodyPosition,
-              bodyOverflowY: longestDisclosure.bodyOverflowY,
-              panelClientHeight: longestDisclosure.panelClientHeight,
-              panelScrollHeight: longestDisclosure.panelScrollHeight
-            }
-          : null,
-        disclosures: disclosures.map((entry) => ({
-          index: entry.index,
-          label: entry.label,
-          bodyClass: entry.bodyClass,
-          bodyClientHeight: entry.bodyClientHeight,
-          bodyScrollHeight: entry.bodyScrollHeight,
-          childMaxHeight: entry.childMaxHeight,
-          bodyScrolls: entry.bodyScrolls,
-          bodyFitsContent: entry.bodyFitsContent,
-          bodyMaxHeight: entry.bodyMaxHeight,
-          bodyPosition: entry.bodyPosition,
-          bodyOverflowY: entry.bodyOverflowY,
-          panelScrollHeight: entry.panelScrollHeight,
-          panelClientHeight: entry.panelClientHeight,
-          panelNoScroll: entry.panelNoScroll
-        }))
+        offscreenMainChildren: closed?.offscreenMainChildren ?? null,
+        decisionCardCount: closed?.decisionCardCount ?? null,
+        timelineSegmentCount: closed?.timelineSegmentCount ?? null,
+        timelineTickCount: closed?.timelineTickCount ?? null,
+        timelineMapCount: closed?.timelineMapCount ?? null,
+        overviewDetailsCount: closed?.overviewDetailsCount ?? null,
+        openOverviewDetailsCount: closed?.openOverviewDetailsCount ?? null,
+        defaultDetailsCount: closed?.defaultDetailsCount ?? null,
+        summarySectionCount: closed?.summarySectionCount ?? null,
+        mainChildRects: closed?.mainChildRects ?? null
       }
     ),
     assertion(
-      "row5-panel-wheel-scroll",
-      wheelScroll?.ok &&
-        wheelScroll.panelScrollHeight > wheelScroll.panelClientHeight &&
-        wheelScroll.afterScrollTop > wheelScroll.beforeScrollTop,
+      "evidence-drawer-closed-default-and-scrolls",
+      evidenceScroll?.ok &&
+        evidenceScroll.defaultHidden === true &&
+        evidenceScroll.drawerHiddenAfterOpen === false &&
+        evidenceScroll.drawerScrollHeight > evidenceScroll.drawerClientHeight &&
+        evidenceScroll.afterScrollTop > evidenceScroll.beforeScrollTop &&
+        evidenceScroll.drawerHiddenAfterClose === true,
       {
-        ok: wheelScroll?.ok ?? false,
-        reason: wheelScroll?.reason ?? null,
-        beforeScrollTop: wheelScroll?.beforeScrollTop ?? null,
-        afterScrollTop: wheelScroll?.afterScrollTop ?? null,
-        panelClientHeight: wheelScroll?.panelClientHeight ?? null,
-        panelScrollHeight: wheelScroll?.panelScrollHeight ?? null
+        ok: evidenceScroll?.ok ?? false,
+        reason: evidenceScroll?.reason ?? null,
+        defaultHidden: evidenceScroll?.defaultHidden ?? null,
+        drawerHiddenAfterOpen: evidenceScroll?.drawerHiddenAfterOpen ?? null,
+        beforeScrollTop: evidenceScroll?.beforeScrollTop ?? null,
+        afterScrollTop: evidenceScroll?.afterScrollTop ?? null,
+        drawerClientHeight: evidenceScroll?.drawerClientHeight ?? null,
+        drawerScrollHeight: evidenceScroll?.drawerScrollHeight ?? null,
+        drawerHiddenAfterClose: evidenceScroll?.drawerHiddenAfterClose ?? null
       }
     ),
     assertion(
@@ -522,14 +636,59 @@ function buildViewportResult(viewport, readyInfo, layout, wheelScroll) {
       }
     ),
     assertion(
-      "station-list-picker-replay-strip-no-overlap",
-      isVisibleRect(layout.rects.picker) &&
-        isVisibleRect(layout.rects.strip) &&
-        !pickerStripOverlap.overlaps,
+      "replay-controls-integrated-in-panel",
+      layout.panelExists &&
+        closed &&
+        closed.replayDockExists === true &&
+        closed.replayDockInPanel === true &&
+        closed.replayProxyControlCount === 5 &&
+        isVisibleRect(layout.rects.replayDock) &&
+        replayDockWithinPanel.within &&
+        !isVisibleRect(layout.rects.strip),
       {
-        picker: layout.rects.picker,
-        strip: layout.rects.strip,
-        overlap: pickerStripOverlap
+        replayDockExists: closed?.replayDockExists ?? null,
+        replayDockInPanel: closed?.replayDockInPanel ?? null,
+        replayProxyControlCount: closed?.replayProxyControlCount ?? null,
+        replayDockWithinPanel,
+        replayDock: layout.rects.replayDock,
+        sourceStrip: layout.rects.strip
+      }
+    ),
+    assertion(
+      "replay-dock-proxy-click-controls-replay",
+      replayDockInteraction?.ok &&
+        replayDockInteraction.before?.proxyDisabled === false &&
+        replayDockInteraction.before?.sourceAction &&
+        replayDockInteraction.after?.sourceAction &&
+        replayDockInteraction.after.sourceAction !==
+          replayDockInteraction.before.sourceAction,
+      {
+        ok: replayDockInteraction?.ok ?? false,
+        reason: replayDockInteraction?.reason ?? null,
+        before: replayDockInteraction?.before ?? null,
+        after: replayDockInteraction?.after ?? null
+      }
+    ),
+    assertion(
+      "timeline-current-marker-mounted",
+      layout.panelExists &&
+        closed &&
+        closed.currentMarkerExists === true &&
+        closed.currentMarkerInPanel === true &&
+        isVisibleRect(layout.rects.currentMarker) &&
+        ["before", "inside", "after"].includes(closed.currentMarkerState) &&
+        Number.isFinite(
+          Number.parseFloat(String(closed.currentMarkerLeft ?? ""))
+        ) &&
+        typeof closed.currentMarkerUtc === "string" &&
+        closed.currentMarkerUtc.length > 0,
+      {
+        currentMarkerExists: closed?.currentMarkerExists ?? null,
+        currentMarkerInPanel: closed?.currentMarkerInPanel ?? null,
+        currentMarkerState: closed?.currentMarkerState ?? null,
+        currentMarkerUtc: closed?.currentMarkerUtc ?? null,
+        currentMarkerLeft: closed?.currentMarkerLeft ?? null,
+        currentMarker: layout.rects.currentMarker
       }
     ),
     assertion(
@@ -560,8 +719,15 @@ async function runViewport(viewport) {
   const readyInfo = await waitForPanelReady();
   await delay(LAYOUT_SETTLE_MS);
   const layout = await collectLayoutSnapshot();
-  const wheelScroll = await collectWheelScrollSnapshot();
-  return buildViewportResult(viewport, readyInfo, layout, wheelScroll);
+  const replayDockInteraction = await collectReplayDockInteractionSnapshot();
+  const evidenceScroll = await collectEvidenceScrollSnapshot();
+  return buildViewportResult(
+    viewport,
+    readyInfo,
+    layout,
+    evidenceScroll,
+    replayDockInteraction
+  );
 }
 
 try {

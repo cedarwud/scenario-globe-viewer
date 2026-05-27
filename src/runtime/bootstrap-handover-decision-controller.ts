@@ -5,7 +5,7 @@ import {
 } from "../features/handover-decision/handover-decision";
 import type {
   BootstrapOperatorControllerState
-} from "./bootstrap-operator-controller";
+} from "../features/operator/bootstrap-operator-contract";
 import type { BootstrapScenarioCatalog } from "./resolve-bootstrap-scenario";
 import {
   type BootstrapProxyHandoverDecisionSourceCatalog,

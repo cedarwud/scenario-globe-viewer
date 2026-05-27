@@ -36,6 +36,8 @@ const COMMON_RUNTIME_HELPERS = [
   "src/runtime/m8a-v4-ground-station-export-policy.ts"
 ];
 const COMMON_SMOKE_HELPERS = [
+  "tests/smoke/helpers/bootstrap-smoke-common.mjs",
+  "tests/smoke/helpers/bootstrap-satellite-overlay-checks.mjs",
   "tests/smoke/helpers/m8a-v4-browser-capture-harness.mjs",
   "tests/smoke/helpers/m8a-v4-product-comprehension-data.mjs",
   "tests/smoke/helpers/m8a-v4-product-comprehension-inspector-checks.mjs",
@@ -43,6 +45,27 @@ const COMMON_SMOKE_HELPERS = [
   "tests/smoke/helpers/m8a-v4-product-comprehension-navigation.mjs",
   "tests/smoke/helpers/m8a-v4-product-comprehension-persistent-checks.mjs",
   "tests/smoke/helpers/m8a-v4-product-comprehension-transition-checks.mjs"
+];
+const COMMON_FEATURE_SURFACES = [
+  "src/features/multi-station-selector/v4-projection-side-panel.ts",
+  "src/features/multi-station-selector/v4-projection-formatters.ts",
+  "src/features/multi-station-selector/runtime-projection.ts",
+  "src/features/multi-station-selector/runtime-data-completeness.ts"
+];
+const COMMON_SCRIPT_SURFACES = [
+  "scripts/verify-tle-first-data-completeness.mjs",
+  "scripts/helpers/tle-data-completeness-assertions.mjs",
+  "scripts/helpers/tle-data-completeness-csv-assertions.mjs",
+  "tests/smoke/bootstrap-loads-assets-and-workers.mjs"
+];
+const COMMON_STYLESHEET_SURFACES = [
+  "src/styles/app-shell-hud.css",
+  "src/styles/first-intake-overlays.css",
+  "src/styles/runtime-panels.css",
+  "src/styles/viewer-controls-responsive.css",
+  "src/styles/homepage-entry-cta.css",
+  "src/styles/ground-station-selector.css",
+  "src/styles/ground-station-band-filter.css"
 ];
 
 const budgets = profile === "final"
@@ -60,12 +83,58 @@ const budgets = profile === "final"
         optional: true
       })),
       {
+        id: "selected-pair-panel",
+        path: COMMON_FEATURE_SURFACES[0],
+        maxLines: 2800,
+        hardCapLines: 3000
+      },
+      {
+        id: "selected-pair-panel-helper",
+        path: COMMON_FEATURE_SURFACES[1],
+        maxLines: 1200
+      },
+      {
+        id: "runtime-projection",
+        path: COMMON_FEATURE_SURFACES[2],
+        maxLines: 1800
+      },
+      {
+        id: "runtime-data-completeness",
+        path: COMMON_FEATURE_SURFACES[3],
+        maxLines: 1800
+      },
+      {
+        id: "tle-data-completeness-gate",
+        path: COMMON_SCRIPT_SURFACES[0],
+        maxLines: 1200
+      },
+      {
+        id: "tle-data-completeness-assertions",
+        path: COMMON_SCRIPT_SURFACES[1],
+        maxLines: 2200
+      },
+      {
+        id: "tle-data-completeness-csv-assertions",
+        path: COMMON_SCRIPT_SURFACES[2],
+        maxLines: 1200
+      },
+      {
+        id: "bootstrap-smoke",
+        path: COMMON_SCRIPT_SURFACES[3],
+        maxLines: 2000
+      },
+      {
         id: "product-comprehension-smoke",
         path: "tests/smoke/verify-m8a-v4.9-product-comprehension-runtime.mjs",
         maxLines: 1200
       },
       ...COMMON_SMOKE_HELPERS.map((path) => ({
         id: "smoke-helper",
+        path,
+        maxLines: 1200
+      })),
+      ...COMMON_STYLESHEET_SURFACES.map((path) => ({
+        id: "stylesheet-helper",
         path,
         maxLines: 1200
       })),
@@ -91,6 +160,54 @@ const budgets = profile === "final"
         optional: true
       })),
       {
+        id: "selected-pair-panel",
+        path: COMMON_FEATURE_SURFACES[0],
+        maxLines: 3600,
+        targetLines: 2400
+      },
+      {
+        id: "selected-pair-panel-helper",
+        path: COMMON_FEATURE_SURFACES[1],
+        maxLines: 1500,
+        targetLines: 1200
+      },
+      {
+        id: "runtime-projection",
+        path: COMMON_FEATURE_SURFACES[2],
+        maxLines: 1800,
+        targetLines: 1500
+      },
+      {
+        id: "runtime-data-completeness",
+        path: COMMON_FEATURE_SURFACES[3],
+        maxLines: 1800,
+        targetLines: 1500
+      },
+      {
+        id: "tle-data-completeness-gate",
+        path: COMMON_SCRIPT_SURFACES[0],
+        maxLines: 1400,
+        targetLines: 900
+      },
+      {
+        id: "tle-data-completeness-assertions",
+        path: COMMON_SCRIPT_SURFACES[1],
+        maxLines: 2400,
+        targetLines: 1600
+      },
+      {
+        id: "tle-data-completeness-csv-assertions",
+        path: COMMON_SCRIPT_SURFACES[2],
+        maxLines: 1500,
+        targetLines: 1200
+      },
+      {
+        id: "bootstrap-smoke",
+        path: COMMON_SCRIPT_SURFACES[3],
+        maxLines: 2000,
+        targetLines: 1200
+      },
+      {
         id: "product-comprehension-smoke",
         path: "tests/smoke/verify-m8a-v4.9-product-comprehension-runtime.mjs",
         maxLines: 3000,
@@ -98,6 +215,12 @@ const budgets = profile === "final"
       },
       ...COMMON_SMOKE_HELPERS.map((path) => ({
         id: "smoke-helper",
+        path,
+        maxLines: 1500,
+        targetLines: 1200
+      })),
+      ...COMMON_STYLESHEET_SURFACES.map((path) => ({
+        id: "stylesheet-helper",
         path,
         maxLines: 1500,
         targetLines: 1200

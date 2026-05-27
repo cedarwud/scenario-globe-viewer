@@ -6,7 +6,9 @@ import {
   type M8aV4ServiceStateWindow
 } from "./m8a-v4-ground-station-projection";
 import type { EndpointRenderContext } from "./m8a-v4-ground-station-cesium-entities";
-import type { M8aV4GroundStationSceneState } from "./m8a-v4-ground-station-handover-scene-controller";
+import type {
+  M8aV4GroundStationSceneState
+} from "./m8a-v4-ground-station-scene-state";
 import type { M8aV411SourcesFilter } from "./m8a-v411-sources-role";
 import {
   M8A_V411_REVIEW_AUTO_PAUSE_DURATION_MS,

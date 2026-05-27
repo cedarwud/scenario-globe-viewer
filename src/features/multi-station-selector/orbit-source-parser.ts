@@ -6,10 +6,6 @@ import {
   type RuntimeOrbitRecord,
   type TleRecord
 } from "./visibility-utils";
-import type {
-  RuntimeNoradIdRangeSummary,
-  RuntimeTleDragTermFieldCoverage
-} from "./runtime-data-completeness";
 
 export type OrbitSourceFormat = "tle-3le" | "omm-json" | "omm-csv";
 export type OrbitSourceApiClass = "celestrak-gp-tle" | "celestrak-gp";
@@ -26,6 +22,18 @@ export interface OrbitSourceMetadata {
   readonly apiClass: OrbitSourceApiClass;
   readonly sourcePolicy: OrbitSourcePolicy;
   readonly catalogNumberCompatibility: CatalogNumberCompatibility;
+}
+
+export interface RuntimeNoradIdRangeSummary {
+  readonly start: number;
+  readonly end: number;
+  readonly count: number;
+}
+
+export interface RuntimeTleDragTermFieldCoverage {
+  readonly meanMotionFirstDerivativeCount: number;
+  readonly meanMotionSecondDerivativeCount: number;
+  readonly bstarDragTermCount: number;
 }
 
 export interface OrbitSourceRecord {

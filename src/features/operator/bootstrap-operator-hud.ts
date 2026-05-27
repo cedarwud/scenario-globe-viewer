@@ -1,29 +1,54 @@
 import type { ScenePresetKey } from "../globe/scene-preset";
-import type { SelectableHandoverPolicyId } from "../handover-decision";
+import type {
+  HandoverDecisionState,
+  SelectableHandoverPolicyId
+} from "../handover-decision";
 import type { ReplayClock, ReplayClockState } from "../time";
 import {
   clearDocumentTelemetry,
   syncDocumentTelemetry
 } from "../telemetry/document-telemetry";
 import { mountTimelineHudPlaceholder } from "../time/timeline-hud-placeholder";
-import { mountBootstrapCommunicationTimePanel } from "../communication-time";
+import {
+  mountBootstrapCommunicationTimePanel,
+  type CommunicationTimeState
+} from "../communication-time";
 import { mountBootstrapHandoverDecisionPanel } from "../handover-decision";
-import { mountBootstrapPhysicalInputPanel } from "../physical-input";
+import {
+  mountBootstrapPhysicalInputPanel,
+  type PhysicalInputState
+} from "../physical-input";
 import { mountBootstrapSceneStarterPanel } from "../scene-starter/bootstrap-scene-starter-panel";
-import { mountBootstrapValidationStatePanel } from "../validation-state";
+import type { BootstrapSceneStarterState } from "../scene-starter/scene-starter";
+import {
+  mountBootstrapValidationStatePanel,
+  type ValidationState
+} from "../validation-state";
 import { mountBootstrapReportExportAction } from "../report-export/bootstrap-report-export-action";
 import { mountCrossPanelTruthChip } from "./cross-panel-truth-chip";
 import type {
   BootstrapOperatorController,
   BootstrapOperatorControllerState,
+  BootstrapScenarioMode,
   BootstrapReplaySpeedPreset
-} from "../../runtime/bootstrap-operator-controller";
-import type { BootstrapScenarioMode } from "../../runtime/resolve-bootstrap-scenario";
-import type { BootstrapCommunicationTimeController } from "../../runtime/bootstrap-communication-time-controller";
-import type { BootstrapHandoverDecisionController } from "../../runtime/bootstrap-handover-decision-controller";
-import type { BootstrapPhysicalInputController } from "../../runtime/bootstrap-physical-input-controller";
-import type { BootstrapSceneStarterController } from "../../runtime/bootstrap-scene-starter-controller";
-import type { BootstrapValidationStateController } from "../../runtime/bootstrap-validation-state-controller";
+} from "./bootstrap-operator-contract";
+
+interface BootstrapStateController<TState> {
+  getState(): TState;
+  subscribe(listener: (state: TState) => void): () => void;
+  dispose(): void;
+}
+
+type BootstrapCommunicationTimeController =
+  BootstrapStateController<CommunicationTimeState>;
+type BootstrapHandoverDecisionController =
+  BootstrapStateController<HandoverDecisionState>;
+type BootstrapPhysicalInputController =
+  BootstrapStateController<PhysicalInputState>;
+type BootstrapSceneStarterController =
+  BootstrapStateController<BootstrapSceneStarterState>;
+type BootstrapValidationStateController =
+  BootstrapStateController<ValidationState>;
 
 interface BootstrapOperatorHudOptions {
   hudFrame: HTMLElement;

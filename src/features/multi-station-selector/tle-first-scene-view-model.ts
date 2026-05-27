@@ -1,4 +1,3 @@
-import type { RuntimeProjectionResult } from "./runtime-projection";
 import type {
   OrbitClass,
   PairVisibilityWindow,
@@ -10,6 +9,39 @@ import {
   gstime,
   propagate
 } from "../../vendor/satellite-js-runtime";
+
+interface RuntimeProjectionResult {
+  readonly pair: {
+    readonly stationA: {
+      readonly id: string;
+      readonly lat: number;
+      readonly lon: number;
+    };
+    readonly stationB: {
+      readonly id: string;
+      readonly lat: number;
+      readonly lon: number;
+    };
+  };
+  readonly timeWindow: {
+    readonly startUtc: string;
+    readonly endUtc: string;
+  };
+  readonly visibilityWindows: ReadonlyArray<PairVisibilityWindow>;
+  readonly handoverEvents: ReadonlyArray<{
+    readonly handoverAtUtc: string;
+    readonly fromSatelliteId: string | null;
+    readonly toSatelliteId: string;
+    readonly reasonKind:
+      | "current-link-unavailable"
+      | "better-candidate-available"
+      | "policy-tie-break"
+      | "cross-orbit-migration";
+  }>;
+  readonly truthBoundary: {
+    readonly nonClaims: ReadonlyArray<string>;
+  };
+}
 
 export type SceneSourceMode = "tle-first-runtime" | "fixture-fallback";
 export type SceneTruthClass =

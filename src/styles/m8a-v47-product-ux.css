@@ -507,7 +507,7 @@
 .m8a-v47-product-ux__strip-state span,
 .m8a-v47-product-ux__sheet-state span {
   color: rgba(184, 221, 233, 0.88);
-  font-size: 0.75rem;
+  font-size: 0.94rem;
   font-weight: 750;
   line-height: 1.2;
   letter-spacing: 0;
@@ -516,7 +516,7 @@
 .m8a-v47-product-ux__scene-annotation strong {
   min-width: 0;
   color: rgba(255, 247, 224, 0.98);
-  font-size: 0.72rem;
+  font-size: 0.86rem;
   font-weight: 850;
   line-height: 1;
   letter-spacing: 0;
@@ -529,7 +529,7 @@
   min-width: 0;
   margin: 0;
   color: rgba(235, 244, 247, 0.94);
-  font-size: 0.96rem;
+  font-size: 1.08rem;
   line-height: 1.32;
   letter-spacing: 0;
   overflow-wrap: anywhere;
@@ -539,19 +539,16 @@
 .m8a-v47-product-ux__strip-state small,
 .m8a-v47-product-ux__sheet-state small {
   color: rgba(211, 231, 238, 0.86);
-  font-size: 0.8rem;
+  font-size: 0.94rem;
   line-height: 1.25;
   letter-spacing: 0;
 }
 
 .m8a-v47-product-ux__strip {
   position: absolute;
-  /* IA §4.1 chrome.topLeft row 3 — the strip stacks below the chips
-     (row 1) and the list-picker (row 2). Picker has top:4rem and a
-     collapsed natural height around 12-16rem with filter-chip
-     headroom; place the strip at 15rem so it always sits under the
-     picker at 1280x800 and 1920x1080 (G5). */
-  top: calc(var(--hud-frame-gap) + 15rem);
+  /* chrome.topLeft row 3 — the strip stacks below the chips
+     (row 1) and the larger readable list-picker (row 2). */
+  top: calc(var(--hud-frame-gap) + 20rem);
   left: var(--hud-frame-gap);
   right: auto;
   z-index: 3;
@@ -590,7 +587,7 @@
 .m8a-v47-product-ux__sheet-state strong {
   min-width: 0;
   color: rgba(255, 246, 223, 0.98);
-  font-size: 0.92rem;
+  font-size: 1.16rem;
   font-weight: 800;
   line-height: 1.12;
   overflow-wrap: anywhere;
@@ -605,7 +602,7 @@
   background: rgba(11, 27, 34, 0.8);
   color: rgba(240, 248, 252, 0.97);
   font: inherit;
-  font-size: 0.78rem;
+  font-size: 1rem;
   font-weight: 780;
   line-height: 1.12;
   letter-spacing: 0;
@@ -628,7 +625,7 @@
 .m8a-v47-product-ux__strip .m8a-v47-product-ux__speed {
   padding-right: 0.18rem;
   padding-left: 0.18rem;
-  font-size: 0.74rem;
+  font-size: 0.96rem;
 }
 
 .m8a-v47-product-ux__speed[aria-pressed="true"] {

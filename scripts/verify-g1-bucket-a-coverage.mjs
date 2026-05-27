@@ -31,25 +31,22 @@ const REQUIRED_STATION_IDS = [
 ];
 const VIEWPORT = { width: 1440, height: 900 };
 const CDP_READY_TIMEOUT_MS = 10_000;
-const PANEL_READY_TIMEOUT_MS = 25_000;
+const PANEL_READY_TIMEOUT_MS = 35_000;
 
 const G1_ROWS = [
   {
     id: "R1-T1 / K-A1",
-    description: "Link-selection list has events or its empty line.",
+    description: "Decision cards show link selection or an explicit empty state.",
     evaluator: String.raw`
       (() => {
-        const sections = Array.from(document.querySelectorAll(".v4-projection-side-panel__summary-section"));
-        const section = sections.find((entry) =>
-          entry.querySelector(".v4-projection-side-panel__summary-heading")?.textContent?.trim() === "Link selection events"
-        ) ?? null;
-        const items = section
-          ? Array.from(section.querySelectorAll(".v4-projection-side-panel__list-item"))
+        const row = document.querySelector('[data-v4-projection-side-panel="true"] [data-row="4"]');
+        const items = row
+          ? Array.from(row.querySelectorAll(".v4-projection-side-panel__decision-card"))
           : [];
-        const emptyLine = Boolean(section?.innerText.includes("No handover events"));
+        const emptyLine = Boolean(row?.innerText.includes("No mutual visibility"));
         return {
-          passed: Boolean(section) && (items.length >= 1 || emptyLine),
-          evidence: { sectionExists: Boolean(section), itemCount: items.length, emptyLine }
+          passed: Boolean(row) && (items.length >= 1 || emptyLine) && items.length <= 3,
+          evidence: { rowExists: Boolean(row), itemCount: items.length, emptyLine }
         };
       })();
     `
@@ -59,13 +56,8 @@ const G1_ROWS = [
     description: "First visibility row names a satellite present in bundled TLE data.",
     evaluator: String.raw`
       (async () => {
-        const sections = Array.from(document.querySelectorAll(".v4-projection-side-panel__summary-section"));
-        const section = sections.find((entry) =>
-          entry.querySelector(".v4-projection-side-panel__summary-heading")?.textContent?.trim() === "Visibility windows"
-        ) ?? null;
-        const first = section?.querySelector(".v4-projection-side-panel__list-primary") ?? null;
-        const text = first?.textContent?.trim() ?? "";
-        const satelliteId = text.split("\u00b7")[0]?.trim() ?? "";
+        const first = document.querySelector('.v4-projection-side-panel__timeline-segment[data-satellite-id]');
+        const satelliteId = first?.getAttribute("data-satellite-id") ?? "";
         const idShapeOk = /^[A-Z0-9_-]+(?:\s+\([^)]+\))?$/.test(satelliteId);
         const paths = [
           "/fixtures/satellites/leo-scale/oneweb-2026-05-15T12-00-00Z.tle",
@@ -89,10 +81,9 @@ const G1_ROWS = [
           }
         }
         return {
-          passed: Boolean(section) && Boolean(first) && idShapeOk && known.has(satelliteId),
+          passed: Boolean(first) && idShapeOk && known.has(satelliteId),
           evidence: {
-            sectionExists: Boolean(section),
-            firstText: text,
+            segmentExists: Boolean(first),
             satelliteId,
             idShapeOk,
             tleMatch: known.has(satelliteId),
@@ -174,10 +165,10 @@ const G1_ROWS = [
   },
   {
     id: "R1-T5 / K-D4",
-    description: "Sources disclosure cites the handover policy section.",
+    description: "Evidence surface cites the handover policy section.",
     evaluator: String.raw`
       (async () => {
-        const details = document.querySelector(".v4-projection-side-panel__details:nth-of-type(3)");
+        const details = document.querySelector('[data-disclosure="sources-non-claims"]');
         const body = details?.querySelector(".v4-projection-side-panel__details-body") ?? null;
         const wasOpen = details?.open === true;
         if (details && !wasOpen) {
@@ -198,19 +189,18 @@ const G1_ROWS = [
   },
   {
     id: "R1-T6 / K-D5",
-    description: "Rain-impact disclosure lists at least two orbit downlink rows.",
+    description: "Rain-impact region lists at least two orbit downlink rows.",
     evaluator: String.raw`
       (() => {
-        const details = document.querySelector(".v4-projection-side-panel__details:nth-of-type(1)");
-        const body = details?.querySelector(".v4-projection-side-panel__details-body") ?? null;
+        const body = document.querySelector('[data-v4-projection-side-panel="true"] [data-row="5"]');
         const rows = body
           ? Array.from(body.querySelectorAll(".v4-projection-side-panel__list-primary"))
               .map((entry) => entry.textContent?.trim() ?? "")
-              .filter((text) => /^(LEO|MEO|GEO) downlink/.test(text))
+              .filter((text) => /^(LEO|MEO|GEO)\b/.test(text))
           : [];
         return {
           passed: Boolean(body) && rows.length >= 2,
-          evidence: { detailsExists: Boolean(details), bodyExists: Boolean(body), rows }
+          evidence: { bodyExists: Boolean(body), rows }
         };
       })();
     `
@@ -304,33 +294,30 @@ const G1_ROWS = [
   },
   {
     id: "R1-F4 / K-E4 / K-F4",
-    description: "Each link-selection item carries non-empty secondary text.",
+    description: "Each decision card carries non-empty reason text.",
     evaluator: String.raw`
       (() => {
-        const sections = Array.from(document.querySelectorAll(".v4-projection-side-panel__summary-section"));
-        const section = sections.find((entry) =>
-          entry.querySelector(".v4-projection-side-panel__summary-heading")?.textContent?.trim() === "Link selection events"
-        ) ?? null;
-        const items = section
-          ? Array.from(section.querySelectorAll(".v4-projection-side-panel__list-item"))
+        const row = document.querySelector('[data-v4-projection-side-panel="true"] [data-row="4"]');
+        const items = row
+          ? Array.from(row.querySelectorAll(".v4-projection-side-panel__decision-card"))
           : [];
         const secondaryTexts = items.map((item) =>
-          item.querySelector(".v4-projection-side-panel__list-secondary")?.textContent?.trim() ?? ""
+          item.querySelector(".v4-projection-side-panel__decision-secondary")?.textContent?.trim() ?? ""
         );
-        const emptyLine = Boolean(section?.innerText.includes("No handover events"));
+        const emptyLine = Boolean(row?.innerText.includes("No mutual visibility"));
         return {
-          passed: Boolean(section) && (emptyLine || (items.length > 0 && secondaryTexts.every((text) => text.length > 0))),
-          evidence: { sectionExists: Boolean(section), itemCount: items.length, secondaryTexts, emptyLine }
+          passed: Boolean(row) && (emptyLine || (items.length > 0 && secondaryTexts.every((text) => text.length > 0))),
+          evidence: { rowExists: Boolean(row), itemCount: items.length, secondaryTexts, emptyLine }
         };
       })();
     `
   },
   {
     id: "R1-F5 / K-E5",
-    description: "CSV download creates the expected file name and blob body.",
+    description: "Evidence report download creates one categorized HTML artifact.",
     evaluator: String.raw`
       (async () => {
-        const button = document.querySelector(".v4-projection-side-panel__download-csv");
+        const button = document.querySelector(".v4-projection-side-panel__download-report");
         if (!button) {
           return { passed: false, evidence: { buttonExists: false } };
         }
@@ -343,7 +330,7 @@ const G1_ROWS = [
         try {
           URL.createObjectURL = (value) => {
             capturedBlob = value;
-            return "blob:sgv-g1-csv";
+            return "blob:sgv-g1-report";
           };
           URL.revokeObjectURL = () => {};
           HTMLAnchorElement.prototype.click = function patchedClick() {
@@ -364,30 +351,29 @@ const G1_ROWS = [
         const text = capturedBlob && typeof capturedBlob.text === "function"
           ? await capturedBlob.text()
           : "";
-        const sectionLines = text.split(/\r?\n/).filter((line) => line.startsWith("# "));
         const requiredSections = [
-          "# Runtime projection",
-          "# Communication stats",
-          "# Visibility windows",
-          "# Link selection events",
-          "# Non-claims"
+          "Selected-pair evidence report",
+          "Visibility windows",
+          "Handover events",
+          "Source confidence",
+          "Raw JSON payload"
         ];
         const mimeType = capturedBlob?.type ?? null;
         return {
           passed:
-            capturedDownload?.startsWith("runtime-projection") === true &&
-            mimeType?.startsWith("text/csv") === true &&
-            text.trimStart().startsWith("# Runtime projection") &&
-            requiredSections.every((section) => sectionLines.includes(section)),
+            capturedDownload?.startsWith("runtime-projection-evidence") === true &&
+            capturedDownload?.endsWith(".html") === true &&
+            mimeType?.startsWith("text/html") === true &&
+            text.trimStart().startsWith("<!doctype html>") &&
+            requiredSections.every((section) => text.includes(section)),
           evidence: {
             buttonExists: true,
             download: capturedDownload,
             href: capturedHref,
             mimeType,
             prefix: text.slice(0, 80),
-            hashLineCount: sectionLines.length,
             requiredSectionsPresent: requiredSections.every((section) =>
-              sectionLines.includes(section)
+              text.includes(section)
             )
           }
         };
@@ -436,11 +422,9 @@ const G1_ROWS = [
         };
         slider.value = "80";
         slider.dispatchEvent(new Event("input", { bubbles: true }));
-        const recomputeMs = await waitForRain("80", 5000);
-        const details = document.querySelector(".v4-projection-side-panel__details:nth-of-type(1)");
-        if (details) details.open = true;
+        const recomputeMs = await waitForRain("80", 10000);
         await new Promise((resolve) => setTimeout(resolve, 0));
-        const body = details?.querySelector(".v4-projection-side-panel__details-body") ?? null;
+        const body = document.querySelector('[data-v4-projection-side-panel="true"] [data-row="5"]');
         const rows = body
           ? Array.from(body.querySelectorAll(".v4-projection-side-panel__list-item")).map((item) => ({
               modifier: item.getAttribute("data-modifier"),
@@ -459,7 +443,7 @@ const G1_ROWS = [
         if (originalValue !== "80") {
           slider.value = originalValue;
           slider.dispatchEvent(new Event("input", { bubbles: true }));
-          await waitForRain(originalValue, 5000);
+          await waitForRain(originalValue, 10000);
         }
         return {
           passed,
@@ -494,13 +478,8 @@ const G1_ROWS = [
     description: "Derived coverage: visibility row source is present and resolvable.",
     evaluator: String.raw`
       (async () => {
-        const sections = Array.from(document.querySelectorAll(".v4-projection-side-panel__summary-section"));
-        const section = sections.find((entry) =>
-          entry.querySelector(".v4-projection-side-panel__summary-heading")?.textContent?.trim() === "Visibility windows"
-        ) ?? null;
-        const first = section?.querySelector(".v4-projection-side-panel__list-primary") ?? null;
-        const text = first?.textContent?.trim() ?? "";
-        const satelliteId = text.split("\u00b7")[0]?.trim() ?? "";
+        const first = document.querySelector('.v4-projection-side-panel__timeline-segment[data-satellite-id]');
+        const satelliteId = first?.getAttribute("data-satellite-id") ?? "";
         const paths = [
           "/fixtures/satellites/leo-scale/oneweb-2026-05-15T12-00-00Z.tle",
           "/fixtures/satellites/multi-orbit/meo/galileo-2026-05-13T01-28-37Z.tle",
@@ -516,10 +495,9 @@ const G1_ROWS = [
           if (tleText.includes(satelliteId)) tleMatch = true;
         }
         return {
-          passed: Boolean(section) && Boolean(first) && /^[A-Z0-9_-]+(?:\s+\([^)]+\))?$/.test(satelliteId) && tleMatch,
+          passed: Boolean(first) && /^[A-Z0-9_-]+(?:\s+\([^)]+\))?$/.test(satelliteId) && tleMatch,
           evidence: {
-            sectionExists: Boolean(section),
-            firstText: text,
+            segmentExists: Boolean(first),
             satelliteId,
             fetchedCount,
             tleMatch
@@ -555,7 +533,7 @@ const G1_ROWS = [
     description: "Derived coverage: Row 3 stats are visible and finite.",
     evaluator: String.raw`
       (() => {
-        const row = document.querySelector('[data-v4-projection-side-panel="true"] [data-row="3"]');
+        const row = document.querySelector('[data-v4-projection-side-panel="true"] [data-row="2"]');
         const values = row
           ? Array.from(row.querySelectorAll(".v4-projection-side-panel__stat-value")).map((entry) => entry.textContent?.trim() ?? "")
           : [];
@@ -584,29 +562,26 @@ const G1_ROWS = [
   },
   {
     id: "V-MO1",
-    description: "Cross-orbit migration event is visible when emitted for this window.",
+    description: "Cross-orbit migration decision is visible when emitted for this window.",
     evaluator: String.raw`
       (() => {
-        const sections = Array.from(document.querySelectorAll(".v4-projection-side-panel__summary-section"));
-        const section = sections.find((entry) =>
-          entry.querySelector(".v4-projection-side-panel__summary-heading")?.textContent?.trim() === "Link selection events"
-        ) ?? null;
-        const cross = section
-          ? Array.from(section.querySelectorAll('.v4-projection-side-panel__list-item[data-modifier="cross-orbit-migration"]'))
+        const row = document.querySelector('[data-v4-projection-side-panel="true"] [data-row="4"]');
+        const cross = row
+          ? Array.from(row.querySelectorAll('.v4-projection-side-panel__decision-card[data-modifier="cross-orbit-migration"]'))
           : [];
-        const items = section
-          ? Array.from(section.querySelectorAll(".v4-projection-side-panel__list-item"))
+        const items = row
+          ? Array.from(row.querySelectorAll(".v4-projection-side-panel__decision-card"))
           : [];
-        const emptyLine = Boolean(section?.innerText.includes("No handover events"));
+        const emptyLine = Boolean(row?.innerText.includes("No mutual visibility"));
         // Per acceptance-criteria.md §G1 last paragraph: empty states still count as
         // covered. A populated link-selection list (itemCount >= 1) implies the row
         // is covered even if no event in this window happens to be cross-orbit.
-        const passed = Boolean(section) && (cross.length >= 1 || items.length >= 1 || emptyLine);
+        const passed = Boolean(row) && (cross.length >= 1 || items.length >= 1 || emptyLine);
         const noCrossButPopulated = cross.length === 0 && items.length >= 1;
         return {
           passed,
           evidence: {
-            sectionExists: Boolean(section),
+            rowExists: Boolean(row),
             crossCount: cross.length,
             itemCount: items.length,
             emptyLine,

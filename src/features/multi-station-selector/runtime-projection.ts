@@ -5,13 +5,6 @@ import {
 import { computeGasAbsorptionDb } from "../../runtime/link-budget/gas-absorption";
 import { computeRainAttenuationDb } from "../../runtime/link-budget/rain-attenuation";
 import {
-  evaluateHandoverPolicy,
-  type HandoverCandidate,
-  type HandoverDecision as LinkBudgetHandoverDecision,
-  type HandoverPolicyConfig
-} from "../../runtime/link-budget/handover-policy";
-
-import {
   inferPairSourceTier,
   type PairSourceTierAttribution,
   type PublicRegistryStation
@@ -47,6 +40,20 @@ import {
   type OrbitSourceMetadata,
   type OrbitSourcePolicy
 } from "./orbit-source-parser";
+import {
+  buildRuntimeHandoverPolicyConfig,
+  resolveRuntimeHandoverPolicyId,
+  selectRuntimeHandoverDecision,
+  type HandoverCandidate,
+  type HandoverPolicyConfig,
+  type RuntimeHandoverPolicyId
+} from "./runtime-handover-policy";
+
+export {
+  resolveRuntimeHandoverPolicyId,
+  SELECTED_PAIR_DEMO_HANDOVER_POLICY_ID
+} from "./runtime-handover-policy";
+export type { RuntimeHandoverPolicyId } from "./runtime-handover-policy";
 
 const DEFAULT_SAMPLE_STEP_SECONDS = 30;
 const DEFAULT_ELEVATION_THRESHOLD_DEG = 10;
@@ -69,8 +76,6 @@ const RAIN_MODEL_MIN_FREQUENCY_GHZ = 10;
 const RAIN_MODEL_MAX_FREQUENCY_GHZ = 30;
 const RELATIVE_RSRP_REFERENCE_DBM = 0;
 
-export type RuntimeHandoverPolicyId = HandoverPolicyConfig["policyId"];
-
 const NOMINAL_ALTITUDE_KM_BY_ORBIT: Readonly<Record<OrbitClass, number>> = {
   LEO: 550,
   MEO: 23222,
@@ -87,37 +92,6 @@ const BASELINE_JITTER_MS_BY_ORBIT: Readonly<Record<OrbitClass, number>> = {
   LEO: 3,
   MEO: 5,
   GEO: 8
-};
-
-type RuntimeHandoverPolicyProfile = Omit<
-  HandoverPolicyConfig,
-  "elevationThresholdDeg"
->;
-
-const DEFAULT_RUNTIME_HANDOVER_POLICY_ID: RuntimeHandoverPolicyId =
-  "cross-orbit-live";
-
-const HANDOVER_POLICY_PROFILES: Readonly<
-  Record<RuntimeHandoverPolicyId, RuntimeHandoverPolicyProfile>
-> = {
-  "cross-orbit-live": {
-    policyId: "cross-orbit-live",
-    hysteresisDb: 2,
-    minVisibilityWindowMs: 60_000,
-    latencyBudgetMs: 600
-  },
-  "leo-first": {
-    policyId: "leo-first",
-    hysteresisDb: 2,
-    minVisibilityWindowMs: 60_000,
-    latencyBudgetMs: 600
-  },
-  "bootstrap-balanced-v1": {
-    policyId: "bootstrap-balanced-v1",
-    hysteresisDb: 2,
-    minVisibilityWindowMs: 60_000,
-    latencyBudgetMs: 600
-  }
 };
 
 export const TLE_FIXTURE_PATHS: Readonly<Record<OrbitClass, string>> = {
@@ -320,35 +294,6 @@ function resolveBaseElevationThresholdDeg(value: number | undefined): number {
     return DEFAULT_ELEVATION_THRESHOLD_DEG;
   }
   return value;
-}
-
-export function resolveRuntimeHandoverPolicyId(
-  value: string | null | undefined
-): RuntimeHandoverPolicyId {
-  if (
-    value === "cross-orbit-live" ||
-    value === "leo-first" ||
-    value === "bootstrap-balanced-v1"
-  ) {
-    return value;
-  }
-  return DEFAULT_RUNTIME_HANDOVER_POLICY_ID;
-}
-
-function buildRuntimeHandoverPolicyConfig(
-  policyId: RuntimeHandoverPolicyId,
-  elevationThresholdDeg: number,
-  sampleStepSeconds: number
-): HandoverPolicyConfig {
-  const profile = HANDOVER_POLICY_PROFILES[policyId];
-  return {
-    ...profile,
-    elevationThresholdDeg,
-    minVisibilityWindowMs: Math.max(
-      profile.minVisibilityWindowMs,
-      sampleStepSeconds * 1000
-    )
-  };
 }
 
 function computeEffectiveElevationThresholdDeg(
@@ -598,15 +543,6 @@ function toLivePolicyCandidate(
   };
 }
 
-function mapPolicyReasonToHandoverEventReason(
-  reasonKind: LinkBudgetHandoverDecision["reasonKind"]
-): HandoverEvent["reasonKind"] {
-  // HandoverEvent.reasonKind now includes "cross-orbit-migration" so V-MO1
-  // events keep their distinct reason in the side panel instead of
-  // collapsing into "better-candidate-available". Identity mapping.
-  return reasonKind;
-}
-
 function deriveHandoverEventsAtSampleStep(
   windows: ReadonlyArray<PairVisibilityWindow>,
   timeWindow: { startUtc: string; endUtc: string },
@@ -622,8 +558,14 @@ function deriveHandoverEventsAtSampleStep(
   const stepMs = sampleStepSeconds * 1000;
   const events: HandoverEvent[] = [];
   const byOrbitMs: Record<OrbitClass, number> = { LEO: 0, MEO: 0, GEO: 0 };
+  const availableOrbits = ORBIT_CLASSES.filter((orbitClass) =>
+    windows.some((window) => window.orbitClass === orbitClass)
+  );
+  const usedActiveOrbits = new Set<OrbitClass>();
   let totalCommunicatingMs = 0;
   let currentServingCandidateId: string | undefined;
+  let currentServingOrbit: OrbitClass | undefined;
+  let currentOrbitSinceMs: number | null = null;
 
   for (let t = startMs; t < endMs; t += stepMs) {
     const sampleIso = new Date(t).toISOString();
@@ -649,16 +591,22 @@ function deriveHandoverEventsAtSampleStep(
     let eventReason: HandoverEvent["reasonKind"] | undefined;
 
     if (linkBudgetRows.length > 0) {
-      const decision = evaluateHandoverPolicy({
-        candidates: linkBudgetRows.map((row) =>
-          toLivePolicyCandidate(row.window, row.details, t)
-        ),
+      const candidates = linkBudgetRows.map((row) =>
+        toLivePolicyCandidate(row.window, row.details, t)
+      );
+      const decision = selectRuntimeHandoverDecision({
+        candidates,
         currentServingId: currentServingCandidateId,
+        currentServingOrbit,
+        currentOrbitSinceMs,
+        usedActiveOrbits,
+        availableOrbits,
         policy: options.policy,
+        sampleTimeMs: t,
         nowUtc: sampleIso
       });
       next = decision.selectedId;
-      eventReason = mapPolicyReasonToHandoverEventReason(decision.reasonKind);
+      eventReason = decision.reasonKind;
     }
 
     if (next) {
@@ -666,18 +614,33 @@ function deriveHandoverEventsAtSampleStep(
       const orbit = visibleAtSample.find((w) => w.satelliteId === next)?.orbitClass;
       if (orbit) {
         byOrbitMs[orbit] += stepMs;
+        usedActiveOrbits.add(orbit);
       }
       if (next !== currentServingCandidateId) {
+        const previousServingCandidateId = currentServingCandidateId ?? null;
+        const previousServingOrbit = currentServingOrbit;
         events.push({
           handoverAtUtc: sampleIso,
-          fromSatelliteId: currentServingCandidateId ?? null,
+          fromSatelliteId: previousServingCandidateId,
           toSatelliteId: next,
-          reasonKind: eventReason ?? "policy-tie-break"
+          reasonKind:
+            previousServingCandidateId &&
+            previousServingOrbit &&
+            orbit &&
+            previousServingOrbit !== orbit
+              ? "cross-orbit-migration"
+              : eventReason ?? "policy-tie-break"
         });
+        if (orbit !== currentServingOrbit) {
+          currentOrbitSinceMs = t;
+        }
         currentServingCandidateId = next;
+        currentServingOrbit = orbit;
       }
     } else {
       currentServingCandidateId = undefined;
+      currentServingOrbit = undefined;
+      currentOrbitSinceMs = null;
     }
   }
 

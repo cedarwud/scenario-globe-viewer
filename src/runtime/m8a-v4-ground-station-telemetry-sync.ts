@@ -52,7 +52,9 @@ import {
   M8A_V411_R2_READ_ONLY_CANDIDATES,
   M8A_V411_SOURCES_ROLE_VERSION
 } from "./m8a-v411-sources-role";
-import type { M8aV4GroundStationSceneState } from "./m8a-v4-ground-station-handover-scene-controller";
+import type {
+  M8aV4GroundStationSceneState
+} from "./m8a-v4-ground-station-scene-state";
 
 function serializeList(values: ReadonlyArray<string>): string {
   return values.join("|");

@@ -38,7 +38,7 @@ const CSS_TEXT = `
   border-radius: 0.35rem;
   padding: 0.4rem 0.55rem;
   color: #dde9f1;
-  font: 0.78rem "IBM Plex Sans", system-ui, sans-serif;
+  font: 1rem "IBM Plex Sans", system-ui, sans-serif;
   line-height: 1.3;
   pointer-events: none;
   z-index: 5;
@@ -54,7 +54,7 @@ const CSS_TEXT = `
   color: #f0f7fb;
 }
 .ground-station-marker-tooltip__operator {
-  font-size: 0.7rem;
+  font-size: 0.94rem;
   color: rgba(157,196,232,0.85);
   display: block;
   margin-top: 0.15rem;
@@ -70,7 +70,7 @@ const CSS_TEXT = `
   border-radius: 999px;
   background: rgba(126,226,184,0.14);
   color: #7ee2b8;
-  font-size: 0.58rem;
+  font-size: 0.84rem;
   font-weight: 700;
   line-height: 1.25;
   padding: 0.04rem 0.25rem;
@@ -79,7 +79,7 @@ const CSS_TEXT = `
   display: block;
   margin-top: 0.18rem;
   color: rgba(255,209,102,0.9);
-  font-size: 0.66rem;
+  font-size: 0.9rem;
 }
 `;
 
