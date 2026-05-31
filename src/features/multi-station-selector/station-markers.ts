@@ -14,7 +14,7 @@ import {
   type Viewer
 } from "cesium";
 
-import registry from "../../../public/fixtures/ground-stations/multi-orbit-public-registry.json";
+import registry from "../../fixtures/ground-stations/multi-orbit-public-registry.json";
 import {
   summarizeStationHandoverCapabilities,
   type OrbitClass

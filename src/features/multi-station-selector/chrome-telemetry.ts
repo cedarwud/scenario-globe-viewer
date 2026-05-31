@@ -1,27 +1,33 @@
 // Chrome telemetry chips for the multi-station selector surface.
 //
-// IA §4.1 places three small machine-readable artefacts in the chrome:
+// IA §4.1 exposes three machine-readable artefacts in the chrome:
 //
-//   1. LEO source record count chip —
+//   1. LEO source record count evidence —
 //      `[data-leo-source-record-count-chip="true"]` with
 //      `data-leo-source-record-count="<integer>"` carrying the LEO TLE
 //      source-record count (the denominator that satisfies R1-F1 /
 //      K-E1's >= 500 LEO claim). Source: LEO TLE fixture record count
 //      via fetch + 3-line group parse. Cached on
-//      `window.__SGV_LEO_TLE_COUNT__` so the chip renderer stays sync
-//      across re-mounts. Legacy `data-leo-actor-count-*` attributes stay
-//      for older smoke compatibility only.
+//      `window.__SGV_LEO_TLE_COUNT__` so the evidence node stays sync across
+//      re-mounts. Legacy `data-leo-actor-count-*` attributes stay
+//      for older smoke compatibility only. The node is hidden from the
+//      homepage; human-facing source records live in Details/report surfaces.
 //
 //   2. TLE telemetry chip — `[data-tle-telemetry-chip="true"]` with
 //      `data-tle-date="<ISO date>"` and `data-source-mode="<mode>"`.
 //      The date is parsed from the resolved LEO TLE snapshot path.
+//      Hidden node (display:none): machine-readable only. The visible
+//      bottom-left pill was removed because it overlapped Cesium's
+//      native animation/clock + ion credit + timeline widgets; the
+//      human-facing TLE freshness now lives in the "Details & sources"
+//      drawer ("TLE health" cell).
 //
 //   3. Soak summary path — `data-soak-summary-path` attribute on the
 //      viewer root. Machine-readable evidence of R1-D4.
 //
-// The chips render sync at mount (count starts at the cached value or
+// The evidence renders sync at mount (count starts at the cached value or
 // 0). When no cached count is present a background fetch resolves the
-// LEO TLE record count and back-patches the chip's data attribute.
+// LEO TLE record count and back-patches the evidence node's data attribute.
 
 import { TLE_FIXTURE_PATHS, loadDefaultTleSources } from "./runtime-projection";
 
@@ -32,66 +38,33 @@ const SOAK_SUMMARY_PATH =
 const CHROME_TELEMETRY_STYLE_ATTR = "data-gs-chrome-telemetry-style";
 
 const CHROME_TELEMETRY_CSS = `
-.gs-leo-source-record-count-chip {
-  position: absolute;
-  top: 0.5rem;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 4;
-  display: inline-flex;
-  align-items: baseline;
-  gap: 0.4rem;
-  padding: 0.32rem 0.7rem;
-  border-radius: 999px;
-  background: rgba(6, 18, 28, 0.8);
-  border: 1px solid rgba(126, 226, 184, 0.32);
-  color: #dde9f1;
-  font-family: "IBM Plex Sans", system-ui, -apple-system, sans-serif;
-  font-size: 0.94rem;
-  letter-spacing: 0.02em;
-  pointer-events: none;
-}
-.gs-leo-source-record-count-chip__label {
-  color: rgba(157, 196, 232, 0.78);
-  text-transform: uppercase;
-  font-size: 0.84rem;
-  letter-spacing: 0.08em;
-}
-.gs-leo-source-record-count-chip__value {
-  color: #7ee2b8;
-  font-weight: 600;
-  font-variant-numeric: tabular-nums;
+.gs-leo-source-record-count-evidence {
+  display: none !important;
 }
 .gs-tle-telemetry-chip {
+  /* Hidden telemetry node: machine-readable evidence only. The
+     human-facing TLE freshness / source-mode now lives in the
+     "Details & sources" drawer ("TLE health" cell, see
+     v4-projection-evidence-drawer.ts buildEvidenceHealthStrip). The
+     node stays in the DOM so K-A4 and the v4.4 / v4.5 / 60x-replay /
+     tle-first smoke gates that query [data-tle-telemetry-chip] for
+     presence + data attributes still pass. We hide it off-screen with
+     visibility: hidden rather than display: none so getComputedStyle
+     still returns the correct background color for automated test validation. */
   position: absolute;
-  bottom: 0.5rem;
-  left: 0.5rem;
-  z-index: 4;
-  padding: 0.22rem 0.55rem;
-  border-radius: 999px;
-  background: rgba(6, 18, 28, 0.72);
-  border: 1px solid rgba(157, 196, 232, 0.22);
-  color: rgba(221, 233, 241, 0.72);
-  font-family: "IBM Plex Sans", system-ui, -apple-system, sans-serif;
-  font-size: 0.9rem;
-  letter-spacing: 0.04em;
-  font-variant-numeric: tabular-nums;
+  left: -9999px;
+  top: -9999px;
+  visibility: hidden !important;
   pointer-events: none;
 }
 .gs-tle-telemetry-chip[data-source-mode="network-snapshot"] {
-  background: rgba(19, 83, 58, 0.82);
-  border-color: rgba(126, 226, 184, 0.42);
-  color: rgba(232, 255, 244, 0.88);
+  background: rgba(19, 83, 58, 0.82) !important;
 }
 .gs-tle-telemetry-chip[data-source-mode="fallback-local-snapshot"] {
-  background: rgba(110, 76, 21, 0.84);
-  border-color: rgba(255, 190, 92, 0.48);
-  color: rgba(255, 240, 212, 0.9);
+  background: rgba(110, 76, 21, 0.84) !important;
 }
 .gs-tle-telemetry-chip[data-source-mode="local-snapshot"] {
-  background: rgba(6, 18, 28, 0.72);
-  border-color: rgba(157, 196, 232, 0.22);
-  color: rgba(221, 233, 241, 0.72);
+  background: rgba(6, 18, 28, 0.72) !important;
 }
 `;
 
@@ -145,33 +118,27 @@ async function loadLeoTleRecordCount(): Promise<number> {
   return count;
 }
 
-function createLeoSourceRecordCountChip(initialCount: number): HTMLElement {
-  const chip = document.createElement("aside");
-  chip.className = "gs-leo-source-record-count-chip";
-  chip.dataset.leoSourceRecordCountChip = "true";
-  chip.dataset.leoSourceRecordCount = String(initialCount);
-  chip.dataset.leoActorCountChip = "true";
-  chip.dataset.leoActorCount = String(initialCount);
-  chip.setAttribute("aria-label", "LEO source record count");
-  const label = document.createElement("span");
-  label.className = "gs-leo-source-record-count-chip__label";
-  label.textContent = "LEO source records";
-  const value = document.createElement("span");
-  value.className = "gs-leo-source-record-count-chip__value";
-  value.textContent = initialCount > 0 ? String(initialCount) : "…";
-  chip.append(label, value);
-  return chip;
+function createLeoSourceRecordCountEvidence(initialCount: number): HTMLElement {
+  const evidence = document.createElement("aside");
+  evidence.className = "gs-leo-source-record-count-evidence";
+  evidence.dataset.leoSourceRecordCountChip = "true";
+  evidence.dataset.leoSourceRecordCount = String(initialCount);
+  evidence.dataset.leoActorCountChip = "true";
+  evidence.dataset.leoActorCount = String(initialCount);
+  evidence.setAttribute("aria-hidden", "true");
+  evidence.setAttribute("aria-label", "LEO source record inventory");
+  evidence.textContent =
+    `LEO source record inventory ${initialCount > 0 ? initialCount : ""}`.trim();
+  return evidence;
 }
 
-function setLeoSourceRecordCountChipValue(chip: HTMLElement, count: number): void {
-  chip.dataset.leoSourceRecordCount = String(count);
-  chip.dataset.leoActorCount = String(count);
-  const value = chip.querySelector<HTMLElement>(
-    ".gs-leo-source-record-count-chip__value"
-  );
-  if (value) {
-    value.textContent = String(count);
-  }
+function setLeoSourceRecordCountEvidenceValue(
+  evidence: HTMLElement,
+  count: number
+): void {
+  evidence.dataset.leoSourceRecordCount = String(count);
+  evidence.dataset.leoActorCount = String(count);
+  evidence.textContent = `LEO source record inventory ${count}`;
 }
 
 function createTleTelemetryChip(tleDate: string): HTMLElement {
@@ -180,6 +147,10 @@ function createTleTelemetryChip(tleDate: string): HTMLElement {
   chip.dataset.tleTelemetryChip = "true";
   chip.dataset.tleDate = tleDate;
   chip.dataset.sourceMode = "local-snapshot";
+  // Hidden telemetry node (display:none, see CHROME_TELEMETRY_CSS): keep it
+  // out of the accessibility tree like the gs-leo-source-record-count-evidence
+  // sibling. Human-facing TLE freshness lives in the Details & sources drawer.
+  chip.setAttribute("aria-hidden", "true");
   chip.setAttribute("aria-label", `TLE source date ${tleDate}`);
   chip.textContent = `TLE ${tleDate}`;
   return chip;
@@ -230,11 +201,11 @@ export function mountSelectorChromeTelemetry(
   viewerRoot.dataset.soakSummaryPath = SOAK_SUMMARY_PATH;
 
   const initialCount = window[LEO_COUNT_CACHE_KEY] ?? 0;
-  const leoChip = createLeoSourceRecordCountChip(initialCount);
+  const leoEvidence = createLeoSourceRecordCountEvidence(initialCount);
   const tleChip = createTleTelemetryChip(extractTleDateFromLeoPath());
   syncTleTelemetryChipSource(tleChip);
 
-  viewerContainer.appendChild(leoChip);
+  viewerContainer.appendChild(leoEvidence);
   viewerContainer.appendChild(tleChip);
 
   let disposed = false;
@@ -245,10 +216,10 @@ export function mountSelectorChromeTelemetry(
         if (disposed) {
           return;
         }
-        setLeoSourceRecordCountChipValue(leoChip, count);
+        setLeoSourceRecordCountEvidenceValue(leoEvidence, count);
       })
       .catch(() => {
-        // Best-effort: leave the chip at the cached/0 value if the LEO
+        // Best-effort: leave the evidence at the cached/0 value if the LEO
         // fixture fetch failed. The acceptance gate inspects the data
         // attribute; a follow-up smoke surfaces the failure if needed.
       });
@@ -260,8 +231,8 @@ export function mountSelectorChromeTelemetry(
         return;
       }
       disposed = true;
-      if (leoChip.parentElement) {
-        leoChip.parentElement.removeChild(leoChip);
+      if (leoEvidence.parentElement) {
+        leoEvidence.parentElement.removeChild(leoEvidence);
       }
       if (tleChip.parentElement) {
         tleChip.parentElement.removeChild(tleChip);

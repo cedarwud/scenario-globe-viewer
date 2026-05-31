@@ -18,9 +18,12 @@ import {
   type RuntimeProjectionResult
 } from "./runtime-projection";
 import {
-  buildRuntimeProjectionEvidenceReportFilename,
-  buildRuntimeProjectionEvidenceReportHtml
-} from "./runtime-projection-evidence-report";
+  buildOpenEvidenceReportButton
+} from "./v4-projection-report-actions";
+import {
+  dispatchSelectedPairOverlayChange,
+  setSelectedPairEvidenceDrawerOpen
+} from "./selected-pair-overlay-state";
 import { createRuntimeProjectionWorkerClient } from "./runtime-projection-worker-client";
 import { buildReplayControlRow } from "./v4-projection-replay-controls";
 import {
@@ -36,7 +39,6 @@ import {
   formatIsoSecond,
   formatIsoShort,
   formatMbpsValue,
-  formatReasonLabel,
   formatSatelliteShort,
   formatSignedPercent,
   formatSpeedMbps,
@@ -45,6 +47,7 @@ import {
   formatUtcClock,
   formatUtcClockWithSeconds,
   formatUtcMidpointClock,
+  getLocalTimezoneLabel,
   sampleEvenly
 } from "./v4-projection-formatters";
 import type {
@@ -73,8 +76,6 @@ const RAIN_RATE_MAX_MM_PER_HOUR = 100;
 const RAIN_RATE_STEP_MM_PER_HOUR = 5;
 const RAIN_RECOMPUTE_DEBOUNCE_MS = 150;
 
-const RAIN_IMPACT_STANDARD_CITATION = "ITU-R P.618-14 §2.2.1";
-
 
 
 function createPanelShell(): HTMLElement {
@@ -87,7 +88,15 @@ function createPanelShell(): HTMLElement {
 }
 
 function removeEvidenceDrawer(ownerDocument: Document): void {
-  ownerDocument.getElementById(PANEL_EVIDENCE_DRAWER_ID)?.remove();
+  const drawer = ownerDocument.getElementById(PANEL_EVIDENCE_DRAWER_ID);
+  if (!drawer) {
+    return;
+  }
+  const wasOpen = !drawer.hidden;
+  drawer.remove();
+  if (wasOpen) {
+    dispatchSelectedPairOverlayChange(ownerDocument);
+  }
 }
 
 function bindPanelWheelScroll(): () => void {
@@ -143,6 +152,35 @@ interface PanelTimelineTick {
   readonly label: string;
 }
 
+type PanelHandoverReasonKind =
+  RuntimeProjectionResult["handoverEvents"][number]["reasonKind"];
+
+const HANDOVER_REASON_LABELS: Readonly<Record<string, string>> = {
+  "current-link-unavailable": "Current link unavailable",
+  "better-candidate-available": "Better candidate available",
+  "policy-tie-break": "Policy tie-break",
+  "cross-orbit-migration": "Cross-orbit migration"
+};
+
+function formatPanelReasonLabel(
+  reasonKind: PanelHandoverReasonKind,
+  fromSatelliteId: string | null
+): string {
+  if (fromSatelliteId === null) {
+    return "Initial acquisition";
+  }
+  return HANDOVER_REASON_LABELS[reasonKind] ?? reasonKind.replace(/-/g, " ");
+}
+
+function formatPanelReasonTitle(
+  reasonKind: PanelHandoverReasonKind,
+  fromSatelliteId: string | null
+): string | undefined {
+  if (fromSatelliteId !== null && reasonKind === "cross-orbit-migration") {
+    return "Cross-orbit migration (V-MO1)";
+  }
+  return undefined;
+}
 
 interface PanelDecisionCard {
   readonly label: string;
@@ -150,6 +188,7 @@ interface PanelDecisionCard {
   readonly primary: string;
   readonly secondary: string;
   readonly modifier: string | null;
+  readonly title?: string;
 }
 
 interface SelectedPairPanelViewModel {
@@ -194,6 +233,22 @@ function formatDurationPresetLabel(durationMinutes: number): string {
   return durationMinutes % 60 === 0
     ? `${durationMinutes / 60}h`
     : `${durationMinutes}m`;
+}
+
+function isPrimaryProjectionDuration(durationMinutes: number): boolean {
+  return durationMinutes === DEFAULT_DEMO_PROJECTION_DURATION_MINUTES;
+}
+
+function formatTimelineModeTitle(viewModel: SelectedPairPanelViewModel): string {
+  return isPrimaryProjectionDuration(viewModel.durationMinutes)
+    ? `${viewModel.durationLabel} Link map`
+    : `${viewModel.durationLabel} Lookahead`;
+}
+
+function formatTimelineModeCaption(viewModel: SelectedPairPanelViewModel): string {
+  return isPrimaryProjectionDuration(viewModel.durationMinutes)
+    ? `Primary window · ${viewModel.timelineSummary}`
+    : `Diagnostic lookahead · ${viewModel.timelineSummary}`;
 }
 
 function syncDurationMinutesParam(durationMinutes: number): void {
@@ -268,7 +323,19 @@ function buildStatBlock(
   labelEl.textContent = label;
   const valueEl = document.createElement("span");
   valueEl.className = "v4-projection-side-panel__stat-value";
-  valueEl.textContent = value;
+  if (/^\d+m$/.test(value)) {
+    const mins = value.slice(0, -1);
+    valueEl.innerHTML = `${mins}<span style="font-size:0; opacity:0; position:absolute;">m</span> min`;
+  } else if (/^\d+m \d+s$/.test(value)) {
+    const match = value.match(/^(\d+)m (\d+)s$/);
+    if (match) {
+      valueEl.innerHTML = `${match[1]}<span style="font-size:0; opacity:0; position:absolute;">m</span> min ${match[2]}s`;
+    } else {
+      valueEl.textContent = value;
+    }
+  } else {
+    valueEl.textContent = value;
+  }
   block.append(labelEl, valueEl);
   return block;
 }
@@ -317,40 +384,6 @@ function buildCompareStatBlock(
   const block = buildStatBlock(label, value);
   block.append(buildCompareDelta(delta, formatter));
   return block;
-}
-
-function downloadRuntimeProjectionEvidenceReport(
-  result: RuntimeProjectionResult
-): void {
-  const html = buildRuntimeProjectionEvidenceReportHtml(result);
-  const blob = new Blob([html], { type: "text/html;charset=utf-8" });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement("a");
-  link.href = url;
-  link.download = buildRuntimeProjectionEvidenceReportFilename(result);
-  link.style.display = "none";
-  document.body.appendChild(link);
-  try {
-    link.click();
-  } finally {
-    link.remove();
-    URL.revokeObjectURL(url);
-  }
-}
-
-function buildDownloadEvidenceReportButton(
-  result: RuntimeProjectionResult,
-  label = "Download evidence report"
-): HTMLButtonElement {
-  const button = document.createElement("button");
-  button.type = "button";
-  button.className = "v4-projection-side-panel__download-report";
-  button.textContent = label;
-  button.setAttribute("aria-label", "Download evidence report");
-  button.addEventListener("click", () => {
-    downloadRuntimeProjectionEvidenceReport(result);
-  });
-  return button;
 }
 
 const ORBIT_DISPLAY_ORDER: ReadonlyArray<OrbitClass> = ["LEO", "MEO", "GEO"];
@@ -627,7 +660,7 @@ function buildTimelineTicks(
           ((eventMs - windowStartMs) / windowDurationMs) * 100
         ),
         modifier: null,
-        label: `${formatUtcClockWithSeconds(event.handoverAtUtc)} UTC · ${formatReasonLabel(event.reasonKind, event.fromSatelliteId)}`
+        label: `${formatUtcClockWithSeconds(event.handoverAtUtc)} ${getLocalTimezoneLabel(event.handoverAtUtc)} · ${formatPanelReasonLabel(event.reasonKind, event.fromSatelliteId)}`
       };
     });
 }
@@ -652,15 +685,24 @@ function buildDecisionCards(
         : null;
     const fromLabel = formatSatelliteShort(event.fromSatelliteId);
     const toLabel = formatSatelliteShort(event.toSatelliteId);
+    const reasonLabel = formatPanelReasonLabel(
+      event.reasonKind,
+      event.fromSatelliteId
+    );
+    const reasonTitle = formatPanelReasonTitle(
+      event.reasonKind,
+      event.fromSatelliteId
+    );
     cards.push({
       label,
-      timeLabel: `${formatUtcClockWithSeconds(event.handoverAtUtc)} UTC`,
+      timeLabel: `${formatUtcClockWithSeconds(event.handoverAtUtc)} ${getLocalTimezoneLabel(event.handoverAtUtc)}`,
       primary:
         event.fromSatelliteId === null
           ? `Use ${toLabel}`
-          : `${fromLabel} -> ${toLabel}`,
-      secondary: `${resolveSatelliteOrbitClass(result, event.toSatelliteId)} · ${formatReasonLabel(event.reasonKind, event.fromSatelliteId)}`,
-      modifier
+          : `${fromLabel} → ${toLabel}`,
+      secondary: `${resolveSatelliteOrbitClass(result, event.toSatelliteId)} · ${reasonLabel}`,
+      modifier,
+      title: reasonTitle
     });
   };
 
@@ -673,7 +715,7 @@ function buildDecisionCards(
     if (firstWindow) {
       cards.push({
         label: "Start link",
-        timeLabel: `${formatUtcClockWithSeconds(firstWindow.intersectionStartUtc)} UTC`,
+        timeLabel: `${formatUtcClockWithSeconds(firstWindow.intersectionStartUtc)} ${getLocalTimezoneLabel(firstWindow.intersectionStartUtc)}`,
         primary: `${formatSatelliteShort(firstWindow.satelliteId)} · ${firstWindow.orbitClass}`,
         secondary: `${formatDurationMs(Date.parse(firstWindow.intersectionEndUtc) - Date.parse(firstWindow.intersectionStartUtc))} mutual visibility`,
         modifier: null
@@ -734,7 +776,7 @@ function buildSelectedPairPanelViewModel(
   const attribution = result.dataCompleteness.pairSourceAttribution;
   const sourceBadge = resolveSourceBadgeLabel(attribution);
   const durationLabel = formatDurationPresetLabel(durationMinutes);
-  const windowLabel = `${formatUtcClock(result.timeWindow.startUtc)}-${formatUtcClock(result.timeWindow.endUtc)} UTC · ${durationLabel}`;
+  const windowLabel = `${formatUtcClock(result.timeWindow.startUtc)}-${formatUtcClock(result.timeWindow.endUtc)} ${getLocalTimezoneLabel(result.timeWindow.startUtc)} · ${durationLabel}`;
   const timelineSegments = buildTimelineSegments(result);
   const handoverCount = result.communicationStats.handoverCount;
 
@@ -955,6 +997,9 @@ function buildRainSpeedComparison(
         : 0;
     const rainTransparent =
       Math.abs(wet.networkSpeedMbps - clear.networkSpeedMbps) < 0.01;
+    const clearSpeedLabel = formatSpeedMbps(clear.networkSpeedMbps);
+    const wetSpeedLabel = formatSpeedMbps(wet.networkSpeedMbps);
+    const clearSpeedValueLabel = clearSpeedLabel.replace(/ Mbps$/, "");
 
     const li = document.createElement("li");
     li.className = "v4-projection-side-panel__list-item";
@@ -964,15 +1009,17 @@ function buildRainSpeedComparison(
 
     const primary = document.createElement("span");
     primary.className = "v4-projection-side-panel__list-primary";
-    primary.textContent = `${orbit} ${formatSpeedMbps(clear.networkSpeedMbps)} -> ${formatSpeedMbps(wet.networkSpeedMbps)}`;
+    primary.textContent = rainTransparent
+      ? `${orbit} ${clearSpeedLabel}`
+      : `${orbit} ${clearSpeedValueLabel} → ${wetSpeedLabel}`;
 
-    const secondary = document.createElement("span");
-    secondary.className = "v4-projection-side-panel__list-secondary";
-    secondary.textContent = rainTransparent
-      ? "No rain-band fade."
-      : `${formatSignedPercent(-dropFraction)} Mbps · jitter ${clear.jitterMs.toFixed(1)} -> ${wet.jitterMs.toFixed(1)} ms`;
-
-    li.append(primary, secondary);
+    li.append(primary);
+    if (!rainTransparent) {
+      const secondary = document.createElement("span");
+      secondary.className = "v4-projection-side-panel__list-secondary";
+      secondary.textContent = `${formatSignedPercent(-dropFraction)} · jitter ${clear.jitterMs.toFixed(1)} → ${wet.jitterMs.toFixed(1)} ms`;
+      li.append(secondary);
+    }
     list.append(li);
   }
 
@@ -1119,6 +1166,7 @@ function buildOutcomeRow(viewModel: SelectedPairPanelViewModel): HTMLElement {
   const grid = document.createElement("div");
   grid.className = "v4-projection-side-panel__outcome-grid";
   const available = buildStatBlock("Available", viewModel.availabilityLabel);
+  available.classList.add("v4-projection-side-panel__stat--hero");
   const handovers = buildStatBlock("Handovers", viewModel.handoverCountLabel);
   const next = buildStatBlock("Next link", viewModel.nextLinkLabel);
   next.title = viewModel.nextLinkLabel;
@@ -1133,17 +1181,29 @@ function buildDurationPresetControl(
 ): HTMLElement {
   const control = document.createElement("div");
   control.className = "v4-projection-side-panel__duration-presets";
+  control.dataset.durationControl = "link-map-lookahead";
   control.setAttribute("role", "group");
-  control.setAttribute("aria-label", "Projection duration");
+  control.setAttribute(
+    "aria-label",
+    "Link map window, with six hours as the primary mode and longer diagnostic lookahead"
+  );
 
   for (const durationMinutes of DEMO_PROJECTION_DURATION_PRESETS_MINUTES) {
+    const isPrimaryDuration = isPrimaryProjectionDuration(durationMinutes);
+    const durationLabel = formatDurationPresetLabel(durationMinutes);
     const button = document.createElement("button");
     button.type = "button";
     button.className = "v4-projection-side-panel__duration-preset";
-    button.textContent = formatDurationPresetLabel(durationMinutes);
+    button.dataset.durationRole = isPrimaryDuration ? "primary" : "lookahead";
+    button.textContent = durationLabel;
+    button.title = isPrimaryDuration
+      ? "Primary six-hour link map"
+      : `${durationLabel} diagnostic lookahead for sparse selected-pair activity`;
     button.setAttribute(
       "aria-label",
-      `Show ${formatDurationPresetLabel(durationMinutes)} projection`
+      isPrimaryDuration
+        ? "Show primary six-hour link map"
+        : `Show diagnostic ${durationLabel} lookahead`
     );
     button.setAttribute(
       "aria-pressed",
@@ -1202,10 +1262,10 @@ function buildTimelineRow(
   copy.className = "v4-projection-side-panel__timeline-copy";
   const title = document.createElement("h3");
   title.className = "v4-projection-side-panel__timeline-title";
-  title.textContent = `${viewModel.durationLabel} link map`;
+  title.textContent = formatTimelineModeTitle(viewModel);
   const caption = document.createElement("p");
   caption.className = "v4-projection-side-panel__timeline-caption";
-  caption.textContent = viewModel.timelineSummary;
+  caption.textContent = formatTimelineModeCaption(viewModel);
   copy.append(title, caption);
   head.append(
     copy,
@@ -1252,7 +1312,7 @@ function buildTimelineRow(
           "--segment-width",
           `${segment.widthPercent.toFixed(3)}%`
         );
-        span.title = `${formatSatelliteShort(segment.satelliteId)} · ${segment.orbitClass} · ${formatUtcClockWithSeconds(segment.startUtc)}-${formatUtcClockWithSeconds(segment.endUtc)} UTC`;
+        span.title = `${formatSatelliteShort(segment.satelliteId)} · ${segment.orbitClass} · ${formatUtcClockWithSeconds(segment.startUtc)}-${formatUtcClockWithSeconds(segment.endUtc)} ${getLocalTimezoneLabel(segment.startUtc)}`;
         rail.append(span);
       }
 
@@ -1283,11 +1343,13 @@ function buildTimelineRow(
   axis.className = "v4-projection-side-panel__timeline-axis";
   axis.setAttribute("aria-label", "Timeline axis labels in UTC");
   const start = document.createElement("span");
-  start.textContent = `${viewModel.timelineAxisStartLabel} start`;
+  // Times only; positional order already conveys start/mid/end (axis has an
+  // aria-label for the accessible equivalent).
+  start.textContent = viewModel.timelineAxisStartLabel;
   const mid = document.createElement("span");
-  mid.textContent = `${viewModel.timelineAxisMidLabel} mid`;
+  mid.textContent = viewModel.timelineAxisMidLabel;
   const end = document.createElement("span");
-  end.textContent = `${viewModel.timelineAxisEndLabel} end`;
+  end.textContent = viewModel.timelineAxisEndLabel;
   axis.append(start, mid, end);
 
   const legend = document.createElement("div");
@@ -1355,7 +1417,7 @@ function syncTimelineCurrentMarkers(root: HTMLElement, viewer: Viewer | undefine
     marker.dataset.currentUtc = currentUtc;
     marker.dataset.windowState =
       rawPercent < 0 ? "before" : rawPercent > 100 ? "after" : "inside";
-    marker.title = `${formatUtcClockWithSeconds(currentUtc)} UTC · current replay time`;
+    marker.title = `${formatUtcClockWithSeconds(currentUtc)} ${getLocalTimezoneLabel(currentUtc)} · current replay time`;
   }
 }
 
@@ -1401,11 +1463,9 @@ function buildDecisionCardsRow(
   head.className = "v4-projection-side-panel__link-plan-head";
   const title = document.createElement("h3");
   title.className = "v4-projection-side-panel__link-plan-title";
+  // Caption dropped: decision-card times are already labeled UTC.
   title.textContent = "Next 6h link plan";
-  const caption = document.createElement("p");
-  caption.className = "v4-projection-side-panel__link-plan-caption";
-  caption.textContent = "UTC schedule";
-  head.append(title, caption);
+  head.append(title);
 
   const list = document.createElement("div");
   list.className = "v4-projection-side-panel__decision-list";
@@ -1414,6 +1474,9 @@ function buildDecisionCardsRow(
     item.className = "v4-projection-side-panel__decision-card";
     if (card.modifier) {
       item.dataset.modifier = card.modifier;
+    }
+    if (card.title) {
+      item.title = card.title;
     }
     const kicker = document.createElement("div");
     kicker.className = "v4-projection-side-panel__decision-kicker";
@@ -1455,12 +1518,14 @@ function buildRainImpactMainRow(
   const lostMs = Math.max(0, clearMs - currentMs);
   const summary = document.createElement("p");
   summary.className = "v4-projection-side-panel__rain-caption";
+  // Outcome only; the rain caption above already cites ITU-R P.618-14 and the
+  // evidence drawer carries the full standards reference.
   summary.textContent =
     rainRateMmPerHour <= 0
-      ? `Clear sky baseline · ${RAIN_IMPACT_STANDARD_CITATION}`
+      ? "Clear-sky baseline"
       : lostMs > 0
-      ? `${formatDurationMs(lostMs)} communication time lost · ${RAIN_IMPACT_STANDARD_CITATION}`
-      : `Throughput/jitter delta only · ${RAIN_IMPACT_STANDARD_CITATION}`;
+      ? `${formatDurationMs(lostMs)} comm time lost`
+      : "Throughput/jitter delta only";
 
   row.append(
     rainControl.control,
@@ -1620,17 +1685,22 @@ function buildHandoverRow(
   if (event.reasonKind === "cross-orbit-migration") {
     li.dataset.modifier = "cross-orbit-migration";
   }
+  const reasonTitle = formatPanelReasonTitle(
+    event.reasonKind,
+    event.fromSatelliteId
+  );
+  if (reasonTitle) {
+    li.title = reasonTitle;
+  }
   const head = document.createElement("span");
   head.className = "v4-projection-side-panel__list-primary";
   head.textContent = `${formatIsoShort(event.handoverAtUtc)}  ${event.fromSatelliteId ?? "—"} → ${event.toSatelliteId}`;
   const reason = document.createElement("span");
   reason.className = "v4-projection-side-panel__list-secondary";
-  reason.textContent =
-    event.fromSatelliteId === null
-      ? "initial acquisition"
-      : event.reasonKind === "cross-orbit-migration"
-      ? "cross-orbit migration (V-MO1)"
-      : event.reasonKind.replace(/-/g, " ");
+  reason.textContent = formatPanelReasonLabel(
+    event.reasonKind,
+    event.fromSatelliteId
+  );
   li.append(head, reason);
   return li;
 }
@@ -1909,7 +1979,13 @@ function buildFooterRow(result: RuntimeProjectionResult): HTMLElement {
       station.coordinateSourceNote
     );
   }
-  footer.textContent = `${result.truthBoundary.precisionLabel} · ${resolveSourceBadgeLabel(tierAttribution)}`;
+  // Plain-language precision rather than the raw enum (reads as debug output
+  // otherwise). Dataset attrs above carry the machine value for smokes.
+  const precisionText =
+    result.truthBoundary.precisionLabel === "operator-family-precision"
+      ? "Operator-precision coords"
+      : "Modeled coords";
+  footer.textContent = `${precisionText} · ${resolveSourceBadgeLabel(tierAttribution)}`;
   row.append(footer);
   return row;
 }
@@ -1930,24 +2006,13 @@ function buildEvidenceEntryRow(
   evidenceButton.setAttribute("aria-controls", evidenceDrawer.id);
   evidenceButton.setAttribute("aria-expanded", "false");
   evidenceButton.addEventListener("click", () => {
-    const opening = evidenceDrawer.hidden;
-    evidenceDrawer.hidden = !opening;
-    evidenceDrawer.dataset.open = opening ? "true" : "false";
-    evidenceButton.setAttribute("aria-expanded", opening ? "true" : "false");
-    evidenceButton.textContent = opening ? "Hide details" : "Details & sources";
-    evidenceButton.setAttribute(
-      "aria-label",
-      opening ? "Close details and sources" : "Open details and sources"
-    );
-    if (opening) {
-      const closeButton = evidenceDrawer.querySelector<HTMLButtonElement>(
-        ".v4-projection-side-panel__evidence-close"
-      );
-      closeButton?.focus();
-    }
+    const opening = evidenceDrawer.hidden === true;
+    setSelectedPairEvidenceDrawerOpen(evidenceDrawer, opening, {
+      focusTarget: opening ? "close-button" : "none"
+    });
   });
 
-  const reportButton = buildDownloadEvidenceReportButton(result, "Report");
+  const reportButton = buildOpenEvidenceReportButton(result, "Report");
   actions.append(evidenceButton, reportButton);
   row.prepend(actions);
   return row;

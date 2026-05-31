@@ -1,5 +1,5 @@
-import operatorFamilyAliases from "../../../public/fixtures/ground-stations/operator-family-aliases.json";
-import registry from "../../../public/fixtures/ground-stations/multi-orbit-public-registry.json";
+import operatorFamilyAliases from "../../fixtures/ground-stations/operator-family-aliases.json";
+import registry from "../../fixtures/ground-stations/multi-orbit-public-registry.json";
 
 export type PublicPairSourceTier = "public-disclosed" | "geometric-derived";
 export type PairSourceEvidenceKind =

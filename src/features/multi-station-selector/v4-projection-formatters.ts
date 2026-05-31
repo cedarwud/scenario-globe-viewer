@@ -13,13 +13,30 @@ export function formatDurationMs(ms: number): string {
   return sec === 0 ? `${minutes}m` : `${minutes}m ${sec}s`;
 }
 
+export function getLocalTimezoneLabel(dateInput?: Date | string): string {
+  const date = dateInput ? new Date(dateInput) : new Date();
+  const offsetMin = -date.getTimezoneOffset();
+  if (offsetMin === 0) return "UTC";
+  const sign = offsetMin > 0 ? "+" : "-";
+  const hours = Math.floor(Math.abs(offsetMin) / 60);
+  const mins = Math.abs(offsetMin) % 60;
+  const minsStr = mins > 0 ? `:${String(mins).padStart(2, "0")}` : "";
+  return `UTC${sign}${hours}${minsStr}`;
+}
+
 export function formatIsoShort(iso: string): string {
   const ms = Date.parse(iso);
   if (!Number.isFinite(ms)) {
     return iso;
   }
-  const normalized = new Date(ms).toISOString();
-  return `${normalized.slice(0, 10)} ${normalized.slice(11, 19)}Z`;
+  const d = new Date(ms);
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  const date = String(d.getDate()).padStart(2, "0");
+  const hours = String(d.getHours()).padStart(2, "0");
+  const minutes = String(d.getMinutes()).padStart(2, "0");
+  const seconds = String(d.getSeconds()).padStart(2, "0");
+  return `${year}-${month}-${date} ${hours}:${minutes}:${seconds} (${getLocalTimezoneLabel(d)})`;
 }
 
 export function formatIsoSecond(iso: string): string {
@@ -27,7 +44,14 @@ export function formatIsoSecond(iso: string): string {
   if (!Number.isFinite(ms)) {
     return iso;
   }
-  return `${new Date(ms).toISOString().slice(0, 19)}Z`;
+  const d = new Date(ms);
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  const date = String(d.getDate()).padStart(2, "0");
+  const hours = String(d.getHours()).padStart(2, "0");
+  const minutes = String(d.getMinutes()).padStart(2, "0");
+  const seconds = String(d.getSeconds()).padStart(2, "0");
+  return `${year}-${month}-${date}T${hours}:${minutes}:${seconds} (${getLocalTimezoneLabel(d)})`;
 }
 
 export function formatUtcClock(iso: string): string {
@@ -35,7 +59,10 @@ export function formatUtcClock(iso: string): string {
   if (!Number.isFinite(ms)) {
     return iso;
   }
-  return new Date(ms).toISOString().slice(11, 16);
+  const d = new Date(ms);
+  const hours = String(d.getHours()).padStart(2, "0");
+  const minutes = String(d.getMinutes()).padStart(2, "0");
+  return `${hours}:${minutes}`;
 }
 
 export function formatUtcClockWithSeconds(iso: string): string {
@@ -43,7 +70,11 @@ export function formatUtcClockWithSeconds(iso: string): string {
   if (!Number.isFinite(ms)) {
     return iso;
   }
-  return new Date(ms).toISOString().slice(11, 19);
+  const d = new Date(ms);
+  const hours = String(d.getHours()).padStart(2, "0");
+  const minutes = String(d.getMinutes()).padStart(2, "0");
+  const seconds = String(d.getSeconds()).padStart(2, "0");
+  return `${hours}:${minutes}:${seconds}`;
 }
 
 export function formatUtcMidpointClock(startIso: string, endIso: string): string {
@@ -58,7 +89,7 @@ export function formatUtcMidpointClock(startIso: string, endIso: string): string
 export function formatStationPanelName(name: string): string {
   return name
     .replace(/\s*\([^)]*\)/g, "")
-    .replace(/\bSatellite Station\b/g, "")
+    .replace(/\b(Satellite Station|Ground Station|Earth Station|Teleport|Space Center)\b/g, "")
     .trim();
 }
 

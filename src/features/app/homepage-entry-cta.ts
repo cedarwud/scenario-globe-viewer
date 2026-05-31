@@ -17,8 +17,8 @@ interface GroundStationIconOption {
 const GROUND_STATION_ICON_OPTIONS: ReadonlyArray<GroundStationIconOption> = [
   {
     key: "orbit",
-    label: "Open V4 ground-station multi-orbit scene",
-    tooltip: "V4 ground-station multi-orbit",
+    label: "Open Taiwan selected-pair cross-orbit projection",
+    tooltip: "Taiwan selected-pair projection",
     paths: `
       <circle cx="10.3" cy="13.7" r="5.2" />
       <path d="M5.6 11.5h9.4" />
@@ -86,19 +86,19 @@ function createGroundStationEntry(
   anchor.href = options.addressedHref;
   anchor.dataset.m8aV44HomepageGroundStationEntry = "true";
   anchor.dataset.m8aV44HomepageGroundStationIconOption = iconOption.key;
-  anchor.dataset.homepageEntryKind = "v4-ground-station-multi-orbit";
+  anchor.dataset.homepageEntryKind = "selected-pair-cross-orbit-projection";
   anchor.setAttribute(
     "aria-label",
-    `${iconOption.label}: Open V4 ground-station multi-orbit scene with Taiwan CHT and Singapore Speedcast operator-family endpoints`
+    `${iconOption.label}: Chunghwa Telecom Yangmingshan and SANSA Hartebeesthoek`
   );
   anchor.title =
-    `${iconOption.tooltip}: Open V4 ground-station multi-orbit scene`;
+    `${iconOption.tooltip}: CHT Yangmingshan to SANSA Hartebeesthoek`;
 
   const icon = createIcon(iconOption.paths);
 
   const tooltip = document.createElement("span");
   tooltip.className = "homepage-entry-cta__tooltip";
-  tooltip.textContent = `${iconOption.tooltip} - V4 ground-station multi-orbit`;
+  tooltip.textContent = `${iconOption.tooltip} - CHT Yangmingshan to SANSA`;
 
   anchor.append(icon, tooltip);
   return anchor;
@@ -171,7 +171,7 @@ export function mountHomepageEntryCta(
   root.setAttribute(
     "aria-label",
     options.groundStationEntry
-      ? "Homepage scene entry: V4 ground-station multi-orbit scene"
+      ? "Homepage scene entry: Taiwan selected-pair cross-orbit projection"
       : "Homepage handover scene entry"
   );
 

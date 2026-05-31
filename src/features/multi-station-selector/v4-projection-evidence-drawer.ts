@@ -1,31 +1,27 @@
+import { getLocalTimezoneLabel } from "./v4-projection-formatters";
 import {
   computeLinkBudgetMetricsForOrbit,
   type RuntimeProjectionResult
 } from "./runtime-projection";
 import {
-  buildRuntimeProjectionEvidenceReportFilename,
-  buildRuntimeProjectionEvidenceReportHtml
-} from "./runtime-projection-evidence-report";
+  buildDownloadCsvButton,
+  buildOpenEvidenceReportButton
+} from "./v4-projection-report-actions";
+import {
+  PANEL_EVIDENCE_DRAWER_ID,
+  setSelectedPairEvidenceDrawerOpen
+} from "./selected-pair-overlay-state";
 import type { OrbitClass } from "./visibility-utils";
 
-export const PANEL_EVIDENCE_DRAWER_ID = "v4-selected-pair-evidence";
+export { PANEL_EVIDENCE_DRAWER_ID } from "./selected-pair-overlay-state";
 
-const PANEL_EVIDENCE_COVERAGE_SEGMENT_LIMIT = 28;
-const PANEL_EVIDENCE_EVENT_MARKER_LIMIT = 24;
+const PANEL_EVIDENCE_EVENT_ROW_LIMIT = 3;
 const ORBIT_DISPLAY_ORDER: ReadonlyArray<OrbitClass> = ["LEO", "MEO", "GEO"];
 
-interface EvidenceCoverageSegment {
-  readonly startUtc: string;
-  readonly endUtc: string;
-  readonly startPercent: number;
-  readonly widthPercent: number;
-}
-
-interface EvidenceRailMarker {
-  readonly handoverAtUtc: string;
-  readonly leftPercent: number;
-  readonly kind: "acquisition" | "handover" | "cross-orbit";
+interface EvidenceDefinitionRow {
   readonly label: string;
+  readonly value: string;
+  readonly description?: string;
 }
 
 function formatDurationMs(ms: number): string {
@@ -41,20 +37,16 @@ function formatDurationMs(ms: number): string {
   return sec === 0 ? `${minutes}m` : `${minutes}m ${sec}s`;
 }
 
-function formatUtcClock(iso: string): string {
-  const ms = Date.parse(iso);
-  if (!Number.isFinite(ms)) {
-    return iso;
-  }
-  return new Date(ms).toISOString().slice(11, 16);
-}
-
 function formatUtcClockWithSeconds(iso: string): string {
   const ms = Date.parse(iso);
   if (!Number.isFinite(ms)) {
     return iso;
   }
-  return new Date(ms).toISOString().slice(11, 19);
+  const d = new Date(ms);
+  const hours = String(d.getHours()).padStart(2, "0");
+  const minutes = String(d.getMinutes()).padStart(2, "0");
+  const seconds = String(d.getSeconds()).padStart(2, "0");
+  return `${hours}:${minutes}:${seconds}`;
 }
 
 function formatSatelliteShort(satelliteId: string | null): string {
@@ -79,32 +71,6 @@ function formatReasonLabel(
     return "Cross-orbit migration (V-MO1)";
   }
   return reasonKind.replace(/-/g, " ");
-}
-
-function clampPercent(value: number): number {
-  if (!Number.isFinite(value)) {
-    return 0;
-  }
-  return Math.min(Math.max(value, 0), 100);
-}
-
-function sampleEvenly<T>(items: ReadonlyArray<T>, limit: number): ReadonlyArray<T> {
-  if (items.length <= limit) {
-    return items;
-  }
-  if (limit <= 1) {
-    return items.slice(0, 1);
-  }
-  const sampled: T[] = [];
-  const used = new Set<number>();
-  for (let index = 0; index < limit; index += 1) {
-    const sourceIndex = Math.round((index * (items.length - 1)) / (limit - 1));
-    if (!used.has(sourceIndex)) {
-      used.add(sourceIndex);
-      sampled.push(items[sourceIndex]);
-    }
-  }
-  return sampled;
 }
 
 function formatCountLabel(count: number, singular: string, plural: string): string {
@@ -149,40 +115,6 @@ function computeProjectionPairMidpointHeightAboveSeaKm(
   result: RuntimeProjectionResult
 ): number {
   return (result.pair.stationA.elevationM + result.pair.stationB.elevationM) / 2000;
-}
-
-function downloadRuntimeProjectionEvidenceReport(
-  result: RuntimeProjectionResult
-): void {
-  const html = buildRuntimeProjectionEvidenceReportHtml(result);
-  const blob = new Blob([html], { type: "text/html;charset=utf-8" });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement("a");
-  link.href = url;
-  link.download = buildRuntimeProjectionEvidenceReportFilename(result);
-  link.style.display = "none";
-  document.body.appendChild(link);
-  try {
-    link.click();
-  } finally {
-    link.remove();
-    URL.revokeObjectURL(url);
-  }
-}
-
-function buildDownloadEvidenceReportButton(
-  result: RuntimeProjectionResult,
-  label = "Download evidence report"
-): HTMLButtonElement {
-  const button = document.createElement("button");
-  button.type = "button";
-  button.className = "v4-projection-side-panel__download-report";
-  button.textContent = label;
-  button.setAttribute("aria-label", "Download evidence report");
-  button.addEventListener("click", () => {
-    downloadRuntimeProjectionEvidenceReport(result);
-  });
-  return button;
 }
 
 function formatSignedPercent(fraction: number): string {
@@ -413,7 +345,7 @@ function buildMetricAnchorDisclosureBlock(result: RuntimeProjectionResult): HTML
     ["Jitter model", disclosure.jitterModel],
     ["Delay model", disclosure.delayModel],
     [
-      "Policy thresholds",
+      "Handover policy gates",
       `${disclosure.activePolicyId}: elevation ${disclosure.policyThresholds.elevationThresholdDeg}° · hysteresis ${disclosure.policyThresholds.hysteresisDb} dB · min window ${Math.round(disclosure.policyThresholds.minVisibilityWindowMs / 1000)}s · latency ${disclosure.policyThresholds.latencyBudgetMs ?? "n/a"} ms`
     ],
     ["Non-claim", disclosure.nonClaim]
@@ -450,6 +382,25 @@ function buildStandardsReferences(result: RuntimeProjectionResult): HTMLElement 
   return wrapper;
 }
 
+function buildTleSourceSummaryBlock(result: RuntimeProjectionResult): HTMLElement {
+  const wrapper = document.createElement("section");
+  wrapper.className = "v4-projection-side-panel__section";
+  const heading = document.createElement("h3");
+  heading.className = "v4-projection-side-panel__section-title";
+  heading.textContent = "TLE source summary";
+  const list = document.createElement("ul");
+  list.className = "v4-projection-side-panel__non-claim-list";
+  for (const source of result.dataCompleteness.tleSources) {
+    const li = document.createElement("li");
+    li.textContent =
+      `${source.sourceId} · ${source.orbitClass} · ${source.health} · ` +
+      `${source.acceptedRecordCount} accepted / ${source.rejectedRecordCount} rejected`;
+    list.append(li);
+  }
+  wrapper.append(heading, list);
+  return wrapper;
+}
+
 function formatEvidenceDurationMs(ms: number): string {
   if (ms < 60 * 60_000) {
     return formatDurationMs(ms);
@@ -469,16 +420,6 @@ function resolveEvidenceTimeWindow(result: RuntimeProjectionResult): {
   const endMs = Date.parse(result.timeWindow.endUtc);
   const durationMs = endMs - startMs;
   return { startMs, endMs, durationMs };
-}
-
-function percentInEvidenceWindow(
-  ms: number,
-  window: ReturnType<typeof resolveEvidenceTimeWindow>
-): number {
-  if (!Number.isFinite(ms) || window.durationMs <= 0) {
-    return 0;
-  }
-  return clampPercent(((ms - window.startMs) / window.durationMs) * 100);
 }
 
 function buildEvidenceHealthCell(
@@ -532,180 +473,45 @@ function buildEvidenceHealthStrip(result: RuntimeProjectionResult): HTMLElement 
       "Policy",
       result.dataCompleteness.policyDisclosure.activePolicyId,
       `${formatCountLabel(result.handoverEvents.length, "event", "events")}`
-    ),
-    buildEvidenceHealthCell(
-      "Model scope",
-      `${result.dataCompleteness.actorProvenance.length} actors`,
-      `${result.dataCompleteness.modeledOutputs.length} modeled outputs`
     )
   );
   return strip;
 }
 
-function buildEvidenceCoverageSegments(
-  result: RuntimeProjectionResult,
-  orbitClass: OrbitClass
-): {
-  readonly segments: ReadonlyArray<EvidenceCoverageSegment>;
-  readonly visibleMs: number;
-  readonly rawCount: number;
-} {
-  const window = resolveEvidenceTimeWindow(result);
-  if (window.durationMs <= 0) {
-    return { segments: [], visibleMs: 0, rawCount: 0 };
-  }
-
-  const rawSegments = result.visibilityWindows
-    .filter((entry) => entry.orbitClass === orbitClass)
-    .map((entry) => {
-      const startMs = Math.max(Date.parse(entry.intersectionStartUtc), window.startMs);
-      const endMs = Math.min(Date.parse(entry.intersectionEndUtc), window.endMs);
-      return { startMs, endMs };
-    })
-    .filter(
-      (entry) =>
-        Number.isFinite(entry.startMs) &&
-        Number.isFinite(entry.endMs) &&
-        entry.endMs > entry.startMs
-    )
-    .sort((a, b) => a.startMs - b.startMs);
-
-  const merged: Array<{ startMs: number; endMs: number }> = [];
-  for (const segment of rawSegments) {
-    const previous = merged[merged.length - 1];
-    if (previous && segment.startMs <= previous.endMs + 60_000) {
-      previous.endMs = Math.max(previous.endMs, segment.endMs);
-      continue;
+function buildEvidenceDefinitionList(
+  rows: ReadonlyArray<EvidenceDefinitionRow>,
+  ariaLabel: string
+): HTMLElement {
+  const list = document.createElement("dl");
+  list.className = "v4-projection-side-panel__evidence-definition-list";
+  list.setAttribute("aria-label", ariaLabel);
+  for (const row of rows) {
+    const item = document.createElement("div");
+    item.className = "v4-projection-side-panel__evidence-definition-row";
+    const term = document.createElement("dt");
+    term.className = "v4-projection-side-panel__evidence-definition-label";
+    term.textContent = row.label;
+    const detail = document.createElement("dd");
+    detail.className = "v4-projection-side-panel__evidence-definition-detail";
+    const value = document.createElement("span");
+    value.className = "v4-projection-side-panel__evidence-definition-value";
+    value.textContent = row.value;
+    detail.append(value);
+    if (row.description) {
+      const description = document.createElement("span");
+      description.className = "v4-projection-side-panel__evidence-definition-description";
+      description.textContent = row.description;
+      detail.append(description);
     }
-    merged.push({ ...segment });
+    item.append(term, detail);
+    list.append(item);
   }
-
-  const visibleMs = merged.reduce(
-    (total, segment) => total + Math.max(0, segment.endMs - segment.startMs),
-    0
-  );
-  const segments = sampleEvenly(
-    merged.map((segment) => {
-      const startPercent = percentInEvidenceWindow(segment.startMs, window);
-      const endPercent = percentInEvidenceWindow(segment.endMs, window);
-      return {
-        startUtc: new Date(segment.startMs).toISOString(),
-        endUtc: new Date(segment.endMs).toISOString(),
-        startPercent,
-        widthPercent: Math.max(0.22, endPercent - startPercent)
-      };
-    }),
-    PANEL_EVIDENCE_COVERAGE_SEGMENT_LIMIT
-  );
-
-  return { segments, visibleMs, rawCount: rawSegments.length };
+  return list;
 }
 
-function buildCoverageDashboard(result: RuntimeProjectionResult): HTMLElement {
-  const map = document.createElement("div");
-  map.className = "v4-projection-side-panel__coverage-map";
-  const allowedOrbits = new Set(result.sharedSupportedOrbits);
-  const window = resolveEvidenceTimeWindow(result);
-
-  for (const orbit of ORBIT_DISPLAY_ORDER) {
-    const lane = document.createElement("div");
-    lane.className = "v4-projection-side-panel__coverage-lane";
-    lane.dataset.orbit = orbit;
-    lane.dataset.supported = allowedOrbits.has(orbit) ? "true" : "false";
-
-    const label = document.createElement("span");
-    label.className = "v4-projection-side-panel__coverage-label";
-    label.textContent = orbit;
-
-    const track = document.createElement("div");
-    track.className = "v4-projection-side-panel__coverage-track";
-
-    const { segments, visibleMs, rawCount } = buildEvidenceCoverageSegments(
-      result,
-      orbit
-    );
-    for (const segment of segments) {
-      const bar = document.createElement("span");
-      bar.className = "v4-projection-side-panel__coverage-segment";
-      bar.dataset.orbit = orbit;
-      bar.style.setProperty("--coverage-start", `${segment.startPercent}%`);
-      bar.style.setProperty("--coverage-width", `${segment.widthPercent}%`);
-      bar.title = `${orbit} visible ${formatUtcClockWithSeconds(segment.startUtc)}-${formatUtcClockWithSeconds(segment.endUtc)}`;
-      track.append(bar);
-    }
-
-    const activeMs = result.communicationStats.byOrbit[orbit] ?? 0;
-    const coveragePercent =
-      window.durationMs > 0 ? clampPercent((visibleMs / window.durationMs) * 100) : 0;
-    const summary = document.createElement("span");
-    summary.className = "v4-projection-side-panel__coverage-summary";
-    summary.textContent =
-      visibleMs > 0
-        ? `${Math.round(coveragePercent)}% visible · ${formatEvidenceDurationMs(activeMs)} active`
-        : "no visibility";
-    track.setAttribute(
-      "aria-label",
-      `${orbit} coverage: ${rawCount} windows, ${summary.textContent}`
-    );
-
-    lane.append(label, track, summary);
-    map.append(lane);
-  }
-
-  const axis = document.createElement("div");
-  axis.className = "v4-projection-side-panel__coverage-axis";
-  const startLabel = document.createElement("span");
-  startLabel.textContent = formatUtcClock(result.timeWindow.startUtc);
-  const midLabel = document.createElement("span");
-  midLabel.textContent =
-    window.durationMs > 0
-      ? formatUtcClock(new Date(window.startMs + window.durationMs / 2).toISOString())
-      : "mid";
-  const endLabel = document.createElement("span");
-  endLabel.textContent = formatUtcClock(result.timeWindow.endUtc);
-  axis.append(startLabel, midLabel, endLabel);
-  map.append(axis);
-
-  return buildEvidenceCard("Orbit coverage map", [map]);
-}
-
-function buildEvidenceRailMarker(
-  result: RuntimeProjectionResult,
-  event: RuntimeProjectionResult["handoverEvents"][number]
-): EvidenceRailMarker | null {
-  const window = resolveEvidenceTimeWindow(result);
-  const eventMs = Date.parse(event.handoverAtUtc);
-  if (
-    !Number.isFinite(eventMs) ||
-    window.durationMs <= 0 ||
-    eventMs < window.startMs ||
-    eventMs > window.endMs
-  ) {
-    return null;
-  }
-
-  const fromOrbit = event.fromSatelliteId
-    ? resolveSatelliteOrbitClass(result, event.fromSatelliteId)
-    : null;
-  const toOrbit = resolveSatelliteOrbitClass(result, event.toSatelliteId);
-  const kind =
-    event.fromSatelliteId === null
-      ? "acquisition"
-      : event.reasonKind === "cross-orbit-migration"
-        ? "cross-orbit"
-        : "handover";
-  const orbitPath = fromOrbit ? `${fromOrbit}->${toOrbit}` : toOrbit;
-  return {
-    handoverAtUtc: event.handoverAtUtc,
-    leftPercent: percentInEvidenceWindow(eventMs, window),
-    kind,
-    label: `${formatUtcClockWithSeconds(event.handoverAtUtc)} · ${formatReasonLabel(event.reasonKind, event.fromSatelliteId)} · ${orbitPath} · ${formatSatelliteShort(event.toSatelliteId)}`
-  };
-}
-
-function buildHandoverEventRail(result: RuntimeProjectionResult): HTMLElement {
+function buildHandoverEventList(result: RuntimeProjectionResult): HTMLElement {
   const wrapper = document.createElement("div");
-  wrapper.className = "v4-projection-side-panel__event-rail";
+  wrapper.className = "v4-projection-side-panel__evidence-list-block";
   const summary = buildEvidenceMetricGrid([
     [
       "Acquisition",
@@ -723,75 +529,70 @@ function buildHandoverEventRail(result: RuntimeProjectionResult): HTMLElement {
     ["Mean dwell", formatEvidenceDurationMs(result.communicationStats.meanLinkDwellMs)]
   ]);
 
-  const track = document.createElement("div");
-  track.className = "v4-projection-side-panel__event-rail-track";
-  const markers = sampleEvenly(
-    result.handoverEvents
-      .slice()
-      .sort((a, b) => Date.parse(a.handoverAtUtc) - Date.parse(b.handoverAtUtc))
-      .map((event) => buildEvidenceRailMarker(result, event))
-      .filter((event): event is EvidenceRailMarker => event !== null),
-    PANEL_EVIDENCE_EVENT_MARKER_LIMIT
-  );
-  for (const marker of markers) {
-    const span = document.createElement("span");
-    span.className = "v4-projection-side-panel__event-marker";
-    span.dataset.kind = marker.kind;
-    span.style.setProperty("--event-left", `${marker.leftPercent}%`);
-    span.title = marker.label;
-    track.append(span);
+  const copy = document.createElement("p");
+  copy.className = "v4-projection-side-panel__evidence-copy";
+  copy.textContent =
+    "Chronological handover evidence for this projection window. The report contains the full row set.";
+
+  const window = resolveEvidenceTimeWindow(result);
+  const events = result.handoverEvents
+    .slice()
+    .filter((event) => {
+      const eventMs = Date.parse(event.handoverAtUtc);
+      return (
+        Number.isFinite(eventMs) &&
+        window.durationMs > 0 &&
+        eventMs >= window.startMs &&
+        eventMs <= window.endMs
+      );
+    })
+    .sort((a, b) => Date.parse(a.handoverAtUtc) - Date.parse(b.handoverAtUtc));
+
+  const list = document.createElement("ol");
+  list.className = "v4-projection-side-panel__evidence-row-list";
+  list.setAttribute("aria-label", "Handover events in chronological order");
+  for (const event of events.slice(0, PANEL_EVIDENCE_EVENT_ROW_LIMIT)) {
+    const fromOrbit = event.fromSatelliteId
+      ? resolveSatelliteOrbitClass(result, event.fromSatelliteId)
+      : null;
+    const toOrbit = resolveSatelliteOrbitClass(result, event.toSatelliteId);
+    const li = document.createElement("li");
+    li.className = "v4-projection-side-panel__evidence-row-item";
+    if (event.reasonKind === "cross-orbit-migration") {
+      li.dataset.modifier = "cross-orbit";
+    }
+    const primary = document.createElement("span");
+    primary.className = "v4-projection-side-panel__evidence-row-primary";
+    primary.textContent =
+      event.fromSatelliteId === null
+        ? `${formatUtcClockWithSeconds(event.handoverAtUtc)} ${getLocalTimezoneLabel(event.handoverAtUtc)} · acquire ${formatSatelliteShort(event.toSatelliteId)}`
+        : `${formatUtcClockWithSeconds(event.handoverAtUtc)} ${getLocalTimezoneLabel(event.handoverAtUtc)} · ${formatSatelliteShort(event.fromSatelliteId)} -> ${formatSatelliteShort(event.toSatelliteId)}`;
+    const secondary = document.createElement("span");
+    secondary.className = "v4-projection-side-panel__evidence-row-secondary";
+    secondary.textContent =
+      `${fromOrbit ? `${fromOrbit} -> ${toOrbit}` : toOrbit} · ` +
+      formatReasonLabel(event.reasonKind, event.fromSatelliteId);
+    li.append(primary, secondary);
+    list.append(li);
   }
-  if (markers.length === 0) {
+
+  wrapper.append(summary, copy);
+  if (events.length === 0) {
     const empty = document.createElement("p");
     empty.className = "v4-projection-side-panel__empty";
     empty.textContent = "No handover events inside this projection window.";
-    track.append(empty);
+    wrapper.append(empty);
+  } else {
+    wrapper.append(list);
+  }
+  if (events.length > PANEL_EVIDENCE_EVENT_ROW_LIMIT) {
+    const note = document.createElement("p");
+    note.className = "v4-projection-side-panel__evidence-copy";
+    note.textContent = `Showing first ${PANEL_EVIDENCE_EVENT_ROW_LIMIT} of ${events.length} events; use the evidence report for every row.`;
+    wrapper.append(note);
   }
 
-  const legend = document.createElement("div");
-  legend.className = "v4-projection-side-panel__event-rail-legend";
-  for (const [kind, label] of [
-    ["acquisition", "Acquisition"],
-    ["handover", "Handover"],
-    ["cross-orbit", "Cross-orbit"]
-  ] as const) {
-    const item = document.createElement("span");
-    item.className = "v4-projection-side-panel__event-rail-legend-item";
-    const mark = document.createElement("span");
-    mark.className = "v4-projection-side-panel__event-rail-legend-mark";
-    mark.dataset.kind = kind;
-    item.append(mark, document.createTextNode(label));
-    legend.append(item);
-  }
-
-  wrapper.append(summary, track, legend);
-  return buildEvidenceCard("Handover rail", [wrapper]);
-}
-
-function buildThresholdChip(
-  label: string,
-  value: string,
-  levelPercent: number | null
-): HTMLElement {
-  const chip = document.createElement("div");
-  chip.className = "v4-projection-side-panel__threshold-chip";
-  const labelEl = document.createElement("span");
-  labelEl.className = "v4-projection-side-panel__threshold-label";
-  labelEl.textContent = label;
-  const valueEl = document.createElement("span");
-  valueEl.className = "v4-projection-side-panel__threshold-value";
-  valueEl.textContent = value;
-  chip.append(labelEl, valueEl);
-  if (levelPercent !== null) {
-    const meter = document.createElement("span");
-    meter.className = "v4-projection-side-panel__threshold-meter";
-    const fill = document.createElement("span");
-    fill.className = "v4-projection-side-panel__threshold-meter-fill";
-    fill.style.setProperty("--threshold-level", `${clampPercent(levelPercent)}%`);
-    meter.append(fill);
-    chip.append(meter);
-  }
-  return chip;
+  return buildEvidenceCard("Handover events", [wrapper]);
 }
 
 function buildPolicyThresholdDashboard(
@@ -799,47 +600,56 @@ function buildPolicyThresholdDashboard(
 ): HTMLElement {
   const disclosure = result.dataCompleteness.policyDisclosure;
   const thresholds = disclosure.thresholds;
-  const grid = document.createElement("div");
-  grid.className = "v4-projection-side-panel__threshold-grid";
-  grid.append(
-    buildThresholdChip("Policy", disclosure.activePolicyId, null),
-    buildThresholdChip(
-      "Elevation",
-      `${thresholds.elevationThresholdDeg} deg`,
-      (thresholds.elevationThresholdDeg / 90) * 100
-    ),
-    buildThresholdChip(
-      "Hysteresis",
-      `${thresholds.hysteresisDb} dB`,
-      (thresholds.hysteresisDb / 10) * 100
-    ),
-    buildThresholdChip(
-      "Min window",
-      formatEvidenceDurationMs(thresholds.minVisibilityWindowMs),
-      (thresholds.minVisibilityWindowMs / (10 * 60_000)) * 100
-    ),
-    buildThresholdChip(
-      "Latency",
-      thresholds.latencyBudgetMs === null
-        ? "none"
-        : `${thresholds.latencyBudgetMs} ms`,
-      thresholds.latencyBudgetMs === null
-        ? null
-        : (thresholds.latencyBudgetMs / 1000) * 100
-    )
-  );
-  return buildEvidenceCard("Policy thresholds", [grid]);
+  const copy = document.createElement("p");
+  copy.className = "v4-projection-side-panel__evidence-copy";
+  copy.textContent =
+    "Configured gates used by the handover policy. These are decision rules for the demo projection, not measured operator limits.";
+  const rows: EvidenceDefinitionRow[] = [
+    {
+      label: "Policy preset",
+      value: disclosure.activePolicyId,
+      description: "Selects the handover rule set used for this projection."
+    },
+    {
+      label: "Minimum elevation",
+      value: `${thresholds.elevationThresholdDeg}°`,
+      description: "Ignore visibility below this look angle."
+    },
+    {
+      label: "Hysteresis",
+      value: `${thresholds.hysteresisDb} dB`,
+      description: "A candidate must beat the current link by this margin before switching."
+    },
+    {
+      label: "Minimum usable window",
+      value: formatEvidenceDurationMs(thresholds.minVisibilityWindowMs),
+      description: "A candidate must remain usable at least this long."
+    },
+    {
+      label: "Latency budget",
+      value:
+        thresholds.latencyBudgetMs === null
+          ? "Not capped"
+          : `${thresholds.latencyBudgetMs} ms`,
+      description: "Latency target used while scoring candidate links."
+    }
+  ];
+  const card = buildEvidenceCard("Handover policy gates", [
+    copy,
+    buildEvidenceDefinitionList(rows, "Handover policy gates")
+  ]);
+  card.dataset.policyThresholds = "true";
+  return card;
 }
 
 function buildRainDeltaDashboard(
   result: RuntimeProjectionResult,
   rainRateMmPerHour: number
 ): HTMLElement {
-  const bars = document.createElement("div");
-  bars.className = "v4-projection-side-panel__rain-bars";
   const allowedOrbits = new Set(result.sharedSupportedOrbits);
   const stationHeightAboveSeaKm =
     computeProjectionPairMidpointHeightAboveSeaKm(result);
+  const rows: EvidenceDefinitionRow[] = [];
 
   for (const orbit of ORBIT_DISPLAY_ORDER.filter((orbitClass) =>
     allowedOrbits.has(orbitClass)
@@ -856,40 +666,36 @@ function buildRainDeltaDashboard(
       clear.networkSpeedMbps > 0
         ? (clear.networkSpeedMbps - wet.networkSpeedMbps) / clear.networkSpeedMbps
         : 0;
-    const dropPercent = clampPercent(dropFraction * 100);
-
-    const row = document.createElement("div");
-    row.className = "v4-projection-side-panel__rain-bar-row";
-    const label = document.createElement("span");
-    label.className = "v4-projection-side-panel__rain-bar-label";
-    label.textContent = orbit;
-    const track = document.createElement("span");
-    track.className = "v4-projection-side-panel__rain-bar-track";
-    const fill = document.createElement("span");
-    fill.className = "v4-projection-side-panel__rain-bar-fill";
-    fill.dataset.orbit = orbit;
-    fill.dataset.empty = dropPercent <= 0 ? "true" : "false";
-    fill.style.setProperty("--rain-drop", `${dropPercent}%`);
-    track.append(fill);
-    const value = document.createElement("span");
-    value.className = "v4-projection-side-panel__rain-bar-value";
-    value.textContent =
-      rainRateMmPerHour <= 0
-        ? "clear baseline"
-        : `${formatSignedPercent(-dropFraction)} · ${formatSpeedMbps(wet.networkSpeedMbps)}`;
-    row.title = `${orbit} ${formatSpeedMbps(clear.networkSpeedMbps)} -> ${formatSpeedMbps(wet.networkSpeedMbps)}`;
-    row.append(label, track, value);
-    bars.append(row);
+    rows.push({
+      label: orbit,
+      value:
+        rainRateMmPerHour <= 0
+          ? `${formatSpeedMbps(clear.networkSpeedMbps)} clear baseline`
+          : `${formatSpeedMbps(clear.networkSpeedMbps)} clear -> ${formatSpeedMbps(wet.networkSpeedMbps)} current`,
+      description:
+        rainRateMmPerHour <= 0
+          ? `Jitter ${clear.jitterMs.toFixed(1)} ms at clear-sky baseline.`
+          : `${formatSignedPercent(-dropFraction)} throughput; jitter ${clear.jitterMs.toFixed(1)} -> ${wet.jitterMs.toFixed(1)} ms.`
+    });
   }
 
-  if (bars.childElementCount === 0) {
+  if (rows.length === 0) {
     const empty = document.createElement("p");
     empty.className = "v4-projection-side-panel__evidence-copy";
     empty.textContent = "No shared orbit class is available for rain comparison.";
-    bars.append(empty);
+    return buildEvidenceCard("Rain impact evidence", [empty]);
   }
 
-  return buildEvidenceCard("Rain delta", [bars]);
+  const copy = document.createElement("p");
+  copy.className = "v4-projection-side-panel__evidence-copy";
+  copy.textContent =
+    rainRateMmPerHour <= 0
+      ? "Current rain setting is clear sky; rows show the baseline values."
+      : `Current rain setting is ${rainRateMmPerHour} mm/h; rows compare clear sky against the active rain setting.`;
+  return buildEvidenceCard("Rain impact evidence", [
+    copy,
+    buildEvidenceDefinitionList(rows, "Rain impact by orbit")
+  ]);
 }
 
 function buildEvidenceMetric(label: string, value: string): HTMLElement {
@@ -937,10 +743,16 @@ function buildEvidenceReportBlock(result: RuntimeProjectionResult): HTMLElement 
   const copy = document.createElement("p");
   copy.className = "v4-projection-side-panel__evidence-copy";
   copy.textContent =
-    "Download one offline HTML report with section tabs, searchable tables, visibility windows, handover events, sources, assumptions, and raw JSON.";
+    "Open the full HTML report for readable tables, sources, assumptions, and raw JSON. Use CSV only when you need spreadsheet data.";
+  const actions = document.createElement("div");
+  actions.className = "v4-projection-side-panel__report-action-row";
+  actions.append(
+    buildOpenEvidenceReportButton(result, "Open report"),
+    buildDownloadCsvButton(result, "CSV")
+  );
   return buildEvidenceCard(
     "Evidence package",
-    [copy, buildDownloadEvidenceReportButton(result)]
+    [copy, actions]
   );
 }
 
@@ -982,21 +794,32 @@ function buildSourceConfidenceDisclosure(
   const intro = document.createElement("p");
   intro.className = "v4-projection-side-panel__evidence-copy";
   intro.textContent =
-    `${pairSource.badgeLabel}. This section keeps the source boundary readable; the complete row-level evidence is in the downloaded report.`;
+    `${pairSource.badgeLabel}. Full source tables, inventory rows, station coordinate metadata, and model IDs are in the report.`;
   const details = buildDisclosure(
-    "Source confidence",
+    "Source boundary",
     [
       intro,
-      buildPolicyDisclosureBlock(result),
-      buildCapDisclosureBlock(result),
-      buildMetricAnchorDisclosureBlock(result),
-      buildStationCoordinateSourceBlock(result),
+      buildTleSourceSummaryBlock(result),
       buildStandardsReferences(result)
     ],
     false,
     { disclosure: "sources-non-claims" }
   );
   return details;
+}
+
+function buildHiddenMachineEvidenceBlock(result: RuntimeProjectionResult): HTMLElement {
+  const wrapper = document.createElement("div");
+  wrapper.className = "v4-projection-side-panel__evidence-machine-hooks";
+  wrapper.hidden = true;
+  wrapper.append(
+    buildAssumptionsDisclosure(result),
+    buildPolicyDisclosureBlock(result),
+    buildCapDisclosureBlock(result),
+    buildMetricAnchorDisclosureBlock(result),
+    buildStationCoordinateSourceBlock(result)
+  );
+  return wrapper;
 }
 
 function buildAssumptionsDisclosure(
@@ -1012,25 +835,6 @@ function buildAssumptionsDisclosure(
     { disclosure: "assumptions-limits" }
   );
   return details;
-}
-
-function buildRawEvidenceBlock(result: RuntimeProjectionResult): HTMLElement {
-  const copy = document.createElement("p");
-  copy.className = "v4-projection-side-panel__evidence-copy";
-  copy.textContent =
-    "Raw tables are not rendered here because they are verification material, not reading material. The report includes all rows in categorized tabs.";
-  return buildEvidenceCard("Raw verification data", [
-    buildEvidenceMetricGrid([
-      ["Visibility rows", String(result.visibilityWindows.length)],
-      ["Handover rows", String(result.handoverEvents.length)],
-      ["Actor rows", String(result.dataCompleteness.actorProvenance.length)],
-      [
-        "Provenance rows",
-        String(result.dataCompleteness.visibilityProvenance.length)
-      ]
-    ]),
-    copy
-  ]);
 }
 
 export function syncTleTelemetryChip(result: RuntimeProjectionResult): void {
@@ -1094,54 +898,37 @@ export function buildDisclosuresRow(
   close.setAttribute("aria-label", "Close details and sources");
   close.textContent = "Close";
   close.addEventListener("click", () => {
-    drawer.hidden = true;
-    drawer.dataset.open = "false";
-    const trigger = document.querySelector<HTMLButtonElement>(
-      `[aria-controls="${drawer.id}"]`
-    );
-    if (trigger) {
-      trigger.setAttribute("aria-expanded", "false");
-      trigger.textContent = "Details & sources";
-      trigger.setAttribute("aria-label", "Open details and sources");
-      trigger.focus();
-    }
+    setSelectedPairEvidenceDrawerOpen(drawer, false, {
+      focusTarget: "trigger"
+    });
   });
   header.append(title, close);
 
   const intro = document.createElement("p");
   intro.className = "v4-projection-side-panel__evidence-intro";
   intro.textContent =
-    "Readable validation summary. Download the evidence report for the full row-level tables.";
+    "Readable validation summary. Open the evidence report for full row-level tables.";
 
   const stack = document.createElement("div");
   stack.className = "v4-projection-side-panel__evidence-stack";
 
   stack.append(
     buildEvidenceSummaryBlock(result),
-    buildCoverageDashboard(result),
-    buildHandoverEventRail(result),
+    buildHandoverEventList(result),
     buildPolicyThresholdDashboard(result),
     buildRainDeltaDashboard(result, rainRateMmPerHour),
     buildEvidenceReportBlock(result),
     buildSourceConfidenceDisclosure(result),
-    buildAssumptionsDisclosure(result),
-    buildRawEvidenceBlock(result)
+    buildHiddenMachineEvidenceBlock(result)
   );
 
   drawer.append(header, intro, stack);
   drawer.addEventListener("keydown", (event) => {
     if (event.key === "Escape") {
-      drawer.hidden = true;
-      drawer.dataset.open = "false";
-      const trigger = document.querySelector<HTMLButtonElement>(
-        `[aria-controls="${drawer.id}"]`
-      );
-      if (trigger) {
-        trigger.setAttribute("aria-expanded", "false");
-        trigger.textContent = "Details & sources";
-        trigger.setAttribute("aria-label", "Open details and sources");
-        trigger.focus();
-      }
+      event.preventDefault();
+      setSelectedPairEvidenceDrawerOpen(drawer, false, {
+        focusTarget: "trigger"
+      });
     }
   });
   return drawer;

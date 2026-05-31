@@ -99,10 +99,35 @@ function list(items: ReadonlyArray<ReportCell>): string {
   return `<ul>${items.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>`;
 }
 
+function metricCard(label: string, value: ReportCell, description?: string): string {
+  return `<div class="metric-card"><span>${escapeHtml(label)}</span><strong>${escapeHtml(
+    value
+  )}</strong>${description ? `<p>${escapeHtml(description)}</p>` : ""}</div>`;
+}
+
+function evidenceCard(
+  title: string,
+  value: ReportCell,
+  description: string,
+  tone?: "ok" | "warn" | "info"
+): string {
+  return `<article class="evidence-card"${
+    tone ? ` data-tone="${tone}"` : ""
+  }><span>${escapeHtml(title)}</span><strong>${escapeHtml(value)}</strong><p>${escapeHtml(
+    description
+  )}</p></article>`;
+}
+
+function callout(title: string, body: string, tone: "info" | "warn" = "info"): string {
+  return `<aside class="callout" data-tone="${tone}"><strong>${escapeHtml(
+    title
+  )}</strong><p>${escapeHtml(body)}</p></aside>`;
+}
+
 function section(id: string, title: string, body: string, active = false): string {
   return `<section id="${id}" class="tab-panel" role="tabpanel" data-tab-panel="${id}"${
     active ? "" : " hidden"
-  }><h2>${escapeHtml(title)}</h2>${body}</section>`;
+  } aria-labelledby="tab-${id}"><h2>${escapeHtml(title)}</h2>${body}</section>`;
 }
 
 function orbitDurationRows(result: RuntimeProjectionResult): ReportRow[] {
@@ -270,28 +295,97 @@ function standardsList(result: RuntimeProjectionResult): string[] {
 function buildSummaryTab(result: RuntimeProjectionResult): string {
   const windowMs = durationMs(result.timeWindow.startUtc, result.timeWindow.endUtc);
   const pairSource = result.dataCompleteness.pairSourceAttribution;
+  const crossOrbitCount = result.handoverEvents.filter(
+    (event) => event.reasonKind === "cross-orbit-migration"
+  ).length;
+  const handoverRequirementValue = `${result.communicationStats.handoverCount} switches`;
+  const sourceBoundarySummary = `${pairSource.badgeLabel}. ${
+    result.truthBoundary.nonClaims[0] ?? "See Sources for non-claims and provenance."
+  }`;
+  const summaryCards = [
+    metricCard(
+      "Available",
+      formatDurationMs(result.communicationStats.totalCommunicatingMs),
+      "Total communicating time in the selected window."
+    ),
+    metricCard(
+      "Handovers",
+      result.communicationStats.handoverCount,
+      `${crossOrbitCount} cross-orbit migrations.`
+    ),
+    metricCard(
+      "Visibility windows",
+      result.visibilityWindows.length,
+      "Mutual station-to-satellite windows."
+    ),
+    metricCard(
+      "Source boundary",
+      pairSource.badgeLabel,
+      pairSource.evidenceKind.replace(/-/g, " ")
+    )
+  ].join("");
+  const projectionSetup = kvTable([
+    ["Station A", `${result.pair.stationA.name} (${result.pair.stationA.id})`],
+    ["Station B", `${result.pair.stationB.name} (${result.pair.stationB.id})`],
+    [
+      "Time window",
+      `${formatIsoShort(result.timeWindow.startUtc)} to ${formatIsoShort(
+        result.timeWindow.endUtc
+      )}`
+    ],
+    ["Window duration", formatDurationMs(windowMs)],
+    ["Shared supported orbits", result.sharedSupportedOrbits.join("/")],
+    ["Source tier", pairSource.sourceTier],
+    ["Evidence kind", pairSource.evidenceKind],
+    ["Precision label", result.truthBoundary.precisionLabel],
+    ["Route mode", result.dataCompleteness.routeMode],
+    ["Empty reason", result.dataCompleteness.emptyReasonCode ?? ""]
+  ]);
+  const requirementCards = [
+    evidenceCard(
+      "R1-F3 / R1-D3",
+      formatDurationMs(result.communicationStats.totalCommunicatingMs),
+      "Communication-time statistics are computed from visibility and serving-link rows.",
+      "ok"
+    ),
+    evidenceCard(
+      "R1-F4 / K-E4 / V-MO1",
+      handoverRequirementValue,
+      "Handover rows show the active serving-link sequence and cross-orbit migrations.",
+      crossOrbitCount > 0 ? "ok" : "info"
+    ),
+    evidenceCard(
+      "K-E6",
+      "Rain impact modeled",
+      "The rain control changes link-budget metrics; model assumptions are listed under Models.",
+      "info"
+    ),
+    evidenceCard(
+      "R1-F5",
+      "HTML + CSV",
+      "This readable report is the review surface; CSV export is the data artifact.",
+      "ok"
+    )
+  ].join("");
   return [
-    `<div class="metric-grid">
-      <div><span>Available</span><strong>${escapeHtml(formatDurationMs(result.communicationStats.totalCommunicatingMs))}</strong></div>
-      <div><span>Switches</span><strong>${escapeHtml(result.communicationStats.handoverCount)}</strong></div>
-      <div><span>Visibility windows</span><strong>${escapeHtml(result.visibilityWindows.length)}</strong></div>
-      <div><span>Link events</span><strong>${escapeHtml(result.handoverEvents.length)}</strong></div>
+    `<div class="summary-grid">${summaryCards}</div>`,
+    `<div class="report-section">
+      <h3>Projection setup</h3>
+      ${projectionSetup}
     </div>`,
-    kvTable([
-      ["Station A", `${result.pair.stationA.name} (${result.pair.stationA.id})`],
-      ["Station B", `${result.pair.stationB.name} (${result.pair.stationB.id})`],
-      ["Time window", `${formatIsoShort(result.timeWindow.startUtc)} to ${formatIsoShort(result.timeWindow.endUtc)}`],
-      ["Window duration", formatDurationMs(windowMs)],
-      ["Shared supported orbits", result.sharedSupportedOrbits.join("/")],
-      ["Source tier", pairSource.sourceTier],
-      ["Evidence kind", pairSource.evidenceKind],
-      ["Badge label", pairSource.badgeLabel],
-      ["Precision label", result.truthBoundary.precisionLabel],
-      ["Route mode", result.dataCompleteness.routeMode],
-      ["Empty reason", result.dataCompleteness.emptyReasonCode ?? ""]
-    ]),
-    `<h3>Communication by orbit</h3>`,
-    table(["Orbit", "Duration", "Duration ms"], orbitDurationRows(result))
+    `<div class="report-section">
+      <h3>Requirement coverage</h3>
+      <div class="evidence-grid">${requirementCards}</div>
+    </div>`,
+    `<div class="report-section">
+      <h3>Communication by orbit</h3>
+      ${table(["Orbit", "Duration", "Duration ms"], orbitDurationRows(result))}
+    </div>`,
+    callout(
+      "Source boundary",
+      sourceBoundarySummary,
+      pairSource.sourceTier === "geometric-derived" ? "warn" : "info"
+    )
   ].join("");
 }
 
@@ -312,7 +406,7 @@ function buildHandoverTab(result: RuntimeProjectionResult): string {
 function buildSourcesTab(result: RuntimeProjectionResult): string {
   const pairSource = result.dataCompleteness.pairSourceAttribution;
   return [
-    `<h3>Source confidence</h3>`,
+    `<h3>Source boundary</h3>`,
     kvTable([
       ["Source tier", pairSource.sourceTier],
       ["Evidence kind", pairSource.evidenceKind],
@@ -392,7 +486,7 @@ function buildModelsTab(result: RuntimeProjectionResult): string {
       ],
       modeledOutputRows(result)
     ),
-    `<h3>Policy thresholds</h3>`,
+    `<h3>Handover policy gates</h3>`,
     table(
       [
         "Policy",
@@ -465,18 +559,19 @@ export function buildRuntimeProjectionEvidenceReportHtml(
 ): string {
   const title = `Selected-pair evidence report - ${result.pair.stationA.name} to ${result.pair.stationB.name}`;
   const generatedAtUtc = new Date().toISOString();
+  const filename = buildRuntimeProjectionEvidenceReportFilename(result);
   const tabs = [
     ["summary", "Summary"],
     ["visibility", `Visibility (${result.visibilityWindows.length})`],
     ["handover", `Handover (${result.handoverEvents.length})`],
     ["sources", "Sources"],
-    ["models", "Assumptions & models"],
-    ["runtime", "Runtime data"]
+    ["models", "Models"],
+    ["runtime", "Raw data"]
   ] as const;
   const tabButtons = tabs
     .map(
       ([id, label], index) =>
-        `<button type="button" role="tab" data-tab-target="${id}" aria-selected="${index === 0 ? "true" : "false"}">${escapeHtml(label)}</button>`
+        `<button type="button" id="tab-${id}" role="tab" data-tab-target="${id}" aria-controls="${id}" aria-selected="${index === 0 ? "true" : "false"}" tabindex="${index === 0 ? "0" : "-1"}">${escapeHtml(label)}</button>`
     )
     .join("");
   const panels = [
@@ -495,47 +590,291 @@ export function buildRuntimeProjectionEvidenceReportHtml(
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>${escapeHtml(title)}</title>
   <style>
-    :root { color-scheme: dark; font-family: Inter, "IBM Plex Sans", system-ui, sans-serif; background: #07111c; color: #e7eef5; }
-    body { margin: 0; background: #07111c; color: #e7eef5; }
-    header { padding: 28px 32px 18px; border-bottom: 1px solid #243448; background: #0b1724; }
-    h1 { margin: 0 0 8px; font-size: 28px; line-height: 1.2; }
-    h2 { margin: 0 0 16px; font-size: 22px; }
-    h3 { margin: 24px 0 10px; font-size: 17px; color: #9bd8ff; }
+    :root {
+      color-scheme: light;
+      font-family: Inter, "IBM Plex Sans", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #f5f7fa;
+      color: #182230;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: #f5f7fa;
+      color: #182230;
+    }
+    header {
+      background: #ffffff;
+      border-bottom: 1px solid #d8dee8;
+    }
+    .report-header {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 28px 24px 20px;
+    }
+    .header-top {
+      display: flex;
+      gap: 18px;
+      align-items: flex-start;
+      justify-content: space-between;
+    }
+    h1 {
+      max-width: 820px;
+      margin: 0 0 10px;
+      font-size: clamp(24px, 4vw, 34px);
+      line-height: 1.16;
+      letter-spacing: 0;
+      color: #101828;
+    }
+    h2 {
+      margin: 0 0 18px;
+      font-size: 24px;
+      line-height: 1.2;
+      letter-spacing: 0;
+      color: #101828;
+    }
+    h3 {
+      margin: 24px 0 12px;
+      font-size: 17px;
+      line-height: 1.3;
+      letter-spacing: 0;
+      color: #145c52;
+    }
     p { line-height: 1.55; }
-    .meta { color: #a7b8ca; margin: 0; }
-    .toolbar { position: sticky; top: 0; z-index: 2; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; padding: 12px 32px; background: rgba(7, 17, 28, 0.96); border-bottom: 1px solid #243448; }
-    [role="tab"] { min-height: 38px; padding: 0 14px; border: 1px solid #31465e; border-radius: 6px; background: #111f2f; color: #dbe8f4; font: inherit; cursor: pointer; }
-    [role="tab"][aria-selected="true"] { border-color: #6ee7b7; background: #123526; color: #effff8; }
-    input[type="search"] { min-height: 38px; min-width: min(340px, 100%); margin-left: auto; padding: 0 12px; border-radius: 6px; border: 1px solid #31465e; background: #0b1724; color: #e7eef5; font: inherit; }
-    main { padding: 24px 32px 44px; }
-    .metric-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin-bottom: 18px; }
-    .metric-grid div { border: 1px solid #243448; border-radius: 8px; background: #0d1b2a; padding: 14px; }
-    .metric-grid span { display: block; color: #9fb3c8; font-size: 13px; text-transform: uppercase; letter-spacing: 0.06em; }
-    .metric-grid strong { display: block; margin-top: 6px; font-size: 22px; }
-    .table-wrap { width: 100%; overflow: auto; border: 1px solid #243448; border-radius: 8px; background: #081421; }
-    table { width: 100%; border-collapse: collapse; font-size: 14px; }
-    th, td { padding: 9px 10px; border-bottom: 1px solid #1d2b3d; text-align: left; vertical-align: top; }
-    th { position: sticky; top: 63px; background: #102033; color: #bfe6ff; z-index: 1; white-space: nowrap; }
-    td { color: #dbe8f4; }
+    .meta {
+      color: #526173;
+      margin: 0;
+    }
+    .report-actions {
+      display: flex;
+      flex: 0 0 auto;
+      gap: 8px;
+      align-items: center;
+    }
+    .report-button {
+      min-height: 38px;
+      padding: 0 14px;
+      border: 1px solid #0f766e;
+      border-radius: 6px;
+      background: #0f766e;
+      color: #ffffff;
+      font: inherit;
+      font-weight: 650;
+      letter-spacing: 0;
+      cursor: pointer;
+    }
+    .toolbar {
+      position: sticky;
+      top: 0;
+      z-index: 2;
+      background: rgba(245, 247, 250, 0.96);
+      border-bottom: 1px solid #d8dee8;
+      backdrop-filter: blur(8px);
+    }
+    .toolbar-inner {
+      max-width: 1180px;
+      margin: 0 auto;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+      padding: 12px 24px;
+    }
+    [role="tablist"] {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    [role="tab"] {
+      min-height: 36px;
+      padding: 0 12px;
+      border: 1px solid #c5ceda;
+      border-radius: 6px;
+      background: #ffffff;
+      color: #344054;
+      font: inherit;
+      cursor: pointer;
+      letter-spacing: 0;
+    }
+    [role="tab"][aria-selected="true"] {
+      border-color: #0f766e;
+      background: #e7f7f3;
+      color: #0b4f48;
+      font-weight: 650;
+    }
+    input[type="search"] {
+      min-height: 36px;
+      min-width: min(320px, 100%);
+      margin-left: auto;
+      padding: 0 12px;
+      border-radius: 6px;
+      border: 1px solid #c5ceda;
+      background: #ffffff;
+      color: #182230;
+      font: inherit;
+      letter-spacing: 0;
+    }
+    main {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 26px 24px 54px;
+    }
+    .summary-grid,
+    .evidence-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+    .metric-card,
+    .evidence-card,
+    .report-section,
+    .callout {
+      border: 1px solid #d8dee8;
+      border-radius: 8px;
+      background: #ffffff;
+      padding: 14px;
+    }
+    .metric-card span,
+    .evidence-card span {
+      display: block;
+      color: #667085;
+      font-size: 13px;
+      font-weight: 650;
+      letter-spacing: 0;
+    }
+    .metric-card strong,
+    .evidence-card strong {
+      display: block;
+      margin-top: 7px;
+      color: #101828;
+      font-size: 22px;
+      line-height: 1.18;
+      overflow-wrap: anywhere;
+    }
+    .metric-card p,
+    .evidence-card p,
+    .callout p {
+      margin: 8px 0 0;
+      color: #526173;
+      font-size: 14px;
+    }
+    .evidence-card[data-tone="ok"] {
+      border-left: 4px solid #0f766e;
+    }
+    .evidence-card[data-tone="warn"],
+    .callout[data-tone="warn"] {
+      border-left: 4px solid #b7791f;
+      background: #fff8eb;
+    }
+    .evidence-card[data-tone="info"],
+    .callout[data-tone="info"] {
+      border-left: 4px solid #2563eb;
+    }
+    .report-section,
+    .callout {
+      margin-top: 18px;
+    }
+    .report-section h3 {
+      margin-top: 0;
+    }
+    .table-wrap {
+      width: 100%;
+      overflow: auto;
+      border: 1px solid #d8dee8;
+      border-radius: 8px;
+      background: #ffffff;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+    th,
+    td {
+      padding: 10px 11px;
+      border-bottom: 1px solid #e5eaf1;
+      text-align: left;
+      vertical-align: top;
+    }
+    th {
+      position: sticky;
+      top: 61px;
+      background: #f0f4f8;
+      color: #344054;
+      z-index: 1;
+      white-space: nowrap;
+    }
+    td {
+      color: #27364a;
+      overflow-wrap: anywhere;
+    }
     tr[hidden] { display: none; }
-    ul { margin-top: 8px; line-height: 1.55; }
-    pre { white-space: pre-wrap; overflow-wrap: anywhere; border: 1px solid #243448; border-radius: 8px; padding: 14px; background: #06101b; color: #d8e8f5; font-size: 13px; line-height: 1.45; }
-    .empty { color: #9fb3c8; }
-    @media (max-width: 840px) {
-      header, .toolbar, main { padding-left: 18px; padding-right: 18px; }
-      .metric-grid { grid-template-columns: 1fr 1fr; }
-      input[type="search"] { margin-left: 0; flex: 1 1 100%; }
+    ul {
+      margin-top: 8px;
+      line-height: 1.55;
+      color: #27364a;
+    }
+    pre {
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+      border: 1px solid #d8dee8;
+      border-radius: 8px;
+      padding: 14px;
+      background: #101828;
+      color: #e7eef8;
+      font-size: 13px;
+      line-height: 1.45;
+    }
+    .empty { color: #667085; }
+    @media (max-width: 900px) {
+      .report-header,
+      .toolbar-inner,
+      main {
+        padding-left: 16px;
+        padding-right: 16px;
+      }
+      .header-top {
+        flex-direction: column;
+      }
+      .summary-grid,
+      .evidence-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+      input[type="search"] {
+        margin-left: 0;
+        flex: 1 1 100%;
+      }
+    }
+    @media (max-width: 560px) {
+      .summary-grid,
+      .evidence-grid {
+        grid-template-columns: 1fr;
+      }
+      [role="tab"] {
+        flex: 1 1 auto;
+      }
     }
   </style>
 </head>
-<body>
+<body data-report-filename="${escapeHtml(filename)}">
   <header>
-    <h1>${escapeHtml(title)}</h1>
-    <p class="meta">Generated ${escapeHtml(generatedAtUtc)} · ${escapeHtml(formatIsoShort(result.timeWindow.startUtc))} to ${escapeHtml(formatIsoShort(result.timeWindow.endUtc))}</p>
+    <div class="report-header">
+      <div class="header-top">
+        <div>
+          <h1>${escapeHtml(title)}</h1>
+          <p class="meta">Generated ${escapeHtml(generatedAtUtc)} · ${escapeHtml(formatIsoShort(result.timeWindow.startUtc))} to ${escapeHtml(formatIsoShort(result.timeWindow.endUtc))}</p>
+        </div>
+        <div class="report-actions">
+          <button type="button" class="report-button" data-download-html>Download HTML</button>
+        </div>
+      </div>
+    </div>
   </header>
   <div class="toolbar">
-    <div role="tablist" aria-label="Evidence report sections">${tabButtons}</div>
-    <input type="search" data-report-filter aria-label="Filter active section" placeholder="Filter active section">
+    <div class="toolbar-inner">
+      <div role="tablist" aria-label="Evidence report sections">${tabButtons}</div>
+      <input type="search" data-report-filter aria-label="Filter active section" placeholder="Filter active section">
+    </div>
   </div>
   <main>${panels}</main>
   <script>
@@ -544,7 +883,11 @@ export function buildRuntimeProjectionEvidenceReportHtml(
       const panels = Array.from(document.querySelectorAll("[data-tab-panel]"));
       const filter = document.querySelector("[data-report-filter]");
       const activate = (id) => {
-        for (const tab of tabs) tab.setAttribute("aria-selected", String(tab.dataset.tabTarget === id));
+        for (const tab of tabs) {
+          const active = tab.dataset.tabTarget === id;
+          tab.setAttribute("aria-selected", String(active));
+          tab.setAttribute("tabindex", active ? "0" : "-1");
+        }
         for (const panel of panels) panel.hidden = panel.dataset.tabPanel !== id;
         if (filter) filter.value = "";
         applyFilter("");
@@ -557,7 +900,45 @@ export function buildRuntimeProjectionEvidenceReportHtml(
           row.hidden = query.length > 0 && !row.textContent.toLowerCase().includes(query);
         }
       };
-      for (const tab of tabs) tab.addEventListener("click", () => activate(tab.dataset.tabTarget));
+      const downloadHtml = () => {
+        const filename = document.body.dataset.reportFilename || "selected-pair-evidence-report.html";
+        const blob = new Blob(["<!doctype html>\\n" + document.documentElement.outerHTML], { type: "text/html;charset=utf-8" });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = filename;
+        link.style.display = "none";
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        URL.revokeObjectURL(url);
+      };
+      for (const tab of tabs) {
+        tab.addEventListener("click", () => activate(tab.dataset.tabTarget));
+        tab.addEventListener("keydown", (event) => {
+          const current = tabs.indexOf(tab);
+          const previous = (current - 1 + tabs.length) % tabs.length;
+          const next = (current + 1) % tabs.length;
+          if (event.key === "ArrowLeft") {
+            event.preventDefault();
+            activate(tabs[previous].dataset.tabTarget);
+            tabs[previous].focus();
+          } else if (event.key === "ArrowRight") {
+            event.preventDefault();
+            activate(tabs[next].dataset.tabTarget);
+            tabs[next].focus();
+          } else if (event.key === "Home") {
+            event.preventDefault();
+            activate(tabs[0].dataset.tabTarget);
+            tabs[0].focus();
+          } else if (event.key === "End") {
+            event.preventDefault();
+            activate(tabs[tabs.length - 1].dataset.tabTarget);
+            tabs[tabs.length - 1].focus();
+          }
+        });
+      }
+      document.querySelector("[data-download-html]")?.addEventListener("click", downloadHtml);
       filter?.addEventListener("input", () => applyFilter(filter.value));
     })();
   </script>

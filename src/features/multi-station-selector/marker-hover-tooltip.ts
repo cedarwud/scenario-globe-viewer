@@ -5,8 +5,12 @@ import {
   type Viewer
 } from "cesium";
 
-import registry from "../../../public/fixtures/ground-stations/multi-orbit-public-registry.json";
+import registry from "../../fixtures/ground-stations/multi-orbit-public-registry.json";
 
+import {
+  isSelectedPairBlockingOverlayOpen,
+  SELECTED_PAIR_OVERLAY_CHANGE_EVENT
+} from "./selected-pair-overlay-state";
 import type { GroundStationMarkersHandle } from "./station-markers";
 
 const MARKER_PICK_ID_PREFIX = "ground-station-marker:";
@@ -189,7 +193,7 @@ export function mountMarkerHoverTooltip(
 
   const eventHandler = new ScreenSpaceEventHandler(viewer.scene.canvas);
   eventHandler.setInputAction((movement: { endPosition: Cartesian2 }) => {
-    if (!markers.isVisible()) {
+    if (!markers.isVisible() || isSelectedPairBlockingOverlayOpen(document)) {
       hide();
       return;
     }
@@ -218,6 +222,17 @@ export function mountMarkerHoverTooltip(
     show(station, endPosition.x + offsetX, endPosition.y + offsetY);
   }, ScreenSpaceEventType.MOUSE_MOVE);
 
+  function handleOverlayChange(): void {
+    if (isSelectedPairBlockingOverlayOpen(document)) {
+      hide();
+    }
+  }
+
+  document.addEventListener(
+    SELECTED_PAIR_OVERLAY_CHANGE_EVENT,
+    handleOverlayChange
+  );
+
   return {
     dispose(): void {
       if (disposed) {
@@ -225,6 +240,10 @@ export function mountMarkerHoverTooltip(
       }
       disposed = true;
       eventHandler.destroy();
+      document.removeEventListener(
+        SELECTED_PAIR_OVERLAY_CHANGE_EVENT,
+        handleOverlayChange
+      );
       if (root.parentElement) {
         root.parentElement.removeChild(root);
       }

@@ -1,7 +1,7 @@
 import { createRuntimeSatrec } from "./orbit-propagation";
-import networkTleManifest from "../../../public/fixtures/satellites-network/manifest.json";
-import stationCoordinateAuthorityFixture from "../../../public/fixtures/ground-stations/multi-orbit-public-registry-coordinate-authority.json";
-import stationElevationCacheFixture from "../../../public/fixtures/ground-stations/station-elevations-cache.json";
+import networkTleManifest from "../../fixtures/satellites-network/manifest.json";
+import stationCoordinateAuthorityFixture from "../../fixtures/ground-stations/multi-orbit-public-registry-coordinate-authority.json";
+import stationElevationCacheFixture from "../../fixtures/ground-stations/station-elevations-cache.json";
 import type { HandoverPolicyConfig } from "../../runtime/link-budget/handover-policy";
 import type {
   SceneCameraHint,

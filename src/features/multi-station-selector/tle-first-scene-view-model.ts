@@ -119,6 +119,16 @@ export interface SceneDisplayPolicy {
   readonly maxVisibleActorLabels: number;
   readonly altitudeCompressionEnabled: boolean;
   readonly altitudeCompressionFactor: number;
+  /**
+   * Logarithmic display-altitude curve `displayAlt = altitudeLogScaleKm *
+   * ln(1 + realAltKm / altitudeLogShapeKm)`. When `altitudeLogScaleKm > 0`
+   * the selected-pair layer uses this curve instead of the linear
+   * `altitudeCompressionFactor`, so LEO is lifted off the surface while GEO
+   * is compressed into a readable scale. The linear factor is retained
+   * as the fallback and as evidence metadata.
+   */
+  readonly altitudeLogScaleKm?: number;
+  readonly altitudeLogShapeKm?: number;
   readonly suppressNonActiveTrails: boolean;
 }
 
@@ -492,6 +502,12 @@ export function buildSceneDisplayPolicy(
     ),
     altitudeCompressionEnabled: true,
     altitudeCompressionFactor: 0.22,
+    // Log curve (active): LEO 550km -> ~1.13 Re (lifted off surface),
+    // GEO 35786km -> ~2.13 Re (clears top edge), MEO well-spread
+    // in-between. See SceneDisplayPolicy doc + the selected-pair
+    // layer's sceneSampleToCartesian.
+    altitudeLogScaleKm: 1600,
+    altitudeLogShapeKm: 800,
     suppressNonActiveTrails: true
   };
 }

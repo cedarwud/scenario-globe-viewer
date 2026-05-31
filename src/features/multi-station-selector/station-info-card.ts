@@ -5,7 +5,7 @@ import {
   type Viewer
 } from "cesium";
 
-import registry from "../../../public/fixtures/ground-stations/multi-orbit-public-registry.json";
+import registry from "../../fixtures/ground-stations/multi-orbit-public-registry.json";
 
 import type { GroundStationMarkersHandle } from "./station-markers";
 import { areStationsCompatible } from "./station-compatibility";
@@ -18,6 +18,7 @@ import {
   inferPairSourceTierById,
   type PairSourceTierAttribution
 } from "./tier-inference";
+import { dispatchSelectedPairOverlayChange } from "./selected-pair-overlay-state";
 
 const MARKER_PICK_ID_PREFIX = "ground-station-marker:";
 const FOCUSABLE_SELECTOR = [
@@ -379,6 +380,7 @@ export function mountGroundStationInfoCard(
     for (const listener of openListeners) {
       listener(open);
     }
+    dispatchSelectedPairOverlayChange(root.ownerDocument);
   }
   const openSignal: GroundStationInfoCardOpenSignal = {
     subscribe(listener: (open: boolean) => void): () => void {

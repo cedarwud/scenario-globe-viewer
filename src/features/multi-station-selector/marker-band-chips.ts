@@ -1,4 +1,4 @@
-import registry from "../../../public/fixtures/ground-stations/multi-orbit-public-registry.json";
+import registry from "../../fixtures/ground-stations/multi-orbit-public-registry.json";
 import type { GroundStationMarkersHandle } from "./station-markers";
 
 interface RegistryStationLite {
