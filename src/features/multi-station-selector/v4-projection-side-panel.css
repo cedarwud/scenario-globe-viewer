@@ -874,14 +874,15 @@ body:has([data-v4-projection-side-panel="true"])
   gap: 0.28rem;
 }
 .v4-projection-side-panel__rain-impact .v4-projection-side-panel__list {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  display: flex;
+  flex-direction: row;
   gap: 0.28rem;
   margin: 0;
   padding: 0;
   list-style: none;
 }
 .v4-projection-side-panel__rain-impact .v4-projection-side-panel__list-item {
+  flex: 1 1 0px;
   min-width: 0;
   padding: 0.3rem 0.38rem;
   border-radius: 0.36rem;
