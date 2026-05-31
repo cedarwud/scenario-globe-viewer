@@ -81,15 +81,15 @@ The selector produces this value on Apply. The route translates it into URL sear
 ### URL contract
 
 ```
-/?scenePreset=regional&m8aV4GroundStationScene=1&stationA=<stationId>&stationB=<stationId>
+/?stationA=<stationId>&stationB=<stationId>
 ```
 
 `stationA` and `stationB` resolve to entries in the public registry. The route does not accept lat/lon directly in the URL; only registry-id references, so the registry is the single source for coordinates.
 
-The short form is also valid:
+The canonical Taiwan selected-pair demo route is:
 
 ```
-/?stationA=<stationId>&stationB=<stationId>
+/?stationA=cht-yangmingshan&stationB=sansa-hartebeesthoek&startUtc=2026-05-17T00%3A00%3A00.000Z&durationMinutes=360
 ```
 
 When both station ids are present, bootstrap treats the route as a V4 ground-station runtime entry and auto-applies the regional scene preset. The side panel also accepts `startUtc=<ISO timestamp>` and `durationMinutes=<20..480>` to pin a reproducible projection window. `siteA`, `siteB`, and `groundStationSceneActive` were early draft names; they are not the current runtime URL contract.
@@ -261,11 +261,9 @@ contract implications.
   pair. Their dispose is symmetric: when the pair is cleared (either slot
   becomes empty), the V4 panel and the V4 controller endpoint surfaces
   dispose; the marker layer + selection chips + filter panel remain mounted.
-- The route URL no longer differentiates between "demo" and "selected-pair"
-  modes. The same `/` lifecycle covers both. The long-form URL
-  (`m8aV4GroundStationScene=1`) is treated identically to the short form by
-  the bootstrap; it remains accepted only for back-compat with existing
-  links.
+- The selected-pair route is the product/demo entry. The long-form fixture URL
+  (`m8aV4GroundStationScene=1`) remains accepted only for historical
+  compatibility with retained links and fixture-specific regression tests.
 
 ### A.2 Selection store as the single state authority
 

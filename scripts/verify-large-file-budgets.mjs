@@ -38,13 +38,7 @@ const COMMON_RUNTIME_HELPERS = [
 const COMMON_SMOKE_HELPERS = [
   "tests/smoke/helpers/bootstrap-smoke-common.mjs",
   "tests/smoke/helpers/bootstrap-satellite-overlay-checks.mjs",
-  "tests/smoke/helpers/m8a-v4-browser-capture-harness.mjs",
-  "tests/smoke/helpers/m8a-v4-product-comprehension-data.mjs",
-  "tests/smoke/helpers/m8a-v4-product-comprehension-inspector-checks.mjs",
-  "tests/smoke/helpers/m8a-v4-product-comprehension-interaction-checks.mjs",
-  "tests/smoke/helpers/m8a-v4-product-comprehension-navigation.mjs",
-  "tests/smoke/helpers/m8a-v4-product-comprehension-persistent-checks.mjs",
-  "tests/smoke/helpers/m8a-v4-product-comprehension-transition-checks.mjs"
+  "tests/smoke/helpers/m8a-v4-browser-capture-harness.mjs"
 ];
 const COMMON_FEATURE_SURFACES = [
   "src/features/multi-station-selector/v4-projection-side-panel.ts",
@@ -123,11 +117,6 @@ const budgets = profile === "final"
         path: COMMON_SCRIPT_SURFACES[3],
         maxLines: 2000
       },
-      {
-        id: "product-comprehension-smoke",
-        path: "tests/smoke/verify-m8a-v4.9-product-comprehension-runtime.mjs",
-        maxLines: 1200
-      },
       ...COMMON_SMOKE_HELPERS.map((path) => ({
         id: "smoke-helper",
         path,
@@ -205,12 +194,6 @@ const budgets = profile === "final"
         id: "bootstrap-smoke",
         path: COMMON_SCRIPT_SURFACES[3],
         maxLines: 2000,
-        targetLines: 1200
-      },
-      {
-        id: "product-comprehension-smoke",
-        path: "tests/smoke/verify-m8a-v4.9-product-comprehension-runtime.mjs",
-        maxLines: 3000,
         targetLines: 1200
       },
       ...COMMON_SMOKE_HELPERS.map((path) => ({

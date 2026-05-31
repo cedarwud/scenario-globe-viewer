@@ -926,6 +926,10 @@ remain offline-deterministic by reading `public/fixtures/satellites/` (in-bundle
 or a frozen `public/fixtures/satellites-network/` artefact, never live network.
 CI must execute `scripts/refresh-tle.mjs` as an opt-in step (e.g., manual
 trigger or scheduled job), not on every test run.
+The repository command `npm run refresh:tle` is the default maintenance entry:
+it refreshes only when the existing manifest is older than 7 days and refuses
+same-window repeats inside 2 hours. Browser/runtime startup and `npm run build`
+must continue to read bundled snapshots only.
 
 Risk highlights: G3 60× replay continuity must not regress when
 `sourceMode = network-snapshot` flips to `fallback-local-snapshot` mid-session

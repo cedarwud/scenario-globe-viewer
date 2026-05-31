@@ -1,6 +1,6 @@
 # Multi-Station Selector - TH5 Orbit Source Policy Gate
 
-Status: gate recorded, docs-only.
+Status: gate recorded; refresh guardrail follow-up implemented 2026-05-27.
 Decision date: 2026-05-21.
 
 ## Decision
@@ -15,6 +15,10 @@ or any live browser/runtime fetch. The current CelesTrak refreshed artifact
 remains the default for repo-bundled and demo use. Future work may prefer
 OMM-capable formats, but only after runtime smoke, CSV, D6, and Row 5/6
 disclosures are deliberately updated in the same implementation slice.
+
+The 2026-05-27 follow-up adds an opt-in refresh command only. It preserves the
+repo-bundled artifact model and adds local age checks so routine development
+does not repeatedly call upstream GP endpoints.
 
 ## Official Source Facts
 
@@ -57,6 +61,12 @@ Verified on 2026-05-21 from current official pages:
   updated together.
 - Keep CelesTrak and Space-Track network access out of the browser/runtime
   path unless a later implementation slice explicitly authorizes it.
+- Run TLE refresh as an explicit artifact-maintenance action. The repository
+  command is `npm run refresh:tle`, which wraps `scripts/refresh-tle.mjs` with
+  `--if-older-than-days 7 --min-refresh-interval-hours 2`.
+- Do not call the refresh command from browser/runtime code, `npm run build`,
+  smoke tests, or every local app start. Those paths must keep reading bundled
+  snapshots and manifest health only.
 - Treat any Space-Track direct GP/OMM ingestion as gated by account review,
   user-agreement review, throttle compliance, redistribution/storage policy,
   and an acquisition flow that keeps private credentials outside git and
@@ -93,12 +103,13 @@ Before any future default-source or official-source migration, record:
 
 ## Future Implementation Tests
 
-Do not add tests in this docs-only slice. A later implementation slice that
-changes source behavior must run at least:
+For refresh-command guardrail changes or any later implementation slice that
+changes source behavior, run at least:
 
 ```bash
 npm run build
-node --test tests/unit/orbit-source-parser.test.mjs tests/unit/runtime-tle-manifest-compat.test.mjs
+npm run refresh:tle -- --reference-utc=<recent-utc> --dry-run
+npx tsx --test tests/unit/orbit-source-parser.test.mjs tests/unit/runtime-tle-manifest-compat.test.mjs
 node scripts/verify-tle-first-data-completeness.mjs --port=<port>
 ```
 
@@ -126,4 +137,5 @@ Stop any future source migration if any condition is true:
 - Local fallback no longer remains deterministic.
 
 This document records the TH5 residual source-policy gate. It does not
-authorize fixture, script, parser, runtime, test, or default-source changes.
+authorize fixture data, parser, runtime, test, or default-source changes beyond
+the 2026-05-27 opt-in refresh-command guardrails.

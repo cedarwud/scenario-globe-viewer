@@ -56,15 +56,34 @@ function parseArgs(argv) {
   return args;
 }
 
-function parsePositiveInteger(value, fallback, label) {
+function parsePositiveNumber(value, fallback, label) {
   if (value === undefined) {
     return fallback;
   }
-  const parsed = Number.parseInt(value, 10);
-  if (!Number.isInteger(parsed) || parsed <= 0) {
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed) || parsed <= 0) {
     throw new Error(`Invalid ${label}: ${value}`);
   }
   return parsed;
+}
+
+function parsePositiveInteger(value, fallback, label) {
+  const parsed = parsePositiveNumber(value, fallback, label);
+  if (parsed === null) {
+    return parsed;
+  }
+  if (!Number.isInteger(parsed)) {
+    throw new Error(`Invalid ${label}: ${value}`);
+  }
+  return parsed;
+}
+
+function parseReferenceUtc(value) {
+  const referenceUtc = value ?? new Date().toISOString();
+  if (!Number.isFinite(Date.parse(referenceUtc))) {
+    throw new Error(`Invalid --reference-utc: ${value}`);
+  }
+  return referenceUtc;
 }
 
 function parseGroups(value) {
@@ -206,6 +225,80 @@ async function readExistingManifest(outputDir) {
   }
 }
 
+function manifestGeneratedAtUtc(manifest) {
+  if (!manifest || typeof manifest !== "object") {
+    return null;
+  }
+  const generatedAtUtc = manifest.generatedAtUtc;
+  if (typeof generatedAtUtc !== "string") {
+    return null;
+  }
+  return Number.isFinite(Date.parse(generatedAtUtc)) ? generatedAtUtc : null;
+}
+
+function ageHoursSince(generatedAtUtc, referenceUtc) {
+  const generatedMs = Date.parse(generatedAtUtc);
+  const referenceMs = Date.parse(referenceUtc);
+  if (!Number.isFinite(generatedMs) || !Number.isFinite(referenceMs)) {
+    return null;
+  }
+  return Math.max(0, (referenceMs - generatedMs) / 3_600_000);
+}
+
+function refreshSkipReason(manifest, options) {
+  const generatedAtUtc = manifestGeneratedAtUtc(manifest);
+  if (!generatedAtUtc) {
+    return null;
+  }
+  const ageHours = ageHoursSince(generatedAtUtc, options.referenceUtc);
+  if (ageHours === null) {
+    return null;
+  }
+  if (
+    options.minRefreshIntervalHours !== null &&
+    ageHours < options.minRefreshIntervalHours
+  ) {
+    return {
+      reason: "min-refresh-interval",
+      generatedAtUtc,
+      ageHours,
+      thresholdHours: options.minRefreshIntervalHours
+    };
+  }
+  if (
+    options.ifOlderThanDays !== null &&
+    ageHours / 24 < options.ifOlderThanDays
+  ) {
+    return {
+      reason: "snapshot-fresh",
+      generatedAtUtc,
+      ageHours,
+      thresholdDays: options.ifOlderThanDays
+    };
+  }
+  return null;
+}
+
+function printNoop(skip, outputDir, groups, referenceUtc) {
+  console.log(
+    JSON.stringify(
+      {
+        status: "noop",
+        reason: skip.reason,
+        outputDir,
+        groups,
+        referenceUtc,
+        generatedAtUtc: skip.generatedAtUtc,
+        ageHours: Number(skip.ageHours.toFixed(3)),
+        thresholdHours: skip.thresholdHours,
+        thresholdDays: skip.thresholdDays
+      },
+      null,
+      2
+    )
+  );
+}
+
 async function main() {
   const args = parseArgs(process.argv.slice(2));
   if (args["no-network"] && !args["offline-cached"]) {
@@ -221,6 +314,17 @@ async function main() {
     "--retain"
   );
   const sampleLimit = parsePositiveInteger(args["sample-limit"], null, "--sample-limit");
+  const ifOlderThanDays = parsePositiveNumber(
+    args["if-older-than-days"],
+    null,
+    "--if-older-than-days"
+  );
+  const minRefreshIntervalHours = parsePositiveNumber(
+    args["min-refresh-interval-hours"],
+    null,
+    "--min-refresh-interval-hours"
+  );
+  const referenceUtc = parseReferenceUtc(args["reference-utc"]);
 
   if (args["no-network"]) {
     const manifestPath = join(outputDir, "manifest.json");
@@ -229,10 +333,21 @@ async function main() {
     return;
   }
 
+  const existingManifest = await readExistingManifest(outputDir);
+  const skip = refreshSkipReason(existingManifest, {
+    ifOlderThanDays,
+    minRefreshIntervalHours,
+    referenceUtc
+  });
+  if (skip) {
+    printNoop(skip, outputDir, groups, referenceUtc);
+    return;
+  }
+
   const generatedAtUtc = new Date().toISOString();
   const snapshots = new Map();
   const priorManifest = groups.length < Object.keys(GROUPS).length
-    ? await readExistingManifest(outputDir)
+    ? existingManifest
     : null;
   const manifest = {
     ...(priorManifest ?? {}),

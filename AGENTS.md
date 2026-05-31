@@ -68,6 +68,10 @@ Read order for new work, beyond the bridge above:
 1. `.agent-memory/MEMORY.md` — live project state and scope rules.
 2. `README.md` — repo entry point.
 3. `docs/` — technical documentation.
+   - For selected-pair UI, evidence drawers, hover/popover layers, or overlay
+     state cleanup, read
+     `docs/sdd/multi-station-selector/selected-pair-overlay-governance.md`
+     before editing.
 4. `INDEPENDENT-AUDIT-final-report.md` + `INDEPENDENT-AUDIT-results.md` +
    `INDEPENDENT-AUDIT-requirements.md` — audit history, treat as forensics.
 5. `src/` + `tests/` for implementation context.

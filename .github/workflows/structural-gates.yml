@@ -32,6 +32,9 @@ jobs:
       - name: Check browser availability
         run: google-chrome --version || chromium --version || chromium-browser --version
 
+      - name: Enforce selected-pair route governance
+        run: npm run verify:selected-pair-route-governance
+
       - name: Build
         run: npm run build
 

@@ -12,8 +12,9 @@ import { existsSync, readFileSync, rmSync, statSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { isAbsolute, join, resolve } from "node:path";
 
-const DEFAULT_URL =
-  "http://127.0.0.1:5173/?stationA=ksat-svalsat-svalbard&stationB=ksat-tromso&startUtc=2026-05-17T00%3A00%3A00.000Z&durationMinutes=360";
+import { SELECTED_PAIR_DEMO_BASE_URL } from "./helpers/demo-routes.mjs";
+
+const DEFAULT_URL = SELECTED_PAIR_DEMO_BASE_URL;
 const CHROMIUM_PATH =
   "/home/u24/.cache/ms-playwright/chromium-1217/chrome-linux64/chrome";
 const REGISTRY_PATH =
@@ -314,63 +315,69 @@ const G1_ROWS = [
   },
   {
     id: "R1-F5 / K-E5",
-    description: "Evidence report download creates one categorized HTML artifact.",
+    description: "Evidence report opens one categorized HTML artifact.",
     evaluator: String.raw`
       (async () => {
         const button = document.querySelector(".v4-projection-side-panel__download-report");
         if (!button) {
           return { passed: false, evidence: { buttonExists: false } };
         }
-        const originalCreateObjectUrl = URL.createObjectURL.bind(URL);
-        const originalRevokeObjectUrl = URL.revokeObjectURL.bind(URL);
-        const originalAnchorClick = HTMLAnchorElement.prototype.click;
-        let capturedBlob = null;
-        let capturedDownload = null;
-        let capturedHref = null;
+        const originalOpen = window.open;
+        let openArgs = null;
+        let writtenHtml = "";
+        let focused = false;
+        let openerValue = "unchanged";
+        const fakeWindow = {
+          document: {
+            open() {
+              writtenHtml = "";
+            },
+            write(value) {
+              writtenHtml += String(value);
+            },
+            close() {}
+          },
+          focus() {
+            focused = true;
+          },
+          set opener(value) {
+            openerValue = value;
+          },
+          get opener() {
+            return openerValue;
+          }
+        };
         try {
-          URL.createObjectURL = (value) => {
-            capturedBlob = value;
-            return "blob:sgv-g1-report";
-          };
-          URL.revokeObjectURL = () => {};
-          HTMLAnchorElement.prototype.click = function patchedClick() {
-            if (this.download) {
-              capturedDownload = this.download;
-              capturedHref = this.href;
-              return undefined;
-            }
-            return originalAnchorClick.call(this);
+          window.open = (url, target, features) => {
+            openArgs = { url, target, features };
+            return fakeWindow;
           };
           button.click();
           await new Promise((resolve) => setTimeout(resolve, 0));
         } finally {
-          URL.createObjectURL = originalCreateObjectUrl;
-          URL.revokeObjectURL = originalRevokeObjectUrl;
-          HTMLAnchorElement.prototype.click = originalAnchorClick;
+          window.open = originalOpen;
         }
-        const text = capturedBlob && typeof capturedBlob.text === "function"
-          ? await capturedBlob.text()
-          : "";
+        const text = writtenHtml;
         const requiredSections = [
           "Selected-pair evidence report",
           "Visibility windows",
           "Handover events",
-          "Source confidence",
-          "Raw JSON payload"
+          "Source boundary",
+          "Raw JSON payload",
+          "Download HTML"
         ];
-        const mimeType = capturedBlob?.type ?? null;
         return {
           passed:
-            capturedDownload?.startsWith("runtime-projection-evidence") === true &&
-            capturedDownload?.endsWith(".html") === true &&
-            mimeType?.startsWith("text/html") === true &&
+            openArgs?.target === "_blank" &&
+            openerValue === null &&
             text.trimStart().startsWith("<!doctype html>") &&
+            text.includes("data-report-filename=\"runtime-projection-evidence") &&
             requiredSections.every((section) => text.includes(section)),
           evidence: {
             buttonExists: true,
-            download: capturedDownload,
-            href: capturedHref,
-            mimeType,
+            openArgs,
+            focused,
+            openerValue,
             prefix: text.slice(0, 80),
             requiredSectionsPresent: requiredSections.every((section) =>
               text.includes(section)

@@ -12,8 +12,9 @@ import { existsSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
-const DEFAULT_URL =
-  "http://127.0.0.1:5173/?stationA=ksat-svalsat-svalbard&stationB=ksat-tromso&startUtc=2026-05-17T00%3A00%3A00.000Z&durationMinutes=360";
+import { SELECTED_PAIR_DEMO_BASE_URL } from "./helpers/demo-routes.mjs";
+
+const DEFAULT_URL = SELECTED_PAIR_DEMO_BASE_URL;
 const CHROMIUM_PATH =
   "/home/u24/.cache/ms-playwright/chromium-1217/chrome-linux64/chrome";
 const VIEWPORTS = [
@@ -314,6 +315,8 @@ async function collectEvidenceScrollSnapshot() {
           return { ok: false, reason: "missing panel, evidence button, or drawer" };
         }
         const defaultHidden = drawer.hidden === true;
+        const triggerExpandedBefore = button.getAttribute("aria-expanded");
+        const triggerTextBefore = button.textContent?.trim() ?? "";
         if (drawer.hidden) {
           button.click();
         }
@@ -325,6 +328,14 @@ async function collectEvidenceScrollSnapshot() {
         return {
           ok: true,
           defaultHidden,
+          triggerExpandedBefore,
+          triggerTextBefore,
+          triggerExpandedAfterOpen: button.getAttribute("aria-expanded"),
+          triggerTextAfterOpen: button.textContent?.trim() ?? "",
+          drawerOpenDatasetAfterOpen: drawer.dataset.open ?? null,
+          closeButtonFocusedAfterOpen:
+            document.activeElement ===
+            drawer.querySelector(".v4-projection-side-panel__evidence-close"),
           beforeScrollTop: drawer.scrollTop,
           drawerClientHeight: drawer.clientHeight,
           drawerScrollHeight: drawer.scrollHeight,
@@ -365,7 +376,12 @@ async function collectEvidenceScrollSnapshot() {
         }
         return {
           afterScrollTop,
-          drawerHiddenAfterClose: drawer ? drawer.hidden === true : null
+          drawerHiddenAfterClose: drawer ? drawer.hidden === true : null,
+          drawerOpenDatasetAfterClose: drawer ? drawer.dataset.open ?? null : null,
+          triggerExpandedAfterClose: button
+            ? button.getAttribute("aria-expanded")
+            : null,
+          triggerTextAfterClose: button ? button.textContent?.trim() ?? "" : null
         };
       })();
     `,
@@ -375,7 +391,12 @@ async function collectEvidenceScrollSnapshot() {
   return {
     ...before,
     afterScrollTop: afterResult.value?.afterScrollTop ?? null,
-    drawerHiddenAfterClose: afterResult.value?.drawerHiddenAfterClose ?? null
+    drawerHiddenAfterClose: afterResult.value?.drawerHiddenAfterClose ?? null,
+    drawerOpenDatasetAfterClose:
+      afterResult.value?.drawerOpenDatasetAfterClose ?? null,
+    triggerExpandedAfterClose:
+      afterResult.value?.triggerExpandedAfterClose ?? null,
+    triggerTextAfterClose: afterResult.value?.triggerTextAfterClose ?? null
   };
 }
 
@@ -468,6 +489,114 @@ async function collectReplayDockInteractionSnapshot() {
   };
 }
 
+async function collectNativePlaybackPreservesManualStateSnapshot() {
+  const { result: beforeResult } = await send("Runtime.evaluate", {
+    expression: `
+      (() => {
+        const capture = window.__SCENARIO_GLOBE_VIEWER_CAPTURE__;
+        const viewer = capture?.viewer;
+        const replayClock = capture?.replayClock;
+        if (!viewer || !replayClock) {
+          return {
+            ok: false,
+            reason: "missing capture viewer or replayClock",
+            captureExists: Boolean(capture)
+          };
+        }
+        const toMs = (value) => Date.parse(String(value));
+        const replayState = replayClock.getState();
+        const startMs = toMs(replayState.startTime);
+        const stopMs = toMs(replayState.stopTime);
+        if (!Number.isFinite(startMs) || !Number.isFinite(stopMs) || stopMs <= startMs) {
+          return {
+            ok: false,
+            reason: "invalid replay range",
+            replayState
+          };
+        }
+        const targetMs = startMs + Math.round((stopMs - startMs) * 0.42);
+        const targetIso = new Date(targetMs).toISOString();
+        replayClock.pause();
+        replayClock.seek(targetIso);
+        viewer.camera.moveRight(75000);
+        viewer.camera.moveUp(25000);
+        viewer.scene.requestRender();
+        const camera = viewer.camera;
+        const beforeCamera = {
+          x: camera.positionWC.x,
+          y: camera.positionWC.y,
+          z: camera.positionWC.z
+        };
+        viewer.clock.shouldAnimate = true;
+        viewer.scene.requestRender();
+        return {
+          ok: true,
+          startMs,
+          stopMs,
+          targetMs,
+          targetIso,
+          beforeTimeMs: toMs(replayClock.getState().currentTime),
+          beforeCamera
+        };
+      })();
+    `,
+    returnByValue: true
+  });
+  const before = beforeResult.value;
+  if (!before?.ok) {
+    return before;
+  }
+
+  await delay(700);
+
+  const { result: afterResult } = await send("Runtime.evaluate", {
+    expression: `
+      (() => {
+        const capture = window.__SCENARIO_GLOBE_VIEWER_CAPTURE__;
+        const viewer = capture?.viewer;
+        const replayClock = capture?.replayClock;
+        if (!viewer || !replayClock) {
+          return { ok: false, reason: "missing capture after native play" };
+        }
+        replayClock.pause();
+        const toMs = (value) => Date.parse(String(value));
+        const replayState = replayClock.getState();
+        const camera = viewer.camera;
+        const afterCamera = {
+          x: camera.positionWC.x,
+          y: camera.positionWC.y,
+          z: camera.positionWC.z
+        };
+        return {
+          ok: true,
+          afterTimeMs: toMs(replayState.currentTime),
+          afterIsPlaying: replayState.isPlaying,
+          displayState: document.body.getAttribute("data-display-state"),
+          afterCamera
+        };
+      })();
+    `,
+    returnByValue: true
+  });
+  const after = afterResult.value;
+  if (!after?.ok) {
+    return after;
+  }
+
+  const dx = after.afterCamera.x - before.beforeCamera.x;
+  const dy = after.afterCamera.y - before.beforeCamera.y;
+  const dz = after.afterCamera.z - before.beforeCamera.z;
+  const cameraDeltaMeters = Math.sqrt(dx * dx + dy * dy + dz * dz);
+  return {
+    ok: true,
+    ...before,
+    ...after,
+    elapsedFromManualTimeMs: after.afterTimeMs - before.targetMs,
+    resetDistanceFromStartMs: after.afterTimeMs - before.startMs,
+    cameraDeltaMeters
+  };
+}
+
 function isVisibleRect(rect) {
   return Boolean(rect && rect.exists && rect.visible);
 }
@@ -496,7 +625,8 @@ function buildViewportResult(
   readyInfo,
   layout,
   evidenceScroll,
-  replayDockInteraction
+  replayDockInteraction,
+  nativePlayback
 ) {
   const closed = layout.closed;
 
@@ -605,23 +735,47 @@ function buildViewportResult(
       }
     ),
     assertion(
-      "evidence-drawer-closed-default-and-scrolls",
+      "evidence-drawer-closed-default-and-bounded",
       evidenceScroll?.ok &&
         evidenceScroll.defaultHidden === true &&
+        evidenceScroll.triggerExpandedBefore === "false" &&
+        evidenceScroll.triggerTextBefore === "Details & sources" &&
         evidenceScroll.drawerHiddenAfterOpen === false &&
-        evidenceScroll.drawerScrollHeight > evidenceScroll.drawerClientHeight &&
-        evidenceScroll.afterScrollTop > evidenceScroll.beforeScrollTop &&
-        evidenceScroll.drawerHiddenAfterClose === true,
+        evidenceScroll.drawerOpenDatasetAfterOpen === "true" &&
+        evidenceScroll.triggerExpandedAfterOpen === "true" &&
+        evidenceScroll.triggerTextAfterOpen === "Hide details" &&
+        evidenceScroll.closeButtonFocusedAfterOpen === true &&
+        evidenceScroll.drawerScrollHeight >= evidenceScroll.drawerClientHeight &&
+        (evidenceScroll.drawerScrollHeight <= evidenceScroll.drawerClientHeight + 1 ||
+          evidenceScroll.afterScrollTop > evidenceScroll.beforeScrollTop) &&
+        evidenceScroll.drawerHiddenAfterClose === true &&
+        evidenceScroll.drawerOpenDatasetAfterClose === "false" &&
+        evidenceScroll.triggerExpandedAfterClose === "false" &&
+        evidenceScroll.triggerTextAfterClose === "Details & sources",
       {
         ok: evidenceScroll?.ok ?? false,
         reason: evidenceScroll?.reason ?? null,
         defaultHidden: evidenceScroll?.defaultHidden ?? null,
+        triggerExpandedBefore: evidenceScroll?.triggerExpandedBefore ?? null,
+        triggerTextBefore: evidenceScroll?.triggerTextBefore ?? null,
         drawerHiddenAfterOpen: evidenceScroll?.drawerHiddenAfterOpen ?? null,
+        drawerOpenDatasetAfterOpen:
+          evidenceScroll?.drawerOpenDatasetAfterOpen ?? null,
+        triggerExpandedAfterOpen:
+          evidenceScroll?.triggerExpandedAfterOpen ?? null,
+        triggerTextAfterOpen: evidenceScroll?.triggerTextAfterOpen ?? null,
+        closeButtonFocusedAfterOpen:
+          evidenceScroll?.closeButtonFocusedAfterOpen ?? null,
         beforeScrollTop: evidenceScroll?.beforeScrollTop ?? null,
         afterScrollTop: evidenceScroll?.afterScrollTop ?? null,
         drawerClientHeight: evidenceScroll?.drawerClientHeight ?? null,
         drawerScrollHeight: evidenceScroll?.drawerScrollHeight ?? null,
-        drawerHiddenAfterClose: evidenceScroll?.drawerHiddenAfterClose ?? null
+        drawerHiddenAfterClose: evidenceScroll?.drawerHiddenAfterClose ?? null,
+        drawerOpenDatasetAfterClose:
+          evidenceScroll?.drawerOpenDatasetAfterClose ?? null,
+        triggerExpandedAfterClose:
+          evidenceScroll?.triggerExpandedAfterClose ?? null,
+        triggerTextAfterClose: evidenceScroll?.triggerTextAfterClose ?? null
       }
     ),
     assertion(
@@ -667,6 +821,30 @@ function buildViewportResult(
         reason: replayDockInteraction?.reason ?? null,
         before: replayDockInteraction?.before ?? null,
         after: replayDockInteraction?.after ?? null
+      }
+    ),
+    assertion(
+      "native-play-preserves-manual-time-and-camera",
+      nativePlayback?.ok &&
+        nativePlayback.beforeTimeMs === nativePlayback.targetMs &&
+        nativePlayback.afterTimeMs >= nativePlayback.targetMs &&
+        nativePlayback.afterTimeMs < nativePlayback.stopMs &&
+        nativePlayback.resetDistanceFromStartMs > 10_000 &&
+        nativePlayback.cameraDeltaMeters < 1_000,
+      {
+        ok: nativePlayback?.ok ?? false,
+        reason: nativePlayback?.reason ?? null,
+        targetIso: nativePlayback?.targetIso ?? null,
+        beforeTimeMs: nativePlayback?.beforeTimeMs ?? null,
+        afterTimeMs: nativePlayback?.afterTimeMs ?? null,
+        startMs: nativePlayback?.startMs ?? null,
+        stopMs: nativePlayback?.stopMs ?? null,
+        elapsedFromManualTimeMs:
+          nativePlayback?.elapsedFromManualTimeMs ?? null,
+        resetDistanceFromStartMs:
+          nativePlayback?.resetDistanceFromStartMs ?? null,
+        cameraDeltaMeters: nativePlayback?.cameraDeltaMeters ?? null,
+        displayState: nativePlayback?.displayState ?? null
       }
     ),
     assertion(
@@ -719,6 +897,7 @@ async function runViewport(viewport) {
   const readyInfo = await waitForPanelReady();
   await delay(LAYOUT_SETTLE_MS);
   const layout = await collectLayoutSnapshot();
+  const nativePlayback = await collectNativePlaybackPreservesManualStateSnapshot();
   const replayDockInteraction = await collectReplayDockInteractionSnapshot();
   const evidenceScroll = await collectEvidenceScrollSnapshot();
   return buildViewportResult(
@@ -726,7 +905,8 @@ async function runViewport(viewport) {
     readyInfo,
     layout,
     evidenceScroll,
-    replayDockInteraction
+    replayDockInteraction,
+    nativePlayback
   );
 }
 
