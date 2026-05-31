@@ -225,8 +225,9 @@ function sceneActorOrbitClassToDisplayOrbit(
   }
 }
 
-function formatSelectedPairSatelliteLabel(satelliteId: string): string {
-  return satelliteId.length > 18 ? `${satelliteId.slice(0, 18)}…` : satelliteId;
+function formatSelectedPairSatelliteLabel(satelliteId: string, orbitClass: string): string {
+  const shortId = satelliteId.length > 18 ? `${satelliteId.slice(0, 18)}…` : satelliteId;
+  return `${shortId} (${orbitClass.toUpperCase()})`;
 }
 
 function createSelectedPairActorModelStyle(
@@ -256,18 +257,28 @@ function createSelectedPairActorLabelStyle(
     return undefined;
   }
 
+  const orbitClass = actor.orbitClass.toLowerCase();
+  const textColors: Record<string, string> = {
+    leo: "#7ee2b8",
+    meo: "#a5d6ff",
+    geo: "#ffd166"
+  };
+  const textColor = textColors[orbitClass] ?? "#ffffff";
+
   return new LabelGraphics({
-    text: new ConstantProperty(formatSelectedPairSatelliteLabel(actor.satelliteId)),
+    text: new ConstantProperty(
+      formatSelectedPairSatelliteLabel(actor.satelliteId, actor.orbitClass)
+    ),
     font: "11px sans-serif",
     style: LabelStyle.FILL_AND_OUTLINE,
-    fillColor: new ConstantProperty(Color.WHITE.withAlpha(0.9)),
+    fillColor: new ConstantProperty(Color.fromCssColorString(textColor).withAlpha(0.96)),
     outlineColor: new ConstantProperty(
       Color.fromCssColorString("#06121a").withAlpha(0.96)
     ),
     outlineWidth: 2,
     showBackground: true,
     backgroundColor: new ConstantProperty(
-      Color.fromCssColorString("#0b1820").withAlpha(0.58)
+      Color.fromCssColorString("#0b1820").withAlpha(0.68)
     ),
     backgroundPadding: new Cartesian2(6, 3),
     pixelOffset: new Cartesian2(0, -18),
@@ -351,9 +362,21 @@ function sceneSampleToCartesian(
   }
 
   const sourceAltitudeMeters = Math.max(sourceRadiusMeters - earthRadiusMeters, 0);
-  const displayRadiusMeters =
-    earthRadiusMeters +
-    sourceAltitudeMeters * viewModel.displayPolicy.altitudeCompressionFactor;
+  const sourceAltKm = sourceAltitudeMeters / 1000;
+  let displayAltKm = sourceAltKm;
+
+  if (sourceAltKm < 2000) {
+    // LEO nominal altitude is ~550km. Map to ~800km display altitude
+    displayAltKm = 800 + (sourceAltKm - 550) * 0.1;
+  } else if (sourceAltKm >= 2000 && sourceAltKm < 25000) {
+    // MEO nominal altitude is ~20000km. Map to ~3400km display altitude
+    displayAltKm = 3400 + (sourceAltKm - 20000) * 0.1;
+  } else {
+    // GEO nominal altitude is ~35786km. Map to ~6000km display altitude
+    displayAltKm = 6000 + (sourceAltKm - 35786) * 0.1;
+  }
+
+  const displayRadiusMeters = earthRadiusMeters + displayAltKm * 1000;
   const scale = displayRadiusMeters / sourceRadiusMeters;
   target.x = sourceX * scale;
   target.y = sourceY * scale;

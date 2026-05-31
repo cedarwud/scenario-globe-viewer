@@ -764,7 +764,11 @@ export function createM8aV4GroundStationSceneController({
     });
   let reviewAutoPauseTimeoutId: number | undefined;
 
-  configureReplayClock(viewer, replayClock);
+  if (sceneEndpointContext.selectedPair) {
+    configureSelectedPairReplayClock(viewer, replayClock);
+  } else {
+    configureReplayClock(viewer, replayClock);
+  }
   applyV4Camera(viewer, sceneEndpointContext);
   hudFrame.dataset.hudVisibility = "m8a-v4";
   hudFrame.setAttribute("aria-hidden", "false");
@@ -1926,6 +1930,18 @@ export function createM8aV4GroundStationSceneController({
    */
   function applySelectedPair(pair: V4ResolvedStationPair | null): void {
     if (disposed) {
+      return;
+    }
+    const currentPairKey = sceneEndpointContext.selectedPair
+      ? [
+          sceneEndpointContext.selectedPair.stationA.id,
+          sceneEndpointContext.selectedPair.stationB.id
+        ].join("::")
+      : null;
+    const nextPairKey = pair
+      ? [pair.stationA.id, pair.stationB.id].join("::")
+      : null;
+    if (currentPairKey === nextPairKey) {
       return;
     }
     // Remove the existing endpoint + ribbon + selected-pair overlay

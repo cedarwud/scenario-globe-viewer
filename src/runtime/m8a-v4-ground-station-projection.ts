@@ -1,4 +1,4 @@
-import v46bGroundStationProjectionArtifact from "../../public/fixtures/ground-station-projections/m8a-v4.6b-taiwan-cht-speedcast-singapore-source-lineaged-orbit-actors-2026-04-28.json";
+import v46bGroundStationProjectionArtifact from "../fixtures/ground-station-projections/m8a-v4.6b-taiwan-cht-speedcast-singapore-source-lineaged-orbit-actors-2026-04-28.json";
 
 export const M8A_V4_GROUND_STATION_SCENARIO_ID =
   "m8a-v4-ground-station-multi-orbit-handover";

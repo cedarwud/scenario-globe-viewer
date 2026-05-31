@@ -22,6 +22,7 @@ import {
   resolveV4RouteSelection,
   type V4RouteSelection
 } from "../../features/multi-station-selector/v4-route-selection";
+import { SELECTED_PAIR_DEMO_HREF } from "../../features/multi-station-selector/v4-route-href";
 import { PUBLIC_REGISTRY_BY_ID } from "../../features/multi-station-selector/tier-inference";
 import {
   subscribeDisplayState,
@@ -87,10 +88,6 @@ import {
   createM8aV4GroundStationSceneController,
   isM8aV4GroundStationRuntimeRequested
 } from "../m8a-v4-ground-station-handover-scene-controller";
-import {
-  M8A_V4_GROUND_STATION_QUERY_PARAM,
-  M8A_V4_GROUND_STATION_QUERY_VALUE
-} from "../m8a-v4-ground-station-projection";
 
 type ViewerInstance = ReturnType<typeof createViewer>;
 
@@ -224,13 +221,7 @@ function buildM8aV31AddressedHref(): string {
 }
 
 function buildM8aV4GroundStationAddressedHref(): string {
-  const params = new URLSearchParams();
-  params.set("scenePreset", M8A_V4_GROUND_STATION_CTA_SCENE_PRESET);
-  params.set(
-    M8A_V4_GROUND_STATION_QUERY_PARAM,
-    M8A_V4_GROUND_STATION_QUERY_VALUE
-  );
-  return `/?${params.toString()}`;
+  return SELECTED_PAIR_DEMO_HREF;
 }
 
 function syncFirstIntakeRuntimeTelemetry(
@@ -860,6 +851,7 @@ export function startBootstrapComposition(app: HTMLDivElement): BootstrapComposi
   // (state stays projecting/replaying but slot ids change) disposes the
   // stale panel and remounts with the fresh pair. Wave 2 §A.6 extension.
   let v4ProjectionSidePanelMountedPairKey: string | null = null;
+  let v4GroundStationSceneMountedPairKey: string | null = null;
   let v4ProjectionSidePanelRuntimeResultUnsubscribe: (() => void) | null = null;
   let unsubscribeDisplayState: (() => void) | null = null;
   if (groundStationSelectionStore && groundStationInfoCard) {
@@ -905,14 +897,14 @@ export function startBootstrapComposition(app: HTMLDivElement): BootstrapComposi
                 replayEventPill?.setRuntimeResult(result);
               }) ?? null;
           }
-          // wave 2 §A.6 extension: re-anchor the V4 controller's endpoint
-          // markers + ribbon + camera framing + selected-pair overlay
-          // through the controller's exported setSelectedPair. The
-          // controller mounts at most once per page life; this call is
-          // a no-op when the resolved pair matches the controller's
-          // existing endpoints because the entity-id keys land on the
-          // same entities and the camera framing converges.
-          ensureM8aV4GroundStationScene().setSelectedPair(resolvedPair);
+          // Pair identity changes re-anchor the V4 controller's endpoint
+          // markers, ribbon, and selected-pair overlay. Replay play/pause
+          // state changes must not re-apply the pair because that would
+          // reset the native Cesium timeline and camera the user adjusted.
+          if (v4GroundStationSceneMountedPairKey !== pairKey) {
+            ensureM8aV4GroundStationScene().setSelectedPair(resolvedPair);
+            v4GroundStationSceneMountedPairKey = pairKey;
+          }
         } else if (!isPanelState && v4ProjectionSidePanel) {
           v4ProjectionSidePanelRuntimeResultUnsubscribe?.();
           v4ProjectionSidePanelRuntimeResultUnsubscribe = null;

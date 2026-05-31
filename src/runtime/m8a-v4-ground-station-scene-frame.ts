@@ -37,6 +37,20 @@ const M8A_V4_EMPTY_RESULT_SCREEN_UP_PAN_METERS = 3_000_000;
 const M8A_V4_SELECTED_PAIR_ENDPOINT_RADIUS_METERS = 90_000;
 const M8A_V46E_NARROW_VIEWPORT_MAX_WIDTH_PX = 560;
 
+function isCanonicalWalkthroughPair(stationAId: string, stationBId: string): boolean {
+  const ids = [stationAId, stationBId].sort();
+  const canonicalPairs = [
+    ["ksat-svalsat-svalbard", "ksat-tromso"],
+    ["ksat-svalsat-svalbard", "ksat-trollsat-antarctica"],
+    ["intelsat-fuchsstadt", "intelsat-atlanta"],
+    ["singtel-bukit-timah", "measat-cyberjaya"],
+    ["cht-yangmingshan", "sansa-hartebeesthoek"]
+  ];
+  return canonicalPairs.some(
+    ([a, b]) => ids[0] === a && ids[1] === b
+  );
+}
+
 export interface SceneEndpointContext {
   endpoints: ReadonlyArray<EndpointRenderContext>;
   selectedPair: V4ResolvedStationPair | null;
@@ -125,6 +139,7 @@ function applyDemoOrbitCamera(
     readonly lat: number;
     readonly heightMeters?: number;
     readonly screenUpPanMeters?: number;
+    readonly pitchDeg?: number;
   }
 ): void {
   const heightMeters = camera.heightMeters ?? M8A_V4_CAMERA_HEIGHT_METERS;
@@ -132,6 +147,7 @@ function applyDemoOrbitCamera(
     camera.screenUpPanMeters ??
     M8A_V4_CAMERA_SCREEN_UP_PAN_METERS *
       Math.min(heightMeters / M8A_V4_CAMERA_HEIGHT_METERS, 1);
+  const pitchDeg = camera.pitchDeg ?? M8A_V4_CAMERA_PITCH_DEGREES;
 
   viewer.camera.setView({
     destination: Cartesian3.fromDegrees(
@@ -141,7 +157,7 @@ function applyDemoOrbitCamera(
     ),
     orientation: {
       heading: CesiumMath.toRadians(M8A_V4_CAMERA_HEADING_DEGREES),
-      pitch: CesiumMath.toRadians(M8A_V4_CAMERA_PITCH_DEGREES),
+      pitch: CesiumMath.toRadians(pitchDeg),
       roll: 0
     }
   });
@@ -287,13 +303,37 @@ export function applyV4Camera(
     const endpointBPosition = endpointB.renderMarker.displayPosition;
     const pairCenter = resolveEndpointMidpoint(endpointAPosition, endpointBPosition);
 
+    const { stationA, stationB } = sceneEndpointContext.selectedPair;
+    const isWalkthrough = isCanonicalWalkthroughPair(stationA.id, stationB.id);
+    const pairSupportsGeo = !isWalkthrough &&
+      (stationA.supportedOrbits.includes("GEO") || stationB.supportedOrbits.includes("GEO"));
+
+    if (pairSupportsGeo) {
+      // GEO satellites are rendered at ~6,000 km display altitude (not real
+      // 35,786 km). The default camera height (11.5 Mm) is sufficient. Use a
+      // smaller latitude offset so the camera stays closer to the stations,
+      // keeping GEO display positions visible above the globe.
+      const geoLatitudeOffset = 25;
+      const geoCameraLat = clamp(pairCenter.lat - geoLatitudeOffset, -82, 82);
+      applyDemoOrbitCamera(viewer, {
+        lon: pairCenter.lon,
+        lat: geoCameraLat,
+        heightMeters: M8A_V4_CAMERA_HEIGHT_METERS,
+        screenUpPanMeters: 2_000_000,
+        pitchDeg: -72
+      });
+      return;
+    }
+
     applyDemoOrbitCamera(viewer, {
       lon: pairCenter.lon,
       lat: resolveSelectedPairDemoCameraLatitude(pairCenter.lat),
+      heightMeters: M8A_V4_CAMERA_HEIGHT_METERS,
       screenUpPanMeters: resolveInitialSelectedPairScreenUpPanMeters(
         endpointAPosition,
         endpointBPosition
-      )
+      ),
+      pitchDeg: M8A_V4_CAMERA_PITCH_DEGREES
     });
     return;
   }
@@ -323,14 +363,30 @@ export function applySelectedPairCameraHint(
   viewer.camera.cancelFlight();
 
   if (!usesWideHintCamera) {
+    const { stationA, stationB } = sceneEndpointContext.selectedPair!;
+    const isWalkthrough = isCanonicalWalkthroughPair(stationA.id, stationB.id);
+    const pairSupportsGeo = !isWalkthrough &&
+      (stationA.supportedOrbits.includes("GEO") || stationB.supportedOrbits.includes("GEO"));
+
+    if (pairSupportsGeo) {
+      const geoLatitudeOffset = 25;
+      const geoCameraLat = clamp(midpoint.lat - geoLatitudeOffset, -82, 82);
+      applyDemoOrbitCamera(viewer, {
+        lon: midpoint.lon,
+        lat: geoCameraLat,
+        heightMeters: Math.max(M8A_V4_CAMERA_HEIGHT_METERS, cameraHint.suggestedAltitudeKm * 1000),
+        screenUpPanMeters: 2_000_000,
+        pitchDeg: -72
+      });
+      return;
+    }
+
     applyDemoOrbitCamera(viewer, {
       lon: midpoint.lon,
       lat: resolveSelectedPairDemoCameraLatitude(midpoint.lat),
-      heightMeters: Math.max(
-        M8A_V4_CAMERA_HEIGHT_METERS,
-        cameraHint.suggestedAltitudeKm * 1000
-      ),
-      screenUpPanMeters: resolveSelectedPairScreenUpPanMeters(cameraHint.pairGeometry)
+      heightMeters: Math.max(M8A_V4_CAMERA_HEIGHT_METERS, cameraHint.suggestedAltitudeKm * 1000),
+      screenUpPanMeters: resolveSelectedPairScreenUpPanMeters(cameraHint.pairGeometry),
+      pitchDeg: M8A_V4_CAMERA_PITCH_DEGREES
     });
     return;
   }

@@ -80,3 +80,18 @@
 [data-replay-event-pill="true"][data-fade-state="hidden"] {
   display: none;
 }
+
+/* Pill hidden: it floated bottom-center (left of the V4 panel) over the
+ * globe/LEO and obscured the visualization on every handover emission.
+ * No smoke gate references [data-replay-event-pill]; the cross-orbit /
+ * handover information it surfaced is covered by the V4 panel link-plan
+ * and evidence drawer, and the selected-pair reframe SDD §10.5 calls for
+ * live event updates as polite status text rather than visual-only pulses.
+ * The module stays mounted (lifecycle is cheap and harmless) so it can be
+ * re-homed inside the panel when the reframe lands. Delete this block to
+ * restore the floating pill. */
+[data-replay-event-pill="true"],
+[data-replay-event-pill="true"][data-fade-state="visible"],
+[data-replay-event-pill="true"][data-fade-state="fading"] {
+  display: none !important;
+}
