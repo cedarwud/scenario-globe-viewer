@@ -453,6 +453,8 @@ body:has([data-v4-projection-side-panel="true"])
   min-width: 0;
   padding: 0.46rem 0.52rem;
   box-shadow: none;
+  text-align: center;
+  align-items: center;
 }
 .v4-projection-side-panel__outcome-grid .v4-projection-side-panel__stat-value {
   font-size: 1.12rem;
@@ -463,10 +465,6 @@ body:has([data-v4-projection-side-panel="true"])
 }
 .v4-projection-side-panel__outcome-grid .v4-projection-side-panel__stat:nth-child(1) .v4-projection-side-panel__stat-value {
   font-size: 1.05rem;
-}
-.v4-projection-side-panel__outcome-grid .v4-projection-side-panel__stat:nth-child(2) {
-  text-align: center;
-  align-items: center;
 }
 .v4-projection-side-panel__outcome-grid
   .v4-projection-side-panel__stat--hero
