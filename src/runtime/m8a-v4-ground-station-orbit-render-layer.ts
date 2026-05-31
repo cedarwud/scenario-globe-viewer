@@ -694,7 +694,7 @@ export function createGroundStationOrbitRenderLayer({
         handle.entity.show = visible;
       }
       for (const handle of relationHandles) {
-        handle.entity.show = visible;
+        handle.entity.show = false;
       }
       for (const handle of linkFlowSegmentHandles) {
         handle.entity.show = visible;

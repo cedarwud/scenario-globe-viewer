@@ -491,7 +491,8 @@ function createRelationStyle(
     width: new ConstantProperty(resolveRelationWidth(role)),
     material: new ColorMaterialProperty(resolveRelationColor(role).withAlpha(0.22)),
     arcType: ArcType.NONE,
-    clampToGround: false
+    clampToGround: false,
+    show: new ConstantProperty(false)
   });
 }
 
@@ -654,7 +655,8 @@ export function createRelationEntityOptions(
     polyline: createRelationStyle(positions, role),
     description: new ConstantProperty(
       "V4.6E simulation display context from the repo-owned projection module."
-    )
+    ),
+    show: false
   };
 }
 
@@ -774,6 +776,7 @@ export function updateRelationStyle(handle: RelationRenderHandle): void {
   handle.entity.polyline.material = new ColorMaterialProperty(
     resolveRelationColor(handle.role).withAlpha(0.22)
   );
+  handle.entity.polyline.show = new ConstantProperty(false);
 }
 
 export function updateLinkFlowSegmentStyle(
