@@ -6,6 +6,7 @@ import {
 import { clearDocumentTelemetry } from "../features/telemetry/document-telemetry";
 import type { ReplayClock } from "../features/time";
 import type { V4ResolvedStationPair } from "../features/multi-station-selector/v4-route-selection";
+import type { SceneCameraHint } from "../features/multi-station-selector/tle-first-scene-view-model";
 import {
   M8A_V4_GROUND_STATION_QUERY_PARAM,
   M8A_V4_GROUND_STATION_QUERY_VALUE,
@@ -719,6 +720,19 @@ export function createM8aV4GroundStationSceneController({
     sceneEndpointContext.selectedPair ? "loading" : "not-requested"
   );
   let selectedPairOverlayInstallGeneration = 0;
+  let latestCameraHint: SceneCameraHint | null = null;
+
+  const handleResize = () => {
+    if (disposed) return;
+    if (latestCameraHint) {
+      applySelectedPairCameraHint(viewer, sceneEndpointContext, latestCameraHint);
+    } else {
+      applyV4Camera(viewer, sceneEndpointContext);
+    }
+  };
+  if (typeof window !== "undefined") {
+    window.addEventListener("resize", handleResize);
+  }
   let detailsDisclosureOpen = false;
   let boundaryDisclosureOpen = false;
   let sourcesDisclosureOpen = false;
@@ -813,8 +827,10 @@ export function createM8aV4GroundStationSceneController({
     shouldSkip: () =>
       disposed ||
       initialSelectedPairOverlayGeneration !== selectedPairOverlayInstallGeneration,
-    applyCameraHint: (cameraHint) =>
-      applySelectedPairCameraHint(viewer, sceneEndpointContext, cameraHint)
+    applyCameraHint: (cameraHint) => {
+      latestCameraHint = cameraHint;
+      applySelectedPairCameraHint(viewer, sceneEndpointContext, cameraHint);
+    }
   }).catch((error) => {
     selectedPairOverlayState = createSelectedPairOverlayDebugState("error", {
       errorMessage: error instanceof Error ? error.message : "unknown overlay error"
@@ -2017,6 +2033,8 @@ export function createM8aV4GroundStationSceneController({
       })
     );
 
+    latestCameraHint = null;
+
     // Reset the overlay debug state to `loading` while the async overlay
     // install re-runs; the onStateChange callback below resets it to
     // `ready`/`empty`/`error` as the projection completes.
@@ -2039,8 +2057,10 @@ export function createM8aV4GroundStationSceneController({
       shouldSkip: () =>
         disposed ||
         selectedPairOverlayGeneration !== selectedPairOverlayInstallGeneration,
-      applyCameraHint: (cameraHint) =>
-        applySelectedPairCameraHint(viewer, sceneEndpointContext, cameraHint)
+      applyCameraHint: (cameraHint) => {
+        latestCameraHint = cameraHint;
+        applySelectedPairCameraHint(viewer, sceneEndpointContext, cameraHint);
+      }
     }).catch((error) => {
       selectedPairOverlayState = createSelectedPairOverlayDebugState("error", {
         errorMessage:
@@ -2108,6 +2128,9 @@ export function createM8aV4GroundStationSceneController({
       productUxRoot.removeEventListener("click", handleProductUxClick);
       productUxRoot.removeEventListener("change", handleProductUxChange);
       productUxRoot.removeEventListener("keydown", handleProductUxKeyDown);
+      if (typeof window !== "undefined") {
+        window.removeEventListener("resize", handleResize);
+      }
       hudRoot.remove();
       productUxRoot.remove();
       clearDocumentTelemetry(M8A_V4_TELEMETRY_KEYS);
