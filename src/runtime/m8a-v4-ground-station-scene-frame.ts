@@ -326,7 +326,7 @@ function calculateCameraScales(): CameraScales {
   // 3. Pan scaling (to avoid pushing Earth behind timeline/controls when height is small)
   let panScale = 1.0;
   if (height < 900) {
-    panScale = Math.max(0.4, height / 900);
+    panScale = Math.max(0.15, (height / 900) ** 2);
   } else {
     panScale = aspectScale;
   }
@@ -349,7 +349,9 @@ export function applyV4Camera(
 
     const { stationA, stationB } = sceneEndpointContext.selectedPair;
     const isWalkthrough = isCanonicalWalkthroughPair(stationA.id, stationB.id);
+    const distanceDeg = resolveEndpointDistanceDegrees(endpointAPosition, endpointBPosition);
     const pairSupportsGeo = !isWalkthrough &&
+      distanceDeg < 75 &&
       (stationA.supportedOrbits.includes("GEO") || stationB.supportedOrbits.includes("GEO"));
 
     if (pairSupportsGeo) {
@@ -423,7 +425,9 @@ export function applySelectedPairCameraHint(
   if (!usesWideHintCamera) {
     const { stationA, stationB } = sceneEndpointContext.selectedPair!;
     const isWalkthrough = isCanonicalWalkthroughPair(stationA.id, stationB.id);
+    const distanceDeg = resolveEndpointDistanceDegrees(endpointAPosition, endpointBPosition);
     const pairSupportsGeo = !isWalkthrough &&
+      distanceDeg < 75 &&
       (stationA.supportedOrbits.includes("GEO") || stationB.supportedOrbits.includes("GEO"));
 
     if (pairSupportsGeo) {
