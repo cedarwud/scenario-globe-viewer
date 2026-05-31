@@ -1017,7 +1017,15 @@ function buildRainSpeedComparison(
     if (!rainTransparent) {
       const secondary = document.createElement("span");
       secondary.className = "v4-projection-side-panel__list-secondary";
-      secondary.textContent = `${formatSignedPercent(-dropFraction)} · jitter ${clear.jitterMs.toFixed(1)} → ${wet.jitterMs.toFixed(1)} ms`;
+      
+      const percentSpan = document.createElement("strong");
+      percentSpan.className = "v4-projection-side-panel__list-percent";
+      percentSpan.textContent = formatSignedPercent(-dropFraction);
+      
+      const detailsSpan = document.createElement("span");
+      detailsSpan.textContent = ` · jitter ${clear.jitterMs.toFixed(1)} → ${wet.jitterMs.toFixed(1)} ms`;
+      
+      secondary.append(percentSpan, detailsSpan);
       li.append(secondary);
     }
     list.append(li);

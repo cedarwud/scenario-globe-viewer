@@ -873,7 +873,7 @@ body:has([data-v4-projection-side-panel="true"])
   grid-template-columns: minmax(0, 1fr);
   gap: 0.28rem;
 }
-.v4-projection-side-panel__rain-impact .v4-projection-side-panel__list {
+.v4-projection-side-panel[data-rain-rate-mm-per-hour="0"] .v4-projection-side-panel__rain-impact .v4-projection-side-panel__list {
   display: flex;
   flex-direction: row;
   gap: 0.28rem;
@@ -881,11 +881,28 @@ body:has([data-v4-projection-side-panel="true"])
   padding: 0;
   list-style: none;
 }
-.v4-projection-side-panel__rain-impact .v4-projection-side-panel__list-item {
+.v4-projection-side-panel[data-rain-rate-mm-per-hour="0"] .v4-projection-side-panel__rain-impact .v4-projection-side-panel__list-item {
   flex: 1 1 0px;
   min-width: 0;
   padding: 0.3rem 0.38rem;
   border-radius: 0.36rem;
+  border: 1px solid rgba(157, 196, 232, 0.1);
+  background: rgba(4, 12, 20, 0.34);
+}
+.v4-projection-side-panel:not([data-rain-rate-mm-per-hour="0"]) .v4-projection-side-panel__rain-impact .v4-projection-side-panel__list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.38rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.v4-projection-side-panel:not([data-rain-rate-mm-per-hour="0"]) .v4-projection-side-panel__rain-impact .v4-projection-side-panel__list-item {
+  flex: none;
+  width: 100%;
+  min-width: 0;
+  padding: 0.46rem 0.58rem;
+  border-radius: 0.4rem;
   border: 1px solid rgba(157, 196, 232, 0.1);
   background: rgba(4, 12, 20, 0.34);
 }
@@ -898,10 +915,16 @@ body:has([data-v4-projection-side-panel="true"])
 }
 .v4-projection-side-panel__rain-impact .v4-projection-side-panel__list-secondary {
   display: block;
-  margin-top: 0.15rem;
-  font-size: 0.82rem;
-  line-height: 1.2;
+  margin-top: 0.18rem;
+  font-size: 0.84rem;
+  line-height: 1.25;
   color: rgba(157, 196, 232, 0.72);
+}
+.v4-projection-side-panel__rain-impact .v4-projection-side-panel__list-percent {
+  font-size: 1.16rem;
+  font-weight: 750;
+  color: #ffd166;
+  margin-right: 0.18rem;
 }
 .v4-projection-side-panel__evidence-actions {
   display: grid;
