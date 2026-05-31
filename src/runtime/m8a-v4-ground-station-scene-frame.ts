@@ -140,6 +140,7 @@ function applyDemoOrbitCamera(
     readonly heightMeters?: number;
     readonly screenUpPanMeters?: number;
     readonly pitchDeg?: number;
+    readonly headingDeg?: number;
   }
 ): void {
   const heightMeters = camera.heightMeters ?? M8A_V4_CAMERA_HEIGHT_METERS;
@@ -148,6 +149,7 @@ function applyDemoOrbitCamera(
     M8A_V4_CAMERA_SCREEN_UP_PAN_METERS *
       Math.min(heightMeters / M8A_V4_CAMERA_HEIGHT_METERS, 1);
   const pitchDeg = camera.pitchDeg ?? M8A_V4_CAMERA_PITCH_DEGREES;
+  const headingDeg = camera.headingDeg ?? M8A_V4_CAMERA_HEADING_DEGREES;
 
   viewer.camera.setView({
     destination: Cartesian3.fromDegrees(
@@ -156,7 +158,7 @@ function applyDemoOrbitCamera(
       heightMeters
     ),
     orientation: {
-      heading: CesiumMath.toRadians(M8A_V4_CAMERA_HEADING_DEGREES),
+      heading: CesiumMath.toRadians(headingDeg),
       pitch: CesiumMath.toRadians(pitchDeg),
       roll: 0
     }
@@ -311,16 +313,25 @@ export function applyV4Camera(
     if (pairSupportsGeo) {
       // GEO satellites are rendered at ~6,000 km display altitude (not real
       // 35,786 km). The default camera height (11.5 Mm) is sufficient. Use a
-      // smaller latitude offset so the camera stays closer to the stations,
-      // keeping GEO display positions visible above the globe.
+      // smaller latitude offset so the camera stays closer to the stations.
+      //
+      // If the stations are in the Northern hemisphere (pairCenter.lat >= 0),
+      // the equator (and GEO satellites) is South of them. Placing the camera
+      // North of the midpoint and looking South (heading 180°) positions the
+      // GEO satellites in the upper background sky rather than blocked at the bottom.
+      // For Southern hemisphere stations, the inverse applies.
       const geoLatitudeOffset = 25;
-      const geoCameraLat = clamp(pairCenter.lat - geoLatitudeOffset, -82, 82);
+      const isNorthern = pairCenter.lat >= 0;
+      const geoCameraLat = isNorthern
+        ? clamp(pairCenter.lat + geoLatitudeOffset, -82, 82)
+        : clamp(pairCenter.lat - geoLatitudeOffset, -82, 82);
       applyDemoOrbitCamera(viewer, {
         lon: pairCenter.lon,
         lat: geoCameraLat,
         heightMeters: M8A_V4_CAMERA_HEIGHT_METERS,
         screenUpPanMeters: 2_000_000,
-        pitchDeg: -72
+        pitchDeg: -72,
+        headingDeg: isNorthern ? 180 : 0
       });
       return;
     }
@@ -370,13 +381,17 @@ export function applySelectedPairCameraHint(
 
     if (pairSupportsGeo) {
       const geoLatitudeOffset = 25;
-      const geoCameraLat = clamp(midpoint.lat - geoLatitudeOffset, -82, 82);
+      const isNorthern = midpoint.lat >= 0;
+      const geoCameraLat = isNorthern
+        ? clamp(midpoint.lat + geoLatitudeOffset, -82, 82)
+        : clamp(midpoint.lat - geoLatitudeOffset, -82, 82);
       applyDemoOrbitCamera(viewer, {
         lon: midpoint.lon,
         lat: geoCameraLat,
         heightMeters: Math.max(M8A_V4_CAMERA_HEIGHT_METERS, cameraHint.suggestedAltitudeKm * 1000),
         screenUpPanMeters: 2_000_000,
-        pitchDeg: -72
+        pitchDeg: -72,
+        headingDeg: isNorthern ? 180 : 0
       });
       return;
     }
