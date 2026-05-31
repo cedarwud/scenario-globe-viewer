@@ -316,17 +316,19 @@ function calculateCameraScales(): CameraScales {
   }
 
   // 2. Height scaling (primarily for vertical screen height constraint to avoid UI overlays)
+  // We use a reference height of 1200px to ensure plenty of room for timeline overlays
+  // even on standard 900px/1080px screens.
   let verticalScale = 1.0;
-  if (height < 900) {
-    verticalScale = Math.min(900 / height, 2.5);
+  if (height < 1200) {
+    verticalScale = Math.min(1200 / height, 2.5);
   }
 
   const heightScale = Math.max(aspectScale, verticalScale);
 
   // 3. Pan scaling (to avoid pushing Earth behind timeline/controls when height is small)
   let panScale = 1.0;
-  if (height < 900) {
-    panScale = Math.max(0.15, (height / 900) ** 2);
+  if (height < 1200) {
+    panScale = Math.max(0.1, (height / 1200) ** 2);
   } else {
     panScale = aspectScale;
   }
