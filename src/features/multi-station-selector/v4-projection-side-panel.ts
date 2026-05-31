@@ -2262,6 +2262,7 @@ function renderResult(
   // Preserve slider focus across re-renders: the rain control node is reused,
   // not recreated, so the user can keep dragging while the panel recomputes.
   const sliderWasFocused = document.activeElement === rainControl.slider;
+  const savedScrollTop = root.scrollTop;
 
   removeEvidenceDrawer(root.ownerDocument);
   root.replaceChildren();
@@ -2313,6 +2314,9 @@ function renderResult(
 
   root.ownerDocument.body.appendChild(evidenceDrawer);
   syncTimelineCurrentMarkers(root, viewer);
+
+  // Restore the scroll position after elements have been appended to prevent jumping to top
+  root.scrollTop = savedScrollTop;
 
   if (sliderWasFocused) {
     rainControl.slider.focus();
