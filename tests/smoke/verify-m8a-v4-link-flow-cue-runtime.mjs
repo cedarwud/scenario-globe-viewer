@@ -12,13 +12,18 @@ import {
   withStaticSmokeBrowser,
   writeJsonArtifact
 } from "./helpers/m8a-v4-browser-capture-harness.mjs";
+import { SELECTED_PAIR_DEMO_REQUEST_PATH } from "../../scripts/helpers/demo-routes.mjs";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const repoRoot = path.resolve(__dirname, "../..");
 const outputRoot = path.join(repoRoot, "output/m8a-v4-link-flow-cue");
 
-const REQUEST_PATH = "/?scenePreset=regional&m8aV4GroundStationScene=1";
+const REQUEST_PATH = SELECTED_PAIR_DEMO_REQUEST_PATH;
+const EXPECTED_LINK_FLOW_SEGMENT_COUNT = 2;
+const EXPECTED_LINK_FLOW_PULSE_COUNT = 6;
+const EXPECTED_LINK_FLOW_CUE_COUNT =
+  EXPECTED_LINK_FLOW_SEGMENT_COUNT + EXPECTED_LINK_FLOW_PULSE_COUNT;
 
 const VIEWPORT_DESKTOP = {
   name: "desktop-1440x900",
@@ -46,14 +51,23 @@ async function waitForLinkFlowReady(client) {
       `(() => {
         const capture = window.__SCENARIO_GLOBE_VIEWER_CAPTURE__;
         const state = capture?.m8aV4GroundStationScene?.getState?.();
+        const dataSource = state
+          ? capture?.viewer?.dataSources?.getByName?.(state.dataSourceName)?.[0]
+          : null;
+        const selectedPairEntityCount = (dataSource?.entities?.values ?? [])
+          .filter((entity) => String(entity.id).startsWith("m8a-v4-selected-pair-link-flow-"))
+          .length;
 
         return {
           bootstrapState: document.documentElement.dataset.bootstrapState ?? null,
           scenePreset: document.documentElement.dataset.scenePreset ?? null,
           hasViewer: Boolean(capture?.viewer),
           hasV4Scene: Boolean(state),
-          linkFlowCue: state?.relationCues?.dataFlowCueVersion ?? null,
-          linkFlowTelemetry: document.documentElement.dataset.m8aV4LinkFlowCue ?? null
+          sceneSourceMode: state?.sceneSourceMode ?? null,
+          selectedPairOverlayStatus: state?.selectedPairOverlay?.status ?? null,
+          runtimeLinkVisible: state?.selectedPairOverlay?.runtimeLinkVisible ?? null,
+          linkFlowCueCount: state?.selectedPairOverlay?.linkFlowCueCount ?? null,
+          selectedPairEntityCount
         };
       })()`
     );
@@ -63,8 +77,11 @@ async function waitForLinkFlowReady(client) {
       lastState?.scenePreset === "regional" &&
       lastState?.hasViewer &&
       lastState?.hasV4Scene &&
-      lastState?.linkFlowCue &&
-      lastState?.linkFlowTelemetry
+      lastState?.sceneSourceMode === "tle-first-runtime" &&
+      lastState?.selectedPairOverlayStatus === "ready" &&
+      lastState?.runtimeLinkVisible === true &&
+      lastState?.linkFlowCueCount === EXPECTED_LINK_FLOW_CUE_COUNT &&
+      lastState?.selectedPairEntityCount === EXPECTED_LINK_FLOW_CUE_COUNT
     ) {
       return lastState;
     }
@@ -123,18 +140,59 @@ async function inspectLinkFlowCue(client) {
 
         return toPlainPosition(position);
       };
+      const distance = (left, right) => {
+        if (!left || !right) {
+          return 0;
+        }
+        return Math.hypot(left.x - right.x, left.y - right.y, left.z - right.z);
+      };
+      const samplePulseMotion = (entityId) => {
+        const samples = [];
+        for (let index = 0; index <= 50; index += 1) {
+          const ratio = index / 50;
+          const position = samplePulseAtRatio(entityId, ratio);
+          if (position) {
+            samples.push({ ratio, position });
+          }
+        }
+
+        let best = null;
+        for (let leftIndex = 0; leftIndex < samples.length; leftIndex += 1) {
+          for (let rightIndex = leftIndex + 1; rightIndex < samples.length; rightIndex += 1) {
+            const movedMeters = distance(
+              samples[leftIndex].position,
+              samples[rightIndex].position
+            );
+            if (!best || movedMeters > best.movedMeters) {
+              best = {
+                fromRatio: samples[leftIndex].ratio,
+                toRatio: samples[rightIndex].ratio,
+                from: samples[leftIndex].position,
+                to: samples[rightIndex].position,
+                movedMeters
+              };
+            }
+          }
+        }
+
+        return {
+          sampledCount: samples.length,
+          best
+        };
+      };
       const segmentEntities = entities
-        .filter((entity) => /^m8a-v4-link-flow-.*-segment$/.test(entity.id))
+        .filter((entity) => /^m8a-v4-selected-pair-link-flow-.*-segment$/.test(entity.id))
         .map((entity) => ({
           id: entity.id,
           materialType: entity.polyline?.material?.getType?.(time) ?? null,
           width: readConstantOrProperty(entity.polyline?.width),
           pointCount: entity.polyline?.positions?.getValue?.(time)?.length ?? 0,
-          description: readConstantOrProperty(entity.description)
+          description: readConstantOrProperty(entity.description),
+          show: readConstantOrProperty(entity.polyline?.show)
         }))
         .sort((left, right) => left.id.localeCompare(right.id));
       const pulseEntities = entities
-        .filter((entity) => /^m8a-v4-link-flow-.*-pulse-\\d+$/.test(entity.id))
+        .filter((entity) => /^m8a-v4-selected-pair-link-flow-.*-pulse-\\d+$/.test(entity.id))
         .map((entity) => ({
           id: entity.id,
           hasBillboard: Boolean(entity.billboard),
@@ -145,86 +203,37 @@ async function inspectLinkFlowCue(client) {
           alignedAxis: readConstantOrProperty(entity.billboard?.alignedAxis),
           width: readConstantOrProperty(entity.billboard?.width),
           height: readConstantOrProperty(entity.billboard?.height),
-          description: readConstantOrProperty(entity.description)
+          description: readConstantOrProperty(entity.description),
+          show: readConstantOrProperty(entity.billboard?.show)
         }))
         .sort((left, right) => left.id.localeCompare(right.id));
-      const relationMaterialTypes = entities
-        .filter((entity) => /^m8a-v46e-simulation-.*-context-ribbon$/.test(entity.id))
-        .map((entity) => ({
-          id: entity.id,
-          materialType: entity.polyline?.material?.getType?.(time) ?? null
-        }))
-        .sort((left, right) => left.id.localeCompare(right.id));
-      const uplinkStart = samplePulseAtRatio(
-        "m8a-v4-link-flow-displayRepresentative-uplink-pulse-0",
-        0.12
-      );
-      const uplinkLater = samplePulseAtRatio(
-        "m8a-v4-link-flow-displayRepresentative-uplink-pulse-0",
-        0.18
-      );
-      const downlinkStart = samplePulseAtRatio(
-        "m8a-v4-link-flow-displayRepresentative-downlink-pulse-0",
-        0.12
-      );
-      const downlinkLater = samplePulseAtRatio(
-        "m8a-v4-link-flow-displayRepresentative-downlink-pulse-0",
-        0.18
-      );
+      const selectedPairOverlay = state?.selectedPairOverlay ?? null;
+      const displayOnlyNonClaims = selectedPairOverlay?.dataCompleteness
+        ?.displayTransforms
+        ?.map((transform) => transform.nonClaim)
+        ?.filter(Boolean) ?? [];
 
       return {
-        stateRelationCues: state?.relationCues ?? null,
-        documentTelemetry: {
-          m8aV4LinkFlowCue: document.documentElement.dataset.m8aV4LinkFlowCue ?? null,
-          m8aV4LinkFlowCueMode:
-            document.documentElement.dataset.m8aV4LinkFlowCueMode ?? null,
-          m8aV4LinkFlowDirections:
-            document.documentElement.dataset.m8aV4LinkFlowDirections ?? null,
-          m8aV4LinkFlowPulseCount:
-            document.documentElement.dataset.m8aV4LinkFlowPulseCount ?? null,
-          m8aV4LinkFlowTruthBoundary:
-            document.documentElement.dataset.m8aV4LinkFlowTruthBoundary ?? null
-        },
-        hudTelemetry: {
-          linkFlowCue:
-            document.querySelector("[data-m8a-v4-ground-station-scene='true']")
-              ?.dataset.linkFlowCue ?? null,
-          linkFlowCueMode:
-            document.querySelector("[data-m8a-v4-ground-station-scene='true']")
-              ?.dataset.linkFlowCueMode ?? null,
-          linkFlowDirections:
-            document.querySelector("[data-m8a-v4-ground-station-scene='true']")
-              ?.dataset.linkFlowDirections ?? null,
-          linkFlowPulseCount:
-            document.querySelector("[data-m8a-v4-ground-station-scene='true']")
-              ?.dataset.linkFlowPulseCount ?? null,
-          linkFlowTruthBoundary:
-            document.querySelector("[data-m8a-v4-ground-station-scene='true']")
-              ?.dataset.linkFlowTruthBoundary ?? null
-        },
+        route: window.location.search,
+        sceneSourceMode: state?.sceneSourceMode ?? null,
+        selectedPairOverlay,
+        displayOnlyNonClaims,
         segmentEntities,
         pulseEntities,
-        relationMaterialTypes,
         motionSamples: {
-          uplinkStart,
-          uplinkLater,
-          downlinkStart,
-          downlinkLater
+          uplink: samplePulseMotion("m8a-v4-selected-pair-link-flow-uplink-pulse-0"),
+          downlink: samplePulseMotion("m8a-v4-selected-pair-link-flow-downlink-pulse-0")
         }
       };
     })()`
   );
 }
 
-function distance(left, right) {
-  return Math.hypot(left.x - right.x, left.y - right.y, left.z - right.z);
-}
-
-function assertMotionChanged(samples, label) {
-  assert(samples[0] && samples[1], `${label} pulse samples must exist.`);
+function assertMotionChanged(sample, label) {
+  assert(sample?.sampledCount > 0, `${label} pulse must produce samples.`);
   assert(
-    distance(samples[0], samples[1]) > 1,
-    `${label} pulse must move when replay time changes: ${JSON.stringify(samples)}`
+    sample.best?.movedMeters > 1,
+    `${label} pulse must move when replay time changes: ${JSON.stringify(sample)}`
   );
 }
 
@@ -244,49 +253,27 @@ async function main() {
 
     writeJsonArtifact(outputRoot, `${VIEWPORT_DESKTOP.name}-inspection.json`, inspection);
 
+    assert(inspection.sceneSourceMode === "tle-first-runtime", "Selected-pair route must use TLE-first runtime scene mode.");
     assert(
-      inspection.documentTelemetry.m8aV4LinkFlowCue ===
-        "m8a-v4-link-flow-direction-cue-runtime.v1",
-      `Document telemetry must expose the link-flow cue: ${JSON.stringify(
-        inspection.documentTelemetry
+        inspection.selectedPairOverlay?.status === "ready" &&
+        inspection.selectedPairOverlay?.sourceMode === "tle-first-runtime" &&
+        inspection.selectedPairOverlay?.runtimeLinkVisible === true &&
+        inspection.selectedPairOverlay?.linkFlowCueCount === EXPECTED_LINK_FLOW_CUE_COUNT,
+      `Selected-pair overlay must expose runtime link-flow readiness: ${JSON.stringify(
+        inspection.selectedPairOverlay
       )}`
     );
     assert(
-      inspection.documentTelemetry.m8aV4LinkFlowCueMode ===
-        "uplink-downlink-arrow-segments-with-moving-packet-trails",
-      `Document telemetry must expose the link-flow mode: ${JSON.stringify(
-        inspection.documentTelemetry
+      inspection.displayOnlyNonClaims.some((nonClaim) =>
+        String(nonClaim).includes("Display lane or label offset only")
+      ),
+      `Selected-pair display transforms must preserve display-only non-claim: ${JSON.stringify(
+        inspection.displayOnlyNonClaims
       )}`
     );
     assert(
-      inspection.documentTelemetry.m8aV4LinkFlowDirections === "uplink|downlink",
-      `Document telemetry must expose both directions: ${JSON.stringify(
-        inspection.documentTelemetry
-      )}`
-    );
-    assert(
-      inspection.documentTelemetry.m8aV4LinkFlowPulseCount === "12",
-      `Document telemetry must expose all flow pulses: ${JSON.stringify(
-        inspection.documentTelemetry
-      )}`
-    );
-    assert(
-      inspection.documentTelemetry.m8aV4LinkFlowTruthBoundary ===
-        "modeled-direction-cue-not-packet-capture-or-measured-throughput",
-      `Document telemetry must preserve truth boundary: ${JSON.stringify(
-        inspection.documentTelemetry
-      )}`
-    );
-    assert(
-      inspection.hudTelemetry.linkFlowCue ===
-        inspection.documentTelemetry.m8aV4LinkFlowCue,
-      `Hidden HUD seam must mirror the link-flow cue: ${JSON.stringify(
-        inspection.hudTelemetry
-      )}`
-    );
-    assert(
-      inspection.segmentEntities.length === 4,
-      `Expected 4 directional link-flow segments: ${JSON.stringify(
+      inspection.segmentEntities.length === EXPECTED_LINK_FLOW_SEGMENT_COUNT,
+      `Expected ${EXPECTED_LINK_FLOW_SEGMENT_COUNT} selected-pair directional link-flow segments: ${JSON.stringify(
         inspection.segmentEntities
       )}`
     );
@@ -295,15 +282,16 @@ async function main() {
         (segment) =>
           segment.materialType === "PolylineArrow" &&
           segment.pointCount === 2 &&
-          String(segment.description).includes("not measured throughput")
+          String(segment.description).includes("Selected-pair") &&
+          String(segment.description).includes("flow cue")
       ),
-      `Every link-flow segment must be a two-point arrow with bounded truth: ${JSON.stringify(
+      `Every selected-pair link-flow segment must be a two-point flow cue: ${JSON.stringify(
         inspection.segmentEntities
       )}`
     );
     assert(
-      inspection.pulseEntities.length === 12,
-      `Expected 12 moving link-flow pulses: ${JSON.stringify(
+      inspection.pulseEntities.length === EXPECTED_LINK_FLOW_PULSE_COUNT,
+      `Expected ${EXPECTED_LINK_FLOW_PULSE_COUNT} moving link-flow pulses: ${JSON.stringify(
         inspection.pulseEntities
       )}`
     );
@@ -319,9 +307,9 @@ async function main() {
           pulse.alignedAxis?.z === 0 &&
           Number(pulse.width) >= 28 &&
           Number(pulse.height) >= 13 &&
-          String(pulse.description).includes("modeled-direction-cue")
+          String(pulse.description).includes("display cue only")
       ),
-      `Every pulse must render as an arrow-packet billboard, not a point: ${JSON.stringify(
+      `Every selected-pair pulse must render as a display-only arrow-packet billboard: ${JSON.stringify(
         inspection.pulseEntities
       )}`
     );
@@ -332,28 +320,8 @@ async function main() {
         inspection.pulseEntities
       )}`
     );
-    assert(
-      inspection.relationMaterialTypes.every(
-        (relation) => relation.materialType !== "PolylineDash"
-      ),
-      `Ground-station/satellite relation ribbons should no longer be only dashed: ${JSON.stringify(
-        inspection.relationMaterialTypes
-      )}`
-    );
-    assertMotionChanged(
-      [
-        inspection.motionSamples.uplinkStart,
-        inspection.motionSamples.uplinkLater
-      ],
-      "UPLINK"
-    );
-    assertMotionChanged(
-      [
-        inspection.motionSamples.downlinkStart,
-        inspection.motionSamples.downlinkLater
-      ],
-      "DOWNLINK"
-    );
+    assertMotionChanged(inspection.motionSamples.uplink, "UPLINK");
+    assertMotionChanged(inspection.motionSamples.downlink, "DOWNLINK");
 
     const screenshot = await captureScreenshot(
       client,

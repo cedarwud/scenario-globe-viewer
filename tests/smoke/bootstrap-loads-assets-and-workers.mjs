@@ -22,6 +22,7 @@ import {
   waitForCondition
 } from "./helpers/bootstrap-smoke-common.mjs";
 import { verifySatelliteOverlayToggle } from "./helpers/bootstrap-satellite-overlay-checks.mjs";
+import { SELECTED_PAIR_DEMO_REQUEST_PATH } from "../../scripts/helpers/demo-routes.mjs";
 
 function resolveSmokeSuite() {
   const requestedSuite = process.argv.find((argument) =>
@@ -362,18 +363,16 @@ function assertHomepageEntryCtaState(layoutState, scenarioLabel) {
   );
   assert(
     typeof layoutState.homepageEntryCtaHref === "string" &&
-      layoutState.homepageEntryCtaHref.startsWith("/?scenePreset=regional") &&
-      layoutState.homepageEntryCtaHref.includes("m8aV4GroundStationScene=1"),
-    `Expected homepage entry CTA to link to the V4 ground-station route during ${scenarioLabel}: ${JSON.stringify(layoutState.homepageEntryCtaHref)}`
+      layoutState.homepageEntryCtaHref === SELECTED_PAIR_DEMO_REQUEST_PATH,
+    `Expected homepage entry CTA to link to the selected-pair route during ${scenarioLabel}: ${JSON.stringify(layoutState.homepageEntryCtaHref)}`
   );
   assert(
     typeof layoutState.homepageEntryCtaAriaLabel === "string" &&
-      /v4/i.test(layoutState.homepageEntryCtaAriaLabel) &&
-      /ground.station/i.test(layoutState.homepageEntryCtaAriaLabel) &&
-      /multi.orbit/i.test(layoutState.homepageEntryCtaAriaLabel) &&
+      /selected.pair/i.test(layoutState.homepageEntryCtaAriaLabel) &&
+      /cross.orbit/i.test(layoutState.homepageEntryCtaAriaLabel) &&
       /taiwan/i.test(layoutState.homepageEntryCtaAriaLabel) &&
-      /singapore/i.test(layoutState.homepageEntryCtaAriaLabel),
-    `Expected homepage entry icon accessible label to name the V4 ground-station route during ${scenarioLabel}: ${JSON.stringify(layoutState.homepageEntryCtaAriaLabel)}`
+      /sansa/i.test(layoutState.homepageEntryCtaAriaLabel),
+    `Expected homepage entry icon accessible label to name the selected-pair route during ${scenarioLabel}: ${JSON.stringify(layoutState.homepageEntryCtaAriaLabel)}`
   );
   assert(
     layoutState.homepageEntryCtaMount === "cesium-toolbar",

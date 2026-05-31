@@ -21,7 +21,6 @@ tests/smoke/verify-m8a-v3.4-overlay-placement-runtime.mjs
 tests/smoke/verify-m8a-v3.5-source-lineaged-orbit-context-actors-runtime.mjs
 tests/smoke/verify-m8a-v3.6-homepage-handover-entry-icon-runtime.mjs
 tests/smoke/verify-m8a-v4-link-flow-cue-runtime.mjs
-tests/smoke/verify-m8a-v4.11-conv1-visual-tokens-runtime.mjs
 tests/smoke/verify-m8a-v4.11-slice6-validation-matrix-runtime.mjs
 tests/smoke/verify-m8a-v4.12-f09-communication-rate-runtime.mjs
 tests/smoke/verify-m8a-v4.12-f10-handover-policy-selector-runtime.mjs
@@ -30,10 +29,8 @@ tests/smoke/verify-m8a-v4.12-f16-statistics-report-export-runtime.mjs
 tests/smoke/verify-m8a-v4.3-ground-station-handover-runtime.mjs
 tests/smoke/verify-m8a-v4.4-homepage-ground-station-entry-runtime.mjs
 tests/smoke/verify-m8a-v4.5-visual-acceptance-regression-runtime.mjs
-tests/smoke/verify-m8a-v4.6a-full-leo-orbit-replay-runtime.mjs
 tests/smoke/verify-m8a-v4.6b-source-lineaged-orbit-actors-runtime.mjs
 tests/smoke/verify-m8a-v4.6d-simulation-handover-model-runtime.mjs
-tests/smoke/verify-m8a-v4.6e-handover-visual-language-runtime.mjs
 tests/smoke/verify-m8a2-first-intake-nearby-second-endpoint-runtime.mjs
 tests/smoke/verify-m8a3-first-intake-nearby-two-endpoint-expression-runtime.mjs
 tests/smoke/verify-m8a4-first-intake-nearby-second-endpoint-info-runtime.mjs

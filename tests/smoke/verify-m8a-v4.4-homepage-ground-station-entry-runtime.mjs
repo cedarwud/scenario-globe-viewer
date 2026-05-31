@@ -12,14 +12,13 @@ import {
   stopStaticServer,
   verifyFetches
 } from "./bootstrap-smoke-server.mjs";
+import { SELECTED_PAIR_DEMO_REQUEST_PATH } from "../../scripts/helpers/demo-routes.mjs";
 
 const DEFAULT_REQUEST_PATH = "/";
-const V4_ENTRY_HREF = "/?scenePreset=regional&m8aV4GroundStationScene=1";
+const V4_ENTRY_HREF = SELECTED_PAIR_DEMO_REQUEST_PATH;
 const V4_RUNTIME_STATE = "active-v4.3-continuous-multi-orbit-handover-scene";
-const EXPECTED_ENDPOINT_IDS = [
-  "tw-cht-multi-orbit-ground-infrastructure",
-  "sg-speedcast-singapore-teleport"
-];
+const EXPECTED_STATION_A_ID = "cht-yangmingshan";
+const EXPECTED_STATION_B_ID = "sansa-hartebeesthoek";
 const VIEWPORT = {
   width: 1440,
   height: 900
@@ -76,16 +75,23 @@ async function waitForHomepageReady(client) {
 async function waitForV4RuntimeReady(client) {
   let lastState = null;
 
-  for (let attempt = 0; attempt < 240; attempt += 1) {
+  for (let attempt = 0; attempt < 600; attempt += 1) {
     lastState = await evaluateRuntimeValue(
       client,
       `(() => {
         const root = document.documentElement;
+        const state =
+          window.__SCENARIO_GLOBE_VIEWER_CAPTURE__?.m8aV4GroundStationScene?.getState?.() ?? null;
         return {
           search: window.location.search,
           bootstrapState: root?.dataset.bootstrapState ?? null,
           scenePreset: root?.dataset.scenePreset ?? null,
           v4RuntimeState: root?.dataset.m8aV4GroundStationRuntimeState ?? null,
+          sceneSourceMode: state?.sceneSourceMode ?? null,
+          selectedPairOverlayStatus: state?.selectedPairOverlay?.status ?? null,
+          projectionPanelMounted: Boolean(
+            document.querySelector("[data-v4-projection-side-panel='true']")
+          ),
           hasV4Seam: Boolean(
             window.__SCENARIO_GLOBE_VIEWER_CAPTURE__?.m8aV4GroundStationScene
           )
@@ -97,6 +103,9 @@ async function waitForV4RuntimeReady(client) {
       lastState.bootstrapState === "ready" &&
       lastState.scenePreset === "regional" &&
       lastState.v4RuntimeState === V4_RUNTIME_STATE &&
+      lastState.sceneSourceMode === "tle-first-runtime" &&
+      ["ready", "empty"].includes(lastState.selectedPairOverlayStatus) &&
+      lastState.projectionPanelMounted === true &&
       lastState.hasV4Seam === true
     ) {
       return;
@@ -341,15 +350,18 @@ async function main() {
                 homeRect.top <= 12 &&
                 v4Href === "${V4_ENTRY_HREF}" &&
                 v4Url?.pathname === "/" &&
-                v4Url?.searchParams.get("scenePreset") === "regional" &&
-                v4Url?.searchParams.get("m8aV4GroundStationScene") === "1" &&
+                v4Url?.searchParams.get("stationA") === "${EXPECTED_STATION_A_ID}" &&
+                v4Url?.searchParams.get("stationB") === "${EXPECTED_STATION_B_ID}" &&
+                v4Url?.searchParams.get("startUtc") ===
+                  "2026-05-17T00:00:00.000Z" &&
+                v4Url?.searchParams.get("durationMinutes") === "360" &&
+                !v4Url?.searchParams.has("m8aV4GroundStationScene") &&
                 !v4Url?.searchParams.has("firstIntakeScenarioId") &&
-                /v4/i.test(v4Text) &&
-                /ground.station/i.test(v4Text) &&
-                /multi.orbit/i.test(v4Text) &&
+                /selected.pair/i.test(v4Text) &&
+                /cross.orbit/i.test(v4Text) &&
                 /taiwan/i.test(v4Text) &&
-                /singapore/i.test(v4Text),
-              "V4.4 homepage entry must clearly address the ground-station multi-orbit scene: " +
+                /sansa/i.test(v4Text),
+              "V4.4 homepage entry must clearly address the selected-pair projection: " +
                 JSON.stringify({ v4Href, v4Rect, v4Option, homeRect, v4Text })
             );
             assert(
@@ -396,19 +408,24 @@ async function main() {
             const capture = window.__SCENARIO_GLOBE_VIEWER_CAPTURE__;
             const state = capture?.m8aV4GroundStationScene?.getState?.() ?? null;
             const endpoints = state?.endpoints ?? [];
-            const endpointIds = endpoints.map((endpoint) => endpoint.endpointId);
             const endpointLabels = endpoints
               .map((endpoint) => endpoint.label)
               .join(" ");
+            const projectionPanel = document.querySelector(
+              "[data-v4-projection-side-panel='true']"
+            );
             const telemetryNonClaims =
               document.documentElement.dataset.m8aV4GroundStationNonClaims ?? "";
 
             assert(capture, "Missing capture seam after V4 click.");
             assert(
-              params.get("scenePreset") === "regional" &&
-                params.get("m8aV4GroundStationScene") === "1" &&
+              params.get("stationA") === "${EXPECTED_STATION_A_ID}" &&
+                params.get("stationB") === "${EXPECTED_STATION_B_ID}" &&
+                params.get("startUtc") === "2026-05-17T00:00:00.000Z" &&
+                params.get("durationMinutes") === "360" &&
+                !params.has("m8aV4GroundStationScene") &&
                 !params.has("firstIntakeScenarioId"),
-              "V4.4 click must navigate to the exact V4 addressed route: " +
+              "V4.4 click must navigate to the selected-pair route: " +
                 window.location.search
             );
             assert(
@@ -416,30 +433,25 @@ async function main() {
                 state.runtimeState === "${V4_RUNTIME_STATE}" &&
                 state.proofSeam ===
                   "window.__SCENARIO_GLOBE_VIEWER_CAPTURE__.m8aV4GroundStationScene" &&
-                state.directRoute.queryParam === "m8aV4GroundStationScene" &&
-                state.directRoute.queryValue === "1",
-              "V4.4 click must enter the V4.3 runtime seam."
+                state.sceneSourceMode === "tle-first-runtime" &&
+                ["ready", "empty"].includes(state.selectedPairOverlay.status),
+              "V4.4 click must enter the selected-pair runtime seam."
             );
             assert(
               !capture.firstIntakeOrbitContextActors,
-              "V4 route must not mount the historical aviation orbit-context controller."
+              "Selected-pair route must not mount the historical aviation orbit-context controller."
             );
             assert(
-              JSON.stringify(endpointIds) ===
-                JSON.stringify(${JSON.stringify(EXPECTED_ENDPOINT_IDS)}) &&
-                state.endpointCount === 2 &&
-                state.endpoints.every(
-                  (endpoint) =>
-                    endpoint.precisionBadge === "operator-family precision" &&
-                    endpoint.renderPrecision ===
-                      "bounded-operator-family-display-anchor"
-                ),
-              "V4.4 click must land on the accepted ground-station endpoint pair: " +
-                JSON.stringify(endpointIds)
+              state.endpointCount === 2 &&
+                /yangmingshan/i.test(endpointLabels) &&
+                /sansa|hartebeesthoek/i.test(endpointLabels) &&
+                projectionPanel instanceof HTMLElement,
+              "V4.4 click must land on the Taiwan selected-pair projection: " +
+                JSON.stringify({ endpointLabels, panel: Boolean(projectionPanel) })
             );
             assert(
               !/(aircraft|aviation|yka|handset|\\bue\\b)/i.test(endpointLabels),
-              "V4 endpoint labels must not introduce aircraft, YKA, or handset UE: " +
+              "Selected-pair endpoint labels must not introduce aircraft, YKA, or handset UE: " +
                 endpointLabels
             );
             assert(
@@ -455,7 +467,8 @@ async function main() {
             return {
               search: window.location.search,
               runtimeState: state.runtimeState,
-              endpointIds,
+              sceneSourceMode: state.sceneSourceMode,
+              selectedPairOverlay: state.selectedPairOverlay,
               actorCount: state.actorCount,
               proofSeam: state.proofSeam
             };

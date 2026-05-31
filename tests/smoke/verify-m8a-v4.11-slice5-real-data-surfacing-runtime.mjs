@@ -3,6 +3,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 import {
+  assert,
   captureScreenshot,
   ensureOutputRoot,
   evaluateRuntimeValue,
@@ -12,135 +13,133 @@ import {
   withStaticSmokeBrowser,
   writeJsonArtifact
 } from "./helpers/m8a-v4-browser-capture-harness.mjs";
+import { SELECTED_PAIR_DEMO_REQUEST_PATH } from "../../scripts/helpers/demo-routes.mjs";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const repoRoot = path.resolve(__dirname, "../..");
-const outputRoot = path.join(repoRoot, "output/m8a-v4.11-slice5");
+const outputRoot = path.join(repoRoot, "output/selected-pair-source-report");
 
-const REQUEST_PATH = "/?scenePreset=regional&m8aV4GroundStationScene=1";
-const EXPECTED_ENDPOINT_PAIR_ID =
-  "taiwan-cht-speedcast-singapore-operator-family-2026-04-26";
-const EXPECTED_PRECISION = "operator-family-only";
-const EXPECTED_MODEL_ID = "m8a-v4.6d-simulation-handover-model.v1";
-const EXPECTED_MODEL_TRUTH = "simulation-output-not-operator-log";
-const EXPECTED_SOURCE_PROJECTION = "M8A_V4_GROUND_STATION_RUNTIME_PROJECTION";
-const EXPECTED_GLANCE_VERSION =
-  "m8a-v4.11-glance-rank-surface-slice1-runtime.v1";
-const EXPECTED_HOVER_VERSION =
-  "m8a-v4.11-hover-popover-slice2-runtime.v1";
-const EXPECTED_CONCURRENCY_VERSION =
-  "m8a-v4.11-inspector-concurrency-slice3-runtime.v1";
-const EXPECTED_TRANSIENT_VERSION =
-  "m8a-v4.11-transition-toast-slice4-runtime.v1";
-const EXPECTED_SOURCES_VERSION =
-  "m8a-v4.11-sources-role-slice5-runtime.v1";
-const EXPECTED_SEQUENCE_WINDOW_IDS = [
-  "leo-acquisition-context",
-  "leo-aging-pressure",
-  "meo-continuity-hold",
-  "leo-reentry-candidate",
-  "geo-continuity-guard"
+const REQUEST_PATH = SELECTED_PAIR_DEMO_REQUEST_PATH;
+const EXPECTED_SCENE_SOURCE_MODE = "tle-first-runtime";
+const EXPECTED_SOURCE_TIER = "geometric-derived";
+const EXPECTED_EVIDENCE_KIND = "cross-family-geometric";
+const EXPECTED_STATION_IDS = ["cht-yangmingshan", "sansa-hartebeesthoek"];
+const EXPECTED_TLE_SOURCE_IDS = ["tle:leo", "tle:meo", "tle:geo"];
+const EXPECTED_REPORT_TABS = [
+  "Summary",
+  "Visibility",
+  "Handover",
+  "Sources",
+  "Models",
+  "Raw data"
 ];
-const EXPECTED_ACTOR_COUNTS = { leo: 6, meo: 5, geo: 2 };
-const EXPECTED_TLE_RECORDS = [
-  "ONEWEB-0386",
-  "ONEWEB-0537",
-  "ONEWEB-0701",
-  "ONEWEB-0012",
-  "ONEWEB-0249",
-  "ONEWEB-0702",
-  "O3B MPOWER F6",
-  "O3B MPOWER F1",
-  "O3B MPOWER F2",
-  "O3B MPOWER F4",
-  "O3B MPOWER F3",
-  "ST-2",
-  "SES-9"
+const EXPECTED_SOURCE_HEADINGS = [
+  "Source boundary",
+  "Pair source non-claims",
+  "Station coordinate and elevation sources",
+  "TLE source manifest",
+  "Runtime inventory"
 ];
-const EXPECTED_R2_STATION_FRAGMENTS = [
-  "Taiwan site-level CHT earth-station family",
-  "Thailand NT Sirindhorn OneWeb SNP Gateway",
-  "Singapore Singtel Bukit Timah Satellite Earth Station",
-  "Japan KDDI Yamaguchi / SoftBank OneWeb country family",
-  "Korea KT SAT Kumsan / OneWeb terminal ecosystem"
+const EXPECTED_MODEL_HEADINGS = [
+  "Assumptions and limits",
+  "Standards used",
+  "Modeled outputs",
+  "Handover policy gates",
+  "RF chain"
+];
+const EXPECTED_STANDARD_TEXT = [
+  "3GPP TR 38.821",
+  "3GPP TR 38.811",
+  "ITU-R P.618-14",
+  "ITU-R P.676-13"
+];
+const FORBIDDEN_POSITIVE_PHRASES = [
+  "operator-validated",
+  "operator validated",
+  "operator-stated capability",
+  "operator stated capability",
+  "real operator handover event",
+  "operator handover log",
+  "active gateway assignment",
+  "pair-specific teleport path",
+  "measured latency",
+  "measured jitter",
+  "measured throughput",
+  "native RF handover",
+  "operator event time"
 ];
 const VIEWPORT = {
   name: "desktop-1440x900",
   width: 1440,
-  height: 900
+  height: 900,
+  screenshot: "source-report-drawer-open.png"
 };
-const FORBIDDEN_POSITIVE_PHRASES = [
-  "real operator handover event",
-  "operator handover log",
-  "active serving satellite",
-  "serving satellite",
-  "active gateway assignment",
-  "active gateway",
-  "active path",
-  "active service",
-  "pair-specific teleport path",
-  "teleport path",
-  "native rf handover",
-  "measured latency",
-  "measured jitter",
-  "measured throughput",
-  "measured continuity",
-  "live network time",
-  "operator event time",
-  "r2 runtime selector"
-];
-const FORBIDDEN_UNIT_PATTERNS = [
-  /\b\d+(?:\.\d+)?\s*ms\b/i,
-  /\b\d+(?:\.\d+)?\s*Mbps\b/i,
-  /\b\d+(?:\.\d+)?\s*Gbps\b/i,
-  /\bmeasured\s+\d+(?:\.\d+)?\s*%/i
-];
 
-function assert(condition, message) {
-  if (!condition) {
-    throw new Error(message);
-  }
+function serializeRelative(absolutePath) {
+  return path.relative(repoRoot, absolutePath);
 }
 
-function assertListEquals(actual, expected, label) {
+function assertScreenshot(absolutePath) {
+  const stats = statSync(absolutePath);
   assert(
-    JSON.stringify(actual) === JSON.stringify(expected),
-    `${label} mismatch: ${JSON.stringify({ actual, expected })}`
+    stats.size > 10_000,
+    `Selected-pair source report screenshot is unexpectedly small: ${JSON.stringify({
+      path: serializeRelative(absolutePath),
+      size: stats.size
+    })}`
   );
 }
 
-function collectProjectionUrls() {
-  const sources = [
-    "src/runtime/m8a-v4-ground-station-projection.ts",
-    "public/fixtures/ground-station-projections/m8a-v4.6b-taiwan-cht-speedcast-singapore-source-lineaged-orbit-actors-2026-04-28.json"
-  ].map((relativePath) =>
-    readFileSync(path.join(repoRoot, relativePath), "utf8")
-  );
-  const urls = new Set();
+function collectPositiveClaimHits(text) {
+  const sourceText = String(text ?? "");
+  const lowered = sourceText.toLowerCase();
+  const hits = [];
+  const isNegated = (index) => {
+    const prefix = sourceText
+      .slice(Math.max(0, index - 180), index)
+      .toLowerCase();
 
-  for (const source of sources) {
-    for (const match of source.matchAll(/https:\/\/[^"\\\s]+/g)) {
-      urls.add(match[0]);
+    return /\b(no|not|without|forbidden|must not|does not claim|not claimed|non-claim|not measured)\b/.test(
+      prefix
+    );
+  };
+
+  for (const phrase of FORBIDDEN_POSITIVE_PHRASES) {
+    const needle = phrase.toLowerCase();
+    let index = lowered.indexOf(needle);
+
+    while (index !== -1) {
+      if (!isNegated(index)) {
+        hits.push({
+          phrase,
+          context: sourceText
+            .slice(Math.max(0, index - 100), index + needle.length + 100)
+            .replace(/\s+/g, " ")
+            .trim()
+        });
+      }
+
+      index = lowered.indexOf(needle, index + needle.length);
     }
   }
 
-  return urls;
+  return hits;
 }
 
-function assertNoRuntimeRawSourceRead() {
+function assertNoLiveExternalSourceRead() {
   const runtimeSources = [
-    "src/runtime/m8a-v4-ground-station-handover-scene-controller.ts",
-    "src/runtime/m8a-v411-glance-rank-surface.ts",
-    "src/runtime/m8a-v411-hover-popover.ts",
-    "src/runtime/m8a-v411-inspector-concurrency.ts",
-    "src/runtime/m8a-v411-transition-toast.ts",
-    "src/runtime/m8a-v411-sources-role.ts"
+    "src/features/multi-station-selector/runtime-projection.ts",
+    "src/features/multi-station-selector/runtime-data-completeness.ts",
+    "src/features/multi-station-selector/runtime-projection-evidence-report.ts",
+    "src/features/multi-station-selector/v4-projection-evidence-drawer.ts",
+    "src/features/multi-station-selector/v4-projection-side-panel.ts",
+    "src/features/multi-station-selector/v4-projection-report-actions.ts",
+    "src/runtime/m8a-v4-ground-station-selected-pair-layer.ts"
   ];
   const forbiddenPatterns = [
-    /itri\/multi-orbit\/download/i,
     /fetch\([^)]*celestrak\.org/i,
-    /new\s+URL\([^)]*celestrak\.org/i
+    /https?:\/\/(?:www\.)?celestrak\.org/i
   ];
   const hits = [];
 
@@ -156,83 +155,41 @@ function assertNoRuntimeRawSourceRead() {
 
   assert(
     hits.length === 0,
-    "Slice 5 runtime must not side-read raw customer files or live CelesTrak: " +
+    "Selected-pair source report runtime must use bundled source artifacts, not live external source reads: " +
       JSON.stringify(hits)
   );
 }
 
-function collectPositiveClaimHits(text) {
-  const sourceText = String(text ?? "");
-  const lowered = sourceText.toLowerCase();
-  const hits = [];
-  const isNegated = (index) => {
-    const prefix = sourceText
-      .slice(Math.max(0, index - 140), index)
-      .toLowerCase();
-
-    return /\b(no|not|without|forbidden|must not|does not claim|not claimed|non-claim)\b/.test(
-      prefix
-    );
-  };
-
-  for (const phrase of FORBIDDEN_POSITIVE_PHRASES) {
-    const needle = phrase.toLowerCase();
-    let index = lowered.indexOf(needle);
-
-    while (index !== -1) {
-      if (!isNegated(index)) {
-        hits.push({
-          phrase,
-          context: sourceText
-            .slice(Math.max(0, index - 80), index + needle.length + 80)
-            .replace(/\s+/g, " ")
-            .trim()
-        });
-      }
-
-      index = lowered.indexOf(needle, index + needle.length);
-    }
-  }
-
-  return hits;
-}
-
-function assertForbiddenClaimsClean(text, label) {
-  const positiveClaimHits = collectPositiveClaimHits(text);
-  const forbiddenUnitHits = FORBIDDEN_UNIT_PATTERNS.filter((pattern) =>
-    pattern.test(text)
-  ).map((pattern) => pattern.toString());
-
-  assert(
-    positiveClaimHits.length === 0 && forbiddenUnitHits.length === 0,
-    `${label} contains a promoted product claim or measured precision: ` +
-      JSON.stringify({ positiveClaimHits, forbiddenUnitHits, text })
-  );
-}
-
-async function waitForBootstrapReady(client) {
+async function waitForSelectedPairSourceReportReady(client) {
   let lastState = null;
 
   for (let attempt = 0; attempt < 240; attempt += 1) {
     lastState = await evaluateRuntimeValue(
       client,
       `(() => {
-        const root = document.documentElement;
-        const productRoot = document.querySelector("[data-m8a-v47-product-ux='true']");
+        const capture = window.__SCENARIO_GLOBE_VIEWER_CAPTURE__;
+        const state = capture?.m8aV4GroundStationScene?.getState?.();
+        const panel = document.querySelector("[data-v4-projection-side-panel='true']");
+        const drawer = document.getElementById("v4-selected-pair-evidence");
+        const trigger = panel?.querySelector(".v4-projection-side-panel__evidence-button");
+        const reportButtons = Array.from(
+          document.querySelectorAll(".v4-projection-side-panel__download-report[data-report-action='open-html']")
+        );
 
         return {
-          bootstrapState: root?.dataset.bootstrapState ?? null,
-          scenePreset: root?.dataset.scenePreset ?? null,
-          glance: productRoot?.dataset.m8aV411GlanceRankSurface ?? null,
-          hover: productRoot?.dataset.m8aV411HoverPopover ?? null,
-          concurrency:
-            productRoot?.dataset.m8aV411InspectorConcurrency ?? null,
-          transient:
-            productRoot?.dataset.m8aV411TransientSurface ?? null,
-          sources: productRoot?.dataset.m8aV411SourcesRole ?? null,
-          hasCapture: Boolean(
-            window.__SCENARIO_GLOBE_VIEWER_CAPTURE__?.m8aV4GroundStationScene
-          )
+          bootstrapState: document.documentElement?.dataset.bootstrapState ?? null,
+          scenePreset: document.documentElement?.dataset.scenePreset ?? null,
+          route: window.location.pathname + window.location.search,
+          hasViewer: Boolean(capture?.viewer),
+          hasScene: Boolean(state),
+          sceneSourceMode: state?.sceneSourceMode ?? null,
+          selectedPairOverlayStatus: state?.selectedPairOverlay?.status ?? null,
+          panelState: panel?.dataset.state ?? null,
+          sourceTier: panel?.dataset.sourceTier ?? null,
+          drawerExists: drawer instanceof HTMLElement,
+          drawerHidden: drawer instanceof HTMLElement ? drawer.hidden : null,
+          triggerExists: trigger instanceof HTMLButtonElement,
+          reportButtonCount: reportButtons.length
         };
       })()`
     );
@@ -240,19 +197,24 @@ async function waitForBootstrapReady(client) {
     if (
       lastState?.bootstrapState === "ready" &&
       lastState?.scenePreset === "regional" &&
-      lastState?.glance === EXPECTED_GLANCE_VERSION &&
-      lastState?.hover === EXPECTED_HOVER_VERSION &&
-      lastState?.concurrency === EXPECTED_CONCURRENCY_VERSION &&
-      lastState?.transient === EXPECTED_TRANSIENT_VERSION &&
-      lastState?.sources === EXPECTED_SOURCES_VERSION &&
-      lastState?.hasCapture === true
+      lastState?.route === REQUEST_PATH &&
+      lastState?.hasViewer &&
+      lastState?.hasScene &&
+      lastState?.sceneSourceMode === EXPECTED_SCENE_SOURCE_MODE &&
+      lastState?.selectedPairOverlayStatus === "ready" &&
+      lastState?.panelState === "ready" &&
+      lastState?.sourceTier === EXPECTED_SOURCE_TIER &&
+      lastState?.drawerExists &&
+      lastState?.drawerHidden === true &&
+      lastState?.triggerExists &&
+      lastState?.reportButtonCount >= 1
     ) {
       return lastState;
     }
 
     if (lastState?.bootstrapState === "error") {
       throw new Error(
-        `M8A-V4.11 Slice 5 route hit bootstrap error: ${JSON.stringify(
+        `Selected-pair source report route hit bootstrap error: ${JSON.stringify(
           lastState
         )}`
       );
@@ -262,586 +224,409 @@ async function waitForBootstrapReady(client) {
   }
 
   throw new Error(
-    `M8A-V4.11 Slice 5 did not reach a ready route: ${JSON.stringify(
+    `Selected-pair source report route did not become ready: ${JSON.stringify(
       lastState
     )}`
   );
 }
 
-async function navigateAndWait(client, baseUrl) {
-  await client.send("Page.navigate", { url: `${baseUrl}${REQUEST_PATH}` });
-  await waitForBootstrapReady(client);
-  await waitForGlobeReady(client, "M8A-V4.11 Slice 5");
-}
-
-async function clickSelector(client, selector, label) {
+async function openEvidenceDrawer(client) {
   await evaluateRuntimeValue(
     client,
-    `((selector, label) => {
-      const target = document.querySelector(selector);
-
-      if (!(target instanceof HTMLElement)) {
-        throw new Error("Missing click target: " + label);
+    `(() => {
+      const trigger = document.querySelector(".v4-projection-side-panel__evidence-button");
+      if (!(trigger instanceof HTMLButtonElement)) {
+        throw new Error("Missing selected-pair Details & sources trigger.");
       }
-
-      target.click();
-    })(${JSON.stringify(selector)}, ${JSON.stringify(label)})`
+      trigger.click();
+    })()`
   );
   await sleep(180);
 }
 
-async function inspectRuntime(client, label = "inspection") {
+async function captureReportAndSourceState(client) {
   return await evaluateRuntimeValue(
     client,
-    `((label) => {
+    `(async () => {
       const normalize = (value) => (value ?? "").replace(/\\s+/g, " ").trim();
       const isVisible = (element) => {
         if (!(element instanceof HTMLElement)) {
           return false;
         }
-
         const style = getComputedStyle(element);
         const rect = element.getBoundingClientRect();
-
         return (
           element.hidden !== true &&
           style.display !== "none" &&
           style.visibility !== "hidden" &&
-          Number(style.opacity) > 0 &&
           rect.width > 0 &&
           rect.height > 0
         );
       };
-      const rectToPlain = (rect) => ({
-        left: rect.left,
-        top: rect.top,
-        right: rect.right,
-        bottom: rect.bottom,
-        width: rect.width,
-        height: rect.height
-      });
-      const elementRecord = (element) => ({
-        exists: element instanceof HTMLElement,
-        visible: isVisible(element),
-        hidden: element instanceof HTMLElement ? element.hidden : null,
-        rect: element instanceof HTMLElement
-          ? rectToPlain(element.getBoundingClientRect())
-          : null,
-        text: element instanceof HTMLElement ? normalize(element.innerText) : ""
-      });
-      const parseFilter = (value) => {
-        try {
-          return JSON.parse(value || "{}");
-        } catch {
-          return {};
-        }
-      };
+      const drawer = document.getElementById("v4-selected-pair-evidence");
+      const button = drawer?.querySelector(
+        ".v4-projection-side-panel__download-report[data-report-action='open-html']"
+      );
+      if (!(drawer instanceof HTMLElement)) {
+        throw new Error("Missing selected-pair evidence drawer.");
+      }
+      if (!(button instanceof HTMLButtonElement)) {
+        throw new Error("Missing selected-pair source report button.");
+      }
 
       const capture = window.__SCENARIO_GLOBE_VIEWER_CAPTURE__;
-      const state = capture?.m8aV4GroundStationScene?.getState?.();
-      const productRoot = document.querySelector("[data-m8a-v47-product-ux='true']");
-      const sheet = productRoot?.querySelector("[data-m8a-v47-ui-surface='inspection-sheet']");
-      const stateRole = productRoot?.querySelector("[data-m8a-v411-inspector-role='state-evidence']");
-      const truthRole = productRoot?.querySelector("[data-m8a-v411-inspector-role='truth-boundary']");
-      const sourcesRole = productRoot?.querySelector("[data-m8a-v411-inspector-role='sources']");
-      const advancedSourcesToggle = productRoot?.querySelector("[data-m8a-v411-advanced-sources-toggle='true']");
-      const provenanceBadge = productRoot?.querySelector("[data-m8a-v411-provenance-badge='true']");
-      // Conv 3: footer chip system replaces corner badge content
-      const footerChipRow = productRoot?.querySelector("[data-m8a-v411-footer-chip-row='true']");
-      const footerTleChip = footerChipRow?.querySelector("[data-m8a-v411-footer-chip='tle-source']");
-      const boundaryStrip = productRoot?.querySelector("[data-m8a-v411-inspector-boundary-strip='true']");
-      const validationBadge = productRoot?.querySelector("[data-m8a-v411-inspector-validation-badge='true']");
-      const evidenceArchive = productRoot?.querySelector("[data-m8a-v411-evidence-archive='true']");
-      const sourceFilter = parseFilter(sourcesRole?.dataset.m8aV411SourcesFilter);
-      const tleRows = Array.from(
-        sourcesRole?.querySelectorAll("[data-m8a-v411-sources-tle-row='true']") ?? []
-      ).map((row) => ({
-        actorId: row.dataset.m8aV411SourcesActorId ?? "",
-        orbitClass: row.dataset.m8aV411SourcesOrbitClass ?? "",
-        sourceRecordName: row.dataset.m8aV411SourcesRecordName ?? "",
-        fetchedAtUtc: row.dataset.m8aV411SourcesFetchedAtUtc ?? "",
-        url: row.dataset.m8aV411SourcesUrl ?? "",
-        text: normalize(row.textContent)
-      }));
-      const groundRows = Array.from(
-        sourcesRole?.querySelectorAll("[data-m8a-v411-sources-ground-evidence-row='true']") ?? []
-      ).map((row) => ({
-        endpointId: row.dataset.m8aV411SourcesEndpointId ?? "",
-        orbitClass: row.dataset.m8aV411SourcesOrbitClass ?? "",
-        sourceRefId: row.dataset.m8aV411SourcesSourceRefId ?? "",
-        sourceLevel: row.dataset.m8aV411SourcesSourceLevel ?? "",
-        url: row.dataset.m8aV411SourcesUrl ?? "",
-        text: normalize(row.textContent)
-      }));
-      const groundSections = Array.from(
-        sourcesRole?.querySelectorAll("[data-m8a-v411-sources-ground-station='true']") ?? []
-      ).map((section) => ({
-        endpointId: section.dataset.m8aV411SourcesEndpointId ?? "",
-        open: section instanceof HTMLDetailsElement ? section.open : false,
-        text: normalize(section.textContent)
-      }));
-      const r2Rows = Array.from(
-        sourcesRole?.querySelectorAll("[data-m8a-v411-sources-r2-row='true']") ?? []
-      ).map((row) => ({
-        candidateId: row.dataset.m8aV411SourcesR2CandidateId ?? "",
-        status: row.dataset.m8aV411SourcesR2Status ?? "",
-        readOnly: row.dataset.m8aV411SourcesR2ReadOnly ?? "",
-        text: normalize(row.textContent)
-      }));
-      const anchors = Array.from(
-        sourcesRole?.querySelectorAll("a[href]") ?? []
-      ).map((anchor) => anchor.href);
-      const r2InteractiveControls = Array.from(
-        sourcesRole?.querySelectorAll(
-          "[data-m8a-v411-sources-r2-section='true'] button, [data-m8a-v411-sources-r2-section='true'] select, [data-m8a-v411-sources-r2-section='true'] input, [data-m8a-v411-sources-r2-section='true'] [data-m8a-v47-action]"
-        ) ?? []
-      ).length;
-      const directSourceActions = Array.from(
-        productRoot?.querySelectorAll("[data-m8a-v47-action='open-sources']") ?? []
-      ).map((target) => ({
-        text: normalize(target.textContent),
-        trigger: target.dataset.m8aV411SourcesTrigger ?? "",
-        role: target.getAttribute("role"),
-        tabIndex: target instanceof HTMLElement ? target.tabIndex : null
-      }));
-      const groundSourceTriggers = Array.from(
-        productRoot?.querySelectorAll("[data-m8a-v411-ground-station-chip='true'] [data-m8a-v411-sources-trigger], [data-m8a-v411-ground-station-chip='true'] [data-m8a-v47-action='open-sources']") ?? []
-      ).map((target) => ({
-        endpointId: target.dataset.m8aV411SourcesEndpointId ?? "",
-        orbitClass: target.dataset.m8aV411SourcesOrbitClass ?? "",
-        trigger: target.dataset.m8aV411SourcesTrigger ?? "",
-        action: target.dataset.m8aV47Action ?? "",
-        text: normalize(target.textContent)
-      }));
+      const sceneState = capture?.m8aV4GroundStationScene?.getState?.();
+      const projection = sceneState?.selectedPairOverlay ?? null;
+      const sourceBoundary = drawer.querySelector("[data-disclosure='sources-non-claims']");
+      if (sourceBoundary instanceof HTMLDetailsElement) {
+        sourceBoundary.open = true;
+      }
+
+      const originalOpen = window.open;
+      let reportHtml = "";
+      let focused = false;
+      const fakeWindow = {
+        document: {
+          open() {
+            reportHtml = "";
+          },
+          write(value) {
+            reportHtml += String(value);
+          },
+          close() {}
+        },
+        focus() {
+          focused = true;
+        },
+        set opener(value) {
+          this._opener = value;
+        },
+        get opener() {
+          return this._opener;
+        },
+        _opener: "unchanged"
+      };
+
+      try {
+        window.open = (url, target, features) => {
+          fakeWindow.openArgs = { url, target, features };
+          return fakeWindow;
+        };
+        button.click();
+        await new Promise((resolve) => setTimeout(resolve, 0));
+      } finally {
+        window.open = originalOpen;
+      }
+
+      const reportDoc = new DOMParser().parseFromString(reportHtml, "text/html");
+      const textOf = (selector) => normalize(reportDoc.querySelector(selector)?.textContent);
+      const rowsIn = (selector) =>
+        Array.from(reportDoc.querySelectorAll(selector + " tbody tr")).map((row) =>
+          Array.from(row.querySelectorAll("td")).map((cell) => normalize(cell.textContent))
+        );
+      const headingTexts = (selector) =>
+        Array.from(reportDoc.querySelectorAll(selector + " h3")).map((heading) =>
+          normalize(heading.textContent)
+        );
+      const tabLabels = Array.from(reportDoc.querySelectorAll("[data-tab-target]")).map(
+        (tab) => normalize(tab.textContent).replace(/\\s*\\(.*\\)$/u, "")
+      );
       const resourceHits = performance
         .getEntriesByType("resource")
         .map((entry) => entry.name)
-        .filter((name) =>
-          /itri\\/multi-orbit\\/download|celestrak\\.org/i.test(name)
-        );
-      const fontSize = Number.parseFloat(
-        getComputedStyle(document.documentElement).fontSize || "16"
-      );
-      const inspectorBudgetHeight = window.innerHeight - 9.5 * fontSize;
+        .filter((name) => /celestrak\\.org/i.test(name));
+      const reportText = normalize(reportDoc.body?.textContent);
 
       return {
-        label,
-        rootDataset: {
-          glance: productRoot?.dataset.m8aV411GlanceRankSurface ?? null,
-          hover: productRoot?.dataset.m8aV411HoverPopover ?? null,
-          concurrency:
-            productRoot?.dataset.m8aV411InspectorConcurrency ?? null,
-          transient:
-            productRoot?.dataset.m8aV411TransientSurface ?? null,
-          sources: productRoot?.dataset.m8aV411SourcesRole ?? null,
-          sourcesState: productRoot?.dataset.m8aV411SourcesRoleState ?? null,
-          sourcesFilter: parseFilter(productRoot?.dataset.m8aV411SourcesFilter),
-          inspectorRoles: productRoot?.dataset.m8aV411InspectorRoles ?? "",
-          combinedOpen: productRoot?.dataset.m8aV411InspectorCombinedOpen ?? null,
-          sourcesAffordance:
-            productRoot?.dataset.m8aV411SourcesAffordance ?? "",
-          pinnedHoverRole: productRoot?.dataset.m8aV411PinnedHoverRole ?? "",
-          pinnedSourcesTrigger:
-            productRoot?.dataset.m8aV411PinnedSourcesTrigger ?? ""
+        route: window.location.pathname + window.location.search,
+        sceneSourceMode: sceneState?.sceneSourceMode ?? null,
+        report: {
+          htmlLength: reportHtml.length,
+          openArgs: fakeWindow.openArgs ?? null,
+          focused,
+          openerValue: fakeWindow._opener,
+          filename: reportDoc.body?.dataset.reportFilename ?? null,
+          tabLabels,
+          text: reportText,
+          sourceHeadings: headingTexts("#sources"),
+          modelHeadings: headingTexts("#models"),
+          summaryText: textOf("#summary"),
+          sourcesText: textOf("#sources"),
+          modelsText: textOf("#models"),
+          runtimeText: textOf("#runtime"),
+          sourceBoundaryRows: rowsIn("#sources .table-wrap:nth-of-type(1)"),
+          stationRows: rowsIn("#sources .table-wrap:nth-of-type(2)"),
+          tleRows: rowsIn("#sources .table-wrap:nth-of-type(3)"),
+          inventoryRows: rowsIn("#sources .table-wrap:nth-of-type(4)"),
+          modeledOutputRows: rowsIn("#models .table-wrap:nth-of-type(1)"),
+          policyRows: rowsIn("#models .table-wrap:nth-of-type(2)"),
+          rfRows: rowsIn("#models .table-wrap:nth-of-type(3)"),
+          actorRows: rowsIn("#runtime .table-wrap:nth-of-type(1)"),
+          visibilityRows: rowsIn("#runtime .table-wrap:nth-of-type(2)")
         },
-        stateFacts: {
-          endpointPairId: state?.simulationHandoverModel?.endpointPairId ?? null,
-          acceptedPairPrecision:
-            state?.simulationHandoverModel?.acceptedPairPrecision ?? null,
-          modelId: state?.simulationHandoverModel?.modelId ?? null,
-          modelTruth: state?.simulationHandoverModel?.modelTruth ?? null,
-          route: state?.simulationHandoverModel?.route ?? null,
-          sourceLineage: state?.sourceLineage ?? null,
-          actorCount: state?.actorCount ?? null,
-          orbitActorCounts: state?.orbitActorCounts ?? null,
-          timelineWindowIds: state?.simulationHandoverModel?.timelineWindowIds ?? [],
-          disclosure: state?.productUx?.disclosure ?? null
+        drawer: {
+          visible: isVisible(drawer),
+          sourceBoundaryOpen:
+            sourceBoundary instanceof HTMLDetailsElement ? sourceBoundary.open : null,
+          sourceBoundaryText:
+            sourceBoundary instanceof HTMLElement ? normalize(sourceBoundary.innerText) : ""
         },
-        sheet: elementRecord(sheet),
-        tabs: Array.from(
-          productRoot?.querySelectorAll("[data-m8a-v411-inspector-tab]") ?? []
-        ).map((tab) => ({
-          id: tab.dataset.m8aV411InspectorTab ?? "",
-          text: normalize(tab.textContent)
-        })),
-        boundaryStrip: elementRecord(boundaryStrip),
-        validationBadge: elementRecord(validationBadge),
-        evidenceArchive: evidenceArchive instanceof HTMLDetailsElement
-          ? {
-              exists: true,
-              open: evidenceArchive.open,
-              defaultOpen: evidenceArchive.dataset.m8aV411EvidenceArchiveDefaultOpen ?? "",
-              text: normalize(evidenceArchive.innerText)
-            }
-          : { exists: false, open: false, defaultOpen: "", text: "" },
-        stateRole: elementRecord(stateRole),
-        truthRole: elementRecord(truthRole),
-        advancedSourcesToggle: {
-          ...elementRecord(advancedSourcesToggle),
-          ariaExpanded:
-            advancedSourcesToggle instanceof HTMLElement
-              ? advancedSourcesToggle.getAttribute("aria-expanded")
-              : null,
-          action:
-            advancedSourcesToggle instanceof HTMLElement
-              ? advancedSourcesToggle.dataset.m8aV47Action ?? ""
-              : "",
-          trigger:
-            advancedSourcesToggle instanceof HTMLElement
-              ? advancedSourcesToggle.dataset.m8aV411SourcesTrigger ?? ""
-              : ""
-        },
-        sourcesRole: {
-          ...elementRecord(sourcesRole),
-          filter: sourceFilter,
-          tleRowCount: tleRows.length,
-          groundStationCount: groundSections.length,
-          groundEvidenceRowCount: groundRows.length,
-          r2RowCount: r2Rows.length,
-          r2InteractiveControls,
-          anchors,
-          text: sourcesRole instanceof HTMLElement ? normalize(sourcesRole.innerText) : ""
-        },
-        footerChipRow: elementRecord(footerChipRow),
-        footerTleChip: {
-          ...elementRecord(footerTleChip),
-          tleSource: footerTleChip?.dataset.m8aV411FooterChipTleSource ?? null,
-          tleDate: footerTleChip?.dataset.m8aV411FooterChipTleDate ?? null
-        },
-        provenanceBadge: {
-          ...elementRecord(provenanceBadge),
-          action:
-            provenanceBadge instanceof HTMLElement
-              ? provenanceBadge.dataset.m8aV47Action ?? ""
-              : "",
-          trigger:
-            provenanceBadge instanceof HTMLElement
-              ? provenanceBadge.dataset.m8aV411SourcesTrigger ?? ""
-              : "",
-          role:
-            provenanceBadge instanceof HTMLElement
-              ? provenanceBadge.getAttribute("role")
-              : null,
-          tabIndex:
-            provenanceBadge instanceof HTMLElement ? provenanceBadge.tabIndex : null
-        },
-        directSourceActions,
-        groundSourceTriggers,
-        tleRows,
-        groundRows,
-        groundSections,
-        r2Rows,
-        resourceHits,
-        inspectorBudgetHeight
+        projection,
+        resourceHits
       };
-    })(${JSON.stringify(label)})`
+    })()`,
+    { awaitPromise: true }
   );
 }
 
-function assertInvariantState(result, label) {
-  assert(
-    result.stateFacts.endpointPairId === EXPECTED_ENDPOINT_PAIR_ID &&
-      result.stateFacts.acceptedPairPrecision === EXPECTED_PRECISION &&
-      result.stateFacts.modelId === EXPECTED_MODEL_ID &&
-      result.stateFacts.modelTruth === EXPECTED_MODEL_TRUTH,
-    `${label} changed route/pair/precision/model: ` +
-      JSON.stringify(result.stateFacts)
-  );
-  assertListEquals(
-    result.stateFacts.timelineWindowIds,
-    EXPECTED_SEQUENCE_WINDOW_IDS,
-    `${label} V4.6D window order`
-  );
-  assert(
-    result.stateFacts.actorCount === 13 &&
-      JSON.stringify(result.stateFacts.orbitActorCounts) ===
-        JSON.stringify(EXPECTED_ACTOR_COUNTS),
-    `${label} actor set changed: ` + JSON.stringify(result.stateFacts)
-  );
-  assert(
-    result.stateFacts.sourceLineage?.projectionRead === EXPECTED_SOURCE_PROJECTION &&
-      result.stateFacts.sourceLineage?.rawPackageSideReadOwnership === "forbidden" &&
-      result.stateFacts.sourceLineage?.rawSourcePathsIncluded === false,
-    `${label} source boundary changed: ` +
-      JSON.stringify(result.stateFacts.sourceLineage)
-  );
-  assert(
-    result.resourceHits.length === 0,
-    `${label} fetched raw customer or live CelesTrak resources: ` +
-      JSON.stringify(result.resourceHits)
-  );
-}
+function assertRuntimeSourceState(state) {
+  const projection = state.projection;
+  const dataCompleteness = projection?.dataCompleteness;
+  const pairAttribution = dataCompleteness?.pairSourceAttribution;
+  const stationIds =
+    dataCompleteness?.stationPrecision?.map((entry) => entry.stationId) ?? [];
+  const tleSourceIds =
+    dataCompleteness?.tleSources?.map((entry) => entry.sourceId) ?? [];
 
-function assertInspectorBudget(result, label) {
-  const legacyMaxWidth = 320;
-  const correctionAMinWidth = 360;
-  const correctionAMaxWidth = 420;
-
-  assert(result.sheet.rect, `${label} missing inspector rect for Slice 5 budget.`);
-  const widthMatchesAcceptedContract =
-    result.sheet.rect.width <= legacyMaxWidth + 1 ||
-    (result.sheet.rect.width >= correctionAMinWidth - 1 &&
-      result.sheet.rect.width <= correctionAMaxWidth + 1);
-
-  // Smoke Softening: Correction A §5.4 supersedes the legacy 320px-only
-  // inspector width with a 360-420px readable desktop range.
   assert(
-    widthMatchesAcceptedContract &&
-      result.sheet.rect.height <= result.inspectorBudgetHeight + 1,
-    `${label} inspector exceeded Slice 5 budget: ` +
-      JSON.stringify({
-        rect: result.sheet.rect,
-        legacyMaxWidth,
-        correctionAMinWidth,
-        correctionAMaxWidth,
-        inspectorBudgetHeight: result.inspectorBudgetHeight
-      })
-  );
-}
-
-function assertDefaultClosed(result) {
-  assert(
-    result.sheet.visible === false &&
-      result.sourcesRole.visible === false &&
-      result.stateFacts.disclosure?.sourcesRoleState === "closed",
-    "Sources must default closed: " +
-      JSON.stringify({
-        sheet: result.sheet,
-        sourcesRole: result.sourcesRole,
-        disclosure: result.stateFacts.disclosure
-      })
-  );
-  // Conv 3 Smoke Softening: corner badge is now a ≤24×24 invisible placeholder;
-  // TLE provenance content moved to footer chip system
-  assert(
-    result.provenanceBadge.exists &&
-      result.provenanceBadge.visible === false &&
-      result.provenanceBadge.rect &&
-      result.provenanceBadge.rect.width <= 24 &&
-      result.provenanceBadge.rect.height <= 24 &&
-      result.provenanceBadge.action === "" &&
-      result.provenanceBadge.trigger === "" &&
-      result.provenanceBadge.role === null &&
-      result.provenanceBadge.tabIndex === -1,
-    "Corner provenance badge must be a non-focusable, non-clickable ≤24×24 invisible placeholder: " +
-      JSON.stringify(result.provenanceBadge)
+    state.route === REQUEST_PATH &&
+      state.sceneSourceMode === EXPECTED_SCENE_SOURCE_MODE &&
+      projection?.status === "ready" &&
+      projection?.sourceMode === EXPECTED_SCENE_SOURCE_MODE &&
+      dataCompleteness?.routeMode === EXPECTED_SCENE_SOURCE_MODE,
+    `Selected-pair source report smoke must load runtime selected-pair state: ${JSON.stringify(
+      {
+        route: state.route,
+        sceneSourceMode: state.sceneSourceMode,
+        projectionStatus: projection?.status,
+        sourceMode: projection?.sourceMode,
+        routeMode: dataCompleteness?.routeMode
+      }
+    )}`
   );
   assert(
-    result.footerTleChip.visible &&
-      result.footerTleChip.tleSource === "CelesTrak NORAD GP" &&
-      result.footerTleChip.tleDate === "2026-04-26",
-    "Footer chip row must contain TLE source info (Conv 3 Softening — corner badge content moved): " +
-      JSON.stringify(result.footerTleChip)
-  );
-  assert(
-    result.directSourceActions.length === 0 &&
-      result.groundSourceTriggers.length === 0,
-    "Corner and ground-station glance chips must not expose direct Sources triggers: " +
-      JSON.stringify({
-        directSourceActions: result.directSourceActions,
-        groundSourceTriggers: result.groundSourceTriggers
-      })
-  );
-}
-
-function assertNoDirectSourcesOpen(result, label) {
-  assert(
-    result.sourcesRole.visible === false &&
-      result.stateFacts.disclosure?.sourcesRoleState === "closed",
-    `${label} must not open Sources directly: ` +
-      JSON.stringify({
-        sheet: result.sheet,
-        stateRole: result.stateRole,
-        sourcesRole: result.sourcesRole,
-        disclosure: result.stateFacts.disclosure
-      })
-  );
-}
-
-function assertSourcesFullOpen(result, projectionUrls) {
-  assert(
-    result.sheet.visible === true &&
-      result.sourcesRole.visible === true &&
-      result.stateFacts.disclosure?.sourcesRoleState === "open" &&
-      result.stateFacts.disclosure?.detailsSheetState === "open" &&
-      result.stateFacts.disclosure?.boundarySurfaceState === "closed" &&
-      result.advancedSourcesToggle.ariaExpanded === "true" &&
-      result.sourcesRole.filter?.trigger === "advanced-source-provenance" &&
-      !result.sourcesRole.filter?.endpointId &&
-      !result.sourcesRole.filter?.orbitClass,
-    "Details advanced source-provenance toggle must open full Sources: " +
-      JSON.stringify({
-        sheet: result.sheet,
-        advancedSourcesToggle: result.advancedSourcesToggle,
-        sourcesRole: result.sourcesRole,
-        disclosure: result.stateFacts.disclosure
-      })
-  );
-  // Smoke Softening Disclosure: spec v2 §4.1 / §4.4 supersedes the
-  // legacy four-tab inspector. Sources now live under the Evidence tab,
-  // while Boundary scale/endpoint ownership moves to the header strip.
-  assert(
-    JSON.stringify(result.tabs.map((tab) => tab.text)) ===
-      JSON.stringify(["Decision", "Metrics", "Evidence"]) &&
-      !result.tabs.some((tab) => tab.id === "boundary" || tab.text === "Boundary"),
-    "Slice 5 Sources inspector must follow v2 §4.1 / §4.4 three-tab structure: " +
-      JSON.stringify(result.tabs)
-  );
-  assert(
-    result.boundaryStrip.visible &&
-      result.boundaryStrip.text.includes("13-actor demo") &&
-      result.boundaryStrip.text.includes("operator-family precision"),
-    "Slice 5 boundary strip must own scale/endpoint chips per v2 §4.4: " +
-      JSON.stringify(result.boundaryStrip)
-  );
-  assert(
-    result.validationBadge.visible &&
-      result.validationBadge.text.includes("Validation status: TBD"),
-    "Slice 5 validation badge must be visible in inspector header per v2 §4.5: " +
-      JSON.stringify(result.validationBadge)
-  );
-  assert(
-    result.evidenceArchive.open === true,
-    "Advanced source-provenance must reveal the Evidence Archive full tables: " +
-      JSON.stringify(result.evidenceArchive)
-  );
-  assertInspectorBudget(result, "advanced source-provenance Sources open");
-  assert(
-    result.sourcesRole.tleRowCount === 13 &&
-      result.sourcesRole.groundStationCount === 2 &&
-      result.sourcesRole.r2RowCount === 5,
-    "Sources full-open counts must be 13 TLE, 2 ground stations, 5 R2 rows: " +
-      JSON.stringify(result.sourcesRole)
-  );
-  assert(
-    EXPECTED_TLE_RECORDS.every((recordName) =>
-      result.tleRows.some((row) => row.sourceRecordName === recordName)
-    ),
-    "All 13 TLE record names must appear in Sources: " +
-      JSON.stringify(result.tleRows.map((row) => row.sourceRecordName))
-  );
-  assert(
-    EXPECTED_R2_STATION_FRAGMENTS.every((fragment) =>
-      result.r2Rows.some((row) => row.text.includes(fragment))
-    ) &&
-      result.r2Rows.every(
-        (row) =>
-          row.status === "blocked" &&
-          row.readOnly === "true" &&
-          /blocked/i.test(row.text) &&
-          /read-only/i.test(row.text)
+    pairAttribution?.sourceTier === EXPECTED_SOURCE_TIER &&
+      pairAttribution?.evidenceKind === EXPECTED_EVIDENCE_KIND &&
+      /Geometric pair/i.test(pairAttribution?.badgeLabel ?? "") &&
+      pairAttribution?.nonClaims?.some((note) =>
+        /No operator or contractual attestation/i.test(note)
       ),
-    "All 5 R2 rows must appear as blocked/read-only: " +
-      JSON.stringify(result.r2Rows)
+    `Pair source attribution must remain visibility-derived with explicit non-claims: ${JSON.stringify(
+      pairAttribution
+    )}`
   );
   assert(
-    result.sourcesRole.r2InteractiveControls === 0,
-    "R2 read-only catalog must not expose selectable controls: " +
-      JSON.stringify(result.r2Rows)
+    JSON.stringify(stationIds) === JSON.stringify(EXPECTED_STATION_IDS) &&
+      dataCompleteness.stationPrecision.every(
+        (entry) =>
+          entry.sourceTier === EXPECTED_SOURCE_TIER &&
+          typeof entry.coordinateSourceAuthority === "string" &&
+          entry.coordinateSourceAuthority.length > 0 &&
+          typeof entry.coordinateSourceNote === "string" &&
+          entry.coordinateSourceNote.length > 0 &&
+          typeof entry.elevationSourcePath === "string" &&
+          entry.elevationSourcePath.includes("station-elevations-cache.json") &&
+          typeof entry.elevationNonClaim === "string" &&
+          entry.elevationNonClaim.length > 0
+      ),
+    `Station source rows must expose coordinate and elevation source boundaries: ${JSON.stringify(
+      dataCompleteness?.stationPrecision
+    )}`
   );
   assert(
-    !/promote/i.test(result.r2Rows.map((row) => row.text).join(" ")),
-    "R2 read-only catalog must not expose promotion language: " +
-      JSON.stringify(result.r2Rows)
+    JSON.stringify(tleSourceIds) === JSON.stringify(EXPECTED_TLE_SOURCE_IDS) &&
+      dataCompleteness.tleSources.every(
+        (entry) =>
+          entry.sourcePath.startsWith("/fixtures/satellites-network/") &&
+          entry.apiClass === "celestrak-gp-tle" &&
+          entry.sourcePolicy === "refresh-artifact" &&
+          entry.acceptedRecordCount > 0 &&
+          entry.parserFailureCount === 0 &&
+          entry.health === "fresh" &&
+          typeof entry.sourceTimestampUtc === "string"
+      ),
+    `TLE source manifest must use bundled refresh artifacts with healthy parsed rows: ${JSON.stringify(
+      dataCompleteness?.tleSources
+    )}`
   );
   assert(
-    result.sourcesRole.anchors.length >= 19 &&
-      result.sourcesRole.anchors.every((url) => projectionUrls.has(url)),
-    "Sources URLs must come from the repo-owned projection: " +
-      JSON.stringify(result.sourcesRole.anchors)
+    dataCompleteness.actorProvenance.length === projection.actorCount &&
+      dataCompleteness.visibilityProvenance.length === projection.actorCount &&
+      projection.actorCount > 0 &&
+      projection.linkFlowCueCount > 0 &&
+      projection.eventCueCount > 0,
+    `Actor and visibility provenance must cover the selected-pair overlay actors: ${JSON.stringify(
+      {
+        actorCount: projection.actorCount,
+        actorProvenance: dataCompleteness.actorProvenance.length,
+        visibilityProvenance: dataCompleteness.visibilityProvenance.length,
+        linkFlowCueCount: projection.linkFlowCueCount,
+        eventCueCount: projection.eventCueCount
+      }
+    )}`
   );
-  assertForbiddenClaimsClean(result.sourcesRole.text, "Sources role");
 }
 
-async function main() {
-  assertNoRuntimeRawSourceRead();
-  ensureOutputRoot(outputRoot);
+function assertReportSourcePackage(state) {
+  const report = state.report;
+  const missingTabs = EXPECTED_REPORT_TABS.filter(
+    (label) => !report.tabLabels.includes(label)
+  );
+  const missingSourceHeadings = EXPECTED_SOURCE_HEADINGS.filter(
+    (heading) => !report.sourceHeadings.includes(heading)
+  );
+  const missingModelHeadings = EXPECTED_MODEL_HEADINGS.filter(
+    (heading) => !report.modelHeadings.includes(heading)
+  );
+  const missingStandards = EXPECTED_STANDARD_TEXT.filter(
+    (snippet) => !report.modelsText.includes(snippet)
+  );
+  const claimHits = collectPositiveClaimHits(report.text);
 
-  const projectionUrls = collectProjectionUrls();
-  const manifest = {
-    viewport: VIEWPORT,
-    screenshots: [],
-    checks: []
-  };
+  assert(
+    report.openArgs?.target === "_blank" &&
+      report.focused === true &&
+      report.openerValue === null &&
+      report.htmlLength > 20_000 &&
+      /^runtime-projection-evidence-/.test(report.filename ?? ""),
+    `Report action must generate a standalone selected-pair source report: ${JSON.stringify(
+      {
+        openArgs: report.openArgs,
+        focused: report.focused,
+        openerValue: report.openerValue,
+        htmlLength: report.htmlLength,
+        filename: report.filename
+      }
+    )}`
+  );
+  assert(
+    missingTabs.length === 0 &&
+      missingSourceHeadings.length === 0 &&
+      missingModelHeadings.length === 0 &&
+      missingStandards.length === 0,
+    `Report must expose source, model, and raw-data sections: ${JSON.stringify({
+      missingTabs,
+      tabs: report.tabLabels,
+      missingSourceHeadings,
+      sourceHeadings: report.sourceHeadings,
+      missingModelHeadings,
+      modelHeadings: report.modelHeadings,
+      missingStandards
+    })}`
+  );
+  assert(
+    report.sourcesText.includes(EXPECTED_SOURCE_TIER) &&
+      report.sourcesText.includes(EXPECTED_EVIDENCE_KIND) &&
+      report.sourcesText.includes("TLE source manifest") &&
+      report.sourcesText.includes("Runtime inventory") &&
+      report.modelsText.includes("Modeled output only") &&
+      report.modelsText.includes("Runtime policy thresholds are modeled controls") &&
+      report.runtimeText.includes('"sourceMode"') &&
+      report.runtimeText.includes(EXPECTED_SCENE_SOURCE_MODE),
+    `Report text must carry source-tier, TLE, inventory, model, and raw JSON evidence: ${JSON.stringify(
+      {
+        sourcesText: report.sourcesText.slice(0, 800),
+        modelsText: report.modelsText.slice(0, 800),
+        runtimeText: report.runtimeText.slice(0, 800)
+      }
+    )}`
+  );
+  assert(
+    report.stationRows.length === 2 &&
+      report.tleRows.length === 3 &&
+      report.inventoryRows.length === 3 &&
+      report.modeledOutputRows.length >= 5 &&
+      report.policyRows.length === 4 &&
+      report.rfRows.length >= 3 &&
+      report.actorRows.length > 0 &&
+      report.visibilityRows.length > 0,
+    `Report tables must preserve source/report completeness row coverage: ${JSON.stringify(
+      {
+        stationRows: report.stationRows.length,
+        tleRows: report.tleRows.length,
+        inventoryRows: report.inventoryRows.length,
+        modeledOutputRows: report.modeledOutputRows.length,
+        policyRows: report.policyRows.length,
+        rfRows: report.rfRows.length,
+        actorRows: report.actorRows.length,
+        visibilityRows: report.visibilityRows.length
+      }
+    )}`
+  );
+  assert(
+    report.stationRows.some((row) => row.includes("cht-yangmingshan")) &&
+      report.stationRows.some((row) => row.includes("sansa-hartebeesthoek")) &&
+      report.tleRows.some((row) => row.includes("tle:leo")) &&
+      report.tleRows.some((row) => row.includes("tle:meo")) &&
+      report.tleRows.some((row) => row.includes("tle:geo")),
+    `Report source rows must name selected stations and TLE sources: ${JSON.stringify(
+      {
+        stationRows: report.stationRows,
+        tleRows: report.tleRows
+      }
+    )}`
+  );
+  assert(
+    state.drawer.sourceBoundaryOpen === true &&
+      state.drawer.sourceBoundaryText.includes("TLE source summary") &&
+      state.drawer.sourceBoundaryText.includes("Standards references"),
+    `Drawer source boundary must mirror the report entry path: ${JSON.stringify(
+      state.drawer
+    )}`
+  );
+  assert(
+    state.resourceHits.length === 0,
+    `Runtime must not fetch live external source URLs during source report capture: ${JSON.stringify(
+      state.resourceHits
+    )}`
+  );
+  assert(
+    claimHits.length === 0,
+    `Selected-pair source report must not promote measured/operator claims: ${JSON.stringify(
+      claimHits
+    )}`
+  );
+}
 
-  await withStaticSmokeBrowser(async ({ client, baseUrl }) => {
-    await setViewport(client, VIEWPORT);
-    await navigateAndWait(client, baseUrl);
+assertNoLiveExternalSourceRead();
+ensureOutputRoot(outputRoot);
 
-    const defaultClosed = await inspectRuntime(client, "default-closed");
-    assertInvariantState(defaultClosed, "default-closed");
-    assertDefaultClosed(defaultClosed);
-    manifest.checks.push("sources-default-closed");
+await withStaticSmokeBrowser(async ({ client, baseUrl }) => {
+  await setViewport(client, VIEWPORT);
+  await client.send("Page.navigate", { url: `${baseUrl}${REQUEST_PATH}` });
+  await waitForSelectedPairSourceReportReady(client);
+  await waitForGlobeReady(client, "Selected-pair source report smoke");
+  await openEvidenceDrawer(client);
 
-    await clickSelector(
-      client,
-      "[data-m8a-v411-provenance-badge='true']",
-      "corner provenance placeholder"
-    );
-    const afterCornerClick = await inspectRuntime(client, "after-corner-click");
-    assertInvariantState(afterCornerClick, "after-corner-click");
-    assertNoDirectSourcesOpen(afterCornerClick, "corner placeholder click");
-    manifest.checks.push("corner-placeholder-does-not-open-sources");
+  const state = await captureReportAndSourceState(client);
+  assertRuntimeSourceState(state);
+  assertReportSourcePackage(state);
 
-    await clickSelector(
-      client,
-      "[data-m8a-v411-ground-station-chip='true']",
-      "ground-station short chip"
-    );
-    const afterGroundClick = await inspectRuntime(client, "after-ground-click");
-    assertInvariantState(afterGroundClick, "after-ground-click");
-    assertNoDirectSourcesOpen(afterGroundClick, "ground-station short chip click");
-    manifest.checks.push("ground-short-chip-does-not-open-sources");
+  const screenshotPath = await captureScreenshot(
+    client,
+    outputRoot,
+    VIEWPORT.screenshot
+  );
+  assertScreenshot(screenshotPath);
 
-    await clickSelector(
-      client,
-      "[data-m8a-v47-control-id='details-close']",
-      "Details close"
-    );
-
-    await clickSelector(
-      client,
-      "[data-m8a-v47-control-id='details-toggle']",
-      "Details"
-    );
-    await clickSelector(
-      client,
-      "[data-m8a-v411-advanced-sources-toggle='true']",
-      "advanced source provenance toggle"
-    );
-    const sourcesDefault = await inspectRuntime(client, "sources-advanced-toggle");
-    assertInvariantState(sourcesDefault, "sources-advanced-toggle");
-    assertSourcesFullOpen(sourcesDefault, projectionUrls);
-    manifest.checks.push("advanced-toggle-opens-full-sources");
-    manifest.screenshots.push(
-      await captureScreenshot(
-        client,
-        outputRoot,
-        "v4.11-sources-advanced-toggle-1440x900.png"
-      )
-    );
+  const manifestPath = writeJsonArtifact(outputRoot, "smoke-manifest.json", {
+    generatedAt: new Date().toISOString(),
+    route: REQUEST_PATH,
+    viewport: VIEWPORT.name,
+    screenshot: serializeRelative(screenshotPath),
+    sourceTier: state.projection.dataCompleteness.pairSourceAttribution.sourceTier,
+    evidenceKind: state.projection.dataCompleteness.pairSourceAttribution.evidenceKind,
+    stationRows: state.report.stationRows.length,
+    tleRows: state.report.tleRows.length,
+    inventoryRows: state.report.inventoryRows.length,
+    modeledOutputRows: state.report.modeledOutputRows.length,
+    actorRows: state.report.actorRows.length,
+    visibilityRows: state.report.visibilityRows.length
   });
 
-  for (const screenshotPath of manifest.screenshots) {
-    assert(
-      statSync(screenshotPath).size > 0,
-      `Expected non-empty screenshot at ${screenshotPath}`
-    );
-  }
-
-  writeJsonArtifact(outputRoot, "capture-manifest.json", manifest);
   console.log(
-    "M8A-V4.11 Slice 5 real-data surfacing smoke passed: " +
-      JSON.stringify({
-        screenshots: manifest.screenshots.map((screenshotPath) =>
-          path.relative(repoRoot, screenshotPath)
-        ),
-        checks: manifest.checks
-      })
+    `Selected-pair source report smoke passed. Manifest: ${serializeRelative(
+      manifestPath
+    )}`
   );
-}
-
-main().catch((error) => {
-  console.error(error);
-  process.exitCode = 1;
 });

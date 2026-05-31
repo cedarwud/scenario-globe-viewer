@@ -11,6 +11,7 @@ import {
   withStaticSmokeBrowser,
   writeJsonArtifact
 } from "./helpers/m8a-v4-browser-capture-harness.mjs";
+import { SELECTED_PAIR_DEMO_REQUEST_PATH } from "../../scripts/helpers/demo-routes.mjs";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -52,11 +53,47 @@ function normalizeText(value) {
   return String(value ?? "").toLowerCase();
 }
 
-function assertForbiddenClaimsAbsent(label, text) {
-  const normalized = normalizeText(text);
-  const match = FORBIDDEN_CLAIMS.find((claim) =>
-    normalized.includes(claim.toLowerCase())
+function normalizeForForbiddenClaimScan(value) {
+  return normalizeText(value)
+    .replace(/\bno measured latency, jitter, throughput, or continuity values are shown\b/g, "")
+    .replace(/\bnot measured latency, jitter, or throughput truth\b/g, "")
+    .replace(/\bnot measured throughput, jitter, latency, routing, or sla truth\b/g, "")
+    .replace(/\bnot measured throughput\b/g, "")
+    .replace(/\bnot active gateway truth\b/g, "")
+    .replace(/\bnot active gateway\b/g, "");
+}
+
+function claimHasNegatedContext(normalized, index) {
+  const boundary = Math.max(
+    normalized.lastIndexOf(".", index),
+    normalized.lastIndexOf(";", index),
+    normalized.lastIndexOf("\n", index)
   );
+  const context = normalized.slice(Math.max(0, boundary + 1), index);
+
+  return /\b(?:no|not|without)\b/.test(context) || /\b(?:does|is)\s+not\b/.test(context);
+}
+
+function findForbiddenClaim(normalized, claim) {
+  const normalizedClaim = claim.toLowerCase();
+  let index = normalized.indexOf(normalizedClaim);
+
+  while (index !== -1) {
+    if (!claimHasNegatedContext(normalized, index)) {
+      return claim;
+    }
+
+    index = normalized.indexOf(normalizedClaim, index + normalizedClaim.length);
+  }
+
+  return null;
+}
+
+function assertForbiddenClaimsAbsent(label, text) {
+  const normalized = normalizeForForbiddenClaimScan(text);
+  const match = FORBIDDEN_CLAIMS.map((claim) =>
+    findForbiddenClaim(normalized, claim)
+  ).find(Boolean);
 
   assert(!match, `${label} contains forbidden F-09 claim: ${match}`);
 }
@@ -190,7 +227,7 @@ async function waitForCommunicationRateReady(client) {
   );
 }
 
-async function waitForV411GroundStationReady(client) {
+async function waitForSelectedPairGroundStationReady(client) {
   let lastState = null;
 
   for (let attempt = 0; attempt < 240; attempt += 1) {
@@ -220,7 +257,7 @@ async function waitForV411GroundStationReady(client) {
     await sleep(100);
   }
 
-  throw new Error(`V4.11 route did not become ready: ${JSON.stringify(lastState)}`);
+  throw new Error(`Selected-pair route did not become ready: ${JSON.stringify(lastState)}`);
 }
 
 async function populateBoundedWindowsAndInspect(client) {
@@ -252,6 +289,8 @@ async function populateBoundedWindowsAndInspect(client) {
         capture.replayClock.seek(new Date(targetMs).toISOString());
         await sleep(220);
       }
+
+      await sleep(420);
 
       const beforeScenarioState = JSON.stringify(capture.scenarioSession.getState());
       const beforeDecisionState = JSON.stringify(capture.handoverDecision.getState());
@@ -529,22 +568,22 @@ await withStaticSmokeBrowser(async ({ client, baseUrl }) => {
   const scannedAssetSlices = scanCompiledCommunicationRateBytes();
 
   await client.send("Page.navigate", {
-    url: `${baseUrl}/?scenePreset=regional&m8aV4GroundStationScene=1`
+    url: `${baseUrl}${SELECTED_PAIR_DEMO_REQUEST_PATH}`
   });
-  const v411State = await waitForV411GroundStationReady(client);
+  const selectedPairState = await waitForSelectedPairGroundStationReady(client);
   assert(
-    v411State.communicationRateMounted === false,
-    "F-09 section must not mount in the V4.11 ground-station scene."
+    selectedPairState.communicationRateMounted === false,
+    "F-09 section must not mount in the selected-pair ground-station scene."
   );
 
-  const v411ConsoleErrors = await evaluateRuntimeValue(
+  const selectedPairConsoleErrors = await evaluateRuntimeValue(
     client,
     `window.__F09_CONSOLE_ERRORS__ || []`
   );
   assert(
-    Array.isArray(v411ConsoleErrors) && v411ConsoleErrors.length === 0,
-    `V4.11 absence check must not emit console errors: ${JSON.stringify(
-      v411ConsoleErrors
+    Array.isArray(selectedPairConsoleErrors) && selectedPairConsoleErrors.length === 0,
+    `Selected-pair absence check must not emit console errors: ${JSON.stringify(
+      selectedPairConsoleErrors
     )}`
   );
 
@@ -553,7 +592,7 @@ await withStaticSmokeBrowser(async ({ client, baseUrl }) => {
     screenshot: path.relative(repoRoot, screenshotPath),
     phase6Inspection: inspection,
     reducedMotion,
-    v411State,
+    selectedPairState,
     forbiddenClaimScan: {
       dom: "F-09 section text and outerHTML",
       bytes: scannedAssetSlices

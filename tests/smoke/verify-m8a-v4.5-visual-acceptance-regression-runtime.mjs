@@ -1,4 +1,4 @@
-import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { mkdirSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -16,41 +16,32 @@ import {
   stopStaticServer,
   verifyFetches
 } from "./bootstrap-smoke-server.mjs";
+import { SELECTED_PAIR_DEMO_REQUEST_PATH } from "../../scripts/helpers/demo-routes.mjs";
 
 const DEFAULT_REQUEST_PATH = "/";
-const V4_REQUEST_PATH = "/?scenePreset=regional&m8aV4GroundStationScene=1";
-const V4_ENTRY_HREF = V4_REQUEST_PATH;
+const V4_REQUEST_PATH = SELECTED_PAIR_DEMO_REQUEST_PATH;
+const V4_ENTRY_HREF = SELECTED_PAIR_DEMO_REQUEST_PATH;
 const V4_RUNTIME_STATE = "active-v4.3-continuous-multi-orbit-handover-scene";
 const EXPECTED_DATA_SOURCE_NAME =
   "m8a-v4-ground-station-multi-orbit-handover-scene";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const repoRoot = path.resolve(__dirname, "../..");
-const ARTIFACT_PATH = path.join(
-  repoRoot,
-  "public/fixtures/ground-station-projections/m8a-v4.6b-taiwan-cht-speedcast-singapore-source-lineaged-orbit-actors-2026-04-28.json"
-);
+const V4_ROUTE_PARAMS = new URLSearchParams(V4_REQUEST_PATH.split("?")[1] ?? "");
+const EXPECTED_ROUTE_PARAMS = {
+  stationA: V4_ROUTE_PARAMS.get("stationA"),
+  stationB: V4_ROUTE_PARAMS.get("stationB"),
+  durationMinutes: V4_ROUTE_PARAMS.get("durationMinutes")
+};
 const EXPECTED_ENDPOINT_IDS = [
-  "tw-cht-multi-orbit-ground-infrastructure",
-  "sg-speedcast-singapore-teleport"
-];
-const ACCEPTED_V46B_ARTIFACT = JSON.parse(readFileSync(ARTIFACT_PATH, "utf8"));
-const EXPECTED_ACTOR_IDS = ACCEPTED_V46B_ARTIFACT.orbitActors.map(
-  (actor) => actor.actorId
-);
-const EXPECTED_ACTOR_COUNTS = ACCEPTED_V46B_ARTIFACT.orbitActors.reduce(
-  (counts, actor) => ({
-    ...counts,
-    [actor.orbitClass]: counts[actor.orbitClass] + 1
-  }),
-  { leo: 0, meo: 0, geo: 0 }
-);
-const EXPECTED_WINDOW_IDS = [
-  "v4-modeled-window-01-leo-to-meo-context",
-  "v4-modeled-window-02-meo-continuity-context",
-  "v4-modeled-window-03-leo-candidate-aging",
-  "v4-modeled-window-04-geo-fallback-continuity"
-];
+  EXPECTED_ROUTE_PARAMS.stationA
+    ? `selected-endpoint-a-${EXPECTED_ROUTE_PARAMS.stationA}`
+    : null,
+  EXPECTED_ROUTE_PARAMS.stationB
+    ? `selected-endpoint-b-${EXPECTED_ROUTE_PARAMS.stationB}`
+    : null
+].filter(Boolean);
+const MIN_SCREENSHOT_BYTES = 10_000;
 const REQUIRED_NON_CLAIM_KEYS = [
   "noAircraftEndpoint",
   "noYkaEndpoint",
@@ -74,6 +65,10 @@ const FORBIDDEN_CLAIM_PHRASES = [
   "measured latency",
   "measured jitter",
   "measured throughput",
+  "operator-validated",
+  "operator validated",
+  "operator-stated capability",
+  "operator stated capability",
   "native RF handover"
 ];
 const DESKTOP_VIEWPORT = {
@@ -244,7 +239,18 @@ async function captureScreenshot(client, filePath) {
     captureBeyondViewport: false
   });
   mkdirSync(path.dirname(filePath), { recursive: true });
-  writeFileSync(filePath, Buffer.from(result.data, "base64"));
+  const buffer = Buffer.from(result.data, "base64");
+  writeFileSync(filePath, buffer);
+  if (buffer.byteLength < MIN_SCREENSHOT_BYTES) {
+    throw new Error(
+      `M8A-V4.5 screenshot was unexpectedly small: ${JSON.stringify({
+        filePath,
+        byteLength: buffer.byteLength,
+        minBytes: MIN_SCREENSHOT_BYTES
+      })}`
+    );
+  }
+  return buffer.byteLength;
 }
 
 async function main() {
@@ -291,8 +297,6 @@ async function main() {
                 height: rect.height
               };
             };
-            const radialDistance = (position) =>
-              Math.hypot(position.x, position.y, position.z);
             const pointToPlain = (point) =>
               point ? { x: point.x, y: point.y } : null;
             const insideViewportPoint = (point) =>
@@ -379,16 +383,12 @@ async function main() {
             const endpointIds = state.endpoints.map(
               (endpoint) => endpoint.endpointId
             );
-            const actorIds = state.actors.map((actor) => actor.actorId);
+            const overlay = state.selectedPairOverlay ?? null;
             const endpointEntities = config.expectedEndpointIds.map(
               (endpointId) =>
                 dataSource?.entities?.getById(\`m8a-v4-endpoint-\${endpointId}\`)
             );
-            const actorEntities = config.expectedActorIds.map((actorId) =>
-              dataSource?.entities?.getById(actorId)
-            );
             const endpointCanvasPoints = endpointEntities.map(entityCanvasPoint);
-            const actorCanvasPoints = actorEntities.map(entityCanvasPoint);
             const endpointScreenDistance =
               endpointCanvasPoints[0] && endpointCanvasPoints[1]
                 ? Math.hypot(
@@ -396,115 +396,26 @@ async function main() {
                     endpointCanvasPoints[0].y - endpointCanvasPoints[1].y
                   )
                 : null;
-            const actorRenderRadii = state.actors.map((actor) => ({
-              actorId: actor.actorId,
-              orbitClass: actor.orbitClass,
-              renderRadius: radialDistance(actor.renderPositionEcefMeters)
-            }));
-            const maxActorRenderRadius = Math.max(
-              ...actorRenderRadii.map((actor) => actor.renderRadius)
+            const selectedPairEntityIds = (dataSource?.entities?.values ?? [])
+              .map((entity) => entity.id)
+              .filter(
+                (id) =>
+                  typeof id === "string" &&
+                  id.startsWith("m8a-v4-selected-pair-")
+              );
+            const selectedPairSatelliteEntityIds = selectedPairEntityIds.filter(
+              (id) => id.startsWith("m8a-v4-selected-pair-satellite-")
             );
-            const minActorRenderRadius = Math.min(
-              ...actorRenderRadii.map((actor) => actor.renderRadius)
+            const selectedPairLinkFlowEntityIds = selectedPairEntityIds.filter(
+              (id) => id.startsWith("m8a-v4-selected-pair-link-flow-")
             );
-            const maxLeoRenderRadius = Math.max(
-              ...actorRenderRadii
-                .filter((actor) => actor.orbitClass === "leo")
-                .map((actor) => actor.renderRadius)
+            const selectedPairHandoverCueEntityIds = selectedPairEntityIds.filter(
+              (id) => id.startsWith("m8a-v4-selected-pair-handover-cue-")
             );
-            const meoRenderRadii = actorRenderRadii
-              .filter((actor) => actor.orbitClass === "meo")
-              .map((actor) => actor.renderRadius);
-            const geoRenderRadii = actorRenderRadii
-              .filter((actor) => actor.orbitClass === "geo")
-              .map((actor) => actor.renderRadius);
-            const minMeoRenderRadius = Math.min(...meoRenderRadii);
-            const maxMeoRenderRadius = Math.max(...meoRenderRadii);
-            const minGeoRenderRadius = Math.min(...geoRenderRadii);
-            const geoActor = state.actors.find(
-              (actor) => actor.orbitClass === "geo"
-            );
-            const geoEntity = dataSource?.entities?.getById(
-              "st-2-geo-continuity-anchor"
-            );
-            const geoCanvasPoint = entityCanvasPoint(geoEntity);
-            const geoSourceRadius = geoActor
-              ? radialDistance(geoActor.sourcePositionEcefMeters)
-              : null;
-            const geoRenderRadius = geoActor
-              ? radialDistance(geoActor.renderPositionEcefMeters)
-              : null;
-            const actorScreenRecords = config.expectedActorIds.map(
-              (actorId, index) => ({
-                actorId,
-                orbitClass:
-                  state.actors.find((actor) => actor.actorId === actorId)
-                    ?.orbitClass ?? null,
-                point: actorCanvasPoints[index]
-              })
-            );
-            const actorModelTintRecords = config.expectedActorIds.map(
-              (actorId, index) => {
-                const actor = state.actors.find(
-                  (stateActor) => stateActor.actorId === actorId
-                );
-                const model = actorEntities[index]?.model;
-
-                return {
-                  actorId,
-                  orbitClass: actor?.orbitClass ?? null,
-                  hasModelColor: Boolean(model?.color),
-                  hasModelColorBlendAmount: Boolean(model?.colorBlendAmount)
-                };
-              }
-            );
-            const actorGlowRecords = config.expectedActorIds.map(
-              (actorId, index) => {
-                const actor = state.actors.find(
-                  (stateActor) => stateActor.actorId === actorId
-                );
-                const billboard = actorEntities[index]?.billboard;
-                const imageUri =
-                  billboard?.image?.getValue?.(
-                    capture.viewer.clock.currentTime
-                  ) ?? null;
-                const decodedImage =
-                  typeof imageUri === "string"
-                    ? decodeURIComponent(imageUri)
-                    : "";
-                const pixelOffset =
-                  billboard?.pixelOffset?.getValue?.(
-                    capture.viewer.clock.currentTime
-                  ) ?? null;
-
-                return {
-                  actorId,
-                  orbitClass: actor?.orbitClass ?? null,
-                  hasGlowBillboard: Boolean(billboard),
-                  hasLegacyPoint: Boolean(actorEntities[index]?.point),
-                  glowImageUri: imageUri,
-                  glowImageHasMeoColor: decodedImage.includes("#d46bff"),
-                  glowImageHasGeoColor: decodedImage.includes("#ffb23f"),
-                  glowWidth:
-                    billboard?.width?.getValue?.(capture.viewer.clock.currentTime) ??
-                    null,
-                  glowHeight:
-                    billboard?.height?.getValue?.(
-                      capture.viewer.clock.currentTime
-                    ) ?? null,
-                  glowPixelOffset: pixelOffset
-                    ? {
-                        x: pixelOffset.x,
-                        y: pixelOffset.y
-                      }
-                    : null
-                };
-              }
+            const runtimeLinkEntity = dataSource?.entities?.getById(
+              "m8a-v4-selected-pair-runtime-link"
             );
             const endpointYValues = endpointCanvasPoints
-              .filter(Boolean)
-              .map((point) => point.y);
-            const actorYValues = actorCanvasPoints
               .filter(Boolean)
               .map((point) => point.y);
             const lowestEndpointY = Math.max(...endpointYValues);
@@ -514,46 +425,11 @@ async function main() {
                 ? (endpointCanvasPoints[0].y + endpointCanvasPoints[1].y) / 2
                 : null;
             const endpointVerticalSpread = lowestEndpointY - highestEndpointY;
-            const highestActorY = Math.min(...actorYValues);
-            const lowestActorY = Math.max(...actorYValues);
-            const leoActorYValues = actorScreenRecords
-              .filter((actor) => actor.orbitClass === "leo" && actor.point)
-              .map((actor) => actor.point.y);
-            const highestMeoActorScreen = actorScreenRecords
-              .filter((actor) => actor.orbitClass === "meo" && actor.point)
-              .map((actor) => actor.point)
-              .sort((left, right) => left.y - right.y)[0];
-            const highestGeoActorScreen = actorScreenRecords
-              .filter((actor) => actor.orbitClass === "geo" && actor.point)
-              .map((actor) => actor.point)
-              .sort((left, right) => left.y - right.y)[0];
-            const leftmostGeoActorScreen = actorScreenRecords
-              .filter((actor) => actor.orbitClass === "geo" && actor.point)
-              .map((actor) => actor.point)
-              .sort((left, right) => left.x - right.x)[0];
-            const meoGlowRecord = actorGlowRecords.find(
-              (actor) => actor.orbitClass === "meo"
-            );
-            const geoGlowRecord = actorGlowRecords.find(
-              (actor) => actor.orbitClass === "geo"
-            );
-            const actorLabelRecords = config.expectedActorIds.map((actorId) => {
-              const actor = state.actors.find(
-                (stateActor) => stateActor.actorId === actorId
-              );
-              const entity = dataSource?.entities?.getById(actorId);
-
-              return {
-                actorId,
-                orbitClass: actor?.orbitClass ?? null,
-                labelVisibility: actor?.labelVisibility ?? null,
-                hasEntityLabel: Boolean(entity?.label)
-              };
-            });
-            const highestLeoActorY = Math.min(...leoActorYValues);
-            const lowestLeoActorY = Math.max(...leoActorYValues);
             const hud = document.querySelector(
               "[data-m8a-v4-ground-station-scene='true']"
+            );
+            const projectionPanel = document.querySelector(
+              "[data-v4-projection-side-panel='true']"
             );
             const telemetryNonClaims =
               document.documentElement.dataset.m8aV4GroundStationNonClaims ?? "";
@@ -575,7 +451,8 @@ async function main() {
             assert(
               dataSource &&
                 state.dataSourceName === config.expectedDataSourceName &&
-                state.dataSourceAttached === true,
+                state.dataSourceAttached === true &&
+                state.sceneSourceMode === "tle-first-runtime",
               "V4.5 desktop route must attach the V4 data source."
             );
             assert(
@@ -583,79 +460,43 @@ async function main() {
                 JSON.stringify(endpointIds) ===
                   JSON.stringify(config.expectedEndpointIds) &&
                 endpointEntities.every(Boolean) &&
-                state.endpoints.every(
-                  (endpoint) =>
-                    endpoint.precisionBadge === "operator-family precision" &&
-                    endpoint.displayPositionIsSourceTruth === false &&
-                    endpoint.rawSourceCoordinatesRenderable === false
-                ) &&
                 endpointCanvasPoints.every(insideViewportPoint),
               "V4.5 desktop route must render the two accepted ground endpoints: " +
                 JSON.stringify({ endpointIds, endpointCanvasPoints })
             );
             assert(
-              state.actorCount === config.expectedActorIds.length &&
-                JSON.stringify(state.orbitActorCounts) ===
-                  JSON.stringify(config.expectedActorCounts) &&
-                JSON.stringify(actorIds) ===
-                  JSON.stringify(config.expectedActorIds) &&
-                actorEntities.every(Boolean) &&
-                actorCanvasPoints.every(insideViewportPoint),
-              "V4.5/V4.6B desktop route must expose 6 LEO, 5 MEO, and 2 GEO actor presence: " +
+              overlay &&
+                overlay.status === "ready" &&
+                overlay.sourceMode === "tle-first-runtime" &&
+                overlay.runtimeLinkVisible === true &&
+                overlay.actorCount > 0 &&
+                overlay.satelliteCount === overlay.actorCount &&
+                overlay.positionSampleCount > 0 &&
+                overlay.activeSelectionSampleCount > 0 &&
+                overlay.linkFlowCueCount > 0 &&
+                overlay.eventCueCount > 0 &&
+                overlay.handoverEventCount > 0 &&
+                selectedPairSatelliteEntityIds.length === overlay.actorCount &&
+                selectedPairLinkFlowEntityIds.length === overlay.linkFlowCueCount &&
+                selectedPairHandoverCueEntityIds.length === overlay.eventCueCount &&
+                runtimeLinkEntity,
+              "V4.5 selected-pair overlay must be ready with visible runtime coverage: " +
                 JSON.stringify({
-                  actorIds,
-                  counts: state.orbitActorCounts,
-                  actorCanvasPoints
+                  overlay,
+                  selectedPairSatelliteEntityIds,
+                  selectedPairLinkFlowEntityIds,
+                  selectedPairHandoverCueEntityIds,
+                  hasRuntimeLinkEntity: Boolean(runtimeLinkEntity)
                 })
             );
             assert(
-              actorModelTintRecords.every(
-                (actor) =>
-                  actor.hasModelColor === false &&
-                  actor.hasModelColorBlendAmount === false
-              ),
-              "V4.5 orbit actor models must use the original GLB material without orbit-class tint: " +
-                JSON.stringify({ actorModelTintRecords })
-            );
-            assert(
-              actorGlowRecords.every((actor) =>
-                actor.orbitClass === "leo"
-                  ? actor.hasGlowBillboard === false &&
-                    actor.hasLegacyPoint === false
-                  : actor.hasGlowBillboard === true &&
-                    actor.hasLegacyPoint === false &&
-                    actor.glowWidth === 24 &&
-                    actor.glowHeight === 24 &&
-                    actor.glowPixelOffset &&
-                    actor.glowPixelOffset.y < 0
-              ),
-              "V4.5 LEO actor models must not be overlaid by orbit-class markers, while MEO/GEO retain visible translucent glow billboards aligned toward the model center: " +
-                JSON.stringify({ actorGlowRecords })
-            );
-            assert(
-              meoGlowRecord?.glowImageUri &&
-                geoGlowRecord?.glowImageUri &&
-                meoGlowRecord.glowImageUri !== geoGlowRecord.glowImageUri &&
-                meoGlowRecord.glowImageHasMeoColor === true &&
-                meoGlowRecord.glowImageHasGeoColor === false &&
-                geoGlowRecord.glowImageHasGeoColor === true &&
-                geoGlowRecord.glowImageHasMeoColor === false,
-              "V4.5 MEO and GEO glow markers must use distinct semi-transparent billboard colors instead of matching endpoint colors: " +
-                JSON.stringify({ actorGlowRecords })
-            );
-            assert(
-              endpointMidY > window.innerHeight * 0.6 &&
-                endpointMidY < window.innerHeight * 0.7 &&
-                highestEndpointY > window.innerHeight * 0.55 &&
-                highestEndpointY < window.innerHeight * 0.64 &&
-                lowestEndpointY < window.innerHeight * 0.74 &&
-                endpointVerticalSpread < 140 &&
-                endpointScreenDistance > 160 &&
-                endpointScreenDistance < 240 &&
-                highestActorY > window.innerHeight * 0.08 &&
-                highestActorY < window.innerHeight * 0.5 &&
-                lowestActorY < window.innerHeight * 0.79,
-              "V4.5/V4.6B desktop camera must place the globe in the lower half, keep the endpoint pair near the globe's upper edge, and keep the denser actor set in the sky band: " +
+              projectionPanel instanceof HTMLElement &&
+                endpointMidY > window.innerHeight * 0.25 &&
+                endpointMidY < window.innerHeight * 0.95 &&
+                endpointVerticalSpread < window.innerHeight * 0.55 &&
+                endpointScreenDistance > 40 &&
+                endpointScreenDistance < window.innerWidth * 0.8,
+              "V4.5 selected-pair route must keep visible endpoint coverage without fixture camera assumptions: " +
                 JSON.stringify({
                   endpointCanvasPoints,
                   endpointScreenDistance,
@@ -663,67 +504,7 @@ async function main() {
                   endpointVerticalSpread,
                   highestEndpointY,
                   lowestEndpointY,
-                  highestActorY,
-                  lowestActorY,
-                  viewport: {
-                    width: window.innerWidth,
-                    height: window.innerHeight
-                  }
-                })
-            );
-            assert(
-              geoActor &&
-                geoSourceRadius > 40000000 &&
-                geoRenderRadius > 12400000 &&
-                geoRenderRadius < 12800000 &&
-                geoSourceRadius - geoRenderRadius > 29000000 &&
-                minActorRenderRadius > 6600000 &&
-                maxActorRenderRadius < 12800000 &&
-                Number.isFinite(maxLeoRenderRadius) &&
-                Number.isFinite(minMeoRenderRadius) &&
-                Number.isFinite(maxMeoRenderRadius) &&
-                Number.isFinite(minGeoRenderRadius) &&
-                minMeoRenderRadius - maxLeoRenderRadius > 2300000 &&
-                minGeoRenderRadius - maxMeoRenderRadius > 2000000 &&
-                insideViewportPoint(geoCanvasPoint),
-              "V4.5 orbit actors must stay source-true but use compressed display heights near the endpoint-focused view: " +
-                JSON.stringify({
-                  geoActorId: geoActor?.actorId,
-                  geoSourceRadius,
-                  geoRenderRadius,
-                  maxLeoRenderRadius,
-                  minMeoRenderRadius,
-                  maxMeoRenderRadius,
-                  minGeoRenderRadius,
-                  orbitDisplayRadiusGaps: {
-                    leoToMeo: minMeoRenderRadius - maxLeoRenderRadius,
-                    meoToGeo: minGeoRenderRadius - maxMeoRenderRadius
-                  },
-                  geoCanvasPoint,
-                  actorRenderRadii,
-                  viewport: {
-                    width: window.innerWidth,
-                    height: window.innerHeight
-                  }
-                })
-            );
-            assert(
-              Number.isFinite(highestLeoActorY) &&
-                Number.isFinite(lowestLeoActorY) &&
-                highestMeoActorScreen &&
-                highestGeoActorScreen &&
-                leftmostGeoActorScreen &&
-                highestMeoActorScreen.y < highestLeoActorY - 160 &&
-                highestGeoActorScreen.y < highestLeoActorY - 120 &&
-                leftmostGeoActorScreen.x < window.innerWidth * 0.28,
-              "V4.5 orbit actor lanes must separate LEO, MEO, and GEO in screen space: " +
-                JSON.stringify({
-                  highestLeoActorY,
-                  lowestLeoActorY,
-                  highestMeoActorScreen,
-                  highestGeoActorScreen,
-                  leftmostGeoActorScreen,
-                  actorScreenRecords,
+                  hasProjectionPanel: projectionPanel instanceof HTMLElement,
                   viewport: {
                     width: window.innerWidth,
                     height: window.innerHeight
@@ -735,10 +516,8 @@ async function main() {
                 state.serviceState.isNativeRfHandover === false &&
                 state.serviceState.measuredLatency === false &&
                 state.serviceState.measuredJitter === false &&
-                state.serviceState.measuredThroughput === false &&
-                JSON.stringify(state.serviceState.timelineWindowIds) ===
-                  JSON.stringify(config.expectedWindowIds),
-              "V4.5 desktop route must keep the modeled service-state timeline in state."
+                state.serviceState.measuredThroughput === false,
+              "V4.5 selected-pair route must keep modeled service state."
             );
             assert(
               hud instanceof HTMLElement &&
@@ -746,25 +525,6 @@ async function main() {
                 hud.dataset.m8aV4GroundStationSceneVisibility === "hidden" &&
                 rectToPlain(hud).height === 0,
               "V4.5 desktop route must keep the large truth-boundary HUD hidden."
-            );
-            assert(
-              state.actorLabelDensity.policy ===
-                "representative-orbit-class-labels-only" &&
-                state.actorLabelDensity.alwaysVisibleActorLabelCount <
-                  state.actorCount &&
-                state.actorLabelDensity.alwaysVisibleActorLabelCount <=
-                  state.actorLabelDensity.desktopMaxAlwaysVisibleActorLabels &&
-                state.actorLabelDensity.hiddenContextActorLabelCount > 0 &&
-                actorLabelRecords.every((record) =>
-                  record.labelVisibility === "always-visible"
-                    ? record.hasEntityLabel === true
-                    : record.hasEntityLabel === false
-                ),
-              "V4.5/V4.6B desktop route must keep representative actor labels only: " +
-                JSON.stringify({
-                  density: state.actorLabelDensity,
-                  actorLabelRecords
-                })
             );
             assert(
               config.requiredNonClaimKeys.every((key) =>
@@ -792,37 +552,36 @@ async function main() {
 
             return {
               endpoints: endpointIds,
-              orbitActorCounts: state.orbitActorCounts,
-              timelineWindows: state.serviceState.timelineWindowIds,
+              sceneSourceMode: state.sceneSourceMode,
+              selectedPairOverlay: overlay,
               endpointCanvasPoints,
               endpointScreenDistance,
-              actorCanvasPoints,
-              actorRenderRadii,
-              actorLabelDensity: state.actorLabelDensity,
-              geoSourceRadius,
-              geoRenderRadius,
-              geoCanvasPoint,
+              selectedPairEntityCounts: {
+                satellites: selectedPairSatelliteEntityIds.length,
+                linkFlow: selectedPairLinkFlowEntityIds.length,
+                handoverCues: selectedPairHandoverCueEntityIds.length
+              },
               hudRect: rectToPlain(hud),
               hudHidden: hud instanceof HTMLElement ? hud.hidden : null
             };
           })(${JSON.stringify({
             expectedDataSourceName: EXPECTED_DATA_SOURCE_NAME,
             expectedEndpointIds: EXPECTED_ENDPOINT_IDS,
-            expectedActorIds: EXPECTED_ACTOR_IDS,
-            expectedActorCounts: EXPECTED_ACTOR_COUNTS,
-            expectedWindowIds: EXPECTED_WINDOW_IDS,
             requiredNonClaimKeys: REQUIRED_NON_CLAIM_KEYS,
             forbiddenClaimPhrases: FORBIDDEN_CLAIM_PHRASES
           })})`
         );
 
-        await captureScreenshot(client, DESKTOP_SCREENSHOT_PATH);
+        const desktopScreenshotBytes = await captureScreenshot(
+          client,
+          DESKTOP_SCREENSHOT_PATH
+        );
 
         await navigateHomepage(client, baseUrl);
 
         const desktopHomepageResult = await evaluateRuntimeValue(
           client,
-          `(() => {
+          `((config) => {
             const assert = (condition, message) => {
               if (!condition) {
                 throw new Error(message);
@@ -931,12 +690,16 @@ async function main() {
                 v4Rect.height <= 44 &&
                 v4Rect.right <= homeRect.left &&
                 v4Href === "${V4_ENTRY_HREF}" &&
-                v4Url?.searchParams.get("scenePreset") === "regional" &&
-                v4Url?.searchParams.get("m8aV4GroundStationScene") === "1" &&
-                /v4/i.test(v4Text) &&
-                /ground.station/i.test(v4Text) &&
-                /multi.orbit/i.test(v4Text),
-              "Homepage must expose the V4 ground-station entry: " +
+                v4Url?.searchParams.get("stationA") ===
+                  config.expectedRouteParams.stationA &&
+                v4Url?.searchParams.get("stationB") ===
+                  config.expectedRouteParams.stationB &&
+                v4Url?.searchParams.get("durationMinutes") ===
+                  config.expectedRouteParams.durationMinutes &&
+                !v4Url?.searchParams.has("m8aV4GroundStationScene") &&
+                /selected.pair/i.test(v4Text) &&
+                /cross.orbit/i.test(v4Text),
+              "Homepage must expose the selected-pair projection entry: " +
                 JSON.stringify({ v4Href, v4Rect, v4Option, homeRect, v4Text })
             );
             // Post-wave-1 IA: chrome telemetry chips (LEO actor count + TLE
@@ -1003,7 +766,9 @@ async function main() {
               statusRect,
               v4Text
             };
-          })()`
+          })(${JSON.stringify({
+            expectedRouteParams: EXPECTED_ROUTE_PARAMS
+          })})`
         );
 
         await setViewport(client, NARROW_VIEWPORT);
@@ -1208,6 +973,7 @@ async function main() {
             const capture = window.__SCENARIO_GLOBE_VIEWER_CAPTURE__;
             const state =
               capture?.m8aV4GroundStationScene?.getState?.() ?? null;
+            const overlay = state?.selectedPairOverlay ?? null;
             const hud = document.querySelector(
               "[data-m8a-v4-ground-station-scene='true']"
             );
@@ -1231,43 +997,37 @@ async function main() {
             );
             const telemetryNonClaims =
               document.documentElement.dataset.m8aV4GroundStationNonClaims ?? "";
-            const actorLabelRecords = (state?.actors ?? []).map((actor) => {
-              const entity = capture?.viewer?.dataSources
-                ?.getByName?.(state.dataSourceName)?.[0]
-                ?.entities?.getById?.(actor.actorId);
-
-              return {
-                actorId: actor.actorId,
-                labelVisibility: actor.labelVisibility,
-                hasEntityLabel: Boolean(entity?.label)
-              };
-            });
+            const dataSource = state
+              ? capture?.viewer?.dataSources?.getByName?.(state.dataSourceName)?.[0]
+              : null;
+            const selectedPairEntityIds = (dataSource?.entities?.values ?? [])
+              .map((entity) => entity.id)
+              .filter(
+                (id) =>
+                  typeof id === "string" &&
+                  id.startsWith("m8a-v4-selected-pair-")
+              );
 
             assert(capture, "Missing runtime capture seam on narrow V4 route.");
             assert(
               state &&
                 state.runtimeState === "${V4_RUNTIME_STATE}" &&
                 state.endpointCount === 2 &&
-                state.actorCount === config.expectedActorIds.length &&
-                JSON.stringify(state.orbitActorCounts) ===
-                  JSON.stringify(config.expectedActorCounts),
-              "Narrow V4 route must keep accepted endpoint and orbit-actor counts."
+                state.sceneSourceMode === "tle-first-runtime",
+              "Narrow V4 route must keep selected-pair endpoint coverage."
             );
             assert(
-              state.actorLabelDensity.alwaysVisibleActorLabelCount <
-                state.actorCount &&
-                state.actorLabelDensity.alwaysVisibleActorLabelCount <=
-                  state.actorLabelDensity.narrowMaxAlwaysVisibleActorLabels &&
-                state.actorLabelDensity.hiddenContextActorLabelCount > 0 &&
-                actorLabelRecords.every((record) =>
-                  record.labelVisibility === "always-visible"
-                    ? record.hasEntityLabel === true
-                    : record.hasEntityLabel === false
-                ),
-              "Narrow V4 route must keep actor label density controlled: " +
+              overlay &&
+                overlay.status === "ready" &&
+                overlay.sourceMode === "tle-first-runtime" &&
+                overlay.runtimeLinkVisible === true &&
+                overlay.actorCount > 0 &&
+                overlay.linkFlowCueCount > 0 &&
+                selectedPairEntityIds.length >= overlay.actorCount,
+              "Narrow V4 route must keep selected-pair visual overlay ready: " +
                 JSON.stringify({
-                  density: state.actorLabelDensity,
-                  actorLabelRecords
+                  overlay,
+                  selectedPairEntityCount: selectedPairEntityIds.length
                 })
             );
             assert(
@@ -1299,19 +1059,21 @@ async function main() {
                 width: window.innerWidth,
                 height: window.innerHeight
               },
+              selectedPairOverlay: overlay,
+              selectedPairEntityCount: selectedPairEntityIds.length,
               hudRect,
               hudHidden: hud instanceof HTMLElement ? hud.hidden : null,
-              visibleHudLabelCount: visibleHudLabels.length,
-              actorLabelDensity: state.actorLabelDensity
+              visibleHudLabelCount: visibleHudLabels.length
             };
           })(${JSON.stringify({
-            expectedActorIds: EXPECTED_ACTOR_IDS,
-            expectedActorCounts: EXPECTED_ACTOR_COUNTS,
             requiredNonClaimKeys: REQUIRED_NON_CLAIM_KEYS
           })})`
         );
 
-        await captureScreenshot(client, NARROW_SCREENSHOT_PATH);
+        const narrowScreenshotBytes = await captureScreenshot(
+          client,
+          NARROW_SCREENSHOT_PATH
+        );
 
         console.log(
           `M8A-V4.5 visual acceptance/regression smoke passed: ${JSON.stringify(
@@ -1320,7 +1082,16 @@ async function main() {
               desktopHomepageResult,
               narrowHomepageResult,
               narrowV4Result,
-              screenshots: [DESKTOP_SCREENSHOT_PATH, NARROW_SCREENSHOT_PATH]
+              screenshots: [
+                {
+                  path: DESKTOP_SCREENSHOT_PATH,
+                  bytes: desktopScreenshotBytes
+                },
+                {
+                  path: NARROW_SCREENSHOT_PATH,
+                  bytes: narrowScreenshotBytes
+                }
+              ]
             },
             null,
             2
