@@ -293,6 +293,48 @@ export function configureSelectedPairReplayClock(
   viewer.timeline?.zoomTo(viewer.clock.startTime, viewer.clock.stopTime);
 }
 
+interface CameraScales {
+  readonly heightScale: number;
+  readonly panScale: number;
+}
+
+function calculateCameraScales(): CameraScales {
+  if (typeof window === "undefined") {
+    return { heightScale: 1.0, panScale: 1.0 };
+  }
+
+  const width = window.innerWidth;
+  const height = window.innerHeight;
+  const aspect = width / height;
+
+  // 1. Aspect ratio scaling (primarily for narrow screen width constraint)
+  let aspectScale = 1.0;
+  if (aspect > 1.6) {
+    aspectScale = Math.min(aspect / 1.6, 2.0);
+  } else if (aspect < 1.1) {
+    aspectScale = 1.1 / aspect;
+  }
+
+  // 2. Height scaling (primarily for vertical screen height constraint to avoid UI overlays)
+  let verticalScale = 1.0;
+  if (height < 900) {
+    verticalScale = Math.min(900 / height, 2.5);
+  }
+
+  const heightScale = Math.max(aspectScale, verticalScale);
+
+  // 3. Pan scaling (to avoid pushing Earth behind timeline/controls when height is small)
+  let panScale = 1.0;
+  if (height < 900) {
+    panScale = Math.max(0.4, height / 900);
+  } else {
+    panScale = aspectScale;
+  }
+
+  return { heightScale, panScale };
+}
+
+
 export function applyV4Camera(
   viewer: Viewer,
   sceneEndpointContext: SceneEndpointContext
@@ -325,11 +367,14 @@ export function applyV4Camera(
       const geoCameraLat = isNorthern
         ? clamp(pairCenter.lat + geoLatitudeOffset, -82, 82)
         : clamp(pairCenter.lat - geoLatitudeOffset, -82, 82);
+
+      const { heightScale, panScale } = calculateCameraScales();
+
       applyDemoOrbitCamera(viewer, {
         lon: pairCenter.lon,
         lat: geoCameraLat,
-        heightMeters: 13_000_000,
-        screenUpPanMeters: 1_000_000,
+        heightMeters: 13_000_000 * heightScale,
+        screenUpPanMeters: 1_000_000 * panScale,
         pitchDeg: -72,
         headingDeg: isNorthern ? 180 : 0
       });
@@ -385,11 +430,14 @@ export function applySelectedPairCameraHint(
       const geoCameraLat = isNorthern
         ? clamp(midpoint.lat + geoLatitudeOffset, -82, 82)
         : clamp(midpoint.lat - geoLatitudeOffset, -82, 82);
+
+      const { heightScale, panScale } = calculateCameraScales();
+
       applyDemoOrbitCamera(viewer, {
         lon: midpoint.lon,
         lat: geoCameraLat,
-        heightMeters: Math.max(13_000_000, cameraHint.suggestedAltitudeKm * 1000),
-        screenUpPanMeters: 1_000_000,
+        heightMeters: Math.max(13_000_000, cameraHint.suggestedAltitudeKm * 1000) * heightScale,
+        screenUpPanMeters: 1_000_000 * panScale,
         pitchDeg: -72,
         headingDeg: isNorthern ? 180 : 0
       });
