@@ -590,26 +590,47 @@ export function buildRuntimeProjectionEvidenceReportHtml(
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>${escapeHtml(title)}</title>
   <style>
+    @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap');
     :root {
-      color-scheme: light;
-      font-family: Inter, "IBM Plex Sans", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      background: #f5f7fa;
-      color: #182230;
+      color-scheme: dark;
+      --bg-base: #060e18;
+      --bg-surface: rgba(12, 26, 42, 0.88);
+      --bg-card: rgba(16, 32, 52, 0.72);
+      --bg-elevated: rgba(22, 42, 66, 0.65);
+      --border-subtle: rgba(126, 226, 184, 0.12);
+      --border-default: rgba(126, 226, 184, 0.18);
+      --border-accent: rgba(16, 185, 129, 0.4);
+      --text-primary: #e8edf4;
+      --text-secondary: #94a3b8;
+      --text-muted: #64748b;
+      --accent: #10b981;
+      --accent-dim: #0d9668;
+      --accent-glow: rgba(16, 185, 129, 0.15);
+      --tone-ok: #10b981;
+      --tone-warn: #f59e0b;
+      --tone-info: #3b82f6;
+      --tone-ok-bg: rgba(16, 185, 129, 0.08);
+      --tone-warn-bg: rgba(245, 158, 11, 0.08);
+      --tone-info-bg: rgba(59, 130, 246, 0.08);
+      font-family: "IBM Plex Sans", Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: var(--bg-base);
+      color: var(--text-primary);
     }
     * { box-sizing: border-box; }
     body {
       margin: 0;
-      background: #f5f7fa;
-      color: #182230;
+      background: var(--bg-base);
+      color: var(--text-primary);
+      min-height: 100vh;
     }
     header {
-      background: #ffffff;
-      border-bottom: 1px solid #d8dee8;
+      background: linear-gradient(180deg, rgba(16, 185, 129, 0.06) 0%, transparent 100%);
+      border-bottom: 1px solid var(--border-subtle);
     }
     .report-header {
       max-width: 1180px;
       margin: 0 auto;
-      padding: 28px 24px 20px;
+      padding: 32px 24px 24px;
     }
     .header-top {
       display: flex;
@@ -621,28 +642,32 @@ export function buildRuntimeProjectionEvidenceReportHtml(
       max-width: 820px;
       margin: 0 0 10px;
       font-size: clamp(24px, 4vw, 34px);
+      font-weight: 700;
       line-height: 1.16;
-      letter-spacing: 0;
-      color: #101828;
+      letter-spacing: -0.02em;
+      color: var(--text-primary);
     }
     h2 {
       margin: 0 0 18px;
-      font-size: 24px;
+      font-size: 22px;
+      font-weight: 600;
       line-height: 1.2;
-      letter-spacing: 0;
-      color: #101828;
+      letter-spacing: -0.01em;
+      color: var(--text-primary);
     }
     h3 {
       margin: 24px 0 12px;
-      font-size: 17px;
+      font-size: 16px;
+      font-weight: 600;
       line-height: 1.3;
       letter-spacing: 0;
-      color: #145c52;
+      color: var(--accent);
     }
     p { line-height: 1.55; }
     .meta {
-      color: #526173;
+      color: var(--text-muted);
       margin: 0;
+      font-size: 14px;
     }
     .report-actions {
       display: flex;
@@ -652,23 +677,29 @@ export function buildRuntimeProjectionEvidenceReportHtml(
     }
     .report-button {
       min-height: 38px;
-      padding: 0 14px;
-      border: 1px solid #0f766e;
-      border-radius: 6px;
-      background: #0f766e;
+      padding: 0 16px;
+      border: 1px solid var(--accent-dim);
+      border-radius: 8px;
+      background: var(--accent-dim);
       color: #ffffff;
       font: inherit;
-      font-weight: 650;
+      font-size: 14px;
+      font-weight: 600;
       letter-spacing: 0;
       cursor: pointer;
+      transition: background 0.15s, box-shadow 0.15s;
+    }
+    .report-button:hover {
+      background: var(--accent);
+      box-shadow: 0 0 16px var(--accent-glow);
     }
     .toolbar {
       position: sticky;
       top: 0;
       z-index: 2;
-      background: rgba(245, 247, 250, 0.96);
-      border-bottom: 1px solid #d8dee8;
-      backdrop-filter: blur(8px);
+      background: rgba(6, 14, 24, 0.92);
+      border-bottom: 1px solid var(--border-subtle);
+      backdrop-filter: blur(12px);
     }
     .toolbar-inner {
       max-width: 1180px;
@@ -682,36 +713,53 @@ export function buildRuntimeProjectionEvidenceReportHtml(
     [role="tablist"] {
       display: flex;
       flex-wrap: wrap;
-      gap: 8px;
+      gap: 6px;
     }
     [role="tab"] {
       min-height: 36px;
-      padding: 0 12px;
-      border: 1px solid #c5ceda;
-      border-radius: 6px;
-      background: #ffffff;
-      color: #344054;
+      padding: 0 14px;
+      border: 1px solid var(--border-subtle);
+      border-radius: 8px;
+      background: var(--bg-card);
+      color: var(--text-secondary);
       font: inherit;
+      font-size: 14px;
       cursor: pointer;
       letter-spacing: 0;
+      transition: all 0.15s;
+    }
+    [role="tab"]:hover {
+      border-color: var(--border-accent);
+      color: var(--text-primary);
     }
     [role="tab"][aria-selected="true"] {
-      border-color: #0f766e;
-      background: #e7f7f3;
-      color: #0b4f48;
-      font-weight: 650;
+      border-color: var(--accent);
+      background: var(--accent-glow);
+      color: var(--accent);
+      font-weight: 600;
+      box-shadow: 0 0 12px var(--accent-glow);
     }
     input[type="search"] {
       min-height: 36px;
       min-width: min(320px, 100%);
       margin-left: auto;
       padding: 0 12px;
-      border-radius: 6px;
-      border: 1px solid #c5ceda;
-      background: #ffffff;
-      color: #182230;
+      border-radius: 8px;
+      border: 1px solid var(--border-subtle);
+      background: var(--bg-card);
+      color: var(--text-primary);
       font: inherit;
+      font-size: 14px;
       letter-spacing: 0;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+    input[type="search"]::placeholder {
+      color: var(--text-muted);
+    }
+    input[type="search"]:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 2px var(--accent-glow);
     }
     main {
       max-width: 1180px;
@@ -729,25 +777,34 @@ export function buildRuntimeProjectionEvidenceReportHtml(
     .evidence-card,
     .report-section,
     .callout {
-      border: 1px solid #d8dee8;
-      border-radius: 8px;
-      background: #ffffff;
-      padding: 14px;
+      border: 1px solid var(--border-subtle);
+      border-radius: 10px;
+      background: var(--bg-card);
+      backdrop-filter: blur(8px);
+      padding: 16px;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .metric-card:hover,
+    .evidence-card:hover {
+      border-color: var(--border-accent);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
     }
     .metric-card span,
     .evidence-card span {
       display: block;
-      color: #667085;
-      font-size: 13px;
-      font-weight: 650;
-      letter-spacing: 0;
+      color: var(--text-muted);
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
     }
     .metric-card strong,
     .evidence-card strong {
       display: block;
-      margin-top: 7px;
-      color: #101828;
-      font-size: 22px;
+      margin-top: 8px;
+      color: var(--text-primary);
+      font-size: 24px;
+      font-weight: 700;
       line-height: 1.18;
       overflow-wrap: anywhere;
     }
@@ -755,20 +812,36 @@ export function buildRuntimeProjectionEvidenceReportHtml(
     .evidence-card p,
     .callout p {
       margin: 8px 0 0;
-      color: #526173;
-      font-size: 14px;
+      color: var(--text-secondary);
+      font-size: 13px;
+      line-height: 1.5;
     }
     .evidence-card[data-tone="ok"] {
-      border-left: 4px solid #0f766e;
+      border-left: 3px solid var(--tone-ok);
+      background: var(--tone-ok-bg);
+    }
+    .evidence-card[data-tone="ok"] strong {
+      color: var(--tone-ok);
     }
     .evidence-card[data-tone="warn"],
     .callout[data-tone="warn"] {
-      border-left: 4px solid #b7791f;
-      background: #fff8eb;
+      border-left: 3px solid var(--tone-warn);
+      background: var(--tone-warn-bg);
+    }
+    .evidence-card[data-tone="warn"] strong {
+      color: var(--tone-warn);
     }
     .evidence-card[data-tone="info"],
     .callout[data-tone="info"] {
-      border-left: 4px solid #2563eb;
+      border-left: 3px solid var(--tone-info);
+      background: var(--tone-info-bg);
+    }
+    .evidence-card[data-tone="info"] strong {
+      color: var(--tone-info);
+    }
+    .callout strong {
+      color: var(--text-primary);
+      font-size: 14px;
     }
     .report-section,
     .callout {
@@ -780,52 +853,76 @@ export function buildRuntimeProjectionEvidenceReportHtml(
     .table-wrap {
       width: 100%;
       overflow: auto;
-      border: 1px solid #d8dee8;
-      border-radius: 8px;
-      background: #ffffff;
+      border: 1px solid var(--border-subtle);
+      border-radius: 10px;
+      background: var(--bg-card);
     }
     table {
       width: 100%;
       border-collapse: collapse;
-      font-size: 14px;
+      font-size: 13px;
     }
     th,
     td {
-      padding: 10px 11px;
-      border-bottom: 1px solid #e5eaf1;
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--border-subtle);
       text-align: left;
       vertical-align: top;
     }
     th {
       position: sticky;
       top: 61px;
-      background: #f0f4f8;
-      color: #344054;
+      background: rgba(12, 26, 42, 0.95);
+      color: var(--accent);
+      font-weight: 600;
+      font-size: 12px;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
       z-index: 1;
       white-space: nowrap;
+      backdrop-filter: blur(6px);
     }
     td {
-      color: #27364a;
+      color: var(--text-secondary);
       overflow-wrap: anywhere;
+    }
+    tbody tr {
+      transition: background 0.12s;
+    }
+    tbody tr:hover {
+      background: rgba(16, 185, 129, 0.04);
     }
     tr[hidden] { display: none; }
     ul {
       margin-top: 8px;
-      line-height: 1.55;
-      color: #27364a;
+      line-height: 1.6;
+      color: var(--text-secondary);
+      padding-left: 20px;
+    }
+    ul li {
+      margin-bottom: 4px;
+    }
+    ul li::marker {
+      color: var(--accent-dim);
     }
     pre {
       white-space: pre-wrap;
       overflow-wrap: anywhere;
-      border: 1px solid #d8dee8;
-      border-radius: 8px;
-      padding: 14px;
-      background: #101828;
-      color: #e7eef8;
-      font-size: 13px;
-      line-height: 1.45;
+      border: 1px solid var(--border-subtle);
+      border-radius: 10px;
+      padding: 16px;
+      background: rgba(4, 10, 18, 0.9);
+      color: #a5f3c4;
+      font-family: "IBM Plex Mono", "Fira Code", monospace;
+      font-size: 12px;
+      line-height: 1.5;
     }
-    .empty { color: #667085; }
+    .empty { color: var(--text-muted); font-style: italic; }
+    /* scrollbar */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--border-default); border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--accent-dim); }
     @media (max-width: 900px) {
       .report-header,
       .toolbar-inner,
