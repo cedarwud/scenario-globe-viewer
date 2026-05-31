@@ -446,7 +446,7 @@ body:has([data-v4-projection-side-panel="true"])
 }
 .v4-projection-side-panel__outcome-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: 0.9fr 0.8fr 1.3fr;
   gap: 0.45rem;
 }
 .v4-projection-side-panel__outcome-grid .v4-projection-side-panel__stat {
@@ -465,7 +465,7 @@ body:has([data-v4-projection-side-panel="true"])
   font-size: 1.05rem;
 }
 .v4-projection-side-panel__outcome-grid .v4-projection-side-panel__stat:nth-child(3) .v4-projection-side-panel__stat-value {
-  font-size: 0.96rem;
+  font-size: 0.92rem;
 }
 .v4-projection-side-panel__outcome-grid .v4-projection-side-panel__stat:nth-child(2) {
   text-align: center;
@@ -809,13 +809,15 @@ body:has([data-v4-projection-side-panel="true"])
   grid-template-columns: minmax(0, 1fr) auto;
   grid-template-areas:
     "label time"
-    "primary secondary";
+    "primary primary"
+    "secondary secondary";
   column-gap: 0.55rem;
-  row-gap: 0.08rem;
-  padding: 0.34rem 0.5rem;
+  row-gap: 0.2rem;
+  padding: 0.42rem 0.58rem;
   border-radius: 0.46rem;
   background: rgba(157, 196, 232, 0.052);
   border: 1px solid rgba(157, 196, 232, 0.11);
+  transition: all 0.2s ease;
 }
 .v4-projection-side-panel__decision-card[data-modifier="cross-orbit-migration"] {
   border-left: 3px solid #c9a0ff;
@@ -855,16 +857,16 @@ body:has([data-v4-projection-side-panel="true"])
 }
 .v4-projection-side-panel__decision-secondary {
   grid-area: secondary;
-  justify-self: end;
+  justify-self: start;
   display: block;
   min-width: 0;
-  max-width: 12rem;
-  margin-top: 0;
+  max-width: none;
+  margin-top: 0.05rem;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  color: rgba(157, 196, 232, 0.82);
-  font-size: 0.9rem;
+  color: rgba(157, 196, 232, 0.72);
+  font-size: 0.86rem;
 }
 .v4-projection-side-panel__rain-impact {
   display: flex;

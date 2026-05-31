@@ -1160,7 +1160,7 @@ function buildOutcomeRow(viewModel: SelectedPairPanelViewModel): HTMLElement {
   row.dataset.row = "2";
   row.setAttribute(
     "aria-label",
-    `Available ${viewModel.availabilityLabel}; handovers ${viewModel.handoverCountLabel}; next link ${viewModel.nextLinkLabel}`
+    `Available ${viewModel.availabilityLabel}; handovers ${viewModel.handoverCountLabel}; active link ${viewModel.nextLinkLabel}`
   );
 
   const grid = document.createElement("div");
@@ -1168,8 +1168,9 @@ function buildOutcomeRow(viewModel: SelectedPairPanelViewModel): HTMLElement {
   const available = buildStatBlock("Available", viewModel.availabilityLabel);
   available.classList.add("v4-projection-side-panel__stat--hero");
   const handovers = buildStatBlock("Handovers", viewModel.handoverCountLabel);
-  const next = buildStatBlock("Next link", viewModel.nextLinkLabel);
+  const next = buildStatBlock("Active link", viewModel.nextLinkLabel);
   next.title = viewModel.nextLinkLabel;
+  next.dataset.statRole = "active-link";
   grid.append(available, handovers, next);
   row.append(grid);
   return row;
@@ -1388,6 +1389,208 @@ function getViewerClockDate(viewer: Viewer | undefined): Date {
   }
 }
 
+function getActiveSatelliteAt(
+  result: RuntimeProjectionResult,
+  timeMs: number
+): string | null {
+  const coveringWindows = result.visibilityWindows.filter(w => {
+    const start = new Date(w.intersectionStartUtc).getTime();
+    const end = new Date(w.intersectionEndUtc).getTime();
+    return timeMs >= start && timeMs <= end;
+  });
+  if (coveringWindows.length === 0) {
+    return null;
+  }
+
+  let activeSatId: string | null = null;
+  let latestHandoverMs = -Infinity;
+  for (const event of result.handoverEvents) {
+    const eventMs = new Date(event.handoverAtUtc).getTime();
+    if (eventMs <= timeMs && eventMs > latestHandoverMs) {
+      activeSatId = event.toSatelliteId;
+      latestHandoverMs = eventMs;
+    }
+  }
+
+  if (activeSatId) {
+    const hasWindow = coveringWindows.some(w => w.satelliteId === activeSatId);
+    if (hasWindow) {
+      return activeSatId;
+    }
+  }
+
+  return coveringWindows[0].satelliteId;
+}
+
+function syncDynamicOutcomeAndCards(
+  root: HTMLElement,
+  currentDate: Date,
+  result: RuntimeProjectionResult
+): void {
+  const currentMs = currentDate.getTime();
+  const activeSatId = getActiveSatelliteAt(result, currentMs);
+
+  // 1. Sync active link stat block
+  const activeLinkStat = root.querySelector<HTMLElement>('[data-stat-role="active-link"]');
+  if (activeLinkStat) {
+    const valueEl = activeLinkStat.querySelector('.v4-projection-side-panel__stat-value');
+    if (valueEl) {
+      if (activeSatId) {
+        const orbit = resolveSatelliteOrbitClass(result, activeSatId);
+        const displayVal = `${formatSatelliteShort(activeSatId)} · ${orbit}`;
+        valueEl.textContent = displayVal;
+        activeLinkStat.title = displayVal;
+      } else {
+        valueEl.textContent = "—";
+        activeLinkStat.title = "No active link";
+      }
+    }
+  }
+
+  // 2. Sync Card 0: Active Link
+  const card0 = root.querySelector<HTMLElement>('[data-card-index="0"]');
+  if (card0) {
+    const labelEl = card0.querySelector('.v4-projection-side-panel__decision-label');
+    const timeEl = card0.querySelector('.v4-projection-side-panel__decision-time');
+    const primaryEl = card0.querySelector('.v4-projection-side-panel__decision-primary');
+    const secondaryEl = card0.querySelector('.v4-projection-side-panel__decision-secondary');
+
+    if (labelEl) labelEl.textContent = "Active Link";
+    if (activeSatId) {
+      const orbit = resolveSatelliteOrbitClass(result, activeSatId);
+      if (timeEl) timeEl.textContent = "Active now";
+      if (primaryEl) {
+        const val = `${formatSatelliteShort(activeSatId)} · ${orbit}`;
+        primaryEl.textContent = val;
+        primaryEl.setAttribute('title', val);
+      }
+      if (secondaryEl) {
+        const text = "Connected · Stable route";
+        secondaryEl.textContent = text;
+        secondaryEl.setAttribute('title', text);
+      }
+      card0.style.borderColor = "rgba(126, 226, 184, 0.45)";
+      card0.style.background = "rgba(126, 226, 184, 0.08)";
+    } else {
+      if (timeEl) timeEl.textContent = "Inactive";
+      if (primaryEl) {
+        primaryEl.textContent = "No mutual link";
+        primaryEl.setAttribute('title', "No mutual link");
+      }
+      if (secondaryEl) {
+        const text = result.visibilityWindows.length === 0
+          ? "No pair intersection"
+          : "Mutual visibility gap";
+        secondaryEl.textContent = text;
+        secondaryEl.setAttribute('title', text);
+      }
+      card0.style.borderColor = "rgba(157, 196, 232, 0.11)";
+      card0.style.background = "rgba(157, 196, 232, 0.052)";
+    }
+  }
+
+  // 3. Sync Card 1: Next Handover
+  const sortedHandovers = [...result.handoverEvents]
+    .filter(e => e.fromSatelliteId !== null)
+    .sort((a, b) => Date.parse(a.handoverAtUtc) - Date.parse(b.handoverAtUtc));
+  const nextHandover = sortedHandovers.find(e => Date.parse(e.handoverAtUtc) > currentMs);
+
+  const card1 = root.querySelector<HTMLElement>('[data-card-index="1"]');
+  if (card1) {
+    const labelEl = card1.querySelector('.v4-projection-side-panel__decision-label');
+    const timeEl = card1.querySelector('.v4-projection-side-panel__decision-time');
+    const primaryEl = card1.querySelector('.v4-projection-side-panel__decision-primary');
+    const secondaryEl = card1.querySelector('.v4-projection-side-panel__decision-secondary');
+
+    if (labelEl) labelEl.textContent = "Next Handover";
+    if (nextHandover) {
+      const timeText = `${formatUtcClockWithSeconds(nextHandover.handoverAtUtc)} UTC`;
+      const primText = `${formatSatelliteShort(nextHandover.fromSatelliteId)} → ${formatSatelliteShort(nextHandover.toSatelliteId)}`;
+      const reason = formatPanelReasonLabel(nextHandover.reasonKind, nextHandover.fromSatelliteId);
+      const orbit = resolveSatelliteOrbitClass(result, nextHandover.toSatelliteId);
+      const secText = `${orbit} · ${reason}`;
+
+      if (timeEl) timeEl.textContent = timeText;
+      if (primaryEl) {
+        primaryEl.textContent = primText;
+        primaryEl.setAttribute('title', primText);
+      }
+      if (secondaryEl) {
+        secondaryEl.textContent = secText;
+        secondaryEl.setAttribute('title', secText);
+      }
+      const reasonTitle = formatPanelReasonTitle(nextHandover.reasonKind, nextHandover.fromSatelliteId);
+      if (reasonTitle) {
+        card1.setAttribute('title', reasonTitle);
+      } else {
+        card1.removeAttribute('title');
+      }
+    } else {
+      if (timeEl) timeEl.textContent = "None";
+      if (primaryEl) {
+        primaryEl.textContent = "No upcoming handovers";
+        primaryEl.setAttribute('title', "No upcoming handovers");
+      }
+      if (secondaryEl) {
+        const secText = "Stable link for remaining window";
+        secondaryEl.textContent = secText;
+        secondaryEl.setAttribute('title', secText);
+      }
+      card1.removeAttribute('title');
+    }
+  }
+
+  // 4. Sync Card 2: Next Cross-orbit
+  const sortedCrossOrbit = [...result.handoverEvents]
+    .filter(e => e.reasonKind === 'cross-orbit-migration')
+    .sort((a, b) => Date.parse(a.handoverAtUtc) - Date.parse(b.handoverAtUtc));
+  const nextCrossOrbit = sortedCrossOrbit.find(e => Date.parse(e.handoverAtUtc) > currentMs);
+
+  const card2 = root.querySelector<HTMLElement>('[data-card-index="2"]');
+  if (card2) {
+    const labelEl = card2.querySelector('.v4-projection-side-panel__decision-label');
+    const timeEl = card2.querySelector('.v4-projection-side-panel__decision-time');
+    const primaryEl = card2.querySelector('.v4-projection-side-panel__decision-primary');
+    const secondaryEl = card2.querySelector('.v4-projection-side-panel__decision-secondary');
+
+    if (labelEl) labelEl.textContent = "Next Cross-orbit";
+    if (nextCrossOrbit) {
+      const timeText = `${formatUtcClockWithSeconds(nextCrossOrbit.handoverAtUtc)} UTC`;
+      const primText = `${formatSatelliteShort(nextCrossOrbit.fromSatelliteId)} → ${formatSatelliteShort(nextCrossOrbit.toSatelliteId)}`;
+      const orbit = resolveSatelliteOrbitClass(result, nextCrossOrbit.toSatelliteId);
+      const secText = `${orbit} · Cross-orbit migration`;
+
+      if (timeEl) timeEl.textContent = timeText;
+      if (primaryEl) {
+        primaryEl.textContent = primText;
+        primaryEl.setAttribute('title', primText);
+      }
+      if (secondaryEl) {
+        secondaryEl.textContent = secText;
+        secondaryEl.setAttribute('title', secText);
+      }
+      const reasonTitle = formatPanelReasonTitle(nextCrossOrbit.reasonKind, nextCrossOrbit.fromSatelliteId);
+      if (reasonTitle) {
+        card2.setAttribute('title', reasonTitle);
+      } else {
+        card2.removeAttribute('title');
+      }
+    } else {
+      if (timeEl) timeEl.textContent = "None";
+      if (primaryEl) {
+        primaryEl.textContent = "No upcoming cross-orbit";
+        primaryEl.setAttribute('title', "No upcoming cross-orbit");
+      }
+      if (secondaryEl) {
+        const secText = "Single-tier continuation";
+        secondaryEl.textContent = secText;
+        secondaryEl.setAttribute('title', secText);
+      }
+      card2.removeAttribute('title');
+    }
+  }
+}
+
 function syncTimelineCurrentMarkers(root: HTMLElement, viewer: Viewer | undefined): void {
   const currentDate = getViewerClockDate(viewer);
   const currentMs = currentDate.getTime();
@@ -1418,6 +1621,11 @@ function syncTimelineCurrentMarkers(root: HTMLElement, viewer: Viewer | undefine
     marker.dataset.windowState =
       rawPercent < 0 ? "before" : rawPercent > 100 ? "after" : "inside";
     marker.title = `${formatUtcClockWithSeconds(currentUtc)} ${getLocalTimezoneLabel(currentUtc)} · current replay time`;
+  }
+
+  const result = (root as any).__latestResult as RuntimeProjectionResult | undefined;
+  if (result) {
+    syncDynamicOutcomeAndCards(root, currentDate, result);
   }
 }
 
@@ -1469,9 +1677,11 @@ function buildDecisionCardsRow(
 
   const list = document.createElement("div");
   list.className = "v4-projection-side-panel__decision-list";
+  let idx = 0;
   for (const card of viewModel.decisionCards.slice(0, PANEL_DECISION_CARD_LIMIT)) {
     const item = document.createElement("article");
     item.className = "v4-projection-side-panel__decision-card";
+    item.dataset.cardIndex = String(idx++);
     if (card.modifier) {
       item.dataset.modifier = card.modifier;
     }
@@ -2050,6 +2260,7 @@ function renderResult(
 
   removeEvidenceDrawer(root.ownerDocument);
   root.replaceChildren();
+  (root as any).__latestResult = result;
   const tierAttribution = result.dataCompleteness.pairSourceAttribution;
   const isEmptyResult =
     result.visibilityWindows.length === 0 &&
