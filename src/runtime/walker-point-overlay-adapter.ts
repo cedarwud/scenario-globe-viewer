@@ -91,7 +91,30 @@ function toCartesianPosition(sample: {
   positionEcef: { x: number; y: number; z: number };
 }): Cartesian3 {
   const { x, y, z } = sample.positionEcef;
-  return new Cartesian3(x, y, z);
+  const sourceRadiusMeters = Math.sqrt(x * x + y * y + z * z);
+  const earthRadiusMeters = 6_371_000;
+  if (!Number.isFinite(sourceRadiusMeters) || sourceRadiusMeters <= 0) {
+    return new Cartesian3(x, y, z);
+  }
+
+  const sourceAltitudeMeters = Math.max(sourceRadiusMeters - earthRadiusMeters, 0);
+  const sourceAltKm = sourceAltitudeMeters / 1000;
+  let displayAltKm = sourceAltKm;
+
+  if (sourceAltKm < 2000) {
+    // LEO nominal altitude is ~550km. Map to ~800km display altitude
+    displayAltKm = 800 + (sourceAltKm - 550) * 0.1;
+  } else if (sourceAltKm >= 2000 && sourceAltKm < 25000) {
+    // MEO nominal altitude is ~20000km. Map to ~3400km display altitude
+    displayAltKm = 3400 + (sourceAltKm - 20000) * 0.1;
+  } else {
+    // GEO nominal altitude is ~35786km. Map to ~6000km display altitude
+    displayAltKm = 6000 + (sourceAltKm - 35786) * 0.1;
+  }
+
+  const displayRadiusMeters = earthRadiusMeters + displayAltKm * 1000;
+  const scale = displayRadiusMeters / sourceRadiusMeters;
+  return new Cartesian3(x * scale, y * scale, z * scale);
 }
 
 function toEpochMilliseconds(value: WalkerFixtureAdapterState["sampleTime"]): number | null {
