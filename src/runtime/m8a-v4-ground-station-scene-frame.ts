@@ -328,8 +328,8 @@ export function applyV4Camera(
       applyDemoOrbitCamera(viewer, {
         lon: pairCenter.lon,
         lat: geoCameraLat,
-        heightMeters: M8A_V4_CAMERA_HEIGHT_METERS,
-        screenUpPanMeters: 0,
+        heightMeters: 13_000_000,
+        screenUpPanMeters: 1_000_000,
         pitchDeg: -72,
         headingDeg: isNorthern ? 180 : 0
       });
@@ -388,8 +388,8 @@ export function applySelectedPairCameraHint(
       applyDemoOrbitCamera(viewer, {
         lon: midpoint.lon,
         lat: geoCameraLat,
-        heightMeters: Math.max(M8A_V4_CAMERA_HEIGHT_METERS, cameraHint.suggestedAltitudeKm * 1000),
-        screenUpPanMeters: 0,
+        heightMeters: Math.max(13_000_000, cameraHint.suggestedAltitudeKm * 1000),
+        screenUpPanMeters: 1_000_000,
         pitchDeg: -72,
         headingDeg: isNorthern ? 180 : 0
       });
