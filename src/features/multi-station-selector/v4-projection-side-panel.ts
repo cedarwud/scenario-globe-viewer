@@ -1160,7 +1160,7 @@ function buildOutcomeRow(viewModel: SelectedPairPanelViewModel): HTMLElement {
   row.dataset.row = "2";
   row.setAttribute(
     "aria-label",
-    `Available ${viewModel.availabilityLabel}; handovers ${viewModel.handoverCountLabel}; active link ${viewModel.nextLinkLabel}`
+    `Available ${viewModel.availabilityLabel}; handovers ${viewModel.handoverCountLabel}`
   );
 
   const grid = document.createElement("div");
@@ -1168,10 +1168,7 @@ function buildOutcomeRow(viewModel: SelectedPairPanelViewModel): HTMLElement {
   const available = buildStatBlock("Available", viewModel.availabilityLabel);
   available.classList.add("v4-projection-side-panel__stat--hero");
   const handovers = buildStatBlock("Handovers", viewModel.handoverCountLabel);
-  const next = buildStatBlock("Active link", viewModel.nextLinkLabel);
-  next.title = viewModel.nextLinkLabel;
-  next.dataset.statRole = "active-link";
-  grid.append(available, handovers, next);
+  grid.append(available, handovers);
   row.append(grid);
   return row;
 }

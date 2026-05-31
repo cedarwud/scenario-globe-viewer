@@ -446,7 +446,7 @@ body:has([data-v4-projection-side-panel="true"])
 }
 .v4-projection-side-panel__outcome-grid {
   display: grid;
-  grid-template-columns: 0.9fr 0.8fr 1.3fr;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 0.45rem;
 }
 .v4-projection-side-panel__outcome-grid .v4-projection-side-panel__stat {
@@ -463,9 +463,6 @@ body:has([data-v4-projection-side-panel="true"])
 }
 .v4-projection-side-panel__outcome-grid .v4-projection-side-panel__stat:nth-child(1) .v4-projection-side-panel__stat-value {
   font-size: 1.05rem;
-}
-.v4-projection-side-panel__outcome-grid .v4-projection-side-panel__stat:nth-child(3) .v4-projection-side-panel__stat-value {
-  font-size: 0.92rem;
 }
 .v4-projection-side-panel__outcome-grid .v4-projection-side-panel__stat:nth-child(2) {
   text-align: center;
