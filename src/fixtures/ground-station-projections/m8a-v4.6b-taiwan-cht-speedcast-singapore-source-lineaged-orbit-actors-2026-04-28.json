@@ -1,0 +1,1744 @@
+{
+  "schemaVersion": "m8a-v4-ground-station-projection.v1",
+  "artifactId": "m8a-v4.6b-taiwan-cht-speedcast-singapore-source-lineaged-orbit-actors-2026-04-28",
+  "scenarioId": "m8a-v4-ground-station-multi-orbit-handover",
+  "artifactStatus": "accepted",
+  "projectionEpochUtc": "2026-04-28T08:51:17Z",
+  "sourcePackage": {
+    "packageId": "taiwan-cht-speedcast-singapore-operator-family-2026-04-26",
+    "packageDate": "2026-04-26",
+    "packageAuthority": "itri/multi-orbit endpoint-pair authority package",
+    "sourceFiles": [
+      {
+        "label": "authority-package.md",
+        "sourcePath": "itri/multi-orbit/download/ground-station-endpoint-pairs/taiwan-cht-speedcast-singapore-operator-family-2026-04-26/authority-package.md",
+        "sourceRole": "accepted endpoint-pair decision and truth boundary",
+        "runtimeUse": "lineage-metadata-only-not-readable-at-runtime"
+      },
+      {
+        "label": "endpoint-a.json",
+        "sourcePath": "itri/multi-orbit/download/ground-station-endpoint-pairs/taiwan-cht-speedcast-singapore-operator-family-2026-04-26/endpoint-a.json",
+        "sourceRole": "endpoint A source-truth and orbit evidence",
+        "runtimeUse": "lineage-metadata-only-not-readable-at-runtime"
+      },
+      {
+        "label": "endpoint-b.json",
+        "sourcePath": "itri/multi-orbit/download/ground-station-endpoint-pairs/taiwan-cht-speedcast-singapore-operator-family-2026-04-26/endpoint-b.json",
+        "sourceRole": "endpoint B source-truth and orbit evidence",
+        "runtimeUse": "lineage-metadata-only-not-readable-at-runtime"
+      },
+      {
+        "label": "orbit-evidence-matrix.json",
+        "sourcePath": "itri/multi-orbit/download/ground-station-endpoint-pairs/taiwan-cht-speedcast-singapore-operator-family-2026-04-26/orbit-evidence-matrix.json",
+        "sourceRole": "accepted pair-level orbit evidence matrix",
+        "runtimeUse": "lineage-metadata-only-not-readable-at-runtime"
+      },
+      {
+        "label": "position-and-precision.md",
+        "sourcePath": "itri/multi-orbit/download/ground-station-endpoint-pairs/taiwan-cht-speedcast-singapore-operator-family-2026-04-26/position-and-precision.md",
+        "sourceRole": "operator-family precision and marker boundary",
+        "runtimeUse": "lineage-metadata-only-not-readable-at-runtime"
+      },
+      {
+        "label": "non-claims.md",
+        "sourcePath": "itri/multi-orbit/download/ground-station-endpoint-pairs/taiwan-cht-speedcast-singapore-operator-family-2026-04-26/non-claims.md",
+        "sourceRole": "canonical machine-readable non-claim source",
+        "runtimeUse": "lineage-metadata-only-not-readable-at-runtime"
+      },
+      {
+        "label": "acceptance.md",
+        "sourcePath": "itri/multi-orbit/download/ground-station-endpoint-pairs/taiwan-cht-speedcast-singapore-operator-family-2026-04-26/acceptance.md",
+        "sourceRole": "accepted checklist and future projection constraints",
+        "runtimeUse": "lineage-metadata-only-not-readable-at-runtime"
+      }
+    ],
+    "projectedBy": "scenario-globe-viewer M8A-VNext V4.6B source/projection execution thread",
+    "projectionNotes": "Viewer-owned V4.6B orbit-actor enrichment projection for the accepted Taiwan/CHT + Speedcast Singapore operator-family endpoint pair. Endpoint truth and precision are unchanged. Orbit actors are source-lineaged CelesTrak NORAD GP TLE display-context records only; this artifact does not authorize active serving-satellite, gateway, pair-specific path, measured metric, native RF handover, or runtime rendering claims."
+  },
+  "precisionPolicy": {
+    "acceptedPairPrecision": "operator-family-only",
+    "endpointPrecisionSymmetry": "both-endpoints-operator-family",
+    "sourceCoordinateStatus": "raw-endpoint-coordinates-null",
+    "renderMarkerPolicy": "bounded-operator-family-display-anchor",
+    "requiredDisclosureLabel": "operator-family precision",
+    "forbiddenUpgrades": [
+      "exact-site",
+      "site-family",
+      "same-site-leo-meo-geo",
+      "active-gateway",
+      "active-serving-satellite",
+      "pair-specific-teleport-path",
+      "measured-performance",
+      "native-rf-handover"
+    ]
+  },
+  "endpoints": [
+    {
+      "endpointId": "tw-cht-multi-orbit-ground-infrastructure",
+      "endpointRole": "endpoint-a",
+      "endpointLabel": "Taiwan / Chunghwa Telecom multi-orbit ground infrastructure",
+      "sourceTruth": {
+        "countryOrRegion": "Taiwan",
+        "operatorOrSiteFamily": "Chunghwa Telecom operator-family multi-orbit ground infrastructure",
+        "sourceEndpointRole": "operator-ground-infrastructure-endpoint",
+        "infrastructureRole": "operator-family ground infrastructure and satellite service context",
+        "acceptedPrecision": "operator-family-only",
+        "coordinatePrecision": "operator-family",
+        "sourceCoordinates": {
+          "lat": null,
+          "lon": null,
+          "heightMeters": null
+        },
+        "coordinateBasis": "No exact V4 CHT site is accepted. The render marker is a bounded Taiwan/CHT operator-family visual anchor and must not imply that Yangmingshan, Taipei, Fang-Shan, a future O3b gateway, or any other CHT site is proven as the same physical LEO/MEO/GEO serving site.",
+        "runtimeEligibilityFromSourcePackage": "planning-authority-only",
+        "unresolvedProof": [
+          "exact CHT V4 endpoint site",
+          "same-site LEO/MEO/GEO proof",
+          "active gateway assignment",
+          "active serving satellite identity",
+          "pair-specific teleport path",
+          "measured latency/jitter/throughput"
+        ]
+      },
+      "renderMarker": {
+        "markerId": "tw-cht-operator-family-display-anchor",
+        "markerClass": "bounded-operator-family-marker",
+        "displayAnchorKind": "taiwan-cht-operator-family-anchor",
+        "displayPosition": {
+          "lat": 23.6978,
+          "lon": 120.9605,
+          "heightMeters": 0,
+          "coordinateFrame": "wgs84"
+        },
+        "displayPositionBasis": "Viewer-selected Taiwan island visual anchor for CHT operator-family readability. This is not an exact CHT site coordinate and not raw source truth.",
+        "displayPositionPrecision": "bounded-operator-family-display-anchor",
+        "displayRadiusMeters": 160000,
+        "label": "Taiwan / CHT operator-family anchor",
+        "requiredPrecisionBadge": "operator-family precision",
+        "sourceTruthCoordinatesAreRenderable": false,
+        "displayPositionIsSourceTruth": false,
+        "mustNotImply": [
+          "exact CHT site selection",
+          "same-site LEO/MEO/GEO proof",
+          "active gateway assignment",
+          "active serving satellite identity",
+          "pair-specific teleport path truth",
+          "measured latency/jitter/throughput truth",
+          "native RF handover"
+        ]
+      },
+      "coordinatePrecision": {
+        "sourceCoordinatePrecision": "operator-family",
+        "acceptedPrecision": "operator-family-only",
+        "renderPrecision": "bounded-operator-family-display-anchor",
+        "precisionDisclosure": "operator-family precision",
+        "exactSiteAccepted": false,
+        "sameSiteLeoMeoGeoAccepted": false
+      },
+      "orbitEvidenceChips": [
+        {
+          "orbitClass": "leo",
+          "grade": "strong",
+          "acceptedPrecision": "operator-family-only",
+          "evidenceState": "evidence-backed-operator-family",
+          "chipLabel": "LEO strong",
+          "sourceRefs": [
+            "cht-multi-orbit-capability",
+            "cht-eutelsat-oneweb-partnership"
+          ],
+          "notes": "Accepted at CHT operator-family precision only.",
+          "chipNonClaims": [
+            "not-same-site-proof",
+            "not-active-serving-satellite",
+            "not-active-gateway",
+            "not-pair-specific-path"
+          ]
+        },
+        {
+          "orbitClass": "meo",
+          "grade": "strong",
+          "acceptedPrecision": "operator-family-only",
+          "evidenceState": "evidence-backed-operator-family",
+          "chipLabel": "MEO strong",
+          "sourceRefs": [
+            "cht-multi-orbit-capability",
+            "cht-ses-o3b-mpower-ground-station"
+          ],
+          "notes": "Accepted at CHT operator-family precision only; exact same-site mapping remains unresolved.",
+          "chipNonClaims": [
+            "not-same-site-proof",
+            "not-active-serving-satellite",
+            "not-active-gateway",
+            "not-pair-specific-path"
+          ]
+        },
+        {
+          "orbitClass": "geo",
+          "grade": "strong",
+          "acceptedPrecision": "operator-family-only",
+          "evidenceState": "evidence-backed-operator-family",
+          "chipLabel": "GEO strong",
+          "sourceRefs": [
+            "cht-multi-orbit-capability",
+            "cht-eutelsat-oneweb-partnership",
+            "cht-satellite-services"
+          ],
+          "notes": "Accepted at CHT operator-family precision only.",
+          "chipNonClaims": [
+            "not-same-site-proof",
+            "not-active-serving-satellite",
+            "not-active-gateway",
+            "not-pair-specific-path"
+          ]
+        }
+      ],
+      "sourceLineage": [
+        {
+          "sourceRefId": "cht-multi-orbit-capability",
+          "label": "CHT commercial GEO/MEO/LEO multi-orbit capability",
+          "url": "https://www.cht.com.tw/zh-tw/home/cht/messages/2025/1103-1000",
+          "accessedDate": "2026-04-25",
+          "supports": [
+            "operator-family GEO/MEO/LEO multi-orbit capability"
+          ],
+          "sourceAuthority": "endpoint-pair-authority-package"
+        },
+        {
+          "sourceRefId": "cht-ses-o3b-mpower-ground-station",
+          "label": "CHT + SES O3b mPOWER MEO ground station",
+          "url": "https://www.cht.com.tw/en/home/cht/messages/2026/0122-1410",
+          "accessedDate": "2026-04-25",
+          "supports": [
+            "operator-family MEO evidence",
+            "Taiwan ground-infrastructure context"
+          ],
+          "sourceAuthority": "endpoint-pair-authority-package"
+        },
+        {
+          "sourceRefId": "cht-eutelsat-oneweb-partnership",
+          "label": "CHT + Eutelsat OneWeb partnership",
+          "url": "https://www.cht.com.tw/en/home/cht/messages/2023/1115-1530",
+          "accessedDate": "2026-04-25",
+          "supports": [
+            "operator-family LEO evidence",
+            "integration with CHT GEO satellite services"
+          ],
+          "sourceAuthority": "endpoint-pair-authority-package"
+        },
+        {
+          "sourceRefId": "cht-satellite-services",
+          "label": "CHT satellite services",
+          "url": "https://www.cht.com.tw/en/home/cht/about-cht/products-and-services/International/Satellite",
+          "accessedDate": "2026-04-25",
+          "supports": [
+            "operator-family GEO evidence",
+            "ST-2 and CHT earth-station service context"
+          ],
+          "sourceAuthority": "endpoint-pair-authority-package"
+        }
+      ],
+      "truthBoundary": {
+        "doesClaim": [
+          "Taiwan/CHT is accepted as endpoint A at operator-family precision",
+          "public evidence supports CHT operator-family LEO, MEO, and GEO capability",
+          "CHT may be represented by a bounded Taiwan/CHT operator-family marker"
+        ],
+        "doesNotClaim": [
+          "exact CHT site-level endpoint selection",
+          "same-site LEO/MEO/GEO capability proof",
+          "live cross-orbit handover proof with Speedcast Singapore",
+          "active serving satellite identity",
+          "active gateway assignment",
+          "pair-specific teleport path truth",
+          "measured latency/jitter/throughput truth",
+          "native RF handover"
+        ],
+        "requiredDisplayBadges": [
+          "operator-family precision",
+          "modeled service state",
+          "not active satellite",
+          "not native RF handover"
+        ]
+      }
+    },
+    {
+      "endpointId": "sg-speedcast-singapore-teleport",
+      "endpointRole": "endpoint-b",
+      "endpointLabel": "Singapore / Speedcast Singapore Teleport",
+      "sourceTruth": {
+        "countryOrRegion": "Singapore",
+        "operatorOrSiteFamily": "Speedcast operator-family with bounded Singapore Teleport marker",
+        "sourceEndpointRole": "teleport-endpoint",
+        "infrastructureRole": "operator-family teleport and managed satellite service context",
+        "acceptedPrecision": "operator-family-only",
+        "coordinatePrecision": "operator-family",
+        "sourceCoordinates": {
+          "lat": null,
+          "lon": null,
+          "heightMeters": null
+        },
+        "coordinateBasis": "Accepted only at Speedcast operator-family precision. The render marker is a bounded Singapore visual anchor for the Speedcast Singapore Teleport operator-family context and must not imply that the Singapore teleport itself is the active or same physical LEO/MEO/GEO serving site.",
+        "runtimeEligibilityFromSourcePackage": "planning-authority-only",
+        "unresolvedProof": [
+          "Speedcast Singapore Teleport same-site LEO/MEO/GEO proof",
+          "active gateway assignment",
+          "active serving satellite identity",
+          "pair-specific teleport path",
+          "measured latency/jitter/throughput"
+        ]
+      },
+      "renderMarker": {
+        "markerId": "sg-speedcast-singapore-teleport-operator-family-display-anchor",
+        "markerClass": "bounded-operator-family-marker",
+        "displayAnchorKind": "speedcast-singapore-teleport-operator-family-anchor",
+        "displayPosition": {
+          "lat": 1.3521,
+          "lon": 103.8198,
+          "heightMeters": 0,
+          "coordinateFrame": "wgs84"
+        },
+        "displayPositionBasis": "Viewer-selected Singapore national visual anchor for Speedcast Singapore Teleport operator-family readability. This is not an exact teleport coordinate and not raw source truth.",
+        "displayPositionPrecision": "bounded-operator-family-display-anchor",
+        "displayRadiusMeters": 25000,
+        "label": "Singapore / Speedcast operator-family anchor",
+        "requiredPrecisionBadge": "operator-family precision",
+        "sourceTruthCoordinatesAreRenderable": false,
+        "displayPositionIsSourceTruth": false,
+        "mustNotImply": [
+          "exact Speedcast Singapore same-site LEO/MEO/GEO proof",
+          "active gateway assignment",
+          "active serving satellite identity",
+          "pair-specific teleport path truth",
+          "measured latency/jitter/throughput truth",
+          "native RF handover"
+        ]
+      },
+      "coordinatePrecision": {
+        "sourceCoordinatePrecision": "operator-family",
+        "acceptedPrecision": "operator-family-only",
+        "renderPrecision": "bounded-operator-family-display-anchor",
+        "precisionDisclosure": "operator-family precision",
+        "exactSiteAccepted": false,
+        "sameSiteLeoMeoGeoAccepted": false
+      },
+      "orbitEvidenceChips": [
+        {
+          "orbitClass": "leo",
+          "grade": "strong",
+          "acceptedPrecision": "operator-family-only",
+          "evidenceState": "evidence-backed-operator-family",
+          "chipLabel": "LEO strong",
+          "sourceRefs": [
+            "speedcast-oneweb-leo-service",
+            "speedcast-ngso-leo-meo-service"
+          ],
+          "notes": "Accepted at Speedcast operator-family precision only.",
+          "chipNonClaims": [
+            "not-same-site-proof",
+            "not-active-serving-satellite",
+            "not-active-gateway",
+            "not-pair-specific-path"
+          ]
+        },
+        {
+          "orbitClass": "meo",
+          "grade": "strong",
+          "acceptedPrecision": "operator-family-only",
+          "evidenceState": "evidence-backed-operator-family",
+          "chipLabel": "MEO strong",
+          "sourceRefs": [
+            "speedcast-ngso-leo-meo-service",
+            "speedcast-o3b-meo-managed-services"
+          ],
+          "notes": "Accepted at Speedcast operator-family precision only; Singapore Teleport site-level MEO mapping remains unresolved.",
+          "chipNonClaims": [
+            "not-same-site-proof",
+            "not-active-serving-satellite",
+            "not-active-gateway",
+            "not-pair-specific-path"
+          ]
+        },
+        {
+          "orbitClass": "geo",
+          "grade": "strong",
+          "acceptedPrecision": "operator-family-only",
+          "evidenceState": "evidence-backed-operator-family",
+          "chipLabel": "GEO strong",
+          "sourceRefs": [
+            "speedcast-singapore-teleport-wta-tier4",
+            "wta-speedcast-singapore-teleport-certification",
+            "speedcast-teleport-network"
+          ],
+          "notes": "Accepted at Speedcast operator-family precision with bounded Singapore Teleport marker.",
+          "chipNonClaims": [
+            "not-same-site-proof",
+            "not-active-serving-satellite",
+            "not-active-gateway",
+            "not-pair-specific-path"
+          ]
+        }
+      ],
+      "sourceLineage": [
+        {
+          "sourceRefId": "speedcast-singapore-teleport-wta-tier4",
+          "label": "Speedcast Singapore Teleport WTA Tier 4 certification",
+          "url": "https://www.speedcast.com/newsroom/press-releases/2024/speedcasts-teleport-in-singapore-joins-wtas-growing-list-of-tier-4-certified-teleports/",
+          "accessedDate": "2026-04-26",
+          "supports": [
+            "real Speedcast Singapore Teleport marker context",
+            "teleport facility existence and certification"
+          ],
+          "sourceAuthority": "endpoint-pair-authority-package"
+        },
+        {
+          "sourceRefId": "wta-speedcast-singapore-teleport-certification",
+          "label": "WTA certification announcement for Speedcast Singapore Teleport",
+          "url": "https://www.worldteleport.org/news/670821/WTA-Certification-Program-Announces-Tier-4-Certification-of-Speedcasts-Singapore-Teleport.htm",
+          "accessedDate": "2026-04-26",
+          "supports": [
+            "real Speedcast Singapore Teleport marker context",
+            "teleport facility certification"
+          ],
+          "sourceAuthority": "endpoint-pair-authority-package"
+        },
+        {
+          "sourceRefId": "speedcast-teleport-network",
+          "label": "Speedcast teleport network and hybrid satellite platform",
+          "url": "https://www.speedcast.com/about-us/teleports/",
+          "accessedDate": "2026-04-26",
+          "supports": [
+            "Speedcast operator-family teleport and hybrid satellite service context"
+          ],
+          "sourceAuthority": "endpoint-pair-authority-package"
+        },
+        {
+          "sourceRefId": "speedcast-oneweb-leo-service",
+          "label": "Speedcast OneWeb LEO service",
+          "url": "https://www.speedcast.com/our-solution/product/vsat-satellite/oneweb/",
+          "accessedDate": "2026-04-26",
+          "supports": [
+            "Speedcast operator-family LEO service context"
+          ],
+          "sourceAuthority": "endpoint-pair-authority-package"
+        },
+        {
+          "sourceRefId": "speedcast-ngso-leo-meo-service",
+          "label": "Speedcast NGSO LEO/MEO service surface",
+          "url": "https://www.speedcast.com/our-solution/product/vsat-satellite/ngso-leo-meo/",
+          "accessedDate": "2026-04-26",
+          "supports": [
+            "Speedcast operator-family LEO evidence",
+            "Speedcast operator-family MEO evidence"
+          ],
+          "sourceAuthority": "endpoint-pair-authority-package"
+        },
+        {
+          "sourceRefId": "speedcast-o3b-meo-managed-services",
+          "label": "Speedcast O3b/MEO managed-services evidence",
+          "url": "https://www.speedcast.com/newsroom/press-releases/2017/speedcast-awarded-managed-services-contract-for-major-oil-and-gas-operator-in-equatorial-guinea/",
+          "accessedDate": "2026-04-26",
+          "supports": [
+            "Speedcast operator-family MEO managed-services evidence"
+          ],
+          "sourceAuthority": "endpoint-pair-authority-package"
+        }
+      ],
+      "truthBoundary": {
+        "doesClaim": [
+          "Singapore/Speedcast is accepted as endpoint B at Speedcast operator-family precision",
+          "public evidence supports Speedcast operator-family LEO, MEO, and GEO/teleport capability",
+          "Speedcast may be represented by a bounded Singapore operator-family marker"
+        ],
+        "doesNotClaim": [
+          "that Speedcast Singapore Teleport itself is proven as the active same-site LEO/MEO/GEO serving site",
+          "live cross-orbit handover proof with CHT",
+          "active serving satellite identity",
+          "active gateway assignment",
+          "pair-specific teleport path truth",
+          "measured latency/jitter/throughput truth",
+          "native RF handover"
+        ],
+        "requiredDisplayBadges": [
+          "operator-family precision",
+          "modeled service state",
+          "not active satellite",
+          "not native RF handover"
+        ]
+      }
+    }
+  ],
+  "orbitEvidenceMatrix": {
+    "pairId": "taiwan-cht-speedcast-singapore-operator-family-2026-04-26",
+    "strictThreeOrbitEligible": true,
+    "acceptedPrecision": "operator-family-only",
+    "acceptedOrbitClassesForRuntime": [
+      "leo",
+      "meo",
+      "geo"
+    ],
+    "fallbackMode": "not-used",
+    "endpointA": {
+      "leo": "strong",
+      "meo": "strong",
+      "geo": "strong"
+    },
+    "endpointB": {
+      "leo": "strong",
+      "meo": "strong",
+      "geo": "strong"
+    },
+    "strictEligibilityBoundary": "Strict three-orbit eligibility is accepted only at operator-family precision. It is not site-family, site-level, same-site, active-gateway, active-satellite, measured-performance, pair-specific teleport-path, or native RF handover truth."
+  },
+  "orbitActors": [
+    {
+      "actorId": "oneweb-0386-leo-display-context",
+      "orbitClass": "leo",
+      "displayRole": "leo-moving-context-actor",
+      "operatorContext": "Eutelsat OneWeb",
+      "sourceLineage": [
+        {
+          "sourceRefId": "celestrak-gp-oneweb-0386-49312",
+          "label": "CelesTrak NORAD GP TLE: ONEWEB-0386",
+          "url": "https://celestrak.org/NORAD/elements/gp.php?CATNR=49312&FORMAT=tle",
+          "accessedDate": "2026-04-28",
+          "supports": [
+            "source-lineaged OneWeb LEO display-context actor",
+            "TLE-derived source-position and render-position projection"
+          ],
+          "sourceAuthority": "projection-note",
+          "sourceProvider": "CelesTrak",
+          "sourceProduct": "NORAD GP TLE",
+          "fetchedAtUtc": "2026-04-28T08:51:17Z",
+          "sourceRecordName": "ONEWEB-0386",
+          "tleLine1": "1 49312U 21090AK  26118.15567684  .00000042  00000+0  71607-4 0  9991",
+          "tleLine2": "2 49312  87.9152 284.4114 0002034  99.2765 260.8598 13.20770377223219"
+        }
+      ],
+      "sourceEpochUtc": "2026-04-28T03:44:10.478Z",
+      "projectionEpochUtc": "2026-04-28T08:51:17Z",
+      "freshnessClass": "fresh-display-context",
+      "sourcePosition": {
+        "positionKind": "source-orbit-position",
+        "lat": -0.00009,
+        "lon": 12.232695,
+        "heightMeters": 1184927,
+        "coordinateFrame": "wgs84",
+        "precision": "CelesTrak NORAD GP TLE propagated to the TLE source epoch; display-context only"
+      },
+      "renderPosition": {
+        "positionKind": "sampled-replay-position",
+        "lat": -66.482452,
+        "lon": -69.571371,
+        "heightMeters": 1208543,
+        "coordinateFrame": "wgs84",
+        "renderPositionBasis": "CelesTrak NORAD GP TLE propagated to projectionEpochUtc for viewer-owned display context; not active serving-satellite truth",
+        "renderPositionIsSourceTruth": false
+      },
+      "motionMode": "replay-driven",
+      "evidenceClass": "display-context",
+      "modelAssetId": "generic-satellite-glb-simple-satellite-low-poly-free",
+      "modelTruth": "generic-satellite-mesh",
+      "truthBoundary": {
+        "doesClaim": [
+          "ONEWEB-0386 has a source-lineaged CelesTrak NORAD GP TLE record",
+          "the sourcePosition and renderPosition are TLE-derived display-context orbit samples",
+          "the actor is eligible as a LEO display-context actor after a later runtime implementation consumes this accepted projection"
+        ],
+        "doesNotClaim": [
+          "active serving satellite identity",
+          "active gateway assignment",
+          "pair-specific teleport path truth",
+          "measured latency/jitter/throughput truth",
+          "native RF handover",
+          "live operational truth",
+          "ONEWEB-0386 spacecraft body geometry"
+        ],
+        "requiredDisplayBadges": [
+          "modeled service state",
+          "not active satellite",
+          "not native RF handover"
+        ]
+      },
+      "nonClaims": {
+        "noExactSiteSelection": true,
+        "noSameSiteLeoMeoGeoProof": true,
+        "noLiveCrossOrbitHandoverProof": true,
+        "noActiveServingSatelliteIdentity": true,
+        "noActiveGatewayAssignment": true,
+        "noPairSpecificTeleportPathTruth": true,
+        "noMeasuredLatencyJitterThroughputTruth": true,
+        "noNativeRfHandover": true,
+        "noAircraftEndpoint": true,
+        "noOrdinaryHandsetUe": true
+      }
+    },
+    {
+      "actorId": "oneweb-0537-leo-display-context",
+      "orbitClass": "leo",
+      "displayRole": "leo-moving-context-actor",
+      "operatorContext": "Eutelsat OneWeb",
+      "sourceLineage": [
+        {
+          "sourceRefId": "celestrak-gp-oneweb-0537-56046",
+          "label": "CelesTrak NORAD GP TLE: ONEWEB-0537",
+          "url": "https://celestrak.org/NORAD/elements/gp.php?CATNR=56046&FORMAT=tle",
+          "accessedDate": "2026-04-28",
+          "supports": [
+            "source-lineaged OneWeb LEO display-context actor",
+            "TLE-derived source-position and render-position projection"
+          ],
+          "sourceAuthority": "projection-note",
+          "sourceProvider": "CelesTrak",
+          "sourceProduct": "NORAD GP TLE",
+          "fetchedAtUtc": "2026-04-28T08:51:17Z",
+          "sourceRecordName": "ONEWEB-0537",
+          "tleLine1": "1 56046U 23043A   26118.03660939  .00000031  00000+0  46718-4 0  9990",
+          "tleLine2": "2 56046  87.9083 238.7312 0001745 107.0136 253.1187 13.16595446152367"
+        }
+      ],
+      "sourceEpochUtc": "2026-04-28T00:52:43.051Z",
+      "projectionEpochUtc": "2026-04-28T08:51:17Z",
+      "freshnessClass": "fresh-display-context",
+      "sourcePosition": {
+        "positionKind": "source-orbit-position",
+        "lat": 0.000067,
+        "lon": 9.534138,
+        "heightMeters": 1201033,
+        "coordinateFrame": "wgs84",
+        "precision": "CelesTrak NORAD GP TLE propagated to the TLE source epoch; display-context only"
+      },
+      "renderPosition": {
+        "positionKind": "sampled-replay-position",
+        "lat": 45.61354,
+        "lon": 67.371432,
+        "heightMeters": 1203562,
+        "coordinateFrame": "wgs84",
+        "renderPositionBasis": "CelesTrak NORAD GP TLE propagated to projectionEpochUtc for viewer-owned display context; not active serving-satellite truth",
+        "renderPositionIsSourceTruth": false
+      },
+      "motionMode": "replay-driven",
+      "evidenceClass": "display-context",
+      "modelAssetId": "generic-satellite-glb-simple-satellite-low-poly-free",
+      "modelTruth": "generic-satellite-mesh",
+      "truthBoundary": {
+        "doesClaim": [
+          "ONEWEB-0537 has a source-lineaged CelesTrak NORAD GP TLE record",
+          "the sourcePosition and renderPosition are TLE-derived display-context orbit samples",
+          "the actor is eligible as a LEO display-context actor after a later runtime implementation consumes this accepted projection"
+        ],
+        "doesNotClaim": [
+          "active serving satellite identity",
+          "active gateway assignment",
+          "pair-specific teleport path truth",
+          "measured latency/jitter/throughput truth",
+          "native RF handover",
+          "live operational truth",
+          "ONEWEB-0537 spacecraft body geometry"
+        ],
+        "requiredDisplayBadges": [
+          "modeled service state",
+          "not active satellite",
+          "not native RF handover"
+        ]
+      },
+      "nonClaims": {
+        "noExactSiteSelection": true,
+        "noSameSiteLeoMeoGeoProof": true,
+        "noLiveCrossOrbitHandoverProof": true,
+        "noActiveServingSatelliteIdentity": true,
+        "noActiveGatewayAssignment": true,
+        "noPairSpecificTeleportPathTruth": true,
+        "noMeasuredLatencyJitterThroughputTruth": true,
+        "noNativeRfHandover": true,
+        "noAircraftEndpoint": true,
+        "noOrdinaryHandsetUe": true
+      }
+    },
+    {
+      "actorId": "oneweb-0701-leo-display-context",
+      "orbitClass": "leo",
+      "displayRole": "leo-moving-context-actor",
+      "operatorContext": "Eutelsat OneWeb",
+      "sourceLineage": [
+        {
+          "sourceRefId": "celestrak-gp-oneweb-0701-61607",
+          "label": "CelesTrak NORAD GP TLE: ONEWEB-0701",
+          "url": "https://celestrak.org/NORAD/elements/gp.php?CATNR=61607&FORMAT=tle",
+          "accessedDate": "2026-04-28",
+          "supports": [
+            "source-lineaged OneWeb LEO display-context actor",
+            "TLE-derived source-position and render-position projection"
+          ],
+          "sourceAuthority": "projection-note",
+          "sourceProvider": "CelesTrak",
+          "sourceProduct": "NORAD GP TLE",
+          "fetchedAtUtc": "2026-04-28T08:51:17Z",
+          "sourceRecordName": "ONEWEB-0701",
+          "tleLine1": "1 61607U 24188P   26118.06689087 -.00000467  00000+0 -13732-2 0  9991",
+          "tleLine2": "2 61607  87.8851  46.2374 0001830  52.0740 308.0553 13.10375232 76740"
+        }
+      ],
+      "sourceEpochUtc": "2026-04-28T01:36:19.371Z",
+      "projectionEpochUtc": "2026-04-28T08:51:17Z",
+      "freshnessClass": "fresh-display-context",
+      "sourcePosition": {
+        "positionKind": "source-orbit-position",
+        "lat": 0.000039,
+        "lon": 166.109157,
+        "heightMeters": 1223738,
+        "coordinateFrame": "wgs84",
+        "precision": "CelesTrak NORAD GP TLE propagated to the TLE source epoch; display-context only"
+      },
+      "renderPosition": {
+        "positionKind": "sampled-replay-position",
+        "lat": -15.980876,
+        "lon": 56.408354,
+        "heightMeters": 1227496,
+        "coordinateFrame": "wgs84",
+        "renderPositionBasis": "CelesTrak NORAD GP TLE propagated to projectionEpochUtc for viewer-owned display context; not active serving-satellite truth",
+        "renderPositionIsSourceTruth": false
+      },
+      "motionMode": "replay-driven",
+      "evidenceClass": "display-context",
+      "modelAssetId": "generic-satellite-glb-simple-satellite-low-poly-free",
+      "modelTruth": "generic-satellite-mesh",
+      "truthBoundary": {
+        "doesClaim": [
+          "ONEWEB-0701 has a source-lineaged CelesTrak NORAD GP TLE record",
+          "the sourcePosition and renderPosition are TLE-derived display-context orbit samples",
+          "the actor is eligible as a LEO display-context actor after a later runtime implementation consumes this accepted projection"
+        ],
+        "doesNotClaim": [
+          "active serving satellite identity",
+          "active gateway assignment",
+          "pair-specific teleport path truth",
+          "measured latency/jitter/throughput truth",
+          "native RF handover",
+          "live operational truth",
+          "ONEWEB-0701 spacecraft body geometry"
+        ],
+        "requiredDisplayBadges": [
+          "modeled service state",
+          "not active satellite",
+          "not native RF handover"
+        ]
+      },
+      "nonClaims": {
+        "noExactSiteSelection": true,
+        "noSameSiteLeoMeoGeoProof": true,
+        "noLiveCrossOrbitHandoverProof": true,
+        "noActiveServingSatelliteIdentity": true,
+        "noActiveGatewayAssignment": true,
+        "noPairSpecificTeleportPathTruth": true,
+        "noMeasuredLatencyJitterThroughputTruth": true,
+        "noNativeRfHandover": true,
+        "noAircraftEndpoint": true,
+        "noOrdinaryHandsetUe": true
+      }
+    },
+    {
+      "actorId": "oneweb-0012-leo-display-context",
+      "orbitClass": "leo",
+      "displayRole": "leo-moving-context-actor",
+      "operatorContext": "Eutelsat OneWeb",
+      "sourceLineage": [
+        {
+          "sourceRefId": "celestrak-gp-oneweb-0012-44057",
+          "label": "CelesTrak NORAD GP TLE: ONEWEB-0012",
+          "url": "https://celestrak.org/NORAD/elements/gp.php?CATNR=44057&FORMAT=tle",
+          "accessedDate": "2026-04-28",
+          "supports": [
+            "source-lineaged OneWeb LEO display-context actor",
+            "TLE-derived source-position and render-position projection"
+          ],
+          "sourceAuthority": "projection-note",
+          "sourceProvider": "CelesTrak",
+          "sourceProduct": "NORAD GP TLE",
+          "fetchedAtUtc": "2026-04-28T08:51:17Z",
+          "sourceRecordName": "ONEWEB-0012",
+          "tleLine1": "1 44057U 19010A   26118.09519273  .00000080  00000+0  17444-3 0  9995",
+          "tleLine2": "2 44057  87.9083 238.7328 0002268 106.0064 254.1317 13.16594281344975"
+        }
+      ],
+      "sourceEpochUtc": "2026-04-28T02:17:04.651Z",
+      "projectionEpochUtc": "2026-04-28T08:51:17Z",
+      "freshnessClass": "fresh-display-context",
+      "sourcePosition": {
+        "positionKind": "source-orbit-position",
+        "lat": -0.00003,
+        "lon": -11.612008,
+        "heightMeters": 1201124,
+        "coordinateFrame": "wgs84",
+        "precision": "CelesTrak NORAD GP TLE propagated to the TLE source epoch; display-context only"
+      },
+      "renderPosition": {
+        "positionKind": "sampled-replay-position",
+        "lat": -37.165887,
+        "lon": 71.090895,
+        "heightMeters": 1212509,
+        "coordinateFrame": "wgs84",
+        "renderPositionBasis": "CelesTrak NORAD GP TLE propagated to projectionEpochUtc for viewer-owned display context; not active serving-satellite truth",
+        "renderPositionIsSourceTruth": false
+      },
+      "motionMode": "replay-driven",
+      "evidenceClass": "display-context",
+      "modelAssetId": "generic-satellite-glb-simple-satellite-low-poly-free",
+      "modelTruth": "generic-satellite-mesh",
+      "truthBoundary": {
+        "doesClaim": [
+          "ONEWEB-0012 has a source-lineaged CelesTrak NORAD GP TLE record",
+          "the sourcePosition and renderPosition are TLE-derived display-context orbit samples",
+          "the actor is eligible as a LEO display-context actor after a later runtime implementation consumes this accepted projection"
+        ],
+        "doesNotClaim": [
+          "active serving satellite identity",
+          "active gateway assignment",
+          "pair-specific teleport path truth",
+          "measured latency/jitter/throughput truth",
+          "native RF handover",
+          "live operational truth",
+          "ONEWEB-0012 spacecraft body geometry"
+        ],
+        "requiredDisplayBadges": [
+          "modeled service state",
+          "not active satellite",
+          "not native RF handover"
+        ]
+      },
+      "nonClaims": {
+        "noExactSiteSelection": true,
+        "noSameSiteLeoMeoGeoProof": true,
+        "noLiveCrossOrbitHandoverProof": true,
+        "noActiveServingSatelliteIdentity": true,
+        "noActiveGatewayAssignment": true,
+        "noPairSpecificTeleportPathTruth": true,
+        "noMeasuredLatencyJitterThroughputTruth": true,
+        "noNativeRfHandover": true,
+        "noAircraftEndpoint": true,
+        "noOrdinaryHandsetUe": true
+      }
+    },
+    {
+      "actorId": "oneweb-0249-leo-display-context",
+      "orbitClass": "leo",
+      "displayRole": "leo-moving-context-actor",
+      "operatorContext": "Eutelsat OneWeb",
+      "sourceLineage": [
+        {
+          "sourceRefId": "celestrak-gp-oneweb-0249-48967",
+          "label": "CelesTrak NORAD GP TLE: ONEWEB-0249",
+          "url": "https://celestrak.org/NORAD/elements/gp.php?CATNR=48967&FORMAT=tle",
+          "accessedDate": "2026-04-28",
+          "supports": [
+            "source-lineaged OneWeb LEO display-context actor",
+            "TLE-derived source-position and render-position projection"
+          ],
+          "sourceAuthority": "projection-note",
+          "sourceProvider": "CelesTrak",
+          "sourceProduct": "NORAD GP TLE",
+          "fetchedAtUtc": "2026-04-28T08:51:17Z",
+          "sourceRecordName": "ONEWEB-0249",
+          "tleLine1": "1 48967U 21060A   26118.04689271 -.00000068  00000+0 -21178-3 0  9995",
+          "tleLine2": "2 48967  87.9084 238.7354 0001833  98.8442 261.2896 13.16595294233012"
+        }
+      ],
+      "sourceEpochUtc": "2026-04-28T01:07:31.530Z",
+      "projectionEpochUtc": "2026-04-28T08:51:17Z",
+      "freshnessClass": "fresh-display-context",
+      "sourcePosition": {
+        "positionKind": "source-orbit-position",
+        "lat": -0.000057,
+        "lon": 5.826202,
+        "heightMeters": 1200860,
+        "coordinateFrame": "wgs84",
+        "precision": "CelesTrak NORAD GP TLE propagated to the TLE source epoch; display-context only"
+      },
+      "renderPosition": {
+        "positionKind": "sampled-replay-position",
+        "lat": 85.247991,
+        "lon": -84.5748,
+        "heightMeters": 1210192,
+        "coordinateFrame": "wgs84",
+        "renderPositionBasis": "CelesTrak NORAD GP TLE propagated to projectionEpochUtc for viewer-owned display context; not active serving-satellite truth",
+        "renderPositionIsSourceTruth": false
+      },
+      "motionMode": "replay-driven",
+      "evidenceClass": "display-context",
+      "modelAssetId": "generic-satellite-glb-simple-satellite-low-poly-free",
+      "modelTruth": "generic-satellite-mesh",
+      "truthBoundary": {
+        "doesClaim": [
+          "ONEWEB-0249 has a source-lineaged CelesTrak NORAD GP TLE record",
+          "the sourcePosition and renderPosition are TLE-derived display-context orbit samples",
+          "the actor is eligible as a LEO display-context actor after a later runtime implementation consumes this accepted projection"
+        ],
+        "doesNotClaim": [
+          "active serving satellite identity",
+          "active gateway assignment",
+          "pair-specific teleport path truth",
+          "measured latency/jitter/throughput truth",
+          "native RF handover",
+          "live operational truth",
+          "ONEWEB-0249 spacecraft body geometry"
+        ],
+        "requiredDisplayBadges": [
+          "modeled service state",
+          "not active satellite",
+          "not native RF handover"
+        ]
+      },
+      "nonClaims": {
+        "noExactSiteSelection": true,
+        "noSameSiteLeoMeoGeoProof": true,
+        "noLiveCrossOrbitHandoverProof": true,
+        "noActiveServingSatelliteIdentity": true,
+        "noActiveGatewayAssignment": true,
+        "noPairSpecificTeleportPathTruth": true,
+        "noMeasuredLatencyJitterThroughputTruth": true,
+        "noNativeRfHandover": true,
+        "noAircraftEndpoint": true,
+        "noOrdinaryHandsetUe": true
+      }
+    },
+    {
+      "actorId": "oneweb-0702-leo-display-context",
+      "orbitClass": "leo",
+      "displayRole": "leo-moving-context-actor",
+      "operatorContext": "Eutelsat OneWeb",
+      "sourceLineage": [
+        {
+          "sourceRefId": "celestrak-gp-oneweb-0702-61608",
+          "label": "CelesTrak NORAD GP TLE: ONEWEB-0702",
+          "url": "https://celestrak.org/NORAD/elements/gp.php?CATNR=61608&FORMAT=tle",
+          "accessedDate": "2026-04-28",
+          "supports": [
+            "source-lineaged OneWeb LEO display-context actor",
+            "TLE-derived source-position and render-position projection"
+          ],
+          "sourceAuthority": "projection-note",
+          "sourceProvider": "CelesTrak",
+          "sourceProduct": "NORAD GP TLE",
+          "fetchedAtUtc": "2026-04-28T08:51:17Z",
+          "sourceRecordName": "ONEWEB-0702",
+          "tleLine1": "1 61608U 24188Q   26118.12143723  .00000475  00000+0  13049-2 0  9999",
+          "tleLine2": "2 61608  87.8943  30.9331 0001424  44.4271 315.6971 13.11415750 77929"
+        }
+      ],
+      "sourceEpochUtc": "2026-04-28T02:54:52.176Z",
+      "projectionEpochUtc": "2026-04-28T08:51:17Z",
+      "freshnessClass": "fresh-display-context",
+      "sourcePosition": {
+        "positionKind": "source-orbit-position",
+        "lat": -0.000031,
+        "lon": 131.114404,
+        "heightMeters": 1219802,
+        "coordinateFrame": "wgs84",
+        "precision": "CelesTrak NORAD GP TLE propagated to the TLE source epoch; display-context only"
+      },
+      "renderPosition": {
+        "positionKind": "sampled-replay-position",
+        "lat": 87.100879,
+        "lon": 87.968245,
+        "heightMeters": 1230771,
+        "coordinateFrame": "wgs84",
+        "renderPositionBasis": "CelesTrak NORAD GP TLE propagated to projectionEpochUtc for viewer-owned display context; not active serving-satellite truth",
+        "renderPositionIsSourceTruth": false
+      },
+      "motionMode": "replay-driven",
+      "evidenceClass": "display-context",
+      "modelAssetId": "generic-satellite-glb-simple-satellite-low-poly-free",
+      "modelTruth": "generic-satellite-mesh",
+      "truthBoundary": {
+        "doesClaim": [
+          "ONEWEB-0702 has a source-lineaged CelesTrak NORAD GP TLE record",
+          "the sourcePosition and renderPosition are TLE-derived display-context orbit samples",
+          "the actor is eligible as a LEO display-context actor after a later runtime implementation consumes this accepted projection"
+        ],
+        "doesNotClaim": [
+          "active serving satellite identity",
+          "active gateway assignment",
+          "pair-specific teleport path truth",
+          "measured latency/jitter/throughput truth",
+          "native RF handover",
+          "live operational truth",
+          "ONEWEB-0702 spacecraft body geometry"
+        ],
+        "requiredDisplayBadges": [
+          "modeled service state",
+          "not active satellite",
+          "not native RF handover"
+        ]
+      },
+      "nonClaims": {
+        "noExactSiteSelection": true,
+        "noSameSiteLeoMeoGeoProof": true,
+        "noLiveCrossOrbitHandoverProof": true,
+        "noActiveServingSatelliteIdentity": true,
+        "noActiveGatewayAssignment": true,
+        "noPairSpecificTeleportPathTruth": true,
+        "noMeasuredLatencyJitterThroughputTruth": true,
+        "noNativeRfHandover": true,
+        "noAircraftEndpoint": true,
+        "noOrdinaryHandsetUe": true
+      }
+    },
+    {
+      "actorId": "o3b-mpower-f6-meo-display-context",
+      "orbitClass": "meo",
+      "displayRole": "meo-moving-context-actor",
+      "operatorContext": "SES O3b mPOWER",
+      "sourceLineage": [
+        {
+          "sourceRefId": "celestrak-gp-o3b-mpower-f6-58347",
+          "label": "CelesTrak NORAD GP TLE: O3B MPOWER F6",
+          "url": "https://celestrak.org/NORAD/elements/gp.php?CATNR=58347&FORMAT=tle",
+          "accessedDate": "2026-04-28",
+          "supports": [
+            "source-lineaged O3b mPOWER MEO display-context actor",
+            "TLE-derived source-position and render-position projection"
+          ],
+          "sourceAuthority": "projection-note",
+          "sourceProvider": "CelesTrak",
+          "sourceProduct": "NORAD GP TLE",
+          "fetchedAtUtc": "2026-04-28T08:51:17Z",
+          "sourceRecordName": "O3B MPOWER F6",
+          "tleLine1": "1 58347U 23175B   26117.83675963 -.00000026  00000+0  00000+0 0  9996",
+          "tleLine2": "2 58347   0.0514   6.1968 0004686  21.5766 332.2505  5.00116198 45831"
+        }
+      ],
+      "sourceEpochUtc": "2026-04-27T20:04:56.032Z",
+      "projectionEpochUtc": "2026-04-28T08:51:17Z",
+      "freshnessClass": "fresh-display-context",
+      "sourcePosition": {
+        "positionKind": "source-orbit-position",
+        "lat": -0.001404,
+        "lon": -157.054291,
+        "heightMeters": 8058364,
+        "coordinateFrame": "wgs84",
+        "precision": "CelesTrak NORAD GP TLE propagated to the TLE source epoch; display-context only"
+      },
+      "renderPosition": {
+        "positionKind": "sampled-replay-position",
+        "lat": -0.041108,
+        "lon": -110.706046,
+        "heightMeters": 8070207,
+        "coordinateFrame": "wgs84",
+        "renderPositionBasis": "CelesTrak NORAD GP TLE propagated to projectionEpochUtc for viewer-owned display context; not active serving-satellite truth",
+        "renderPositionIsSourceTruth": false
+      },
+      "motionMode": "replay-driven",
+      "evidenceClass": "display-context",
+      "modelAssetId": "generic-satellite-glb-simple-satellite-low-poly-free",
+      "modelTruth": "generic-satellite-mesh",
+      "truthBoundary": {
+        "doesClaim": [
+          "O3B MPOWER F6 has a source-lineaged CelesTrak NORAD GP TLE record",
+          "the sourcePosition and renderPosition are TLE-derived display-context orbit samples",
+          "the actor is eligible as a MEO display-context actor after a later runtime implementation consumes this accepted projection"
+        ],
+        "doesNotClaim": [
+          "active serving satellite identity",
+          "active gateway assignment",
+          "pair-specific teleport path truth",
+          "measured latency/jitter/throughput truth",
+          "native RF handover",
+          "live operational truth",
+          "O3B MPOWER F6 spacecraft body geometry"
+        ],
+        "requiredDisplayBadges": [
+          "modeled service state",
+          "not active satellite",
+          "not native RF handover"
+        ]
+      },
+      "nonClaims": {
+        "noExactSiteSelection": true,
+        "noSameSiteLeoMeoGeoProof": true,
+        "noLiveCrossOrbitHandoverProof": true,
+        "noActiveServingSatelliteIdentity": true,
+        "noActiveGatewayAssignment": true,
+        "noPairSpecificTeleportPathTruth": true,
+        "noMeasuredLatencyJitterThroughputTruth": true,
+        "noNativeRfHandover": true,
+        "noAircraftEndpoint": true,
+        "noOrdinaryHandsetUe": true
+      }
+    },
+    {
+      "actorId": "o3b-mpower-f1-meo-display-context",
+      "orbitClass": "meo",
+      "displayRole": "meo-moving-context-actor",
+      "operatorContext": "SES O3b mPOWER",
+      "sourceLineage": [
+        {
+          "sourceRefId": "celestrak-gp-o3b-mpower-f1-54755",
+          "label": "CelesTrak NORAD GP TLE: O3B MPOWER F1",
+          "url": "https://celestrak.org/NORAD/elements/gp.php?CATNR=54755&FORMAT=tle",
+          "accessedDate": "2026-04-28",
+          "supports": [
+            "source-lineaged O3b mPOWER MEO display-context actor",
+            "TLE-derived source-position and render-position projection"
+          ],
+          "sourceAuthority": "projection-note",
+          "sourceProvider": "CelesTrak",
+          "sourceProduct": "NORAD GP TLE",
+          "fetchedAtUtc": "2026-04-28T08:51:17Z",
+          "sourceRecordName": "O3B MPOWER F1",
+          "tleLine1": "1 54755U 22174A   26118.04714766 -.00000026  00000+0  00000+0 0  9992",
+          "tleLine2": "2 54755   0.0595 347.1451 0005909  66.7656  83.3654  5.00114849 62853"
+        }
+      ],
+      "sourceEpochUtc": "2026-04-28T01:07:53.557Z",
+      "projectionEpochUtc": "2026-04-28T08:51:17Z",
+      "freshnessClass": "fresh-display-context",
+      "sourcePosition": {
+        "positionKind": "source-orbit-position",
+        "lat": 0.024903,
+        "lon": -95.656784,
+        "heightMeters": 8063405,
+        "coordinateFrame": "wgs84",
+        "precision": "CelesTrak NORAD GP TLE propagated to the TLE source epoch; display-context only"
+      },
+      "renderPosition": {
+        "positionKind": "sampled-replay-position",
+        "lat": 0.014488,
+        "lon": 7.60844,
+        "heightMeters": 8059762,
+        "coordinateFrame": "wgs84",
+        "renderPositionBasis": "CelesTrak NORAD GP TLE propagated to projectionEpochUtc for viewer-owned display context; not active serving-satellite truth",
+        "renderPositionIsSourceTruth": false
+      },
+      "motionMode": "replay-driven",
+      "evidenceClass": "display-context",
+      "modelAssetId": "generic-satellite-glb-simple-satellite-low-poly-free",
+      "modelTruth": "generic-satellite-mesh",
+      "truthBoundary": {
+        "doesClaim": [
+          "O3B MPOWER F1 has a source-lineaged CelesTrak NORAD GP TLE record",
+          "the sourcePosition and renderPosition are TLE-derived display-context orbit samples",
+          "the actor is eligible as a MEO display-context actor after a later runtime implementation consumes this accepted projection"
+        ],
+        "doesNotClaim": [
+          "active serving satellite identity",
+          "active gateway assignment",
+          "pair-specific teleport path truth",
+          "measured latency/jitter/throughput truth",
+          "native RF handover",
+          "live operational truth",
+          "O3B MPOWER F1 spacecraft body geometry"
+        ],
+        "requiredDisplayBadges": [
+          "modeled service state",
+          "not active satellite",
+          "not native RF handover"
+        ]
+      },
+      "nonClaims": {
+        "noExactSiteSelection": true,
+        "noSameSiteLeoMeoGeoProof": true,
+        "noLiveCrossOrbitHandoverProof": true,
+        "noActiveServingSatelliteIdentity": true,
+        "noActiveGatewayAssignment": true,
+        "noPairSpecificTeleportPathTruth": true,
+        "noMeasuredLatencyJitterThroughputTruth": true,
+        "noNativeRfHandover": true,
+        "noAircraftEndpoint": true,
+        "noOrdinaryHandsetUe": true
+      }
+    },
+    {
+      "actorId": "o3b-mpower-f2-meo-display-context",
+      "orbitClass": "meo",
+      "displayRole": "meo-moving-context-actor",
+      "operatorContext": "SES O3b mPOWER",
+      "sourceLineage": [
+        {
+          "sourceRefId": "celestrak-gp-o3b-mpower-f2-54756",
+          "label": "CelesTrak NORAD GP TLE: O3B MPOWER F2",
+          "url": "https://celestrak.org/NORAD/elements/gp.php?CATNR=54756&FORMAT=tle",
+          "accessedDate": "2026-04-28",
+          "supports": [
+            "source-lineaged O3b mPOWER MEO display-context actor",
+            "TLE-derived source-position and render-position projection"
+          ],
+          "sourceAuthority": "projection-note",
+          "sourceProvider": "CelesTrak",
+          "sourceProduct": "NORAD GP TLE",
+          "fetchedAtUtc": "2026-04-28T08:51:17Z",
+          "sourceRecordName": "O3B MPOWER F2",
+          "tleLine1": "1 54756U 22174B   26117.33789480 -.00000027  00000+0  00000+0 0  9990",
+          "tleLine2": "2 54756   0.0561 344.9626 0005938  49.3525 325.7220  5.00115388 62907"
+        }
+      ],
+      "sourceEpochUtc": "2026-04-27T08:06:34.110Z",
+      "projectionEpochUtc": "2026-04-28T08:51:17Z",
+      "freshnessClass": "fresh-display-context",
+      "sourcePosition": {
+        "positionKind": "source-orbit-position",
+        "lat": 0.018376,
+        "lon": 23.028852,
+        "heightMeters": 8057279,
+        "coordinateFrame": "wgs84",
+        "precision": "CelesTrak NORAD GP TLE propagated to the TLE source epoch; display-context only"
+      },
+      "renderPosition": {
+        "positionKind": "sampled-replay-position",
+        "lat": 0.053654,
+        "lon": 67.806356,
+        "heightMeters": 8056411,
+        "coordinateFrame": "wgs84",
+        "renderPositionBasis": "CelesTrak NORAD GP TLE propagated to projectionEpochUtc for viewer-owned display context; not active serving-satellite truth",
+        "renderPositionIsSourceTruth": false
+      },
+      "motionMode": "replay-driven",
+      "evidenceClass": "display-context",
+      "modelAssetId": "generic-satellite-glb-simple-satellite-low-poly-free",
+      "modelTruth": "generic-satellite-mesh",
+      "truthBoundary": {
+        "doesClaim": [
+          "O3B MPOWER F2 has a source-lineaged CelesTrak NORAD GP TLE record",
+          "the sourcePosition and renderPosition are TLE-derived display-context orbit samples",
+          "the actor is eligible as a MEO display-context actor after a later runtime implementation consumes this accepted projection"
+        ],
+        "doesNotClaim": [
+          "active serving satellite identity",
+          "active gateway assignment",
+          "pair-specific teleport path truth",
+          "measured latency/jitter/throughput truth",
+          "native RF handover",
+          "live operational truth",
+          "O3B MPOWER F2 spacecraft body geometry"
+        ],
+        "requiredDisplayBadges": [
+          "modeled service state",
+          "not active satellite",
+          "not native RF handover"
+        ]
+      },
+      "nonClaims": {
+        "noExactSiteSelection": true,
+        "noSameSiteLeoMeoGeoProof": true,
+        "noLiveCrossOrbitHandoverProof": true,
+        "noActiveServingSatelliteIdentity": true,
+        "noActiveGatewayAssignment": true,
+        "noPairSpecificTeleportPathTruth": true,
+        "noMeasuredLatencyJitterThroughputTruth": true,
+        "noNativeRfHandover": true,
+        "noAircraftEndpoint": true,
+        "noOrdinaryHandsetUe": true
+      }
+    },
+    {
+      "actorId": "o3b-mpower-f4-meo-display-context",
+      "orbitClass": "meo",
+      "displayRole": "meo-moving-context-actor",
+      "operatorContext": "SES O3b mPOWER",
+      "sourceLineage": [
+        {
+          "sourceRefId": "celestrak-gp-o3b-mpower-f4-56367",
+          "label": "CelesTrak NORAD GP TLE: O3B MPOWER F4",
+          "url": "https://celestrak.org/NORAD/elements/gp.php?CATNR=56367&FORMAT=tle",
+          "accessedDate": "2026-04-28",
+          "supports": [
+            "source-lineaged O3b mPOWER MEO display-context actor",
+            "TLE-derived source-position and render-position projection"
+          ],
+          "sourceAuthority": "projection-note",
+          "sourceProvider": "CelesTrak",
+          "sourceProduct": "NORAD GP TLE",
+          "fetchedAtUtc": "2026-04-28T08:51:17Z",
+          "sourceRecordName": "O3B MPOWER F4",
+          "tleLine1": "1 56367U 23059A   26118.00188043 -.00000026  00000+0  00000+0 0  9995",
+          "tleLine2": "2 56367   0.0649   2.3907 0007275  46.3446 311.3264  5.00115937 56087"
+        }
+      ],
+      "sourceEpochUtc": "2026-04-28T00:02:42.469Z",
+      "projectionEpochUtc": "2026-04-28T08:51:17Z",
+      "freshnessClass": "fresh-display-context",
+      "sourcePosition": {
+        "positionKind": "source-orbit-position",
+        "lat": 0.001445,
+        "lon": 143.339554,
+        "heightMeters": 8057419,
+        "coordinateFrame": "wgs84",
+        "precision": "CelesTrak NORAD GP TLE propagated to the TLE source epoch; display-context only"
+      },
+      "renderPosition": {
+        "positionKind": "sampled-replay-position",
+        "lat": -0.052649,
+        "lon": -48.101414,
+        "heightMeters": 8067586,
+        "coordinateFrame": "wgs84",
+        "renderPositionBasis": "CelesTrak NORAD GP TLE propagated to projectionEpochUtc for viewer-owned display context; not active serving-satellite truth",
+        "renderPositionIsSourceTruth": false
+      },
+      "motionMode": "replay-driven",
+      "evidenceClass": "display-context",
+      "modelAssetId": "generic-satellite-glb-simple-satellite-low-poly-free",
+      "modelTruth": "generic-satellite-mesh",
+      "truthBoundary": {
+        "doesClaim": [
+          "O3B MPOWER F4 has a source-lineaged CelesTrak NORAD GP TLE record",
+          "the sourcePosition and renderPosition are TLE-derived display-context orbit samples",
+          "the actor is eligible as a MEO display-context actor after a later runtime implementation consumes this accepted projection"
+        ],
+        "doesNotClaim": [
+          "active serving satellite identity",
+          "active gateway assignment",
+          "pair-specific teleport path truth",
+          "measured latency/jitter/throughput truth",
+          "native RF handover",
+          "live operational truth",
+          "O3B MPOWER F4 spacecraft body geometry"
+        ],
+        "requiredDisplayBadges": [
+          "modeled service state",
+          "not active satellite",
+          "not native RF handover"
+        ]
+      },
+      "nonClaims": {
+        "noExactSiteSelection": true,
+        "noSameSiteLeoMeoGeoProof": true,
+        "noLiveCrossOrbitHandoverProof": true,
+        "noActiveServingSatelliteIdentity": true,
+        "noActiveGatewayAssignment": true,
+        "noPairSpecificTeleportPathTruth": true,
+        "noMeasuredLatencyJitterThroughputTruth": true,
+        "noNativeRfHandover": true,
+        "noAircraftEndpoint": true,
+        "noOrdinaryHandsetUe": true
+      }
+    },
+    {
+      "actorId": "o3b-mpower-f3-meo-display-context",
+      "orbitClass": "meo",
+      "displayRole": "meo-moving-context-actor",
+      "operatorContext": "SES O3b mPOWER",
+      "sourceLineage": [
+        {
+          "sourceRefId": "celestrak-gp-o3b-mpower-f3-56368",
+          "label": "CelesTrak NORAD GP TLE: O3B MPOWER F3",
+          "url": "https://celestrak.org/NORAD/elements/gp.php?CATNR=56368&FORMAT=tle",
+          "accessedDate": "2026-04-28",
+          "supports": [
+            "source-lineaged O3b mPOWER MEO display-context actor",
+            "TLE-derived source-position and render-position projection"
+          ],
+          "sourceAuthority": "projection-note",
+          "sourceProvider": "CelesTrak",
+          "sourceProduct": "NORAD GP TLE",
+          "fetchedAtUtc": "2026-04-28T08:51:17Z",
+          "sourceRecordName": "O3B MPOWER F3",
+          "tleLine1": "1 56368U 23059B   26117.83525903 -.00000026  00000+0  00000+0 0  9996",
+          "tleLine2": "2 56368   0.0659   2.1985 0006660  36.8115 321.0371  5.00116590 52211"
+        }
+      ],
+      "sourceEpochUtc": "2026-04-27T20:02:46.380Z",
+      "projectionEpochUtc": "2026-04-28T08:51:17Z",
+      "freshnessClass": "fresh-display-context",
+      "sourcePosition": {
+        "positionKind": "source-orbit-position",
+        "lat": 0.001552,
+        "lon": -156.512416,
+        "heightMeters": 8056865,
+        "coordinateFrame": "wgs84",
+        "precision": "CelesTrak NORAD GP TLE propagated to the TLE source epoch; display-context only"
+      },
+      "renderPosition": {
+        "positionKind": "sampled-replay-position",
+        "lat": -0.05672,
+        "lon": -107.980829,
+        "heightMeters": 8073291,
+        "coordinateFrame": "wgs84",
+        "renderPositionBasis": "CelesTrak NORAD GP TLE propagated to projectionEpochUtc for viewer-owned display context; not active serving-satellite truth",
+        "renderPositionIsSourceTruth": false
+      },
+      "motionMode": "replay-driven",
+      "evidenceClass": "display-context",
+      "modelAssetId": "generic-satellite-glb-simple-satellite-low-poly-free",
+      "modelTruth": "generic-satellite-mesh",
+      "truthBoundary": {
+        "doesClaim": [
+          "O3B MPOWER F3 has a source-lineaged CelesTrak NORAD GP TLE record",
+          "the sourcePosition and renderPosition are TLE-derived display-context orbit samples",
+          "the actor is eligible as a MEO display-context actor after a later runtime implementation consumes this accepted projection"
+        ],
+        "doesNotClaim": [
+          "active serving satellite identity",
+          "active gateway assignment",
+          "pair-specific teleport path truth",
+          "measured latency/jitter/throughput truth",
+          "native RF handover",
+          "live operational truth",
+          "O3B MPOWER F3 spacecraft body geometry"
+        ],
+        "requiredDisplayBadges": [
+          "modeled service state",
+          "not active satellite",
+          "not native RF handover"
+        ]
+      },
+      "nonClaims": {
+        "noExactSiteSelection": true,
+        "noSameSiteLeoMeoGeoProof": true,
+        "noLiveCrossOrbitHandoverProof": true,
+        "noActiveServingSatelliteIdentity": true,
+        "noActiveGatewayAssignment": true,
+        "noPairSpecificTeleportPathTruth": true,
+        "noMeasuredLatencyJitterThroughputTruth": true,
+        "noNativeRfHandover": true,
+        "noAircraftEndpoint": true,
+        "noOrdinaryHandsetUe": true
+      }
+    },
+    {
+      "actorId": "st-2-geo-continuity-anchor",
+      "orbitClass": "geo",
+      "displayRole": "geo-continuity-anchor",
+      "operatorContext": "ST-2 CHT/Singtel GEO service context",
+      "sourceLineage": [
+        {
+          "sourceRefId": "celestrak-gp-st-2-37606",
+          "label": "CelesTrak NORAD GP TLE: ST-2",
+          "url": "https://celestrak.org/NORAD/elements/gp.php?CATNR=37606&FORMAT=tle",
+          "accessedDate": "2026-04-28",
+          "supports": [
+            "source-lineaged ST-2 GEO display-context actor",
+            "TLE-derived source-position and render-position projection"
+          ],
+          "sourceAuthority": "projection-note",
+          "sourceProvider": "CelesTrak",
+          "sourceProduct": "NORAD GP TLE",
+          "fetchedAtUtc": "2026-04-28T08:51:17Z",
+          "sourceRecordName": "ST-2",
+          "tleLine1": "1 37606U 11022B   26118.17733719 -.00000217  00000+0  00000+0 0  9993",
+          "tleLine2": "2 37606   0.0164 257.3234 0002008 141.1843 329.4945  1.00268190 54779"
+        }
+      ],
+      "sourceEpochUtc": "2026-04-28T04:15:21.933Z",
+      "projectionEpochUtc": "2026-04-28T08:51:17Z",
+      "freshnessClass": "fresh-display-context",
+      "sourcePosition": {
+        "positionKind": "source-orbit-position",
+        "lat": 0.034481,
+        "lon": 87.997058,
+        "heightMeters": 35779754,
+        "coordinateFrame": "wgs84",
+        "precision": "CelesTrak NORAD GP TLE propagated to the TLE source epoch; display-context only"
+      },
+      "renderPosition": {
+        "positionKind": "near-fixed-geo-anchor",
+        "lat": -0.004219,
+        "lon": 88.020296,
+        "heightMeters": 35780470,
+        "coordinateFrame": "wgs84",
+        "renderPositionBasis": "CelesTrak NORAD GP TLE propagated to projectionEpochUtc for viewer-owned GEO display context; not active serving-satellite truth",
+        "renderPositionIsSourceTruth": false
+      },
+      "motionMode": "near-fixed-geo-anchor",
+      "evidenceClass": "display-context",
+      "modelAssetId": "generic-satellite-glb-simple-satellite-low-poly-free",
+      "modelTruth": "generic-satellite-mesh",
+      "truthBoundary": {
+        "doesClaim": [
+          "ST-2 has a source-lineaged CelesTrak NORAD GP TLE record",
+          "the sourcePosition and renderPosition are TLE-derived display-context orbit samples",
+          "the actor is eligible as a GEO display-context actor after a later runtime implementation consumes this accepted projection"
+        ],
+        "doesNotClaim": [
+          "active serving satellite identity",
+          "active gateway assignment",
+          "pair-specific teleport path truth",
+          "measured latency/jitter/throughput truth",
+          "native RF handover",
+          "live operational truth",
+          "ST-2 spacecraft body geometry"
+        ],
+        "requiredDisplayBadges": [
+          "modeled service state",
+          "not active satellite",
+          "not native RF handover"
+        ]
+      },
+      "nonClaims": {
+        "noExactSiteSelection": true,
+        "noSameSiteLeoMeoGeoProof": true,
+        "noLiveCrossOrbitHandoverProof": true,
+        "noActiveServingSatelliteIdentity": true,
+        "noActiveGatewayAssignment": true,
+        "noPairSpecificTeleportPathTruth": true,
+        "noMeasuredLatencyJitterThroughputTruth": true,
+        "noNativeRfHandover": true,
+        "noAircraftEndpoint": true,
+        "noOrdinaryHandsetUe": true
+      }
+    },
+    {
+      "actorId": "ses-9-geo-display-context",
+      "orbitClass": "geo",
+      "displayRole": "geo-continuity-anchor",
+      "operatorContext": "SES GEO display context; not endpoint-pair path or active service claim",
+      "sourceLineage": [
+        {
+          "sourceRefId": "celestrak-gp-ses-9-41380",
+          "label": "CelesTrak NORAD GP TLE: SES-9",
+          "url": "https://celestrak.org/NORAD/elements/gp.php?CATNR=41380&FORMAT=tle",
+          "accessedDate": "2026-04-28",
+          "supports": [
+            "source-lineaged SES GEO display-context actor",
+            "TLE-derived source-position and render-position projection"
+          ],
+          "sourceAuthority": "projection-note",
+          "sourceProvider": "CelesTrak",
+          "sourceProduct": "NORAD GP TLE",
+          "fetchedAtUtc": "2026-04-28T08:51:17Z",
+          "sourceRecordName": "SES-9",
+          "tleLine1": "1 41380U 16013A   26118.01282755 -.00000352  00000+0  00000+0 0  9994",
+          "tleLine2": "2 41380   0.0172 289.0061 0002130 131.8420 268.0518  1.00271470 36932"
+        }
+      ],
+      "sourceEpochUtc": "2026-04-28T00:18:28.300Z",
+      "projectionEpochUtc": "2026-04-28T08:51:17Z",
+      "freshnessClass": "fresh-display-context",
+      "sourcePosition": {
+        "positionKind": "source-orbit-position",
+        "lat": 0.028026,
+        "lon": 108.268081,
+        "heightMeters": 35786439,
+        "coordinateFrame": "wgs84",
+        "precision": "CelesTrak NORAD GP TLE propagated to the TLE source epoch; display-context only"
+      },
+      "renderPosition": {
+        "positionKind": "near-fixed-geo-anchor",
+        "lat": -0.004954,
+        "lon": 108.305893,
+        "heightMeters": 35779020,
+        "coordinateFrame": "wgs84",
+        "renderPositionBasis": "CelesTrak NORAD GP TLE propagated to projectionEpochUtc for viewer-owned GEO display context; not active serving-satellite truth",
+        "renderPositionIsSourceTruth": false
+      },
+      "motionMode": "near-fixed-geo-anchor",
+      "evidenceClass": "display-context",
+      "modelAssetId": "generic-satellite-glb-simple-satellite-low-poly-free",
+      "modelTruth": "generic-satellite-mesh",
+      "truthBoundary": {
+        "doesClaim": [
+          "SES-9 has a source-lineaged CelesTrak NORAD GP TLE record",
+          "the sourcePosition and renderPosition are TLE-derived display-context orbit samples",
+          "the actor is eligible as a GEO display-context actor after a later runtime implementation consumes this accepted projection"
+        ],
+        "doesNotClaim": [
+          "active serving satellite identity",
+          "active gateway assignment",
+          "pair-specific teleport path truth",
+          "measured latency/jitter/throughput truth",
+          "native RF handover",
+          "live operational truth",
+          "SES-9 spacecraft body geometry"
+        ],
+        "requiredDisplayBadges": [
+          "modeled service state",
+          "not active satellite",
+          "not native RF handover"
+        ]
+      },
+      "nonClaims": {
+        "noExactSiteSelection": true,
+        "noSameSiteLeoMeoGeoProof": true,
+        "noLiveCrossOrbitHandoverProof": true,
+        "noActiveServingSatelliteIdentity": true,
+        "noActiveGatewayAssignment": true,
+        "noPairSpecificTeleportPathTruth": true,
+        "noMeasuredLatencyJitterThroughputTruth": true,
+        "noNativeRfHandover": true,
+        "noAircraftEndpoint": true,
+        "noOrdinaryHandsetUe": true
+      }
+    }
+  ],
+  "serviceStateModel": {
+    "modelId": "m8a-v4-modeled-service-state.v1",
+    "decisionModel": "modeled-service-continuity",
+    "isNativeRfHandover": false,
+    "truthState": "modeled",
+    "truthBoundaryLabel": "operator-family-bounded-service-state",
+    "timeline": [
+      {
+        "windowId": "v4-modeled-window-01-leo-to-meo-context",
+        "startRatio": 0,
+        "stopRatio": 0.25,
+        "currentPrimaryOrbitClass": "leo",
+        "nextCandidateOrbitClass": "meo",
+        "visibleCandidateOrbitClasses": [
+          "leo",
+          "meo",
+          "geo"
+        ],
+        "continuityFallbackOrbitClass": "geo",
+        "handoverPressureReason": "leo-geometry-changing",
+        "reasonSignals": [
+          "moving LEO context creates changing geometry pressure",
+          "MEO remains an operator-family service-context candidate",
+          "GEO remains modeled continuity fallback"
+        ],
+        "boundedMetricsUsed": [
+          "latency-class",
+          "continuity-class"
+        ],
+        "stateEvidenceClass": "modeled-service-state"
+      },
+      {
+        "windowId": "v4-modeled-window-02-meo-continuity-context",
+        "startRatio": 0.25,
+        "stopRatio": 0.5,
+        "currentPrimaryOrbitClass": "meo",
+        "nextCandidateOrbitClass": "leo",
+        "visibleCandidateOrbitClasses": [
+          "leo",
+          "meo",
+          "geo"
+        ],
+        "continuityFallbackOrbitClass": "geo",
+        "handoverPressureReason": "meo-continuity-context",
+        "reasonSignals": [
+          "MEO is modeled as wider-area continuity context",
+          "LEO remains the next moving low-latency candidate",
+          "GEO remains continuity fallback"
+        ],
+        "boundedMetricsUsed": [
+          "latency-class",
+          "jitter-class",
+          "continuity-class"
+        ],
+        "stateEvidenceClass": "modeled-service-state"
+      },
+      {
+        "windowId": "v4-modeled-window-03-leo-candidate-aging",
+        "startRatio": 0.5,
+        "stopRatio": 0.75,
+        "currentPrimaryOrbitClass": "leo",
+        "nextCandidateOrbitClass": "geo",
+        "visibleCandidateOrbitClasses": [
+          "leo",
+          "meo",
+          "geo"
+        ],
+        "continuityFallbackOrbitClass": "geo",
+        "handoverPressureReason": "leo-candidate-aging",
+        "reasonSignals": [
+          "LEO context candidate ages out of the modeled useful window",
+          "GEO remains available as modeled continuity fallback",
+          "MEO remains visible service context"
+        ],
+        "boundedMetricsUsed": [
+          "latency-class",
+          "network-speed-class",
+          "continuity-class"
+        ],
+        "stateEvidenceClass": "modeled-service-state"
+      },
+      {
+        "windowId": "v4-modeled-window-04-geo-fallback-continuity",
+        "startRatio": 0.75,
+        "stopRatio": 1,
+        "currentPrimaryOrbitClass": "geo",
+        "nextCandidateOrbitClass": "leo",
+        "visibleCandidateOrbitClasses": [
+          "leo",
+          "meo",
+          "geo"
+        ],
+        "continuityFallbackOrbitClass": "geo",
+        "handoverPressureReason": "geo-fallback-continuity",
+        "reasonSignals": [
+          "GEO is modeled as continuity fallback",
+          "LEO candidate set re-enters as moving context",
+          "policy remains balanced across accepted orbit evidence classes"
+        ],
+        "boundedMetricsUsed": [
+          "jitter-class",
+          "network-speed-class",
+          "continuity-class"
+        ],
+        "stateEvidenceClass": "modeled-service-state"
+      }
+    ],
+    "candidateSet": [
+      {
+        "candidateId": "v4-service-candidate-leo-operator-family",
+        "orbitClass": "leo",
+        "pathRole": "candidate",
+        "endpointPairId": "taiwan-cht-speedcast-singapore-operator-family-2026-04-26",
+        "sourceEvidenceClass": "operator-family-evidence",
+        "serviceStateInputKind": "modeled"
+      },
+      {
+        "candidateId": "v4-service-candidate-meo-operator-family",
+        "orbitClass": "meo",
+        "pathRole": "context",
+        "endpointPairId": "taiwan-cht-speedcast-singapore-operator-family-2026-04-26",
+        "sourceEvidenceClass": "operator-family-evidence",
+        "serviceStateInputKind": "modeled"
+      },
+      {
+        "candidateId": "v4-service-candidate-geo-continuity",
+        "orbitClass": "geo",
+        "pathRole": "fallback",
+        "endpointPairId": "taiwan-cht-speedcast-singapore-operator-family-2026-04-26",
+        "sourceEvidenceClass": "operator-family-evidence",
+        "serviceStateInputKind": "modeled"
+      }
+    ],
+    "metricPolicy": {
+      "metricTruth": "modeled-bounded-input",
+      "measuredLatency": false,
+      "measuredJitter": false,
+      "measuredThroughput": false,
+      "allowedMetricLabels": [
+        "latency class",
+        "jitter class",
+        "network speed class",
+        "continuity class"
+      ]
+    }
+  },
+  "nonClaims": {
+    "noExactSiteSelection": true,
+    "noSameSiteLeoMeoGeoProof": true,
+    "noLiveCrossOrbitHandoverProof": true,
+    "noActiveServingSatelliteIdentity": true,
+    "noActiveGatewayAssignment": true,
+    "noPairSpecificTeleportPathTruth": true,
+    "noMeasuredLatencyJitterThroughputTruth": true,
+    "noNativeRfHandover": true,
+    "noAircraftEndpoint": true,
+    "noOrdinaryHandsetUe": true
+  },
+  "validationExpectations": {
+    "expectedEndpointCount": 2,
+    "requiredEndpointPrecision": "operator-family-only",
+    "requiredOrbitChips": [
+      "leo",
+      "meo",
+      "geo"
+    ],
+    "rawSourceCoordinatesMustRemainNull": true,
+    "renderMarkersMustHaveBoundedDisplayPositions": true,
+    "runtimeRawItriSideReadAllowed": false,
+    "requiredNonClaimKeys": [
+      "noExactSiteSelection",
+      "noSameSiteLeoMeoGeoProof",
+      "noLiveCrossOrbitHandoverProof",
+      "noActiveServingSatelliteIdentity",
+      "noActiveGatewayAssignment",
+      "noPairSpecificTeleportPathTruth",
+      "noMeasuredLatencyJitterThroughputTruth",
+      "noNativeRfHandover",
+      "noAircraftEndpoint",
+      "noOrdinaryHandsetUe"
+    ],
+    "serviceStateTruth": "modeled",
+    "measuredMetricTruthAllowed": false
+  }
+}
