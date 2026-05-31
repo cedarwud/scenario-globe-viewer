@@ -381,14 +381,16 @@ export function applyV4Camera(
       return;
     }
 
+    const { heightScale, panScale } = calculateCameraScales();
+
     applyDemoOrbitCamera(viewer, {
       lon: pairCenter.lon,
       lat: resolveSelectedPairDemoCameraLatitude(pairCenter.lat),
-      heightMeters: M8A_V4_CAMERA_HEIGHT_METERS,
+      heightMeters: M8A_V4_CAMERA_HEIGHT_METERS * heightScale,
       screenUpPanMeters: resolveInitialSelectedPairScreenUpPanMeters(
         endpointAPosition,
         endpointBPosition
-      ),
+      ) * panScale,
       pitchDeg: M8A_V4_CAMERA_PITCH_DEGREES
     });
     return;
@@ -444,11 +446,13 @@ export function applySelectedPairCameraHint(
       return;
     }
 
+    const { heightScale, panScale } = calculateCameraScales();
+
     applyDemoOrbitCamera(viewer, {
       lon: midpoint.lon,
       lat: resolveSelectedPairDemoCameraLatitude(midpoint.lat),
-      heightMeters: Math.max(M8A_V4_CAMERA_HEIGHT_METERS, cameraHint.suggestedAltitudeKm * 1000),
-      screenUpPanMeters: resolveSelectedPairScreenUpPanMeters(cameraHint.pairGeometry),
+      heightMeters: Math.max(M8A_V4_CAMERA_HEIGHT_METERS, cameraHint.suggestedAltitudeKm * 1000) * heightScale,
+      screenUpPanMeters: resolveSelectedPairScreenUpPanMeters(cameraHint.pairGeometry) * panScale,
       pitchDeg: M8A_V4_CAMERA_PITCH_DEGREES
     });
     return;
