@@ -6,7 +6,6 @@ import {
   Cartesian2,
   Cartesian3,
   Color,
-  ColorMaterialProperty,
   ConstantProperty,
   CustomDataSource,
   DistanceDisplayCondition,
@@ -861,48 +860,6 @@ export async function installSelectedPairTleFirstSceneLayer({
   });
 
   if (viewModel.activeLinks.length > 0) {
-    dataSource.entities.add({
-      id: "m8a-v4-selected-pair-runtime-link",
-      name: "Selected pair runtime link overlay",
-      polyline: new PolylineGraphics({
-        show: new CallbackProperty((time) => {
-          const projectionDate = resolveSelectedPairProjectionDate(
-            viewModel,
-            replayClock.getState(),
-            time
-          );
-          return resolveActiveSelectedPairLink(viewModel, projectionDate) !== null;
-        }, false),
-        positions: new CallbackProperty((time) => {
-          const projectionDate = resolveSelectedPairProjectionDate(
-            viewModel,
-            replayClock.getState(),
-            time
-          );
-          const activeLink = resolveActiveSelectedPairLink(viewModel, projectionDate);
-          if (!activeLink) {
-            return [];
-          }
-          const actor = actorsById.get(activeLink.satelliteId);
-          const actorPosition = actor
-            ? resolveSceneActorRenderPosition(actor, viewModel, projectionDate)
-            : undefined;
-          if (!actorPosition) {
-            return [];
-          }
-          return [endpointAPosition, actorPosition, endpointBPosition];
-        }, false),
-        width: new ConstantProperty(1.8),
-        material: new ColorMaterialProperty(
-          Color.fromCssColorString("#7ee2b8").withAlpha(0.32)
-        ),
-        arcType: ArcType.NONE
-      }),
-      description: new ConstantProperty(
-        "Selected-pair runtime link overlay; active only inside the scene view-model link windows."
-      )
-    });
-
     for (const direction of M8A_V4_LINK_FLOW_DIRECTIONS) {
       const segment = createLinkFlowSegmentStyle(
         createSelectedPairLinkFlowSegmentPositions(

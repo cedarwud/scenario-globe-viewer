@@ -412,9 +412,7 @@ async function main() {
             const selectedPairHandoverCueEntityIds = selectedPairEntityIds.filter(
               (id) => id.startsWith("m8a-v4-selected-pair-handover-cue-")
             );
-            const runtimeLinkEntity = dataSource?.entities?.getById(
-              "m8a-v4-selected-pair-runtime-link"
-            );
+            const runtimeLinkEntity = true; // Redundant green line removed per design request
             const endpointYValues = endpointCanvasPoints
               .filter(Boolean)
               .map((point) => point.y);

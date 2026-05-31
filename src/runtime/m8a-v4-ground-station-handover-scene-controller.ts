@@ -1977,8 +1977,7 @@ export function createM8aV4GroundStationSceneController({
       .map((entity) => entity.id)
       .filter((id) =>
         typeof id === "string" &&
-        (id === "m8a-v4-selected-pair-runtime-link" ||
-          id.startsWith("m8a-v4-selected-pair-satellite-") ||
+        (id.startsWith("m8a-v4-selected-pair-satellite-") ||
           id.startsWith("m8a-v4-selected-pair-link-flow-") ||
           id.startsWith("m8a-v4-selected-pair-handover-cue-"))
       );
