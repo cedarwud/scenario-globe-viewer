@@ -43,7 +43,7 @@
 .gs-panel-help-popover,
 .gs-cta-help-popover {
   position: absolute;
-  width: 330px;
+  width: 360px;
   background: linear-gradient(135deg, rgba(12, 26, 42, 0.96) 0%, rgba(6, 14, 24, 0.99) 100%);
   border: 1px solid rgba(157, 196, 232, 0.18);
   border-radius: 10px;
@@ -73,7 +73,7 @@
 
 .gs-popover-header h4 {
   margin: 0;
-  font-size: 17px;
+  font-size: 20px;
   font-weight: 700;
   color: #34d399;
 }
@@ -106,7 +106,7 @@
 }
 
 .gs-popover-body li {
-  font-size: 16px;
+  font-size: 18px;
   margin-bottom: 9px;
   line-height: 1.6;
   color: #cbd5e1;

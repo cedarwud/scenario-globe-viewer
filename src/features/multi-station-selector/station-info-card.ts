@@ -307,19 +307,19 @@ function renderCard(
     </header>
     <div class="gs-popover-body">
       <ul style="margin: 0; padding-left: 14px; list-style-type: disc;">
-        <li style="font-size: 16px; margin-bottom: 9px; line-height: 1.6; color: #cbd5e1; -webkit-text-fill-color: #cbd5e1 !important; text-align: left;">
+        <li style="font-size: 18px; margin-bottom: 9px; line-height: 1.6; color: #cbd5e1; -webkit-text-fill-color: #cbd5e1 !important; text-align: left;">
           <strong>營運商家族（Operator / Family）：</strong>該地面站的隸屬業者與電信集團（例如中華電信 CHT 或新加坡 Speedcast）。
         </li>
-        <li style="font-size: 16px; margin-bottom: 9px; line-height: 1.6; color: #cbd5e1; -webkit-text-fill-color: #cbd5e1 !important; text-align: left;">
+        <li style="font-size: 18px; margin-bottom: 9px; line-height: 1.6; color: #cbd5e1; -webkit-text-fill-color: #cbd5e1 !important; text-align: left;">
           <strong>地理位置與經緯度：</strong>測站所在的國家、大洲區域與精確經緯度坐浪，用於幾何可見性仰角計算。
         </li>
-        <li style="font-size: 16px; margin-bottom: 9px; line-height: 1.6; color: #cbd5e1; -webkit-text-fill-color: #cbd5e1 !important; text-align: left;">
+        <li style="font-size: 18px; margin-bottom: 9px; line-height: 1.6; color: #cbd5e1; -webkit-text-fill-color: #cbd5e1 !important; text-align: left;">
           <strong>支援衛星軌道（Supported Orbits）：</strong>該測站物理上能追蹤的衛星軌道，如 <strong>LEO</strong>（低軌）、<strong>MEO</strong>（中軌）與 <strong>GEO</strong>（高軌）。
         </li>
-        <li style="font-size: 16px; margin-bottom: 9px; line-height: 1.6; color: #cbd5e1; -webkit-text-fill-color: #cbd5e1 !important; text-align: left;">
+        <li style="font-size: 18px; margin-bottom: 9px; line-height: 1.6; color: #cbd5e1; -webkit-text-fill-color: #cbd5e1 !important; text-align: left;">
           <strong>工作頻段（Supported Bands）：</strong>地面站天線支援的通信頻段（如 Ku、Ka 頻段），這是大氣雨衰耗（ITU-R P.618-14）核心依據。
         </li>
-        <li style="font-size: 16px; margin-bottom: 9px; line-height: 1.6; color: #cbd5e1; -webkit-text-fill-color: #cbd5e1 !important; text-align: left;">
+        <li style="font-size: 18px; margin-bottom: 9px; line-height: 1.6; color: #cbd5e1; -webkit-text-fill-color: #cbd5e1 !important; text-align: left;">
           <strong>資料公開精確度（Disclosure Precision）：</strong>標明測站資訊公開精準度級別，如電信商實證的 <strong>Site-level</strong>，或幾何推算出的 <strong>Generic-derived</strong>。
         </li>
       </ul>

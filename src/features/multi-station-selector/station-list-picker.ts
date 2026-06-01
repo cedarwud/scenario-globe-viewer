@@ -793,16 +793,16 @@ function createPickerElements(): PickerElements {
     </header>
     <div class="gs-popover-body">
       <ul style="margin: 0; padding-left: 14px; list-style-type: disc;">
-        <li style="font-size: 16px; margin-bottom: 9px; line-height: 1.6; color: #cbd5e1;">
+        <li style="font-size: 18px; margin-bottom: 9px; line-height: 1.6; color: #cbd5e1;">
           <strong>測站選擇與相容配對：</strong>在下方「Station A」選取主測站，並在「Station B」選取第二測站。系統將自動依據軌道、頻段與可見性進行相容過濾配對。
         </li>
-        <li style="font-size: 16px; margin-bottom: 9px; line-height: 1.6; color: #cbd5e1;">
+        <li style="font-size: 18px; margin-bottom: 9px; line-height: 1.6; color: #cbd5e1;">
           <strong>多維篩選器（Filters）：</strong>點擊「Filters」按鈕展開篩選面板，可分別依據<strong>軌道（Orbit）</strong>、<strong>交接演算法限制</strong>、<strong>國家/地區（Region）</strong>與<strong>工作頻段（Band）</strong>進行篩選。
         </li>
-        <li style="font-size: 16px; margin-bottom: 9px; line-height: 1.6; color: #cbd5e1;">
+        <li style="font-size: 18px; margin-bottom: 9px; line-height: 1.6; color: #cbd5e1;">
           <strong>幾何鏈路與雨水衰減：</strong>配對成功後，系統將自動載入右側詳細面板，實時動態求解切線高度與大氣衰減。拖曳「雨衰模擬降雨率」滑桿，可基於 <strong>ITU-R P.618-14</strong> 國際標準動態模擬 Ku/Ka 頻段雨衰傳輸損耗。
         </li>
-        <li style="font-size: 16px; margin-bottom: 9px; line-height: 1.6; color: #cbd5e1;">
+        <li style="font-size: 18px; margin-bottom: 9px; line-height: 1.6; color: #cbd5e1;">
           <strong>地標/標籤顯示開關：</strong>點擊標題右側的綠色切換按鈕，可一鍵在三維地球上顯示或隱藏所有地面站的實體圓標與名稱標籤。
         </li>
       </ul>

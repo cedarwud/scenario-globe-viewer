@@ -56,7 +56,10 @@
 
 /* Selected-pair readability pass: keep operational chrome above tiny-caption size. */
 .ground-station-selection-chip,
-.ground-station-selection-apply,
+.ground-station-selection-apply {
+  font-size: 1.1rem;
+}
+
 .ground-station-list-picker__select,
 .ground-station-search__input {
   font-size: 1.25rem;

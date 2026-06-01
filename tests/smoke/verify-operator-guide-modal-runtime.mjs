@@ -253,7 +253,7 @@ async function verifyOperatorGuide(client, baseUrl) {
 
   assert(presetsTabOpenCheck.btnSelected, "Custom presets tab button must be selected when clicked");
   assert(presetsTabOpenCheck.panelVisible, "Custom presets help panel must be visible when tab is selected");
-  assert(presetsTabOpenCheck.panelText?.includes("黃色圓形「飛機與雙星交接」按鈕"), "Custom presets help text must contain Traditional Chinese key descriptions");
+  assert(presetsTabOpenCheck.panelText?.includes("網格軌道地球"), "Custom presets help text must contain Traditional Chinese key descriptions");
 
   // Close Cesium help modal by clicking the trigger button again
   await evaluateRuntimeValue(

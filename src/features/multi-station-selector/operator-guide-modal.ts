@@ -32,21 +32,21 @@ export function mountTimelineHelp(container: HTMLElement): TimelineHelpHandle {
     </header>
     <div class="gs-popover-body">
       <ul style="margin: 0; padding-left: 14px; list-style-type: disc;">
-        <li style="font-size: 16px; margin-bottom: 9px; line-height: 1.6; color: #cbd5e1;">
+        <li style="font-size: 18px; margin-bottom: 9px; line-height: 1.6; color: #cbd5e1;">
           <strong>環形時間盤與播放鈕（左下角）：</strong>
           <ul style="padding-left: 14px; margin-top: 4px; margin-bottom: 4px; list-style-type: circle;">
-            <li style="font-size: 16px; margin-bottom: 4px;"><code>▶</code> <strong>播放</strong> / <code>▮▮</code> <strong>暫停</strong>：啟動或暫停動態模擬的時間演進。</li>
-            <li style="font-size: 16px; margin-bottom: 4px;"><code>◀◀</code> / <code>▶▶</code> <strong>微步步進</strong>：可在離散採樣點間，往前或往後微調單個時間刻度。</li>
-            <li style="font-size: 16px; margin-bottom: 4px;"><strong>刻度環盤（時間旋鈕）</strong>：使用滑鼠沿指針順時針或逆時針拖曳，可以極細緻地手動旋轉微調時間快慢。</li>
+            <li style="font-size: 18px; margin-bottom: 4px;"><code>▶</code> <strong>播放</strong> / <code>▮▮</code> <strong>暫停</strong>：啟動或暫停動態模擬的時間演進。</li>
+            <li style="font-size: 18px; margin-bottom: 4px;"><code>◀◀</code> / <code>▶▶</code> <strong>微步步進</strong>：可在離散採樣點間，往前或往後微調單個時間刻度。</li>
+            <li style="font-size: 18px; margin-bottom: 4px;"><strong>刻度環盤（時間旋鈕）</strong>：使用滑鼠沿指針順時針或逆時針拖曳，可以極細緻地手動旋轉微調時間快慢。</li>
           </ul>
         </li>
-        <li style="font-size: 16px; margin-bottom: 9px; line-height: 1.6; color: #cbd5e1;">
+        <li style="font-size: 18px; margin-bottom: 9px; line-height: 1.6; color: #cbd5e1;">
           <strong>時間標尺與綠色指針（橫向時間軸）：</strong>橫向的綠色指針線代表當前模擬時間。您可用滑鼠直接拖曳綠色指針，或點擊時間軸上的任意刻度，快速跳轉至特定的歷史時刻。
         </li>
-        <li style="font-size: 16px; margin-bottom: 9px; line-height: 1.6; color: #cbd5e1;">
+        <li style="font-size: 18px; margin-bottom: 9px; line-height: 1.6; color: #cbd5e1;">
           <strong>模擬播放速度（右下角倍速鍵）：</strong>點擊 <code>30x</code>、<code>60x</code> 或 <code>120x</code> 預設倍率按鈕，可直接切換時間流逝倍速（例如 60x 代表每過真實 1 秒，模擬時間便推進 60 秒），便於流暢觀察長週期跨軌道交接決策。
         </li>
-        <li style="font-size: 16px; margin-bottom: 9px; line-height: 1.6; color: #cbd5e1;">
+        <li style="font-size: 18px; margin-bottom: 9px; line-height: 1.6; color: #cbd5e1;">
           <strong>星曆雙向同步：</strong>拖動時間軸時，右上角的 TLE 快照與模擬天線、下方的 LEO 衛星可見數量，以及雨衰計算數值皆會雙向即時重新運算並同步更新。
         </li>
       </ul>
@@ -136,14 +136,14 @@ export function integrateCesiumHelpButton(viewerContainer: HTMLElement): CesiumH
           nativeHelp.style.padding = "14px 10px";
           nativeHelp.style.color = "#cbd5e1";
           nativeHelp.style.webkitTextFillColor = "#cbd5e1";
-          nativeHelp.style.fontSize = "16px";
+          nativeHelp.style.fontSize = "18px";
           nativeHelp.style.lineHeight = "1.6";
           nativeHelp.innerHTML = `
             <ul style="margin: 0; padding-left: 16px; list-style-type: disc;">
-              <li style="margin-bottom: 12px; font-size: 16px;"><strong>🔍 搜尋鍵（Geocoder）：</strong>輸入地名、國家或經緯度坐標，相機將自動飛越並聚焦至該地。</li>
-              <li style="margin-bottom: 12px; font-size: 16px;"><strong>🏠 重置相機（Home Button）：</strong>點擊「小房子」可一鍵重置視角，返回地球全景的初始預設範圍。</li>
-              <li style="margin-bottom: 12px; font-size: 16px;"><strong>🌐 維度切換（Scene Mode Picker）：</strong>一鍵在「3D 三維球體」、「2D 平面地圖」與「2.5D 哥倫布投影」視角間切換。</li>
-              <li style="margin-bottom: 12px; font-size: 16px;"><strong>🗺️ 底圖切換（Base Layer Picker）：</strong>切換底圖影像（衛星圖、電子地圖）與啟用/停用真實 3D 地形起伏（Terrain）。</li>
+              <li style="margin-bottom: 12px; font-size: 18px;"><strong>🔍 搜尋鍵（Geocoder）：</strong>輸入地名、國家或經緯度坐標，相機將自動飛越並聚焦至該地。</li>
+              <li style="margin-bottom: 12px; font-size: 18px;"><strong>🏠 重置相機（Home Button）：</strong>點擊「小房子」可一鍵重置視角，返回地球全景的初始預設範圍。</li>
+              <li style="margin-bottom: 12px; font-size: 18px;"><strong>🌐 維度切換（Scene Mode Picker）：</strong>一鍵在「3D 三維球體」、「2D 平面地圖」與「2.5D 哥倫布投影」視角間切換。</li>
+              <li style="margin-bottom: 12px; font-size: 18px;"><strong>🗺️ 底圖切換（Base Layer Picker）：</strong>切換底圖影像（衛星圖、電子地圖）與啟用/停用真實 3D 地形起伏（Terrain）。</li>
             </ul>
           `;
 
@@ -154,19 +154,19 @@ export function integrateCesiumHelpButton(viewerContainer: HTMLElement): CesiumH
           presetsHelp.style.padding = "14px 10px";
           presetsHelp.style.color = "#cbd5e1";
           presetsHelp.style.webkitTextFillColor = "#cbd5e1";
-          presetsHelp.style.fontSize = "16px";
+          presetsHelp.style.fontSize = "18px";
           presetsHelp.style.lineHeight = "1.6";
           presetsHelp.innerHTML = `
             <ul style="margin: 0; padding-left: 16px; list-style-type: disc;">
-              <li style="margin-bottom: 12px; font-size: 16px;"><strong>🟢 綠色方形「網格軌道地球」按鈕：</strong>點擊可直接切換至「中華電信（陽明山分公司）與新加坡 Speedcast / 南非 SANSA 地面站」的跨軌道星地鏈路投影分析。</li>
-              <li style="margin-bottom: 12px; font-size: 16px;">
+              <li style="margin-bottom: 12px; font-size: 18px;"><strong>🟢 綠色方形「網格軌道地球」按鈕：</strong>點擊可直接切換至「中華電信（陽明山分公司）與新加坡 Speedcast / 南非 SANSA 地面站」的跨軌道星地鏈路投影分析。</li>
+              <li style="margin-bottom: 12px; font-size: 18px;">
                 <strong>💡 為什麼 Demo 選擇這三個測站？</strong>
                 <ul style="padding-left: 14px; margin-top: 4px; margin-bottom: 4px; list-style-type: circle;">
-                  <li style="font-size: 16px; margin-bottom: 6px;"><strong>中華電信（陽明山）與新加坡 Speedcast</strong>：屬於經電信商實測驗證（Tier 1）的經典實際測站配對，具備極高的真實傳輸與網路對接參考價值。</li>
-                  <li style="font-size: 16px; margin-bottom: 6px;"><strong>結合南非太空局（SANSA）哈特比斯特霍克測站</strong>：可模擬橫跨亞、非兩洲的超長距離全球化跨軌道（LEO/MEO/GEO）星地鏈路，完整展示動態視線遮蔽、大氣雨衰影響（ITU-R P.618-14）及複雜的衛星交接決策。</li>
+                  <li style="font-size: 18px; margin-bottom: 6px;"><strong>中華電信（陽明山）與新加坡 Speedcast</strong>：屬於經電信商實測驗證（Tier 1）的經典實際測站配對，具備極高的真實傳輸與網路對接參考價值。</li>
+                  <li style="font-size: 18px; margin-bottom: 6px;"><strong>結合南非太空局（SANSA）哈特比斯特霍克測站</strong>：可模擬橫跨亞、非兩洲的超長距離全球化跨軌道（LEO/MEO/GEO）星地鏈路，完整展示動態視線遮蔽、大氣雨衰影響（ITU-R P.618-14）及複雜的衛星交接決策。</li>
                 </ul>
               </li>
-              <li style="margin-bottom: 12px; font-size: 16px;"><strong>📍 地面站單擊交互（Single Click）：</strong>在三維地球上直接<strong>單擊</strong>任何一個地面站的彩色圓形地標或標籤，即可平滑飛越聚焦該測站，同時自動在左側選單中將其選中為 Station A 或 B，並在左下角展開詳細能力卡片。</li>
+              <li style="margin-bottom: 12px; font-size: 18px;"><strong>📍 地面站單擊交互（Single Click）：</strong>在三維地球上直接<strong>單擊</strong>任何一個地面站的彩色圓形地標或標籤，即可平滑飛越聚焦該測站，同時自動在左側選單中將其選中為 Station A 或 B，並在左下角展開詳細能力卡片。</li>
             </ul>
           `;
 

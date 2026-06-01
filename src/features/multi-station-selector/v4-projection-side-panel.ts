@@ -1153,26 +1153,26 @@ function buildHeaderRow(
       
       <div class="gs-popover-tab-content" id="tab1-content" style="display: block;">
         <ul style="margin: 0; padding-left: 14px; list-style-type: disc;">
-          <li style="font-size: 16px; margin-bottom: 8px; line-height: 1.5; color: #cbd5e1;">
+          <li style="font-size: 18px; margin-bottom: 8px; line-height: 1.5; color: #cbd5e1;">
             <strong>🌧️ 雨衰模擬降雨率：</strong>基於 <strong>ITU-R P.618-14</strong> 國際標準，拖曳滑桿可動態模擬降雨率（mm/h）對 Ku/Ka 頻段造成的傳輸雨衰減損耗。
           </li>
-          <li style="font-size: 16px; margin-bottom: 8px; line-height: 1.5; color: #cbd5e1;">
+          <li style="font-size: 18px; margin-bottom: 8px; line-height: 1.5; color: #cbd5e1;">
             <strong>⏱️ 累計通訊時間 (Comm Time)：</strong>星地幾何切線高度符合仰角限制時，在 6 小時分析窗口內的累計可用通訊分鐘數。
           </li>
-          <li style="font-size: 16px; margin-bottom: 8px; line-height: 1.5; color: #cbd5e1;">
+          <li style="font-size: 18px; margin-bottom: 8px; line-height: 1.5; color: #cbd5e1;">
             <strong>🔄 鏈路交接次數 (Handovers)：</strong>當前測站與動態天線在星地拓撲時間軸上演進時，所執行的動態交接次數。
           </li>
         </ul>
       </div>
       <div class="gs-popover-tab-content" id="tab2-content" style="display: none;">
         <ul style="margin: 0; padding-left: 14px; list-style-type: disc;">
-          <li style="font-size: 16px; margin-bottom: 8px; line-height: 1.5; color: #cbd5e1;">
+          <li style="font-size: 18px; margin-bottom: 8px; line-height: 1.5; color: #cbd5e1;">
             <strong>🛰️ 候選星推薦 (Next 3 LEO)：</strong>基於測站實時仰角、通訊衰耗與多天線追蹤能力，實時推薦最優的前 3 顆動態交接候選衛星。
           </li>
-          <li style="font-size: 16px; margin-bottom: 8px; line-height: 1.5; color: #cbd5e1;">
+          <li style="font-size: 18px; margin-bottom: 8px; line-height: 1.5; color: #cbd5e1;">
             <strong>🛡️ V-MO1 跨軌交接：</strong>採用符合 <strong>3GPP TR 38.821</strong> 架構的無縫跨軌道星地鏈路動態交接技術，實現不中斷的高可靠通訊。
           </li>
-          <li style="font-size: 16px; margin-bottom: 8px; line-height: 1.5; color: #cbd5e1;">
+          <li style="font-size: 18px; margin-bottom: 8px; line-height: 1.5; color: #cbd5e1;">
             <strong>📊 報表與 CSV 資料下載：</strong>點擊底部按鈕可生成高可信度的實證 PDF/HTML 分析報告，或匯出包含完整星曆、仰角、大氣損耗之 CSV 精確數據集，供第三方系統對接。
           </li>
         </ul>
