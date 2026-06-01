@@ -384,20 +384,6 @@ function renderCard(
 
   body.append(buildFieldList(station));
 
-  if (station.primaryUseCase) {
-    const useCase = document.createElement("p");
-    useCase.className = "ground-station-info-card__use-case";
-    useCase.textContent = station.primaryUseCase;
-    body.append(useCase);
-  }
-
-  if (station.publicDisclosureNotes) {
-    const notes = document.createElement("p");
-    notes.className = "ground-station-info-card__notes";
-    notes.textContent = station.publicDisclosureNotes;
-    body.append(notes);
-  }
-
   body.append(buildActionRow(station, snapshot));
 
   const footer = document.createElement("footer");
