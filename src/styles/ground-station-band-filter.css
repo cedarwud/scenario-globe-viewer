@@ -62,7 +62,11 @@
   font-size: 1.25rem;
 }
 
-.ground-station-selection-chip__slot,
+.ground-station-selection-chip__slot {
+  font-size: 0.88rem;
+  white-space: nowrap;
+}
+
 .ground-station-list-picker__title,
 .ground-station-list-picker__label,
 .ground-station-list-picker__filters-button,
