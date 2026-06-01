@@ -577,10 +577,22 @@ export function startBootstrapComposition(app: HTMLDivElement): BootstrapComposi
         // Generate full report html
         const html = buildRuntimeProjectionEvidenceReportHtml(result);
 
-        // Overwrite the document completely, executing internal interactive JS
-        document.open();
-        document.write(html);
-        document.close();
+        // Safely parse the generated HTML document
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(html, "text/html");
+
+        // Overwrite the head and body completely, stripping global parent styles like overflow:hidden
+        document.head.innerHTML = doc.head.innerHTML;
+        document.body.innerHTML = doc.body.innerHTML;
+
+        // Recreate script tags dynamically to force browser execution
+        const scripts = document.body.querySelectorAll("script");
+        scripts.forEach((oldScript) => {
+          const newScript = document.createElement("script");
+          newScript.textContent = oldScript.textContent;
+          oldScript.remove();
+          document.body.appendChild(newScript);
+        });
       } catch (error) {
         app.innerHTML = `
           <div style="padding: 40px; color: #ef4444; font-family: sans-serif; background: #060e18; min-height: 100vh; display: flex; align-items: center; justify-content: center; text-align: center;">
