@@ -44,7 +44,7 @@ export function mountTimelineHelp(container: HTMLElement): TimelineHelpHandle {
           <strong>時間標尺與綠色指針（橫向時間軸）：</strong>橫向的綠色指針線代表當前模擬時間。您可用滑鼠直接拖曳綠色指針，或點擊時間軸上的任意刻度，快速跳轉至特定的歷史時刻。
         </li>
         <li style="font-size: 18px; margin-bottom: 9px; line-height: 1.6; color: #cbd5e1;">
-          <strong>模擬播放速度（右下角倍速鍵）：</strong>點擊 <code>30x</code>、<code>60x</code> 或 <code>120x</code> 預設倍率按鈕，可直接切換時間流逝倍速（例如 60x 代表每過真實 1 秒，模擬時間便推進 60 秒），便於流暢觀察長週期跨軌道交接決策。
+          <strong>模擬播放速度（右下角倍速鍵）：</strong>點擊 <code>30x</code>、<code>60x</code> 或 <code>120x</code> 預設倍率按鈕，可直接切換時間流逝倍速（例如 60x 代表每過真實 1 秒，模擬時間便推進 60 秒），便於流暢觀察長週期跨軌道換手決策。
         </li>
         <li style="font-size: 18px; margin-bottom: 9px; line-height: 1.6; color: #cbd5e1;">
           <strong>星曆雙向同步：</strong>拖動時間軸時，右上角的 TLE 快照與模擬天線、下方的 LEO 衛星可見數量，以及雨衰計算數值皆會雙向即時重新運算並同步更新。
@@ -163,7 +163,7 @@ export function integrateCesiumHelpButton(viewerContainer: HTMLElement): CesiumH
                 <strong>💡 為什麼 Demo 選擇這三個測站？</strong>
                 <ul style="padding-left: 14px; margin-top: 4px; margin-bottom: 4px; list-style-type: circle;">
                   <li style="font-size: 18px; margin-bottom: 6px;"><strong>中華電信（陽明山）與新加坡 Speedcast</strong>：屬於經電信商實測驗證（Tier 1）的經典實際測站配對，具備極高的真實傳輸與網路對接參考價值。</li>
-                  <li style="font-size: 18px; margin-bottom: 6px;"><strong>結合南非太空局（SANSA）哈特比斯特霍克測站</strong>：可模擬橫跨亞、非兩洲的超長距離全球化跨軌道（LEO/MEO/GEO）星地鏈路，完整展示動態視線遮蔽、大氣雨衰影響（ITU-R P.618-14）及複雜的衛星交接決策。</li>
+                  <li style="font-size: 18px; margin-bottom: 6px;"><strong>結合南非太空局（SANSA）哈特比斯特霍克測站</strong>：可模擬橫跨亞、非兩洲的超長距離全球化跨軌道（LEO/MEO/GEO）星地鏈路，完整展示動態視線遮蔽、大氣雨衰影響（ITU-R P.618-14）及複雜的衛星換手決策。</li>
                 </ul>
               </li>
               <li style="margin-bottom: 12px; font-size: 18px;"><strong>📍 地面站單擊交互（Single Click）：</strong>在三維地球上直接<strong>單擊</strong>任何一個地面站的彩色圓形地標或標籤，即可平滑飛越聚焦該測站，同時自動在左側選單中將其選中為 Station A 或 B，並在左下角展開詳細能力卡片。</li>

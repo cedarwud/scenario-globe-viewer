@@ -127,6 +127,11 @@
 .gs-timeline-help-popover {
   bottom: calc(100% + 8px);
   left: 0;
+  width: min(34rem, calc(100vw - 1.5rem));
+  max-height: min(24rem, calc(100dvh - 7rem));
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
 }
 
 /* --- 2. Ground Station Side Panel Help Specific Positions --- */
@@ -145,6 +150,79 @@
   top: calc(100% + 8px);
   left: 0;
   right: auto;
+}
+
+.ground-station-list-picker__help-popover {
+  width: min(31rem, calc(100vw - 2rem));
+  max-height: min(30rem, calc(100dvh - 8rem));
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+}
+
+.ground-station-list-picker__help-popover .gs-popover-header {
+  margin-bottom: 10px;
+}
+
+.gs-help-tabs {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px;
+  margin-bottom: 10px;
+  border: 1px solid rgba(157, 196, 232, 0.14);
+  border-radius: 8px;
+  background: rgba(3, 10, 18, 0.46);
+}
+
+.gs-help-tab {
+  border: 0;
+  border-radius: 6px;
+  padding: 5px 10px;
+  background: transparent;
+  color: #9fb3c8;
+  font: 700 13px/1 Outfit, Inter, "PingFang TC", "Microsoft JhengHei", system-ui, sans-serif;
+  cursor: pointer;
+}
+
+.gs-help-tab:hover,
+.gs-help-tab:focus-visible {
+  color: #f8fafc;
+  background: rgba(157, 196, 232, 0.1);
+  outline: none;
+}
+
+.gs-help-tab[aria-selected="true"] {
+  color: #eafff6;
+  background: rgba(52, 211, 153, 0.18);
+  box-shadow: inset 0 0 0 1px rgba(126, 226, 184, 0.28);
+}
+
+.gs-help-panel[hidden] {
+  display: none;
+}
+
+.gs-help-list {
+  margin: 0;
+  padding-left: 14px;
+  list-style-type: disc;
+}
+
+.gs-help-list li {
+  font-size: 16px;
+  line-height: 1.52;
+}
+
+@media (max-width: 720px), (max-height: 760px) {
+  .ground-station-list-picker__help-popover {
+    position: absolute;
+    top: auto;
+    right: auto;
+    bottom: calc(100% + 8px);
+    left: 0;
+    width: min(31rem, calc(100vw - 2rem));
+    max-height: min(26rem, calc(100dvh - 7rem));
+  }
 }
 
 /* --- 3. Top-Right CTA Help Specific Positions --- */

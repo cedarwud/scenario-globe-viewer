@@ -47,6 +47,8 @@ interface PickerElements {
   readonly helpPopover: HTMLElement;
 }
 
+type GroundStationHelpTabId = "workflow" | "tri-orbit";
+
 interface FilterState {
   readonly allowedOrbits: ReadonlyArray<OrbitClass>;
   readonly allowedHandoverKinds: ReadonlyArray<HandoverOrbitFilterKind>;
@@ -783,38 +785,61 @@ function createPickerElements(): PickerElements {
   helpTrigger.innerHTML = "?";
 
   const helpPopover = document.createElement("div");
-  helpPopover.className = "gs-panel-help-popover";
+  helpPopover.className = "gs-panel-help-popover ground-station-list-picker__help-popover";
   helpPopover.hidden = true;
-  helpPopover.setAttribute("role", "tooltip");
+  helpPopover.setAttribute("role", "dialog");
+  helpPopover.setAttribute("aria-label", "地面站鏈路與物理計算指南");
   helpPopover.innerHTML = `
     <header class="gs-popover-header">
       <h4>地面站鏈路與物理計算指南</h4>
       <button type="button" class="gs-popover-close" aria-label="關閉">&times;</button>
     </header>
+    <div class="gs-help-tabs" role="tablist" aria-label="地面站說明分類">
+      <button type="button" class="gs-help-tab" role="tab" id="ground-station-help-tab-workflow" data-ground-station-help-tab="workflow" aria-controls="ground-station-help-panel-workflow" aria-selected="true" tabindex="0">操作</button>
+      <button type="button" class="gs-help-tab" role="tab" id="ground-station-help-tab-tri-orbit" data-ground-station-help-tab="tri-orbit" aria-controls="ground-station-help-panel-tri-orbit" aria-selected="false" tabindex="-1">三軌判讀</button>
+    </div>
     <div class="gs-popover-body">
-      <ul style="margin: 0; padding-left: 14px; list-style-type: disc;">
-        <li style="font-size: 18px; margin-bottom: 9px; line-height: 1.6; color: #cbd5e1;">
-          <strong>測站選擇與相容配對：</strong>在下方「Station A」選取主測站，並在「Station B」選取第二測站。系統將自動依據軌道、頻段與可見性進行相容過濾配對。
-        </li>
-        <li style="font-size: 18px; margin-bottom: 9px; line-height: 1.6; color: #cbd5e1;">
-          <strong>多維篩選器（Filters）：</strong>點擊「Filters」按鈕展開篩選面板，可分別依據<strong>軌道（Orbit）</strong>、<strong>交接演算法限制</strong>、<strong>國家/地區（Region）</strong>與<strong>工作頻段（Band）</strong>進行篩選。
-        </li>
-        <li style="font-size: 18px; margin-bottom: 9px; line-height: 1.6; color: #cbd5e1;">
-          <strong>幾何鏈路與雨水衰減：</strong>配對成功後，系統將自動載入右側詳細面板，實時動態求解切線高度與大氣衰減。拖曳「雨衰模擬降雨率」滑桿，可基於 <strong>ITU-R P.618-14</strong> 國際標準動態模擬 Ku/Ka 頻段雨衰傳輸損耗。
-        </li>
-        <li style="font-size: 18px; margin-bottom: 9px; line-height: 1.6; color: #cbd5e1;">
-          <strong>地標/標籤顯示開關：</strong>點擊標題右側的綠色切換按鈕，可一鍵在三維地球上顯示或隱藏所有地面站的實體圓標與名稱標籤。
-        </li>
-      </ul>
+      <section class="gs-help-panel" role="tabpanel" id="ground-station-help-panel-workflow" data-ground-station-help-panel="workflow" aria-labelledby="ground-station-help-tab-workflow">
+        <ul class="gs-help-list">
+          <li>
+            <strong>測站選擇與相容配對：</strong>在下方「Station A」選取主測站，並在「Station B」選取第二測站。系統將自動依據軌道、頻段與可見性進行相容過濾配對。
+          </li>
+          <li>
+            <strong>多維篩選器（Filters）：</strong>點擊「Filters」按鈕展開篩選面板，可分別依據<strong>軌道（Orbit）</strong>、<strong>換手演算法限制</strong>、<strong>國家/地區（Region）</strong>與<strong>工作頻段（Band）</strong>進行篩選。
+          </li>
+          <li>
+            <strong>幾何鏈路與雨水衰減：</strong>配對成功後，系統將自動載入右側詳細面板，實時動態求解切線高度與大氣衰減。拖曳「雨衰模擬降雨率」滑桿，可基於 <strong>ITU-R P.618-14</strong> 國際標準動態模擬 Ku/Ka 頻段雨衰傳輸損耗。
+          </li>
+          <li>
+            <strong>地標/標籤顯示開關：</strong>點擊標題右側的綠色切換按鈕，可一鍵在三維地球上顯示或隱藏所有地面站的實體圓標與名稱標籤。
+          </li>
+        </ul>
+      </section>
+      <section class="gs-help-panel" role="tabpanel" id="ground-station-help-panel-tri-orbit" data-ground-station-help-panel="tri-orbit" aria-labelledby="ground-station-help-tab-tri-orbit" hidden>
+        <ul class="gs-help-list">
+          <li>
+            <strong>三軌能力：</strong>站點標示支援 LEO/MEO/GEO，代表公開資料庫中的站點能力與可用軌道類別；這不是該時間窗一定會出現三軌換手的保證。
+          </li>
+          <li>
+            <strong>配對相容：</strong>兩個三軌站點被允許配對，只表示它們有共同軌道、頻段與幾何計算條件；實際服務鏈路仍要看選定時間窗。
+          </li>
+          <li>
+            <strong>Link map 判讀：</strong>右側時間軸只會點亮 TLE 計算後兩站同時可見、且被換手政策選為服務鏈路的軌道。某一軌在該時間窗沒有共同可見衛星時，該列會維持空白。
+          </li>
+          <li>
+            <strong>24h 仍可能是雙軌：</strong>兩站都是三軌能力時，若 LEO 或任一軌在這段 24h 沒有共同可見或沒有被選為服務鏈路，畫面仍只會顯示其餘軌道的鏈路與換手。
+          </li>
+        </ul>
+      </section>
     </div>
   `;
-  helpTrigger.appendChild(helpPopover);
 
   const titleWrapper = document.createElement("div");
   titleWrapper.style.display = "flex";
   titleWrapper.style.alignItems = "center";
   titleWrapper.style.gap = "6px";
-  titleWrapper.append(title, helpTrigger);
+  titleWrapper.style.position = "relative";
+  titleWrapper.append(title, helpTrigger, helpPopover);
 
   const visibilityToggle = document.createElement("button");
   visibilityToggle.type = "button";
@@ -1314,11 +1339,72 @@ export function mountStationListPicker(
   };
 
   elements.helpTrigger.addEventListener("click", toggleHelpPopover);
+  elements.helpPopover.addEventListener("click", (event) => {
+    event.stopPropagation();
+  });
   elements.helpPopover.querySelector(".gs-popover-close")?.addEventListener("click", closeHelpPopover);
+
+  const helpTabs = Array.from(
+    elements.helpPopover.querySelectorAll<HTMLButtonElement>(
+      "[data-ground-station-help-tab]"
+    )
+  );
+  const helpPanels = Array.from(
+    elements.helpPopover.querySelectorAll<HTMLElement>(
+      "[data-ground-station-help-panel]"
+    )
+  );
+  const activateHelpTab = (tabId: GroundStationHelpTabId): void => {
+    for (const tab of helpTabs) {
+      const isActive = tab.dataset.groundStationHelpTab === tabId;
+      tab.setAttribute("aria-selected", String(isActive));
+      tab.tabIndex = isActive ? 0 : -1;
+    }
+    for (const panel of helpPanels) {
+      panel.hidden = panel.dataset.groundStationHelpPanel !== tabId;
+    }
+  };
+
+  for (const tab of helpTabs) {
+    tab.addEventListener("click", (event) => {
+      event.stopPropagation();
+      const tabId = tab.dataset.groundStationHelpTab as GroundStationHelpTabId | undefined;
+      if (tabId) {
+        activateHelpTab(tabId);
+      }
+    });
+    tab.addEventListener("keydown", (event) => {
+      const currentIndex = helpTabs.indexOf(tab);
+      if (currentIndex < 0) {
+        return;
+      }
+      const previousIndex = (currentIndex - 1 + helpTabs.length) % helpTabs.length;
+      const nextIndex = (currentIndex + 1) % helpTabs.length;
+      const nextTab =
+        event.key === "ArrowLeft"
+          ? helpTabs[previousIndex]
+          : event.key === "ArrowRight"
+          ? helpTabs[nextIndex]
+          : null;
+      if (!nextTab) {
+        return;
+      }
+      event.preventDefault();
+      const tabId = nextTab.dataset.groundStationHelpTab as GroundStationHelpTabId | undefined;
+      if (tabId) {
+        activateHelpTab(tabId);
+        nextTab.focus();
+      }
+    });
+  }
 
   const doc = elements.root.ownerDocument;
   const handleOutsideHelpClick = (event: Event): void => {
-    if (!elements.helpTrigger.contains(event.target as Node)) {
+    const target = event.target as Node;
+    if (
+      !elements.helpTrigger.contains(target) &&
+      !elements.helpPopover.contains(target)
+    ) {
       elements.helpPopover.hidden = true;
     }
   };

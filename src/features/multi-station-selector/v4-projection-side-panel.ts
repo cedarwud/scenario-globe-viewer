@@ -69,6 +69,7 @@ const DURATION_MINUTES_PARAM = "durationMinutes";
 const POLICY_PARAM = "policy";
 const COMPARE_PARAM = "compare";
 const PRE_WAVE2_COMPARE_MODE = "pre-wave-2";
+let csvHelpIdCounter = 0;
 
 const RAIN_RATE_MIN_MM_PER_HOUR = 0;
 const RAIN_RATE_MAX_MM_PER_HOUR = 100;
@@ -1133,50 +1134,65 @@ function buildHeaderRow(
   helpTrigger.style.alignSelf = "center";
 
   const helpPopover = document.createElement("div");
-  helpPopover.className = "gs-panel-help-popover";
+  helpPopover.className =
+    "gs-panel-help-popover gs-link-projection-help-popover";
   helpPopover.hidden = true;
   helpPopover.setAttribute("role", "tooltip");
   helpPopover.style.position = "absolute";
   helpPopover.style.right = "calc(2.25rem + clamp(25rem, 35vw, 30rem))";
   helpPopover.style.left = "auto";
   helpPopover.style.top = "4rem";
+  helpPopover.style.width =
+    "min(44rem, calc(100vw - clamp(25rem, 35vw, 30rem) - 5.25rem))";
+  helpPopover.style.maxWidth =
+    "calc(100vw - clamp(25rem, 35vw, 30rem) - 5.25rem)";
+  helpPopover.style.height = "calc(100dvh - 8.25rem)";
+  helpPopover.style.maxHeight = "calc(100dvh - 8.25rem)";
+  helpPopover.style.overflowY = "auto";
   helpPopover.innerHTML = `
     <header class="gs-popover-header">
       <h4>鏈路投影與分析指南</h4>
       <button type="button" class="gs-popover-close" aria-label="關閉">&times;</button>
     </header>
     <div class="gs-popover-body">
-      <div class="gs-popover-tabs" style="display: flex; gap: 4px; margin-bottom: 10px; border-bottom: 1px solid rgba(157, 196, 232, 0.15); padding-bottom: 6px;">
-        <button type="button" class="gs-popover-tab-btn active" data-tab="tab1" style="background: rgba(52, 211, 153, 0.15); border: 1px solid #34d399; color: #34d399; border-radius: 4px; padding: 4px 8px; font-size: 13px; cursor: pointer; flex: 1; text-align: center;">鏈路與物理</button>
-        <button type="button" class="gs-popover-tab-btn" data-tab="tab2" style="background: transparent; border: 1px solid rgba(157, 196, 232, 0.2); color: #8ba2bd; border-radius: 4px; padding: 4px 8px; font-size: 13px; cursor: pointer; flex: 1; text-align: center;">交接與報表</button>
-      </div>
-      
-      <div class="gs-popover-tab-content" id="tab1-content" style="display: block;">
-        <ul style="margin: 0; padding-left: 14px; list-style-type: disc;">
-          <li style="font-size: 18px; margin-bottom: 8px; line-height: 1.5; color: #cbd5e1;">
-            <strong>🌧️ 雨衰模擬降雨率：</strong>基於 <strong>ITU-R P.618-14</strong> 國際標準，拖曳滑桿可動態模擬降雨率（mm/h）對 Ku/Ka 頻段造成的傳輸雨衰減損耗。
-          </li>
-          <li style="font-size: 18px; margin-bottom: 8px; line-height: 1.5; color: #cbd5e1;">
-            <strong>⏱️ 累計通訊時間 (Comm Time)：</strong>星地幾何切線高度符合仰角限制時，在 6 小時分析窗口內的累計可用通訊分鐘數。
-          </li>
-          <li style="font-size: 18px; margin-bottom: 8px; line-height: 1.5; color: #cbd5e1;">
-            <strong>🔄 鏈路交接次數 (Handovers)：</strong>當前測站與動態天線在星地拓撲時間軸上演進時，所執行的動態交接次數。
-          </li>
-        </ul>
-      </div>
-      <div class="gs-popover-tab-content" id="tab2-content" style="display: none;">
-        <ul style="margin: 0; padding-left: 14px; list-style-type: disc;">
-          <li style="font-size: 18px; margin-bottom: 8px; line-height: 1.5; color: #cbd5e1;">
-            <strong>🛰️ 候選星推薦 (Next 3 LEO)：</strong>基於測站實時仰角、通訊衰耗與多天線追蹤能力，實時推薦最優的前 3 顆動態交接候選衛星。
-          </li>
-          <li style="font-size: 18px; margin-bottom: 8px; line-height: 1.5; color: #cbd5e1;">
-            <strong>🛡️ V-MO1 跨軌交接：</strong>採用符合 <strong>3GPP TR 38.821</strong> 架構的無縫跨軌道星地鏈路動態交接技術，實現不中斷的高可靠通訊。
-          </li>
-          <li style="font-size: 18px; margin-bottom: 8px; line-height: 1.5; color: #cbd5e1;">
-            <strong>📊 報表與 CSV 資料下載：</strong>點擊底部按鈕可生成高可信度的實證 PDF/HTML 分析報告，或匯出包含完整星曆、仰角、大氣損耗之 CSV 精確數據集，供第三方系統對接。
-          </li>
-        </ul>
-      </div>
+      <ol class="gs-link-projection-help-list">
+        <li>
+          <strong>Header · 配對、等級、時間窗</strong>
+          <span>顯示目前 Station A/B 配對、Pair source tier 標章，以及投影起訖時間。Geometry only 代表此配對只用公開測站座標、公開 TLE 與幾何可見性推導鏈路，沒有 pair-level 公開聲明或營運商實測路徑可引用；它不代表實測通訊品質。</span>
+        </li>
+        <li>
+          <strong>Available / Handovers · 可用時間與換手次數</strong>
+          <span>Available 是此時間窗內兩站同時可用的累計通訊時間；Handovers 是鏈路選擇模型在維持服務時產生的換手次數。</span>
+        </li>
+        <li>
+          <strong>Replay · 播放與倍率</strong>
+          <span>Pause、Restart 與 30x/60x/120x 會控制右側投影與地球上的重播時間，方便觀察長時間窗內的換手變化。</span>
+        </li>
+        <li>
+          <strong>Link map · 6h/12h/24h 鏈路時間軸</strong>
+          <span>LEO/MEO/GEO 三條軌道列顯示各時間段的服務鏈路；垂直標記代表換手事件。6h 是主要閱讀模式，12h/24h 是活動較稀疏時的診斷 lookahead。</span>
+        </li>
+        <li>
+          <strong>Next 6h link plan · 目前鏈路、下一次換手、跨軌事件</strong>
+          <span>這三張卡把時間軸壓成可行動摘要：目前可用鏈路、接下來的換手，以及 V-MO1 相關的跨軌遷移事件。</span>
+        </li>
+        <li>
+          <strong>Rain impact · 雨衰滑桿與容量變化</strong>
+          <span>滑桿以 mm/h 模擬降雨率，依 ITU-R P.618-14 估算 Ku/Ka 鏈路雨衰；下方列出各軌道容量與 jitter 在晴空/降雨條件下的差異。</span>
+        </li>
+        <li>
+          <strong>Handover policy · 換手規則門檻</strong>
+          <span>展開後可檢查目前使用的 policy ID、仰角門檻、hysteresis、最短可見時間窗與 latency budget。這是服務層換手模型，不是 RF-native handover claim。</span>
+        </li>
+        <li>
+          <strong>Source boundary · 來源與非主張</strong>
+          <span>列出 TLE 來源摘要、標準引用與來源邊界。完整逐列資料、模型 ID、測站座標來源與 inventory rows 放在報告中。</span>
+        </li>
+        <li>
+          <strong>Report / CSV · 證據輸出</strong>
+          <span>Report 產生自包含 HTML 證據報告；CSV 匯出可被其他工具讀取的投影資料。底部 footer 只保留座標精度與 source tier 的短標籤。</span>
+        </li>
+      </ol>
     </div>
   `;
 
@@ -1200,34 +1216,6 @@ function buildHeaderRow(
 
   helpTrigger.addEventListener("click", toggleHelp);
   helpPopover.querySelector(".gs-popover-close")?.addEventListener("click", closeHelp);
-
-  const tabBtns = helpPopover.querySelectorAll(".gs-popover-tab-btn");
-  const tabContents = helpPopover.querySelectorAll(".gs-popover-tab-content");
-
-  tabBtns.forEach(btn => {
-    btn.addEventListener("click", (e) => {
-      e.stopPropagation();
-      const targetTab = btn.getAttribute("data-tab");
-      
-      tabBtns.forEach(b => {
-        (b as HTMLElement).style.background = "transparent";
-        (b as HTMLElement).style.borderColor = "rgba(157, 196, 232, 0.2)";
-        (b as HTMLElement).style.color = "#8ba2bd";
-      });
-      
-      (btn as HTMLElement).style.background = "rgba(52, 211, 153, 0.15)";
-      (btn as HTMLElement).style.borderColor = "#34d399";
-      (btn as HTMLElement).style.color = "#34d399";
-
-      tabContents.forEach(content => {
-        if (content.id === `${targetTab}-content`) {
-          (content as HTMLElement).style.display = "block";
-        } else {
-          (content as HTMLElement).style.display = "none";
-        }
-      });
-    });
-  });
 
   const doc = row.ownerDocument;
   const handleOutsideClick = (event: Event) => {
@@ -2066,7 +2054,7 @@ function buildCompareEventList(
   if (events.length === 0) {
     const empty = document.createElement("p");
     empty.className = "v4-projection-side-panel__empty";
-    empty.textContent = "No link selection events.";
+    empty.textContent = "沒有鏈路選擇事件。";
     return empty;
   }
   const list = document.createElement("ul");
@@ -2195,7 +2183,7 @@ function buildSummariesRow(
     const empty = document.createElement("p");
     empty.className = "v4-projection-side-panel__empty";
     empty.textContent =
-      `No handover events triggered by the ${result.dataCompleteness.policyDisclosure.activePolicyId} policy in this window.`;
+      `此時間窗內 ${result.dataCompleteness.policyDisclosure.activePolicyId} 政策沒有觸發換手事件。`;
     handoverSection.append(empty);
   } else {
     const head = pickRow4HandoverEvents(result.handoverEvents);
@@ -2333,9 +2321,158 @@ function buildEvidenceEntryRow(
 
   const reportButton = buildOpenEvidenceReportButton(result, "Report");
   const csvButton = buildDownloadCsvButton(result, "CSV");
-  actions.append(reportButton, csvButton);
+  const csvHelp = buildCsvHelpControl(csvButton);
+  actions.append(reportButton, csvHelp.root);
+  (row as any).__disposeHelp = csvHelp.dispose;
   row.prepend(actions);
   return row;
+}
+
+interface CsvHelpControl {
+  readonly root: HTMLElement;
+  readonly dispose: () => void;
+}
+
+function buildCsvHelpControl(csvButton: HTMLButtonElement): CsvHelpControl {
+  const root = document.createElement("div");
+  root.className = "v4-projection-side-panel__csv-help-control";
+
+  csvButton.classList.add(
+    "v4-projection-side-panel__download-report--with-help"
+  );
+
+  const helpId = `v4-projection-side-panel-csv-help-${++csvHelpIdCounter}`;
+  const trigger = document.createElement("button");
+  trigger.type = "button";
+  trigger.className = "v4-projection-side-panel__csv-help-trigger";
+  trigger.textContent = "?";
+  trigger.title = "CSV 內容說明";
+  trigger.setAttribute("aria-label", "說明 CSV 下載內容");
+  trigger.setAttribute("aria-expanded", "false");
+  trigger.setAttribute("aria-controls", helpId);
+
+  const popover = document.createElement("div");
+  popover.id = helpId;
+  popover.className = "v4-projection-side-panel__csv-help-popover";
+  popover.hidden = true;
+  popover.setAttribute("role", "dialog");
+  popover.setAttribute("aria-label", "CSV 下載內容說明");
+  popover.innerHTML = `
+    <header class="v4-projection-side-panel__csv-help-header">
+      <strong>CSV 欄位內容</strong>
+      <button type="button" class="v4-projection-side-panel__csv-help-close" aria-label="關閉 CSV 說明">&times;</button>
+    </header>
+    <div class="v4-projection-side-panel__csv-help-body">
+      <ul>
+        <li>基本資訊：測站 A/B、投影起訖時間、時間窗長度、來源等級、座標精度。</li>
+        <li>通訊統計：總可通訊時間、換手次數、平均鏈路停留時間、LEO/MEO/GEO 各軌道累計時間。</li>
+        <li>可見時間窗：衛星 ID、軌道類型、兩站共同可見的開始/結束時間與持續時間。</li>
+        <li>換手事件：換手時間、來源衛星、目標衛星、觸發原因。</li>
+        <li>來源邊界：pair source attribution、non-claims、TLE manifest、資料新鮮度、測站精度。</li>
+        <li>模型資料：容量、延遲、jitter、RF chain、雨衰/大氣查表、換手政策門檻、資料完整性。</li>
+      </ul>
+    </div>
+  `;
+
+  const closeButton = popover.querySelector<HTMLButtonElement>(
+    ".v4-projection-side-panel__csv-help-close"
+  );
+  const ownerDocument = root.ownerDocument;
+
+  const placePopover = (): void => {
+    const ownerWindow = ownerDocument.defaultView;
+    if (!ownerWindow) {
+      return;
+    }
+    const viewportMarginPx = 12;
+    const panel = root.closest<HTMLElement>(".v4-projection-side-panel");
+    const panelRect = panel?.getBoundingClientRect();
+    const triggerRect = trigger.getBoundingClientRect();
+    popover.style.position = "fixed";
+    popover.style.left = "auto";
+    popover.style.right = "auto";
+    popover.style.top = "0px";
+    popover.style.bottom = "auto";
+    const rect = popover.getBoundingClientRect();
+    const gapPx = 12;
+    const maxLeft = ownerWindow.innerWidth - rect.width - viewportMarginPx;
+    const preferredLeft = panelRect
+      ? panelRect.left - rect.width - gapPx
+      : triggerRect.left - rect.width - gapPx;
+    const left = Math.min(
+      Math.max(preferredLeft, viewportMarginPx),
+      Math.max(viewportMarginPx, maxLeft)
+    );
+    const preferredTop = triggerRect.bottom - rect.height;
+    const maxTop = ownerWindow.innerHeight - rect.height - viewportMarginPx;
+    const top = Math.min(
+      Math.max(preferredTop, viewportMarginPx),
+      Math.max(viewportMarginPx, maxTop)
+    );
+    popover.style.left = `${Math.round(left)}px`;
+    popover.style.top = `${Math.round(top)}px`;
+  };
+
+  const setOpen = (open: boolean, focusTrigger = false): void => {
+    popover.hidden = !open;
+    trigger.setAttribute("aria-expanded", open ? "true" : "false");
+    if (open) {
+      placePopover();
+      closeButton?.focus();
+    } else if (focusTrigger) {
+      trigger.focus();
+    }
+  };
+
+  const toggleHelp = (event: Event): void => {
+    event.stopPropagation();
+    setOpen(Boolean(popover.hidden));
+  };
+
+  const closeHelp = (event: Event): void => {
+    event.stopPropagation();
+    setOpen(false, true);
+  };
+
+  const handleOutsideClick = (event: Event): void => {
+    const target = event.target as Node;
+    if (!root.contains(target) && !popover.contains(target)) {
+      setOpen(false);
+    }
+  };
+
+  const handleKeydown = (event: KeyboardEvent): void => {
+    if (event.key === "Escape" && !popover.hidden) {
+      setOpen(false, true);
+    }
+  };
+
+  const handleResize = (): void => {
+    if (!popover.hidden) {
+      placePopover();
+    }
+  };
+
+  trigger.addEventListener("click", toggleHelp);
+  closeButton?.addEventListener("click", closeHelp);
+  ownerDocument.addEventListener("click", handleOutsideClick);
+  ownerDocument.addEventListener("keydown", handleKeydown);
+  ownerDocument.defaultView?.addEventListener("resize", handleResize);
+
+  root.append(csvButton, trigger);
+  ownerDocument.body.append(popover);
+
+  return {
+    root,
+    dispose(): void {
+      trigger.removeEventListener("click", toggleHelp);
+      closeButton?.removeEventListener("click", closeHelp);
+      ownerDocument.removeEventListener("click", handleOutsideClick);
+      ownerDocument.removeEventListener("keydown", handleKeydown);
+      ownerDocument.defaultView?.removeEventListener("resize", handleResize);
+      popover.remove();
+    }
+  };
 }
 
 interface RenderResultOptions {
