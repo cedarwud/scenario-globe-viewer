@@ -297,9 +297,9 @@ function renderCard(
   helpPopover.hidden = true;
   helpPopover.setAttribute("role", "tooltip");
   helpPopover.style.position = "absolute";
-  helpPopover.style.right = "0";
+  helpPopover.style.right = "calc(1.5rem + clamp(22rem, 30vw, 27rem))";
   helpPopover.style.left = "auto";
-  helpPopover.style.top = "calc(100% + 8px)";
+  helpPopover.style.top = "5rem";
   helpPopover.innerHTML = `
     <header class="gs-popover-header">
       <h4>測站詳細資料解讀指南</h4>
@@ -311,7 +311,7 @@ function renderCard(
           <strong>營運商家族（Operator / Family）：</strong>該地面站的隸屬業者與電信集團（例如中華電信 CHT 或新加坡 Speedcast）。
         </li>
         <li style="font-size: 16px; margin-bottom: 9px; line-height: 1.6; color: #cbd5e1; -webkit-text-fill-color: #cbd5e1 !important; text-align: left;">
-          <strong>地理位置與經緯度：</strong>測站所在的國家、大洲區域與精確經緯度坐標，用於幾何可見性仰角計算。
+          <strong>地理位置與經緯度：</strong>測站所在的國家、大洲區域與精確經緯度坐浪，用於幾何可見性仰角計算。
         </li>
         <li style="font-size: 16px; margin-bottom: 9px; line-height: 1.6; color: #cbd5e1; -webkit-text-fill-color: #cbd5e1 !important; text-align: left;">
           <strong>支援衛星軌道（Supported Orbits）：</strong>該測站物理上能追蹤的衛星軌道，如 <strong>LEO</strong>（低軌）、<strong>MEO</strong>（中軌）與 <strong>GEO</strong>（高軌）。
@@ -325,7 +325,12 @@ function renderCard(
       </ul>
     </div>
   `;
-  helpTrigger.appendChild(helpPopover);
+
+  if (root.parentElement) {
+    root.parentElement.appendChild(helpPopover);
+  } else {
+    document.body.appendChild(helpPopover);
+  }
 
   const toggleHelp = (event: Event) => {
     event.stopPropagation();
@@ -346,7 +351,7 @@ function renderCard(
 
   const doc = root.ownerDocument;
   const handleOutsideClick = (event: Event) => {
-    if (!helpTrigger.contains(event.target as Node)) {
+    if (!helpTrigger.contains(event.target as Node) && !helpPopover.contains(event.target as Node)) {
       helpPopover.hidden = true;
     }
   };
@@ -354,6 +359,9 @@ function renderCard(
 
   (root as any).__disposeInfoHelp = () => {
     doc.removeEventListener("click", handleOutsideClick);
+    if (helpPopover.parentElement) {
+      helpPopover.parentElement.removeChild(helpPopover);
+    }
   };
 
   const closeButton = document.createElement("button");
