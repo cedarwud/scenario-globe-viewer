@@ -318,6 +318,10 @@ html[data-viewer-mode="clean-home"] .hud-frame::after {
   color: rgba(240, 247, 252, 0.96);
   font: inherit;
 }
+.operator-control-select option {
+  background: #0a141d;
+  color: rgba(240, 247, 252, 0.96);
+}
 
 .operator-control-select:focus-visible,
 .operator-control-chip:focus-visible {
