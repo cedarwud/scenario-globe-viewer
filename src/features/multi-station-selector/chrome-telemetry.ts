@@ -29,7 +29,7 @@
 // 0). When no cached count is present a background fetch resolves the
 // LEO TLE record count and back-patches the evidence node's data attribute.
 
-import { TLE_FIXTURE_PATHS, loadDefaultTleSources } from "./runtime-projection";
+import { TLE_FIXTURE_PATHS, loadDefaultTleSources, type RuntimeProjectionResult } from "./runtime-projection";
 
 const LEO_COUNT_CACHE_KEY = "__SGV_LEO_TLE_COUNT__";
 const SOAK_SUMMARY_PATH =
@@ -240,4 +240,41 @@ export function mountSelectorChromeTelemetry(
       delete viewerRoot.dataset.soakSummaryPath;
     }
   };
+}
+
+export function syncTleTelemetryChip(result: RuntimeProjectionResult): void {
+  const chip = document.querySelector<HTMLElement>('[data-tle-telemetry-chip="true"]');
+  if (!chip) {
+    return;
+  }
+  const sources = result.dataCompleteness.tleSources;
+  const acceptedCount = sources.reduce(
+    (total, source) => total + source.acceptedRecordCount,
+    0
+  );
+  const rejectedCount = sources.reduce(
+    (total, source) => total + source.rejectedRecordCount,
+    0
+  );
+  const parserFailureCount = sources.reduce(
+    (total, source) => total + (source.parserFailureCount ?? 0),
+    0
+  );
+  const healthSummary = sources.map((source) => source.health).join("/");
+  const newestTimestamp = sources
+    .map((source) => source.sourceTimestampUtc)
+    .filter((timestamp): timestamp is string => timestamp !== null)
+    .sort()
+    .pop();
+
+  chip.dataset.sourceCount = String(sources.length);
+  chip.dataset.acceptedRecordCount = String(acceptedCount);
+  chip.dataset.rejectedRecordCount = String(rejectedCount);
+  chip.dataset.parserFailureCount = String(parserFailureCount);
+  chip.dataset.sourceHealth = healthSummary;
+  chip.dataset.stalenessState = healthSummary;
+  if (newestTimestamp) {
+    chip.dataset.sourceTimestampUtc = newestTimestamp;
+  }
+  chip.textContent = `${chip.textContent?.split(" · ")[0] ?? "TLE"} · ${healthSummary}`;
 }

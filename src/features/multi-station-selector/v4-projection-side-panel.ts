@@ -18,19 +18,18 @@ import {
   type RuntimeProjectionResult
 } from "./runtime-projection";
 import {
-  buildOpenEvidenceReportButton
+  buildOpenEvidenceReportButton,
+  buildDownloadCsvButton
 } from "./v4-projection-report-actions";
 import {
-  dispatchSelectedPairOverlayChange,
-  setSelectedPairEvidenceDrawerOpen
-} from "./selected-pair-overlay-state";
+  buildPolicyDisclosure,
+  buildSourceConfidenceDisclosure,
+  buildHiddenMachineEvidenceBlock
+} from "./v4-projection-side-panel-disclosures";
+
 import { createRuntimeProjectionWorkerClient } from "./runtime-projection-worker-client";
 import { buildReplayControlRow } from "./v4-projection-replay-controls";
-import {
-  buildDisclosuresRow,
-  PANEL_EVIDENCE_DRAWER_ID,
-  syncTleTelemetryChip
-} from "./v4-projection-evidence-drawer";
+import { syncTleTelemetryChip } from "./chrome-telemetry";
 import {
   clampPercent,
   formatCount,
@@ -87,24 +86,13 @@ function createPanelShell(): HTMLElement {
   return root;
 }
 
-function removeEvidenceDrawer(ownerDocument: Document): void {
-  const drawer = ownerDocument.getElementById(PANEL_EVIDENCE_DRAWER_ID);
-  if (!drawer) {
-    return;
-  }
-  const wasOpen = !drawer.hidden;
-  drawer.remove();
-  if (wasOpen) {
-    dispatchSelectedPairOverlayChange(ownerDocument);
-  }
-}
+// (removeEvidenceDrawer was removed)
 
 function bindPanelWheelScroll(): () => void {
   return () => undefined;
 }
 
 function renderLoading(root: HTMLElement, pair: V4ResolvedStationPair): void {
-  removeEvidenceDrawer(root.ownerDocument);
   root.replaceChildren();
   root.dataset.state = "loading";
 
@@ -121,7 +109,6 @@ function renderLoading(root: HTMLElement, pair: V4ResolvedStationPair): void {
 }
 
 function renderError(root: HTMLElement, message: string): void {
-  removeEvidenceDrawer(root.ownerDocument);
   root.replaceChildren();
   root.dataset.state = "error";
 
@@ -2206,30 +2193,18 @@ function buildFooterRow(result: RuntimeProjectionResult): HTMLElement {
   return row;
 }
 
+
+
 function buildEvidenceEntryRow(
-  result: RuntimeProjectionResult,
-  evidenceDrawer: HTMLElement
+  result: RuntimeProjectionResult
 ): HTMLElement {
   const row = buildFooterRow(result);
   const actions = document.createElement("div");
   actions.className = "v4-projection-side-panel__evidence-actions";
 
-  const evidenceButton = document.createElement("button");
-  evidenceButton.type = "button";
-  evidenceButton.className = "v4-projection-side-panel__evidence-button";
-  evidenceButton.textContent = "Details & sources";
-  evidenceButton.setAttribute("aria-label", "Open details and sources");
-  evidenceButton.setAttribute("aria-controls", evidenceDrawer.id);
-  evidenceButton.setAttribute("aria-expanded", "false");
-  evidenceButton.addEventListener("click", () => {
-    const opening = evidenceDrawer.hidden === true;
-    setSelectedPairEvidenceDrawerOpen(evidenceDrawer, opening, {
-      focusTarget: opening ? "close-button" : "none"
-    });
-  });
-
   const reportButton = buildOpenEvidenceReportButton(result, "Report");
-  actions.append(evidenceButton, reportButton);
+  const csvButton = buildDownloadCsvButton(result, "CSV");
+  actions.append(reportButton, csvButton);
   row.prepend(actions);
   return row;
 }
@@ -2265,7 +2240,6 @@ function renderResult(
   const sliderWasFocused = document.activeElement === rainControl.slider;
   const savedScrollTop = root.scrollTop;
 
-  removeEvidenceDrawer(root.ownerDocument);
   root.replaceChildren();
   (root as any).__latestResult = result;
   const tierAttribution = result.dataCompleteness.pairSourceAttribution;
@@ -2290,7 +2264,6 @@ function renderResult(
     result,
     durationMinutes
   );
-  const evidenceDrawer = buildDisclosuresRow(result, rainRateMmPerHour);
 
   if (compareMode === PRE_WAVE2_COMPARE_MODE) {
     root.append(
@@ -2299,7 +2272,10 @@ function renderResult(
       buildFlatStatsRow(result, compareMode),
       buildReplayControlRow(root.ownerDocument),
       buildSummariesRow(result, compareMode),
-      buildEvidenceEntryRow(result, evidenceDrawer)
+      buildPolicyDisclosure(result),
+      buildSourceConfidenceDisclosure(result),
+      buildEvidenceEntryRow(result),
+      buildHiddenMachineEvidenceBlock(result)
     );
   } else {
     root.append(
@@ -2309,11 +2285,12 @@ function renderResult(
       buildTimelineRow(viewModel, onDurationChange),
       buildDecisionCardsRow(viewModel),
       buildRainImpactMainRow(rainControl, result, rainRateMmPerHour, clearSky),
-      buildEvidenceEntryRow(result, evidenceDrawer)
+      buildPolicyDisclosure(result),
+      buildSourceConfidenceDisclosure(result),
+      buildEvidenceEntryRow(result),
+      buildHiddenMachineEvidenceBlock(result)
     );
   }
-
-  root.ownerDocument.body.appendChild(evidenceDrawer);
   syncTimelineCurrentMarkers(root, viewer);
 
   // Restore the scroll position after elements have been appended to prevent jumping to top
@@ -2589,7 +2566,6 @@ export function mountV4ProjectionSidePanel(
       projectionClient.dispose();
       disposeWheelScroll();
       disposeTimelineCurrentMarkerSync();
-      removeEvidenceDrawer(root.ownerDocument);
       if (root.parentElement) {
         root.parentElement.removeChild(root);
       }

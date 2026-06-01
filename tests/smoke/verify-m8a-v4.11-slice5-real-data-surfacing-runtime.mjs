@@ -73,7 +73,7 @@ const VIEWPORT = {
   name: "desktop-1440x900",
   width: 1440,
   height: 900,
-  screenshot: "source-report-drawer-open.png"
+  screenshot: "source-report-panel-open.png"
 };
 
 function serializeRelative(absolutePath) {
@@ -132,7 +132,6 @@ function assertNoLiveExternalSourceRead() {
     "src/features/multi-station-selector/runtime-projection.ts",
     "src/features/multi-station-selector/runtime-data-completeness.ts",
     "src/features/multi-station-selector/runtime-projection-evidence-report.ts",
-    "src/features/multi-station-selector/v4-projection-evidence-drawer.ts",
     "src/features/multi-station-selector/v4-projection-side-panel.ts",
     "src/features/multi-station-selector/v4-projection-report-actions.ts",
     "src/runtime/m8a-v4-ground-station-selected-pair-layer.ts"
@@ -170,8 +169,6 @@ async function waitForSelectedPairSourceReportReady(client) {
         const capture = window.__SCENARIO_GLOBE_VIEWER_CAPTURE__;
         const state = capture?.m8aV4GroundStationScene?.getState?.();
         const panel = document.querySelector("[data-v4-projection-side-panel='true']");
-        const drawer = document.getElementById("v4-selected-pair-evidence");
-        const trigger = panel?.querySelector(".v4-projection-side-panel__evidence-button");
         const reportButtons = Array.from(
           document.querySelectorAll(".v4-projection-side-panel__download-report[data-report-action='open-html']")
         );
@@ -186,9 +183,6 @@ async function waitForSelectedPairSourceReportReady(client) {
           selectedPairOverlayStatus: state?.selectedPairOverlay?.status ?? null,
           panelState: panel?.dataset.state ?? null,
           sourceTier: panel?.dataset.sourceTier ?? null,
-          drawerExists: drawer instanceof HTMLElement,
-          drawerHidden: drawer instanceof HTMLElement ? drawer.hidden : null,
-          triggerExists: trigger instanceof HTMLButtonElement,
           reportButtonCount: reportButtons.length
         };
       })()`
@@ -204,9 +198,6 @@ async function waitForSelectedPairSourceReportReady(client) {
       lastState?.selectedPairOverlayStatus === "ready" &&
       lastState?.panelState === "ready" &&
       lastState?.sourceTier === EXPECTED_SOURCE_TIER &&
-      lastState?.drawerExists &&
-      lastState?.drawerHidden === true &&
-      lastState?.triggerExists &&
       lastState?.reportButtonCount >= 1
     ) {
       return lastState;
@@ -230,15 +221,19 @@ async function waitForSelectedPairSourceReportReady(client) {
   );
 }
 
-async function openEvidenceDrawer(client) {
+async function openDisclosures(client) {
   await evaluateRuntimeValue(
     client,
     `(() => {
-      const trigger = document.querySelector(".v4-projection-side-panel__evidence-button");
-      if (!(trigger instanceof HTMLButtonElement)) {
-        throw new Error("Missing selected-pair Details & sources trigger.");
+      const panel = document.querySelector("[data-v4-projection-side-panel='true']");
+      const policySummary = panel?.querySelector("[data-policy-disclosure='true'] summary");
+      const sourceSummary = panel?.querySelector("[data-disclosure='sources-non-claims'] summary");
+      if (policySummary) {
+        policySummary.click();
       }
-      trigger.click();
+      if (sourceSummary) {
+        sourceSummary.click();
+      }
     })()`
   );
   await sleep(180);
@@ -263,13 +258,11 @@ async function captureReportAndSourceState(client) {
           rect.height > 0
         );
       };
-      const drawer = document.getElementById("v4-selected-pair-evidence");
-      const button = drawer?.querySelector(
+      
+      const panel = document.querySelector("[data-v4-projection-side-panel='true']");
+      const button = panel?.querySelector(
         ".v4-projection-side-panel__download-report[data-report-action='open-html']"
       );
-      if (!(drawer instanceof HTMLElement)) {
-        throw new Error("Missing selected-pair evidence drawer.");
-      }
       if (!(button instanceof HTMLButtonElement)) {
         throw new Error("Missing selected-pair source report button.");
       }
@@ -277,7 +270,7 @@ async function captureReportAndSourceState(client) {
       const capture = window.__SCENARIO_GLOBE_VIEWER_CAPTURE__;
       const sceneState = capture?.m8aV4GroundStationScene?.getState?.();
       const projection = sceneState?.selectedPairOverlay ?? null;
-      const sourceBoundary = drawer.querySelector("[data-disclosure='sources-non-claims']");
+      const sourceBoundary = panel.querySelector("[data-disclosure='sources-non-claims']");
       if (sourceBoundary instanceof HTMLDetailsElement) {
         sourceBoundary.open = true;
       }
@@ -358,14 +351,19 @@ async function captureReportAndSourceState(client) {
           stationRows: rowsIn("#sources .table-wrap:nth-of-type(2)"),
           tleRows: rowsIn("#sources .table-wrap:nth-of-type(3)"),
           inventoryRows: rowsIn("#sources .table-wrap:nth-of-type(4)"),
-          modeledOutputRows: rowsIn("#models .table-wrap:nth-of-type(1)"),
-          policyRows: rowsIn("#models .table-wrap:nth-of-type(2)"),
-          rfRows: rowsIn("#models .table-wrap:nth-of-type(3)"),
+          modeledOutputCardsCount: (() => {
+            const lists = Array.from(reportDoc.querySelectorAll("#models .model-cards-list"));
+            return lists[0] ? lists[0].querySelectorAll(".model-card").length : 0;
+          })(),
+          policyRows: rowsIn("#models .table-wrap"),
+          rfCardsCount: (() => {
+            const lists = Array.from(reportDoc.querySelectorAll("#models .model-cards-list"));
+            return lists[1] ? lists[1].querySelectorAll(".model-card").length : 0;
+          })(),
           actorRows: rowsIn("#runtime .table-wrap:nth-of-type(1)"),
           visibilityRows: rowsIn("#runtime .table-wrap:nth-of-type(2)")
         },
-        drawer: {
-          visible: isVisible(drawer),
+        panelDisclosures: {
           sourceBoundaryOpen:
             sourceBoundary instanceof HTMLDetailsElement ? sourceBoundary.open : null,
           sourceBoundaryText:
@@ -519,9 +517,9 @@ function assertReportSourcePackage(state) {
       report.sourcesText.includes(EXPECTED_EVIDENCE_KIND) &&
       report.sourcesText.includes("TLE source manifest") &&
       report.sourcesText.includes("Runtime inventory") &&
-      report.modelsText.includes("Modeled output only") &&
-      report.modelsText.includes("Runtime policy thresholds are modeled controls") &&
-      report.runtimeText.includes('"sourceMode"') &&
+      report.modelsText.toLowerCase().includes("modeled") &&
+      report.modelsText.toLowerCase().includes("not measured") &&
+      report.runtimeText.includes("sourceMode") &&
       report.runtimeText.includes(EXPECTED_SCENE_SOURCE_MODE),
     `Report text must carry source-tier, TLE, inventory, model, and raw JSON evidence: ${JSON.stringify(
       {
@@ -535,9 +533,9 @@ function assertReportSourcePackage(state) {
     report.stationRows.length === 2 &&
       report.tleRows.length === 3 &&
       report.inventoryRows.length === 3 &&
-      report.modeledOutputRows.length >= 5 &&
+      report.modeledOutputCardsCount >= 5 &&
       report.policyRows.length === 4 &&
-      report.rfRows.length >= 3 &&
+      report.rfCardsCount >= 3 &&
       report.actorRows.length > 0 &&
       report.visibilityRows.length > 0,
     `Report tables must preserve source/report completeness row coverage: ${JSON.stringify(
@@ -545,9 +543,9 @@ function assertReportSourcePackage(state) {
         stationRows: report.stationRows.length,
         tleRows: report.tleRows.length,
         inventoryRows: report.inventoryRows.length,
-        modeledOutputRows: report.modeledOutputRows.length,
+        modeledOutputCardsCount: report.modeledOutputCardsCount,
         policyRows: report.policyRows.length,
-        rfRows: report.rfRows.length,
+        rfCardsCount: report.rfCardsCount,
         actorRows: report.actorRows.length,
         visibilityRows: report.visibilityRows.length
       }
@@ -567,11 +565,11 @@ function assertReportSourcePackage(state) {
     )}`
   );
   assert(
-    state.drawer.sourceBoundaryOpen === true &&
-      state.drawer.sourceBoundaryText.includes("TLE source summary") &&
-      state.drawer.sourceBoundaryText.includes("Standards references"),
-    `Drawer source boundary must mirror the report entry path: ${JSON.stringify(
-      state.drawer
+    state.panelDisclosures.sourceBoundaryOpen === true &&
+      state.panelDisclosures.sourceBoundaryText.includes("TLE source summary") &&
+      state.panelDisclosures.sourceBoundaryText.includes("Standards references"),
+    `Panel source boundary must mirror the report entry path: ${JSON.stringify(
+      state.panelDisclosures
     )}`
   );
   assert(
@@ -596,7 +594,7 @@ await withStaticSmokeBrowser(async ({ client, baseUrl }) => {
   await client.send("Page.navigate", { url: `${baseUrl}${REQUEST_PATH}` });
   await waitForSelectedPairSourceReportReady(client);
   await waitForGlobeReady(client, "Selected-pair source report smoke");
-  await openEvidenceDrawer(client);
+  await openDisclosures(client);
 
   const state = await captureReportAndSourceState(client);
   assertRuntimeSourceState(state);
@@ -619,7 +617,7 @@ await withStaticSmokeBrowser(async ({ client, baseUrl }) => {
     stationRows: state.report.stationRows.length,
     tleRows: state.report.tleRows.length,
     inventoryRows: state.report.inventoryRows.length,
-    modeledOutputRows: state.report.modeledOutputRows.length,
+    modeledOutputCardsCount: state.report.modeledOutputCardsCount,
     actorRows: state.report.actorRows.length,
     visibilityRows: state.report.visibilityRows.length
   });

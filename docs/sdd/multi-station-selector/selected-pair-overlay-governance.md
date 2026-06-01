@@ -31,7 +31,6 @@ copy of the main product flow.
 | Link map | Operational serving-link timeline for the selected projection window | `v4-projection-side-panel.ts` | A second evidence-only coverage chart that looks identical |
 | Link plan | Human-readable current/next/cross-orbit decisions | `v4-projection-side-panel.ts` | Full handover history |
 | Rain impact | Immediate effect of rain parameter on active metrics | `v4-projection-side-panel.ts` | Full model inventory |
-| Details & sources | Evidence summary, source boundaries, export entry | `v4-projection-evidence-drawer.ts` | Alternate primary workflow, duplicate link map |
 | Evidence report | Full row-level verification artifact | `runtime-projection-evidence-report.ts` | Interactive product controls |
 | Station info card | Station metadata and slot assignment | `station-info-card.ts` | Runtime projection evidence |
 | Marker hover tooltip | Lightweight station preview | `marker-hover-tooltip.ts` | Click-level actions or deep evidence |
@@ -77,15 +76,11 @@ Shared selected-pair overlay arbitration lives in
 `src/features/multi-station-selector/selected-pair-overlay-state.ts`.
 Use it for:
 
-- `#v4-selected-pair-evidence` drawer open/close state;
-- marker hover suppression while drawer, station info card, or product
+- marker hover suppression while station info card or product
   inspector is open;
 - `selected-pair-overlay-change` notifications when those blocking surfaces
   change.
 
-Do not duplicate drawer close/open code in the panel and drawer modules. The
-shared helper owns `hidden`, `data-open`, trigger `aria-expanded`, trigger text,
-and focus movement for the selected-pair evidence drawer.
 
 Before adding or changing an overlay, identify:
 
