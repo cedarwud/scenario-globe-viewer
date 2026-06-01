@@ -63,13 +63,19 @@ body:has([data-v4-projection-side-panel="true"])
   grid-template-columns: minmax(0, 1fr);
   grid-template-areas:
     "title"
-    "badge"
     "window";
   align-items: start;
   row-gap: 0.18rem;
 }
-.v4-projection-side-panel__title {
+.v4-projection-side-panel__title-row {
   grid-area: title;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  width: 100%;
+}
+.v4-projection-side-panel__title {
   margin: 0;
   font-size: 1.45rem;
   font-weight: 700;
@@ -80,10 +86,10 @@ body:has([data-v4-projection-side-panel="true"])
   white-space: normal;
   line-height: 1.25;
   min-width: 0;
+  flex: 1 1 auto;
 }
 .v4-projection-side-panel__tier-badge {
-  grid-area: badge;
-  justify-self: start;
+  flex: 0 0 auto;
   max-width: 100%;
   display: inline-flex;
   align-items: center;
