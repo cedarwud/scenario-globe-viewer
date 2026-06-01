@@ -1,315 +1,163 @@
-/* Operator Guide Modal - Space glassmorphism styles */
+/* Premium Space Glassmorphism Contextual Help Styles */
 
-.gs-operator-guide-backdrop {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  background: rgba(4, 10, 18, 0.4);
-  backdrop-filter: blur(0px);
-  z-index: 9999;
-  display: flex;
+/* Base Help Trigger Styles */
+.gs-timeline-help-trigger,
+.gs-panel-help-trigger,
+.gs-cta-help-trigger {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 1px solid rgba(126, 226, 184, 0.82);
+  background: linear-gradient(180deg, rgba(21, 53, 50, 0.98), rgba(9, 24, 30, 0.97)),
+              linear-gradient(135deg, rgba(126, 226, 184, 0.17), rgba(98, 216, 255, 0.12));
+  color: #eafff6;
+  font-family: Outfit, Inter, system-ui, sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.3s ease, backdrop-filter 0.3s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+  transition: border-color 0.18s ease-out, transform 0.18s ease-out, box-shadow 0.18s ease-out;
+  padding: 0;
+  line-height: 1;
 }
 
-.gs-operator-guide-backdrop--open {
-  opacity: 1;
-  pointer-events: auto;
-  backdrop-filter: blur(8px);
+.gs-timeline-help-trigger:hover,
+.gs-panel-help-trigger:hover,
+.gs-cta-help-trigger:hover,
+.gs-timeline-help-trigger:focus-visible,
+.gs-panel-help-trigger:focus-visible,
+.gs-cta-help-trigger:focus-visible {
+  border-color: rgba(187, 255, 222, 0.96);
+  transform: translateY(-1px);
+  box-shadow: 0 0 8px rgba(126, 226, 184, 0.4);
+  outline: none;
 }
 
-.gs-operator-guide-modal {
-  width: min(650px, 92vw);
-  max-height: min(700px, 88vh);
-  background: linear-gradient(135deg, rgba(12, 26, 42, 0.95) 0%, rgba(6, 14, 24, 0.98) 100%);
-  border: 1px solid rgba(157, 196, 232, 0.15);
-  border-radius: 16px;
+/* Base Popover Styles */
+.gs-timeline-help-popover,
+.gs-panel-help-popover,
+.gs-cta-help-popover {
+  position: absolute;
+  width: 280px;
+  background: linear-gradient(135deg, rgba(12, 26, 42, 0.96) 0%, rgba(6, 14, 24, 0.99) 100%);
+  border: 1px solid rgba(157, 196, 232, 0.18);
+  border-radius: 10px;
+  padding: 12px 14px;
   box-shadow: 
     0 0 0 1px rgba(3, 10, 14, 0.8),
-    0 20px 50px rgba(0, 0, 0, 0.6),
-    0 0 30px rgba(52, 211, 153, 0.08);
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  transform: scale(0.92) translateY(10px);
-  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    0 10px 30px rgba(0, 0, 0, 0.6),
+    0 0 16px rgba(52, 211, 153, 0.05);
   font-family: Outfit, Inter, "PingFang TC", "Microsoft JhengHei", system-ui, sans-serif;
-  color: #f1f5f9;
+  color: #cbd5e1;
+  z-index: 99999;
+  text-align: left;
+  line-height: 1.5;
+  cursor: default;
 }
 
-.gs-operator-guide-modal--open {
-  transform: scale(1) translateY(0);
-}
-
-/* Header style */
-.gs-guide-header {
-  padding: 22px 24px 16px;
+/* Header Inside Popover */
+.gs-popover-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border-bottom: 1px solid rgba(157, 196, 232, 0.12);
+  margin-bottom: 8px;
+  border-bottom: 1px solid rgba(157, 196, 232, 0.1);
+  padding-bottom: 6px;
 }
 
-.gs-guide-title-group {
-  display: flex;
-  align-items: center;
-  gap: 12px;
+.gs-popover-header h4 {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 700;
   color: #34d399;
 }
 
-.gs-guide-title-icon {
-  flex-shrink: 0;
-  stroke: currentColor;
-}
-
-#gs-guide-title {
-  margin: 0;
-  font-size: 21px;
-  font-weight: 700;
-  letter-spacing: -0.01em;
-  background: linear-gradient(135deg, #ffffff 40%, #a5f3c4 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
-
-.gs-guide-close {
+.gs-popover-close {
   background: transparent;
   border: none;
   color: #8ba2bd;
-  font-size: 28px;
-  line-height: 1;
+  font-size: 18px;
   cursor: pointer;
   padding: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
+  width: 20px;
+  height: 20px;
   border-radius: 50%;
-  transition: background 0.15s, color 0.15s;
+  transition: background 0.12s, color 0.12s;
 }
 
-.gs-guide-close:hover {
+.gs-popover-close:hover {
   background: rgba(255, 255, 255, 0.05);
   color: #ffffff;
 }
 
-/* Nav Tabs */
-.gs-guide-nav {
-  display: flex;
-  background: rgba(255, 255, 255, 0.02);
-  padding: 4px;
-  margin: 16px 24px 8px;
-  border-radius: 10px;
-  border: 1px solid rgba(157, 196, 232, 0.08);
+/* Body Inside Popover */
+.gs-popover-body ul {
+  margin: 0;
+  padding-left: 14px;
 }
 
-.gs-guide-nav-tab {
-  flex: 1;
-  background: transparent;
-  border: none;
-  border-radius: 8px;
-  padding: 10px 12px;
-  color: #8ba2bd;
-  font-size: 15px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.18s ease-out;
-}
-
-.gs-guide-nav-tab:hover {
-  color: #ffffff;
-}
-
-.gs-guide-nav-tab[aria-selected="true"] {
-  background: rgba(52, 211, 153, 0.15);
-  color: #34d399;
-  box-shadow: 0 0 10px rgba(52, 211, 153, 0.1);
-}
-
-/* Content Area */
-.gs-guide-content {
-  padding: 16px 24px 24px;
-  flex: 1;
-  overflow-y: auto;
-}
-
-.gs-guide-panel h3 {
-  margin: 0 0 12px;
-  font-size: 18px;
-  font-weight: 700;
-  color: #ffffff;
-}
-
-.gs-guide-panel p {
-  margin: 0 0 20px;
-  font-size: 15px;
+.gs-popover-body li {
+  font-size: 12.5px;
+  margin-bottom: 6px;
   color: #cbd5e1;
-  line-height: 1.6;
 }
 
-.gs-guide-feature-box {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.gs-guide-step {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(157, 196, 232, 0.08);
-  padding: 16px;
-  border-radius: 10px;
-  font-size: 14.5px;
-  color: #cbd5e1;
-  line-height: 1.55;
-  transition: border-color 0.15s, background 0.15s;
-}
-
-.gs-guide-step:hover {
-  background: rgba(255, 255, 255, 0.035);
-  border-color: rgba(52, 211, 153, 0.2);
-}
-
-.gs-guide-badge {
-  align-self: flex-start;
-  font-size: 12px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: #34d399;
-  background: rgba(52, 211, 153, 0.08);
-  border: 1px solid rgba(52, 211, 153, 0.18);
-  padding: 3px 8px;
-  border-radius: 4px;
-}
-
-/* Interactive Text Highlights */
-.gs-guide-interactive-text {
-  color: #38bdf8;
-  font-weight: 600;
-  text-decoration: underline;
-  text-decoration-style: dashed;
-  text-underline-offset: 3px;
-  cursor: help;
-  transition: color 0.15s;
-  padding: 0 2px;
-  border-radius: 4px;
-}
-
-.gs-guide-interactive-text:hover {
-  color: #34d399;
-  background: rgba(52, 211, 153, 0.08);
-}
-
-/* Footer Style */
-.gs-guide-footer {
-  padding: 16px 24px 22px;
-  border-top: 1px solid rgba(157, 196, 232, 0.12);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background: rgba(0, 0, 0, 0.1);
-}
-
-.gs-guide-footer-text {
-  font-size: 13px;
-  color: #8ba2bd;
-}
-
-.gs-guide-btn-primary {
-  min-height: 40px;
-  padding: 0 20px;
-  border: 1px solid #059669;
-  border-radius: 8px;
-  background: #059669;
+.gs-popover-body li strong {
   color: #ffffff;
-  font-size: 14.5px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.15s;
-  box-shadow: 0 4px 12px rgba(5, 150, 105, 0.2);
 }
 
-.gs-guide-btn-primary:hover {
-  background: #10b981;
-  border-color: #10b981;
-  box-shadow: 0 0 16px rgba(52, 211, 153, 0.3);
-}
-
-/* Global Pulse Highlights triggered on hover */
-.gs-guide-highlight-pulse {
-  outline: none;
-  animation: gs-glow-pulse 1.2s infinite ease-in-out;
-  border-color: #38bdf8 !important;
-  box-shadow: 0 0 20px rgba(56, 189, 248, 0.6) !important;
-  transition: border-color 0.2s, box-shadow 0.2s;
-  z-index: 99999 !important;
-}
-
-@keyframes gs-glow-pulse {
-  0% {
-    box-shadow: 0 0 4px rgba(56, 189, 248, 0.3);
-  }
-  50% {
-    box-shadow: 0 0 24px rgba(56, 189, 248, 0.8), 0 0 8px rgba(56, 189, 248, 0.4);
-  }
-  100% {
-    box-shadow: 0 0 4px rgba(56, 189, 248, 0.3);
-  }
-}
-
-/* Floating Guide Trigger Button */
-.gs-operator-guide-trigger {
+/* --- 1. Bottom-Left Timeline Help Specific Positions --- */
+.gs-timeline-help-trigger {
   position: absolute;
-  top: 12px;
-  right: 64px; /* Placed left of the homepage entry button (top:12px, right:12px) to prevent overlap */
-  width: 40px;
-  height: 40px;
-  border-radius: 8px;
-  border: 1px solid rgba(126, 226, 184, 0.82);
-  background: linear-gradient(180deg, rgba(21, 53, 50, 0.98), rgba(9, 24, 30, 0.97)),
-              linear-gradient(135deg, rgba(126, 226, 184, 0.17), rgba(98, 216, 255, 0.12));
-  color: #eafff6;
-  font-family: Outfit, sans-serif;
-  font-size: 20px;
-  font-weight: 700;
-  cursor: pointer;
-  z-index: 99;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 
-    0 0 0 1px rgba(3, 10, 14, 0.72),
-    0 0 0 4px rgba(126, 226, 184, 0.12),
-    0 10px 20px rgba(0, 0, 0, 0.3);
-  transition: border-color 0.18s ease-out, transform 0.18s ease-out, box-shadow 0.18s ease-out;
+  left: 10px;
+  bottom: 45px;
+  z-index: 999;
 }
 
-.gs-operator-guide-trigger:hover,
-.gs-operator-guide-trigger:focus-visible {
-  border-color: rgba(187, 255, 222, 0.96);
-  transform: translateY(-1px);
-  box-shadow:
-    0 0 0 1px rgba(3, 10, 14, 0.72),
-    0 0 0 5px rgba(126, 226, 184, 0.2),
-    0 12px 24px rgba(0, 0, 0, 0.34);
-  outline: none;
+.gs-timeline-help-popover {
+  bottom: calc(100% + 8px);
+  left: 0;
+}
+
+/* --- 2. Ground Station Side Panel Help Specific Positions --- */
+.v4-projection-side-panel__header {
+  position: relative;
+}
+
+.gs-panel-help-trigger {
+  margin-left: 8px;
+  vertical-align: middle;
+  flex-shrink: 0;
+}
+
+.gs-panel-help-popover {
+  top: calc(100% + 8px);
+  right: 0;
+}
+
+/* --- 3. Top-Right CTA Help Specific Positions --- */
+.homepage-entry-cta {
+  position: relative;
+}
+
+.gs-cta-help-trigger {
+  margin-left: 6px;
+  flex-shrink: 0;
+}
+
+.gs-cta-help-popover {
+  top: calc(100% + 8px);
+  right: 0;
 }
 
 @media (max-width: 720px), (max-height: 760px) {
-  .gs-operator-guide-trigger {
-    width: 36px;
-    height: 36px;
-    right: 56px;
-    font-size: 17px;
+  .gs-timeline-help-trigger {
+    bottom: 40px;
   }
 }
-

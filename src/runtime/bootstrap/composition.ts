@@ -38,7 +38,7 @@ import {
 } from "../../features/multi-station-selector/runtime-projection";
 import { createRuntimeProjectionWorkerClient } from "../../features/multi-station-selector/runtime-projection-worker-client";
 import { buildRuntimeProjectionEvidenceReportHtml } from "../../features/multi-station-selector/runtime-projection-evidence-report";
-import { mountOperatorGuide } from "../../features/multi-station-selector/operator-guide-modal";
+import { mountTimelineHelp, TimelineHelpHandle } from "../../features/multi-station-selector/operator-guide-modal";
 import {
   mountOptionalOsmBuildingsShowcase,
   resolveBuildingShowcaseSelection
@@ -971,24 +971,9 @@ export function startBootstrapComposition(app: HTMLDivElement): BootstrapComposi
     ? mountReplayEventPill(viewer.container as HTMLElement, firstIntakeReplayClock)
     : null;
 
-  // Traditional Chinese Operator Guide Modal & Trigger Button
-  const guideHandle = mountSelectorSurfaces
-    ? mountOperatorGuide(viewer.container as HTMLElement)
-    : null;
-  const guideButton = mountSelectorSurfaces
-    ? (() => {
-        const btn = document.createElement("button");
-        btn.type = "button";
-        btn.className = "gs-operator-guide-trigger";
-        btn.setAttribute("aria-label", "開啟操作指南");
-        btn.title = "操作與互動指南";
-        btn.innerHTML = "?";
-        btn.addEventListener("click", () => {
-          guideHandle?.open();
-        });
-        (viewer.container as HTMLElement).appendChild(btn);
-        return btn;
-      })()
+  // Traditional Chinese Operator Guide: Contextual Timeline Help Trigger and Popover
+  const timelineHelpHandle: TimelineHelpHandle | null = mountSelectorSurfaces
+    ? mountTimelineHelp(viewer.container as HTMLElement)
     : null;
 
 
@@ -1078,7 +1063,7 @@ export function startBootstrapComposition(app: HTMLDivElement): BootstrapComposi
     document.body.dataset.displayState = "idle";
   }
   const unmountHomepageEntryCta =
-    adoptFirstIntakeAsActiveOwner || isM8aV4RuntimeRequest
+    adoptFirstIntakeAsActiveOwner
     ? () => {}
     : mountHomepageEntryCta(viewerShell, {
         addressedHref: buildM8aV31AddressedHref(),
@@ -1113,10 +1098,7 @@ export function startBootstrapComposition(app: HTMLDivElement): BootstrapComposi
       v4ProjectionSidePanel = null;
       v4ProjectionSidePanelMountedPairKey = null;
       replayEventPill?.dispose();
-      if (guideButton && guideButton.parentElement) {
-        guideButton.parentElement.removeChild(guideButton);
-      }
-      guideHandle?.dispose();
+      timelineHelpHandle?.dispose();
       delete document.body.dataset.displayState;
       selectorChromeTelemetry?.dispose();
       groundStationMarkerHoverTooltip?.dispose();

@@ -1132,13 +1132,71 @@ function buildHeaderRow(
   windowLine.title = `${formatIsoSecond(result.timeWindow.startUtc)} to ${formatIsoSecond(result.timeWindow.endUtc)}`;
   row.setAttribute("aria-label", `${titleText} · ${tierLabel} · ${windowText}`);
 
+  // Inline Panel Help Trigger and Popover
+  const helpTrigger = document.createElement("button");
+  helpTrigger.type = "button";
+  helpTrigger.className = "gs-panel-help-trigger";
+  helpTrigger.setAttribute("aria-label", "開啟測站鏈路指南");
+  helpTrigger.title = "地面站鏈路與物理計算指南";
+  helpTrigger.innerHTML = "?";
+
+  const helpPopover = document.createElement("div");
+  helpPopover.className = "gs-panel-help-popover";
+  helpPopover.hidden = true;
+  helpPopover.setAttribute("role", "tooltip");
+  helpPopover.innerHTML = `
+    <header class="gs-popover-header">
+      <h4>地面站鏈路與物理計算</h4>
+      <button type="button" class="gs-popover-close" aria-label="關閉">&times;</button>
+    </header>
+    <div class="gs-popover-body">
+      <ul>
+        <li><strong>幾何可見性：</strong>系統即時求解雙測站對衛星的視線切點與遮蔽仰角。</li>
+        <li><strong>物理衰減模擬：</strong>拖動降雨滑桿可基於 <strong>ITU-R P.618-14</strong> 模擬 Ku/Ka 頻段雨衰影響。</li>
+        <li><strong>切換決策：</strong>軌道交接採用 <strong>3GPP TR 38.821</strong> 標準，限制頻繁對焦開銷。</li>
+      </ul>
+    </div>
+  `;
+
+  helpTrigger.appendChild(helpPopover);
+
+  const togglePopover = (event: Event) => {
+    event.stopPropagation();
+    helpPopover.hidden = !helpPopover.hidden;
+  };
+
+  const closePopover = (event: Event) => {
+    event.stopPropagation();
+    helpPopover.hidden = true;
+  };
+
+  helpTrigger.addEventListener("click", togglePopover);
+  helpPopover.querySelector(".gs-popover-close")?.addEventListener("click", closePopover);
+
+  // Close when clicking outside
+  const doc = row.ownerDocument;
+  const handleOutsideClick = (event: Event) => {
+    if (!helpTrigger.contains(event.target as Node)) {
+      helpPopover.hidden = true;
+    }
+  };
+  doc.addEventListener("click", handleOutsideClick);
+
   row.append(
     title,
     buildPlainTextSeparator(),
     tierBadge,
     buildPlainTextSeparator(),
-    windowLine
+    windowLine,
+    helpTrigger
   );
+
+  // Keep cleanup handles in the DOM node so they can be disposed if needed
+  (row as any).__disposeHelp = () => {
+    helpTrigger.removeEventListener("click", togglePopover);
+    doc.removeEventListener("click", handleOutsideClick);
+  };
+
   return row;
 }
 
@@ -2240,6 +2298,12 @@ function renderResult(
   const sliderWasFocused = document.activeElement === rainControl.slider;
   const savedScrollTop = root.scrollTop;
 
+  for (const child of Array.from(root.children)) {
+    if (typeof (child as any).__disposeHelp === "function") {
+      (child as any).__disposeHelp();
+    }
+  }
+
   root.replaceChildren();
   (root as any).__latestResult = result;
   const tierAttribution = result.dataCompleteness.pairSourceAttribution;
@@ -2566,6 +2630,11 @@ export function mountV4ProjectionSidePanel(
       projectionClient.dispose();
       disposeWheelScroll();
       disposeTimelineCurrentMarkerSync();
+      for (const child of Array.from(root.children)) {
+        if (typeof (child as any).__disposeHelp === "function") {
+          (child as any).__disposeHelp();
+        }
+      }
       if (root.parentElement) {
         root.parentElement.removeChild(root);
       }

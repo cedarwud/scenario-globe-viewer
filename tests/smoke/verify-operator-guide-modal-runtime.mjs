@@ -29,14 +29,17 @@ async function waitForPageAndControlsReady(client) {
       client,
       `(() => {
         const capture = window.__SCENARIO_GLOBE_VIEWER_CAPTURE__;
-        const trigger = document.querySelector(".gs-operator-guide-trigger");
+        const triggerTimeline = document.querySelector(".gs-timeline-help-trigger");
+        const triggerPanel = document.querySelector(".gs-panel-help-trigger");
+        const triggerCta = document.querySelector(".gs-cta-help-trigger");
         
         return {
           bootstrapState: document.documentElement?.dataset.bootstrapState ?? null,
           scenePreset: document.documentElement?.dataset.scenePreset ?? null,
           hasViewer: Boolean(capture?.viewer),
-          hasTrigger: Boolean(trigger),
-          triggerText: trigger ? trigger.textContent.trim() : null
+          hasTimelineHelp: Boolean(triggerTimeline),
+          hasPanelHelp: Boolean(triggerPanel),
+          hasCtaHelp: Boolean(triggerCta)
         };
       })()`
     );
@@ -44,7 +47,9 @@ async function waitForPageAndControlsReady(client) {
     if (
       lastState?.bootstrapState === "ready" &&
       lastState?.hasViewer &&
-      lastState?.hasTrigger
+      lastState?.hasTimelineHelp &&
+      lastState?.hasPanelHelp &&
+      lastState?.hasCtaHelp
     ) {
       return lastState;
     }
@@ -60,123 +65,189 @@ async function verifyOperatorGuide(client, baseUrl) {
   await waitForPageAndControlsReady(client);
   await waitForGlobeReady(client, "Operator Guide Modal smoke");
 
-  // Verify floating guide button exists and is styled
+  // Verify triggers and popovers exist and are hidden initially
   const initialCheck = await evaluateRuntimeValue(
     client,
     `(() => {
-      const trigger = document.querySelector(".gs-operator-guide-trigger");
-      const backdrop = document.querySelector(".gs-operator-guide-backdrop");
-      const modal = document.querySelector(".gs-operator-guide-modal");
+      const triggerTimeline = document.querySelector(".gs-timeline-help-trigger");
+      const popoverTimeline = document.querySelector(".gs-timeline-help-popover");
+      
+      const triggerPanel = document.querySelector(".gs-panel-help-trigger");
+      const popoverPanel = document.querySelector(".gs-panel-help-popover");
+      
+      const triggerCta = document.querySelector(".gs-cta-help-trigger");
+      const popoverCta = document.querySelector(".gs-cta-help-popover");
       
       return {
-        triggerExists: Boolean(trigger),
-        backdropExists: Boolean(backdrop),
-        modalExists: Boolean(modal),
-        backdropVisible: backdrop ? backdrop.classList.contains("gs-operator-guide-backdrop--open") : false
+        timelineExists: Boolean(triggerTimeline) && Boolean(popoverTimeline),
+        timelineHidden: popoverTimeline ? popoverTimeline.hidden : false,
+        
+        panelExists: Boolean(triggerPanel) && Boolean(popoverPanel),
+        panelHidden: popoverPanel ? popoverPanel.hidden : false,
+        
+        ctaExists: Boolean(triggerCta) && Boolean(popoverCta),
+        ctaHidden: popoverCta ? popoverCta.hidden : false
       };
     })()`
   );
 
-  assert(initialCheck.triggerExists, "Floating guide trigger button '?' must exist");
-  assert(initialCheck.backdropExists, "Guide modal backdrop must exist in DOM");
-  assert(!initialCheck.backdropVisible, "Guide modal backdrop must start closed");
+  assert(initialCheck.timelineExists, "Timeline contextual guide trigger and popover must exist");
+  assert(initialCheck.timelineHidden, "Timeline guide popover must start closed");
+  assert(initialCheck.panelExists, "Panel contextual guide trigger and popover must exist");
+  assert(initialCheck.panelHidden, "Panel guide popover must start closed");
+  assert(initialCheck.ctaExists, "CTA contextual guide trigger and popover must exist");
+  assert(initialCheck.ctaHidden, "CTA guide popover must start closed");
 
-  // Click on trigger button to open modal
+  // --- 1. Test Timeline Help Popover ---
+  // Click on timeline trigger to open
   await evaluateRuntimeValue(
     client,
     `(() => {
-      const trigger = document.querySelector(".gs-operator-guide-trigger");
+      const trigger = document.querySelector(".gs-timeline-help-trigger");
       trigger?.click();
     })()`
   );
-  await sleep(350); // Wait for transition animation
+  await sleep(150);
 
-  // Verify modal is open and inspect content CJK titles
-  const openCheck = await evaluateRuntimeValue(
+  const timelineOpenCheck = await evaluateRuntimeValue(
     client,
     `(() => {
-      const backdrop = document.querySelector(".gs-operator-guide-backdrop");
-      const modal = document.querySelector(".gs-operator-guide-modal");
-      const title = document.getElementById("gs-guide-title");
-      const activeTab = document.querySelector(".gs-guide-nav-tab[aria-selected='true']");
-      
+      const popover = document.querySelector(".gs-timeline-help-popover");
+      const title = popover ? popover.querySelector("h4")?.textContent.trim() : null;
       return {
-        isOpen: backdrop ? backdrop.classList.contains("gs-operator-guide-backdrop--open") : false,
-        titleText: title ? title.textContent.trim() : null,
-        activeTab: activeTab ? activeTab.textContent.trim() : null
+        visible: popover ? !popover.hidden : false,
+        titleText: title
       };
     })()`
   );
 
-  assert(openCheck.isOpen, "Guide modal backdrop must be open after clicking trigger");
-  assert(openCheck.titleText?.includes("操作與互動指南"), "Guide modal title must match Traditional Chinese '操作與互動指南'");
-  assert(openCheck.activeTab === "測站與頻段", "Default active tab must be '測站與頻段'");
+  assert(timelineOpenCheck.visible, "Timeline popover must be visible after click");
+  assert(timelineOpenCheck.titleText?.includes("時間軸與軌道星曆說明"), "Timeline popover CJK title must match");
 
-  // Capture screenshot of the open modal
+  // Capture screenshot of the open timeline popover
   const screenshotPath = await captureScreenshot(
     client,
     outputRoot,
     "operator-guide-modal-open.png"
   );
-
   const stats = statSync(screenshotPath);
   assert(stats.size > 10_000, "Screenshot is unexpectedly small");
 
-  // Switch tabs to Replay tab
+  // Click close button inside timeline popover
   await evaluateRuntimeValue(
     client,
     `(() => {
-      const replayTab = document.querySelector(".gs-guide-nav-tab[data-tab='replay']");
-      replayTab?.click();
+      const popover = document.querySelector(".gs-timeline-help-popover");
+      const closeBtn = popover?.querySelector(".gs-popover-close");
+      closeBtn?.click();
     })()`
   );
   await sleep(150);
 
-  const tabSwitchCheck = await evaluateRuntimeValue(
+  const timelineCloseCheck = await evaluateRuntimeValue(
     client,
     `(() => {
-      const activeTab = document.querySelector(".gs-guide-nav-tab[aria-selected='true']");
-      const stationsPanel = document.querySelector(".gs-guide-panel[data-panel='stations']");
-      const replayPanel = document.querySelector(".gs-guide-panel[data-panel='replay']");
-      
-      return {
-        activeTab: activeTab ? activeTab.textContent.trim() : null,
-        stationsHidden: stationsPanel ? stationsPanel.hidden : false,
-        replayHidden: replayPanel ? replayPanel.hidden : true
-      };
+      const popover = document.querySelector(".gs-timeline-help-popover");
+      return { hidden: popover ? popover.hidden : false };
     })()`
   );
+  assert(timelineCloseCheck.hidden, "Timeline popover must be hidden after close click");
 
-  assert(tabSwitchCheck.activeTab === "播放與時間軸", "Active tab must switch to '播放與時間軸'");
-  assert(tabSwitchCheck.stationsHidden, "Stations panel must be hidden after switching tabs");
-  assert(!tabSwitchCheck.replayHidden, "Replay panel must be visible after switching tabs");
-
-  // Close the modal using the confirmation button
+  // --- 2. Test Ground Station Panel Help Popover ---
+  // Click on panel trigger to open
   await evaluateRuntimeValue(
     client,
     `(() => {
-      const closeBtn = document.querySelector(".gs-guide-close-btn");
-      closeBtn?.click();
+      const trigger = document.querySelector(".gs-panel-help-trigger");
+      trigger?.click();
     })()`
   );
-  await sleep(350);
+  await sleep(150);
 
-  const finalCheck = await evaluateRuntimeValue(
+  const panelOpenCheck = await evaluateRuntimeValue(
     client,
     `(() => {
-      const backdrop = document.querySelector(".gs-operator-guide-backdrop");
+      const popover = document.querySelector(".gs-panel-help-popover");
+      const title = popover ? popover.querySelector("h4")?.textContent.trim() : null;
       return {
-        isOpen: backdrop ? backdrop.classList.contains("gs-operator-guide-backdrop--open") : false
+        visible: popover ? !popover.hidden : false,
+        titleText: title
       };
     })()`
   );
 
-  assert(!finalCheck.isOpen, "Guide modal backdrop must close after clicking close button");
+  assert(panelOpenCheck.visible, "Panel popover must be visible after click");
+  assert(panelOpenCheck.titleText?.includes("地面站鏈路與物理計算"), "Panel popover CJK title must match");
+
+  // Click outside to close (e.g. click document body)
+  await evaluateRuntimeValue(
+    client,
+    `(() => {
+      document.body.click();
+    })()`
+  );
+  await sleep(150);
+
+  const panelCloseCheck = await evaluateRuntimeValue(
+    client,
+    `(() => {
+      const popover = document.querySelector(".gs-panel-help-popover");
+      return { hidden: popover ? popover.hidden : false };
+    })()`
+  );
+  assert(panelCloseCheck.hidden, "Panel popover must be closed after clicking outside");
+
+  // --- 3. Test Top-Right CTA Help Popover ---
+  // Click on CTA trigger to open
+  await evaluateRuntimeValue(
+    client,
+    `(() => {
+      const trigger = document.querySelector(".gs-cta-help-trigger");
+      trigger?.click();
+    })()`
+  );
+  await sleep(150);
+
+  const ctaOpenCheck = await evaluateRuntimeValue(
+    client,
+    `(() => {
+      const popover = document.querySelector(".gs-cta-help-popover");
+      const title = popover ? popover.querySelector("h4")?.textContent.trim() : null;
+      return {
+        visible: popover ? !popover.hidden : false,
+        titleText: title
+      };
+    })()`
+  );
+
+  assert(ctaOpenCheck.visible, "CTA popover must be visible after click");
+  assert(ctaOpenCheck.titleText?.includes("視角切換與場景預設說明"), "CTA popover CJK title must match");
+
+  // Click close button inside CTA popover
+  await evaluateRuntimeValue(
+    client,
+    `(() => {
+      const popover = document.querySelector(".gs-cta-help-popover");
+      const closeBtn = popover?.querySelector(".gs-popover-close");
+      closeBtn?.click();
+    })()`
+  );
+  await sleep(150);
+
+  const ctaCloseCheck = await evaluateRuntimeValue(
+    client,
+    `(() => {
+      const popover = document.querySelector(".gs-cta-help-popover");
+      return { hidden: popover ? popover.hidden : false };
+    })()`
+  );
+  assert(ctaCloseCheck.hidden, "CTA popover must be hidden after close click");
 
   return {
     route: REQUEST_PATH,
-    triggerExists: initialCheck.triggerExists,
-    modalTitle: openCheck.titleText,
+    timelineHelpExists: initialCheck.timelineExists,
+    panelHelpExists: initialCheck.panelExists,
+    ctaHelpExists: initialCheck.ctaExists,
     screenshot: path.relative(repoRoot, screenshotPath)
   };
 }
