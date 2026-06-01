@@ -643,10 +643,10 @@ export function renderProductUxDetailContent({
     placement.connectorEndpointDistancePx.toFixed(1);
   connector.dataset.m8aV48ConnectorThresholdPx =
     placement.connectorThresholdPx.toFixed(1);
-  connector.hidden = placement.anchorStatus !== "geometry-reliable";
+  connector.hidden = true;
   connector.setAttribute(
     "aria-hidden",
-    placement.anchorStatus === "geometry-reliable" ? "false" : "true"
+    "true"
   );
   connector.style.left = `${placement.connectorStartX.toFixed(1)}px`;
   connector.style.top = `${placement.connectorStartY.toFixed(1)}px`;

@@ -269,6 +269,7 @@
 }
 
 .m8a-v47-product-ux__scene-connector {
+  display: none !important;
   position: absolute;
   z-index: 1;
   height: 2px;

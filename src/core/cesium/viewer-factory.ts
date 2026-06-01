@@ -42,8 +42,6 @@ export function createViewer({
   const viewer = new Viewer(container, {
     creditContainer,
     creditViewport,
-    selectionIndicator: false,
-    infoBox: false,
     ...presetViewerOptions
   });
 
