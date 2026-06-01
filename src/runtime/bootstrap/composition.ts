@@ -186,6 +186,41 @@ const M8A_V3_1_FIRST_CASE_SCENARIO_ID = "app-oneweb-intelsat-geo-aviation";
 const M8A_V3_1_AUTOPLAY_QUERY_PARAM = "firstIntakeAutoplay";
 const M8A_V3_1_CTA_SCENE_PRESET = "global";
 const M8A_V4_GROUND_STATION_CTA_SCENE_PRESET = "regional";
+const REPORT_MIN_DURATION_MINUTES = 20;
+const REPORT_MAX_DURATION_MINUTES = 1440;
+const REPORT_DEFAULT_DURATION_MINUTES = 360;
+const REPORT_MIN_RAIN_RATE_MM_PER_HOUR = 0;
+const REPORT_MAX_RAIN_RATE_MM_PER_HOUR = 100;
+
+function clampReportDurationMinutes(value: number): number {
+  if (!Number.isFinite(value)) {
+    return REPORT_DEFAULT_DURATION_MINUTES;
+  }
+  return Math.min(
+    Math.max(Math.round(value), REPORT_MIN_DURATION_MINUTES),
+    REPORT_MAX_DURATION_MINUTES
+  );
+}
+
+function resolveReportDurationMinutes(value: string | null): number {
+  return value === null
+    ? REPORT_DEFAULT_DURATION_MINUTES
+    : clampReportDurationMinutes(Number(value));
+}
+
+function resolveReportRainRateMmPerHour(value: string | null): number {
+  if (value === null) {
+    return 0;
+  }
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed)) {
+    return 0;
+  }
+  return Math.min(
+    Math.max(parsed, REPORT_MIN_RAIN_RATE_MM_PER_HOUR),
+    REPORT_MAX_RAIN_RATE_MM_PER_HOUR
+  );
+}
 
 function resolveBootstrapScenePreset(
   search: URLSearchParams,
@@ -552,8 +587,12 @@ export function startBootstrapComposition(app: HTMLDivElement): BootstrapComposi
         }
 
         const startUtc = searchParams.get("startUtc") || new Date().toISOString();
-        const durationMinutesParam = searchParams.get("durationMinutes");
-        const durationMinutes = durationMinutesParam ? Math.max(20, Math.min(1440, parseInt(durationMinutesParam, 10) || 360)) : 360;
+        const durationMinutes = resolveReportDurationMinutes(
+          searchParams.get("durationMinutes")
+        );
+        const rainRateMmPerHour = resolveReportRainRateMmPerHour(
+          searchParams.get("rainRateMmPerHour")
+        );
         
         const timeWindow = buildDefaultTimeWindow(startUtc, durationMinutes);
         const policyId = resolveRuntimeHandoverPolicyId(searchParams.get("policy"));
@@ -571,7 +610,7 @@ export function startBootstrapComposition(app: HTMLDivElement): BootstrapComposi
           timeWindow,
           tleRecords,
           tleParseStats,
-          rainRateMmPerHour: 0,
+          rainRateMmPerHour,
           policyId
         });
 

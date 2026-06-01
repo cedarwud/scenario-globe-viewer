@@ -29,6 +29,31 @@ function downloadTextArtifact(
   }
 }
 
+function durationMinutesForReportUrl(
+  result: RuntimeProjectionResult
+): number | null {
+  const startMs = Date.parse(result.timeWindow.startUtc);
+  const endMs = Date.parse(result.timeWindow.endUtc);
+  if (
+    !Number.isFinite(startMs) ||
+    !Number.isFinite(endMs) ||
+    endMs <= startMs
+  ) {
+    return null;
+  }
+  return Math.round((endMs - startMs) / 60_000);
+}
+
+function rainRateForReportUrl(result: RuntimeProjectionResult): number | null {
+  for (const output of result.dataCompleteness.modeledOutputs) {
+    const value = output.inputSummary.rainRateMmPerHour;
+    if (typeof value === "number" && Number.isFinite(value)) {
+      return value;
+    }
+  }
+  return null;
+}
+
 export function downloadRuntimeProjectionEvidenceReport(
   result: RuntimeProjectionResult,
   ownerDocument: Document = document
@@ -49,6 +74,19 @@ export function openRuntimeProjectionEvidenceReport(
   const searchParams = new URLSearchParams();
   searchParams.set("stationA", result.pair.stationA.id);
   searchParams.set("stationB", result.pair.stationB.id);
+  searchParams.set("startUtc", result.timeWindow.startUtc);
+  const durationMinutes = durationMinutesForReportUrl(result);
+  if (durationMinutes !== null) {
+    searchParams.set("durationMinutes", String(durationMinutes));
+  }
+  const policyId = result.dataCompleteness.policyDisclosure.activePolicyId;
+  if (policyId) {
+    searchParams.set("policy", policyId);
+  }
+  const rainRateMmPerHour = rainRateForReportUrl(result);
+  if (rainRateMmPerHour !== null) {
+    searchParams.set("rainRateMmPerHour", String(rainRateMmPerHour));
+  }
   const url = `/report?${searchParams.toString()}`;
 
   const reportWindow = ownerWindow.open(url, "_blank");
