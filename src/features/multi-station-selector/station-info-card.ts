@@ -288,15 +288,16 @@ function renderCard(
   helpTrigger.title = "測站資料解讀指南";
   helpTrigger.innerHTML = "?";
   helpTrigger.style.position = "relative";
-  helpTrigger.style.marginLeft = "6px";
-  helpTrigger.style.verticalAlign = "middle";
+  helpTrigger.style.flex = "0 0 auto";
+  helpTrigger.style.alignSelf = "center";
 
   const helpPopover = document.createElement("div");
   helpPopover.className = "gs-panel-help-popover";
   helpPopover.hidden = true;
   helpPopover.setAttribute("role", "tooltip");
   helpPopover.style.position = "absolute";
-  helpPopover.style.left = "0";
+  helpPopover.style.right = "0";
+  helpPopover.style.left = "auto";
   helpPopover.style.top = "calc(100% + 8px)";
   helpPopover.innerHTML = `
     <header class="gs-popover-header">
@@ -354,12 +355,6 @@ function renderCard(
     doc.removeEventListener("click", handleOutsideClick);
   };
 
-  const titleWrapper = document.createElement("div");
-  titleWrapper.style.display = "flex";
-  titleWrapper.style.alignItems = "center";
-  titleWrapper.style.gap = "6px";
-  titleWrapper.append(title, helpTrigger);
-
   const closeButton = document.createElement("button");
   closeButton.type = "button";
   closeButton.className = "ground-station-info-card__close";
@@ -368,7 +363,7 @@ function renderCard(
   closeButton.textContent = "×";
   closeButton.dataset.groundStationInfoCardClose = "true";
 
-  header.append(titleWrapper, closeButton);
+  header.append(title, helpTrigger, closeButton);
 
   const body = document.createElement("div");
   body.className = "ground-station-info-card__body";
