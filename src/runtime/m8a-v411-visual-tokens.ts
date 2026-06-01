@@ -849,7 +849,7 @@ export function installM8aV411VisualTokens(
   void viewer.dataSources.add(dataSource).then(() => {
     if (!viewer.isDestroyed()) {
       dataSourceAttached = true;
-      dataSource.show = true;
+      dataSource.show = false;
       viewer.scene.requestRender();
     }
   });
