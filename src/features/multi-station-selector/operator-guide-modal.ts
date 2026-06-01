@@ -124,8 +124,12 @@ export function integrateCesiumHelpButton(viewerContainer: HTMLElement): CesiumH
           presetsHelp.style.lineHeight = "1.6";
           presetsHelp.innerHTML = `
             <ul style="margin: 0; padding-left: 16px;">
-              <li style="margin-bottom: 12px;"><strong>右上角黃色「航空交接預設」按鈕：</strong>點擊以開啟 LEO (OneWeb) 與 GEO (Intelsat) 的飛機衛星網路交接模擬，場景將自動播放三維軌道動畫。</li>
-              <li style="margin-bottom: 12px;"><strong>右上角綠色「測站投影預設」按鈕：</strong>點擊以切換為中華電信（陽明山分公司）與新加坡 Speedcast / 南非 SANSA 地面站的星地鏈路投影分析。</li>
+              <li style="margin-bottom: 12px;"><strong>場景預設切換按鈕（位於右上角地圖控制列中）：</strong>
+                <ul style="padding-left: 12px; margin-top: 4px; margin-bottom: 4px;">
+                  <li style="margin-bottom: 8px;"><strong>綠色圓形「網格軌道地球」按鈕：</strong>若您目前在右上角看到一個綠色軌道地球按鈕，點擊它可以直接切換為「中華電信（陽明山分公司）與新加坡 Speedcast / 南非 SANSA 地面站」的跨軌道星地鏈路投影分析。</li>
+                  <li style="margin-bottom: 8px;"><strong>黃色圓形「飛機與雙星交接」按鈕：</strong>若您在右上角看到一個黃色飛機按鈕，點擊它可以進入「OneWeb LEO + Intelsat GEO 歷史航空交接」動態模擬，場景將自動播放三維動畫。</li>
+                </ul>
+              </li>
               <li style="margin-bottom: 12px;"><strong>三維球體聚焦追蹤操控：</strong>在畫面上雙擊（Double Click）地球或任何衛星，可將相機焦點直接鎖定追蹤該物體，滑動滑鼠滾輪可調整焦距與縮放比例。</li>
             </ul>
           `;
