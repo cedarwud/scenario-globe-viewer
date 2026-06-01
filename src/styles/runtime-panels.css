@@ -795,7 +795,7 @@
 .communication-rate-chart__series-label,
 .communication-rate-chart__point-label {
   fill: rgba(246, 251, 255, 0.94);
-  font-family: "IBM Plex Sans", system-ui, sans-serif;
+  font-family: var(--m8a-v411-font-ui);
   font-size: 0.62rem;
   letter-spacing: 0;
 }

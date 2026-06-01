@@ -42,7 +42,7 @@ const CSS_TEXT = `
   border-radius: 0.35rem;
   padding: 0.4rem 0.55rem;
   color: #dde9f1;
-  font: 1rem "IBM Plex Sans", system-ui, sans-serif;
+  font: 1rem var(--m8a-v411-font-ui);
   line-height: 1.3;
   pointer-events: none;
   z-index: 5;

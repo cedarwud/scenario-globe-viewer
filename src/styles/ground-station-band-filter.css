@@ -14,7 +14,7 @@
   border-radius: 999px;
   background: rgba(6, 18, 28, 0.88);
   color: #dde9f1;
-  font-family: "IBM Plex Sans", system-ui, -apple-system, sans-serif;
+  font-family: var(--m8a-v411-font-ui);
   font-size: 0.68rem;
   border: 1px solid rgba(255, 209, 102, 0.3);
   cursor: pointer;
