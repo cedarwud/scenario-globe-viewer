@@ -31,7 +31,7 @@ async function waitForPageAndControlsReady(client) {
         const capture = window.__SCENARIO_GLOBE_VIEWER_CAPTURE__;
         const triggerTimeline = document.querySelector(".gs-timeline-help-trigger");
         const triggerPanel = document.querySelector(".gs-panel-help-trigger");
-        const triggerCta = document.querySelector(".gs-cta-help-trigger");
+        const triggerCesiumHelp = document.querySelector(".cesium-navigation-help-button");
         
         return {
           bootstrapState: document.documentElement?.dataset.bootstrapState ?? null,
@@ -39,7 +39,7 @@ async function waitForPageAndControlsReady(client) {
           hasViewer: Boolean(capture?.viewer),
           hasTimelineHelp: Boolean(triggerTimeline),
           hasPanelHelp: Boolean(triggerPanel),
-          hasCtaHelp: Boolean(triggerCta)
+          hasCesiumHelp: Boolean(triggerCesiumHelp)
         };
       })()`
     );
@@ -49,7 +49,7 @@ async function waitForPageAndControlsReady(client) {
       lastState?.hasViewer &&
       lastState?.hasTimelineHelp &&
       lastState?.hasPanelHelp &&
-      lastState?.hasCtaHelp
+      lastState?.hasCesiumHelp
     ) {
       return lastState;
     }
@@ -75,8 +75,7 @@ async function verifyOperatorGuide(client, baseUrl) {
       const triggerPanel = document.querySelector(".gs-panel-help-trigger");
       const popoverPanel = document.querySelector(".gs-panel-help-popover");
       
-      const triggerCta = document.querySelector(".gs-cta-help-trigger");
-      const popoverCta = document.querySelector(".gs-cta-help-popover");
+      const triggerCesiumHelp = document.querySelector(".cesium-navigation-help-button");
       
       return {
         timelineExists: Boolean(triggerTimeline) && Boolean(popoverTimeline),
@@ -85,8 +84,7 @@ async function verifyOperatorGuide(client, baseUrl) {
         panelExists: Boolean(triggerPanel) && Boolean(popoverPanel),
         panelHidden: popoverPanel ? popoverPanel.hidden : false,
         
-        ctaExists: Boolean(triggerCta) && Boolean(popoverCta),
-        ctaHidden: popoverCta ? popoverCta.hidden : false
+        cesiumHelpExists: Boolean(triggerCesiumHelp)
       };
     })()`
   );
@@ -95,8 +93,7 @@ async function verifyOperatorGuide(client, baseUrl) {
   assert(initialCheck.timelineHidden, "Timeline guide popover must start closed");
   assert(initialCheck.panelExists, "Panel contextual guide trigger and popover must exist");
   assert(initialCheck.panelHidden, "Panel guide popover must start closed");
-  assert(initialCheck.ctaExists, "CTA contextual guide trigger and popover must exist");
-  assert(initialCheck.ctaHidden, "CTA guide popover must start closed");
+  assert(initialCheck.cesiumHelpExists, "Cesium navigation help button must exist");
 
   // --- 1. Test Timeline Help Popover ---
   // Click on timeline trigger to open
@@ -122,7 +119,7 @@ async function verifyOperatorGuide(client, baseUrl) {
   );
 
   assert(timelineOpenCheck.visible, "Timeline popover must be visible after click");
-  assert(timelineOpenCheck.titleText?.includes("時間軸與軌道星曆說明"), "Timeline popover CJK title must match");
+  assert(timelineOpenCheck.titleText?.includes("時間軸與播放控制指南"), "Timeline popover CJK title must match expanded title");
 
   // Capture screenshot of the open timeline popover
   const screenshotPath = await captureScreenshot(
@@ -197,57 +194,93 @@ async function verifyOperatorGuide(client, baseUrl) {
   );
   assert(panelCloseCheck.hidden, "Panel popover must be closed after clicking outside");
 
-  // --- 3. Test Top-Right CTA Help Popover ---
-  // Click on CTA trigger to open
+  // --- 3. Test Integrated Cesium Help Button ---
+  // Click standard Cesium help button to open
   await evaluateRuntimeValue(
     client,
     `(() => {
-      const trigger = document.querySelector(".gs-cta-help-trigger");
+      const trigger = document.querySelector(".cesium-navigation-help-button");
       trigger?.click();
     })()`
   );
-  await sleep(150);
+  await sleep(250); // Wait for Cesium modal to render and timeout integration to trigger
 
-  const ctaOpenCheck = await evaluateRuntimeValue(
+  const cesiumHelpIntegratedCheck = await evaluateRuntimeValue(
     client,
     `(() => {
-      const popover = document.querySelector(".gs-cta-help-popover");
-      const title = popover ? popover.querySelector("h4")?.textContent.trim() : null;
+      const helpContainer = document.querySelector(".cesium-navigation-help");
+      const presetsBtn = helpContainer ? helpContainer.querySelector(".cesium-navigation-button-presets") : null;
+      const presetsPanel = helpContainer ? helpContainer.querySelector(".cesium-presets-navigation-help") : null;
+      
       return {
-        visible: popover ? !popover.hidden : false,
-        titleText: title
+        containerVisible: helpContainer ? helpContainer.classList.contains("cesium-navigation-help-visible") : false,
+        btnExists: Boolean(presetsBtn),
+        panelExists: Boolean(presetsPanel),
+        panelVisible: presetsPanel ? presetsPanel.style.display === "block" : false
       };
     })()`
   );
 
-  assert(ctaOpenCheck.visible, "CTA popover must be visible after click");
-  assert(ctaOpenCheck.titleText?.includes("視角切換與場景預設說明"), "CTA popover CJK title must match");
+  assert(cesiumHelpIntegratedCheck.containerVisible, "Cesium help container must be visible after click");
+  assert(cesiumHelpIntegratedCheck.btnExists, "Custom '預設與視角' tab button must be injected into Cesium help");
+  assert(cesiumHelpIntegratedCheck.panelExists, "Custom presets help panel must be injected into Cesium help");
+  assert(!cesiumHelpIntegratedCheck.panelVisible, "Custom presets panel must start hidden in Cesium help");
 
-  // Click close button inside CTA popover
+  // Click the '預設與視角' tab
   await evaluateRuntimeValue(
     client,
     `(() => {
-      const popover = document.querySelector(".gs-cta-help-popover");
-      const closeBtn = popover?.querySelector(".gs-popover-close");
-      closeBtn?.click();
+      const presetsBtn = document.querySelector(".cesium-navigation-button-presets");
+      presetsBtn?.click();
     })()`
   );
   await sleep(150);
 
-  const ctaCloseCheck = await evaluateRuntimeValue(
+  const presetsTabOpenCheck = await evaluateRuntimeValue(
     client,
     `(() => {
-      const popover = document.querySelector(".gs-cta-help-popover");
-      return { hidden: popover ? popover.hidden : false };
+      const helpContainer = document.querySelector(".cesium-navigation-help");
+      const presetsBtn = helpContainer?.querySelector(".cesium-navigation-button-presets");
+      const presetsPanel = helpContainer?.querySelector(".cesium-presets-navigation-help");
+      
+      return {
+        btnSelected: presetsBtn ? presetsBtn.classList.contains("cesium-navigation-button-selected") : false,
+        panelVisible: presetsPanel ? presetsPanel.style.display === "block" : false,
+        panelText: presetsPanel ? presetsPanel.textContent.trim() : null
+      };
     })()`
   );
-  assert(ctaCloseCheck.hidden, "CTA popover must be hidden after close click");
+
+  assert(presetsTabOpenCheck.btnSelected, "Custom presets tab button must be selected when clicked");
+  assert(presetsTabOpenCheck.panelVisible, "Custom presets help panel must be visible when tab is selected");
+  assert(presetsTabOpenCheck.panelText?.includes("黃色預設按鈕"), "Custom presets help text must contain Traditional Chinese key descriptions");
+
+  // Close Cesium help modal by clicking the trigger button again
+  await evaluateRuntimeValue(
+    client,
+    `(() => {
+      const trigger = document.querySelector(".cesium-navigation-help-button");
+      trigger?.click();
+    })()`
+  );
+  await sleep(350);
+
+  const cesiumHelpClosedCheck = await evaluateRuntimeValue(
+    client,
+    `(() => {
+      const helpContainer = document.querySelector(".cesium-navigation-help");
+      return {
+        containerVisible: helpContainer ? helpContainer.classList.contains("cesium-navigation-help-visible") : false
+      };
+    })()`
+  );
+  assert(!cesiumHelpClosedCheck.containerVisible, "Cesium navigation help must close when clicking trigger button again");
 
   return {
     route: REQUEST_PATH,
     timelineHelpExists: initialCheck.timelineExists,
     panelHelpExists: initialCheck.panelExists,
-    ctaHelpExists: initialCheck.ctaExists,
+    cesiumHelpIntegrated: cesiumHelpIntegratedCheck.btnExists,
     screenshot: path.relative(repoRoot, screenshotPath)
   };
 }

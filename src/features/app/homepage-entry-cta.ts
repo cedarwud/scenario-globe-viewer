@@ -196,57 +196,6 @@ export function mountHomepageEntryCta(
     root.append(aviationAnchor);
   }
 
-  // Inline Preset/CTA Help Trigger and Popover
-  const doc = root.ownerDocument;
-  const helpTrigger = doc.createElement("button");
-  helpTrigger.type = "button";
-  helpTrigger.className = "gs-cta-help-trigger";
-  helpTrigger.setAttribute("aria-label", "開啟場景指南");
-  helpTrigger.title = "場景與視角控制指南";
-  helpTrigger.innerHTML = "?";
-
-  const helpPopover = doc.createElement("div");
-  helpPopover.className = "gs-cta-help-popover";
-  helpPopover.hidden = true;
-  helpPopover.setAttribute("role", "tooltip");
-  helpPopover.innerHTML = `
-    <header class="gs-popover-header">
-      <h4>視角切換與場景預設說明</h4>
-      <button type="button" class="gs-popover-close" aria-label="關閉">&times;</button>
-    </header>
-    <div class="gs-popover-body">
-      <ul>
-        <li><strong>黃色按鈕：</strong>開啟 LEO + GEO 歷史航空交接場景，並自動播放動畫。</li>
-        <li><strong>綠色按鈕：</strong>開啟中華電信（陽明山）與新加坡/南非測站跨軌道投影分析。</li>
-        <li><strong>聚焦追蹤：</strong>雙擊地球或衛星可直接鎖定追蹤，滾輪縮放調整視角。</li>
-      </ul>
-    </div>
-  `;
-
-  helpTrigger.appendChild(helpPopover);
-  root.appendChild(helpTrigger);
-
-  const togglePopover = (event: Event) => {
-    event.stopPropagation();
-    helpPopover.hidden = !helpPopover.hidden;
-  };
-
-  const closePopover = (event: Event) => {
-    event.stopPropagation();
-    helpPopover.hidden = true;
-  };
-
-  helpTrigger.addEventListener("click", togglePopover);
-  helpPopover.querySelector(".gs-popover-close")?.addEventListener("click", closePopover);
-
-  // Close when clicking outside
-  const handleOutsideClick = (event: Event) => {
-    if (!helpTrigger.contains(event.target as Node)) {
-      helpPopover.hidden = true;
-    }
-  };
-  doc.addEventListener("click", handleOutsideClick);
-
   const toolbar = viewerShell.querySelector<HTMLElement>(".cesium-viewer-toolbar");
 
   if (toolbar) {
@@ -268,8 +217,6 @@ export function mountHomepageEntryCta(
     for (const unbind of unbinders) {
       unbind();
     }
-    helpTrigger.removeEventListener("click", togglePopover);
-    doc.removeEventListener("click", handleOutsideClick);
     if (root.parentElement) {
       root.parentElement.removeChild(root);
     }

@@ -1182,13 +1182,14 @@ function buildHeaderRow(
   };
   doc.addEventListener("click", handleOutsideClick);
 
+  title.append(helpTrigger);
+
   row.append(
     title,
     buildPlainTextSeparator(),
     tierBadge,
     buildPlainTextSeparator(),
-    windowLine,
-    helpTrigger
+    windowLine
   );
 
   // Keep cleanup handles in the DOM node so they can be disposed if needed

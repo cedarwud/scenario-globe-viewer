@@ -38,7 +38,7 @@ import {
 } from "../../features/multi-station-selector/runtime-projection";
 import { createRuntimeProjectionWorkerClient } from "../../features/multi-station-selector/runtime-projection-worker-client";
 import { buildRuntimeProjectionEvidenceReportHtml } from "../../features/multi-station-selector/runtime-projection-evidence-report";
-import { mountTimelineHelp, TimelineHelpHandle } from "../../features/multi-station-selector/operator-guide-modal";
+import { mountTimelineHelp, TimelineHelpHandle, integrateCesiumHelpButton, CesiumHelpIntegrationHandle } from "../../features/multi-station-selector/operator-guide-modal";
 import {
   mountOptionalOsmBuildingsShowcase,
   resolveBuildingShowcaseSelection
@@ -976,6 +976,11 @@ export function startBootstrapComposition(app: HTMLDivElement): BootstrapComposi
     ? mountTimelineHelp(viewer.container as HTMLElement)
     : null;
 
+  // Integrate custom guide page into native Cesium Help Button
+  const cesiumHelpIntegrationHandle: CesiumHelpIntegrationHandle | null = mountSelectorSurfaces
+    ? integrateCesiumHelpButton(viewer.container as HTMLElement)
+    : null;
+
 
   // V4 projection side panel — mounted/disposed by the display-state
   // subscription so the panel is only present in projecting/replaying.
@@ -1099,6 +1104,7 @@ export function startBootstrapComposition(app: HTMLDivElement): BootstrapComposi
       v4ProjectionSidePanelMountedPairKey = null;
       replayEventPill?.dispose();
       timelineHelpHandle?.dispose();
+      cesiumHelpIntegrationHandle?.dispose();
       delete document.body.dataset.displayState;
       selectorChromeTelemetry?.dispose();
       groundStationMarkerHoverTooltip?.dispose();
