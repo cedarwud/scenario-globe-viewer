@@ -21,9 +21,6 @@ function escapeHtml(value: ReportCell): string {
     .replace(/'/g, "&#39;");
 }
 
-function escapeJsonForHtml(value: unknown): string {
-  return escapeHtml(JSON.stringify(value, null, 2));
-}
 
 function durationMs(startUtc: string, endUtc: string): number | null {
   const startMs = Date.parse(startUtc);
@@ -515,6 +512,51 @@ function buildModelsTab(result: RuntimeProjectionResult): string {
   ].join("");
 }
 
+function renderJsonTree(val: unknown, keyName?: string): string {
+  const displayKey = keyName !== undefined ? `<span class="json-key">${escapeHtml(keyName)}:</span> ` : "";
+  
+  if (val === null) {
+    return `<div class="json-leaf">${displayKey}<span class="json-val json-null">null</span></div>`;
+  }
+  if (val === undefined) {
+    return `<div class="json-leaf">${displayKey}<span class="json-val json-null">undefined</span></div>`;
+  }
+  
+  if (typeof val === "object") {
+    const isArr = Array.isArray(val);
+    const typeStr = isArr ? `Array(${val.length})` : "Object";
+    const keys = Object.keys(val);
+    if (keys.length === 0) {
+      return `<div class="json-leaf">${displayKey}<span class="json-val json-empty">${isArr ? "[]" : "{}"}</span></div>`;
+    }
+    
+    const content = keys
+      .map((k) => renderJsonTree((val as any)[k], k))
+      .join("");
+      
+    return `
+      <details class="json-node"${keyName === undefined ? " open" : ""}>
+        <summary>
+          ${displayKey}
+          <span class="json-meta">${typeStr}</span>
+        </summary>
+        <div class="json-children">${content}</div>
+      </details>
+    `;
+  }
+  
+  let valClass = "json-string";
+  if (typeof val === "number") valClass = "json-number";
+  if (typeof val === "boolean") valClass = "json-boolean";
+  
+  return `
+    <div class="json-leaf">
+      ${displayKey}
+      <span class="json-val ${valClass}">${escapeHtml(JSON.stringify(val))}</span>
+    </div>
+  `;
+}
+
 function buildRuntimeTab(result: RuntimeProjectionResult): string {
   return [
     `<h3>Actor provenance</h3>`,
@@ -550,7 +592,8 @@ function buildRuntimeTab(result: RuntimeProjectionResult): string {
       visibilityProvenanceRows(result)
     ),
     `<h3>Raw JSON payload</h3>`,
-    `<pre>${escapeJsonForHtml(result)}</pre>`
+    `<p class="section-desc">The raw JSON payload is presented below as an interactive, collapsible tree explorer for deep SRE/developer inspection.</p>`,
+    `<div class="json-explorer">${renderJsonTree(result)}</div>`
   ].join("");
 }
 
@@ -599,17 +642,17 @@ export function buildRuntimeProjectionEvidenceReportHtml(
       --bg-elevated: rgba(22, 42, 66, 0.65);
       --border-subtle: rgba(126, 226, 184, 0.12);
       --border-default: rgba(126, 226, 184, 0.18);
-      --border-accent: rgba(16, 185, 129, 0.4);
-      --text-primary: #e8edf4;
-      --text-secondary: #94a3b8;
-      --text-muted: #64748b;
-      --accent: #10b981;
-      --accent-dim: #0d9668;
-      --accent-glow: rgba(16, 185, 129, 0.15);
-      --tone-ok: #10b981;
+      --border-accent: rgba(52, 211, 153, 0.4);
+      --text-primary: #ffffff;
+      --text-secondary: #cbd5e1;
+      --text-muted: #94a3b8;
+      --accent: #34d399;
+      --accent-dim: #059669;
+      --accent-glow: rgba(52, 211, 153, 0.15);
+      --tone-ok: #34d399;
       --tone-warn: #f59e0b;
       --tone-info: #3b82f6;
-      --tone-ok-bg: rgba(16, 185, 129, 0.08);
+      --tone-ok-bg: rgba(52, 211, 153, 0.08);
       --tone-warn-bg: rgba(245, 158, 11, 0.08);
       --tone-info-bg: rgba(59, 130, 246, 0.08);
       font-family: "IBM Plex Sans", Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
@@ -622,9 +665,10 @@ export function buildRuntimeProjectionEvidenceReportHtml(
       background: var(--bg-base);
       color: var(--text-primary);
       min-height: 100vh;
+      font-size: 16px;
     }
     header {
-      background: linear-gradient(180deg, rgba(16, 185, 129, 0.06) 0%, transparent 100%);
+      background: linear-gradient(180deg, rgba(52, 211, 153, 0.06) 0%, transparent 100%);
       border-bottom: 1px solid var(--border-subtle);
     }
     .report-header {
@@ -641,7 +685,7 @@ export function buildRuntimeProjectionEvidenceReportHtml(
     h1 {
       max-width: 820px;
       margin: 0 0 10px;
-      font-size: clamp(24px, 4vw, 34px);
+      font-size: clamp(26px, 4vw, 36px);
       font-weight: 700;
       line-height: 1.16;
       letter-spacing: -0.02em;
@@ -649,25 +693,25 @@ export function buildRuntimeProjectionEvidenceReportHtml(
     }
     h2 {
       margin: 0 0 18px;
-      font-size: 22px;
+      font-size: 24px;
       font-weight: 600;
       line-height: 1.2;
       letter-spacing: -0.01em;
       color: var(--text-primary);
     }
     h3 {
-      margin: 24px 0 12px;
-      font-size: 16px;
+      margin: 28px 0 14px;
+      font-size: 18px;
       font-weight: 600;
       line-height: 1.3;
       letter-spacing: 0;
       color: var(--accent);
     }
-    p { line-height: 1.55; }
+    p { line-height: 1.6; }
     .meta {
-      color: var(--text-muted);
+      color: var(--text-secondary);
       margin: 0;
-      font-size: 14px;
+      font-size: 15px;
     }
     .report-actions {
       display: flex;
@@ -793,7 +837,7 @@ export function buildRuntimeProjectionEvidenceReportHtml(
     .evidence-card span {
       display: block;
       color: var(--text-muted);
-      font-size: 12px;
+      font-size: 13px;
       font-weight: 600;
       letter-spacing: 0.04em;
       text-transform: uppercase;
@@ -803,7 +847,7 @@ export function buildRuntimeProjectionEvidenceReportHtml(
       display: block;
       margin-top: 8px;
       color: var(--text-primary);
-      font-size: 24px;
+      font-size: 32px;
       font-weight: 700;
       line-height: 1.18;
       overflow-wrap: anywhere;
@@ -813,8 +857,8 @@ export function buildRuntimeProjectionEvidenceReportHtml(
     .callout p {
       margin: 8px 0 0;
       color: var(--text-secondary);
-      font-size: 13px;
-      line-height: 1.5;
+      font-size: 14px;
+      line-height: 1.55;
     }
     .evidence-card[data-tone="ok"] {
       border-left: 3px solid var(--tone-ok);
@@ -841,7 +885,7 @@ export function buildRuntimeProjectionEvidenceReportHtml(
     }
     .callout strong {
       color: var(--text-primary);
-      font-size: 14px;
+      font-size: 15px;
     }
     .report-section,
     .callout {
@@ -860,11 +904,11 @@ export function buildRuntimeProjectionEvidenceReportHtml(
     table {
       width: 100%;
       border-collapse: collapse;
-      font-size: 13px;
+      font-size: 14px;
     }
     th,
     td {
-      padding: 10px 12px;
+      padding: 12px 14px;
       border-bottom: 1px solid var(--border-subtle);
       text-align: left;
       vertical-align: top;
@@ -875,7 +919,7 @@ export function buildRuntimeProjectionEvidenceReportHtml(
       background: rgba(12, 26, 42, 0.95);
       color: var(--accent);
       font-weight: 600;
-      font-size: 12px;
+      font-size: 13px;
       letter-spacing: 0.03em;
       text-transform: uppercase;
       z-index: 1;
@@ -885,12 +929,13 @@ export function buildRuntimeProjectionEvidenceReportHtml(
     td {
       color: var(--text-secondary);
       overflow-wrap: anywhere;
+      line-height: 1.55;
     }
     tbody tr {
       transition: background 0.12s;
     }
     tbody tr:hover {
-      background: rgba(16, 185, 129, 0.04);
+      background: rgba(52, 211, 153, 0.04);
     }
     tr[hidden] { display: none; }
     ul {
@@ -901,6 +946,7 @@ export function buildRuntimeProjectionEvidenceReportHtml(
     }
     ul li {
       margin-bottom: 4px;
+      font-size: 15px;
     }
     ul li::marker {
       color: var(--accent-dim);
@@ -914,9 +960,86 @@ export function buildRuntimeProjectionEvidenceReportHtml(
       background: rgba(4, 10, 18, 0.9);
       color: #a5f3c4;
       font-family: "IBM Plex Mono", "Fira Code", monospace;
-      font-size: 12px;
+      font-size: 13px;
       line-height: 1.5;
     }
+    .section-desc {
+      color: var(--text-secondary);
+      font-size: 14px;
+      margin-top: -6px;
+      margin-bottom: 14px;
+      line-height: 1.5;
+    }
+    .json-explorer {
+      font-family: "IBM Plex Mono", "Fira Code", monospace;
+      font-size: 13px;
+      line-height: 1.6;
+      background: rgba(4, 10, 18, 0.95);
+      border: 1px solid var(--border-subtle);
+      border-radius: 12px;
+      padding: 18px;
+      color: #cbd5e1;
+    }
+    .json-node {
+      margin-left: 12px;
+    }
+    .json-node > summary {
+      cursor: pointer;
+      padding: 4px 6px;
+      border-radius: 4px;
+      list-style: none;
+      user-select: none;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: background 0.15s;
+    }
+    .json-node > summary::before {
+      content: "▶";
+      display: inline-block;
+      font-size: 9px;
+      color: var(--accent-dim);
+      transition: transform 0.15s;
+    }
+    .json-node[open] > summary::before {
+      transform: rotate(90deg);
+    }
+    .json-node > summary:hover {
+      background: rgba(52, 211, 153, 0.06);
+    }
+    .json-children {
+      border-left: 1px dashed rgba(126, 226, 184, 0.15);
+      margin-left: 10px;
+      padding-left: 14px;
+      margin-top: 2px;
+      margin-bottom: 2px;
+    }
+    .json-leaf {
+      margin-left: 20px;
+      padding: 3px 0;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+    .json-key {
+      color: #818cf8; /* lavender/blue */
+      font-weight: 500;
+    }
+    .json-meta {
+      color: var(--text-muted);
+      font-size: 11px;
+      background: rgba(255, 255, 255, 0.04);
+      padding: 1px 6px;
+      border-radius: 4px;
+    }
+    .json-val {
+      overflow-wrap: anywhere;
+    }
+    .json-string { color: #34d399; }
+    .json-number { color: #f59e0b; }
+    .json-boolean { color: #3b82f6; }
+    .json-null { color: #ef4444; }
+    .json-empty { color: var(--text-muted); }
     .empty { color: var(--text-muted); font-style: italic; }
     /* scrollbar */
     ::-webkit-scrollbar { width: 6px; height: 6px; }
