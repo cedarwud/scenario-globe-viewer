@@ -25,6 +25,7 @@ interface RegistryStation {
   readonly name: string;
   readonly operator: string;
   readonly region: string;
+  readonly country: string;
   readonly lat: number;
   readonly lon: number;
   readonly supportedOrbits: ReadonlyArray<OrbitClass>;
@@ -210,30 +211,52 @@ function getStationHandoverFilterKinds(
   return Array.from(kinds);
 }
 
+function getCountryFlag(countryCode: string): string {
+  if (!countryCode) return "";
+  const codePoints = countryCode
+    .toUpperCase()
+    .split("")
+    .map((char) => 127397 + char.charCodeAt(0));
+  try {
+    return String.fromCodePoint(...codePoints);
+  } catch {
+    return "";
+  }
+}
+
+const REGION_LABELS: ReadonlyMap<string, string> = new Map(
+  REGION_ORDER.map((item) => [item.id, item.label])
+);
+
 function formatStationOptionText(
   station: RegistryStation,
   snapshot: SelectionSnapshot
 ): string {
+  const flag = getCountryFlag(station.country);
+  const prefix = flag ? `${flag} ` : "";
+  const countrySuffix = ` [${station.country}]`;
+
   const pairKinds = getStationHandoverFilterKinds(station, snapshot);
   if (getSelectedAnchorStations(snapshot).length > 0) {
     if (pairKinds.length === 1) {
-      return `${station.name} · ${pairKinds[0]} pair`;
+      return `${prefix}${station.name} · ${pairKinds[0]} pair${countrySuffix}`;
     }
     if (pairKinds.length > 1) {
-      return `${station.name} · 2/3-orbit pairs`;
+      return `${prefix}${station.name} · 2/3-orbit pairs${countrySuffix}`;
     }
   }
 
   const capability = HANDOVER_CAPABILITY_SUMMARY.byStationId.get(station.id);
   if (!capability || capability.kind === "none") {
-    return `${station.name} · no handover pair`;
+    return `${prefix}${station.name} · no handover pair${countrySuffix}`;
   }
   if (capability.kind !== HANDOVER_CAPABILITY_SUMMARY.minorityKind) {
-    return station.name;
+    return `${prefix}${station.name}${countrySuffix}`;
   }
-  return capability.kind === "tri-capable"
-    ? `${station.name} · rare 3-orbit`
-    : `${station.name} · rare 2-orbit`;
+  const rarityText = capability.kind === "tri-capable"
+    ? " · rare 3-orbit"
+    : " · rare 2-orbit";
+  return `${prefix}${station.name}${rarityText}${countrySuffix}`;
 }
 
 function renderHiddenSelect(select: HTMLSelectElement): void {
@@ -260,11 +283,15 @@ function renderOptions(
   if (stations.length === 0) {
     if (selectedStation) {
       appendPlaceholder(select, placeholder);
+      const optgroup = document.createElement("optgroup");
+      const regionLabel = REGION_LABELS.get(selectedStation.region) || selectedStation.region.toUpperCase();
+      optgroup.label = regionLabel;
       const option = document.createElement("option");
       option.value = selectedStation.id;
       option.textContent = formatStationOptionText(selectedStation, optionSnapshot);
       option.title = selectedStation.operator;
-      select.appendChild(option);
+      optgroup.appendChild(option);
+      select.appendChild(optgroup);
       select.value = selectedStation.id;
       select.disabled = false;
       return;
@@ -276,19 +303,60 @@ function renderOptions(
   }
 
   appendPlaceholder(select, placeholder);
+
+  // Group stations by region
+  const stationsByRegion = new Map<string, RegistryStation[]>();
   for (const station of stations) {
-    const option = document.createElement("option");
-    option.value = station.id;
-    option.textContent = formatStationOptionText(station, optionSnapshot);
-    option.title = station.operator;
-    select.appendChild(option);
+    const list = stationsByRegion.get(station.region) ?? [];
+    list.push(station);
+    stationsByRegion.set(station.region, list);
   }
+
+  // Render group by group in REGION_ORDER
+  for (const descriptor of REGION_ORDER) {
+    const regionStations = stationsByRegion.get(descriptor.id);
+    if (regionStations && regionStations.length > 0) {
+      const optgroup = document.createElement("optgroup");
+      optgroup.label = descriptor.label;
+      for (const station of regionStations) {
+        const option = document.createElement("option");
+        option.value = station.id;
+        option.textContent = formatStationOptionText(station, optionSnapshot);
+        option.title = station.operator;
+        optgroup.appendChild(option);
+      }
+      select.appendChild(optgroup);
+    }
+  }
+
+  // Render fallback regions if any
+  const knownRegionIds = new Set(REGION_ORDER.map((r) => r.id));
+  for (const [regionId, regionStations] of stationsByRegion.entries()) {
+    if (!knownRegionIds.has(regionId) && regionStations.length > 0) {
+      const optgroup = document.createElement("optgroup");
+      optgroup.label = regionId.toUpperCase();
+      for (const station of regionStations) {
+        const option = document.createElement("option");
+        option.value = station.id;
+        option.textContent = formatStationOptionText(station, optionSnapshot);
+        option.title = station.operator;
+        optgroup.appendChild(option);
+      }
+      select.appendChild(optgroup);
+    }
+  }
+
+  // Handle active selection if not already in the list
   if (selectedStation && !hasSelectedOption) {
+    const optgroup = document.createElement("optgroup");
+    const regionLabel = REGION_LABELS.get(selectedStation.region) || selectedStation.region.toUpperCase();
+    optgroup.label = `${regionLabel} (Active)`;
     const option = document.createElement("option");
     option.value = selectedStation.id;
     option.textContent = formatStationOptionText(selectedStation, optionSnapshot);
     option.title = selectedStation.operator;
-    select.appendChild(option);
+    optgroup.appendChild(option);
+    select.appendChild(optgroup);
   }
 
   select.disabled = false;

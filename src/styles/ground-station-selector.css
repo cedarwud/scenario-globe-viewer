@@ -5,15 +5,15 @@
   z-index: 6;
   display: flex;
   flex-direction: column;
-  width: clamp(18rem, 26vw, 23rem);
+  width: clamp(22rem, 30vw, 27rem);
   max-height: calc(100% - 8rem);
-  padding: 0.85rem 1rem 0.9rem;
-  border-radius: 0.6rem;
+  padding: 1rem 1.25rem 1.1rem;
+  border-radius: 0.8rem;
   background: rgba(6, 18, 28, 0.94);
   color: #dde9f1;
   font-family: "IBM Plex Sans", system-ui, -apple-system, sans-serif;
-  font-size: 0.82rem;
-  line-height: 1.35;
+  font-size: 1.08rem;
+  line-height: 1.45;
   box-shadow: 0 12px 28px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(126, 226, 184, 0.22);
   backdrop-filter: blur(6px);
   overflow-y: auto;
@@ -28,14 +28,14 @@
   align-items: flex-start;
   gap: 0.5rem;
   border-bottom: 1px solid rgba(157, 196, 232, 0.22);
-  padding-bottom: 0.55rem;
-  margin-bottom: 0.65rem;
+  padding-bottom: 0.7rem;
+  margin-bottom: 0.8rem;
 }
 
 .ground-station-info-card__title {
   margin: 0;
   flex: 1 1 auto;
-  font-size: 0.98rem;
+  font-size: 1.32rem;
   font-weight: 600;
   letter-spacing: 0.005em;
   color: #f0f7fb;
@@ -78,7 +78,7 @@
 }
 
 .ground-station-info-card__fields dt {
-  font-size: 0.72rem;
+  font-size: 0.88rem;
   font-weight: 500;
   text-transform: uppercase;
   letter-spacing: 0.06em;
@@ -89,7 +89,7 @@
 .ground-station-info-card__fields dd {
   margin: 0;
   color: #eef5fa;
-  font-size: 0.82rem;
+  font-size: 1.08rem;
   font-variant-numeric: tabular-nums;
   word-break: break-word;
 }
@@ -97,11 +97,11 @@
 .ground-station-info-card__use-case,
 .ground-station-info-card__notes {
   margin: 0;
-  padding: 0.55rem 0.65rem;
-  border-radius: 0.35rem;
+  padding: 0.7rem 0.8rem;
+  border-radius: 0.45rem;
   background: rgba(126, 226, 184, 0.08);
   color: #dde9f1;
-  font-size: 0.78rem;
+  font-size: 1.02rem;
 }
 
 .ground-station-info-card__notes {
@@ -111,18 +111,18 @@
 }
 
 .ground-station-info-card__footer {
-  margin-top: 0.75rem;
+  margin-top: 0.9rem;
   border-top: 1px solid rgba(157, 196, 232, 0.22);
-  padding-top: 0.55rem;
+  padding-top: 0.7rem;
   display: flex;
   flex-direction: column;
-  gap: 0.4rem;
+  gap: 0.5rem;
 }
 
 .ground-station-info-card__source {
   color: #7ee2b8;
   text-decoration: none;
-  font-size: 0.78rem;
+  font-size: 0.98rem;
   font-weight: 500;
   letter-spacing: 0.015em;
 }
@@ -136,9 +136,9 @@
 
 .ground-station-info-card__tier-note {
   margin: 0;
-  font-size: 0.7rem;
+  font-size: 0.86rem;
   color: rgba(157, 196, 232, 0.78);
-  line-height: 1.35;
+  line-height: 1.4;
 }
 
 @media (max-width: 720px) {
@@ -153,10 +153,10 @@
 }
 
 .ground-station-info-card__tier-badge {
-  margin: 0 0 0.55rem;
-  padding: 0.4rem 0.6rem;
-  border-radius: 0.35rem;
-  font-size: 0.72rem;
+  margin: 0 0 0.7rem;
+  padding: 0.5rem 0.8rem;
+  border-radius: 0.45rem;
+  font-size: 0.92rem;
   font-weight: 600;
   letter-spacing: 0.04em;
   text-transform: uppercase;
@@ -187,9 +187,9 @@
   border: 1px solid rgba(126, 226, 184, 0.55);
   background: rgba(126, 226, 184, 0.12);
   color: #dde9f1;
-  padding: 0.45rem 0.5rem;
+  padding: 0.55rem 0.65rem;
   border-radius: 0.4rem;
-  font-size: 0.74rem;
+  font-size: 0.92rem;
   font-weight: 500;
   letter-spacing: 0.01em;
   cursor: pointer;
@@ -242,12 +242,12 @@
   display: inline-flex;
   align-items: center;
   gap: 0.45rem;
-  padding: 0.4rem 0.6rem 0.4rem 0.7rem;
+  padding: 0.5rem 0.8rem 0.5rem 0.9rem;
   border-radius: 999px;
   background: rgba(6, 18, 28, 0.88);
   color: #dde9f1;
   font-family: "IBM Plex Sans", system-ui, -apple-system, sans-serif;
-  font-size: 0.78rem;
+  font-size: 0.96rem;
   box-shadow: 0 6px 18px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(126, 226, 184, 0.25);
   pointer-events: auto;
   max-width: 22rem;
