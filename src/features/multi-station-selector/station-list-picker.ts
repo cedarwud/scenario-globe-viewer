@@ -233,32 +233,47 @@ function formatStationOptionText(
   snapshot: SelectionSnapshot
 ): string {
   const flag = getCountryFlag(station.country);
-  const orbitsCount = station.supportedOrbits.length;
-  const dot = orbitsCount === 3 ? "🟢" : orbitsCount === 2 ? "🔵" : "🟡";
-  const prefix = `${dot} ${flag ? flag + " " : ""}`;
-  const countrySuffix = ` [${station.country}]`;
+  const hasLeo = station.supportedOrbits.includes("LEO");
+  const hasMeo = station.supportedOrbits.includes("MEO");
+  const hasGeo = station.supportedOrbits.includes("GEO");
+  const orbitDots = `${hasLeo ? "🟢" : ""}${hasMeo ? "🔵" : ""}${hasGeo ? "🟡" : ""}`;
+  const prefix = `${orbitDots} ${flag ? flag + " " : ""}`;
 
   const pairKinds = getStationHandoverFilterKinds(station, snapshot);
   if (getSelectedAnchorStations(snapshot).length > 0) {
     if (pairKinds.length === 1) {
-      return `${prefix}${station.name} · ${pairKinds[0]} pair${countrySuffix}`;
+      return `${prefix}${station.name} · ${pairKinds[0]} pair`;
     }
     if (pairKinds.length > 1) {
-      return `${prefix}${station.name} · 2/3-orbit pairs${countrySuffix}`;
+      return `${prefix}${station.name} · 2/3-orbit pairs`;
     }
   }
 
   const capability = HANDOVER_CAPABILITY_SUMMARY.byStationId.get(station.id);
   if (!capability || capability.kind === "none") {
-    return `${prefix}${station.name} · no handover pair${countrySuffix}`;
+    return `${prefix}${station.name} · no handover pair`;
   }
   if (capability.kind !== HANDOVER_CAPABILITY_SUMMARY.minorityKind) {
-    return `${prefix}${station.name}${countrySuffix}`;
+    return `${prefix}${station.name}`;
   }
   const rarityText = capability.kind === "tri-capable"
     ? " · rare 3-orbit"
     : " · rare 2-orbit";
-  return `${prefix}${station.name}${rarityText}${countrySuffix}`;
+  return `${prefix}${station.name}${rarityText}`;
+}
+
+function buildStationOptionTitle(station: RegistryStation): string {
+  const hasLeo = station.supportedOrbits.includes("LEO");
+  const hasMeo = station.supportedOrbits.includes("MEO");
+  const hasGeo = station.supportedOrbits.includes("GEO");
+
+  const orbitList = [];
+  if (hasLeo) orbitList.push("🟢 LEO");
+  if (hasMeo) orbitList.push("🔵 MEO");
+  if (hasGeo) orbitList.push("🟡 GEO");
+
+  const regionLabel = REGION_LABELS.get(station.region) || station.region;
+  return `${station.name}\nOperator: ${station.operator}\nRegion: ${regionLabel}\nSupported Orbits: ${orbitList.join(" | ")}`;
 }
 
 function renderHiddenSelect(select: HTMLSelectElement): void {
@@ -291,7 +306,7 @@ function renderOptions(
       const option = document.createElement("option");
       option.value = selectedStation.id;
       option.textContent = formatStationOptionText(selectedStation, optionSnapshot);
-      option.title = selectedStation.operator;
+      option.title = buildStationOptionTitle(selectedStation);
       optgroup.appendChild(option);
       select.appendChild(optgroup);
       select.value = selectedStation.id;
@@ -324,7 +339,7 @@ function renderOptions(
         const option = document.createElement("option");
         option.value = station.id;
         option.textContent = formatStationOptionText(station, optionSnapshot);
-        option.title = station.operator;
+        option.title = buildStationOptionTitle(station);
         optgroup.appendChild(option);
       }
       select.appendChild(optgroup);
@@ -341,7 +356,7 @@ function renderOptions(
         const option = document.createElement("option");
         option.value = station.id;
         option.textContent = formatStationOptionText(station, optionSnapshot);
-        option.title = station.operator;
+        option.title = buildStationOptionTitle(station);
         optgroup.appendChild(option);
       }
       select.appendChild(optgroup);
@@ -356,7 +371,7 @@ function renderOptions(
     const option = document.createElement("option");
     option.value = selectedStation.id;
     option.textContent = formatStationOptionText(selectedStation, optionSnapshot);
-    option.title = selectedStation.operator;
+    option.title = buildStationOptionTitle(selectedStation);
     optgroup.appendChild(option);
     select.appendChild(optgroup);
   }
