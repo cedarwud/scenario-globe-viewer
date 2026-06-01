@@ -18,6 +18,7 @@ output/validation/*
 # AGENTS.md + CLAUDE.md now tracked (2026-05-17) — agent memory bridge per /home/u24/papers/AGENTS.md §8
 .claude/
 .codex/
+.codegraph/
 .playwright-mcp/
 .gstack/
 
