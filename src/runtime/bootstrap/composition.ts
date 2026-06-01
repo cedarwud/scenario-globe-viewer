@@ -30,6 +30,15 @@ import {
 } from "../../features/multi-station-selector/display-state";
 import { mountSelectorChromeTelemetry } from "../../features/multi-station-selector/chrome-telemetry";
 import {
+  loadDefaultTleSources,
+  parseRuntimeOrbitSources,
+  buildRuntimeTleSourceParseStats,
+  buildDefaultTimeWindow,
+  resolveRuntimeHandoverPolicyId
+} from "../../features/multi-station-selector/runtime-projection";
+import { createRuntimeProjectionWorkerClient } from "../../features/multi-station-selector/runtime-projection-worker-client";
+import { buildRuntimeProjectionEvidenceReportHtml } from "../../features/multi-station-selector/runtime-projection-evidence-report";
+import {
   mountOptionalOsmBuildingsShowcase,
   resolveBuildingShowcaseSelection
 } from "../../features/globe/osm-buildings-showcase";
@@ -481,8 +490,114 @@ function bindLightingRefresh(viewer: ViewerInstance): () => void {
 }
 
 export function startBootstrapComposition(app: HTMLDivElement): BootstrapComposition {
-  const { viewerShell, viewerRoot, hudFrame, statusPanel } = mountAppShell(app);
   const searchParams = new URLSearchParams(window.location.search);
+  const reportParam = searchParams.get("report");
+  if (reportParam === "evidence") {
+    void (async () => {
+      app.innerHTML = `
+        <style>
+          body {
+            margin: 0;
+            background: #060e18;
+            color: #ffffff;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+          }
+          .loader-container {
+            text-align: center;
+            padding: 30px;
+          }
+          .loader-spinner {
+            width: 60px;
+            height: 60px;
+            border: 4px solid rgba(52, 211, 153, 0.1);
+            border-radius: 50%;
+            border-top-color: #34d399;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 24px;
+            box-shadow: 0 0 16px rgba(52, 211, 153, 0.2);
+          }
+          @keyframes spin {
+            to { transform: rotate(360deg); }
+          }
+          .loader-text {
+            font-size: 20px;
+            font-weight: 500;
+            color: #ffffff;
+            letter-spacing: 0.05em;
+            margin-bottom: 8px;
+          }
+          .loader-subtext {
+            font-size: 15px;
+            color: #94a3b8;
+          }
+        </style>
+        <div class="loader-container">
+          <div class="loader-spinner"></div>
+          <div class="loader-text">Link Projection</div>
+          <div class="loader-subtext">Loading TLE fixtures and computing visibility windows…</div>
+        </div>
+      `;
+
+      try {
+        const v4RouteSelection = resolveV4RouteSelection(searchParams);
+        const pair = v4RouteSelection.resolvedPair;
+        if (!pair) {
+          throw new Error("Invalid station pair specified. Both Station A and Station B must be valid registry entries.");
+        }
+
+        const startUtc = searchParams.get("startUtc") || new Date().toISOString();
+        const durationMinutesParam = searchParams.get("durationMinutes");
+        const durationMinutes = durationMinutesParam ? Math.max(20, Math.min(1440, parseInt(durationMinutesParam, 10) || 360)) : 360;
+        
+        const timeWindow = buildDefaultTimeWindow(startUtc, durationMinutes);
+        const policyId = resolveRuntimeHandoverPolicyId(searchParams.get("policy"));
+
+        // Load TLE sources and parse them
+        const sources = await loadDefaultTleSources();
+        const tleRecords = parseRuntimeOrbitSources(sources);
+        const tleParseStats = buildRuntimeTleSourceParseStats(sources);
+
+        // Async project link budget on worker client
+        const projectionClient = createRuntimeProjectionWorkerClient();
+        const result = await projectionClient.compute({
+          stationA: pair.stationA,
+          stationB: pair.stationB,
+          timeWindow,
+          tleRecords,
+          tleParseStats,
+          rainRateMmPerHour: 0,
+          policyId
+        });
+
+        // Generate full report html
+        const html = buildRuntimeProjectionEvidenceReportHtml(result);
+
+        // Overwrite the document completely, executing internal interactive JS
+        document.open();
+        document.write(html);
+        document.close();
+      } catch (error) {
+        app.innerHTML = `
+          <div style="padding: 40px; color: #ef4444; font-family: sans-serif; background: #060e18; min-height: 100vh; display: flex; align-items: center; justify-content: center; text-align: center;">
+            <div>
+              <h2 style="color: #f87171; font-size: 24px; margin-bottom: 12px;">Failed to generate evidence report</h2>
+              <p style="color: #cbd5e1; font-size: 16px;">${error instanceof Error ? error.message : String(error)}</p>
+            </div>
+          </div>
+        `;
+      }
+    })();
+
+    return {
+      dispose() {}
+    };
+  }
+
+  const { viewerShell, viewerRoot, hudFrame, statusPanel } = mountAppShell(app);
   const v4RouteSelection = resolveV4RouteSelection(searchParams);
   const scenePreset = resolveBootstrapScenePreset(searchParams, v4RouteSelection);
   const isM8aV4RuntimeRequest =

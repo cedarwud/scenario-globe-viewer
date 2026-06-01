@@ -593,6 +593,10 @@ function buildRuntimeTab(result: RuntimeProjectionResult): string {
     ),
     `<h3>Raw JSON payload</h3>`,
     `<p class="section-desc">The raw JSON payload is presented below as an interactive, collapsible tree explorer for deep SRE/developer inspection.</p>`,
+    `<div class="json-explorer-actions">`,
+    `  <button type="button" class="report-button report-button--secondary" data-json-expand-all>Expand All</button>`,
+    `  <button type="button" class="report-button report-button--secondary" data-json-collapse-all>Collapse All</button>`,
+    `</div>`,
     `<div class="json-explorer">${renderJsonTree(result)}</div>`
   ].join("");
 }
@@ -665,7 +669,7 @@ export function buildRuntimeProjectionEvidenceReportHtml(
       background: var(--bg-base);
       color: var(--text-primary);
       min-height: 100vh;
-      font-size: 16px;
+      font-size: 18px;
     }
     header {
       background: linear-gradient(180deg, rgba(52, 211, 153, 0.06) 0%, transparent 100%);
@@ -685,7 +689,7 @@ export function buildRuntimeProjectionEvidenceReportHtml(
     h1 {
       max-width: 820px;
       margin: 0 0 10px;
-      font-size: clamp(26px, 4vw, 36px);
+      font-size: clamp(30px, 4.5vw, 42px);
       font-weight: 700;
       line-height: 1.16;
       letter-spacing: -0.02em;
@@ -693,7 +697,7 @@ export function buildRuntimeProjectionEvidenceReportHtml(
     }
     h2 {
       margin: 0 0 18px;
-      font-size: 24px;
+      font-size: 28px;
       font-weight: 600;
       line-height: 1.2;
       letter-spacing: -0.01em;
@@ -701,7 +705,7 @@ export function buildRuntimeProjectionEvidenceReportHtml(
     }
     h3 {
       margin: 28px 0 14px;
-      font-size: 18px;
+      font-size: 22px;
       font-weight: 600;
       line-height: 1.3;
       letter-spacing: 0;
@@ -711,7 +715,7 @@ export function buildRuntimeProjectionEvidenceReportHtml(
     .meta {
       color: var(--text-secondary);
       margin: 0;
-      font-size: 15px;
+      font-size: 17px;
     }
     .report-actions {
       display: flex;
@@ -720,14 +724,14 @@ export function buildRuntimeProjectionEvidenceReportHtml(
       align-items: center;
     }
     .report-button {
-      min-height: 38px;
-      padding: 0 16px;
+      min-height: 42px;
+      padding: 0 20px;
       border: 1px solid var(--accent-dim);
       border-radius: 8px;
       background: var(--accent-dim);
       color: #ffffff;
       font: inherit;
-      font-size: 14px;
+      font-size: 17px;
       font-weight: 600;
       letter-spacing: 0;
       cursor: pointer;
@@ -736,6 +740,21 @@ export function buildRuntimeProjectionEvidenceReportHtml(
     .report-button:hover {
       background: var(--accent);
       box-shadow: 0 0 16px var(--accent-glow);
+    }
+    .report-button--secondary {
+      background: var(--bg-card);
+      border-color: var(--border-default);
+      color: var(--text-secondary);
+    }
+    .report-button--secondary:hover {
+      background: var(--bg-elevated);
+      border-color: var(--border-accent);
+      color: var(--text-primary);
+    }
+    .json-explorer-actions {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 12px;
     }
     .toolbar {
       position: sticky;
@@ -760,14 +779,14 @@ export function buildRuntimeProjectionEvidenceReportHtml(
       gap: 6px;
     }
     [role="tab"] {
-      min-height: 36px;
-      padding: 0 14px;
+      min-height: 40px;
+      padding: 0 16px;
       border: 1px solid var(--border-subtle);
       border-radius: 8px;
       background: var(--bg-card);
       color: var(--text-secondary);
       font: inherit;
-      font-size: 14px;
+      font-size: 17px;
       cursor: pointer;
       letter-spacing: 0;
       transition: all 0.15s;
@@ -784,7 +803,7 @@ export function buildRuntimeProjectionEvidenceReportHtml(
       box-shadow: 0 0 12px var(--accent-glow);
     }
     input[type="search"] {
-      min-height: 36px;
+      min-height: 40px;
       min-width: min(320px, 100%);
       margin-left: auto;
       padding: 0 12px;
@@ -793,7 +812,7 @@ export function buildRuntimeProjectionEvidenceReportHtml(
       background: var(--bg-card);
       color: var(--text-primary);
       font: inherit;
-      font-size: 14px;
+      font-size: 17px;
       letter-spacing: 0;
       outline: none;
       transition: border-color 0.15s;
@@ -837,7 +856,7 @@ export function buildRuntimeProjectionEvidenceReportHtml(
     .evidence-card span {
       display: block;
       color: var(--text-muted);
-      font-size: 13px;
+      font-size: 14px;
       font-weight: 600;
       letter-spacing: 0.04em;
       text-transform: uppercase;
@@ -847,7 +866,7 @@ export function buildRuntimeProjectionEvidenceReportHtml(
       display: block;
       margin-top: 8px;
       color: var(--text-primary);
-      font-size: 32px;
+      font-size: 36px;
       font-weight: 700;
       line-height: 1.18;
       overflow-wrap: anywhere;
@@ -857,7 +876,7 @@ export function buildRuntimeProjectionEvidenceReportHtml(
     .callout p {
       margin: 8px 0 0;
       color: var(--text-secondary);
-      font-size: 14px;
+      font-size: 16px;
       line-height: 1.55;
     }
     .evidence-card[data-tone="ok"] {
@@ -885,7 +904,7 @@ export function buildRuntimeProjectionEvidenceReportHtml(
     }
     .callout strong {
       color: var(--text-primary);
-      font-size: 15px;
+      font-size: 17px;
     }
     .report-section,
     .callout {
@@ -904,11 +923,11 @@ export function buildRuntimeProjectionEvidenceReportHtml(
     table {
       width: 100%;
       border-collapse: collapse;
-      font-size: 14px;
+      font-size: 16px;
     }
     th,
     td {
-      padding: 12px 14px;
+      padding: 14px 16px;
       border-bottom: 1px solid var(--border-subtle);
       text-align: left;
       vertical-align: top;
@@ -919,7 +938,7 @@ export function buildRuntimeProjectionEvidenceReportHtml(
       background: rgba(12, 26, 42, 0.95);
       color: var(--accent);
       font-weight: 600;
-      font-size: 13px;
+      font-size: 15px;
       letter-spacing: 0.03em;
       text-transform: uppercase;
       z-index: 1;
@@ -929,7 +948,6 @@ export function buildRuntimeProjectionEvidenceReportHtml(
     td {
       color: var(--text-secondary);
       overflow-wrap: anywhere;
-      line-height: 1.55;
     }
     tbody tr {
       transition: background 0.12s;
@@ -946,7 +964,7 @@ export function buildRuntimeProjectionEvidenceReportHtml(
     }
     ul li {
       margin-bottom: 4px;
-      font-size: 15px;
+      font-size: 17px;
     }
     ul li::marker {
       color: var(--accent-dim);
@@ -960,19 +978,19 @@ export function buildRuntimeProjectionEvidenceReportHtml(
       background: rgba(4, 10, 18, 0.9);
       color: #a5f3c4;
       font-family: "IBM Plex Mono", "Fira Code", monospace;
-      font-size: 13px;
+      font-size: 15px;
       line-height: 1.5;
     }
     .section-desc {
       color: var(--text-secondary);
-      font-size: 14px;
+      font-size: 16px;
       margin-top: -6px;
       margin-bottom: 14px;
       line-height: 1.5;
     }
     .json-explorer {
       font-family: "IBM Plex Mono", "Fira Code", monospace;
-      font-size: 13px;
+      font-size: 15px;
       line-height: 1.6;
       background: rgba(4, 10, 18, 0.95);
       border: 1px solid var(--border-subtle);
@@ -997,7 +1015,7 @@ export function buildRuntimeProjectionEvidenceReportHtml(
     .json-node > summary::before {
       content: "▶";
       display: inline-block;
-      font-size: 9px;
+      font-size: 11px;
       color: var(--accent-dim);
       transition: transform 0.15s;
     }
@@ -1027,7 +1045,7 @@ export function buildRuntimeProjectionEvidenceReportHtml(
     }
     .json-meta {
       color: var(--text-muted);
-      font-size: 11px;
+      font-size: 13px;
       background: rgba(255, 255, 255, 0.04);
       padding: 1px 6px;
       border-radius: 4px;
@@ -1160,6 +1178,16 @@ export function buildRuntimeProjectionEvidenceReportHtml(
       }
       document.querySelector("[data-download-html]")?.addEventListener("click", downloadHtml);
       filter?.addEventListener("input", () => applyFilter(filter.value));
+      document.querySelector("[data-json-expand-all]")?.addEventListener("click", () => {
+        for (const details of document.querySelectorAll(".json-explorer details")) {
+          details.open = true;
+        }
+      });
+      document.querySelector("[data-json-collapse-all]")?.addEventListener("click", () => {
+        for (const details of document.querySelectorAll(".json-explorer details")) {
+          details.open = false;
+        }
+      });
     })();
   </script>
 </body>

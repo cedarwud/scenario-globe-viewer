@@ -46,7 +46,17 @@ export function openRuntimeProjectionEvidenceReport(
   ownerDocument: Document = document
 ): void {
   const ownerWindow = ownerDocument.defaultView ?? window;
-  const reportWindow = ownerWindow.open("", "_blank");
+  const searchParams = new URLSearchParams();
+  searchParams.set("stationA", result.pair.stationA.id);
+  searchParams.set("stationB", result.pair.stationB.id);
+  searchParams.set("startUtc", result.timeWindow.startUtc);
+  const windowMs = Date.parse(result.timeWindow.endUtc) - Date.parse(result.timeWindow.startUtc);
+  searchParams.set("durationMinutes", String(Math.round(windowMs / 60_000)));
+  searchParams.set("policy", result.dataCompleteness.policyDisclosure.activePolicyId);
+  searchParams.set("report", "evidence");
+  const url = `/?${searchParams.toString()}`;
+
+  const reportWindow = ownerWindow.open(url, "_blank");
   if (!reportWindow) {
     downloadRuntimeProjectionEvidenceReport(result, ownerDocument);
     return;
@@ -58,10 +68,14 @@ export function openRuntimeProjectionEvidenceReport(
     // Best-effort opener isolation for browsers that allow it.
   }
 
-  reportWindow.document.open();
-  reportWindow.document.write(buildRuntimeProjectionEvidenceReportHtml(result));
-  reportWindow.document.close();
-  reportWindow.focus?.();
+  try {
+    reportWindow.document.open();
+    reportWindow.document.write(buildRuntimeProjectionEvidenceReportHtml(result));
+    reportWindow.document.close();
+    reportWindow.focus?.();
+  } catch {
+    // Browser may block cross-origin document.write on navigated windows, in which case the URL loads naturally.
+  }
 }
 
 export function downloadRuntimeProjectionCsv(
