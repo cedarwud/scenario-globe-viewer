@@ -43,6 +43,8 @@ interface PickerElements {
   readonly handoverChips: ReadonlyMap<HandoverOrbitFilterKind, HTMLButtonElement>;
   readonly regionChips: ReadonlyMap<string, HTMLButtonElement>;
   readonly bandChips: ReadonlyMap<string, HTMLButtonElement>;
+  readonly helpTrigger: HTMLButtonElement;
+  readonly helpPopover: HTMLElement;
 }
 
 interface FilterState {
@@ -772,13 +774,55 @@ function createPickerElements(): PickerElements {
   title.className = "ground-station-list-picker__title";
   title.textContent = "Ground Stations";
 
+  // Create help trigger and popover
+  const helpTrigger = document.createElement("button");
+  helpTrigger.type = "button";
+  helpTrigger.className = "gs-panel-help-trigger";
+  helpTrigger.setAttribute("aria-label", "開啟地面站鏈路與計算指南");
+  helpTrigger.title = "地面站鏈路與物理計算指南";
+  helpTrigger.innerHTML = "?";
+
+  const helpPopover = document.createElement("div");
+  helpPopover.className = "gs-panel-help-popover";
+  helpPopover.hidden = true;
+  helpPopover.setAttribute("role", "tooltip");
+  helpPopover.innerHTML = `
+    <header class="gs-popover-header">
+      <h4>地面站鏈路與物理計算指南</h4>
+      <button type="button" class="gs-popover-close" aria-label="關閉">&times;</button>
+    </header>
+    <div class="gs-popover-body">
+      <ul style="margin: 0; padding-left: 14px; list-style-type: disc;">
+        <li style="font-size: 16px; margin-bottom: 9px; line-height: 1.6; color: #cbd5e1;">
+          <strong>測站選擇與相容配對：</strong>在下方「Station A」選取主測站，並在「Station B」選取第二測站。系統將自動依據軌道、頻段與可見性進行相容過濾配對。
+        </li>
+        <li style="font-size: 16px; margin-bottom: 9px; line-height: 1.6; color: #cbd5e1;">
+          <strong>多維篩選器（Filters）：</strong>點擊「Filters」按鈕展開篩選面板，可分別依據<strong>軌道（Orbit）</strong>、<strong>交接演算法限制</strong>、<strong>國家/地區（Region）</strong>與<strong>工作頻段（Band）</strong>進行篩選。
+        </li>
+        <li style="font-size: 16px; margin-bottom: 9px; line-height: 1.6; color: #cbd5e1;">
+          <strong>幾何鏈路與雨水衰減：</strong>配對成功後，系統將自動載入右側詳細面板，實時動態求解切線高度與大氣衰減。拖曳「雨衰模擬降雨率」滑桿，可基於 <strong>ITU-R P.618-14</strong> 國際標準動態模擬 Ku/Ka 頻段雨衰傳輸損耗。
+        </li>
+        <li style="font-size: 16px; margin-bottom: 9px; line-height: 1.6; color: #cbd5e1;">
+          <strong>地標/標籤顯示開關：</strong>點擊標題右側的綠色切換按鈕，可一鍵在三維地球上顯示或隱藏所有地面站的實體圓標與名稱標籤。
+        </li>
+      </ul>
+    </div>
+  `;
+  helpTrigger.appendChild(helpPopover);
+
+  const titleWrapper = document.createElement("div");
+  titleWrapper.style.display = "flex";
+  titleWrapper.style.alignItems = "center";
+  titleWrapper.style.gap = "6px";
+  titleWrapper.append(title, helpTrigger);
+
   const visibilityToggle = document.createElement("button");
   visibilityToggle.type = "button";
   visibilityToggle.className = "gs-filter-panel__vis-toggle";
   visibilityToggle.innerHTML =
     `<span class="gs-toggle__track" aria-hidden="true"><span class="gs-toggle__thumb"></span></span>`;
 
-  header.append(title, visibilityToggle);
+  header.append(titleWrapper, visibilityToggle);
 
   const selectA = createSelect(
     "ground-station-list-picker-station-a",
@@ -854,7 +898,9 @@ function createPickerElements(): PickerElements {
     orbitChips: orbitFilter.chips,
     handoverChips: handoverFilter.chips,
     regionChips: regionFilter.chips,
-    bandChips: bandFilter.chips
+    bandChips: bandFilter.chips,
+    helpTrigger,
+    helpPopover
   };
 }
 
@@ -1256,6 +1302,28 @@ export function mountStationListPicker(
     });
   }
 
+  // Ground Station Help UI Listeners
+  const toggleHelpPopover = (event: Event): void => {
+    event.stopPropagation();
+    elements.helpPopover.hidden = !elements.helpPopover.hidden;
+  };
+
+  const closeHelpPopover = (event: Event): void => {
+    event.stopPropagation();
+    elements.helpPopover.hidden = true;
+  };
+
+  elements.helpTrigger.addEventListener("click", toggleHelpPopover);
+  elements.helpPopover.querySelector(".gs-popover-close")?.addEventListener("click", closeHelpPopover);
+
+  const doc = elements.root.ownerDocument;
+  const handleOutsideHelpClick = (event: Event): void => {
+    if (!elements.helpTrigger.contains(event.target as Node)) {
+      elements.helpPopover.hidden = true;
+    }
+  };
+  doc.addEventListener("click", handleOutsideHelpClick);
+
   syncFilters();
   syncVisibilityToggle();
   reconcile(store.getSnapshot());
@@ -1269,6 +1337,8 @@ export function mountStationListPicker(
       elements.selectB.removeEventListener("change", handleStationBChange);
       elements.visibilityToggle.removeEventListener("click", handleVisibilityToggle);
       elements.filtersButton.removeEventListener("click", handleFiltersToggle);
+      elements.helpTrigger.removeEventListener("click", toggleHelpPopover);
+      doc.removeEventListener("click", handleOutsideHelpClick);
       delete viewerContainer.dataset.gsVisible;
       if (elements.root.parentElement) {
         elements.root.parentElement.removeChild(elements.root);

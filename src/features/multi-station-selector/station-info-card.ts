@@ -280,6 +280,86 @@ function renderCard(
   title.className = "ground-station-info-card__title";
   title.textContent = station.name;
 
+  // Create contextual help trigger and popover
+  const helpTrigger = document.createElement("button");
+  helpTrigger.type = "button";
+  helpTrigger.className = "gs-panel-help-trigger";
+  helpTrigger.setAttribute("aria-label", "開啟測站資料解讀指南");
+  helpTrigger.title = "測站資料解讀指南";
+  helpTrigger.innerHTML = "?";
+  helpTrigger.style.position = "relative";
+  helpTrigger.style.marginLeft = "6px";
+  helpTrigger.style.verticalAlign = "middle";
+
+  const helpPopover = document.createElement("div");
+  helpPopover.className = "gs-panel-help-popover";
+  helpPopover.hidden = true;
+  helpPopover.setAttribute("role", "tooltip");
+  helpPopover.style.position = "absolute";
+  helpPopover.style.left = "0";
+  helpPopover.style.top = "calc(100% + 8px)";
+  helpPopover.innerHTML = `
+    <header class="gs-popover-header">
+      <h4>測站詳細資料解讀指南</h4>
+      <button type="button" class="gs-popover-close" aria-label="關閉">&times;</button>
+    </header>
+    <div class="gs-popover-body">
+      <ul style="margin: 0; padding-left: 14px; list-style-type: disc;">
+        <li style="font-size: 16px; margin-bottom: 9px; line-height: 1.6; color: #cbd5e1; -webkit-text-fill-color: #cbd5e1 !important; text-align: left;">
+          <strong>營運商家族（Operator / Family）：</strong>該地面站的隸屬業者與電信集團（例如中華電信 CHT 或新加坡 Speedcast）。
+        </li>
+        <li style="font-size: 16px; margin-bottom: 9px; line-height: 1.6; color: #cbd5e1; -webkit-text-fill-color: #cbd5e1 !important; text-align: left;">
+          <strong>地理位置與經緯度：</strong>測站所在的國家、大洲區域與精確經緯度坐標，用於幾何可見性仰角計算。
+        </li>
+        <li style="font-size: 16px; margin-bottom: 9px; line-height: 1.6; color: #cbd5e1; -webkit-text-fill-color: #cbd5e1 !important; text-align: left;">
+          <strong>支援衛星軌道（Supported Orbits）：</strong>該測站物理上能追蹤的衛星軌道，如 <strong>LEO</strong>（低軌）、<strong>MEO</strong>（中軌）與 <strong>GEO</strong>（高軌）。
+        </li>
+        <li style="font-size: 16px; margin-bottom: 9px; line-height: 1.6; color: #cbd5e1; -webkit-text-fill-color: #cbd5e1 !important; text-align: left;">
+          <strong>工作頻段（Supported Bands）：</strong>地面站天線支援的通信頻段（如 Ku、Ka 頻段），這是大氣雨衰耗（ITU-R P.618-14）核心依據。
+        </li>
+        <li style="font-size: 16px; margin-bottom: 9px; line-height: 1.6; color: #cbd5e1; -webkit-text-fill-color: #cbd5e1 !important; text-align: left;">
+          <strong>資料公開精確度（Disclosure Precision）：</strong>標明測站資訊公開精準度級別，如電信商實證的 <strong>Site-level</strong>，或幾何推算出的 <strong>Generic-derived</strong>。
+        </li>
+      </ul>
+    </div>
+  `;
+  helpTrigger.appendChild(helpPopover);
+
+  const toggleHelp = (event: Event) => {
+    event.stopPropagation();
+    helpPopover.hidden = !helpPopover.hidden;
+  };
+
+  const closeHelp = (event: Event) => {
+    event.stopPropagation();
+    helpPopover.hidden = true;
+  };
+
+  helpTrigger.addEventListener("click", toggleHelp);
+  helpPopover.querySelector(".gs-popover-close")?.addEventListener("click", closeHelp);
+
+  if ((root as any).__disposeInfoHelp) {
+    (root as any).__disposeInfoHelp();
+  }
+
+  const doc = root.ownerDocument;
+  const handleOutsideClick = (event: Event) => {
+    if (!helpTrigger.contains(event.target as Node)) {
+      helpPopover.hidden = true;
+    }
+  };
+  doc.addEventListener("click", handleOutsideClick);
+
+  (root as any).__disposeInfoHelp = () => {
+    doc.removeEventListener("click", handleOutsideClick);
+  };
+
+  const titleWrapper = document.createElement("div");
+  titleWrapper.style.display = "flex";
+  titleWrapper.style.alignItems = "center";
+  titleWrapper.style.gap = "6px";
+  titleWrapper.append(title, helpTrigger);
+
   const closeButton = document.createElement("button");
   closeButton.type = "button";
   closeButton.className = "ground-station-info-card__close";
@@ -288,7 +368,7 @@ function renderCard(
   closeButton.textContent = "×";
   closeButton.dataset.groundStationInfoCardClose = "true";
 
-  header.append(title, closeButton);
+  header.append(titleWrapper, closeButton);
 
   const body = document.createElement("div");
   body.className = "ground-station-info-card__body";
@@ -467,6 +547,10 @@ export function mountGroundStationInfoCard(
     if (root.hidden) {
       return;
     }
+    if ((root as any).__disposeInfoHelp) {
+      (root as any).__disposeInfoHelp();
+      delete (root as any).__disposeInfoHelp;
+    }
     root.hidden = true;
     root.replaceChildren();
     delete root.dataset.activeStationId;
@@ -588,6 +672,10 @@ export function mountGroundStationInfoCard(
         return;
       }
       disposed = true;
+      if ((root as any).__disposeInfoHelp) {
+        (root as any).__disposeInfoHelp();
+        delete (root as any).__disposeInfoHelp;
+      }
       if (!root.hidden) {
         close();
       }

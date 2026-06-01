@@ -54,6 +54,7 @@
     0 0 16px rgba(52, 211, 153, 0.05);
   font-family: Outfit, Inter, "PingFang TC", "Microsoft JhengHei", system-ui, sans-serif;
   color: #cbd5e1;
+  -webkit-text-fill-color: #cbd5e1 !important;
   z-index: 99999;
   text-align: left;
   line-height: 1.5;
@@ -72,7 +73,7 @@
 
 .gs-popover-header h4 {
   margin: 0;
-  font-size: 16.5px;
+  font-size: 17px;
   font-weight: 700;
   color: #34d399;
 }
@@ -105,7 +106,7 @@
 }
 
 .gs-popover-body li {
-  font-size: 15px;
+  font-size: 16px;
   margin-bottom: 9px;
   line-height: 1.6;
   color: #cbd5e1;
@@ -137,11 +138,13 @@
   margin-left: 8px;
   vertical-align: middle;
   flex-shrink: 0;
+  position: relative !important;
 }
 
 .gs-panel-help-popover {
   top: calc(100% + 8px);
-  right: 0;
+  left: 0;
+  right: auto;
 }
 
 /* --- 3. Top-Right CTA Help Specific Positions --- */
@@ -165,7 +168,8 @@
   }
 }
 
-/* Avoid overlapping Cesium standard toolbar buttons */
+/* Avoid overlapping Cesium standard toolbar buttons & enlarge width for visual spaciousness */
 .cesium-navigation-help {
   top: 52px !important;
+  width: 380px !important;
 }

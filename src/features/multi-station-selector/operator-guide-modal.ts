@@ -31,16 +31,24 @@ export function mountTimelineHelp(container: HTMLElement): TimelineHelpHandle {
       <button type="button" class="gs-popover-close" aria-label="關閉">&times;</button>
     </header>
     <div class="gs-popover-body">
-      <ul>
-        <li><strong>時間軌道標尺（底部時間軸）：</strong>拖動綠色時間指標或直接點擊時間軸上的任意刻度，可自由前進或後退模擬時間點，即時觀察該特定時刻下所有軌道衛星的幾何可見性。</li>
-        <li><strong>播放控制面板（左下角）：</strong>
-          <ul style="padding-left: 12px; margin-top: 4px; margin-bottom: 4px;">
-            <li><code>▶</code> / <code>▮▮</code>（播放與暫停）：啟動或停止動態時間推進模擬。</li>
-            <li><code>◀◀</code> / <code>▶▶</code>（微步前進與後退）：在離散的時間採樣點間進行單步微調。</li>
+      <ul style="margin: 0; padding-left: 14px; list-style-type: disc;">
+        <li style="font-size: 16px; margin-bottom: 9px; line-height: 1.6; color: #cbd5e1;">
+          <strong>環形時間盤與播放鈕（左下角）：</strong>
+          <ul style="padding-left: 14px; margin-top: 4px; margin-bottom: 4px; list-style-type: circle;">
+            <li style="font-size: 16px; margin-bottom: 4px;"><code>▶</code> <strong>播放</strong> / <code>▮▮</code> <strong>暫停</strong>：啟動或暫停動態模擬的時間演進。</li>
+            <li style="font-size: 16px; margin-bottom: 4px;"><code>◀◀</code> / <code>▶▶</code> <strong>微步步進</strong>：可在離散採樣點間，往前或往後微調單個時間刻度。</li>
+            <li style="font-size: 16px; margin-bottom: 4px;"><strong>刻度環盤（時間旋鈕）</strong>：使用滑鼠沿指針順時針或逆時針拖曳，可以極細緻地手動旋轉微調時間快慢。</li>
           </ul>
         </li>
-        <li><strong>模擬速度切換（右下角倍速鍵）：</strong>點擊 <code>30x</code>、<code>60x</code> 或 <code>120x</code> 預設倍率按鈕，可加快或減慢模擬播放速率，便於流暢觀察長週期星地交接（Handover）決策變化。</li>
-        <li><strong>星曆同步：</strong>拖動時間軸時，右上角的 TLE 快照 telemetry 晶片、下方的 LEO 可見數量以及右側的 Ku/Ka 雨衰模擬數值皆會雙向即時重新運算並渲染。</li>
+        <li style="font-size: 16px; margin-bottom: 9px; line-height: 1.6; color: #cbd5e1;">
+          <strong>時間標尺與綠色指針（橫向時間軸）：</strong>橫向的綠色指針線代表當前模擬時間。您可用滑鼠直接拖曳綠色指針，或點擊時間軸上的任意刻度，快速跳轉至特定的歷史時刻。
+        </li>
+        <li style="font-size: 16px; margin-bottom: 9px; line-height: 1.6; color: #cbd5e1;">
+          <strong>模擬播放速度（右下角倍速鍵）：</strong>點擊 <code>30x</code>、<code>60x</code> 或 <code>120x</code> 預設倍率按鈕，可直接切換時間流逝倍速（例如 60x 代表每過真實 1 秒，模擬時間便推進 60 秒），便於流暢觀察長週期跨軌道交接決策。
+        </li>
+        <li style="font-size: 16px; margin-bottom: 9px; line-height: 1.6; color: #cbd5e1;">
+          <strong>星曆雙向同步：</strong>拖動時間軸時，右上角的 TLE 快照與模擬天線、下方的 LEO 衛星可見數量，以及雨衰計算數值皆會雙向即時重新運算並同步更新。
+        </li>
       </ul>
     </div>
   `;
@@ -101,61 +109,111 @@ export function integrateCesiumHelpButton(viewerContainer: HTMLElement): CesiumH
         const touchHelp = helpContainer.querySelector<HTMLElement>(".cesium-touch-navigation-help");
 
         if (leftBtn && rightBtn && mouseHelp && touchHelp) {
-          // Make space for 3 buttons by adjusting widths
+          // Make space for 4 buttons by adjusting widths
           const buttons = helpContainer.querySelectorAll<HTMLElement>(".cesium-navigation-button");
           buttons.forEach(btn => {
-            btn.style.width = "33.33%";
+            btn.style.width = "25%";
           });
 
-          // Create presets button
+          // Create native help tab button
+          const nativeBtn = doc.createElement("button");
+          nativeBtn.type = "button";
+          nativeBtn.className = "cesium-navigation-button cesium-navigation-button-native";
+          nativeBtn.style.width = "25%";
+          nativeBtn.textContent = "地圖按鈕";
+
+          // Create custom help tab button
           const presetsBtn = doc.createElement("button");
           presetsBtn.type = "button";
           presetsBtn.className = "cesium-navigation-button cesium-navigation-button-presets";
-          presetsBtn.style.width = "33.33%";
-          presetsBtn.textContent = "預設與視角";
+          presetsBtn.style.width = "25%";
+          presetsBtn.textContent = "系統新增";
 
-          // Create presets help panel
+          // Create native help panel
+          const nativeHelp = doc.createElement("div");
+          nativeHelp.className = "cesium-native-navigation-help";
+          nativeHelp.style.display = "none";
+          nativeHelp.style.padding = "14px 10px";
+          nativeHelp.style.color = "#cbd5e1";
+          nativeHelp.style.webkitTextFillColor = "#cbd5e1";
+          nativeHelp.style.fontSize = "16px";
+          nativeHelp.style.lineHeight = "1.6";
+          nativeHelp.innerHTML = `
+            <ul style="margin: 0; padding-left: 16px; list-style-type: disc;">
+              <li style="margin-bottom: 12px; font-size: 16px;"><strong>🔍 搜尋鍵（Geocoder）：</strong>輸入地名、國家或經緯度坐標，相機將自動飛越並聚焦至該地。</li>
+              <li style="margin-bottom: 12px; font-size: 16px;"><strong>🏠 重置相機（Home Button）：</strong>點擊「小房子」可一鍵重置視角，返回地球全景的初始預設範圍。</li>
+              <li style="margin-bottom: 12px; font-size: 16px;"><strong>🌐 維度切換（Scene Mode Picker）：</strong>一鍵在「3D 三維球體」、「2D 平面地圖」與「2.5D 哥倫布投影」視角間切換。</li>
+              <li style="margin-bottom: 12px; font-size: 16px;"><strong>🗺️ 底圖切換（Base Layer Picker）：</strong>切換底圖影像（衛星圖、電子地圖）與啟用/停用真實 3D 地形起伏（Terrain）。</li>
+            </ul>
+          `;
+
+          // Create custom help panel
           const presetsHelp = doc.createElement("div");
           presetsHelp.className = "cesium-presets-navigation-help";
           presetsHelp.style.display = "none";
           presetsHelp.style.padding = "14px 10px";
           presetsHelp.style.color = "#cbd5e1";
-          presetsHelp.style.fontSize = "15px";
+          presetsHelp.style.webkitTextFillColor = "#cbd5e1";
+          presetsHelp.style.fontSize = "16px";
           presetsHelp.style.lineHeight = "1.6";
           presetsHelp.innerHTML = `
-            <ul style="margin: 0; padding-left: 16px;">
-              <li style="margin-bottom: 12px;"><strong>場景預設切換按鈕（位於右上角地圖控制列中）：</strong>
-                <ul style="padding-left: 12px; margin-top: 4px; margin-bottom: 4px;">
-                  <li style="margin-bottom: 8px;"><strong>綠色圓形「網格軌道地球」按鈕：</strong>若您目前在右上角看到一個綠色軌道地球按鈕，點擊它可以直接切換為「中華電信（陽明山分公司）與新加坡 Speedcast / 南非 SANSA 地面站」的跨軌道星地鏈路投影分析。</li>
-                  <li style="margin-bottom: 8px;"><strong>黃色圓形「飛機與雙星交接」按鈕：</strong>若您在右上角看到一個黃色飛機按鈕，點擊它可以進入「OneWeb LEO + Intelsat GEO 歷史航空交接」動態模擬，場景將自動播放三維動畫。</li>
+            <ul style="margin: 0; padding-left: 16px; list-style-type: disc;">
+              <li style="margin-bottom: 12px; font-size: 16px;"><strong>🟢 綠色方形「網格軌道地球」按鈕：</strong>點擊可直接切換至「中華電信（陽明山分公司）與新加坡 Speedcast / 南非 SANSA 地面站」的跨軌道星地鏈路投影分析。</li>
+              <li style="margin-bottom: 12px; font-size: 16px;">
+                <strong>💡 為什麼 Demo 選擇這三個測站？</strong>
+                <ul style="padding-left: 14px; margin-top: 4px; margin-bottom: 4px; list-style-type: circle;">
+                  <li style="font-size: 16px; margin-bottom: 6px;"><strong>中華電信（陽明山）與新加坡 Speedcast</strong>：屬於經電信商實測驗證（Tier 1）的經典實際測站配對，具備極高的真實傳輸與網路對接參考價值。</li>
+                  <li style="font-size: 16px; margin-bottom: 6px;"><strong>結合南非太空局（SANSA）哈特比斯特霍克測站</strong>：可模擬橫跨亞、非兩洲的超長距離全球化跨軌道（LEO/MEO/GEO）星地鏈路，完整展示動態視線遮蔽、大氣雨衰影響（ITU-R P.618-14）及複雜的衛星交接決策。</li>
                 </ul>
               </li>
-              <li style="margin-bottom: 12px;"><strong>三維球體聚焦追蹤操控：</strong>在畫面上雙擊（Double Click）地球或任何衛星，可將相機焦點直接鎖定追蹤該物體，滑動滑鼠滾輪可調整焦距與縮放比例。</li>
+              <li style="margin-bottom: 12px; font-size: 16px;"><strong>📍 地面站單擊交互（Single Click）：</strong>在三維地球上直接<strong>單擊</strong>任何一個地面站的彩色圓形地標或標籤，即可平滑飛越聚焦該測站，同時自動在左側選單中將其選中為 Station A 或 B，並在左下角展開詳細能力卡片。</li>
             </ul>
           `;
 
-          // Insert button after right button
-          rightBtn.parentNode?.insertBefore(presetsBtn, rightBtn.nextSibling);
-          // Append panel
+          // Insert buttons after right button
+          rightBtn.parentNode?.insertBefore(nativeBtn, rightBtn.nextSibling);
+          nativeBtn.parentNode?.insertBefore(presetsBtn, nativeBtn.nextSibling);
+
+          // Append panels
+          helpContainer.appendChild(nativeHelp);
           helpContainer.appendChild(presetsHelp);
 
-          const activatePresets = () => {
+          const activateNative = () => {
             leftBtn.classList.remove("cesium-navigation-button-selected");
             rightBtn.classList.remove("cesium-navigation-button-selected");
+            presetsBtn.classList.remove("cesium-navigation-button-selected");
+            nativeBtn.classList.add("cesium-navigation-button-selected");
+
+            mouseHelp.classList.remove("cesium-navigation-help-active");
+            mouseHelp.style.display = "none";
+            touchHelp.classList.remove("cesium-navigation-help-active");
+            touchHelp.style.display = "none";
+            presetsHelp.style.display = "none";
+
+            nativeHelp.style.display = "block";
+          };
+
+          const activateCustom = () => {
+            leftBtn.classList.remove("cesium-navigation-button-selected");
+            rightBtn.classList.remove("cesium-navigation-button-selected");
+            nativeBtn.classList.remove("cesium-navigation-button-selected");
             presetsBtn.classList.add("cesium-navigation-button-selected");
 
             mouseHelp.classList.remove("cesium-navigation-help-active");
             mouseHelp.style.display = "none";
             touchHelp.classList.remove("cesium-navigation-help-active");
             touchHelp.style.display = "none";
+            nativeHelp.style.display = "none";
 
             presetsHelp.style.display = "block";
           };
 
-          const deactivatePresets = () => {
+          const deactivateAllCustom = () => {
+            nativeBtn.classList.remove("cesium-navigation-button-selected");
             presetsBtn.classList.remove("cesium-navigation-button-selected");
+            nativeHelp.style.display = "none";
             presetsHelp.style.display = "none";
-            // restore block/none based on standard cesium behavior
+
             setTimeout(() => {
               if (leftBtn.classList.contains("cesium-navigation-button-selected")) {
                 mouseHelp.style.display = "";
@@ -167,13 +225,14 @@ export function integrateCesiumHelpButton(viewerContainer: HTMLElement): CesiumH
             }, 10);
           };
 
-          presetsBtn.addEventListener("click", activatePresets);
-          leftBtn.addEventListener("click", deactivatePresets);
-          rightBtn.addEventListener("click", deactivatePresets);
+          nativeBtn.addEventListener("click", activateNative);
+          presetsBtn.addEventListener("click", activateCustom);
+          leftBtn.addEventListener("click", deactivateAllCustom);
+          rightBtn.addEventListener("click", deactivateAllCustom);
           return;
         }
       }
-      
+
       attempts++;
       if (attempts < 30) {
         setTimeout(tryInject, 10);
