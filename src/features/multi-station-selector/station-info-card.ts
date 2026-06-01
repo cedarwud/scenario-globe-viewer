@@ -290,6 +290,7 @@ function renderCard(
   helpTrigger.style.position = "relative";
   helpTrigger.style.flex = "0 0 auto";
   helpTrigger.style.alignSelf = "flex-start";
+  helpTrigger.style.marginTop = "3px";
 
   const helpPopover = document.createElement("div");
   helpPopover.className = "gs-panel-help-popover";
