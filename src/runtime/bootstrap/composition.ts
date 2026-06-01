@@ -492,7 +492,8 @@ function bindLightingRefresh(viewer: ViewerInstance): () => void {
 export function startBootstrapComposition(app: HTMLDivElement): BootstrapComposition {
   const searchParams = new URLSearchParams(window.location.search);
   const reportParam = searchParams.get("report");
-  if (reportParam === "evidence") {
+  const isReportRoute = window.location.pathname.startsWith("/report") || reportParam === "evidence";
+  if (isReportRoute) {
     void (async () => {
       app.innerHTML = `
         <style>

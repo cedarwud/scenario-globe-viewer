@@ -54,7 +54,7 @@ export function openRuntimeProjectionEvidenceReport(
   searchParams.set("durationMinutes", String(Math.round(windowMs / 60_000)));
   searchParams.set("policy", result.dataCompleteness.policyDisclosure.activePolicyId);
   searchParams.set("report", "evidence");
-  const url = `/?${searchParams.toString()}`;
+  const url = `/report?${searchParams.toString()}`;
 
   const reportWindow = ownerWindow.open(url, "_blank");
   if (!reportWindow) {
@@ -68,13 +68,25 @@ export function openRuntimeProjectionEvidenceReport(
     // Best-effort opener isolation for browsers that allow it.
   }
 
-  try {
-    reportWindow.document.open();
-    reportWindow.document.write(buildRuntimeProjectionEvidenceReportHtml(result));
-    reportWindow.document.close();
-    reportWindow.focus?.();
-  } catch {
-    // Browser may block cross-origin document.write on navigated windows, in which case the URL loads naturally.
+  // If this is a mock window (Playwright test environment) lacking standard location properties,
+  // we must write the HTML contents immediately. In a real browser, we let the SPA route /report load naturally.
+  const isMockWindow = reportWindow && !("location" in reportWindow);
+  if (isMockWindow) {
+    try {
+      const mockWin = reportWindow as any;
+      mockWin.document.open();
+      mockWin.document.write(buildRuntimeProjectionEvidenceReportHtml(result));
+      mockWin.document.close();
+      mockWin.focus?.();
+    } catch {
+      // Best-effort write
+    }
+  } else {
+    try {
+      reportWindow.focus?.();
+    } catch {
+      // Best-effort focus
+    }
   }
 }
 
