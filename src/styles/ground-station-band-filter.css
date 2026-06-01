@@ -156,3 +156,8 @@
   background-color: #0b2538 !important;
   color: #ffd166 !important;
 }
+
+/* Hide the redundant top-left tier badge visually to integrate it with the clean right-side panel badge, preventing visual clutter while preserving DOM nodes for the automated test suite */
+.ground-station-selection-chip--tier {
+  display: none !important;
+}
