@@ -110,7 +110,8 @@ function renderLoading(root: HTMLElement, pair: V4ResolvedStationPair): void {
 
   const title = document.createElement("h2");
   title.className = "v4-projection-side-panel__title";
-  title.textContent = `Runtime projection · ${pair.stationA.name} ↔ ${pair.stationB.name}`;
+  title.textContent = "Link Projection";
+  title.title = `${pair.stationA.name} ↔ ${pair.stationB.name}`;
 
   const status = document.createElement("p");
   status.className = "v4-projection-side-panel__status";
@@ -1124,9 +1125,9 @@ function buildHeaderRow(
 
   const title = document.createElement("h2");
   title.className = "v4-projection-side-panel__title";
-  const titleText = viewModel.pairLabel;
+  const titleText = "Link Projection";
   title.textContent = titleText;
-  title.title = titleText;
+  title.title = viewModel.pairLabel;
 
   const tierAttribution = result.dataCompleteness.pairSourceAttribution;
   const tierBadge = document.createElement("span");
