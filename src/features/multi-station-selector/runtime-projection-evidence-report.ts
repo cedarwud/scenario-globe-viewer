@@ -1092,6 +1092,42 @@ export function buildRuntimeProjectionEvidenceReportHtml(
         flex: 1 1 auto;
       }
     }
+    .back-to-top-btn {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      border: 1px solid var(--accent);
+      background: var(--bg-surface);
+      color: var(--accent);
+      backdrop-filter: blur(12px);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(16px);
+      transition: opacity 0.25s, transform 0.25s, background 0.2s, border-color 0.2s, box-shadow 0.2s;
+      z-index: 99;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+    }
+    .back-to-top-btn:hover {
+      background: var(--accent);
+      color: #ffffff;
+      box-shadow: 0 0 16px var(--accent-glow);
+      transform: translateY(-2px);
+    }
+    .back-to-top-btn:active {
+      transform: translateY(0);
+    }
+    .back-to-top-btn.visible {
+      opacity: 1;
+      pointer-events: auto;
+      transform: translateY(0);
+    }
   </style>
 </head>
 <body data-report-filename="${escapeHtml(filename)}">
@@ -1188,8 +1224,26 @@ export function buildRuntimeProjectionEvidenceReportHtml(
           details.open = false;
         }
       });
+      const backToTopBtn = document.querySelector("[data-back-to-top]");
+      if (backToTopBtn) {
+        window.addEventListener("scroll", () => {
+          if (window.scrollY > 250) {
+            backToTopBtn.classList.add("visible");
+          } else {
+            backToTopBtn.classList.remove("visible");
+          }
+        });
+        backToTopBtn.addEventListener("click", () => {
+          window.scrollTo({ top: 0, behavior: "smooth" });
+        });
+      }
     })();
   </script>
+  <button type="button" class="back-to-top-btn" data-back-to-top aria-label="Scroll to top" title="Scroll to top">
+    <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round">
+      <polyline points="18 15 12 9 6 15"></polyline>
+    </svg>
+  </button>
 </body>
 </html>`;
 }
