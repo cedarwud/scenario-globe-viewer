@@ -49,11 +49,6 @@ export function openRuntimeProjectionEvidenceReport(
   const searchParams = new URLSearchParams();
   searchParams.set("stationA", result.pair.stationA.id);
   searchParams.set("stationB", result.pair.stationB.id);
-  searchParams.set("startUtc", result.timeWindow.startUtc);
-  const windowMs = Date.parse(result.timeWindow.endUtc) - Date.parse(result.timeWindow.startUtc);
-  searchParams.set("durationMinutes", String(Math.round(windowMs / 60_000)));
-  searchParams.set("policy", result.dataCompleteness.policyDisclosure.activePolicyId);
-  searchParams.set("report", "evidence");
   const url = `/report?${searchParams.toString()}`;
 
   const reportWindow = ownerWindow.open(url, "_blank");
