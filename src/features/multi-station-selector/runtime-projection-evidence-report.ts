@@ -669,7 +669,7 @@ export function buildRuntimeProjectionEvidenceReportHtml(
       background: var(--bg-base);
       color: var(--text-primary);
       min-height: 100vh;
-      font-size: 18px;
+      font-size: 20px;
     }
     header {
       background: linear-gradient(180deg, rgba(52, 211, 153, 0.06) 0%, transparent 100%);
@@ -689,7 +689,7 @@ export function buildRuntimeProjectionEvidenceReportHtml(
     h1 {
       max-width: 820px;
       margin: 0 0 10px;
-      font-size: clamp(30px, 4.5vw, 42px);
+      font-size: clamp(22px, 3.2vw, 30px);
       font-weight: 700;
       line-height: 1.16;
       letter-spacing: -0.02em;
@@ -697,7 +697,7 @@ export function buildRuntimeProjectionEvidenceReportHtml(
     }
     h2 {
       margin: 0 0 18px;
-      font-size: 28px;
+      font-size: 24px;
       font-weight: 600;
       line-height: 1.2;
       letter-spacing: -0.01em;
@@ -705,7 +705,7 @@ export function buildRuntimeProjectionEvidenceReportHtml(
     }
     h3 {
       margin: 28px 0 14px;
-      font-size: 22px;
+      font-size: 20px;
       font-weight: 600;
       line-height: 1.3;
       letter-spacing: 0;
@@ -715,7 +715,7 @@ export function buildRuntimeProjectionEvidenceReportHtml(
     .meta {
       color: var(--text-secondary);
       margin: 0;
-      font-size: 17px;
+      font-size: 18px;
     }
     .report-actions {
       display: flex;
@@ -724,14 +724,14 @@ export function buildRuntimeProjectionEvidenceReportHtml(
       align-items: center;
     }
     .report-button {
-      min-height: 42px;
+      min-height: 44px;
       padding: 0 20px;
       border: 1px solid var(--accent-dim);
       border-radius: 8px;
       background: var(--accent-dim);
       color: #ffffff;
       font: inherit;
-      font-size: 17px;
+      font-size: 18px;
       font-weight: 600;
       letter-spacing: 0;
       cursor: pointer;
@@ -779,14 +779,14 @@ export function buildRuntimeProjectionEvidenceReportHtml(
       gap: 6px;
     }
     [role="tab"] {
-      min-height: 40px;
+      min-height: 44px;
       padding: 0 16px;
       border: 1px solid var(--border-subtle);
       border-radius: 8px;
       background: var(--bg-card);
       color: var(--text-secondary);
       font: inherit;
-      font-size: 17px;
+      font-size: 18px;
       cursor: pointer;
       letter-spacing: 0;
       transition: all 0.15s;
@@ -803,7 +803,7 @@ export function buildRuntimeProjectionEvidenceReportHtml(
       box-shadow: 0 0 12px var(--accent-glow);
     }
     input[type="search"] {
-      min-height: 40px;
+      min-height: 44px;
       min-width: min(320px, 100%);
       margin-left: auto;
       padding: 0 12px;
@@ -812,7 +812,7 @@ export function buildRuntimeProjectionEvidenceReportHtml(
       background: var(--bg-card);
       color: var(--text-primary);
       font: inherit;
-      font-size: 17px;
+      font-size: 18px;
       letter-spacing: 0;
       outline: none;
       transition: border-color 0.15s;
@@ -856,7 +856,7 @@ export function buildRuntimeProjectionEvidenceReportHtml(
     .evidence-card span {
       display: block;
       color: var(--text-muted);
-      font-size: 14px;
+      font-size: 15px;
       font-weight: 600;
       letter-spacing: 0.04em;
       text-transform: uppercase;
@@ -866,7 +866,7 @@ export function buildRuntimeProjectionEvidenceReportHtml(
       display: block;
       margin-top: 8px;
       color: var(--text-primary);
-      font-size: 36px;
+      font-size: 38px;
       font-weight: 700;
       line-height: 1.18;
       overflow-wrap: anywhere;
@@ -876,7 +876,7 @@ export function buildRuntimeProjectionEvidenceReportHtml(
     .callout p {
       margin: 8px 0 0;
       color: var(--text-secondary);
-      font-size: 16px;
+      font-size: 18px;
       line-height: 1.55;
     }
     .evidence-card[data-tone="ok"] {
@@ -904,7 +904,7 @@ export function buildRuntimeProjectionEvidenceReportHtml(
     }
     .callout strong {
       color: var(--text-primary);
-      font-size: 17px;
+      font-size: 18px;
     }
     .report-section,
     .callout {
@@ -923,7 +923,7 @@ export function buildRuntimeProjectionEvidenceReportHtml(
     table {
       width: 100%;
       border-collapse: collapse;
-      font-size: 16px;
+      font-size: 18px;
     }
     th,
     td {
@@ -938,7 +938,7 @@ export function buildRuntimeProjectionEvidenceReportHtml(
       background: rgba(12, 26, 42, 0.95);
       color: var(--accent);
       font-weight: 600;
-      font-size: 15px;
+      font-size: 16px;
       letter-spacing: 0.03em;
       text-transform: uppercase;
       z-index: 1;
@@ -964,7 +964,7 @@ export function buildRuntimeProjectionEvidenceReportHtml(
     }
     ul li {
       margin-bottom: 4px;
-      font-size: 17px;
+      font-size: 18px;
     }
     ul li::marker {
       color: var(--accent-dim);
@@ -978,19 +978,19 @@ export function buildRuntimeProjectionEvidenceReportHtml(
       background: rgba(4, 10, 18, 0.9);
       color: #a5f3c4;
       font-family: "IBM Plex Mono", "Fira Code", monospace;
-      font-size: 15px;
+      font-size: 17px;
       line-height: 1.5;
     }
     .section-desc {
       color: var(--text-secondary);
-      font-size: 16px;
+      font-size: 18px;
       margin-top: -6px;
       margin-bottom: 14px;
       line-height: 1.5;
     }
     .json-explorer {
       font-family: "IBM Plex Mono", "Fira Code", monospace;
-      font-size: 15px;
+      font-size: 17px;
       line-height: 1.6;
       background: rgba(4, 10, 18, 0.95);
       border: 1px solid var(--border-subtle);
@@ -1226,13 +1226,18 @@ export function buildRuntimeProjectionEvidenceReportHtml(
       });
       const backToTopBtn = document.querySelector("[data-back-to-top]");
       if (backToTopBtn) {
-        window.addEventListener("scroll", () => {
-          if (window.scrollY > 250) {
+        const handleScroll = () => {
+          const scrollTop = window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop || 0;
+          if (scrollTop > 100) {
             backToTopBtn.classList.add("visible");
           } else {
             backToTopBtn.classList.remove("visible");
           }
-        });
+        };
+        window.addEventListener("scroll", handleScroll);
+        // Initialize once to guarantee correct state on load/reload
+        handleScroll();
+
         backToTopBtn.addEventListener("click", () => {
           window.scrollTo({ top: 0, behavior: "smooth" });
         });
