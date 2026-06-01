@@ -1119,6 +1119,131 @@ function buildHeaderRow(
   title.textContent = titleText;
   title.title = viewModel.pairLabel;
 
+  // Create contextual help trigger and popover
+  const helpTrigger = document.createElement("button");
+  helpTrigger.type = "button";
+  helpTrigger.className = "gs-panel-help-trigger";
+  helpTrigger.setAttribute("aria-label", "開啟鏈路投影與分析指南");
+  helpTrigger.title = "鏈路投影與分析指南";
+  helpTrigger.innerHTML = "?";
+  helpTrigger.style.position = "relative";
+  helpTrigger.style.flex = "0 0 auto";
+  helpTrigger.style.marginLeft = "8px";
+  helpTrigger.style.marginRight = "8px";
+  helpTrigger.style.alignSelf = "center";
+
+  const helpPopover = document.createElement("div");
+  helpPopover.className = "gs-panel-help-popover";
+  helpPopover.hidden = true;
+  helpPopover.setAttribute("role", "tooltip");
+  helpPopover.style.position = "absolute";
+  helpPopover.style.right = "calc(2.25rem + clamp(25rem, 35vw, 30rem))";
+  helpPopover.style.left = "auto";
+  helpPopover.style.top = "4rem";
+  helpPopover.innerHTML = `
+    <header class="gs-popover-header">
+      <h4>鏈路投影與分析指南</h4>
+      <button type="button" class="gs-popover-close" aria-label="關閉">&times;</button>
+    </header>
+    <div class="gs-popover-body">
+      <div class="gs-popover-tabs" style="display: flex; gap: 4px; margin-bottom: 10px; border-bottom: 1px solid rgba(157, 196, 232, 0.15); padding-bottom: 6px;">
+        <button type="button" class="gs-popover-tab-btn active" data-tab="tab1" style="background: rgba(52, 211, 153, 0.15); border: 1px solid #34d399; color: #34d399; border-radius: 4px; padding: 4px 8px; font-size: 13px; cursor: pointer; flex: 1; text-align: center;">鏈路與物理</button>
+        <button type="button" class="gs-popover-tab-btn" data-tab="tab2" style="background: transparent; border: 1px solid rgba(157, 196, 232, 0.2); color: #8ba2bd; border-radius: 4px; padding: 4px 8px; font-size: 13px; cursor: pointer; flex: 1; text-align: center;">交接與報表</button>
+      </div>
+      
+      <div class="gs-popover-tab-content" id="tab1-content" style="display: block;">
+        <ul style="margin: 0; padding-left: 14px; list-style-type: disc;">
+          <li style="font-size: 16px; margin-bottom: 8px; line-height: 1.5; color: #cbd5e1;">
+            <strong>🌧️ 雨衰模擬降雨率：</strong>基於 <strong>ITU-R P.618-14</strong> 國際標準，拖曳滑桿可動態模擬降雨率（mm/h）對 Ku/Ka 頻段造成的傳輸雨衰減損耗。
+          </li>
+          <li style="font-size: 16px; margin-bottom: 8px; line-height: 1.5; color: #cbd5e1;">
+            <strong>⏱️ 累計通訊時間 (Comm Time)：</strong>星地幾何切線高度符合仰角限制時，在 6 小時分析窗口內的累計可用通訊分鐘數。
+          </li>
+          <li style="font-size: 16px; margin-bottom: 8px; line-height: 1.5; color: #cbd5e1;">
+            <strong>🔄 鏈路交接次數 (Handovers)：</strong>當前測站與動態天線在星地拓撲時間軸上演進時，所執行的動態交接次數。
+          </li>
+        </ul>
+      </div>
+      <div class="gs-popover-tab-content" id="tab2-content" style="display: none;">
+        <ul style="margin: 0; padding-left: 14px; list-style-type: disc;">
+          <li style="font-size: 16px; margin-bottom: 8px; line-height: 1.5; color: #cbd5e1;">
+            <strong>🛰️ 候選星推薦 (Next 3 LEO)：</strong>基於測站實時仰角、通訊衰耗與多天線追蹤能力，實時推薦最優的前 3 顆動態交接候選衛星。
+          </li>
+          <li style="font-size: 16px; margin-bottom: 8px; line-height: 1.5; color: #cbd5e1;">
+            <strong>🛡️ V-MO1 跨軌交接：</strong>採用符合 <strong>3GPP TR 38.821</strong> 架構的無縫跨軌道星地鏈路動態交接技術，實現不中斷的高可靠通訊。
+          </li>
+          <li style="font-size: 16px; margin-bottom: 8px; line-height: 1.5; color: #cbd5e1;">
+            <strong>📊 報表與 CSV 資料下載：</strong>點擊底部按鈕可生成高可信度的實證 PDF/HTML 分析報告，或匯出包含完整星曆、仰角、大氣損耗之 CSV 精確數據集，供第三方系統對接。
+          </li>
+        </ul>
+      </div>
+    </div>
+  `;
+
+  const mountPopover = () => {
+    if (!helpPopover.parentElement) {
+      const parent = (row.parentElement && row.parentElement.parentElement) || row.ownerDocument.body;
+      parent.appendChild(helpPopover);
+    }
+  };
+
+  const toggleHelp = (event: Event) => {
+    event.stopPropagation();
+    mountPopover();
+    helpPopover.hidden = !helpPopover.hidden;
+  };
+
+  const closeHelp = (event: Event) => {
+    event.stopPropagation();
+    helpPopover.hidden = true;
+  };
+
+  helpTrigger.addEventListener("click", toggleHelp);
+  helpPopover.querySelector(".gs-popover-close")?.addEventListener("click", closeHelp);
+
+  const tabBtns = helpPopover.querySelectorAll(".gs-popover-tab-btn");
+  const tabContents = helpPopover.querySelectorAll(".gs-popover-tab-content");
+
+  tabBtns.forEach(btn => {
+    btn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const targetTab = btn.getAttribute("data-tab");
+      
+      tabBtns.forEach(b => {
+        (b as HTMLElement).style.background = "transparent";
+        (b as HTMLElement).style.borderColor = "rgba(157, 196, 232, 0.2)";
+        (b as HTMLElement).style.color = "#8ba2bd";
+      });
+      
+      (btn as HTMLElement).style.background = "rgba(52, 211, 153, 0.15)";
+      (btn as HTMLElement).style.borderColor = "#34d399";
+      (btn as HTMLElement).style.color = "#34d399";
+
+      tabContents.forEach(content => {
+        if (content.id === `${targetTab}-content`) {
+          (content as HTMLElement).style.display = "block";
+        } else {
+          (content as HTMLElement).style.display = "none";
+        }
+      });
+    });
+  });
+
+  const doc = row.ownerDocument;
+  const handleOutsideClick = (event: Event) => {
+    if (!helpTrigger.contains(event.target as Node) && !helpPopover.contains(event.target as Node)) {
+      helpPopover.hidden = true;
+    }
+  };
+  doc.addEventListener("click", handleOutsideClick);
+
+  (row as any).__disposeHelp = () => {
+    doc.removeEventListener("click", handleOutsideClick);
+    if (helpPopover.parentElement) {
+      helpPopover.parentElement.removeChild(helpPopover);
+    }
+  };
+
   const tierAttribution = result.dataCompleteness.pairSourceAttribution;
   const tierBadge = document.createElement("span");
   tierBadge.className = "v4-projection-side-panel__tier-badge";
@@ -1128,7 +1253,7 @@ function buildHeaderRow(
   tierBadge.textContent = tierLabel;
   tierBadge.title = tierAttribution.badgeLabel;
 
-  titleContainer.append(title, tierBadge);
+  titleContainer.append(title, helpTrigger, tierBadge);
 
   const windowLine = document.createElement("p");
   windowLine.className = "v4-projection-side-panel__window";
