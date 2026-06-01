@@ -233,7 +233,9 @@ function formatStationOptionText(
   snapshot: SelectionSnapshot
 ): string {
   const flag = getCountryFlag(station.country);
-  const prefix = flag ? `${flag} ` : "";
+  const orbitsCount = station.supportedOrbits.length;
+  const dot = orbitsCount === 3 ? "🟢" : orbitsCount === 2 ? "🔵" : "🟡";
+  const prefix = `${dot} ${flag ? flag + " " : ""}`;
   const countrySuffix = ` [${station.country}]`;
 
   const pairKinds = getStationHandoverFilterKinds(station, snapshot);

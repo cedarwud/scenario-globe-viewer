@@ -128,3 +128,27 @@
   height: 1.65rem;
   font-size: 1.15rem;
 }
+
+/* Colorized select dropdown styling */
+.ground-station-list-picker__select optgroup {
+  background-color: #03121b;
+  color: #ffd166; /* Gorgeous gold for regional headings! */
+  font-weight: 700;
+  font-size: 1.18rem;
+  padding: 0.45rem;
+}
+
+.ground-station-list-picker__select option {
+  background-color: #061724;
+  color: #dde9f1; /* High-contrast light text for options */
+  font-weight: 500;
+  font-size: 1.18rem;
+  padding: 0.38rem 0.55rem;
+}
+
+/* Style active/hover options if browser rendering engine supports it */
+.ground-station-list-picker__select option:hover,
+.ground-station-list-picker__select option:focus {
+  background-color: #0b2538 !important;
+  color: #ffd166 !important;
+}
