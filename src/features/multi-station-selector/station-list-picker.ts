@@ -839,7 +839,7 @@ function createPickerElements(): PickerElements {
   titleWrapper.style.alignItems = "center";
   titleWrapper.style.gap = "6px";
   titleWrapper.style.position = "relative";
-  titleWrapper.append(title, helpTrigger, helpPopover);
+  titleWrapper.append(title, helpTrigger);
 
   const visibilityToggle = document.createElement("button");
   visibilityToggle.type = "button";
@@ -907,6 +907,7 @@ function createPickerElements(): PickerElements {
 
   root.append(
     header,
+    helpPopover,
     createField(selectA.id, "Station A", selectA),
     createField(selectB.id, "Station B", selectB),
     filtersButton,

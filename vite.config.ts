@@ -86,11 +86,19 @@ export default defineConfig({
   server: {
     host: "0.0.0.0",
     port: 5173,
-    strictPort: true
+    strictPort: true,
+    // Vite's DNS-rebinding guard (server.allowedHosts) 403-blocks any request
+    // whose Host header is a domain name not on the allowlist. Binding to
+    // 0.0.0.0 alone is not enough for external access: reaching the dev server
+    // through a hostname/reverse proxy/tunnel returns "Blocked request. This
+    // host is not allowed." and the globe never mounts. Allow any host so the
+    // intended external access actually works.
+    allowedHosts: true
   },
   preview: {
     host: "0.0.0.0",
     port: 5173,
-    strictPort: true
+    strictPort: true,
+    allowedHosts: true
   }
 });

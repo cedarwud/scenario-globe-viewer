@@ -153,7 +153,10 @@
 }
 
 .ground-station-list-picker__help-popover {
-  width: min(31rem, calc(100vw - 2rem));
+  top: 0;
+  right: auto;
+  left: calc(100% + 0.75rem);
+  width: min(31rem, calc(100vw - 30.25rem));
   max-height: min(30rem, calc(100dvh - 8rem));
   overflow-y: auto;
   overscroll-behavior: contain;
@@ -213,7 +216,7 @@
   line-height: 1.52;
 }
 
-@media (max-width: 720px), (max-height: 760px) {
+@media (max-width: 720px) {
   .ground-station-list-picker__help-popover {
     position: absolute;
     top: auto;
