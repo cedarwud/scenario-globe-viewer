@@ -11,7 +11,7 @@ export const ACCEPTED_NEARBY_SECOND_ENDPOINT_SCENARIO_ID: NearbySecondEndpointSc
 export const ACCEPTED_NEARBY_SECOND_ENDPOINT_CORRIDOR_PACKAGE_ID =
   "ac-cgojz-crj900-c06aa4-2026-04-21";
 export const ACCEPTED_NEARBY_SECOND_ENDPOINT_PACKAGE_ROOT =
-  "itri/multi-orbit/download/nearby-second-endpoints/m8a-yka-operations-office-2026-04-23";
+  "accepted-sources/multi-orbit/download/nearby-second-endpoints/m8a-yka-operations-office-2026-04-23";
 export const ACCEPTED_NEARBY_SECOND_ENDPOINT_AUTHORITY_PACKAGE_PATH =
   `${ACCEPTED_NEARBY_SECOND_ENDPOINT_PACKAGE_ROOT}/authority-package.md`;
 export const ACCEPTED_NEARBY_SECOND_ENDPOINT_POSITION_PATH =

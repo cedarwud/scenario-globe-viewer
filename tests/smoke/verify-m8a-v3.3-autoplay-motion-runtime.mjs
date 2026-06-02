@@ -16,7 +16,7 @@ import {
 // M8A-V3.3 regression lock. V3.1 (8d93aea) wired the addressed-route
 // `firstIntakeAutoplay=1` flag to `firstIntakeReplayTimeAuthority.replayClock.play()`
 // so entry-time motion is visible through the Cesium animation widget + timeline
-// (motion-visibility option (c) in docs/sdd/m8a-v3-motion-and-replay-affordance-plan.md).
+// Motion-visibility runtime gate.
 // R1V.2 already asserts the paused-default behavior on the no-flag route; this
 // smoke test locks the flagged (autoplay) path so a regression cannot silently
 // ship with the CTA advertising autoplay while the route lands paused.

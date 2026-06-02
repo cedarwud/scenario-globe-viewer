@@ -35,7 +35,7 @@ artefact is permitted.
 
 ## Requirement ID convention
 
-Cite requirements by ID from `/home/u24/papers/itri/requirements-consolidated.md`:
+Cite requirements by ID from `/home/u24/papers/requirement/requirements-consolidated.md`:
 
 - `K-A2` — link quality rules (latency / jitter / network speed) per orbit
 - `K-A3-a` — antenna parameters (peak gain, beamwidth, pattern)

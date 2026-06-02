@@ -12,11 +12,9 @@ and 7.x.
 
 For this repo, `offline-first` is now interpreted as "stay on Cesium's upstream runtime path and avoid repo-local forks or fake substitute shells." It does not mean disabling Cesium-native controls, imagery, terrain, or geocoding simply because those defaults may be backed by Cesium services.
 
-Related roadmap: see [delivery-phases.md](./delivery-phases.md).
 Related evidence ledger: see [cesium-evidence.md](./cesium-evidence.md).
 Related deployment guidance: see [deployment-profiles.md](./deployment-profiles.md).
 Related contract docs: see [scene-preset.md](./data-contracts/scene-preset.md), [replay-clock.md](./data-contracts/replay-clock.md), [satellite-overlay.md](./data-contracts/satellite-overlay.md), [scenario.md](./data-contracts/scenario.md), [physical-input.md](./data-contracts/physical-input.md), [document-telemetry.md](./data-contracts/document-telemetry.md), [soak-evidence.md](./data-contracts/soak-evidence.md), and [phase7.1-validation-evidence.md](./data-contracts/phase7.1-validation-evidence.md).
-Related follow-on planning: see [phase-6-plus-requirement-centered-plan.md](./sdd/phase-6-plus-requirement-centered-plan.md), [multi-orbit-contract-adoption-proposal.md](./sdd/multi-orbit-contract-adoption-proposal.md), [multi-orbit-first-intake-checklist.md](./sdd/multi-orbit-first-intake-checklist.md), [multi-orbit-first-intake-contract-sketch.md](./sdd/multi-orbit-first-intake-contract-sketch.md), [phase-8-local-view-integration-plan.md](./sdd/phase-8-local-view-integration-plan.md), and [safe-structural-refactor-plan.md](./sdd/safe-structural-refactor-plan.md). Related governance checkpoint: see [ADR 0009: Multi-Orbit First Intake Contract Ordering](./decisions/0009-multi-orbit-first-intake-contract-ordering.md).
 
 ## System Layers
 
@@ -31,7 +29,7 @@ The repo is organized into five layers:
 4. Feature interfaces
    Phase 2.8 starts globe presets as a plain-data scene-preset seam for camera framing and presentation-profile selection, Phase 2.9 lands the first concrete global preset, Phase 2.10 adds the first regional preset, and Phase 2.11 adds the first site preset plus an optional configured-url 3D tiles hook. Phase 3.2 adds the repo-local replay-clock contract under `src/features/time/`, Phases 3.3-3.4 now layer Cesium-backed real-time and prerecorded behavior on top of that contract while keeping app-facing time state serializable, Phase 3.6 adds a repo-local overlay-manager contract under `src/features/overlays/` that keeps overlay ownership at the plain-data attach/detach/visibility/dispose boundary, and Phase 3.7 adds a formal satellite adapter contract under `src/features/satellites/` that keeps fixture/sample inputs plain-data while `overlay-manager` depends only on that interface. Phases 5.1-5.3 keep those public contracts stable but now consume them through concrete runtime modules under `src/runtime/` for a default-off, walker-backed point path with fixed runtime-local labels plus bounded Cesium polyline orbits only. The current Phase 6.1 slice now also records a contract-first `scenario` seam under `src/features/scenario/` plus pure coordination helpers for downstream input resolution, deterministic switch planning, current-scenario facade state, a thin plan-driver boundary, an in-memory session host, and a bounded runtime plan adapter plus runtime session factory under `src/runtime/`; it also now has a bootstrap-only presentation/time helper, and `src/main.ts` only seeds that helper with the active bootstrap scenario instead of driving any live scenario switching.
 5. Validation harness
-   `scripts/verify-phase0.mjs`, `tests/smoke/`, `tests/visual/`, `tests/soak/`, and `tests/validation/` keep build output, fixture integrity, preset/bootstrap evidence, replay-clock targeted validation, overlay-toggle validation, retained visual baselines, Phase 7.0 soak evidence, and Phase 7.1 validation evidence runnable from the repo itself.
+   `scripts/verify-phase0.mjs`, `tests/smoke/`, `tests/unit/`, `tests/soak/`, and `tests/validation/` keep build output, fixture integrity, bootstrap evidence, replay-clock targeted validation, overlay-toggle validation, soak evidence, and viewer-scope validation runnable from the repo itself.
 
 ## Repo Boundaries
 
@@ -70,7 +68,6 @@ Established foundation and active follow-on flow:
 - `src/` stores the application shell and future Cesium integration seams.
 - `src/runtime/` stores concrete runtime implementations that consume the repo-owned feature contracts once a phase turns them on.
 - `tests/smoke/` is reserved for build/bootstrap and preset-level smoke coverage.
-- `tests/visual/` stores the Phase 2.12 baseline capture harnesses plus the separate dataset-enabled site capture path.
 
 ## Phase Boundaries
 

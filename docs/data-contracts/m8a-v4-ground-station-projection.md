@@ -8,7 +8,7 @@ must exist before `M8A-V4.3` runtime implementation can begin.
 Related V4 SDD:
 [../sdd/m8a-v4-ground-station-multi-orbit-handover-plan.md](../sdd/m8a-v4-ground-station-multi-orbit-handover-plan.md).
 Related endpoint-pair authority package:
-[../../../itri/multi-orbit/download/ground-station-endpoint-pairs/taiwan-cht-speedcast-singapore-operator-family-2026-04-26/authority-package.md](../../../itri/multi-orbit/download/ground-station-endpoint-pairs/taiwan-cht-speedcast-singapore-operator-family-2026-04-26/authority-package.md).
+[../../../accepted-sources/multi-orbit/download/ground-station-endpoint-pairs/taiwan-cht-speedcast-singapore-operator-family-2026-04-26/authority-package.md](../../../accepted-sources/multi-orbit/download/ground-station-endpoint-pairs/taiwan-cht-speedcast-singapore-operator-family-2026-04-26/authority-package.md).
 Accepted projected artifact:
 [../../public/fixtures/ground-station-projections/m8a-v4-taiwan-cht-speedcast-singapore-operator-family-2026-04-26.json](../../public/fixtures/ground-station-projections/m8a-v4-taiwan-cht-speedcast-singapore-operator-family-2026-04-26.json).
 Related V4.6B source/projection artifact:
@@ -34,7 +34,7 @@ Related V4.6D simulation handover model contract:
 
 ## Purpose
 
-The viewer must not side-read raw `itri` research packages at runtime. V4.2
+The viewer must not side-read raw `requirement` research packages at runtime. V4.2
 therefore defines one viewer-owned projected artifact shape that separates:
 
 - raw endpoint source truth from display marker position
@@ -50,7 +50,7 @@ viewer-owned projected artifact or a repo-owned module generated from it.
 
 They must not read, import, fetch, or resolve:
 
-- `itri/multi-orbit/download/...`
+- `accepted-sources/multi-orbit/download/...`
 - endpoint-pair raw files such as `endpoint-a.json`, `endpoint-b.json`, or
   `orbit-evidence-matrix.json`
 - raw source reports, candidate matrices, or external live feeds
@@ -58,7 +58,7 @@ They must not read, import, fetch, or resolve:
 
 The accepted pattern is:
 
-1. raw `itri` authority package
+1. raw `requirement` authority package
 2. offline repo-owned projection step
 3. viewer-owned projected plain-data artifact
 4. V4 runtime consumption of only that artifact
@@ -80,7 +80,7 @@ It is accepted as a projection gate, not as runtime rendering implementation.
 This path follows the existing viewer-owned fixture pattern under
 `public/fixtures/` while staying separate from runtime modules. Source paths
 inside the artifact are lineage metadata only; V4.3 runtime code must not open
-or resolve the raw `itri` package from those strings.
+or resolve the raw `requirement` package from those strings.
 
 ## Artifact Envelope
 
@@ -114,7 +114,7 @@ source files:
 interface V4SourcePackageLineage {
   packageId: "taiwan-cht-speedcast-singapore-operator-family-2026-04-26";
   packageDate: "2026-04-26";
-  packageAuthority: "itri/multi-orbit endpoint-pair authority package";
+  packageAuthority: "accepted-sources/multi-orbit endpoint-pair authority package";
   sourceFiles: ReadonlyArray<{
     label:
       | "authority-package.md"
@@ -577,7 +577,7 @@ interface V46dWindowNonClaims {
   noNativeRfHandover: true;
   noEndpointPairOrPrecisionChange: true;
   noR2RuntimeSelector: true;
-  noRawItriOrLiveExternalRuntimeSource: true;
+  noRawSourceOrLiveExternalRuntimeSource: true;
 }
 
 interface V46dSimulationHandoverValidationExpectations {
@@ -600,7 +600,7 @@ interface V46dSimulationHandoverValidationExpectations {
   actorIdsMustExistInV46bActorSet: true;
   actorOrbitClassesMustMatchModelRoles: true;
   endpointPairAndPrecisionMustRemainUnchanged: true;
-  runtimeRawItriSideReadAllowed: false;
+  runtimeRawSourceSideReadAllowed: false;
   measuredMetricTruthAllowed: false;
   requiredWindowNonClaimKeys: ReadonlyArray<keyof V46dWindowNonClaims>;
 }
@@ -711,7 +711,7 @@ interface V4ProjectionValidationExpectations {
   requiredOrbitChips: readonly ["leo", "meo", "geo"];
   rawSourceCoordinatesMustRemainNull: true;
   renderMarkersMustHaveBoundedDisplayPositions: true;
-  runtimeRawItriSideReadAllowed: false;
+  runtimeRawSourceSideReadAllowed: false;
   requiredNonClaimKeys: ReadonlyArray<keyof V4NonClaimSet>;
   serviceStateTruth: "modeled";
   measuredMetricTruthAllowed: false;
@@ -729,7 +729,7 @@ checks possible:
 - both render markers have explicit bounded display positions
 - each endpoint has `LEO`, `MEO`, and `GEO` strong evidence chips
 - pair fallback mode is not used
-- runtime-facing data includes no path that requires opening raw `itri`
+- runtime-facing data includes no path that requires opening raw `requirement`
   package files
 - non-claims are present and machine-readable
 - service-state windows are modeled and not measurement truth
@@ -743,7 +743,7 @@ does the remaining runtime-specific work:
 
 - add code that consumes only the viewer-owned artifact or a repo-owned module
   generated from it
-- run a raw `itri` side-read scan against V4.3 runtime/controller/render code
+- run a raw `requirement` side-read scan against V4.3 runtime/controller/render code
 - project source-lineaged moving `LEO`/`MEO` and `GEO` actor records before
   rendering orbit actors, or explicitly narrow actor rendering without
   violating the V4 SDD

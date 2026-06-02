@@ -428,7 +428,7 @@
     min-width: 0;
   }
 
-  .m8a-v411-handover-rail-header [data-itri-demo-l0-eyebrow="true"] {
+  .m8a-v411-handover-rail-header [data-requirement-demo-l0-eyebrow="true"] {
     grid-area: eyebrow;
     color: var(--m8a-v411-alpha-muted);
     font-size: 12px;
@@ -436,7 +436,7 @@
     line-height: 1.18;
   }
 
-  .m8a-v411-handover-rail-header [data-itri-demo-l0-heading="true"] {
+  .m8a-v411-handover-rail-header [data-requirement-demo-l0-heading="true"] {
     grid-area: heading;
     color: var(--m8a-v411-ui-text);
     font-size: 18px;

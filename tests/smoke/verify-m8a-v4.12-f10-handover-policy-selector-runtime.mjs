@@ -42,7 +42,7 @@ const EXPECTED_POLICIES = [
   }
 ];
 const FORBIDDEN_CLAIM_PATTERN =
-  /live network control|live rf handover|policy applied to real satellite|policy verified by iperf|policy verified by ping|production handover controller|policy ratified by itri|policy meets 3gpp|policy enforces operator sla|policy ensures >=500 leo|policy closes v-02/i;
+  /live network control|live rf handover|policy applied to real satellite|policy verified by iperf|policy verified by ping|production handover controller|policy ratified by requirement|policy meets 3gpp|policy enforces operator sla|policy ensures >=500 leo|policy closes v-02/i;
 
 function assert(condition, message) {
   if (!condition) {

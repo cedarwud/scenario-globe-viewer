@@ -19,7 +19,7 @@ Evidence:
 - A mounted Windows Chrome install tree is visible under `/mnt/c/Program Files/Google/Chrome/Application/`, but direct host-binary execution through `cmd.exe`, `powershell.exe`, and `chrome.exe` all fail from this workspace with `UtilBindVsockAnyPort:307: socket failed 1`. The current pass therefore cannot pivot to a native Windows browser measurement path either.
 - `tests/smoke/bootstrap-loads-assets-and-workers.mjs:315-430` is the current globe-only runtime smoke. It verifies the default global plus `regional` and `site` preset paths reach `ready`, preserve the native `Viewer` shell, and keep the fog-default / bloom-off guard intact under a headless SwiftShader browser.
 - `tests/smoke/bootstrap-loads-assets-and-workers.mjs:379-382` explicitly launches the repo-owned browser smoke with `--use-angle=swiftshader`.
-- `tests/visual/capture-three-preset-baselines.mjs:356-463` plus `docs/visual-baselines.md` define the repo-owned Phase 2.12 visual-baseline capture flow. The harness freezes the native clock, waits for `scene.globe.tilesLoaded`, and captures the accepted global, regional, and site framing without inventing a parallel render path.
+- Local screenshot capture flows are intentionally outside the tracked delivery tree. Tracked performance evidence is limited to retained source checks, smoke checks, build output, and explicit future measurement records.
 - The default `site` baseline intentionally runs without `VITE_CESIUM_SITE_TILESET_URL`, so the optional 3D tiles hook remains dormant unless a configured dataset is supplied.
 - `node_modules/@cesium/engine/Source/Scene/Scene.js:665-694` documents `requestRenderMode` and `maximumRenderTimeChange` as built-in rendering budget controls.
 - `node_modules/@cesium/engine/Source/Scene/Scene.js:698-705` shows render requests also being driven by request and task completion events.
@@ -35,7 +35,7 @@ The pre-Phase-3 governance position is:
 | Large chunk warning | Verified again on `2026-04-16` from the current `4,057.61 kB` main JS chunk. | Larger initial bundle cost and less headroom for later phases, but no repo-owned evidence of runtime failure from this warning alone. | Accept and defer. This warning does not block Phase 3 by itself. |
 | Upstream `protobufjs` `eval` warning | Verified again on `2026-04-16` from `node_modules/protobufjs/dist/minimal/protobuf.js:662`. | Tooling and security-review noise plus minifier constraints remain in the upstream dependency chain. | Accept as upstream dependency risk. This warning does not block Phase 3 by itself while provenance remains upstream and repo code adds no new `eval` path. |
 
-The default measurement baseline remains Profile A, the Cesium-native globe-only runtime, with no replay stack and no satellite overlays. The current repo-owned runtime evidence for Phase 2 is still the combination of `npm run test:phase1` and the Phase 2.12 visual baselines. That evidence closes out Phase 2 governance, but it is not a claim that a dedicated tiered FPS campaign has already been completed.
+The default measurement baseline remains Profile A, the Cesium-native globe-only runtime, with no replay stack and no satellite overlays. The current repo-owned runtime evidence is the retained smoke/build chain. That evidence is not a claim that a dedicated tiered FPS campaign has already been completed.
 
 Reference tiers remain:
 
@@ -53,11 +53,11 @@ The current constrained Phase 5.3 orbit slice does not change that measurement p
 
 ## Consequences
 
-- Phase 2 formal close-out may rely on the measured build output, the repo-owned smoke harness, and the repo-owned Phase 2.12 screenshots.
+- Delivery close-out may rely on the measured build output and the repo-owned smoke harness.
 - The accepted Phase 2 close-out state should be fixed as its own commit/tag before the first Phase 3.1 implementation commit lands.
 - Phase 3 formal readiness remains open until the repo records admissible Tier 1 and Tier 2 Profile A measurement evidence in repo-owned authority.
 - ADR `0006-phase-3.1-execution-governance.md` may authorize a constrained WSL-backed `3.1` shell-framing start before that measurement gate closes, but that exception does not satisfy the missing measurement evidence.
 - The large chunk warning and the upstream `protobufjs` `eval` warning remain tracked, but under this decision they do not independently block Phase 3.
 - The future performance layer should prefer Cesium's explicit-render controls before introducing custom throttling behavior.
-- Any future long-duration soak artifact must be added as distinct evidence; it must not be implied retroactively by the current smoke checks or screenshots.
+- Any future long-duration soak artifact must be added as distinct evidence; it must not be implied retroactively by the current smoke checks.
 - Any constrained overlay widening must keep explicit local bounds. On the current `main` line, that means bounded Cesium entity polylines only, a fixed `49`-sample orbit budget per satellite, a `60_000` ms orbit-geometry refresh bucket, `Entity.path` still disabled, and no unbounded orbit-history accumulation.

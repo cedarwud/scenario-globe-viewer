@@ -1,9 +1,7 @@
 // Display-state helper for the multi-station selector surface.
 //
-// Wave 1 of the IA convergence (docs/sdd/multi-station-selector/
-// information-architecture.md §3, §13 and runtime-data-contract.md §A.6)
-// names the composition module as the authority on the derived display
-// state. This module is the pure derivation: it folds the selection
+// Composition owns the derived display state. This module is the pure
+// derivation: it folds the selection
 // snapshot, registry resolvability, the info-card open signal, and the
 // replay clock state into one of five enum values, and exposes a small
 // subscription manager that fires `onChange` whenever any of the four

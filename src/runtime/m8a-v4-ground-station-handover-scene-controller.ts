@@ -21,8 +21,8 @@ import {
 import { M8A_V4_TELEMETRY_KEYS } from "./m8a-v4-ground-station-telemetry-keys";
 import { syncTelemetry } from "./m8a-v4-ground-station-telemetry-sync";
 import {
-  isM8aV4ItriF10PolicyPresetId,
-  isM8aV4ItriF11RulePresetId,
+  isM8aV4RequirementF10PolicyPresetId,
+  isM8aV4RequirementF11RulePresetId,
   M8A_V4_CUSTOMER_ACCEPTANCE_BOUNDED_ROUTE_REPRESENTATION_IDS,
   M8A_V4_CUSTOMER_ACCEPTANCE_COVERAGE_RECORDS,
   M8A_V4_CUSTOMER_ACCEPTANCE_EXTERNAL_FAIL_IDS,
@@ -97,16 +97,16 @@ import {
   M8A_V4_CUSTOMER_REQUIREMENT_STATUS_GROUPS,
   M8A_V4_CUSTOMER_ROUTE_NATIVE_MEASURED_TRUTH_CLAIMED,
   resolveF09RateClassCopy,
-  resolveItriF10PolicyPreset,
-  resolveItriF11RulePreset,
-  type M8aV4ItriF10PolicyPresetId,
-  type M8aV4ItriF11RulePresetId,
-  type M8aV4ItriF16ExportRecord,
-  type M8aV4ItriF16RouteExportBundle
-} from "./m8a-v4-itri-demo-surfaces";
+  resolveRequirementF10PolicyPreset,
+  resolveRequirementF11RulePreset,
+  type M8aV4RequirementF10PolicyPresetId,
+  type M8aV4RequirementF11RulePresetId,
+  type M8aV4RequirementF16ExportRecord,
+  type M8aV4RequirementF16RouteExportBundle
+} from "./m8a-v4-requirement-demo-surfaces";
 import {
   buildF09RateWindowRows
-} from "./m8a-v4-itri-demo-renderers";
+} from "./m8a-v4-requirement-demo-renderers";
 import {
   installM8aV411VisualTokens,
   type M8aV411VisualTokenController
@@ -222,8 +222,8 @@ const M8A_V4_NARROW_MAX_ALWAYS_VISIBLE_ACTOR_LABELS = 1;
 
 export interface M8aV4GroundStationSceneController {
   getState(): M8aV4GroundStationSceneState;
-  getLastF16RouteExport(): M8aV4ItriF16RouteExportBundle | null;
-  exportF16RouteState(): M8aV4ItriF16RouteExportBundle;
+  getLastF16RouteExport(): M8aV4RequirementF16RouteExportBundle | null;
+  exportF16RouteState(): M8aV4RequirementF16RouteExportBundle;
   subscribe(listener: (state: M8aV4GroundStationSceneState) => void): () => void;
   play(): void;
   pause(): void;
@@ -327,7 +327,7 @@ function renderHud(root: HTMLElement, state: M8aV4GroundStationSceneState): void
   root.dataset.visibleActorLabelIds = serializeList(
     state.actorLabelDensity.visibleActorLabelIds
   );
-  root.dataset.rawItriSideReadOwnership =
+  root.dataset.rawRequirementSideReadOwnership =
     state.sourceLineage.rawPackageSideReadOwnership;
   root.dataset.nonClaims = serializeJson(state.nonClaims);
   root.innerHTML = "";
@@ -404,7 +404,7 @@ function buildAcceptanceLayerState(
       nonClaims: M8A_V4_CUSTOMER_F13_ROUTE_NATIVE_SCALE_READINESS_NON_CLAIMS,
       routeNativeScaleClosureClaimed: false,
       externalValidationClosureClaimed: false,
-      itriAuthorityClaimed: false
+      sourceAuthorityClaimed: false
     },
     externalValidationPackage: {
       artifact: M8A_V4_CUSTOMER_EXTERNAL_V02_V06_VALIDATION_ARTIFACT,
@@ -440,7 +440,7 @@ function buildF09RateSurfaceState(
 }
 
 function buildF16ExportSurfaceState(
-  latestExportRecord: M8aV4ItriF16ExportRecord | null
+  latestExportRecord: M8aV4RequirementF16ExportRecord | null
 ): M8aV4GroundStationSceneState["f16ExportSurface"] {
   return {
     version: M8A_V4_CUSTOMER_F16_EXPORT_SURFACE_VERSION,
@@ -463,8 +463,8 @@ function buildF16ExportSurfaceState(
 }
 
 function buildPolicyRuleControlsState(
-  activePolicyPresetId: M8aV4ItriF10PolicyPresetId,
-  activeRulePresetId: M8aV4ItriF11RulePresetId
+  activePolicyPresetId: M8aV4RequirementF10PolicyPresetId,
+  activeRulePresetId: M8aV4RequirementF11RulePresetId
 ): M8aV4GroundStationSceneState["policyRuleControls"] {
   return {
     version: M8A_V4_CUSTOMER_POLICY_RULE_CONTROLS_VERSION,
@@ -479,8 +479,8 @@ function buildPolicyRuleControlsState(
     rulePresetMode: M8A_V4_CUSTOMER_F11_RULE_PRESET_MODE,
     defaultPolicyPresetId: M8A_V4_CUSTOMER_F10_POLICY_DEFAULT_PRESET_ID,
     defaultRulePresetId: M8A_V4_CUSTOMER_F11_RULE_DEFAULT_PRESET_ID,
-    activePolicyPreset: resolveItriF10PolicyPreset(activePolicyPresetId),
-    activeRulePreset: resolveItriF11RulePreset(activeRulePresetId),
+    activePolicyPreset: resolveRequirementF10PolicyPreset(activePolicyPresetId),
+    activeRulePreset: resolveRequirementF11RulePreset(activeRulePresetId),
     policyPresets: M8A_V4_CUSTOMER_F10_POLICY_PRESETS,
     rulePresets: M8A_V4_CUSTOMER_F11_RULE_PRESETS,
     routeOwnedStateOnly: M8A_V4_CUSTOMER_POLICY_RULE_ROUTE_OWNED_STATE_ONLY,
@@ -500,13 +500,13 @@ function createF16ExportFilename(
 ): string {
   const timestamp = generatedAtUtc.replaceAll(":", "-").replaceAll(".", "-");
 
-  return `itri-demo-route-f16-bounded-${state.simulationHandoverModel.endpointPairId}-${timestamp}.json`;
+  return `requirement-demo-route-f16-bounded-${state.simulationHandoverModel.endpointPairId}-${timestamp}.json`;
 }
 
 function buildF16RouteExportBundle(
   state: M8aV4GroundStationSceneState,
   generatedAtUtc: string
-): M8aV4ItriF16RouteExportBundle {
+): M8aV4RequirementF16RouteExportBundle {
   const activeWindow = state.simulationHandoverModel.window;
   const filename = createF16ExportFilename(state, generatedAtUtc);
 
@@ -597,8 +597,8 @@ function buildF16RouteExportBundle(
       externalValidationClosureClaimed:
         state.acceptanceLayer.f13RouteNativeScaleReadiness
           .externalValidationClosureClaimed,
-      itriAuthorityClaimed:
-        state.acceptanceLayer.f13RouteNativeScaleReadiness.itriAuthorityClaimed
+      sourceAuthorityClaimed:
+        state.acceptanceLayer.f13RouteNativeScaleReadiness.sourceAuthorityClaimed
     },
     f09BoundedRateDisposition: {
       requirementId: "F-09",
@@ -668,7 +668,7 @@ function buildF16RouteExportBundle(
 }
 
 function downloadF16RouteExportBundle(
-  bundle: M8aV4ItriF16RouteExportBundle
+  bundle: M8aV4RequirementF16RouteExportBundle
 ): void {
   const blob = new Blob([`${JSON.stringify(bundle, null, 2)}\n`], {
     type: "application/json"
@@ -679,7 +679,7 @@ function downloadF16RouteExportBundle(
   link.href = url;
   link.download = bundle.exportFile.filename;
   link.rel = "noopener";
-  link.dataset.itriF16DownloadLink = "true";
+  link.dataset.requirementF16DownloadLink = "true";
   link.style.display = "none";
   document.body.append(link);
 
@@ -760,11 +760,11 @@ export function createM8aV4GroundStationSceneController({
   let lastDetailsTriggerElement: HTMLElement | null = null;
   let lastRailTriggerElement: HTMLElement | null = null;
   let lastSyncReplayRatio = resolveReplayWindowRatio(replayClock.getState());
-  let latestF16ExportRecord: M8aV4ItriF16ExportRecord | null = null;
-  let latestF16ExportBundle: M8aV4ItriF16RouteExportBundle | null = null;
-  let activePolicyPresetId: M8aV4ItriF10PolicyPresetId =
+  let latestF16ExportRecord: M8aV4RequirementF16ExportRecord | null = null;
+  let latestF16ExportBundle: M8aV4RequirementF16RouteExportBundle | null = null;
+  let activePolicyPresetId: M8aV4RequirementF10PolicyPresetId =
     M8A_V4_CUSTOMER_F10_POLICY_DEFAULT_PRESET_ID;
-  let activeRulePresetId: M8aV4ItriF11RulePresetId =
+  let activeRulePresetId: M8aV4RequirementF11RulePresetId =
     M8A_V4_CUSTOMER_F11_RULE_DEFAULT_PRESET_ID;
 
   const reviewerModeStorage: Pick<Storage, "getItem" | "setItem"> | null =
@@ -1505,7 +1505,7 @@ export function createM8aV4GroundStationSceneController({
 
     return nextState;
   };
-  const exportF16BoundedRouteJson = (): M8aV4ItriF16RouteExportBundle => {
+  const exportF16BoundedRouteJson = (): M8aV4RequirementF16RouteExportBundle => {
     const stateForExport = syncState();
     const generatedAtUtc = new Date().toISOString();
     const bundle = buildF16RouteExportBundle(stateForExport, generatedAtUtc);
@@ -1533,14 +1533,14 @@ export function createM8aV4GroundStationSceneController({
     syncState();
     return bundle;
   };
-  const setItriF10PolicyPreset = (
-    presetId: M8aV4ItriF10PolicyPresetId
+  const setRequirementF10PolicyPreset = (
+    presetId: M8aV4RequirementF10PolicyPresetId
   ): void => {
     activePolicyPresetId = presetId;
     syncState();
   };
-  const setItriF11RulePreset = (
-    presetId: M8aV4ItriF11RulePresetId
+  const setRequirementF11RulePreset = (
+    presetId: M8aV4RequirementF11RulePresetId
   ): void => {
     activeRulePresetId = presetId;
     syncState();
@@ -1743,16 +1743,16 @@ export function createM8aV4GroundStationSceneController({
       return;
     }
 
-    if (target.matches("[data-itri-f10-policy-selector='true']")) {
-      if (isM8aV4ItriF10PolicyPresetId(target.value)) {
-        setItriF10PolicyPreset(target.value);
+    if (target.matches("[data-requirement-f10-policy-selector='true']")) {
+      if (isM8aV4RequirementF10PolicyPresetId(target.value)) {
+        setRequirementF10PolicyPreset(target.value);
       }
       return;
     }
 
-    if (target.matches("[data-itri-f11-rule-preset='true']")) {
-      if (isM8aV4ItriF11RulePresetId(target.value)) {
-        setItriF11RulePreset(target.value);
+    if (target.matches("[data-requirement-f11-rule-preset='true']")) {
+      if (isM8aV4RequirementF11RulePresetId(target.value)) {
+        setRequirementF11RulePreset(target.value);
       }
     }
   };
@@ -2076,12 +2076,12 @@ export function createM8aV4GroundStationSceneController({
       completeFinalHoldIfElapsed();
       return cloneState(createState());
     },
-    getLastF16RouteExport(): M8aV4ItriF16RouteExportBundle | null {
+    getLastF16RouteExport(): M8aV4RequirementF16RouteExportBundle | null {
       return latestF16ExportBundle
         ? JSON.parse(JSON.stringify(latestF16ExportBundle))
         : null;
     },
-    exportF16RouteState(): M8aV4ItriF16RouteExportBundle {
+    exportF16RouteState(): M8aV4RequirementF16RouteExportBundle {
       return exportF16BoundedRouteJson();
     },
     subscribe(listener: (state: M8aV4GroundStationSceneState) => void): () => void {

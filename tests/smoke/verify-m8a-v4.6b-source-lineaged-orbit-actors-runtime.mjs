@@ -407,7 +407,7 @@ async function main() {
             const forbiddenResourceRequests = performance
               .getEntriesByType("resource")
               .map((entry) => entry.name)
-              .filter((name) => /celestrak|itri\\/multi-orbit/i.test(name));
+              .filter((name) => /celestrak|requirement\\/multi-orbit/i.test(name));
             const runtimeFacts = assertV46bRuntimeState(
               state,
               dataSource,
@@ -489,7 +489,7 @@ async function main() {
             );
             assert(
               forbiddenResourceRequests.length === 0,
-              "V4.6B runtime must not fetch raw itri packages or live CelesTrak resources: " +
+              "V4.6B runtime must not fetch raw source packages or live CelesTrak resources: " +
                 JSON.stringify(forbiddenResourceRequests)
             );
             assert(
@@ -565,7 +565,7 @@ async function main() {
             const forbiddenResourceRequests = performance
               .getEntriesByType("resource")
               .map((entry) => entry.name)
-              .filter((name) => /celestrak|itri\\/multi-orbit/i.test(name));
+              .filter((name) => /celestrak|requirement\\/multi-orbit/i.test(name));
 
             assert(
               state.endpointCount === 2 &&
@@ -598,7 +598,7 @@ async function main() {
             );
             assert(
               forbiddenResourceRequests.length === 0,
-              "Narrow V4.6B route must not fetch raw itri or live CelesTrak resources: " +
+              "Narrow V4.6B route must not fetch raw source or live CelesTrak resources: " +
                 JSON.stringify(forbiddenResourceRequests)
             );
 

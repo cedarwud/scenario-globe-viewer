@@ -246,8 +246,8 @@ function main() {
     "V4.6B projection must keep the accepted Taiwan/CHT + Speedcast endpoint pair."
   );
   assert(
-    artifact.validationExpectations?.runtimeRawItriSideReadAllowed === false,
-    "V4.6B projection must keep runtime raw itri side-read disallowed."
+    artifact.validationExpectations?.runtimeRawSourceSideReadAllowed === false,
+    "V4.6B projection must keep runtime raw source side-read disallowed."
   );
 
   const actorCounts = artifact.orbitActors.reduce(
@@ -288,8 +288,8 @@ function main() {
       artifactId: artifact.artifactId,
       actorCounts,
       sourceRecordCount: sourceRecords.size,
-      runtimeRawItriSideReadAllowed:
-        artifact.validationExpectations.runtimeRawItriSideReadAllowed
+      runtimeRawSourceSideReadAllowed:
+        artifact.validationExpectations.runtimeRawSourceSideReadAllowed
     })}`
   );
 }

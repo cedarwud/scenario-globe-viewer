@@ -97,8 +97,8 @@ The first repo-owned ingestion seam is:
 
 It adapts the accepted corridor package:
 
-- `itri/multi-orbit/download/aircraft-corridors/ac-cgojz-crj900-c06aa4-2026-04-21/trajectory-source-record.json`
-- `itri/multi-orbit/download/aircraft-corridors/ac-cgojz-crj900-c06aa4-2026-04-21/artifacts/normalized/trajectory-replay.geojson`
+- `accepted-sources/multi-orbit/download/aircraft-corridors/ac-cgojz-crj900-c06aa4-2026-04-21/trajectory-source-record.json`
+- `accepted-sources/multi-orbit/download/aircraft-corridors/ac-cgojz-crj900-c06aa4-2026-04-21/artifacts/normalized/trajectory-replay.geojson`
 
 The adapter must preserve:
 

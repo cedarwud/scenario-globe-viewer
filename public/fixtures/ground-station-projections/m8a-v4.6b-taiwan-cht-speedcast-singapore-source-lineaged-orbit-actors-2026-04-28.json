@@ -7,47 +7,47 @@
   "sourcePackage": {
     "packageId": "taiwan-cht-speedcast-singapore-operator-family-2026-04-26",
     "packageDate": "2026-04-26",
-    "packageAuthority": "itri/multi-orbit endpoint-pair authority package",
+    "packageAuthority": "accepted-sources/multi-orbit endpoint-pair authority package",
     "sourceFiles": [
       {
         "label": "authority-package.md",
-        "sourcePath": "itri/multi-orbit/download/ground-station-endpoint-pairs/taiwan-cht-speedcast-singapore-operator-family-2026-04-26/authority-package.md",
+        "sourcePath": "accepted-sources/multi-orbit/download/ground-station-endpoint-pairs/taiwan-cht-speedcast-singapore-operator-family-2026-04-26/authority-package.md",
         "sourceRole": "accepted endpoint-pair decision and truth boundary",
         "runtimeUse": "lineage-metadata-only-not-readable-at-runtime"
       },
       {
         "label": "endpoint-a.json",
-        "sourcePath": "itri/multi-orbit/download/ground-station-endpoint-pairs/taiwan-cht-speedcast-singapore-operator-family-2026-04-26/endpoint-a.json",
+        "sourcePath": "accepted-sources/multi-orbit/download/ground-station-endpoint-pairs/taiwan-cht-speedcast-singapore-operator-family-2026-04-26/endpoint-a.json",
         "sourceRole": "endpoint A source-truth and orbit evidence",
         "runtimeUse": "lineage-metadata-only-not-readable-at-runtime"
       },
       {
         "label": "endpoint-b.json",
-        "sourcePath": "itri/multi-orbit/download/ground-station-endpoint-pairs/taiwan-cht-speedcast-singapore-operator-family-2026-04-26/endpoint-b.json",
+        "sourcePath": "accepted-sources/multi-orbit/download/ground-station-endpoint-pairs/taiwan-cht-speedcast-singapore-operator-family-2026-04-26/endpoint-b.json",
         "sourceRole": "endpoint B source-truth and orbit evidence",
         "runtimeUse": "lineage-metadata-only-not-readable-at-runtime"
       },
       {
         "label": "orbit-evidence-matrix.json",
-        "sourcePath": "itri/multi-orbit/download/ground-station-endpoint-pairs/taiwan-cht-speedcast-singapore-operator-family-2026-04-26/orbit-evidence-matrix.json",
+        "sourcePath": "accepted-sources/multi-orbit/download/ground-station-endpoint-pairs/taiwan-cht-speedcast-singapore-operator-family-2026-04-26/orbit-evidence-matrix.json",
         "sourceRole": "accepted pair-level orbit evidence matrix",
         "runtimeUse": "lineage-metadata-only-not-readable-at-runtime"
       },
       {
         "label": "position-and-precision.md",
-        "sourcePath": "itri/multi-orbit/download/ground-station-endpoint-pairs/taiwan-cht-speedcast-singapore-operator-family-2026-04-26/position-and-precision.md",
+        "sourcePath": "accepted-sources/multi-orbit/download/ground-station-endpoint-pairs/taiwan-cht-speedcast-singapore-operator-family-2026-04-26/position-and-precision.md",
         "sourceRole": "operator-family precision and marker boundary",
         "runtimeUse": "lineage-metadata-only-not-readable-at-runtime"
       },
       {
         "label": "non-claims.md",
-        "sourcePath": "itri/multi-orbit/download/ground-station-endpoint-pairs/taiwan-cht-speedcast-singapore-operator-family-2026-04-26/non-claims.md",
+        "sourcePath": "accepted-sources/multi-orbit/download/ground-station-endpoint-pairs/taiwan-cht-speedcast-singapore-operator-family-2026-04-26/non-claims.md",
         "sourceRole": "canonical machine-readable non-claim source",
         "runtimeUse": "lineage-metadata-only-not-readable-at-runtime"
       },
       {
         "label": "acceptance.md",
-        "sourcePath": "itri/multi-orbit/download/ground-station-endpoint-pairs/taiwan-cht-speedcast-singapore-operator-family-2026-04-26/acceptance.md",
+        "sourcePath": "accepted-sources/multi-orbit/download/ground-station-endpoint-pairs/taiwan-cht-speedcast-singapore-operator-family-2026-04-26/acceptance.md",
         "sourceRole": "accepted checklist and future projection constraints",
         "runtimeUse": "lineage-metadata-only-not-readable-at-runtime"
       }
@@ -1725,7 +1725,7 @@
     ],
     "rawSourceCoordinatesMustRemainNull": true,
     "renderMarkersMustHaveBoundedDisplayPositions": true,
-    "runtimeRawItriSideReadAllowed": false,
+    "runtimeRawSourceSideReadAllowed": false,
     "requiredNonClaimKeys": [
       "noExactSiteSelection",
       "noSameSiteLeoMeoGeoProof",

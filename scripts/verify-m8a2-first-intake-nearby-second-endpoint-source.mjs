@@ -18,7 +18,7 @@ const firstIntakeNearbySecondEndpointSourceModulePath = new URL(
   import.meta.url
 );
 const nearbySecondEndpointPositionPath = new URL(
-  "../../itri/multi-orbit/download/nearby-second-endpoints/m8a-yka-operations-office-2026-04-23/position.json",
+  "../../accepted-sources/multi-orbit/download/nearby-second-endpoints/m8a-yka-operations-office-2026-04-23/position.json",
   import.meta.url
 );
 
@@ -85,9 +85,9 @@ try {
   );
   assert(
     !firstIntakeNearbySecondEndpointSource.includes(
-      'from "../../../itri/multi-orbit/download/nearby-second-endpoints/'
+      'from "../../../accepted-sources/multi-orbit/download/nearby-second-endpoints/'
     ),
-    "First-intake nearby second-endpoint source must not import raw itri nearby-second-endpoint package files at runtime."
+    "First-intake nearby second-endpoint source must not import raw source nearby-second-endpoint package files at runtime."
   );
 
   await Promise.all([
@@ -153,7 +153,7 @@ try {
   assert.deepEqual(
     ACCEPTED_NEARBY_SECOND_ENDPOINT_POSITION_PROJECTION,
     rawPosition,
-    "Repo-owned plain-data projection must stay synchronized with the accepted itri position package."
+    "Repo-owned plain-data projection must stay synchronized with the accepted requirement position package."
   );
 
   assert.equal(

@@ -7,8 +7,8 @@ import {
   M8A_V4_CUSTOMER_DEMO_VIEW_DEFAULT_FOCUS_VERSION,
   M8A_V4_CUSTOMER_DEMO_VIEW_NARROW_VERSION,
   M8A_V4_CUSTOMER_DEMO_VIEW_DEFAULT_TRUTH_COPY,
-  type M8aV4ItriRequirementGroupId
-} from "./m8a-v4-itri-demo-surfaces";
+  type M8aV4RequirementRequirementGroupId
+} from "./m8a-v4-requirement-demo-surfaces";
 import {
   M8A_V4_CUSTOMER_DEMO_VIEW_FOCUS_CHOREOGRAPHY_VERSION,
   resolveTimelineLabel
@@ -80,7 +80,7 @@ export function syncTelemetry(state: M8aV4GroundStationSceneState): void {
   const f16ExportSurface = state.f16ExportSurface;
   const policyRuleControls = state.policyRuleControls;
   const requirementIdsForGroup = (
-    groupId: M8aV4ItriRequirementGroupId
+    groupId: M8aV4RequirementRequirementGroupId
   ): readonly string[] =>
     requirementGapSurface.groups.find((group) => group.groupId === groupId)
       ?.requirementIds ?? [];
@@ -242,117 +242,117 @@ export function syncTelemetry(state: M8aV4GroundStationSceneState): void {
       state.productUx.productComprehension.scope,
     m8aV410FirstViewportComposition:
       state.productUx.productComprehension.firstViewportComposition.version,
-    m8aV4ItriDemoViewFocusChoreography:
+    m8aV4RequirementDemoViewFocusChoreography:
       M8A_V4_CUSTOMER_DEMO_VIEW_FOCUS_CHOREOGRAPHY_VERSION,
-    m8aV4ItriDemoViewFocusScope: focusChoreography.scope,
-    m8aV4ItriDemoViewFocusVisibleContent: serializeList([
+    m8aV4RequirementDemoViewFocusScope: focusChoreography.scope,
+    m8aV4RequirementDemoViewFocusVisibleContent: serializeList([
       ...focusChoreography.visibleContent
     ]),
-    m8aV4ItriDemoViewFocusWindowId: focusChoreography.windowId,
-    m8aV4ItriDemoViewFocusId: focusChoreography.focusId,
-    m8aV4ItriDemoViewFocusPrimaryLabel:
+    m8aV4RequirementDemoViewFocusWindowId: focusChoreography.windowId,
+    m8aV4RequirementDemoViewFocusId: focusChoreography.focusId,
+    m8aV4RequirementDemoViewFocusPrimaryLabel:
       focusChoreography.primaryFocusLabel,
-    m8aV4ItriDemoViewFocusOrbitClass:
+    m8aV4RequirementDemoViewFocusOrbitClass:
       focusChoreography.focusOrbitClassToken,
-    m8aV4ItriDemoViewFocusRole: focusChoreography.focusRole,
-    m8aV4ItriDemoViewFocusBriefing: focusChoreography.briefingLine,
-    m8aV4ItriDemoViewFocusWatch: focusChoreography.decisionWatch,
-    m8aV4ItriDemoViewFocusNext: focusChoreography.nextFocusHint,
-    m8aV4ItriDemoViewFocusVisualCue: focusChoreography.visualCue,
-    m8aV4ItriDemoViewFocusSceneCue: focusChoreography.sceneCueLabel,
-    m8aV4ItriDemoViewFocusSecondaryActorPolicy:
+    m8aV4RequirementDemoViewFocusRole: focusChoreography.focusRole,
+    m8aV4RequirementDemoViewFocusBriefing: focusChoreography.briefingLine,
+    m8aV4RequirementDemoViewFocusWatch: focusChoreography.decisionWatch,
+    m8aV4RequirementDemoViewFocusNext: focusChoreography.nextFocusHint,
+    m8aV4RequirementDemoViewFocusVisualCue: focusChoreography.visualCue,
+    m8aV4RequirementDemoViewFocusSceneCue: focusChoreography.sceneCueLabel,
+    m8aV4RequirementDemoViewFocusSecondaryActorPolicy:
       focusChoreography.secondaryActorPolicy,
-    m8aV4ItriDemoViewFocusSecondaryActorRoles: serializeList([
+    m8aV4RequirementDemoViewFocusSecondaryActorRoles: serializeList([
       ...focusChoreography.secondaryActorEmphasisRoles
     ]),
-    m8aV4ItriDemoViewFocusNextContextVisible: String(
+    m8aV4RequirementDemoViewFocusNextContextVisible: String(
       focusChoreography.nextContextVisible
     ),
-    m8aV4ItriDemoViewFocusTruthBoundary:
+    m8aV4RequirementDemoViewFocusTruthBoundary:
       focusChoreography.truthBoundary,
-    m8aV4ItriDemoViewDefaultFocus:
+    m8aV4RequirementDemoViewDefaultFocus:
       M8A_V4_CUSTOMER_DEMO_VIEW_DEFAULT_FOCUS_VERSION,
-    m8aV4ItriDemoViewNarrow:
+    m8aV4RequirementDemoViewNarrow:
       M8A_V4_CUSTOMER_DEMO_VIEW_NARROW_VERSION,
-    m8aV4ItriDemoViewDefaultLayer:
+    m8aV4RequirementDemoViewDefaultLayer:
       "L0-first-read-demo-stage",
-    m8aV4ItriDemoViewDefaultInspectorOpen: String(
+    m8aV4RequirementDemoViewDefaultInspectorOpen: String(
       state.productUx.disclosure.state === "open"
     ),
-    m8aV4ItriDemoViewDefaultRequirementMatrixVisible: String(
+    m8aV4RequirementDemoViewDefaultRequirementMatrixVisible: String(
       acceptanceLayerVisible
     ),
-    m8aV4ItriDemoViewDefaultCurrentState:
+    m8aV4RequirementDemoViewDefaultCurrentState:
       focusChoreography.primaryFocusLabel,
-    m8aV4ItriDemoViewDefaultNextState:
+    m8aV4RequirementDemoViewDefaultNextState:
       focusChoreography.nextFocusHint,
-    m8aV4ItriDemoViewDefaultOrbitClass:
+    m8aV4RequirementDemoViewDefaultOrbitClass:
       focusChoreography.focusOrbitClassToken,
-    m8aV4ItriDemoViewDefaultRateClass:
+    m8aV4RequirementDemoViewDefaultRateClass:
       f09RateSurface.currentClassLabel,
-    m8aV4ItriDemoViewDefaultTruthBoundary:
+    m8aV4RequirementDemoViewDefaultTruthBoundary:
       M8A_V4_CUSTOMER_DEMO_VIEW_DEFAULT_TRUTH_COPY,
-    m8aV4ItriDemoViewAcceptanceLayer:
+    m8aV4RequirementDemoViewAcceptanceLayer:
       acceptanceLayer.version,
-    m8aV4ItriDemoViewAcceptanceLayerId:
+    m8aV4RequirementDemoViewAcceptanceLayerId:
       acceptanceLayer.layerId,
-    m8aV4ItriDemoViewAcceptanceVisible: String(acceptanceLayerVisible),
-    m8aV4ItriDemoViewAcceptanceRequirementIds: serializeList([
+    m8aV4RequirementDemoViewAcceptanceVisible: String(acceptanceLayerVisible),
+    m8aV4RequirementDemoViewAcceptanceRequirementIds: serializeList([
       ...acceptanceLayer.requirementIds
     ]),
-    m8aV4ItriDemoViewAcceptanceRequirementStatuses: serializeList([
+    m8aV4RequirementDemoViewAcceptanceRequirementStatuses: serializeList([
       ...acceptanceLayer.requirementStatusPairs
     ]),
-    m8aV4ItriDemoViewAcceptanceRequirementLayers: serializeList([
+    m8aV4RequirementDemoViewAcceptanceRequirementLayers: serializeList([
       ...acceptanceLayer.requirementLayerPairs
     ]),
-    m8aV4ItriDemoViewAcceptanceExternalFailIds: serializeList([
+    m8aV4RequirementDemoViewAcceptanceExternalFailIds: serializeList([
       ...acceptanceLayer.externalFailIds
     ]),
-    m8aV4ItriDemoViewAcceptanceBoundedRouteIds: serializeList([
+    m8aV4RequirementDemoViewAcceptanceBoundedRouteIds: serializeList([
       ...acceptanceLayer.boundedRouteRepresentationIds
     ]),
-    m8aV4ItriDemoViewAcceptanceF13Artifact:
+    m8aV4RequirementDemoViewAcceptanceF13Artifact:
       acceptanceLayer.f13Phase71Evidence.artifact,
-    m8aV4ItriDemoViewAcceptanceF13FreshUntilUtc:
+    m8aV4RequirementDemoViewAcceptanceF13FreshUntilUtc:
       acceptanceLayer.f13Phase71Evidence.staleAfterUtc,
-    m8aV4ItriDemoViewAcceptanceF13RouteNativeScaleClaimed:
+    m8aV4RequirementDemoViewAcceptanceF13RouteNativeScaleClaimed:
       String(acceptanceLayer.f13Phase71Evidence.routeNativeScaleClaimed),
-    m8aV4ItriF13ScaleReadinessSurface:
+    m8aV4RequirementF13ScaleReadinessSurface:
       acceptanceLayer.f13RouteNativeScaleReadiness.version,
-    m8aV4ItriF13ScaleReadinessTargetReached: String(
+    m8aV4RequirementF13ScaleReadinessTargetReached: String(
       acceptanceLayer.f13RouteNativeScaleReadiness.targetReached
     ),
-    m8aV4ItriF13ScaleReadinessCurrentRouteActorCount: String(
+    m8aV4RequirementF13ScaleReadinessCurrentRouteActorCount: String(
       acceptanceLayer.f13RouteNativeScaleReadiness.currentRouteActorCount
     ),
-    m8aV4ItriF13ScaleReadinessActorCount: String(
+    m8aV4RequirementF13ScaleReadinessActorCount: String(
       acceptanceLayer.f13RouteNativeScaleReadiness.readinessActorCount
     ),
-    m8aV4ItriF13ScaleReadinessLeoCount: String(
+    m8aV4RequirementF13ScaleReadinessLeoCount: String(
       acceptanceLayer.f13RouteNativeScaleReadiness.readinessLeoActorCount
     ),
-    m8aV4ItriF13ScaleReadinessTargetLeoCount: String(
+    m8aV4RequirementF13ScaleReadinessTargetLeoCount: String(
       acceptanceLayer.f13RouteNativeScaleReadiness.targetLeoCount
     ),
-    m8aV4ItriF13ScaleReadinessSourceType:
+    m8aV4RequirementF13ScaleReadinessSourceType:
       acceptanceLayer.f13RouteNativeScaleReadiness.sourceType,
-    m8aV4ItriF13ScaleReadinessSourceUrl:
+    m8aV4RequirementF13ScaleReadinessSourceUrl:
       acceptanceLayer.f13RouteNativeScaleReadiness.sourceUrl,
-    m8aV4ItriF13ScaleReadinessPublicSourceUsed: String(
+    m8aV4RequirementF13ScaleReadinessPublicSourceUsed: String(
       acceptanceLayer.f13RouteNativeScaleReadiness.publicSourceUsed
     ),
-    m8aV4ItriF13ScaleReadinessBuiltAtUtc:
+    m8aV4RequirementF13ScaleReadinessBuiltAtUtc:
       acceptanceLayer.f13RouteNativeScaleReadiness.builtAtUtc,
-    m8aV4ItriF13ScaleReadinessFreshnessTimestampUtc:
+    m8aV4RequirementF13ScaleReadinessFreshnessTimestampUtc:
       acceptanceLayer.f13RouteNativeScaleReadiness.freshnessTimestampUtc,
-    m8aV4ItriF13ScaleReadinessClosureClaimed: String(
+    m8aV4RequirementF13ScaleReadinessClosureClaimed: String(
       acceptanceLayer.f13RouteNativeScaleReadiness
         .routeNativeScaleClosureClaimed
     ),
-    m8aV4ItriDemoViewAcceptanceExternalValidationArtifact:
+    m8aV4RequirementDemoViewAcceptanceExternalValidationArtifact:
       acceptanceLayer.externalValidationPackage.artifact,
-    m8aV4ItriDemoViewAcceptanceExternalValidationStatus:
+    m8aV4RequirementDemoViewAcceptanceExternalValidationStatus:
       acceptanceLayer.externalValidationPackage.status,
     m8aV410SliceScope:
       state.productUx.productComprehension.firstViewportComposition.scope,
@@ -579,132 +579,132 @@ export function syncTelemetry(state: M8aV4GroundStationSceneState): void {
         .truthBoundaryPlacement,
     m8aV49InspectorMetadataPolicy:
       state.productUx.productComprehension.inspectorLayer.metadataPolicy,
-    m8aV4GroundStationRawItriSideReadOwnership:
+    m8aV4GroundStationRawRequirementSideReadOwnership:
       state.sourceLineage.rawPackageSideReadOwnership,
     m8aV4GroundStationRuntimeConsumptionRule:
       M8A_V4_GROUND_STATION_RUNTIME_PROJECTION.runtimeConsumptionRule,
     m8aV4GroundStationProofSeam: state.proofSeam,
     m8aV4GroundStationNonClaims: serializeJson(state.nonClaims),
-    m8aV4ItriRequirementGapSurface: requirementGapSurface.version,
-    m8aV4ItriRequirementGapTruthLabels: serializeList([
+    m8aV4RequirementRequirementGapSurface: requirementGapSurface.version,
+    m8aV4RequirementRequirementGapTruthLabels: serializeList([
       ...requirementGapSurface.truthBoundaryLabels
     ]),
-    m8aV4ItriRequirementGapGroupIds: serializeList(
+    m8aV4RequirementRequirementGapGroupIds: serializeList(
       requirementGapSurface.groups.map((group) => group.groupId)
     ),
-    m8aV4ItriRequirementGapGroupStatuses: serializeList(
+    m8aV4RequirementRequirementGapGroupStatuses: serializeList(
       requirementGapSurface.groups.map((group) => `${group.groupId}:${group.status}`)
     ),
-    m8aV4ItriRequirementGapGroupDispositions: serializeList(
+    m8aV4RequirementRequirementGapGroupDispositions: serializeList(
       requirementGapSurface.groups.map(
         (group) => `${group.groupId}:${group.disposition}`
       )
     ),
-    m8aV4ItriRequirementGapOpenIds: serializeList(
+    m8aV4RequirementRequirementGapOpenIds: serializeList(
       requirementGapSurface.openRequirementIds
     ),
-    m8aV4ItriRequirementGapNotMountedIds: serializeList([
+    m8aV4RequirementRequirementGapNotMountedIds: serializeList([
       ...requirementIdsForGroup("not-mounted-route-gap")
     ]),
-    m8aV4ItriRequirementGapExternalValidationIds: serializeList([
+    m8aV4RequirementRequirementGapExternalValidationIds: serializeList([
       ...requirementIdsForGroup("external-validation-gap")
     ]),
-    m8aV4ItriRequirementGapRepoSeamIds: serializeList([
+    m8aV4RequirementRequirementGapRepoSeamIds: serializeList([
       ...requirementIdsForGroup("bounded-repo-owned-seam")
     ]),
-    m8aV4ItriRequirementGapBoundedRouteIds: serializeList([
+    m8aV4RequirementRequirementGapBoundedRouteIds: serializeList([
       ...requirementIdsForGroup("bounded-route-representation")
     ]),
-    m8aV4ItriRequirementGapRouteBaselineIds: serializeList([
+    m8aV4RequirementRequirementGapRouteBaselineIds: serializeList([
       ...requirementIdsForGroup("route-owned-visual-baseline")
     ]),
-    m8aV4ItriDemoPolishDisposition:
+    m8aV4RequirementDemoPolishDisposition:
       requirementGapSurface.demoPolishDisposition,
-    m8aV4ItriRouteNativeMeasuredTruthClaimed: String(
+    m8aV4RequirementRouteNativeMeasuredTruthClaimed: String(
       requirementGapSurface.routeNativeMeasuredTruthClaimed
     ),
-    m8aV4ItriF09RateSurface: f09RateSurface.version,
-    m8aV4ItriF09RateDisposition: f09RateSurface.disposition,
-    m8aV4ItriF09ExternalTruthDisposition:
+    m8aV4RequirementF09RateSurface: f09RateSurface.version,
+    m8aV4RequirementF09RateDisposition: f09RateSurface.disposition,
+    m8aV4RequirementF09ExternalTruthDisposition:
       f09RateSurface.externalTruthDisposition,
-    m8aV4ItriF09CurrentWindowId: f09RateSurface.currentWindowId,
-    m8aV4ItriF09CurrentClass: f09RateSurface.currentNetworkSpeedClass,
-    m8aV4ItriF09CurrentBucket: f09RateSurface.currentBucketLabel,
-    m8aV4ItriF09Provenance: f09RateSurface.provenance,
-    m8aV4ItriF09MetricTruth: f09RateSurface.metricTruth,
-    m8aV4ItriF09MeasuredThroughputClaimed: String(
+    m8aV4RequirementF09CurrentWindowId: f09RateSurface.currentWindowId,
+    m8aV4RequirementF09CurrentClass: f09RateSurface.currentNetworkSpeedClass,
+    m8aV4RequirementF09CurrentBucket: f09RateSurface.currentBucketLabel,
+    m8aV4RequirementF09Provenance: f09RateSurface.provenance,
+    m8aV4RequirementF09MetricTruth: f09RateSurface.metricTruth,
+    m8aV4RequirementF09MeasuredThroughputClaimed: String(
       f09RateSurface.measuredThroughputClaimed
     ),
-    m8aV4ItriF09WindowClasses: serializeList(
+    m8aV4RequirementF09WindowClasses: serializeList(
       f09RateSurface.rows.map(
         (row) => `${row.windowId}:${row.networkSpeedClass}`
       )
     ),
-    m8aV4ItriF16ExportSurface: f16ExportSurface.version,
-    m8aV4ItriF16ExportSchemaVersion: f16ExportSurface.schemaVersion,
-    m8aV4ItriF16ExportDisposition: f16ExportSurface.disposition,
-    m8aV4ItriF16ExternalTruthDisposition:
+    m8aV4RequirementF16ExportSurface: f16ExportSurface.version,
+    m8aV4RequirementF16ExportSchemaVersion: f16ExportSurface.schemaVersion,
+    m8aV4RequirementF16ExportDisposition: f16ExportSurface.disposition,
+    m8aV4RequirementF16ExternalTruthDisposition:
       f16ExportSurface.externalTruthDisposition,
-    m8aV4ItriF16ExportArtifactTruth: f16ExportSurface.artifactTruth,
-    m8aV4ItriF16ExportFormat: f16ExportSurface.exportFormat,
-    m8aV4ItriF16RouteOwnedStateOnly: String(
+    m8aV4RequirementF16ExportArtifactTruth: f16ExportSurface.artifactTruth,
+    m8aV4RequirementF16ExportFormat: f16ExportSurface.exportFormat,
+    m8aV4RequirementF16RouteOwnedStateOnly: String(
       f16ExportSurface.routeOwnedStateOnly
     ),
-    m8aV4ItriF16MeasuredValuesIncluded: String(
+    m8aV4RequirementF16MeasuredValuesIncluded: String(
       f16ExportSurface.measuredValuesIncluded
     ),
-    m8aV4ItriF16ExternalReportTruthClaimed: String(
+    m8aV4RequirementF16ExternalReportTruthClaimed: String(
       f16ExportSurface.externalReportSystemTruthClaimed
     ),
-    m8aV4ItriF16LastStatus: f16ExportSurface.lastStatus,
-    m8aV4ItriF16LastGeneratedAtUtc: f16ExportSurface.lastGeneratedAtUtc,
-    m8aV4ItriF16LastFilename: f16ExportSurface.lastFilename,
-    m8aV4ItriPolicyRuleControlsSurface: policyRuleControls.version,
-    m8aV4ItriPolicyRuleControlsDisposition:
+    m8aV4RequirementF16LastStatus: f16ExportSurface.lastStatus,
+    m8aV4RequirementF16LastGeneratedAtUtc: f16ExportSurface.lastGeneratedAtUtc,
+    m8aV4RequirementF16LastFilename: f16ExportSurface.lastFilename,
+    m8aV4RequirementPolicyRuleControlsSurface: policyRuleControls.version,
+    m8aV4RequirementPolicyRuleControlsDisposition:
       policyRuleControls.disposition,
-    m8aV4ItriPolicyRuleExternalTruthDisposition:
+    m8aV4RequirementPolicyRuleExternalTruthDisposition:
       policyRuleControls.externalTruthDisposition,
-    m8aV4ItriPolicyRuleTruthBoundary:
+    m8aV4RequirementPolicyRuleTruthBoundary:
       policyRuleControls.truthBoundary,
-    m8aV4ItriPolicyRuleExportAdjacentTruth:
+    m8aV4RequirementPolicyRuleExportAdjacentTruth:
       policyRuleControls.exportAdjacentTruth,
-    m8aV4ItriF10PolicyPresetId:
+    m8aV4RequirementF10PolicyPresetId:
       policyRuleControls.activePolicyPreset.presetId,
-    m8aV4ItriF10PolicyPresetLabel:
+    m8aV4RequirementF10PolicyPresetLabel:
       policyRuleControls.activePolicyPreset.label,
-    m8aV4ItriF10PolicyPresetMode:
+    m8aV4RequirementF10PolicyPresetMode:
       policyRuleControls.policyPresetMode,
-    m8aV4ItriF10PolicyPresetIds: serializeList(
+    m8aV4RequirementF10PolicyPresetIds: serializeList(
       policyRuleControls.policyPresets.map((preset) => preset.presetId)
     ),
-    m8aV4ItriF11RulePresetId:
+    m8aV4RequirementF11RulePresetId:
       policyRuleControls.activeRulePreset.presetId,
-    m8aV4ItriF11RulePresetLabel:
+    m8aV4RequirementF11RulePresetLabel:
       policyRuleControls.activeRulePreset.label,
-    m8aV4ItriF11RulePresetMode:
+    m8aV4RequirementF11RulePresetMode:
       policyRuleControls.rulePresetMode,
-    m8aV4ItriF11RulePresetIds: serializeList(
+    m8aV4RequirementF11RulePresetIds: serializeList(
       policyRuleControls.rulePresets.map((preset) => preset.presetId)
     ),
-    m8aV4ItriF11RuleParameterChips: serializeList([
+    m8aV4RequirementF11RuleParameterChips: serializeList([
       ...policyRuleControls.activeRulePreset.parameterChips
     ]),
-    m8aV4ItriPolicyRuleRouteOwnedStateOnly: String(
+    m8aV4RequirementPolicyRuleRouteOwnedStateOnly: String(
       policyRuleControls.routeOwnedStateOnly
     ),
-    m8aV4ItriPolicyRuleLiveControlClaimed: String(
+    m8aV4RequirementPolicyRuleLiveControlClaimed: String(
       policyRuleControls.liveControlClaimed
     ),
-    m8aV4ItriPolicyRuleBackendControlClaimed: String(
+    m8aV4RequirementPolicyRuleBackendControlClaimed: String(
       policyRuleControls.backendControlClaimed
     ),
-    m8aV4ItriPolicyRuleNetworkControlClaimed: String(
+    m8aV4RequirementPolicyRuleNetworkControlClaimed: String(
       policyRuleControls.networkControlClaimed
     ),
-    m8aV4ItriPolicyRuleArbitraryRuleEditorClaimed: String(
+    m8aV4RequirementPolicyRuleArbitraryRuleEditorClaimed: String(
       policyRuleControls.arbitraryRuleEditorClaimed
     ),
-    m8aV4ItriPolicyRuleMeasuredDecisionTruthClaimed: String(
+    m8aV4RequirementPolicyRuleMeasuredDecisionTruthClaimed: String(
       policyRuleControls.measuredDecisionTruthClaimed
     )
   });

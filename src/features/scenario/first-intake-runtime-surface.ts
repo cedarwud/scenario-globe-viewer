@@ -12,7 +12,7 @@ export const FIRST_INTAKE_RUNTIME_STATE = "active-addressed-case";
 export const FIRST_INTAKE_RUNTIME_ADOPTION_MODE =
   "url-addressed-live-runtime-entry";
 export const FIRST_INTAKE_RUNTIME_SEED_PATH =
-  "itri/multi-orbit/prep/seeds/oneweb-intelsat-geo-aviation.seed.json";
+  "accepted-sources/multi-orbit/prep/seeds/oneweb-intelsat-geo-aviation.seed.json";
 
 export type FirstIntakeRuntimeAddressResolution =
   | "default"

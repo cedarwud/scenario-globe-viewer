@@ -17,7 +17,7 @@ export const FIRST_INTAKE_PHYSICAL_INPUT_ADOPTION_MODE =
 export const FIRST_INTAKE_PHYSICAL_INPUT_CONTEXT_LABEL =
   "First-intake bounded service-switching proxy";
 export const FIRST_INTAKE_PHYSICAL_INPUT_SEED_PATH =
-  "itri/multi-orbit/prep/seeds/oneweb-intelsat-geo-aviation.seed.json";
+  "accepted-sources/multi-orbit/prep/seeds/oneweb-intelsat-geo-aviation.seed.json";
 export const FIRST_INTAKE_PHYSICAL_INPUT_BOOTSTRAP_FALLBACK = "not-used";
 
 export interface FirstIntakePhysicalInputSourceLineage {

@@ -80,9 +80,9 @@ The first repo-owned plain-data projection seam is:
 
 It adapts the accepted authority package:
 
-- `itri/multi-orbit/download/nearby-second-endpoints/m8a-yka-operations-office-2026-04-23/authority-package.md`
-- `itri/multi-orbit/download/nearby-second-endpoints/m8a-yka-operations-office-2026-04-23/position.json`
-- `itri/multi-orbit/download/nearby-second-endpoints/m8a-yka-operations-office-2026-04-23/non-claims.md`
+- `accepted-sources/multi-orbit/download/nearby-second-endpoints/m8a-yka-operations-office-2026-04-23/authority-package.md`
+- `accepted-sources/multi-orbit/download/nearby-second-endpoints/m8a-yka-operations-office-2026-04-23/position.json`
+- `accepted-sources/multi-orbit/download/nearby-second-endpoints/m8a-yka-operations-office-2026-04-23/non-claims.md`
 
 The adapter must preserve:
 
@@ -100,12 +100,12 @@ It must not turn the accepted package into:
 
 - a global endpoint registry
 - an endpoint B rewrite
-- a runtime/controller/render side-read of raw `itri` package files
+- a runtime/controller/render side-read of raw `requirement` package files
 - a source of physical-input or handover semantics
 
 ## Runtime Raw-Package Guardrail
 
-The accepted `itri` package remains the implementation-time authority source,
+The accepted `requirement` package remains the implementation-time authority source,
 but `M8A.2` runtime-owned code must read only the repo-owned plain-data seam:
 
 - `src/features/nearby-second-endpoint/accepted-nearby-second-endpoint-source-data.ts`
@@ -120,7 +120,7 @@ That means:
   - `authority-package.md`
   - `position.json`
   - `non-claims.md`
-  under `itri/multi-orbit/download/nearby-second-endpoints/...`
+  under `accepted-sources/multi-orbit/download/nearby-second-endpoints/...`
 
 ## Ownership Boundary
 

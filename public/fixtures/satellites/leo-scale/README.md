@@ -22,5 +22,5 @@ node scripts/build-f13-leo-scale-fixture.mjs \
 ```
 
 After refreshing, rerun the Phase 7.1 LEO validation profile and update the
-close-out evidence note. This fixture is not ITRI authority data, live network
+close-out evidence note. This fixture is not Requirement authority data, live network
 truth, active satellite path truth, or measured throughput/latency/jitter truth.

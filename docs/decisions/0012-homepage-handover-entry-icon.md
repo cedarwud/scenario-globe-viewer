@@ -51,6 +51,5 @@ a new scenario source or handover-decision truth change.
 
 ## Related
 
-- `docs/decisions/0010-reverse-bare-homepage-silent-demo-entry.md`
-- `docs/decisions/0011-source-lineaged-orbit-context-actor-gate.md`
-- `docs/sdd/m8a-v3.5-source-lineaged-orbit-actor-recovery-plan.md`
+- `src/features/app/homepage-entry-cta.ts`
+- `src/runtime/bootstrap/composition.ts`

@@ -25,7 +25,7 @@ export const M8A_V410_INSPECTOR_EVIDENCE_VERSION =
 export const M8A_V410_PRODUCT_UX_STRUCTURE_VERSION =
   "m8a-v4.11-product-ux-structure-policy-rule-controls-runtime.v1";
 export const M8A_V4_CUSTOMER_DEMO_VIEW_FOCUS_CHOREOGRAPHY_VERSION =
-  "itri-demo-view-focus-choreography-runtime.v1";
+  "requirement-demo-view-focus-choreography-runtime.v1";
 export const M8A_V47_GUIDED_REVIEW_MULTIPLIER = 30;
 export const M8A_V47_PRODUCT_DEFAULT_MULTIPLIER = 60;
 export const M8A_V47_QUICK_SCAN_MULTIPLIER = 120;
@@ -580,7 +580,7 @@ export interface M8aV49WindowProductCopy {
   transitionRole: string;
 }
 
-export interface M8aV4ItriDemoFocusChoreographyRuntime {
+export interface M8aV4RequirementDemoFocusChoreographyRuntime {
   version: typeof M8A_V4_CUSTOMER_DEMO_VIEW_FOCUS_CHOREOGRAPHY_VERSION;
   scope: "L1-per-window-focus-choreography";
   visibleContent: typeof M8A_V4_CUSTOMER_DEMO_VIEW_FOCUS_VISIBLE_CONTENT;
@@ -700,7 +700,7 @@ export interface M8aV49ProductComprehensionRuntime {
   boundaryAffordance: M8aV410BoundaryAffordanceRuntime;
   windowIds: ReadonlyArray<M8aV46dSimulationHandoverWindowId>;
   activeWindowCopy: M8aV49WindowProductCopy;
-  focusChoreography: M8aV4ItriDemoFocusChoreographyRuntime;
+  focusChoreography: M8aV4RequirementDemoFocusChoreographyRuntime;
   copyInventory: ReadonlyArray<M8aV49WindowProductCopy>;
   persistentLayer: {
     defaultVisibleContent: typeof M8A_V49_PERSISTENT_ALLOWED_CONTENT;
@@ -933,9 +933,9 @@ export function resolveV49WindowProductCopy(
   };
 }
 
-export function resolveM8aV4ItriDemoFocusChoreography(
+export function resolveM8aV4RequirementDemoFocusChoreography(
   windowId: M8aV46dSimulationHandoverWindowId
-): M8aV4ItriDemoFocusChoreographyRuntime {
+): M8aV4RequirementDemoFocusChoreographyRuntime {
   const copy = M8A_V4_CUSTOMER_DEMO_VIEW_FOCUS_COPY[windowId];
 
   return {
@@ -1135,7 +1135,7 @@ export function buildV49ProductComprehensionRuntime(
   const activeWindowCopy = resolveV49WindowProductCopy(
     simulationHandoverModel.window.windowId
   );
-  const focusChoreography = resolveM8aV4ItriDemoFocusChoreography(
+  const focusChoreography = resolveM8aV4RequirementDemoFocusChoreography(
     simulationHandoverModel.window.windowId
   );
 

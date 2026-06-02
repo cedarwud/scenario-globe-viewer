@@ -18,7 +18,7 @@ export const FIRST_INTAKE_MOBILE_ENDPOINT_TRAJECTORY_ENDPOINT_ID =
 export const FIRST_INTAKE_MOBILE_ENDPOINT_TRAJECTORY_ENDPOINT_ROLE =
   "endpoint-a";
 export const FIRST_INTAKE_MOBILE_ENDPOINT_TRAJECTORY_PACKAGE_ROOT =
-  "itri/multi-orbit/download/aircraft-corridors/ac-cgojz-crj900-c06aa4-2026-04-21";
+  "accepted-sources/multi-orbit/download/aircraft-corridors/ac-cgojz-crj900-c06aa4-2026-04-21";
 export const FIRST_INTAKE_MOBILE_ENDPOINT_TRAJECTORY_FREEZE_RECORD_PATH =
   `${FIRST_INTAKE_MOBILE_ENDPOINT_TRAJECTORY_PACKAGE_ROOT}/freeze-record.md`;
 export const FIRST_INTAKE_MOBILE_ENDPOINT_TRAJECTORY_SOURCE_RECORD_PATH =

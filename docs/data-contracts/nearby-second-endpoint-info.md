@@ -30,8 +30,8 @@ The info controller may read only existing repo-owned runtime seams:
 
 It must not import or read raw package files under:
 
-- `itri/multi-orbit/download/nearby-second-endpoints/...`
-- `itri/multi-orbit/download/aircraft-corridors/...`
+- `accepted-sources/multi-orbit/download/nearby-second-endpoints/...`
+- `accepted-sources/multi-orbit/download/aircraft-corridors/...`
 
 ## Contract Facts
 

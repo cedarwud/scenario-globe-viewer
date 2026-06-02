@@ -83,12 +83,12 @@ import type {
   M8A_V4_CUSTOMER_ROUTE_NATIVE_MEASURED_TRUTH_CLAIMED,
   M8aV4F09NetworkSpeedClass,
   M8aV4F09RateWindowRow,
-  M8aV4ItriF10PolicyPreset,
-  M8aV4ItriF11RulePreset,
-  M8aV4ItriF16ExportRecord,
-  M8aV4ItriAcceptanceCoverageRecord,
-  M8aV4ItriRequirementStatusGroup
-} from "./m8a-v4-itri-demo-surfaces";
+  M8aV4RequirementF10PolicyPreset,
+  M8aV4RequirementF11RulePreset,
+  M8aV4RequirementF16ExportRecord,
+  M8aV4RequirementAcceptanceCoverageRecord,
+  M8aV4RequirementRequirementStatusGroup
+} from "./m8a-v4-requirement-demo-surfaces";
 import type { M8aV411SourcesFilter } from "./m8a-v411-sources-role";
 import type {
   M8A_V411_REVIEW_AUTO_PAUSE_DURATION_MS,
@@ -385,7 +385,7 @@ export interface M8aV4GroundStationSceneState {
     demoPolishDisposition: typeof M8A_V4_CUSTOMER_DEMO_POLISH_DISPOSITION;
     routeNativeMeasuredTruthClaimed:
       typeof M8A_V4_CUSTOMER_ROUTE_NATIVE_MEASURED_TRUTH_CLAIMED;
-    groups: ReadonlyArray<M8aV4ItriRequirementStatusGroup>;
+    groups: ReadonlyArray<M8aV4RequirementRequirementStatusGroup>;
     openRequirementIds: ReadonlyArray<string>;
   };
   acceptanceLayer: {
@@ -393,7 +393,7 @@ export interface M8aV4GroundStationSceneState {
     layerId: typeof M8A_V4_CUSTOMER_DEMO_VIEW_ACCEPTANCE_LAYER_ID;
     truthBoundary: typeof M8A_V4_CUSTOMER_DEMO_VIEW_ACCEPTANCE_TRUTH_BOUNDARY;
     requirementIds: typeof M8A_V4_CUSTOMER_ACCEPTANCE_REQUIREMENT_IDS;
-    coverageRecords: ReadonlyArray<M8aV4ItriAcceptanceCoverageRecord>;
+    coverageRecords: ReadonlyArray<M8aV4RequirementAcceptanceCoverageRecord>;
     requirementStatusPairs: ReadonlyArray<string>;
     requirementLayerPairs: ReadonlyArray<string>;
     externalFailIds: typeof M8A_V4_CUSTOMER_ACCEPTANCE_EXTERNAL_FAIL_IDS;
@@ -441,7 +441,7 @@ export interface M8aV4GroundStationSceneState {
         typeof M8A_V4_CUSTOMER_F13_ROUTE_NATIVE_SCALE_READINESS_NON_CLAIMS;
       routeNativeScaleClosureClaimed: false;
       externalValidationClosureClaimed: false;
-      itriAuthorityClaimed: false;
+      sourceAuthorityClaimed: false;
     };
     externalValidationPackage: {
       artifact: typeof M8A_V4_CUSTOMER_EXTERNAL_V02_V06_VALIDATION_ARTIFACT;
@@ -482,7 +482,7 @@ export interface M8aV4GroundStationSceneState {
     externalReportSystemTruthClaimed:
       typeof M8A_V4_CUSTOMER_F16_EXTERNAL_REPORT_TRUTH_CLAIMED;
     explicitNonClaims: typeof M8A_V4_CUSTOMER_F16_EXPLICIT_NON_CLAIMS;
-    lastStatus: "ready" | M8aV4ItriF16ExportRecord["status"];
+    lastStatus: "ready" | M8aV4RequirementF16ExportRecord["status"];
     lastGeneratedAtUtc: string;
     lastFilename: string;
     lastErrorMessage: string;
@@ -501,8 +501,8 @@ export interface M8aV4GroundStationSceneState {
     rulePresetMode: typeof M8A_V4_CUSTOMER_F11_RULE_PRESET_MODE;
     defaultPolicyPresetId: typeof M8A_V4_CUSTOMER_F10_POLICY_DEFAULT_PRESET_ID;
     defaultRulePresetId: typeof M8A_V4_CUSTOMER_F11_RULE_DEFAULT_PRESET_ID;
-    activePolicyPreset: M8aV4ItriF10PolicyPreset;
-    activeRulePreset: M8aV4ItriF11RulePreset;
+    activePolicyPreset: M8aV4RequirementF10PolicyPreset;
+    activeRulePreset: M8aV4RequirementF11RulePreset;
     policyPresets: typeof M8A_V4_CUSTOMER_F10_POLICY_PRESETS;
     rulePresets: typeof M8A_V4_CUSTOMER_F11_RULE_PRESETS;
     routeOwnedStateOnly:

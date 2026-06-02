@@ -294,7 +294,7 @@ function main() {
   writeCatalog(geoOutputDir, geoFixtureFile, commercialGeoRecords);
 
   writeJson(path.join(meoOutputDir, "provenance.json"), {
-    schemaVersion: "itri-v4.13-multi-orbit-fixture-provenance.v1",
+    schemaVersion: "requirement-v4.13-multi-orbit-fixture-provenance.v1",
     orbitClass: "meo",
     capturedAt,
     epochCount: meoDedupe.deduped.length,
@@ -332,7 +332,7 @@ function main() {
   });
 
   writeJson(path.join(geoOutputDir, "provenance.json"), {
-    schemaVersion: "itri-v4.13-multi-orbit-fixture-provenance.v1",
+    schemaVersion: "requirement-v4.13-multi-orbit-fixture-provenance.v1",
     orbitClass: "geo",
     capturedAt,
     epochCount: commercialGeoRecords.length,

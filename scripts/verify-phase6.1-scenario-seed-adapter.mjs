@@ -18,7 +18,7 @@ const scenarioIndexPath = new URL(
   import.meta.url
 );
 const firstIntakeSeedPath = new URL(
-  "../../itri/multi-orbit/prep/seeds/oneweb-intelsat-geo-aviation.seed.json",
+  "../../accepted-sources/multi-orbit/prep/seeds/oneweb-intelsat-geo-aviation.seed.json",
   import.meta.url
 );
 

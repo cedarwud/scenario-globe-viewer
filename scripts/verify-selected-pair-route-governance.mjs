@@ -77,16 +77,6 @@ const COMPATIBILITY_ROUTE_FILES = new Set(
 
 const HISTORICAL_FIXTURE_ROUTE_PATTERNS = [
   {
-    status: "external-authority-source-boundary-reviewer",
-    pattern:
-      /^scripts\/verify-itri-f12-decision-threshold-authority-reviewer\.mjs$/
-  },
-  {
-    status: "measured-traffic-source-boundary-reviewer",
-    pattern:
-      /^scripts\/verify-itri-measured-traffic-package-reviewer\.mjs$/
-  },
-  {
     status: "tier1-fixture-source-boundary-smoke",
     pattern:
       /^tests\/smoke\/verify-m8a-v4\.3-ground-station-handover-runtime\.mjs$/
@@ -115,11 +105,6 @@ const HISTORICAL_FIXTURE_ROUTE_PATTERNS = [
     status: "historical-fixture-smoke",
     pattern:
       /^tests\/smoke\/verify-m8a-v4\.12-f09-communication-rate-runtime\.mjs$/
-  },
-  {
-    status: "historical-reviewer-package",
-    pattern:
-      /^scripts\/verify-[^-]+-(?:measured-traffic-package|f12-decision-threshold-authority)-reviewer\.mjs$/
   }
 ];
 

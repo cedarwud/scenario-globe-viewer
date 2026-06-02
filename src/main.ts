@@ -6,7 +6,7 @@ import {
 import { startBootstrapComposition } from "./runtime/bootstrap/composition";
 import "./styles.css";
 import "./styles/m8a-v47-product-ux.css";
-import "./styles/itri-demo-view-default-focus.css";
+import "./styles/requirement-demo-view-default-focus.css";
 import "./styles/m8a-v411-narrow.css";
 import "./styles/m8a-v411-demo-declutter.css";
 import "./styles/replay-event-pill.css";

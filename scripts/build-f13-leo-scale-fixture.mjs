@@ -133,7 +133,7 @@ function main() {
     provenancePath,
     `${JSON.stringify(
       {
-        schemaVersion: "itri-f13-leo-scale-fixture-provenance.v1",
+        schemaVersion: "requirement-f13-leo-scale-fixture-provenance.v1",
         source: "Celestrak",
         sourceUrl,
         capturedAt,

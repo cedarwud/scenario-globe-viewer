@@ -13,24 +13,24 @@ const RUNTIME_SURFACES = [
 
 const SOURCE_BOUNDARY_PATTERNS = [
   {
-    label: "static import from raw itri path",
-    pattern: /from\s+["'][^"']*itri\/multi-orbit\/download[^"']*["']/gi
+    label: "static import from raw source path",
+    pattern: /from\s+["'][^"']*accepted-sources\/multi-orbit\/download[^"']*["']/gi
   },
   {
-    label: "dynamic import of raw itri path",
-    pattern: /import\(\s*["'][^"']*itri\/multi-orbit\/download[^"']*["']\s*\)/gi
+    label: "dynamic import of raw source path",
+    pattern: /import\(\s*["'][^"']*accepted-sources\/multi-orbit\/download[^"']*["']\s*\)/gi
   },
   {
-    label: "runtime fetch of raw itri path",
-    pattern: /fetch\(\s*["'][^"']*itri\/multi-orbit\/download[^"']*["']/gi
+    label: "runtime fetch of raw source path",
+    pattern: /fetch\(\s*["'][^"']*accepted-sources\/multi-orbit\/download[^"']*["']/gi
   },
   {
-    label: "filesystem read of raw itri path",
-    pattern: /readFile(?:Sync)?\([^)]*itri\/multi-orbit\/download/gi
+    label: "filesystem read of raw source path",
+    pattern: /readFile(?:Sync)?\([^)]*accepted-sources\/multi-orbit\/download/gi
   },
   {
-    label: "URL resolution of raw itri path",
-    pattern: /new\s+URL\(\s*["'][^"']*itri\/multi-orbit\/download[^"']*["']/gi
+    label: "URL resolution of raw source path",
+    pattern: /new\s+URL\(\s*["'][^"']*accepted-sources\/multi-orbit\/download[^"']*["']/gi
   },
   {
     label: "runtime fetch of live CelesTrak source",
@@ -79,5 +79,5 @@ if (matches.length > 0) {
 }
 
 console.log(
-  "M8A-V4.6B runtime source-boundary scan passed: no raw itri package side-read or live CelesTrak source-read code found in runtime surfaces."
+  "M8A-V4.6B runtime source-boundary scan passed: no raw source package side-read or live CelesTrak source-read code found in runtime surfaces."
 );

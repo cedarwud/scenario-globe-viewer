@@ -15,14 +15,22 @@ output/soak/*
 output/validation/*
 !output/validation/.gitkeep
 
-# AGENTS.md + CLAUDE.md now tracked (2026-05-17) — agent memory bridge per /home/u24/papers/AGENTS.md §8
+# Local agent/controller context is intentionally not part of the delivery tree.
+AGENTS.md
+CLAUDE.md
+.agent-memory
 .claude/
 .codex/
 .codegraph/
 .playwright-mcp/
 .gstack/
 
-tmp.sh
+# Local planning, capture, and spike artifacts.
+docs/sdd/
+docs/images/
+docs/presentation/
+docs/spike/
+spike/
+tests/visual/
 
-# Bridge symlink to Claude memory (user-private, not tracked)
-.agent-memory
+tmp.sh

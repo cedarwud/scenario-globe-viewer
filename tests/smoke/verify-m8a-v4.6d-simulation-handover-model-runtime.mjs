@@ -50,7 +50,7 @@ const REQUIRED_NON_CLAIM_KEYS = [
   "noNativeRfHandover",
   "noEndpointPairOrPrecisionChange",
   "noR2RuntimeSelector",
-  "noRawItriOrLiveExternalRuntimeSource"
+  "noRawSourceOrLiveExternalRuntimeSource"
 ];
 const EXPECTED_ACTOR_COUNTS = {
   leo: 6,
@@ -64,24 +64,24 @@ const RUNTIME_SOURCE_FILES = [
 ];
 const SOURCE_BOUNDARY_PATTERNS = [
   {
-    label: "static import from raw itri path",
-    pattern: /from\s+["'][^"']*itri\/multi-orbit\/download[^"']*["']/gi
+    label: "static import from raw source path",
+    pattern: /from\s+["'][^"']*accepted-sources\/multi-orbit\/download[^"']*["']/gi
   },
   {
-    label: "dynamic import of raw itri path",
-    pattern: /import\(\s*["'][^"']*itri\/multi-orbit\/download[^"']*["']\s*\)/gi
+    label: "dynamic import of raw source path",
+    pattern: /import\(\s*["'][^"']*accepted-sources\/multi-orbit\/download[^"']*["']\s*\)/gi
   },
   {
-    label: "runtime fetch of raw itri path",
-    pattern: /fetch\(\s*["'][^"']*itri\/multi-orbit\/download[^"']*["']/gi
+    label: "runtime fetch of raw source path",
+    pattern: /fetch\(\s*["'][^"']*accepted-sources\/multi-orbit\/download[^"']*["']/gi
   },
   {
-    label: "filesystem read of raw itri path",
-    pattern: /readFile(?:Sync)?\([^)]*itri\/multi-orbit\/download/gi
+    label: "filesystem read of raw source path",
+    pattern: /readFile(?:Sync)?\([^)]*accepted-sources\/multi-orbit\/download/gi
   },
   {
-    label: "URL resolution of raw itri path",
-    pattern: /new\s+URL\(\s*["'][^"']*itri\/multi-orbit\/download[^"']*["']/gi
+    label: "URL resolution of raw source path",
+    pattern: /new\s+URL\(\s*["'][^"']*accepted-sources\/multi-orbit\/download[^"']*["']/gi
   },
   {
     label: "runtime fetch of live CelesTrak source",
@@ -290,7 +290,7 @@ async function main() {
           "same-site",
           "exact endpoint",
           "r2 runtime selector",
-          "raw itri",
+          "raw source",
           "live external runtime source"
         ];
         const scanForbiddenClaims = (
@@ -394,7 +394,7 @@ async function main() {
         const forbiddenResourceRequests = performance
           .getEntriesByType("resource")
           .map((entry) => entry.name)
-          .filter((name) => /celestrak|itri\\/multi-orbit/i.test(name));
+          .filter((name) => /celestrak|requirement\\/multi-orbit/i.test(name));
 
         assert(model, "V4.6D simulation handover model is missing from state.");
         assert(
@@ -539,7 +539,7 @@ async function main() {
               model.validationExpectations.expectedActorCounts,
               config.expectedActorCounts
             ) &&
-            model.validationExpectations.runtimeRawItriSideReadAllowed === false &&
+            model.validationExpectations.runtimeRawSourceSideReadAllowed === false &&
             model.validationExpectations.measuredMetricTruthAllowed === false,
           "V4.6D validation expectations changed."
         );
@@ -559,7 +559,7 @@ async function main() {
         );
         assert(
           forbiddenResourceRequests.length === 0,
-          "V4.6D runtime fetched raw itri or live external source resources: " +
+          "V4.6D runtime fetched raw source or live external source resources: " +
             JSON.stringify(forbiddenResourceRequests)
         );
         assert(

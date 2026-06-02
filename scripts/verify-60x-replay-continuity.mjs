@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // Acceptance gate G3 — 60x replay continuity. Walks the surface through a
 // 6-minute wall-clock 60x playback and asserts the four conditions in
-// docs/sdd/multi-station-selector/acceptance-criteria.md §G3.
+// Selected-pair replay continuity gate.
 //
 // Requires: vite dev server already running on http://127.0.0.1:5173,
 // chromium 1217 binary at the cached playwright path, no other browser

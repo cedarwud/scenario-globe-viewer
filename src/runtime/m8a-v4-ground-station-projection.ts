@@ -293,7 +293,7 @@ export interface M8aV46dWindowNonClaims {
   noNativeRfHandover: true;
   noEndpointPairOrPrecisionChange: true;
   noR2RuntimeSelector: true;
-  noRawItriOrLiveExternalRuntimeSource: true;
+  noRawSourceOrLiveExternalRuntimeSource: true;
 }
 
 export interface M8aV46dSimulationHandoverWindow {
@@ -378,7 +378,7 @@ export interface M8aV46dSimulationHandoverValidationExpectations {
   actorIdsMustExistInV46bActorSet: true;
   actorOrbitClassesMustMatchModelRoles: true;
   endpointPairAndPrecisionMustRemainUnchanged: true;
-  runtimeRawItriSideReadAllowed: false;
+  runtimeRawSourceSideReadAllowed: false;
   measuredMetricTruthAllowed: false;
   requiredWindowNonClaimKeys: ReadonlyArray<keyof M8aV46dWindowNonClaims>;
 }
@@ -475,7 +475,7 @@ export interface M8aV4GroundStationRuntimeProjection {
   projectionEpochUtc: string;
   sourceAuthority: "repo-owned-generated-module-from-viewer-owned-artifact";
   runtimeConsumptionRule:
-    "runtime-controller-render-consume-this-module-only-no-raw-itri-side-read";
+    "runtime-controller-render-consume-this-module-only-no-raw-source-side-read";
   rawSourcePathsIncluded: false;
   sourcePackageLineage: {
     packageId: "taiwan-cht-speedcast-singapore-operator-family-2026-04-26";
@@ -532,7 +532,7 @@ export interface M8aV4GroundStationRuntimeProjection {
     requiredOrbitChips: readonly ["leo", "meo", "geo"];
     rawSourceCoordinatesMustRemainNull: true;
     renderMarkersMustHaveBoundedDisplayPositions: true;
-    runtimeRawItriSideReadAllowed: false;
+    runtimeRawSourceSideReadAllowed: false;
     serviceStateTruth: "modeled";
     measuredMetricTruthAllowed: false;
   };
@@ -741,7 +741,7 @@ const M8A_V46D_REQUIRED_WINDOW_NON_CLAIM_KEYS = [
   "noNativeRfHandover",
   "noEndpointPairOrPrecisionChange",
   "noR2RuntimeSelector",
-  "noRawItriOrLiveExternalRuntimeSource"
+  "noRawSourceOrLiveExternalRuntimeSource"
 ] as const satisfies ReadonlyArray<keyof M8aV46dWindowNonClaims>;
 
 const M8A_V46D_WINDOW_NON_CLAIMS = {
@@ -753,7 +753,7 @@ const M8A_V46D_WINDOW_NON_CLAIMS = {
   noNativeRfHandover: true,
   noEndpointPairOrPrecisionChange: true,
   noR2RuntimeSelector: true,
-  noRawItriOrLiveExternalRuntimeSource: true
+  noRawSourceOrLiveExternalRuntimeSource: true
 } satisfies M8aV46dWindowNonClaims;
 
 const M8A_V46D_BOUNDED_METRIC_POLICY = {
@@ -1027,7 +1027,7 @@ function buildV46dSimulationHandoverModel(
       actorIdsMustExistInV46bActorSet: true,
       actorOrbitClassesMustMatchModelRoles: true,
       endpointPairAndPrecisionMustRemainUnchanged: true,
-      runtimeRawItriSideReadAllowed: false,
+      runtimeRawSourceSideReadAllowed: false,
       measuredMetricTruthAllowed: false,
       requiredWindowNonClaimKeys: M8A_V46D_REQUIRED_WINDOW_NON_CLAIM_KEYS
     },
@@ -1070,7 +1070,7 @@ export const M8A_V4_GROUND_STATION_RUNTIME_PROJECTION: M8aV4GroundStationRuntime
     projectionEpochUtc: M8A_V4_ACCEPTED_V46B_ARTIFACT.projectionEpochUtc,
     sourceAuthority: "repo-owned-generated-module-from-viewer-owned-artifact",
     runtimeConsumptionRule:
-      "runtime-controller-render-consume-this-module-only-no-raw-itri-side-read",
+      "runtime-controller-render-consume-this-module-only-no-raw-source-side-read",
     rawSourcePathsIncluded: false,
     sourcePackageLineage: {
       packageId: "taiwan-cht-speedcast-singapore-operator-family-2026-04-26",
@@ -1604,7 +1604,7 @@ export const M8A_V4_GROUND_STATION_RUNTIME_PROJECTION: M8aV4GroundStationRuntime
       requiredOrbitChips: ["leo", "meo", "geo"],
       rawSourceCoordinatesMustRemainNull: true,
       renderMarkersMustHaveBoundedDisplayPositions: true,
-      runtimeRawItriSideReadAllowed: false,
+      runtimeRawSourceSideReadAllowed: false,
       serviceStateTruth: "modeled",
       measuredMetricTruthAllowed: false
     }

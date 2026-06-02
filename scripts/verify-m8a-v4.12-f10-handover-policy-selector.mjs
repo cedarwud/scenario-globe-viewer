@@ -198,7 +198,7 @@ try {
   const serialized = JSON.stringify([balancedState, throughputState, latencyState]);
 
   assert(
-    !/live network control|live rf handover|policy applied to real satellite|policy verified by iperf|policy verified by ping|production handover controller|policy ratified by itri|policy meets 3gpp|policy enforces operator sla|policy ensures >=500 leo|policy closes v-02/i.test(
+    !/live network control|live rf handover|policy applied to real satellite|policy verified by iperf|policy verified by ping|production handover controller|policy ratified by requirement|policy meets 3gpp|policy enforces operator sla|policy ensures >=500 leo|policy closes v-02/i.test(
       serialized.toLowerCase()
     ),
     "F-10 policy contract must not include forbidden live-control or external-truth claims."

@@ -1,13 +1,10 @@
-// Replay event pill — implements docs/sdd/multi-station-selector/
-// information-architecture.md §4.3.1.
-//
 // A single transient pill anchored at chrome.bottomRight that surfaces
 // the most recent handover-event emission during the `replaying` display
 // state. The pill mounts once per viewer lifetime, hidden by default; it
 // only exposes attribute mutations on a stable root (no per-event mount
 // churn).
 //
-// Lifecycle (per §4.3.1):
+// Lifecycle:
 // - bootstrap creates the root, hidden;
 // - when display state is `replaying` AND the panel emits a runtime
 //   projection result, the module watches replayClock.getState().
