@@ -1057,12 +1057,16 @@ function buildTleSourceManifest(
     const format =
       parseStats?.format ?? allRecords[0]?.format ?? "tle-3le";
     const sourcePath = input.sourcePaths[orbitClass];
-    const sourceTimestampUtc = extractSourceTimestampUtc(sourcePath);
     const healthThresholdDays = resolveHealthThresholdDays(
       orbitClass,
       input.sourceHealthThresholdDays
     );
     const epochRange = resolveEpochRange(allRecords);
+    const sourceTimestampUtc =
+      extractSourceTimestampUtc(sourcePath) ??
+      epochRange.epochEndUtc ??
+      parseStats?.snapshotFetchedUtc ??
+      null;
     const cosparDesignatorSamples =
       parseStats?.cosparDesignatorSamples ?? resolveCosparSamples(allRecords);
     return {

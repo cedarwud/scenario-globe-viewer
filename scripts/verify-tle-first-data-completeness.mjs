@@ -99,8 +99,8 @@ const walkthroughCases = [
     expectedStatus: "ready",
     expectedRuntimeLinkVisible: true,
     baselineVisibilityWindowCount: 709,
-    baselineLinkSelectionEventCount: 55,
-    baselineHandoverCount: 54,
+    baselineLinkSelectionEventCount: 25,
+    baselineHandoverCount: 24,
     expectedStationPrecision: [
       { stationId: "ksat-svalsat-svalbard", elevationM: 0, terrainMaskDeg: 0 },
       { stationId: "ksat-tromso", elevationM: 0, terrainMaskDeg: 0 }
@@ -128,8 +128,8 @@ const walkthroughCases = [
     expectedStatus: "ready",
     expectedRuntimeLinkVisible: true,
     baselineVisibilityWindowCount: 15,
-    baselineLinkSelectionEventCount: 3,
-    baselineHandoverCount: 2,
+    baselineLinkSelectionEventCount: 9,
+    baselineHandoverCount: 8,
     expectedStationPrecision: [
       { stationId: "intelsat-fuchsstadt", elevationM: 337, terrainMaskDeg: 0 },
       { stationId: "intelsat-atlanta", elevationM: 241, terrainMaskDeg: 0 }
@@ -141,9 +141,9 @@ const walkthroughCases = [
     stationB: "measat-cyberjaya",
     expectedStatus: "ready",
     expectedRuntimeLinkVisible: true,
-    baselineVisibilityWindowCount: 211,
-    baselineLinkSelectionEventCount: 13,
-    baselineHandoverCount: 12,
+    baselineVisibilityWindowCount: 358,
+    baselineLinkSelectionEventCount: 16,
+    baselineHandoverCount: 15,
     expectedStationPrecision: [
       { stationId: "singtel-bukit-timah", elevationM: 58, terrainMaskDeg: 0 },
       { stationId: "measat-cyberjaya", elevationM: 22, terrainMaskDeg: 0 }
@@ -156,8 +156,8 @@ const walkthroughCases = [
     expectedStatus: "ready",
     expectedRuntimeLinkVisible: true,
     baselineVisibilityWindowCount: 9,
-    baselineLinkSelectionEventCount: 3,
-    baselineHandoverCount: 2,
+    baselineLinkSelectionEventCount: 9,
+    baselineHandoverCount: 8,
     expectedStationPrecision: [
       { stationId: "cht-yangmingshan", elevationM: 470, terrainMaskDeg: 0 },
       { stationId: "sansa-hartebeesthoek", elevationM: 1538, terrainMaskDeg: 0 }

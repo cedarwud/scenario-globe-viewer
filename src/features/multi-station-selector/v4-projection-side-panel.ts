@@ -74,6 +74,7 @@ const POLICY_PARAM = "policy";
 const COMPARE_PARAM = "compare";
 const PRE_WAVE2_COMPARE_MODE = "pre-wave-2";
 let csvHelpIdCounter = 0;
+let rainHelpIdCounter = 0;
 
 const RAIN_RATE_MIN_MM_PER_HOUR = 0;
 const RAIN_RATE_MAX_MM_PER_HOUR = 100;
@@ -905,16 +906,121 @@ function buildRainControl(
   const head = document.createElement("div");
   head.className = "v4-projection-side-panel__rain-head";
 
+  const titleRow = document.createElement("div");
+  titleRow.className = "v4-projection-side-panel__rain-title-row";
+
   const label = document.createElement("label");
   label.className = "v4-projection-side-panel__rain-label";
   label.id = "v4-rain-rate-label";
   label.textContent = "Rain rate";
 
+  rainHelpIdCounter += 1;
+  const helpPopoverId = `v4-rain-rate-help-${rainHelpIdCounter}`;
+  const helpTrigger = document.createElement("button");
+  helpTrigger.type = "button";
+  helpTrigger.className = "v4-projection-side-panel__rain-help-trigger";
+  helpTrigger.setAttribute("aria-label", "開啟雨衰計算說明");
+  helpTrigger.setAttribute("aria-controls", helpPopoverId);
+  helpTrigger.setAttribute("aria-expanded", "false");
+  helpTrigger.title = "雨衰計算說明";
+  helpTrigger.textContent = "?";
+
+  const helpPopover = document.createElement("div");
+  helpPopover.id = helpPopoverId;
+  helpPopover.className = "v4-projection-side-panel__rain-help-popover";
+  helpPopover.hidden = true;
+  helpPopover.setAttribute("role", "dialog");
+  helpPopover.setAttribute("aria-label", "雨衰計算說明");
+  helpPopover.innerHTML = `
+    <header class="v4-projection-side-panel__rain-help-header">
+      <h4>Rain attenuation model</h4>
+      <button type="button" class="v4-projection-side-panel__rain-help-close" aria-label="關閉">&times;</button>
+    </header>
+    <div class="v4-projection-side-panel__rain-help-body">
+      <p>
+        這個滑桿把輸入雨率 R(mm/h) 代入 ITU-R P.838-3 的
+        <span class="v4-projection-side-panel__math-inline" aria-label="gamma R equals k R to the alpha">
+          <span>&gamma;<sub>R</sub></span><span>=</span><span>kR<sup>&alpha;</sup></span>
+        </span>，先得到每公里雨衰 dB/km；k 和 alpha 由 carrier frequency 與 polarization 決定。
+      </p>
+      <p>
+        接著依 ITU-R P.618-14 Earth-space slant-path 思路，用雨層高度、地面站高度與仰角估算
+        effective slant path，再以
+        <span class="v4-projection-side-panel__math-inline" aria-label="rain attenuation equals gamma R times slant path">
+          <span>A<sub>rain</sub></span><span>=</span><span>&gamma;<sub>R</sub>L<sub>s</sub></span>
+        </span> 得到雨衰 dB。
+      </p>
+      <div class="v4-projection-side-panel__rain-help-formulas" aria-label="Rain attenuation formulas">
+        <span class="v4-projection-side-panel__rain-help-formula-label">Formula</span>
+        <div class="v4-projection-side-panel__math-display" role="img" aria-label="gamma R equals k R to the alpha">
+          <span>&gamma;<sub>R</sub></span>
+          <span>=</span>
+          <span>kR<sup>&alpha;</sup></span>
+        </div>
+        <div class="v4-projection-side-panel__math-display v4-projection-side-panel__math-display--cases" role="img" aria-label="slant path cases">
+          <span>L<sub>s</sub> =</span>
+          <span class="v4-projection-side-panel__math-case-brace">{</span>
+          <span class="v4-projection-side-panel__math-cases">
+            <span class="v4-projection-side-panel__math-case-row">
+              <span class="v4-projection-side-panel__math-frac">
+                <span>h<sub>R</sub> - h<sub>s</sub></span>
+                <span>sin&nbsp;&theta;</span>
+              </span>
+              <span class="v4-projection-side-panel__math-condition">&theta; &ge; 5&deg;</span>
+            </span>
+            <span class="v4-projection-side-panel__math-case-row">
+              <span class="v4-projection-side-panel__math-frac">
+                <span>2(h<sub>R</sub> - h<sub>s</sub>)</span>
+                <span>
+                  &radic;(sin<sup>2</sup>&theta; +
+                  <span class="v4-projection-side-panel__math-frac v4-projection-side-panel__math-frac--inline">
+                    <span>2(h<sub>R</sub> - h<sub>s</sub>)</span>
+                    <span>R<sub>e</sub></span>
+                  </span>) + sin&nbsp;&theta;
+                </span>
+              </span>
+              <span class="v4-projection-side-panel__math-condition">&theta; &lt; 5&deg;</span>
+            </span>
+          </span>
+        </div>
+        <div class="v4-projection-side-panel__math-display" role="img" aria-label="rain attenuation equals gamma R times slant path">
+          <span>A<sub>rain</sub></span>
+          <span>=</span>
+          <span>&gamma;<sub>R</sub>L<sub>s</sub></span>
+        </div>
+      </div>
+      <p>
+        P.618 的完整輸入包含 R0.01、earth-station height、elevation angle、latitude、
+        frequency 與 effective Earth radius。這個畫面把 slider 的 R 當作情境雨率，
+        使用配對地面站的中點高度、代表仰角、carrier frequency，以及 Re=8500 km 的
+        effective Earth radius 來做互動估算。
+      </p>
+      <p>
+        本專案採用互動式情境模型：Rain rate 是使用者控制的即時假設值，不是完整 P.618
+        長期可用度流程中的 R0.01 地區雨率、P.837 雨機率資料或實測站點降雨紀錄。
+      </p>
+      <p>
+        目前 MEO 沒有變化，是因為本專案把 MEO 代表 carrier 設為 L-band 1.5 GHz，
+        且目前只對 Ku/Ka 範圍的 10-30 GHz 套用雨衰模型；LEO 使用 Ku 12 GHz，
+        GEO 使用 Ka 20 GHz，所以滑桿主要影響 LEO/GEO。
+      </p>
+      <p>
+        這項 MEO 結果只描述本專案的代表頻段設定，不代表所有 MEO 系統的雨衰行為。
+        使用 Ka/Q/V band、低仰角、強降雨或較小 fade margin 的 MEO 鏈路仍可能出現
+        rain fade；L-band/S-band 鏈路通常更容易由電離層、閃爍、遮蔽與干擾等因素主導。
+      </p>
+      <p class="v4-projection-side-panel__rain-help-source">
+        Sources: ITU-R P.618-14; ITU-R P.838-3. Runtime scope: Ku/Ka project model, not measured link assurance.
+      </p>
+    </div>
+  `;
+
   const valueEl = document.createElement("span");
   valueEl.className = "v4-projection-side-panel__rain-value";
   valueEl.textContent = `${rainRateMmPerHour} mm/h`;
 
-  head.append(label, valueEl);
+  titleRow.append(label, helpTrigger);
+  head.append(titleRow, valueEl);
 
   const slider = document.createElement("input");
   slider.type = "range";
@@ -931,7 +1037,53 @@ function buildRainControl(
   const caption = document.createElement("p");
   caption.className = "v4-projection-side-panel__rain-caption";
 
-  control.append(head, slider, caption);
+  control.append(head, helpPopover, slider, caption);
+
+  const returnHelpPopoverToControl = (): void => {
+    if (helpPopover.parentElement !== control) {
+      control.insertBefore(helpPopover, slider);
+    }
+  };
+
+  const cleanupObserver = new MutationObserver(() => {
+    if (!control.isConnected) {
+      helpPopover.remove();
+      cleanupObserver.disconnect();
+    }
+  });
+  cleanupObserver.observe(control.ownerDocument.body, {
+    childList: true,
+    subtree: true
+  });
+
+  const setHelpOpen = (open: boolean): void => {
+    if (open) {
+      control.ownerDocument.body.appendChild(helpPopover);
+    } else {
+      returnHelpPopoverToControl();
+    }
+    helpPopover.hidden = !open;
+    helpTrigger.setAttribute("aria-expanded", String(open));
+  };
+
+  helpTrigger.addEventListener("click", (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    setHelpOpen(Boolean(helpPopover.hidden));
+  });
+
+  helpPopover.addEventListener("click", (event) => {
+    event.stopPropagation();
+  });
+
+  helpPopover
+    .querySelector<HTMLButtonElement>(".v4-projection-side-panel__rain-help-close")
+    ?.addEventListener("click", (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      setHelpOpen(false);
+      helpTrigger.focus();
+    });
 
   slider.addEventListener("input", () => {
     const next = Number(slider.value);

@@ -75,7 +75,7 @@ export const SELECTED_PAIR_EXTERNAL_EVIDENCE: ReadonlyArray<SelectedPairExternal
     evidenceValue:
       "Scale artifact records observed LEO=600, MEO=65, GEO=30, with targetLeoCount=500 passed.",
     howToRead:
-      "Use this to support the source inventory / runtime cap / visible actor layering in the selected-pair report.",
+      "Use this to support source inventory scale, TLE/SGP4 geometry-ranked runtime caps, and visible actor layering in the selected-pair report.",
     boundary:
       "Scale validation does not mean all source actors must be visible at once in the selected-pair view."
   },

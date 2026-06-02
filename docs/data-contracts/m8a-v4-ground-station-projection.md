@@ -63,6 +63,75 @@ The accepted pattern is:
 3. viewer-owned projected plain-data artifact
 4. V4 runtime consumption of only that artifact
 
+## Runtime Selected-Pair TLE Candidate Ranking
+
+The selected-pair runtime may use bundled public CelesTrak GP/TLE snapshots for
+orbit geometry, but it must not treat the upstream TLE file order as a
+communication-quality ranking. TLE rows provide orbit elements only; they do
+not carry latency, throughput, SLA, beam-capacity, gateway-loading, or
+operator-route evidence.
+
+For interactive selected-pair projection, the current runtime applies this
+candidate policy before the full visibility and handover model:
+
+1. Parse all bundled TLE rows into SGP4-capable orbit records.
+2. Keep the orbit classes supported by both selected stations for ranking.
+3. Run a coarse TLE/SGP4 geometry pass over the selected time window.
+4. Rank candidates by pair-specific geometry:
+   pair-visible duration first, pair-visible window count second, maximum
+   lower-of-two-station elevation third, and single-station visible duration as
+   a fallback.
+5. Apply the interactive runtime cap after ranking:
+   LEO 200, MEO 100, GEO 60.
+6. Run the formal selected-pair visibility, handover, and link-budget model on
+   the ranked-and-capped candidate set.
+
+This ranking is meaningful for selected-pair geometry. It is not measured
+communication quality and does not prove active serving satellites, active
+routes, SLA, throughput, latency, jitter, or gateway assignment. A
+full-inventory formal visibility and handover run still requires an offline
+validation run or a higher runtime cap.
+
+`npm run refresh:tle` refreshes the bundled CelesTrak GP/TLE snapshots. If
+CelesTrak returns a transient server error for one or more groups, the refresh
+script reuses the existing cached snapshot for that group and records
+`partialRefreshAtUtc` plus `fetchFallbacks` in the manifest. In that state,
+`generatedAtUtc` remains the previous successful full-refresh time so the next
+refresh attempt will retry the failed upstream group instead of treating the
+partial run as a fully fresh TLE update.
+
+`npm run refresh:tle:local` imports locally cached TLE files from
+`~/satellite/tle_data` into the same viewer-owned fixture manifest. Local
+imports are also partial unless all `LEO/MEO/GEO` groups are present in the
+local cache. The manifest records `localImports`, the local source
+constellation, source path, and source date so a local Starlink LEO import is
+not silently represented as a OneWeb-specific refresh. The cron helper lives at
+`scripts/tle-cron-scheduler.sh`; package scripts `tle:schedule:install` and
+`tle:schedule:uninstall` add or remove the four-times-per-day user cron entry.
+The installed cron entry stores the checkout path at install time because cron
+does not inherit the project working directory. Moving the checkout requires
+running `npm run tle:schedule:install` again from the new location; the existing
+marked cron block is replaced in place.
+The repository tracks only the stable fixture filenames
+`leo-latest.tle`, `meo-latest.tle`, and `geo-latest.tle`; refresh/import runs
+overwrite those files and remove other per-orbit `.tle` snapshots from the
+project fixture directory. Dated files in `~/satellite/tle_data` remain local
+cache history and are not intended to be committed to this repository.
+The current date of each stable latest fixture is recorded in
+`public/fixtures/satellites-network/manifest.json` per orbit as
+`latestTleEpochUtc`, with `epochRangeUtc` preserving the full TLE epoch range.
+For local imports, `localSourceDateUtc` records the local cache file date; the
+TLE recency used by runtime/reporting still comes from `latestTleEpochUtc`.
+The scheduler attempts local imports for `LEO/MEO/GEO`; missing local cache
+groups are skipped. Local MEO/GEO updates require
+`~/satellite/tle_data/gnss/tle/gnss_YYYYMMDD.tle` and
+`~/satellite/tle_data/geo/tle/geo_YYYYMMDD.tle` to exist. Otherwise MEO/GEO are
+updated only by the CelesTrak `refresh:tle` path when that upstream service is
+reachable.
+This keeps the project fresher when either CelesTrak is reachable or a local
+cache has newer LEO data, but it does not create new MEO/GEO data when both
+CelesTrak and local MEO/GEO cache sources are unavailable.
+
 ## Accepted Artifact Location
 
 The accepted V4.2 plain-data artifact is:

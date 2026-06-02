@@ -41,6 +41,7 @@ const EXPECTED_SOURCE_HEADINGS = [
   "Station coordinate and elevation sources",
   "Station lineage",
   "Station RF profile gaps",
+  "TLE selection policy",
   "TLE source manifest",
   "Runtime inventory",
   "Satellite / TLE lineage",
@@ -63,6 +64,7 @@ const EXPECTED_OUTLINE_TABS = [
 const EXPECTED_SOURCES_OUTLINE_LABELS = [
   "Source limits",
   "Station lineage",
+  "TLE selection policy",
   "TLE source manifest",
   "External evidence register",
   "Missing evidence register",
@@ -80,6 +82,7 @@ const EXPECTED_FIELD_GUIDE_TITLES = [
   "Station coordinate and elevation sources 欄位解讀",
   "Station lineage 欄位解讀",
   "Station RF profile gaps 欄位解讀",
+  "TLE selection policy 欄位解讀",
   "TLE source manifest 欄位解讀",
   "Runtime inventory 欄位解讀",
   "Satellite / TLE lineage 欄位解讀",
@@ -104,7 +107,9 @@ const EXPECTED_FIELD_GUIDE_TEXT = [
   "來源與限制",
   "模型值不是實測服務資料",
   "不是實測連線紀錄",
-  "缺少來源的項目不能用模型自動補成真實資料"
+  "缺少來源的項目不能用模型自動補成真實資料",
+  "TLE/SGP4 共同可見幾何排序",
+  "not a communication-quality sort"
 ];
 const EXPECTED_FIELD_GUIDE_PLACEMENTS = [
   ["#summary", "Projection setup", "Projection setup 欄位解讀"],
@@ -116,6 +121,7 @@ const EXPECTED_FIELD_GUIDE_PLACEMENTS = [
   ["#sources", "Station coordinate and elevation sources", "Station coordinate and elevation sources 欄位解讀"],
   ["#sources", "Station lineage", "Station lineage 欄位解讀"],
   ["#sources", "Station RF profile gaps", "Station RF profile gaps 欄位解讀"],
+  ["#sources", "TLE selection policy", "TLE selection policy 欄位解讀"],
   ["#sources", "TLE source manifest", "TLE source manifest 欄位解讀"],
   ["#sources", "Runtime inventory", "Runtime inventory 欄位解讀"],
   ["#sources", "Satellite / TLE lineage", "Satellite / TLE lineage 欄位解讀"],
@@ -231,6 +237,9 @@ const EXPECTED_SATELLITE_LINEAGE_TEXT = [
   "rejected rows",
   "parser failures",
   "caps",
+  "TLE selection policy",
+  "幾何排序後的 runtime cap",
+  "not a communication-quality sort",
   "Orbit source freshness",
   "Display transforms"
 ];
@@ -624,6 +633,15 @@ async function captureReportAndSourceState(client) {
       const sourceBoundary = panel.querySelector("[data-disclosure='sources-non-claims']");
       if (sourceBoundary instanceof HTMLDetailsElement) {
         sourceBoundary.open = true;
+      }
+      const sourceHelpTrigger = sourceBoundary?.querySelector(
+        ".v4-projection-side-panel__source-help-trigger"
+      );
+      const sourceHelpPopover = sourceBoundary?.querySelector(
+        ".v4-projection-side-panel__source-help-popover"
+      );
+      if (sourceHelpTrigger instanceof HTMLButtonElement) {
+        sourceHelpTrigger.click();
       }
 
       const originalOpen = window.open;
@@ -1055,6 +1073,9 @@ async function captureReportAndSourceState(client) {
       const sectionOutlinePanels = Array.from(
         reportDoc.querySelectorAll("[data-tab-panel] .section-outline")
       ).map((outline) => outline.closest("[data-tab-panel]")?.id ?? "");
+      const summaryOutlineLabels = Array.from(
+        reportDoc.querySelectorAll("#summary [data-section-outline-link='true']")
+      ).map((link) => normalize(link.textContent));
       const sourcesOutlineLabels = Array.from(
         reportDoc.querySelectorAll("#sources [data-section-outline-link='true']")
       ).map((link) => normalize(link.textContent));
@@ -1122,6 +1143,7 @@ async function captureReportAndSourceState(client) {
           sourceLineageText: textOf("#sources [data-lineage-panel='true']"),
           sourceLineageLabels,
           sectionOutlinePanels,
+          summaryOutlineLabels,
           sourcesOutlineLabels,
           fieldGuideOutlineHits,
           sectionOutlineHeaderCount,
@@ -1177,7 +1199,14 @@ async function captureReportAndSourceState(client) {
           sourceBoundaryOpen:
             sourceBoundary instanceof HTMLDetailsElement ? sourceBoundary.open : null,
           sourceBoundaryText:
-            sourceBoundary instanceof HTMLElement ? normalize(sourceBoundary.innerText) : ""
+            sourceBoundary instanceof HTMLElement ? normalize(sourceBoundary.innerText) : "",
+          sourceHelpTriggerCount: sourceBoundary?.querySelectorAll(
+            ".v4-projection-side-panel__source-help-trigger"
+          ).length ?? 0,
+          sourceHelpOpen:
+            sourceHelpPopover instanceof HTMLElement ? isVisible(sourceHelpPopover) : false,
+          sourceHelpText:
+            sourceHelpPopover instanceof HTMLElement ? normalize(sourceHelpPopover.innerText) : ""
         },
         projection,
         resourceHits
@@ -1849,6 +1878,8 @@ function assertReportSourcePackage(state) {
       report.sectionOutlineHeaderCount === 0 &&
       report.tabPanelDirectHeadingCount === 0 &&
       report.fieldGuideOutlineHits.length === 0 &&
+      report.summaryOutlineLabels.includes("Communication by orbit") &&
+      !report.summaryOutlineLabels.includes("Citations and Physical Formulas") &&
       missingModelHeadings.length === 0 &&
       missingDetailToggleLabels.length === 0 &&
       report.detailToggleControlCount === 1 &&
@@ -1880,6 +1911,7 @@ function assertReportSourcePackage(state) {
       sectionOutlineHeaderCount: report.sectionOutlineHeaderCount,
       tabPanelDirectHeadingCount: report.tabPanelDirectHeadingCount,
       fieldGuideOutlineHits: report.fieldGuideOutlineHits,
+      summaryOutlineLabels: report.summaryOutlineLabels,
       missingModelHeadings,
       modelHeadings: report.modelHeadings,
       missingDetailToggleLabels,
@@ -2213,7 +2245,14 @@ function assertReportSourcePackage(state) {
   assert(
     state.panelDisclosures.sourceBoundaryOpen === true &&
       state.panelDisclosures.sourceBoundaryText.includes("TLE source summary") &&
-      state.panelDisclosures.sourceBoundaryText.includes("Standards references"),
+      state.panelDisclosures.sourceBoundaryText.includes("Standards references") &&
+      state.panelDisclosures.sourceHelpTriggerCount === 1 &&
+      state.panelDisclosures.sourceHelpOpen === true &&
+      state.panelDisclosures.sourceHelpText.includes("TLE selection policy") &&
+      state.panelDisclosures.sourceHelpText.includes("共同可見總時長") &&
+      state.panelDisclosures.sourceHelpText.includes("TLE/SGP4 共同可見幾何分數") &&
+      state.panelDisclosures.sourceHelpText.includes("cap 不是品質排序") &&
+      state.panelDisclosures.sourceHelpText.includes("Report > Sources > TLE selection policy"),
     `Panel source boundary must mirror the report entry path: ${JSON.stringify(
       state.panelDisclosures
     )}`

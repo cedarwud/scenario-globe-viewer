@@ -33,6 +33,11 @@ const SNAPSHOT_MANIFEST_METADATA = {
   sourcePolicy: "refresh-artifact",
   catalogNumberCompatibility: "tle-limited-5-digit-catalog"
 };
+const STABLE_SNAPSHOT_PATHS = {
+  leo: "leo-latest.tle",
+  meo: "meo-latest.tle",
+  geo: "geo-latest.tle"
+};
 
 function parseArgs(argv) {
   const args = {};
@@ -99,7 +104,7 @@ function parseGroups(value) {
   return [...new Set(groups)];
 }
 
-function filenameUtc(isoUtc) {
+export function filenameUtc(isoUtc) {
   return isoUtc.replace(/\.\d{3}Z$/, "Z").replace(/:/g, "-");
 }
 
@@ -118,7 +123,7 @@ function parseTleEpochUtc(line1) {
   return epoch.toISOString();
 }
 
-function parseTleGroups(text, sampleLimit) {
+export function parseTleGroups(text, sampleLimit) {
   const lines = text
     .split(/\r?\n/)
     .map((line) => line.trimEnd())
@@ -147,7 +152,7 @@ function parseTleGroups(text, sampleLimit) {
   return groups;
 }
 
-function epochRangeUtc(groups) {
+export function epochRangeUtc(groups) {
   const epochs = groups
     .map((group) => parseTleEpochUtc(group[1]))
     .filter((epoch) => epoch !== null)
@@ -168,12 +173,13 @@ async function fetchText(url) {
   return response.text();
 }
 
-async function buildGroupSnapshot(groupKey, generatedAtUtc, sampleLimit) {
+async function buildGroupSnapshot(groupKey, sampleLimit) {
   const group = GROUPS[groupKey];
   const text = await fetchText(group.url);
   const records = parseTleGroups(text, sampleLimit);
   const body = `${records.map((record) => record.join("\n")).join("\n")}\n`;
-  const path = `${groupKey}-${filenameUtc(generatedAtUtc)}.tle`;
+  const path = STABLE_SNAPSHOT_PATHS[groupKey];
+  const epochRange = epochRangeUtc(records);
   return {
     path,
     body,
@@ -181,7 +187,8 @@ async function buildGroupSnapshot(groupKey, generatedAtUtc, sampleLimit) {
       path,
       ...SNAPSHOT_MANIFEST_METADATA,
       recordCount: records.length,
-      epochRangeUtc: epochRangeUtc(records)
+      epochRangeUtc: epochRange,
+      latestTleEpochUtc: epochRange.endUtc
     }
   };
 }
@@ -190,9 +197,19 @@ function withSnapshotManifestMetadata(entry) {
   if (!entry || typeof entry !== "object") {
     return entry;
   }
+  const epochRange = entry.epochRangeUtc;
+  const latestTleEpochUtc =
+    typeof entry.latestTleEpochUtc === "string"
+      ? entry.latestTleEpochUtc
+      : epochRange &&
+          typeof epochRange === "object" &&
+          typeof epochRange.endUtc === "string"
+        ? epochRange.endUtc
+        : null;
   return {
     ...entry,
-    ...SNAPSHOT_MANIFEST_METADATA
+    ...SNAPSHOT_MANIFEST_METADATA,
+    latestTleEpochUtc
   };
 }
 
@@ -204,15 +221,18 @@ export function withSnapshotMetadataForManifest(manifest) {
   return normalized;
 }
 
-async function retainRecentSnapshots(outputDir, groupKey, retainCount) {
+async function removeNonCurrentSnapshots(outputDir, groupKey, currentPath) {
   const entries = await readdir(outputDir, { withFileTypes: true });
   const snapshots = entries
     .filter((entry) => entry.isFile())
     .map((entry) => entry.name)
-    .filter((name) => name.startsWith(`${groupKey}-`) && name.endsWith(".tle"))
-    .sort()
-    .reverse();
-  for (const name of snapshots.slice(retainCount)) {
+    .filter(
+      (name) =>
+        name.startsWith(`${groupKey}-`) &&
+        name.endsWith(".tle") &&
+        name !== currentPath
+    );
+  for (const name of snapshots) {
     await rm(join(outputDir, name), { force: true });
   }
 }
@@ -223,6 +243,19 @@ async function readExistingManifest(outputDir) {
   } catch {
     return null;
   }
+}
+
+function isUsableManifestEntry(entry) {
+  return Boolean(
+    entry &&
+      typeof entry === "object" &&
+      typeof entry.path === "string" &&
+      entry.path.endsWith(".tle")
+  );
+}
+
+function errorMessage(error) {
+  return error instanceof Error ? error.message : String(error);
 }
 
 function manifestGeneratedAtUtc(manifest) {
@@ -349,16 +382,45 @@ async function main() {
   const priorManifest = groups.length < Object.keys(GROUPS).length
     ? existingManifest
     : null;
+  const fetchFallbacks = [];
   const manifest = {
-    ...(priorManifest ?? {}),
+    ...(priorManifest ?? existingManifest ?? {}),
     comment: ATTRIBUTION_COMMENT,
-    generatedAtUtc
+    generatedAtUtc:
+      manifestGeneratedAtUtc(priorManifest ?? existingManifest) ?? generatedAtUtc
   };
 
   for (const groupKey of groups) {
-    const snapshot = await buildGroupSnapshot(groupKey, generatedAtUtc, sampleLimit);
-    snapshots.set(groupKey, snapshot);
-    manifest[groupKey] = snapshot.manifestEntry;
+    try {
+      const snapshot = await buildGroupSnapshot(groupKey, sampleLimit);
+      snapshots.set(groupKey, snapshot);
+      manifest[groupKey] = snapshot.manifestEntry;
+    } catch (error) {
+      const existingEntry = existingManifest?.[groupKey];
+      if (!isUsableManifestEntry(existingEntry)) {
+        throw new Error(
+          `${errorMessage(error)}; no cached ${groupKey} snapshot is available in ${outputDir}`
+        );
+      }
+      const fallback = {
+        group: groupKey,
+        path: existingEntry.path,
+        reason: errorMessage(error)
+      };
+      fetchFallbacks.push(fallback);
+      manifest[groupKey] = withSnapshotManifestMetadata(existingEntry);
+      console.error(
+        `CelesTrak fetch failed for ${groupKey}; reused cached snapshot ${existingEntry.path}. ${fallback.reason}`
+      );
+    }
+  }
+  if (fetchFallbacks.length === 0) {
+    manifest.generatedAtUtc = generatedAtUtc;
+    delete manifest.partialRefreshAtUtc;
+    delete manifest.fetchFallbacks;
+  } else {
+    manifest.partialRefreshAtUtc = generatedAtUtc;
+    manifest.fetchFallbacks = fetchFallbacks;
   }
   for (const groupKey of Object.keys(GROUPS)) {
     if (!manifest[groupKey]) {
@@ -377,7 +439,7 @@ async function main() {
   await mkdir(outputDir, { recursive: true });
   for (const [groupKey, snapshot] of snapshots) {
     await writeFile(join(outputDir, snapshot.path), snapshot.body, "utf8");
-    await retainRecentSnapshots(outputDir, groupKey, retainCount);
+    await removeNonCurrentSnapshots(outputDir, groupKey, snapshot.path);
   }
   await writeFile(join(outputDir, "manifest.json"), manifestText, "utf8");
   console.log(
@@ -385,7 +447,8 @@ async function main() {
       {
         outputDir,
         manifestPath: join(outputDir, "manifest.json"),
-        groups
+        groups,
+        fetchFallbacks
       },
       null,
       2

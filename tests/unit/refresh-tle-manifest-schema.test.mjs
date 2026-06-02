@@ -80,3 +80,36 @@ test("partial group merge preserves non-selected paths and adds metadata default
   assert.equal(merged.meo.recordCount, 20);
   assert.equal(merged.geo.recordCount, 30);
 });
+
+test("partial refresh fallback markers remain in normalized manifest", () => {
+  const normalized = withSnapshotMetadataForManifest({
+    comment: "# partial",
+    generatedAtUtc: "2026-05-18T22:36:10.000Z",
+    partialRefreshAtUtc: "2026-06-02T03:58:00.000Z",
+    fetchFallbacks: [
+      {
+        group: "leo",
+        path: "leo-2026-05-18T22-36-10Z.tle",
+        reason:
+          "Fetch failed 500 Internal Server Error: https://celestrak.org/NORAD/elements/gp.php?GROUP=oneweb&FORMAT=tle"
+      }
+    ],
+    leo: manifestEntry("leo-2026-05-18T22-36-10Z.tle", 600),
+    meo: manifestEntry("meo-2026-06-02T03-58-00Z.tle", 33),
+    geo: manifestEntry("geo-2026-06-02T03-58-00Z.tle", 30)
+  });
+
+  assert.equal(normalized.generatedAtUtc, "2026-05-18T22:36:10.000Z");
+  assert.equal(normalized.partialRefreshAtUtc, "2026-06-02T03:58:00.000Z");
+  assert.deepEqual(normalized.fetchFallbacks, [
+    {
+      group: "leo",
+      path: "leo-2026-05-18T22-36-10Z.tle",
+      reason:
+        "Fetch failed 500 Internal Server Error: https://celestrak.org/NORAD/elements/gp.php?GROUP=oneweb&FORMAT=tle"
+    }
+  ]);
+  assertEntry(normalized.leo, "leo-2026-05-18T22-36-10Z.tle");
+  assertEntry(normalized.meo, "meo-2026-06-02T03-58-00Z.tle");
+  assertEntry(normalized.geo, "geo-2026-06-02T03-58-00Z.tle");
+});

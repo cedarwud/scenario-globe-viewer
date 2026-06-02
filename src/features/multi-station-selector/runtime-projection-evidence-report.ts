@@ -626,6 +626,115 @@ function tleSourceRows(result: RuntimeProjectionResult): ReportRow[] {
   ]);
 }
 
+function tleSelectionPolicyRows(result: RuntimeProjectionResult): ReportRow[] {
+  const inventory = result.dataCompleteness.runtimeInventoryDisclosure.perOrbit;
+  const sourceByOrbit = new Map(
+    result.dataCompleteness.tleSources.map((source) => [
+      source.orbitClass,
+      source
+    ])
+  );
+  const sourceModes = [
+    ...new Set(
+      ORBIT_DISPLAY_ORDER.map((orbit) => inventory[orbit].inventorySourceMode)
+    )
+  ].join(" / ");
+  const sourcePaths = ORBIT_DISPLAY_ORDER.map((orbit) => {
+    const source = sourceByOrbit.get(orbit);
+    return `${orbit}: ${source?.sourcePath ?? "unavailable"}`;
+  }).join(" | ");
+  const parserSummary = ORBIT_DISPLAY_ORDER.map((orbit) => {
+    const source = sourceByOrbit.get(orbit);
+    return `${orbit}：來源筆數 ${source?.recordCount ?? 0}，TLE 解析失敗 ${source?.parserFailureCount ?? 0}，後續 runtime 篩選排除 ${source?.rejectedRecordCount ?? 0}`;
+  });
+  const capSummary = ORBIT_DISPLAY_ORDER.map((orbit) => {
+    const row = inventory[orbit];
+    const afterCapCount = Math.min(row.activeInventoryCount, row.runtimeCap);
+    const excludedByCap = Math.max(0, row.activeInventoryCount - afterCapCount);
+    return `${orbit}：解析後可用 ${row.activeInventoryCount} 筆，先依 selected-pair 的 TLE/SGP4 共同可見幾何分數排序，再最多取前 ${row.runtimeCap} 筆；實際進入後續流程 ${afterCapCount} 筆，因 cap 排除 ${excludedByCap} 筆`;
+  });
+  const pairGateSummary = ORBIT_DISPLAY_ORDER.map((orbit) => {
+    const row = inventory[orbit];
+    const afterCapCount = Math.min(row.activeInventoryCount, row.runtimeCap);
+    const excludedByPairGate = Math.max(0, afterCapCount - row.acceptedRecordCount);
+    return `${orbit}：cap 後 ${afterCapCount} 筆，兩站 orbit support 篩選後留下 ${row.acceptedRecordCount} 筆，因 selected pair 不支援該 orbit class 排除 ${excludedByPairGate} 筆`;
+  });
+  const visibilitySummary = ORBIT_DISPLAY_ORDER.map((orbit) => {
+    const row = inventory[orbit];
+    const notPairVisible = Math.max(0, row.acceptedRecordCount - row.visibleActorCount);
+    return `${orbit}：accepted ${row.acceptedRecordCount} 筆，這個時間窗內兩站共同可見 ${row.visibleActorCount} 顆，沒有形成共同可見時間窗 ${notPairVisible} 筆`;
+  });
+  const communicationByOrbitSummary = ORBIT_DISPLAY_ORDER.map(
+    (orbit) =>
+      `${orbit} 通信時間：${formatDurationMs(result.communicationStats.byOrbit[orbit])}`
+  );
+  const capPolicySummary = ORBIT_DISPLAY_ORDER.map(
+    (orbit) => `${orbit} 幾何排序後最多取前 ${inventory[orbit].runtimeCap} 筆`
+  ).join(" / ");
+  const healthSummary = result.dataCompleteness.tleSources
+    .map(
+      (source) =>
+        `${source.orbitClass}：${source.health}，最新 epoch ${formatIsoShort(
+          source.epochEndUtc
+        )}`
+    )
+    .join(" | ");
+  const thresholdSummary = result.dataCompleteness.tleSources
+    .map((source) => `${source.orbitClass} ${source.healthThresholdDays}d`)
+    .join(" / ");
+
+  return [
+    [
+      "來源資料",
+      `${sourceModes}; ${sourcePaths}`,
+      "selected-pair 模式讀取專案內已打包的 CelesTrak GP/TLE 快照；瀏覽器端不即時下載 CelesTrak catalog。",
+      "公開 TLE 只提供軌道元素來源，不代表衛星正在提供服務，也不是通訊品質量測。"
+    ],
+    [
+      "TLE 解析",
+      { html: list(parserSummary) },
+      "系統先把 TLE 原始行組解析成 SGP4 可推算的軌道紀錄，之後才進入 selected-pair 可見性計算。",
+      "解析成功的衛星只是軌道候選，不代表已經是可用通信鏈路。"
+    ],
+    [
+      "幾何排序後的 runtime cap",
+      { html: list(capSummary) },
+      "系統先用較粗的 TLE/SGP4 取樣替完整候選排序；排序依據是兩站共同可見總時長、共同可見窗數量，以及兩站較低仰角的最大值。排序後再對 LEO/MEO/GEO 各自套用上限，讓瀏覽器端 selected-pair 計算保持可互動。",
+      "cap 不是通訊品質排序（not a communication-quality sort）；前 N 筆代表本次 selected-pair 幾何分數較高的候選，不代表營運可用或 SLA 最佳。"
+    ],
+    [
+      "selected-pair 軌道支援篩選",
+      { html: list([`兩站共同支援 orbit classes：${result.sharedSupportedOrbits.join("/") || "none"}`, ...pairGateSummary]) },
+      "cap 後只保留兩個地面站都支援的軌道類別。",
+      "站點 orbit support 是情境限制，不是營運商實際路由證明。"
+    ],
+    [
+      "兩站共同可見性",
+      { html: list([`本次共有 ${result.visibilityWindows.length} 個兩站共同可見時間窗`, ...visibilitySummary]) },
+      "篩選後留下的軌道紀錄會用 SGP4、站點座標、各站仰角門檻，以及兩站時間窗交集來計算共同可見。",
+      "共同可見只表示本次時間範圍內的幾何候選，不是完整服務覆蓋證明。"
+    ],
+    [
+      "handover 與通信模型",
+      { html: list([`${result.handoverEvents.length} 個服務鏈路事件`, `${result.communicationStats.handoverCount} 次模型判定換手`, ...communicationByOrbitSummary]) },
+      "共同可見時間窗產生後，handover policy 與 link-budget 模型才會選出不同時間點的服務候選。",
+      "latency、jitter、speed、rain impact 是模型輸出，不是 TLE 欄位，也不是 iperf/ping 或實測 throughput。"
+    ],
+    [
+      "為什麼排序後先取前 N 筆",
+      capPolicySummary,
+      "如果先對完整來源庫做正式可見性與 handover 計算，瀏覽器需要把所有來源衛星沿著整個時間網格做完整 SGP4 取樣與模型推算。這份 selected-pair report 改用互動式上限流程：先做粗略共同可見幾何排序，再套用 cap，最後才做正式 SGP4 可見性與 handover 計算。",
+      "前 N 筆不被視為通訊品質最佳；若要完整來源庫的正式可見性與 handover 驗證，需要離線完整來源庫計算或提高 runtime cap。"
+    ],
+    [
+      "資料新鮮度與更新",
+      `${healthSummary}；健康門檻 ${thresholdSummary}`,
+      "若已打包的 refresh artifact 過舊或不可用，runtime 會 fallback 到 local snapshot fixtures；更新 TLE artifacts 使用 npm run refresh:tle。",
+      "refresh 只更新軌道快照，不會產生營運商驗證或 live service-quality evidence。"
+    ]
+  ];
+}
+
 function satellitePipelineRows(result: RuntimeProjectionResult): ReportRow[] {
   return ORBIT_DISPLAY_ORDER.map((orbitClass) => {
     const source = result.dataCompleteness.tleSources.find(
@@ -1326,7 +1435,7 @@ function buildSummaryTab(result: RuntimeProjectionResult): string {
 
   const formulasHtml = `
     <div class="context-only context-formulas-block">
-      <h3>Citations and Physical Formulas</h3>
+      <h3 data-no-outline="true">Citations and Physical Formulas</h3>
       <div class="formula-card">
         <div class="formula-header">
           <span class="badge badge-standard">ITU-R P.525</span>
@@ -1809,6 +1918,21 @@ function buildSourcesTab(result: RuntimeProjectionResult): string {
         "Boundary"
       ],
       stationRfProfileRows(result)
+    ),
+    `<h3>TLE selection policy</h3>`,
+    stackedFieldGuide("TLE selection policy 欄位解讀", [
+      ["Step", "TLE 來源進入 selected-pair runtime 的處理階段。", "依序看來源資料、TLE 解析、TLE/SGP4 共同可見幾何排序、runtime cap、兩站 orbit support、共同可見性、handover 與資料新鮮度。", "這不是驗收流程，也不是服務品質排名。"],
+      ["Current value", "本次 report 實際使用的 source mode、path，以及 LEO/MEO/GEO 在各階段的數量變化。", "用「解析後可用筆數、cap 後筆數、兩站軌道支援篩選後筆數、兩站共同可見衛星數」確認篩選結果。", "公開 TLE 只提供軌道元素，不提供通訊品質欄位。"],
+      ["Reason / condition", "每一步為什麼會篩選或限制候選衛星。", "特別看「為什麼排序後先取前 N 筆」：cap 是瀏覽器互動計算上限，排序是 TLE/SGP4 幾何分數，不是通訊品質排序。", "模型判定不能提升成實測 throughput 或營運路由。"]
+    ]),
+    table(
+      [
+        "Step",
+        "Current value",
+        "Reason / condition",
+        "Boundary"
+      ],
+      tleSelectionPolicyRows(result)
     ),
     `<h3>TLE source manifest</h3>`,
     stackedFieldGuide("TLE source manifest 欄位解讀", [

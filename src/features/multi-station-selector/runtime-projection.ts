@@ -16,7 +16,8 @@ import {
   type PairVisibilityWindow,
   type RuntimeOrbitRecord,
   type StationGeodetic,
-  type TleRecord
+  type TleRecord,
+  type VisibilityWindow
 } from "./visibility-utils";
 import {
   computeVisibilityWindowsForStationByOrbitCadence,
@@ -64,6 +65,11 @@ const DEFAULT_TLE_CAPS: Readonly<Record<OrbitClass, number>> = {
   LEO: DEFAULT_LEO_CAP,
   MEO: DEFAULT_MEO_CAP,
   GEO: DEFAULT_GEO_CAP
+};
+const RANKING_VISIBILITY_CADENCE_SECONDS_BY_ORBIT: Readonly<Record<OrbitClass, number>> = {
+  LEO: 120,
+  MEO: 300,
+  GEO: 600
 };
 const ORBIT_CLASSES: ReadonlyArray<OrbitClass> = ["LEO", "MEO", "GEO"];
 const EARTH_RADIUS_KM = 6371;
@@ -253,8 +259,162 @@ interface HandoverSampleOptions {
   readonly stationHeightAboveSeaKm: number;
 }
 
+interface CandidateGeometryRankScore {
+  readonly satelliteId: string;
+  readonly orbitClass: OrbitClass;
+  sourceIndex: number;
+  pairVisibleMs: number;
+  pairWindowCount: number;
+  maxPairMinElevationDeg: number;
+  stationVisibleMs: number;
+}
+
 function toStationGeodetic(station: PublicRegistryStation): StationGeodetic {
   return { lat: station.lat, lon: station.lon, altMeters: station.elevationM };
+}
+
+function visibilityDurationMs(window: VisibilityWindow): number {
+  const startMs = Date.parse(window.startUtc);
+  const endMs = Date.parse(window.endUtc);
+  if (!Number.isFinite(startMs) || !Number.isFinite(endMs) || endMs <= startMs) {
+    return 0;
+  }
+  return endMs - startMs;
+}
+
+function pairVisibilityDurationMs(window: PairVisibilityWindow): number {
+  const startMs = Date.parse(window.intersectionStartUtc);
+  const endMs = Date.parse(window.intersectionEndUtc);
+  if (!Number.isFinite(startMs) || !Number.isFinite(endMs) || endMs <= startMs) {
+    return 0;
+  }
+  return endMs - startMs;
+}
+
+function sumVisibilityDurationMs(
+  windows: ReadonlyArray<VisibilityWindow>
+): number {
+  return windows.reduce((sum, window) => sum + visibilityDurationMs(window), 0);
+}
+
+function buildCandidateGeometryRankScores(
+  records: ReadonlyArray<RuntimeOrbitRecord>,
+  stationAWindows: ReadonlyMap<string, ReadonlyArray<VisibilityWindow>>,
+  stationBWindows: ReadonlyMap<string, ReadonlyArray<VisibilityWindow>>,
+  pairWindows: ReadonlyArray<PairVisibilityWindow>
+): Map<string, CandidateGeometryRankScore> {
+  const scores = new Map<string, CandidateGeometryRankScore>();
+  records.forEach((record, sourceIndex) => {
+    const aWindows = stationAWindows.get(record.satelliteId) ?? [];
+    const bWindows = stationBWindows.get(record.satelliteId) ?? [];
+    scores.set(record.satelliteId, {
+      satelliteId: record.satelliteId,
+      orbitClass: record.orbitClass,
+      sourceIndex,
+      pairVisibleMs: 0,
+      pairWindowCount: 0,
+      maxPairMinElevationDeg: Number.NEGATIVE_INFINITY,
+      stationVisibleMs:
+        sumVisibilityDurationMs(aWindows) + sumVisibilityDurationMs(bWindows)
+    });
+  });
+  for (const window of pairWindows) {
+    const score = scores.get(window.satelliteId);
+    if (!score) {
+      continue;
+    }
+    score.pairVisibleMs += pairVisibilityDurationMs(window);
+    score.pairWindowCount += 1;
+    score.maxPairMinElevationDeg = Math.max(
+      score.maxPairMinElevationDeg,
+      Math.min(
+        window.stationAWindow.maxElevationDeg,
+        window.stationBWindow.maxElevationDeg
+      )
+    );
+  }
+  return scores;
+}
+
+function compareRankedCandidateRecords(
+  scores: ReadonlyMap<string, CandidateGeometryRankScore>,
+  left: RuntimeOrbitRecord,
+  right: RuntimeOrbitRecord
+): number {
+  const leftScore = scores.get(left.satelliteId);
+  const rightScore = scores.get(right.satelliteId);
+  if (!leftScore || !rightScore) {
+    return (leftScore?.sourceIndex ?? 0) - (rightScore?.sourceIndex ?? 0);
+  }
+  return (
+    rightScore.pairVisibleMs - leftScore.pairVisibleMs ||
+    rightScore.pairWindowCount - leftScore.pairWindowCount ||
+    rightScore.maxPairMinElevationDeg - leftScore.maxPairMinElevationDeg ||
+    rightScore.stationVisibleMs - leftScore.stationVisibleMs ||
+    leftScore.sourceIndex - rightScore.sourceIndex ||
+    left.satelliteId.localeCompare(right.satelliteId)
+  );
+}
+
+function rankTleRecordsForSelectedPair(
+  records: ReadonlyArray<RuntimeOrbitRecord>,
+  options: {
+    readonly stationA: PublicRegistryStation;
+    readonly stationB: PublicRegistryStation;
+    readonly timeWindow: RuntimeProjectionInput["timeWindow"];
+    readonly sharedSupportedOrbits: ReadonlyArray<OrbitClass>;
+    readonly stationAEffectiveElevationThresholdDeg: number;
+    readonly stationBEffectiveElevationThresholdDeg: number;
+  }
+): ReadonlyArray<RuntimeOrbitRecord> {
+  if (records.length === 0 || options.sharedSupportedOrbits.length === 0) {
+    return records;
+  }
+  const rankableRecords = filterRecordsByOrbit(
+    records,
+    options.sharedSupportedOrbits
+  );
+  if (rankableRecords.length === 0) {
+    return records;
+  }
+  const sampleConfigBase = {
+    startUtc: options.timeWindow.startUtc,
+    endUtc: options.timeWindow.endUtc,
+    cadenceSecondsByOrbit: RANKING_VISIBILITY_CADENCE_SECONDS_BY_ORBIT
+  };
+  const stationAVisibility = computeVisibilityWindowsForStationByOrbitCadence(
+    toStationGeodetic(options.stationA),
+    rankableRecords,
+    {
+      ...sampleConfigBase,
+      elevationThresholdDeg: options.stationAEffectiveElevationThresholdDeg
+    }
+  );
+  const stationBVisibility = computeVisibilityWindowsForStationByOrbitCadence(
+    toStationGeodetic(options.stationB),
+    rankableRecords,
+    {
+      ...sampleConfigBase,
+      elevationThresholdDeg: options.stationBEffectiveElevationThresholdDeg
+    }
+  );
+  const pairWindows = intersectStationWindowsForPair(
+    stationAVisibility.windowsBySatellite,
+    stationBVisibility.windowsBySatellite,
+    rankableRecords
+  );
+  const scores = buildCandidateGeometryRankScores(
+    records,
+    stationAVisibility.windowsBySatellite,
+    stationBVisibility.windowsBySatellite,
+    pairWindows
+  );
+
+  return ORBIT_CLASSES.flatMap((orbitClass) =>
+    records
+      .filter((record) => record.orbitClass === orbitClass)
+      .sort((left, right) => compareRankedCandidateRecords(scores, left, right))
+  );
 }
 
 function capTleRecords(
@@ -673,7 +833,7 @@ function buildTruthBoundary(
         ];
   const metricNonClaims = [
     `Per-orbit communication metrics are modeled-precision via 3GPP TR 38.811 + ITU-R P.618-14 / P.676-13 and handover decisions use the ${handoverPolicyId} policy (TR 38.821 §7.3 + V-MO1 verbal addendum), not measured service telemetry.`,
-    `Satellite candidates are limited to orbit classes disclosed by both selected stations (${sharedSupportedOrbits.join("/") || "none"}) and capped at LEO ${DEFAULT_TLE_CAPS.LEO}, MEO ${DEFAULT_TLE_CAPS.MEO}, GEO ${DEFAULT_TLE_CAPS.GEO} records for interactive compute.`,
+    `Satellite candidates are limited to orbit classes disclosed by both selected stations (${sharedSupportedOrbits.join("/") || "none"}), ranked by TLE/SGP4 pair-visibility geometry, then capped at LEO ${DEFAULT_TLE_CAPS.LEO}, MEO ${DEFAULT_TLE_CAPS.MEO}, GEO ${DEFAULT_TLE_CAPS.GEO} records for interactive compute.`,
     ...sourceAttributionNonClaims,
     ...(rainRateMmPerHour > 0
       ? [
@@ -833,7 +993,15 @@ export function computeRuntimeProjection(
     input.stationA,
     input.stationB
   );
-  const cappedAllRecords = capTleRecords(input.tleRecords, {
+  const rankedTleRecords = rankTleRecordsForSelectedPair(input.tleRecords, {
+    stationA: input.stationA,
+    stationB: input.stationB,
+    timeWindow: input.timeWindow,
+    sharedSupportedOrbits,
+    stationAEffectiveElevationThresholdDeg,
+    stationBEffectiveElevationThresholdDeg
+  });
+  const cappedAllRecords = capTleRecords(rankedTleRecords, {
     LEO: DEFAULT_TLE_CAPS.LEO,
     MEO: DEFAULT_TLE_CAPS.MEO,
     GEO: DEFAULT_TLE_CAPS.GEO

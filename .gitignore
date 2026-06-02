@@ -34,3 +34,10 @@ spike/
 tests/visual/
 
 tmp.sh
+
+# TLE refresh artifacts use stable filenames in git. Dated/local snapshots are
+# local refresh byproducts and should not be accidentally committed.
+public/fixtures/satellites-network/*.tle
+!public/fixtures/satellites-network/leo-latest.tle
+!public/fixtures/satellites-network/meo-latest.tle
+!public/fixtures/satellites-network/geo-latest.tle

@@ -2,19 +2,24 @@
   "comment": "# Data source: CelesTrak (celestrak.org), Terms of Use: https://celestrak.org/terms-of-use.php",
   "generatedAtUtc": "2026-05-18T22:36:10.000Z",
   "leo": {
-    "path": "leo-2026-05-18T22-36-10Z.tle",
+    "path": "leo-latest.tle",
+    "recordCount": 600,
+    "epochRangeUtc": {
+      "startUtc": "2026-05-30T06:11:07.306Z",
+      "endUtc": "2026-05-31T05:15:18.812Z"
+    },
+    "latestTleEpochUtc": "2026-05-31T05:15:18.812Z",
+    "localSourceConstellation": "oneweb",
+    "localSourcePath": "/home/sat/satellite/tle_data/oneweb/tle/oneweb_20260531.tle",
+    "localSourceDateUtc": "2026-05-31T00:00:00.000Z",
+    "sourceRecordLimit": 600,
     "format": "tle-3le",
     "apiClass": "celestrak-gp-tle",
     "sourcePolicy": "refresh-artifact",
-    "catalogNumberCompatibility": "tle-limited-5-digit-catalog",
-    "recordCount": 600,
-    "epochRangeUtc": {
-      "startUtc": "2026-05-10T16:40:08.249Z",
-      "endUtc": "2026-05-12T08:00:01.000Z"
-    }
+    "catalogNumberCompatibility": "tle-limited-5-digit-catalog"
   },
   "meo": {
-    "path": "meo-2026-05-18T22-36-10Z.tle",
+    "path": "meo-latest.tle",
     "format": "tle-3le",
     "apiClass": "celestrak-gp-tle",
     "sourcePolicy": "refresh-artifact",
@@ -23,10 +28,11 @@
     "epochRangeUtc": {
       "startUtc": "2026-04-25T15:10:52.485Z",
       "endUtc": "2026-05-12T13:12:24.687Z"
-    }
+    },
+    "latestTleEpochUtc": "2026-05-12T13:12:24.687Z"
   },
   "geo": {
-    "path": "geo-2026-05-18T22-36-10Z.tle",
+    "path": "geo-latest.tle",
     "format": "tle-3le",
     "apiClass": "celestrak-gp-tle",
     "sourcePolicy": "refresh-artifact",
@@ -35,6 +41,18 @@
     "epochRangeUtc": {
       "startUtc": "2026-05-11T06:21:38.641Z",
       "endUtc": "2026-05-12T20:33:28.077Z"
+    },
+    "latestTleEpochUtc": "2026-05-12T20:33:28.077Z"
+  },
+  "partialRefreshAtUtc": "2026-06-02T05:20:23.171Z",
+  "localImports": [
+    {
+      "group": "leo",
+      "path": "leo-latest.tle",
+      "sourceConstellation": "oneweb",
+      "sourcePath": "/home/sat/satellite/tle_data/oneweb/tle/oneweb_20260531.tle",
+      "sourceDateUtc": "2026-05-31T00:00:00.000Z",
+      "recordCount": 600
     }
-  }
+  ]
 }
