@@ -11,6 +11,7 @@ LOCK_DIR="${LOG_DIR}/refresh.lock"
 CRON_BEGIN="# scenario-globe-viewer TLE refresh begin"
 CRON_END="# scenario-globe-viewer TLE refresh end"
 LOCAL_CACHE_DOWNLOADER="${LOCAL_CACHE_DOWNLOADER:-/home/sat/satellite/tle_data/scripts/daily_tle_download_enhanced.sh}"
+REFRESH_EXTERNAL_LOCAL_CACHE="${REFRESH_EXTERNAL_LOCAL_CACHE:-0}"
 NPM_BIN="${NPM_BIN:-}"
 if [[ -z "$NPM_BIN" ]]; then
   NPM_BIN="$(command -v npm 2>/dev/null || true)"
@@ -36,8 +37,8 @@ cron_command() {
 generate_cron_block() {
   cat <<EOF
 $CRON_BEGIN
-# Runs at 02:00, 08:00, 14:00, and 20:00 local server time.
-0 2,8,14,20 * * * $(cron_command)
+# Runs at 08:00 and 20:00 local server time.
+0 8,20 * * * $(cron_command)
 $CRON_END
 EOF
 }
@@ -74,7 +75,7 @@ install_cron() {
   crontab "$temp_cron"
   rm -f "$temp_cron"
   log_success "Installed TLE refresh cron job."
-  log_info "Schedule: 02:00, 08:00, 14:00, 20:00 local server time."
+  log_info "Schedule: 08:00, 20:00 local server time."
   log_info "Log: $LOG_FILE"
 }
 
@@ -132,13 +133,15 @@ run_refresh() {
   started_at="$(date -Iseconds)"
   log_info "TLE refresh started at $started_at"
 
-  if [[ -x "$LOCAL_CACHE_DOWNLOADER" ]]; then
+  if [[ "$REFRESH_EXTERNAL_LOCAL_CACHE" == "1" && -x "$LOCAL_CACHE_DOWNLOADER" ]]; then
     log_info "Refreshing external local cache: $LOCAL_CACHE_DOWNLOADER"
     if ! "$LOCAL_CACHE_DOWNLOADER"; then
       log_warn "External local cache refresh failed; continuing with available cache."
     fi
-  else
+  elif [[ "$REFRESH_EXTERNAL_LOCAL_CACHE" == "1" ]]; then
     log_warn "External local cache downloader not found: $LOCAL_CACHE_DOWNLOADER"
+  else
+    log_info "Skipping external local cache refresh; using existing local cache for import."
   fi
 
   log_info "Refreshing project CelesTrak artifacts."
