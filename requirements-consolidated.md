@@ -66,7 +66,7 @@ A.2 合計：**1 條** (口頭追加)。
 | K-A3-b | slide 2 | 雨天衰減模型 | ITU-R P.618-14 §2.2.1 + P.676-13 self-implement — Tier B 替代**已實作** (`rain-attenuation.ts` + `gas-absorption.ts`，2026-05-17)；待 Requirement operator data swap → Tier A |
 | K-F2 | slide 6 | 整合 V 組模擬程式 (天線 + 雨衰 + ITU 規範) | 自寫 ITU calculator wrapping P.618 / P.676 / S.1528 / S.465 — Tier B 替代**已實作** (`src/runtime/link-budget/` 五模組，2026-05-17:FSPL + 雨衰 + 氣衰 + handover-policy 已接線進 runtime-projection,antenna-pattern 為 standalone 尚未接線進視覺路徑);待 Requirement V 組程式 swap → Tier A |
 | (irreducible-1) | — | Requirement ESTNeT packet trace (真實 latency / jitter time series) | synthetic baseline from TR 38.811 §6.7 generic model；truth-boundary tag `"Requirement ESTNeT trace pending"` |
-| (irreducible-2) | — | Requirement 驗收測試 scenario 腳本 (哪個 case 該 pass、閾值多少) | 5 候選 demo URL 已列於 `scenario-globe-viewer/docs/requirement-requirement-walkthrough.md` §3 (high/low elevation × rain/clear × handover/no-handover 代表性子集,2026-05-17);閾值仍待 Requirement acceptance script swap |
+| (irreducible-2) | — | Requirement 驗收測試 scenario 腳本 (哪個 case 該 pass、閾值多少) | 5 組代表性 selected-pair route baseline 保留於 `src/features/multi-station-selector/v4-projection-wave1-baselines.ts`；可支援 demo case 說明，但不是外部 acceptance threshold script。閾值與 pass/fail 腳本仍待 Requirement acceptance script swap；簡報引用邊界見 `docs/data-source-index.md` |
 | (irreducible-3) | — | 台灣本地降雨統計校正常數 (Pingtung / Hsinchu R0.01 實測) | ITU-R P.837 global default；truth-boundary tag `"P.837 global default — local calibration pending"` |
 
 B 合計：**7 條** (其中 4 條已實作完整 Tier B 替代,3 條 irreducible 已有合理 substitute)。
@@ -103,7 +103,7 @@ C 合計：**8 條** (其中 R1-D5 + K-F8 為本專案文書層交付，其他 6
 ## Source authority tier 註解
 
 - **Tier A operator-validated**：Requirement 自家 retained data；目前 0 條已交付，Bucket B 全部 7 條 (K-A2 / K-A3-a / K-A3-b / K-F2 + 3 條 irreducible) 待 V 組 / 驗收工程師後續 swap。
-- **Tier B public-disclosed**：3GPP TR 38.811 / 38.821 + ITU-R P.618-14 / P.676-13 / S.1528 / S.465 等公開標準；`scenario-globe-viewer` 專案本地已有完整 PDF + 轉檔 md (`paper-catalog/3gpp/` + `paper-catalog/markitdown-3gpp-pilot/markdown/`)，且已於 `src/runtime/link-budget/` 自寫實作。
+- **Tier B public-disclosed**：3GPP TR 38.811 / 38.821 + ITU-R P.618-14 / P.676-13 / S.1528 / S.465 等公開標準；`scenario-globe-viewer` 交付包已有 retained PDF 與 checksum (`deliverable/3gpp-itu-references/README.md`)，且已於 `src/runtime/link-budget/` 自寫實作。
 - **Tier C geometric-derived**：SGP4 + 本地 TLE (`/home/u24/papers/project/tle_data/`) 自算。
 
 ## 引用規則
@@ -118,7 +118,8 @@ C 合計：**8 條** (其中 R1-D5 + K-F8 為本專案文書層交付，其他 6
 - **2026-05-17 (compute layer 落地後)**：更新完成度 — A 桶 R1-T1、R1-T5、R1-T6、R1-F4、R1-F5、K-E6、R1-D3 改為 done (link-budget 五模組 + runtime-projection 接線 + 雨衰 UI + CSV 匯出已 commit)；V-MO1 更新為「cross-orbit-live 政策已實作、demo UI toggle 待補」；K-A2、K-A3-a、K-A3-b、K-F2 註記 Tier B 替代已實作。
 - **2026-05-17 (B/C relabel)**：重排桶順序為 demo 相關性遞減 — 新 **B = 舊 C** (7 條,需 Requirement 資料但 Tier B 替代已實作,屬本專案交付);新 **C = 舊 B** (8 條,Requirement 既有 infra / 報告層,非本專案 UI scope)。A 不變,所有 ID 與計數本質未變,只字母互換 + 排序更動以反映 demo 優先序 (本專案交付物在前,Requirement 既有 infra 在後)。
 - **2026-05-17 (V-MO1 demo 化)**：runtime-projection.ts 砍除 `enableCrossOrbitLivePolicy` opt-in 旗標;V4 demo route 預設且僅使用 `cross-orbit-live` 政策。**V-MO1 從 partial → done**。Bucket A 19 條全部 done (R1-F3 iperf 子項仍 partial,iperf/ping 實測整合屬 Bucket B irreducible-1)。
-- **2026-05-17 (short URL + irreducible-2)**：V4 demo route 縮短為 `/?stationA=<id>&stationB=<id>` (合法 station id 即自動啟用 V4 場景與 regional 預設;長形 URL 仍支援)。Bucket B irreducible-2 替代清單以 5 個短 URL 形式落入 `scenario-globe-viewer/docs/requirement-requirement-walkthrough.md` §3 (對應 high/low elevation × rain/clear × handover/no-handover 代表性子集)。
+- **2026-05-17 (short URL + irreducible-2)**：V4 demo route 縮短為 `/?stationA=<id>&stationB=<id>` (合法 station id 即自動啟用 V4 場景與 regional 預設;長形 URL 仍支援)。Bucket B irreducible-2 以 5 組 selected-pair baseline 保留於 `src/features/multi-station-selector/v4-projection-wave1-baselines.ts`，作為 demo case 說明；外部 acceptance threshold script 仍是 source gap。
+- **2026-06-12 (presentation source traceability)**：新增 `docs/data-source-index.md` 作為簡報/審查用的 data source map；不可由現有 artifact 證明的 packet test、native RF handover、DEM/terrain mask、local rain calibration、station RF profile、external acceptance threshold script 均維持 source gap，不升級 claim。
 
 ## 相關文件
 
@@ -131,5 +132,6 @@ C 合計：**8 條** (其中 R1-D5 + K-F8 為本專案文書層交付，其他 6
 - [multi-orbit/README.md](multi-orbit/README.md) — V-MO1 (口頭追加) 的後續展開 / 研究 baseline
 - [requirement-acceptance-report-2026-04-20/](requirement-acceptance-report-2026-04-20/) — 驗收狀態追蹤
 - [README.md](README.md) — 原始需求 narrative authority (本文件為其去重表格化子集)
+- [docs/data-source-index.md](docs/data-source-index.md) — 簡報/審查用 data source map，列出每類數據可支持與不可支持的 claim
 - `scenario-globe-viewer/INDEPENDENT-AUDIT-requirements.md` — 62-req 審計 inventory (含 multi-orbit / 補資料，含本表格未列的 governance / D / V 類擴展)
-- `scenario-globe-viewer/.agent-memory/reference_3gpp_itu_local_sources.md` — Tier B 公開來源檔案路徑與精確 section 引用
+- [deliverable/3gpp-itu-references/README.md](deliverable/3gpp-itu-references/README.md) — Tier B 公開標準 PDF、精確 section 引用與 retained PDF checksum

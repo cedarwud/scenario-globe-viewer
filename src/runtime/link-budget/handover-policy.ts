@@ -1,6 +1,6 @@
 // 3GPP TR 38.821 section 7.3 handover trigger metrics
 // User verbal addendum V-MO1 cross-orbit LIVE handover
-// Local PDF: paper-catalog/3gpp/38821-g20.pdf
+// Retained PDF: deliverable/3gpp-itu-references/38821-g20.pdf
 // Refines requirement K-A1
 // Pure TypeScript policy evaluation for deterministic candidate selection.
 

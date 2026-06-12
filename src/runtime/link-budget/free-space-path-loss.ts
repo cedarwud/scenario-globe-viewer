@@ -1,6 +1,6 @@
 /**
  * 3GPP TR 38.811 §6.6.2 free-space path loss for NTN satellite links.
- * Source PDF: paper-catalog/3gpp/38811-f40.pdf.
+ * Retained PDF: deliverable/3gpp-itu-references/38811-f40.pdf.
  * FSPL_dB = 20*log10(d) + 20*log10(f) + 92.45 (d in km, f in GHz).
  */
 

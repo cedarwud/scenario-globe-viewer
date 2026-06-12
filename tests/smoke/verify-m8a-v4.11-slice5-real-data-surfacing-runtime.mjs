@@ -1,4 +1,4 @@
-import { readFileSync, statSync } from "node:fs";
+import { mkdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -273,6 +273,8 @@ const EXPECTED_SOURCE_GAP_FIELDS = [
 ];
 const EXPECTED_EXTERNAL_EVIDENCE_IDS = [
   "selected-pair-report-smoke",
+  "selected-pair-external-source-reconciliation",
+  "selected-pair-dem-rain-repair-sources",
   "selected-pair-route-governance",
   "phase7-0-24h-soak",
   "multi-orbit-scale-validation",
@@ -434,6 +436,28 @@ function assertScreenshot(absolutePath) {
       size: stats.size
     })}`
   );
+}
+
+function writeTextArtifact(outputRoot, filename, text) {
+  const safeFilename = path.basename(
+    String(filename || "selected-pair-source-report-artifact.txt")
+  );
+  const absolutePath = path.join(outputRoot, safeFilename);
+  const contents = String(text ?? "");
+
+  mkdirSync(path.dirname(absolutePath), { recursive: true });
+  writeFileSync(absolutePath, contents);
+
+  const stats = statSync(absolutePath);
+  assert(
+    stats.size > 0,
+    `Selected-pair source report artifact is unexpectedly empty: ${JSON.stringify({
+      path: serializeRelative(absolutePath),
+      size: stats.size
+    })}`
+  );
+
+  return absolutePath;
 }
 
 function collectPositiveClaimHits(text) {
@@ -612,7 +636,7 @@ async function captureReportAndSourceState(client) {
           rect.height > 0
         );
       };
-      
+
       const panel = document.querySelector("[data-v4-projection-side-panel='true']");
       const button = panel?.querySelector(
         ".v4-projection-side-panel__download-report[data-report-action='open-html']"
@@ -1119,6 +1143,7 @@ async function captureReportAndSourceState(client) {
         route: window.location.pathname + window.location.search,
         sceneSourceMode: sceneState?.sceneSourceMode ?? null,
         report: {
+          html: reportHtml,
           htmlLength: reportHtml.length,
           openArgs: fakeWindow.openArgs ?? null,
           focused,
@@ -2075,6 +2100,8 @@ function assertReportSourcePackage(state) {
       report.sourcesText.includes("Source ledger") &&
       report.sourcesText.includes("External evidence register") &&
       report.sourcesText.includes("Missing evidence register") &&
+      report.sourcesText.includes("selected-pair-external-source-reconciliation") &&
+      report.sourcesText.includes("external-source-reconciliation.md") &&
       report.sourcesText.includes("phase7-0-24h-soak") &&
       report.sourcesText.includes("final-written-report-package") &&
       report.sourcesText.includes("Source gaps") &&
@@ -2303,12 +2330,26 @@ await withStaticSmokeBrowser(async ({ client, baseUrl }) => {
     VIEWPORT.screenshot
   );
   assertScreenshot(screenshotPath);
+  const reportHtmlPath = writeTextArtifact(
+    outputRoot,
+    state.report.filename,
+    state.report.html
+  );
+  const reportCsvPath = writeTextArtifact(
+    outputRoot,
+    state.report.csv.filename,
+    state.report.csv.text
+  );
 
   const manifestPath = writeJsonArtifact(outputRoot, "smoke-manifest.json", {
     generatedAt: new Date().toISOString(),
     route: REQUEST_PATH,
     viewport: VIEWPORT.name,
     screenshot: serializeRelative(screenshotPath),
+    reportHtml: serializeRelative(reportHtmlPath),
+    reportCsv: serializeRelative(reportCsvPath),
+    reportHtmlFilename: state.report.filename,
+    reportCsvFilename: state.report.csv.filename,
     sourceTier: state.projection.dataCompleteness.pairSourceAttribution.sourceTier,
     evidenceKind: state.projection.dataCompleteness.pairSourceAttribution.evidenceKind,
     requirementRows: state.report.requirementRows.length,

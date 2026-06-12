@@ -294,6 +294,8 @@ Intelsat became part of SES in April 2024, inheriting SES's GEO + MEO multi-orbi
 ### sansa-hartebeesthoek
 - **Source:** https://www.sansa.org.za/products-services2/spaceoperations/
 - **Coords evidence:** "Latitude 25° 53′ South and Longitude 27° 42′ East."
+- **Elevation evidence:** "1553 meters above sea level in Hartebeesthoek."
+- **Band evidence:** Antenna systems cover S, C, X, and Ku bands.
 - **Multi-orbit evidence:** Direct operator-stated LEO+MEO+GEO support.
 
 ---

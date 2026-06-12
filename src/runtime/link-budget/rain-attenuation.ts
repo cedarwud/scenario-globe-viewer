@@ -2,7 +2,7 @@
 // ITU-R P.618-14 section 2.2.1.2 effective slant path
 // ITU-R P.838-3 coefficient table delegated to src/features/itu-r-physics/
 // itu-r-p838-rain-attenuation.ts (full 1-100 GHz table)
-// Local PDF: paper-catalog/3gpp/R-REC-P.618-14-202308-I!!PDF-E.pdf
+// Retained PDF: deliverable/3gpp-itu-references/R-REC-P.618-14-202308-I!!PDF-E.pdf
 // Long-term rain attenuation: gammaR times effective slant path.
 
 import { computeSpecificAttenuation } from '../../features/itu-r-physics/itu-r-p838-rain-attenuation';

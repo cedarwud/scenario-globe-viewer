@@ -1,0 +1,125 @@
+{
+  "statusDate": "2026-06-12",
+  "generatedAtUtc": "2026-06-12T13:33:44Z",
+  "status": "comparison-artifact-not-runtime-adoption",
+  "purpose": "Retain a selected-pair Copernicus GLO-30 DEM cell sample with tile, cell, CRS, datum, and license traceability. This artifact is evidence that a stronger DEM source path exists; it does not replace the current station registry or elevation cache values.",
+  "samplingTool": {
+    "runtime": "node",
+    "transientDependency": "geotiff@3.0.5",
+    "dependencyInstallPath": "/tmp/sgv-dem-geotiff",
+    "rawDemPolicy": "Raw GeoTIFF tiles were read by HTTPS range requests and were not committed to the repository.",
+    "samplingMethod": "nearest-cell sample computed from GeoTIFF origin and pixel resolution, then read with a 1x1 raster window"
+  },
+  "dataset": {
+    "sourceFamily": "Copernicus DEM GLO-30 Public",
+    "sourceDatasetId": "COP-DEM_GLO-30-DGED",
+    "distribution": "Cloud Optimized GeoTIFFs in the AWS Open Data copernicus-dem-30m bucket",
+    "distributionRelease": "Copernicus DEM 2021 release per AWS Open Data registry",
+    "horizontalCrs": "WGS84 / EPSG:4326",
+    "verticalDatum": "EGM2008 / EPSG:3855 per Copernicus Data Space DGED specification",
+    "verticalUnit": "meters",
+    "gridSpacing": "1 arcsecond for GLO-30 DGED",
+    "rasterType": "RasterPixelIsPoint for DGED according to Copernicus Data Space; GeoTIFF key observed as GTRasterTypeGeoKey=2",
+    "licenseStatus": "GLO-30 Public and GLO-90 are available on a free basis for the general public under the Copernicus DEM license terms",
+    "citation": "Copernicus Digital Elevation Model (DEM) accessed on 2026-06-12 from https://registry.opendata.aws/copernicus-dem/ and the copernicus-dem-30m S3 bucket.",
+    "requiredNoticeSummary": "When communicating or distributing Copernicus WorldDEM-30 data, use the source notice requested by Copernicus Data Space. This artifact records sampled values only and does not redistribute raw tiles."
+  },
+  "sourceUrls": [
+    "https://registry.opendata.aws/copernicus-dem/",
+    "https://copernicus-dem-30m.s3.amazonaws.com/readme.html",
+    "https://dataspace.copernicus.eu/explore-data/data-collections/copernicus-contributing-missions/collections-description/COP-DEM"
+  ],
+  "samples": [
+    {
+      "stationId": "cht-yangmingshan",
+      "stationCoordinate": {
+        "lat": 25.155,
+        "lon": 121.55,
+        "authorityBoundary": "Representative Yangmingshan-region coordinate; not proven as an official facility coordinate."
+      },
+      "tile": {
+        "tileId": "Copernicus_DSM_COG_10_N25_00_E121_00_DEM",
+        "url": "https://copernicus-dem-30m.s3.amazonaws.com/Copernicus_DSM_COG_10_N25_00_E121_00_DEM/Copernicus_DSM_COG_10_N25_00_E121_00_DEM.tif",
+        "httpStatus": 200,
+        "lastModified": "2022-05-09T14:11:15Z",
+        "etag": "1f164d908cb44df87a96359cbed20d89",
+        "contentLengthBytes": 7594519
+      },
+      "grid": {
+        "width": 3600,
+        "height": 3600,
+        "originLon": 121,
+        "originLat": 26,
+        "resolutionLonDeg": 0.0002777777777777778,
+        "resolutionLatDeg": -0.0002777777777777778,
+        "row": 3041,
+        "col": 1979,
+        "cellId": "row-3041-col-1979",
+        "cellCenterLat": 25.15513888888889,
+        "cellCenterLon": 121.54986111111111
+      },
+      "sample": {
+        "sourceElevationM": 489.1488342285156,
+        "roundedElevationM": 489,
+        "currentProjectElevationM": 470,
+        "currentProjectSource": "legacy Open-Elevation service cache, reproduced in open-elevation-selected-pair-query-2026-06-12.json",
+        "deltaFromCurrentProjectM": 19
+      },
+      "presentationBoundary": "Use this as a stronger DEM comparison source for the representative coordinate, not as an adopted registry value until the coordinate authority and replacement policy are reviewed."
+    },
+    {
+      "stationId": "sansa-hartebeesthoek",
+      "stationCoordinate": {
+        "lat": -25.8872,
+        "lon": 27.7075,
+        "authorityBoundary": "Operator-web coordinate, compatible with SANSA's published 25 deg 53 South, 27 deg 42 East site disclosure."
+      },
+      "tile": {
+        "tileId": "Copernicus_DSM_COG_10_S26_00_E027_00_DEM",
+        "url": "https://copernicus-dem-30m.s3.amazonaws.com/Copernicus_DSM_COG_10_S26_00_E027_00_DEM/Copernicus_DSM_COG_10_S26_00_E027_00_DEM.tif",
+        "httpStatus": 200,
+        "lastModified": "2022-05-09T15:01:58Z",
+        "etag": "7461eaf6d9c79f8e9b080cb7f96d4ffc",
+        "contentLengthBytes": 37487347
+      },
+      "grid": {
+        "width": 3600,
+        "height": 3600,
+        "originLon": 27,
+        "originLat": -25,
+        "resolutionLonDeg": 0.0002777777777777778,
+        "resolutionLatDeg": -0.0002777777777777778,
+        "row": 3193,
+        "col": 2546,
+        "cellId": "row-3193-col-2546",
+        "cellCenterLat": -25.887083333333333,
+        "cellCenterLon": 27.707361111111112
+      },
+      "sample": {
+        "sourceElevationM": 1532.5426025390625,
+        "roundedElevationM": 1533,
+        "currentProjectElevationM": 1553,
+        "currentProjectSource": "SANSA operator page altitude after source reconciliation",
+        "legacyOpenElevationCacheM": 1538,
+        "deltaFromCurrentProjectM": -20
+      },
+      "presentationBoundary": "Use operator-stated 1553 m for facility altitude claims. Use this DEM sample only as a terrain/DSM comparison cell unless a DEM replacement policy is accepted."
+    }
+  ],
+  "claimBoundary": {
+    "supports": [
+      "selected-pair Copernicus GLO-30 tile identification",
+      "selected-pair DEM cell row/column and center-coordinate traceability",
+      "selected-pair DEM comparison values with CRS, datum, and license source references",
+      "evidence that the current Open-Elevation cache values are not identical to Copernicus GLO-30 samples"
+    ],
+    "doesNotSupport": [
+      "official CHT facility coordinate authority",
+      "runtime elevation cache replacement",
+      "full 69-row registry replacement",
+      "operator-measured station altitude",
+      "site-specific terrain horizon mask",
+      "packet, RF, route, or acceptance claims"
+    ]
+  }
+}

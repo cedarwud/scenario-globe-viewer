@@ -1,0 +1,61 @@
+{
+  "statusDate": "2026-06-12",
+  "accessedUtc": "2026-06-12T13:04:32Z",
+  "sourceUrl": "https://api.open-elevation.com/api/v1/lookup?locations=-25.8872,27.7075|25.155,121.55",
+  "queryPurpose": "Second-pass provenance recovery for selected-pair station elevation values.",
+  "repoContext": {
+    "script": "scripts/refresh-station-elevation.mjs",
+    "scriptSourceUrlConstant": "https://api.open-elevation.com/api/v1/lookup",
+    "localMethodNote": "public/fixtures/ground-stations/multi-orbit-public-registry-sources.md states that elevationM was populated from SRTM 1arcsec global DEM through scripts/refresh-station-elevation.mjs using Open-Elevation."
+  },
+  "request": {
+    "locations": [
+      {
+        "stationId": "sansa-hartebeesthoek",
+        "latitude": -25.8872,
+        "longitude": 27.7075
+      },
+      {
+        "stationId": "cht-yangmingshan",
+        "latitude": 25.155,
+        "longitude": 121.55
+      }
+    ]
+  },
+  "response": {
+    "results": [
+      {
+        "stationId": "sansa-hartebeesthoek",
+        "latitude": -25.8872,
+        "longitude": 27.7075,
+        "elevation": 1538.0,
+        "matchesLegacyCache": true,
+        "currentRegistryValue": 1553,
+        "currentRegistrySource": "https://www.sansa.org.za/products-services2/spaceoperations/",
+        "verdict": "legacy-cache-source-method-recovered-but-overridden-by-operator-altitude"
+      },
+      {
+        "stationId": "cht-yangmingshan",
+        "latitude": 25.155,
+        "longitude": 121.55,
+        "elevation": 470.0,
+        "matchesLegacyCache": true,
+        "currentRegistryValue": 470,
+        "currentRegistrySource": "open-elevation-service-response-candidate",
+        "verdict": "legacy-cache-source-method-recovered"
+      }
+    ]
+  },
+  "claimBoundary": {
+    "supports": [
+      "The selected-pair legacy elevation cache values for CHT Yangmingshan and the old SANSA row are reproducible from Open-Elevation at the stored coordinates.",
+      "The repository script path and source notes identify Open-Elevation as the elevation service used by the cache refresh flow."
+    ],
+    "doesNotSupport": [
+      "Exact CHT Yangmingshan station coordinate authority.",
+      "Official DEM tile id, cell id, vertical datum, dataset version, or license metadata.",
+      "A site-specific terrain horizon mask.",
+      "Using the old SANSA 1538 m service value over the operator-stated 1553 m altitude."
+    ]
+  }
+}

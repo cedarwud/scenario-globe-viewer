@@ -1,0 +1,76 @@
+{
+  "statusDate": "2026-06-12",
+  "generatedBy": "npm run test:m8a-v4.11:slice5",
+  "generatedAtUtc": "2026-06-12T13:38:43.574Z",
+  "projectionRoute": "/?stationA=cht-yangmingshan&stationB=sansa-hartebeesthoek&startUtc=2026-05-17T00%3A00%3A00.000Z&durationMinutes=360",
+  "sourceTier": "geometric-derived",
+  "evidenceKind": "cross-family-geometric",
+  "externalReconciliation": {
+    "path": "external-source-reconciliation.md",
+    "status": "partial",
+    "summary": "Public-source reconciliation verifies or bounds selected-pair station values, recovers the Open-Elevation source method for legacy selected-pair elevation cache values, source tier, TLE/standards method, DEM/rain repair paths, and non-observable packet/RF claims."
+  },
+  "claimBoundary": {
+    "supports": [
+      "selected route and projection inputs",
+      "modeled selected-pair visibility, handover, and link-budget outputs",
+      "source class, source tier, and source gap disclosures",
+      "selected-pair Copernicus GLO-30 comparison samples",
+      "candidate local rain calibration source paths",
+      "row-level CSV export for slide tables"
+    ],
+    "doesNotSupport": [
+      "packet-test latency, jitter, throughput, or loss",
+      "native RF handover or active serving route migration",
+      "operator-private station or network validation",
+      "station RF hardware truth",
+      "runtime-adopted DEM elevation or terrain horizon data",
+      "sampled local rain calibration time series",
+      "external acceptance thresholds or final written acceptance"
+    ]
+  },
+  "files": [
+    {
+      "path": "runtime-projection-evidence-cht-yangmingshan-sansa-hartebeesthoek-20260517T000000Z-360m.html",
+      "role": "readable evidence report",
+      "sizeBytes": 573763,
+      "sha256": "a8d8a296c5852a929f5f0090b636e1ff7b1633e0a2f4caf739d0e1da8fc0a090"
+    },
+    {
+      "path": "runtime-projection-cht-yangmingshan-sansa-hartebeesthoek-20260517T000000Z-360m.csv",
+      "role": "row-level CSV export",
+      "sizeBytes": 35868,
+      "sha256": "806b4abbdfc94e4ea1b88492d2e286491a9cd8732601f2934c248037c26d989e"
+    },
+    {
+      "path": "smoke-manifest.output.json",
+      "role": "original smoke manifest copied from ignored output",
+      "sizeBytes": 1130,
+      "sha256": "97ba50e639372598ccf50e0409c91bc96dffe66d73f7d358f3ec216e3512439c"
+    },
+    {
+      "path": "external-source-reconciliation.md",
+      "role": "public-source reconciliation and remaining gap register",
+      "sizeBytes": 11615,
+      "sha256": "9b42df657555b11388d52a02f045e438c1135ca19ac2ef45c60fd68e9db74b6a"
+    },
+    {
+      "path": "open-elevation-selected-pair-query-2026-06-12.json",
+      "role": "retained Open-Elevation query response for selected-pair legacy elevation cache recovery",
+      "sizeBytes": 2425,
+      "sha256": "b21930f25a3da975fd16ac74a2b650bb9c6f31d230c92a2f9cde70c5226217e2"
+    },
+    {
+      "path": "copernicus-dem-selected-pair-sample-2026-06-12.json",
+      "role": "retained Copernicus GLO-30 selected-pair DEM comparison sample",
+      "sizeBytes": 6159,
+      "sha256": "43a0dc022f2dd687d3812a3689b8f2c036284acf2cad1b8929c86b7bf8a8f349"
+    },
+    {
+      "path": "rain-source-repair-candidates-2026-06-12.json",
+      "role": "retained local rain calibration repair-source candidates",
+      "sizeBytes": 3843,
+      "sha256": "02d4898bc2d9cd385a0e9d8564f4471bc7de533648416bf498b2636b121835ad"
+    }
+  ]
+}

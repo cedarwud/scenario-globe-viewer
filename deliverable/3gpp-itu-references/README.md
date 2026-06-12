@@ -3,8 +3,10 @@
 This folder ships the 12 open-public standards documents that back the
 `scenario-globe-viewer` viewer's link-budget, antenna, atmosphere, and
 handover compute modules. These are the **Tier B public-disclosed** sources
-the viewer uses today (until operator-validated data is supplied by the
-customer V-team — see `.agent-memory/reference_3gpp_itu_local_sources.md`).
+the viewer uses today (until operator-validated data is supplied). For the
+full delivery-facing source map, see
+[`../../docs/data-source-index.md`](../../docs/data-source-index.md) and
+[`../../requirements-consolidated.md`](../../requirements-consolidated.md).
 
 All twelve PDFs are open public standards; redistribution as a delivery
 artefact is permitted.
@@ -35,7 +37,8 @@ artefact is permitted.
 
 ## Requirement ID convention
 
-Cite requirements by ID from `/home/u24/papers/requirement/requirements-consolidated.md`:
+Cite requirements by ID from
+[`../../requirements-consolidated.md`](../../requirements-consolidated.md):
 
 - `K-A2` — link quality rules (latency / jitter / network speed) per orbit
 - `K-A3-a` — antenna parameters (peak gain, beamwidth, pattern)
@@ -53,6 +56,25 @@ Cite requirements by ID from `/home/u24/papers/requirement/requirements-consolid
 For each viewer surface that relies on a Tier B source, the UI displays a
 "Public-disclosed · ITU-R/3GPP" badge with the cited section, so a reviewing
 engineer can re-verify against the PDF in this folder.
+
+## Retained PDF checksums
+
+These SHA-256 values identify the retained PDF copies in this delivery folder.
+
+| File | SHA-256 |
+|---|---|
+| `36214-j00.pdf` | `79e0cf9150cf70e05b32ca89d4a590f9c650fb0a74b5db9f4b9ad05542a4c201` |
+| `38214-j30.pdf` | `8ecb7ea85bffa5d0b2e50565e09e9d8356aac3cfa24d133669d9bec10d8cd7c9` |
+| `38215-j20.pdf` | `e953b2357875f171abc74d13ae5bec85d88ada33ae8b4cbedaf8905945470c2b` |
+| `38811-f40.pdf` | `824ea7d359a432778dec9ccdc3a796d801a0f5f881153ebb24f73b1c5b3346ea` |
+| `38821-g20.pdf` | `4ac0c498187d91c17b1a8cb900364e6c692d1ce29619bd243a678c2bfdc67378` |
+| `R-REC-P.618-14-202308-I!!PDF-E.pdf` | `9812e7f34bd8ca0fe71827c1a7ef389761eefe758d0e8862a1c8de4b7065b249` |
+| `R-REC-P.676-13-202208-I!!PDF-E.pdf` | `8c09b2d2c120bdae33f60c2a7abff873374d54075ce0dc71060de8a5507bbe2f` |
+| `R-REC-S.1528-0-200106-I!!PDF-E.pdf` | `a3b3d6b79ce267524594e3cb0d82d0300b1faa1c57f47a21ba90c761312f8d41` |
+| `R-REC-S.465-6-201001-I!!PDF-E.pdf` | `a813d82235c24ad52681634d5d8a1275da621317ddb1a6754cd983643024f98a` |
+| `R1-1913224.pdf` | `7004cbbfaf998c00b87a2d81ee18661cd8fe9b88e76668d4da403380455ab96c` |
+| `ts_138300v190000p.pdf` | `a9db286dd98c51cec87fee27d2dd280ac0f69c092884b55f6d0ffd33c6a0d341` |
+| `ts_138331v190000p.pdf` | `7fe858d6c52ca0322d857ba02771c37b68010975c9c178fa4025ad6ee2b456b2` |
 
 ## Update procedure
 

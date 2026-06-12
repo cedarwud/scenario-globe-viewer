@@ -39,6 +39,10 @@ export const EXPECTED_ELEVATION_DATASET_ID = "legacy-elevation-service-cache-v1"
 export const EXPECTED_ELEVATION_PROVENANCE_STATUS = "legacy-upstream-dem-unknown";
 export const EXPECTED_ELEVATION_SAMPLING_METHOD = "service-response";
 export const EXPECTED_ELEVATION_LICENSE_ID = "legacy-unverified";
+export const EXPECTED_MISSING_ELEVATION_SOURCE_KIND = "legacy-unknown";
+export const EXPECTED_MISSING_ELEVATION_DATASET_ID = "legacy-elevation-cache-missing";
+export const EXPECTED_MISSING_ELEVATION_SAMPLING_METHOD = "unavailable";
+export const EXPECTED_MISSING_ELEVATION_PROVENANCE_STATUS = "legacy-unknown";
 export const EXPECTED_ELEVATION_SOURCE_PATH =
   "public/fixtures/ground-stations/station-elevations-cache.json";
 export const EXPECTED_TERRAIN_MASK_SOURCE_ID = "default-unknown";
@@ -258,6 +262,67 @@ export function assertPolicyDisclosurePayload(
 }
 
 export function assertElevationProvenanceMetadata(label, station) {
+  if (station.elevationSourceKind === EXPECTED_MISSING_ELEVATION_SOURCE_KIND) {
+    assert(
+      station.elevationSourceId === EXPECTED_MISSING_ELEVATION_DATASET_ID &&
+        station.elevationDatasetId === EXPECTED_MISSING_ELEVATION_DATASET_ID,
+      `${label}: station ${station.stationId} missing elevation source id mismatch`
+    );
+    assert(
+      station.elevationSourcePath === EXPECTED_ELEVATION_SOURCE_PATH,
+      `${label}: station ${station.stationId} missing elevation source path mismatch`
+    );
+    assert(
+      typeof station.elevationSourceNote === "string" &&
+        station.elevationSourceNote.includes("No elevation cache row") &&
+        station.elevationSourceNote.includes("legacy-unknown"),
+      `${label}: station ${station.stationId} missing elevation source note mismatch`
+    );
+    assert(
+      station.elevationSourceAccessedUtc === null &&
+        station.elevationSampledAtUtc === null &&
+        station.elevationCacheGeneratedUtc === null,
+      `${label}: station ${station.stationId} missing elevation timestamps should stay null`
+    );
+    assert(
+      station.elevationDatasetVersion === null &&
+        station.elevationDatasetResolutionM === null &&
+        station.elevationVerticalDatum === null &&
+        station.elevationTileId === null &&
+        station.elevationCellId === null,
+      `${label}: station ${station.stationId} missing elevation DEM fields should stay null`
+    );
+    assert(
+      Number.isFinite(station.elevationSampleLat) &&
+        Number.isFinite(station.elevationSampleLon),
+      `${label}: station ${station.stationId} missing elevation sample coordinate missing`
+    );
+    assert(
+      station.elevationSamplingMethod === EXPECTED_MISSING_ELEVATION_SAMPLING_METHOD,
+      `${label}: station ${station.stationId} missing elevation sampling method mismatch`
+    );
+    assert(
+      station.elevationLicenseId === EXPECTED_ELEVATION_LICENSE_ID &&
+        station.elevationLicenseUrl === null,
+      `${label}: station ${station.stationId} missing elevation license metadata mismatch`
+    );
+    assert(
+      typeof station.elevationCitation === "string" &&
+        station.elevationCitation.includes("without a matching elevation-cache row"),
+      `${label}: station ${station.stationId} missing elevation citation mismatch`
+    );
+    assert(
+      station.elevationProvenanceStatus === EXPECTED_MISSING_ELEVATION_PROVENANCE_STATUS,
+      `${label}: station ${station.stationId} missing elevation provenance status mismatch`
+    );
+    assert(
+      typeof station.elevationNonClaim === "string" &&
+        station.elevationNonClaim.includes("No elevation cache metadata") &&
+        station.elevationNonClaim.includes("upstream DEM"),
+      `${label}: station ${station.stationId} missing elevation non-claim mismatch`
+    );
+    return;
+  }
   assert(
     station.elevationSourceId === EXPECTED_ELEVATION_DATASET_ID,
     `${label}: station ${station.stationId} elevation source id mismatch`

@@ -40,6 +40,44 @@ export const SELECTED_PAIR_EXTERNAL_EVIDENCE: ReadonlyArray<SelectedPairExternal
       "It does not create external packet-test, traffic bridge, DUT, or final written report evidence."
   },
   {
+    evidenceId: "selected-pair-external-source-reconciliation",
+    requirementIds: [
+      "R1-F1 / K-E1",
+      "K-A2",
+      "K-A3-b",
+      "K-F2",
+      "(irreducible-1)",
+      "(irreducible-2)",
+      "(irreducible-3)"
+    ],
+    status: "partial",
+    artifactRefs: [
+      "deliverable/selected-pair-source-evidence/external-source-reconciliation.md",
+      "deliverable/selected-pair-source-evidence/evidence-manifest.json"
+    ],
+    evidenceValue:
+      "Retained reconciliation compares the selected-pair station values, recovers the Open-Elevation source method for legacy selected-pair elevation cache values, source tier, TLE/standards method, DEM/rain repair paths, and non-observable packet/RF claims against public sources.",
+    howToRead:
+      "Use this to decide which slide-facing values are verified, compatible, partial, source-conflicting, source gaps, or not externally observable.",
+    boundary:
+      "It does not prove packet-test traces, native RF handover, active serving route, station RF hardware truth, DUT traffic-generator runs, or final acceptance thresholds."
+  },
+  {
+    evidenceId: "selected-pair-dem-rain-repair-sources",
+    requirementIds: ["K-A3-b", "K-F2", "(irreducible-3)"],
+    status: "partial",
+    artifactRefs: [
+      "deliverable/selected-pair-source-evidence/copernicus-dem-selected-pair-sample-2026-06-12.json",
+      "deliverable/selected-pair-source-evidence/rain-source-repair-candidates-2026-06-12.json"
+    ],
+    evidenceValue:
+      "Retained repair-source artifacts record selected-pair Copernicus GLO-30 tile/cell/datum comparison samples and candidate NASA GPM / CWA rain-calibration source paths.",
+    howToRead:
+      "Use these artifacts to explain which DEM and rain sources can repair remaining gaps, and where current runtime values still differ from a candidate source.",
+    boundary:
+      "They do not replace runtime elevation values, generate terrain horizon masks, attach local rain time series, or prove packet/RF behavior."
+  },
+  {
     evidenceId: "selected-pair-route-governance",
     requirementIds: ["R1-T4 / K-D3", "K-F7"],
     status: "available",

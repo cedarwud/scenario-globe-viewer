@@ -1,0 +1,82 @@
+{
+  "statusDate": "2026-06-12",
+  "generatedAtUtc": "2026-06-12T13:33:44Z",
+  "status": "source-candidates-not-calibration-data",
+  "purpose": "Record public source families that can be used to repair the selected-pair local rain calibration gap. This artifact does not contain sampled rainfall values and does not change the scenario rain input.",
+  "selectedPair": {
+    "stationA": "cht-yangmingshan",
+    "stationB": "sansa-hartebeesthoek",
+    "scenarioStartUtc": "2026-05-17T00:00:00.000Z",
+    "durationMinutes": 360
+  },
+  "candidateSources": [
+    {
+      "sourceId": "nasa-gpm-imerg",
+      "sourceName": "NASA Global Precipitation Measurement IMERG",
+      "url": "https://gpm.nasa.gov/data",
+      "candidateUse": "Gridded precipitation source family for station-near rainfall history or scenario-window precipitation repair.",
+      "neededForUse": [
+        "selected IMERG product family and run type",
+        "grid cell id or coordinate extraction method",
+        "time period covering the scenario window",
+        "raw downloaded file or API response",
+        "checksum and retrieval command",
+        "mapping from precipitation accumulation to model rainRateMmPerHour"
+      ],
+      "claimBoundary": "Credible repair source only. No IMERG grid cell or time series is retained in this package."
+    },
+    {
+      "sourceId": "cwa-anbu-46691",
+      "sourceName": "Taiwan CWA Anbu station observation page",
+      "url": "https://www.cwa.gov.tw/V8/C/W/OBS_Station.html?ID=46691",
+      "candidateUse": "Nearby Yangmingshan-area station observation source for local rainfall repair near the representative CHT coordinate.",
+      "neededForUse": [
+        "retained CWA station metadata",
+        "rainfall field export or official API response",
+        "scenario-window timestamp coverage",
+        "checksum and retrieval command",
+        "distance and applicability statement relative to the representative coordinate"
+      ],
+      "claimBoundary": "Station page candidate only. This package does not retain CWA rainfall values or prove a calibrated rain-rate input."
+    },
+    {
+      "sourceId": "cwa-zhuzihu-46693",
+      "sourceName": "Taiwan CWA Zhuzihu station observation page",
+      "url": "https://www.cwa.gov.tw/V8/C/W/OBS_Station.html?ID=46693",
+      "candidateUse": "Nearby Yangmingshan-area station observation source for local rainfall repair near the representative CHT coordinate.",
+      "neededForUse": [
+        "retained CWA station metadata",
+        "rainfall field export or official API response",
+        "scenario-window timestamp coverage",
+        "checksum and retrieval command",
+        "distance and applicability statement relative to the representative coordinate"
+      ],
+      "claimBoundary": "Station page candidate only. This package does not retain CWA rainfall values or prove a calibrated rain-rate input."
+    }
+  ],
+  "recommendedRepairArtifact": {
+    "pathPattern": "deliverable/selected-pair-source-evidence/local-rain-calibration-YYYY-MM-DD.json",
+    "requiredFields": [
+      "source id and URL",
+      "access timestamp",
+      "station id or grid cell id",
+      "raw retrieval command",
+      "raw artifact path and checksum",
+      "scenario-window rainfall values",
+      "unit conversion into rainRateMmPerHour",
+      "non-claim text stating that rain calibration is not packet or RF evidence"
+    ]
+  },
+  "claimBoundary": {
+    "supports": [
+      "identifying credible public source families for local rain calibration repair",
+      "separating standards-derived rain attenuation from measured or gridded local rain input"
+    ],
+    "doesNotSupport": [
+      "local calibrated rainRateMmPerHour",
+      "measured station weather during the scenario",
+      "rain attenuation validation",
+      "packet, RF, route, or acceptance claims"
+    ]
+  }
+}

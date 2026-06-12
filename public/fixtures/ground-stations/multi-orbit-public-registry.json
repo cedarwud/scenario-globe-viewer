@@ -1057,15 +1057,15 @@
       "region": "africa",
       "lat": -25.8872,
       "lon": 27.7075,
-      "elevationM": 1538,
+      "elevationM": 1553,
       "terrainMaskDeg": 0,
       "supportedOrbits": ["LEO", "MEO", "GEO"],
-      "supportedBands": ["S", "X", "Ku", "Ka"],
+      "supportedBands": ["S", "C", "X", "Ku"],
       "primaryUseCase": "SANSA TT&C for LEO EO, MEO navigation, and GEO comms missions; supports IM-2 lunar TT&C",
       "sourceUrl": "https://www.sansa.org.za/products-services2/spaceoperations/",
       "sourceTier": "operator-stated",
       "disclosurePrecision": "exact-coords",
-      "publicDisclosureNotes": "SANSA states operations across LEO, MEO, GEO; coords public."
+      "publicDisclosureNotes": "SANSA states Hartebeesthoek is at 1553 m, coordinates 25°53′S 27°42′E, and antenna systems cover S, C, X, and Ku bands; pair capability remains unclaimed."
     },
     {
       "id": "ssc-esrange-kiruna",

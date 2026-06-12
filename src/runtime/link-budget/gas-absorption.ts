@@ -1,6 +1,6 @@
 // ITU-R P.676-13 section 1 specific attenuation
 // ITU-R P.676-13 Annex 2 simplified slant-path
-// Local PDF: paper-catalog/3gpp/R-REC-P.676-13-202208-I!!PDF-E.pdf
+// Retained PDF: deliverable/3gpp-itu-references/R-REC-P.676-13-202208-I!!PDF-E.pdf
 // Simplification: ground-station reference altitude with ITU-R P.835 standard atmosphere defaults
 
 const DEG_TO_RAD = Math.PI / 180;

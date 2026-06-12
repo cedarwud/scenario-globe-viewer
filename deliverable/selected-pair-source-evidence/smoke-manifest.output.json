@@ -1,0 +1,22 @@
+{
+  "generatedAt": "2026-06-12T13:38:43.574Z",
+  "route": "/?stationA=cht-yangmingshan&stationB=sansa-hartebeesthoek&startUtc=2026-05-17T00%3A00%3A00.000Z&durationMinutes=360",
+  "viewport": "desktop-1440x900",
+  "screenshot": "output/selected-pair-source-report/source-report-panel-open.png",
+  "reportHtml": "output/selected-pair-source-report/runtime-projection-evidence-cht-yangmingshan-sansa-hartebeesthoek-20260517T000000Z-360m.html",
+  "reportCsv": "output/selected-pair-source-report/runtime-projection-cht-yangmingshan-sansa-hartebeesthoek-20260517T000000Z-360m.csv",
+  "reportHtmlFilename": "runtime-projection-evidence-cht-yangmingshan-sansa-hartebeesthoek-20260517T000000Z-360m.html",
+  "reportCsvFilename": "runtime-projection-cht-yangmingshan-sansa-hartebeesthoek-20260517T000000Z-360m.csv",
+  "sourceTier": "geometric-derived",
+  "evidenceKind": "cross-family-geometric",
+  "requirementRows": 34,
+  "stationRows": 2,
+  "stationLineageRows": 2,
+  "stationRfProfileRows": 2,
+  "tleRows": 3,
+  "inventoryRows": 3,
+  "atmosphericLookupRows": 5,
+  "modeledOutputCardsCount": 6,
+  "actorRows": 9,
+  "visibilityRows": 9
+}

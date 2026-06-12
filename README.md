@@ -54,3 +54,10 @@ data, and deterministic runtime calculations. CSV exports are row-oriented data
 outputs; report exports are readable evidence and summary pages. Both surfaces
 must state source and limitation boundaries without promoting modeled values to
 measured network truth.
+
+For presentation and reviewer handoff source tracing, use
+[`docs/data-source-index.md`](docs/data-source-index.md) as the data-source
+map. It lists each major displayed/exported number, the retained artifact that
+backs it, what claim it can support, and what remains a source gap. The current
+retained selected-pair report package lives in
+[`deliverable/selected-pair-source-evidence/`](deliverable/selected-pair-source-evidence/).

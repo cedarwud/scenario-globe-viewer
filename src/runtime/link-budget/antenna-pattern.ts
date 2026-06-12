@@ -1,8 +1,8 @@
 /**
  * ITU-R S.1528-0 Annex 1 satellite antenna gain pattern helper.
- * Source PDF: paper-catalog/3gpp/R-REC-S.1528-0-200106-I!!PDF-E.pdf.
+ * Retained PDF: deliverable/3gpp-itu-references/R-REC-S.1528-0-200106-I!!PDF-E.pdf.
  * ITU-R S.465-6 earth-station antenna gain pattern helper.
- * Source PDF: paper-catalog/3gpp/R-REC-S.465-6-201001-I!!PDF-E.pdf.
+ * Retained PDF: deliverable/3gpp-itu-references/R-REC-S.465-6-201001-I!!PDF-E.pdf.
  */
 
 export type SatelliteAntennaRolloffModel = 'S1528-A' | 'S1528-B';
