@@ -8,6 +8,7 @@ requirements-consolidated.md
 ## 適用範圍
 
 - 本文件取代直接讀 `r1.docx` + `kickoff.pptx` 的需求引用。引用時直接用本文件 ID (例如 R1-F1、K-A4、V-MO1)。
+- **導航**：本檔為需求**清單**版 (34 列全覆蓋)。每條需求的「如何滿足 + 資料來源 + 誠實邊界 + 狀態」展開版見 `docs/requirement-presentation-walkthrough.md`；來源分類規則 (誠實合約) 見 `docs/data-source-index.md`。
 - 若原始檔字面有疑問，回看 `markitdown-2026-04-13/*.md` 或 `mineru-pilot-2026-05-13/raw/.../*.md` 轉檔結果，不要直接讀 `docx` / `pptx`。
 - 本文件不取代 `requirement-acceptance-report-2026-04-20/` 的驗收狀態追蹤；後者仍是驗收進度的權威。
 - 本文件不取代 `README.md` 的長篇解讀；本文件是去重表格化的摘要，`README.md` 仍是 narrative authority。
@@ -61,13 +62,13 @@ A.2 合計：**1 條** (口頭追加)。
 
 | ID | 來源 | 內容 | 替代方案 (Tier B) |
 |---|---|---|---|
-| K-A2 | slide 2 | 鏈路品質規則 (latency / jitter / network speed 切換 policy) | 3GPP TR 38.811 §6.7 + TR 38.821 §7.3 self-implement — Tier B 替代**已實作** (`runtime-projection.ts` latency + `handover-policy.ts`，2026-05-17)；待 Requirement operator data swap → Tier A |
-| K-A3-a | slide 2 | 天線參數 (peak gain、beamwidth、pattern) | ITU-R S.1528 (LEO/non-GSO) + S.465 (Earth station) self-implement — Tier B 替代**已實作為 standalone module** `src/runtime/link-budget/antenna-pattern.ts` (2026-05-17,exports `computeSatelliteAntennaGainDb` + `computeEarthStationAntennaGainDb`)；目前 V4 runtime-projection 視覺路徑**尚未**接線 (only FSPL + gas + rain de-rate downlink throughput);bootstrap-physical-input-seeds 仍用既有 `itu-r-f699-antenna-pattern.ts`。新模組可由直接呼叫或未來接線 demo;待 Requirement operator data swap → Tier A |
-| K-A3-b | slide 2 | 雨天衰減模型 | ITU-R P.618-14 §2.2.1 + P.676-13 self-implement — Tier B 替代**已實作** (`rain-attenuation.ts` + `gas-absorption.ts`，2026-05-17)；待 Requirement operator data swap → Tier A |
-| K-F2 | slide 6 | 整合 V 組模擬程式 (天線 + 雨衰 + ITU 規範) | 自寫 ITU calculator wrapping P.618 / P.676 / S.1528 / S.465 — Tier B 替代**已實作** (`src/runtime/link-budget/` 五模組，2026-05-17:FSPL + 雨衰 + 氣衰 + handover-policy 已接線進 runtime-projection,antenna-pattern 為 standalone 尚未接線進視覺路徑);待 Requirement V 組程式 swap → Tier A |
-| (irreducible-1) | — | Requirement ESTNeT packet trace (真實 latency / jitter time series) | synthetic baseline from TR 38.811 §6.7 generic model；truth-boundary tag `"Requirement ESTNeT trace pending"` |
+| K-A2 | slide 2 | 鏈路品質規則 (latency / jitter / network speed 切換 policy) | latency = 3GPP TR 38.811 §6.6.2 (slant range, Eq 6.6-3) + clause 5.3.1.1 (one-way propagation delay);handover = TR 38.821 §7.3.2.2 (Conditional Handover) self-implement — Tier B 替代**已實作** (`runtime-projection.ts` latency + `handover-policy.ts`，2026-05-17;§ 引用 2026-06-13 audit 校正,+2 ms processing term 揭露為 non-standard)；待 Requirement operator data swap → Tier A |
+| K-A3-a | slide 2 | 天線參數 (peak gain、beamwidth、pattern) | ITU-R S.1528-0 Annex 1 (LEO/non-GSO) + S.465-6 (Earth station) self-implement — Tier B 替代**已實作且 2026-06-13 接線進 runtime-projection** `src/runtime/link-budget/antenna-pattern.ts` (exports `computeSatelliteAntennaGainDb` + `computeEarthStationAntennaGainDb`),經 `runtime-antenna-assumptions.ts` 之 `assumed-tier-b-antenna-params-selected-pair-v1` 假設參數驅動 selected-pair RSRP/throughput (RSRP 為 `receivedPowerProxyDbm` 相對 proxy,EIRP 未知);bootstrap-physical-input-seeds 仍用既有 `itu-r-f699-antenna-pattern.ts`。operator RF 硬體 (dish/EIRP/polarization/beam) 仍為 gap;待 Requirement operator data swap → Tier A |
+| K-A3-b | slide 2 | 雨天衰減模型 | ITU-R P.618-14 §2.2.1.1 path method (γR=k·R^α + r0.01 + ν0.01) + P.676-13 Annex 2 self-implement — Tier B 替代**已實作** (`rain-attenuation.ts` 全 P.618 path method + `gas-absorption.ts`，2026-05-17;由 instantaneous rain-rate 驅動,非 R0.01;本地雨樣本見 irreducible-3);待 Requirement operator data swap → Tier A |
+| K-F2 | slide 6 | 整合 V 組模擬程式 (天線 + 雨衰 + ITU 規範) | 自寫 ITU calculator wrapping P.618 / P.676 / S.1528 / S.465 — Tier B 替代**已實作** (`src/runtime/link-budget/` 五模組,2026-05-17 FSPL + 雨衰 + 氣衰 + handover-policy 接線進 runtime-projection;antenna-pattern 於 2026-06-13 接線,見 K-A3-a);待 Requirement V 組程式 swap → Tier A |
+| (irreducible-1) | — | Requirement ESTNeT packet trace (真實 latency / jitter time series) | synthetic baseline from TR 38.811 §6.6.2 + clause 5.3.1.1 generic latency model；truth-boundary tag `"Requirement ESTNeT trace pending"` |
 | (irreducible-2) | — | Requirement 驗收測試 scenario 腳本 (哪個 case 該 pass、閾值多少) | 5 組代表性 selected-pair route baseline 保留於 `src/features/multi-station-selector/v4-projection-wave1-baselines.ts`；可支援 demo case 說明，但不是外部 acceptance threshold script。閾值與 pass/fail 腳本仍待 Requirement acceptance script swap；簡報引用邊界見 `docs/data-source-index.md` |
-| (irreducible-3) | — | 台灣本地降雨統計校正常數 (Pingtung / Hsinchu R0.01 實測) | ITU-R P.837 global default；truth-boundary tag `"P.837 global default — local calibration pending"` |
+| (irreducible-3) | — | 台灣本地降雨統計校正常數 (Pingtung / Hsinchu R0.01 實測) | ITU-R P.837 global default;2026-06-13 已留公開 CWA 站點樣本 (46691 Anpu / 46693 Yangmingshan 24hr 觀測 → peak 10-min 0.5mm ×6 → 5 mm/h demo preset,`deliverable/selected-pair-source-evidence/local-rain-calibration-2026-06-13.json`),**仍非** measured-for-link / SANSA / scenario-window / R0.01 校正;truth-boundary tag `"public CWA sample retained; R0.01 local calibration pending"` |
 
 B 合計：**7 條** (其中 4 條已實作完整 Tier B 替代,3 條 irreducible 已有合理 substitute)。
 
@@ -109,7 +110,7 @@ C 合計：**8 條** (其中 R1-D5 + K-F8 為本專案文書層交付，其他 6
 ## 引用規則
 
 - 引用需求時用 ID (例: `R1-F1`、`K-A4`、`V-MO1`)。
-- 引用標準時附章節 (例: `ITU-R P.618-14 §2.2.1.1`、`TR 38.811 §6.7`)。
+- 引用標準時附章節 (例: `ITU-R P.618-14 §2.2.1.1`、`TR 38.811 §6.6.2`)。
 - 不要再回頭引 `r1.docx` / `kickoff.pptx` 原檔；除非追溯版本爭議才使用 markitdown / mineru-pilot 轉檔對照。
 
 ## 變更歷史
@@ -120,6 +121,7 @@ C 合計：**8 條** (其中 R1-D5 + K-F8 為本專案文書層交付，其他 6
 - **2026-05-17 (V-MO1 demo 化)**：runtime-projection.ts 砍除 `enableCrossOrbitLivePolicy` opt-in 旗標;V4 demo route 預設且僅使用 `cross-orbit-live` 政策。**V-MO1 從 partial → done**。Bucket A 19 條全部 done (R1-F3 iperf 子項仍 partial,iperf/ping 實測整合屬 Bucket B irreducible-1)。
 - **2026-05-17 (short URL + irreducible-2)**：V4 demo route 縮短為 `/?stationA=<id>&stationB=<id>` (合法 station id 即自動啟用 V4 場景與 regional 預設;長形 URL 仍支援)。Bucket B irreducible-2 以 5 組 selected-pair baseline 保留於 `src/features/multi-station-selector/v4-projection-wave1-baselines.ts`，作為 demo case 說明；外部 acceptance threshold script 仍是 source gap。
 - **2026-06-12 (presentation source traceability)**：新增 `docs/data-source-index.md` 作為簡報/審查用的 data source map；不可由現有 artifact 證明的 packet test、native RF handover、DEM/terrain mask、local rain calibration、station RF profile、external acceptance threshold script 均維持 source gap，不升級 claim。
+- **2026-06-13 (data-source audit + public-gap closure,merge `1496a03`)**：link-budget §引用校正 (latency §6.7→§6.6.2+clause 5.3.1.1、rain §2.2.1→§2.2.1.1、handover §7.3→§7.3.2.2);rain 升級為全 P.618-14 path method;天線 S.1528/S.465 接線進 runtime-projection (assumed Tier-B 參數,K-A3-a/K-F2,RSRP 為相對 proxy);DEM CHT 489 m + terrain mask CHT 21°/SANSA 1° (selected-pair);本地雨 CWA 公開樣本 → 5 mm/h preset (irreducible-3);R1-F1 衛星數 663 (先前已更正)。詳見 `docs/data-source-index.md` + `docs/requirement-presentation-walkthrough.md`。
 
 ## 相關文件
 

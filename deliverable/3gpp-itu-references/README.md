@@ -17,7 +17,7 @@ artefact is permitted.
 
 | File | Spec | Cited in viewer | Requirement IDs covered |
 |---|---|---|---|
-| `38811-f40.pdf` | 3GPP TR 38.811 (NTN system aspects), §6.6 path loss · §6.7 propagation delay · §6.8 Doppler | `src/runtime/link-budget/free-space-path-loss.ts` | K-A2 (latency/jitter regime) |
+| `38811-f40.pdf` | 3GPP TR 38.811 (NTN system aspects): §6.6 path loss (§6.6.2 slant range, Eq 6.6-2/6.6-3) · §6.7 fast fading · §6.8 Doppler; one-way propagation delay per clause 5.3.1.1 | `src/runtime/link-budget/free-space-path-loss.ts` (FSPL §6.6.2); latency in `runtime-projection.ts` (§6.6.2 + clause 5.3.1.1) | K-A2 (latency/jitter regime) |
 | `38821-g20.pdf` | 3GPP TR 38.821 (NTN solutions for 5G NR), §7.3 handover trigger metrics | `src/runtime/link-budget/handover-policy.ts` | K-F4 / R1-F4 (handover strategy switch) |
 | `ts_138300v190000p.pdf` | 3GPP TS 38.300 NR overall (mobility chapter background) | walkthrough context | K-F4 / R1-F4 (mobility chain) |
 | `ts_138331v190000p.pdf` | 3GPP TS 38.331 RRC (handover messaging detail) | walkthrough context | K-F4 / R1-F4 (handover messaging) |
@@ -30,7 +30,7 @@ artefact is permitted.
 
 | File | Spec | Cited in viewer | Requirement IDs covered |
 |---|---|---|---|
-| `R-REC-P.618-14-202308-I!!PDF-E.pdf` | ITU-R P.618-14, §2.2.1.1 γR = k · R^α · §2.2.1.2 effective slant path | `src/runtime/link-budget/rain-attenuation.ts` | K-A3 (rain) · K-E6 (rain visualisation) |
+| `R-REC-P.618-14-202308-I!!PDF-E.pdf` | ITU-R P.618-14 §2.2.1.1 path method (γR = k · R^α + r0.01 + ν0.01 reduction factors, Steps 2-9) | `src/runtime/link-budget/rain-attenuation.ts` | K-A3 (rain) · K-E6 (rain visualisation) |
 | `R-REC-P.676-13-202208-I!!PDF-E.pdf` | ITU-R P.676-13 (gas absorption, oxygen + water vapor) | `src/runtime/link-budget/gas-absorption.ts` | K-A2 (atmospheric loss term) |
 | `R-REC-S.1528-0-200106-I!!PDF-E.pdf` | ITU-R S.1528 (LEO / non-GSO satellite antenna pattern) | `src/runtime/link-budget/antenna-pattern.ts` | K-A3-a (satellite antenna pattern) |
 | `R-REC-S.465-6-201001-I!!PDF-E.pdf` | ITU-R S.465-6 (Earth-station antenna pattern) | `src/runtime/link-budget/antenna-pattern.ts` | K-A3-a (ground antenna pattern) |
