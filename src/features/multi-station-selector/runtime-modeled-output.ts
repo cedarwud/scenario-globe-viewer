@@ -113,7 +113,7 @@ export function buildModeledOutputs(
     {
       kind: "handover",
       modelId: handoverModelId,
-      standardsRef: ["3GPP TR 38.821 §7.3", "V-MO1"],
+      standardsRef: ["3GPP TR 38.821 §7.3.2.2", "V-MO1"],
       inputSummary: {
         ...baseInputSummary(),
         outputKind: "handover",
@@ -128,7 +128,7 @@ export function buildModeledOutputs(
       modelId: "fspl-rain-gas-link-budget-v1",
       standardsRef: [
         "3GPP TR 38.811 §6.6.2",
-        "ITU-R P.618-14 §2.2.1",
+        "ITU-R P.618-14 §2.2.1.1",
         "ITU-R P.676-13 Annex 2"
       ],
       inputSummary: {
@@ -144,7 +144,7 @@ export function buildModeledOutputs(
     {
       kind: "throughput",
       modelId: "selected-pair-throughput-estimate-v1",
-      standardsRef: ["3GPP TR 38.811 §6.6.2", "ITU-R P.618-14 §2.2.1"],
+      standardsRef: ["3GPP TR 38.811 §6.6.2", "ITU-R P.618-14 §2.2.1.1"],
       inputSummary: {
         ...baseInputSummary(),
         outputKind: "throughput",
@@ -158,7 +158,7 @@ export function buildModeledOutputs(
     {
       kind: "jitter",
       modelId: "selected-pair-jitter-estimate-v1",
-      standardsRef: ["ITU-R P.618-14 §2.2.1"],
+      standardsRef: ["ITU-R P.618-14 §2.2.1.1"],
       inputSummary: {
         ...baseInputSummary(),
         outputKind: "jitter",
@@ -172,7 +172,7 @@ export function buildModeledOutputs(
     {
       kind: "latency",
       modelId: "selected-pair-propagation-delay-v1",
-      standardsRef: ["3GPP TR 38.811 §6.7"],
+      standardsRef: ["3GPP TR 38.811 §6.6.2", "3GPP TR 38.811 clause 5.3.1.1"],
       inputSummary: {
         ...baseInputSummary(),
         outputKind: "latency",
@@ -185,7 +185,7 @@ export function buildModeledOutputs(
     {
       kind: "rain-impact",
       modelId: "selected-pair-rain-impact-v1",
-      standardsRef: ["ITU-R P.618-14 §2.2.1"],
+      standardsRef: ["ITU-R P.618-14 §2.2.1.1"],
       inputSummary: {
         ...baseInputSummary(),
         outputKind: "rain-impact",

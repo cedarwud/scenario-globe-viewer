@@ -844,7 +844,7 @@ function buildTruthBoundary(
             : [])
         ];
   const metricNonClaims = [
-    `Per-orbit communication metrics are modeled-precision via 3GPP TR 38.811 + ITU-R P.618-14 / P.676-13 and handover decisions use the ${handoverPolicyId} policy (TR 38.821 §7.3 + V-MO1 verbal addendum), not measured service telemetry.`,
+    `Per-orbit communication metrics are modeled-precision via 3GPP TR 38.811 + ITU-R P.618-14 / P.676-13 and handover decisions use the ${handoverPolicyId} policy (TR 38.821 §7.3.2.2 + V-MO1 verbal addendum), not measured service telemetry.`,
     `Satellite candidates are limited to orbit classes disclosed by both selected stations (${sharedSupportedOrbits.join("/") || "none"}), ranked by TLE/SGP4 pair-visibility geometry, then capped at LEO ${DEFAULT_TLE_CAPS.LEO}, MEO ${DEFAULT_TLE_CAPS.MEO}, GEO ${DEFAULT_TLE_CAPS.GEO} records for interactive compute.`,
     ...sourceAttributionNonClaims,
     ...(rainRateMmPerHour > 0

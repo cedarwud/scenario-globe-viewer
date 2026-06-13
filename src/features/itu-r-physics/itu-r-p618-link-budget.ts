@@ -42,7 +42,7 @@ export function computeTotalPathAttenuation(params: {
 
   const slantPathKm = rainHeightKm / sinEl;
 
-  // A_rain: P.838-3 specific attenuation × slant path (P.618-14 §2.2.1)
+  // A_rain: P.838-3 specific attenuation × slant path (P.618-14 §2.2.1.1)
   const specificAtt = computeSpecificAttenuation(
     frequencyGHz,
     polarization,

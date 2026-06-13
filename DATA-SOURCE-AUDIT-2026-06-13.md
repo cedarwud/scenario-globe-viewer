@@ -139,6 +139,18 @@ Numeric check (compiled module, horizontal pol, sea level):
 - latitude-sensitive (lat 0° → 30.5 dB, lat 78° → 8.3 dB)
 - no NaN/Inf across elevation 1°–90°
 
+### 4b. Displayed-citation consistency (2026-06-13 follow-up)
+
+The §-section fixes initially landed only in code comments + `data-source-index.md`; the
+user-facing report HTML still *displayed* the old sections. Aligned every displayed
+`standardsRef` string so report = code = docs — in `runtime-modeled-output.ts`, the report
+generator's standards-used table + formula badges (`runtime-projection-evidence-report.ts`),
+the side-panel disclosures, and `runtime-data-completeness.ts`: latency §6.7 → §6.6.2 +
+clause 5.3.1.1; rain §2.2.1 → §2.2.1.1; handover §7.3 → §7.3.2.2. Regenerated the retained
+deliverable report HTML/CSV and verified the HTML now contains **zero** stale/bare citations.
+Updated hashes + dates in `deliverable/selected-pair-source-evidence/README.md` and
+`evidence-manifest.json`. Numeric outputs unchanged (rain = 0 scenario).
+
 ---
 
 ## 5. Verification record
@@ -149,12 +161,14 @@ Numeric check (compiled module, horizontal pol, sea level):
 | `npm run build` (tsc + vite) | PASS |
 | Rain numeric re-computation (compiled module) | PASS (sane, monotonic, latitude-sensitive, no NaN) |
 | `npm run test:m8a-v4.11:slice5` (acceptance smoke; regenerates report) | PASS |
-| `npm run verify:g1` | FAIL — `driver-fatal: panel did not reach ready` — **pre-existing WSL2 headless-chromium env issue; fails identically on a clean tree (changes stashed), so not caused by these edits.** slice5 (same panel + projection) passes. |
+| `npm run verify:g1` | Needs a Vite dev server on :5173 — the `verify:g1` script starts none, so a bare run fails at `panel did not reach ready` (this was the earlier mistaken "env" symptom). With `npm run dev` running it reaches panel-ready (~12 s) and **21/22 rows pass, incl K-E6 rain** (reductions still render: LEO −45%, GEO −80% at 80 mm/h). The lone failure **K-A4** ("TLE telemetry chip carries a recent ISO date") is **pre-existing and unrelated**: `chrome-telemetry.ts` derives the date from a dated filename, but the active `leo-latest.tle` network path is undated → "unknown". That file is not in this audit's changed set. |
 
 Blast-radius note: every measured path defaults to rain = 0, where the rain code returns 0
-before any new logic runs. The wave-1 baselines (`throughputMbps` identical across pairs =
-clear-sky) and the retained 2026-06-12 evidence (CSV rows all `"rainRateMmPerHour":0`) are
-therefore unchanged; no regeneration was required.
+before any new logic runs, so the wave-1 baselines (`throughputMbps` identical across pairs =
+clear-sky) and all numeric outputs (CSV rows all `"rainRateMmPerHour":0`) are unchanged. The
+retained deliverable report HTML/CSV were regenerated on 2026-06-13 only to refresh the
+displayed standards-section citations (no numeric change); their hashes/dates were updated in
+the package README and `evidence-manifest.json`.
 
 ---
 

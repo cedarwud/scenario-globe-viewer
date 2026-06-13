@@ -1,9 +1,13 @@
 # Selected-Pair Source Evidence Package
 
-Status date: 2026-06-12
+Status date: 2026-06-13
 
 This folder retains one generated selected-pair evidence package for slide and
-review citations. It was produced by running:
+review citations. The report HTML + CSV were regenerated on 2026-06-13 to refine
+standards-section citations (latency §6.7 → §6.6.2 + clause 5.3.1.1; rain §2.2.1
+→ §2.2.1.1; handover §7.3 → §7.3.2.2) and to reflect the full-P.618 rain model;
+numeric outputs are unchanged (rain=0 scenario). Other retained artifacts keep
+their 2026-06-12 date. It was produced by running:
 
 ```sh
 npm run test:m8a-v4.11:slice5
@@ -18,7 +22,7 @@ CSV, and smoke manifest were copied here as retained delivery evidence.
 | Field | Value |
 |---|---|
 | Route | `/?stationA=cht-yangmingshan&stationB=sansa-hartebeesthoek&startUtc=2026-05-17T00%3A00%3A00.000Z&durationMinutes=360` |
-| Generated at | `2026-06-12T13:38:43.574Z` |
+| Generated at | `2026-06-13T07:17:29.749Z` |
 | Source tier | `geometric-derived` |
 | Evidence kind | `cross-family-geometric` |
 | Requirement rows | `34` |
@@ -31,9 +35,9 @@ CSV, and smoke manifest were copied here as retained delivery evidence.
 
 | File | Role | Size bytes | SHA-256 |
 |---|---|---:|---|
-| `runtime-projection-evidence-cht-yangmingshan-sansa-hartebeesthoek-20260517T000000Z-360m.html` | Readable evidence report with Requirements, Sources, Models, Raw data, and HTML download state. | 573763 | `a8d8a296c5852a929f5f0090b636e1ff7b1633e0a2f4caf739d0e1da8fc0a090` |
-| `runtime-projection-cht-yangmingshan-sansa-hartebeesthoek-20260517T000000Z-360m.csv` | Row-level export with source, provenance, and non-claim columns. | 35868 | `806b4abbdfc94e4ea1b88492d2e286491a9cd8732601f2934c248037c26d989e` |
-| `smoke-manifest.output.json` | Original smoke manifest copied from ignored `output/selected-pair-source-report/`. | 1130 | `97ba50e639372598ccf50e0409c91bc96dffe66d73f7d358f3ec216e3512439c` |
+| `runtime-projection-evidence-cht-yangmingshan-sansa-hartebeesthoek-20260517T000000Z-360m.html` | Readable evidence report with Requirements, Sources, Models, Raw data, and HTML download state. | 574387 | `9ac13f124aaadfb33e0d792c3bd078c48ceb5226cf192829849991f3b20290bf` |
+| `runtime-projection-cht-yangmingshan-sansa-hartebeesthoek-20260517T000000Z-360m.csv` | Row-level export with source, provenance, and non-claim columns. | 35920 | `d74cef8a36004557364b3668599990ec1853e59871af66150edac1d903e77e3f` |
+| `smoke-manifest.output.json` | Original smoke manifest copied from ignored `output/selected-pair-source-report/`. | 1130 | `becdd3fdf27dc09df1a9ca7f4127e86e26337e91cf71bc685dfc8d2f12c7b2ab` |
 | `external-source-reconciliation.md` | Public-source reconciliation for selected-pair station values, recovered elevation source method, source conflicts, repair paths, and non-observable gaps. | 11615 | `9b42df657555b11388d52a02f045e438c1135ca19ac2ef45c60fd68e9db74b6a` |
 | `open-elevation-selected-pair-query-2026-06-12.json` | Retained Open-Elevation query response that reproduces selected-pair legacy elevation cache values. | 2425 | `b21930f25a3da975fd16ac74a2b650bb9c6f31d230c92a2f9cde70c5226217e2` |
 | `copernicus-dem-selected-pair-sample-2026-06-12.json` | Retained Copernicus GLO-30 selected-pair DEM comparison sample with tile/cell/datum traceability. | 6159 | `43a0dc022f2dd687d3812a3689b8f2c036284acf2cad1b8929c86b7bf8a8f349` |

@@ -1,7 +1,8 @@
 {
-  "statusDate": "2026-06-12",
+  "statusDate": "2026-06-13",
   "generatedBy": "npm run test:m8a-v4.11:slice5",
-  "generatedAtUtc": "2026-06-12T13:38:43.574Z",
+  "generatedAtUtc": "2026-06-13T07:17:29.749Z",
+  "regenerationNote": "Report HTML + CSV regenerated 2026-06-13 to refine standards-section citations (TR 38.811 latency §6.7 -> §6.6.2 + clause 5.3.1.1; rain §2.2.1 -> §2.2.1.1; handover §7.3 -> §7.3.2.2) and the full-P.618 rain model. Numeric outputs unchanged (rain=0 scenario). Other retained artifacts keep their 2026-06-12 date.",
   "projectionRoute": "/?stationA=cht-yangmingshan&stationB=sansa-hartebeesthoek&startUtc=2026-05-17T00%3A00%3A00.000Z&durationMinutes=360",
   "sourceTier": "geometric-derived",
   "evidenceKind": "cross-family-geometric",
@@ -33,20 +34,20 @@
     {
       "path": "runtime-projection-evidence-cht-yangmingshan-sansa-hartebeesthoek-20260517T000000Z-360m.html",
       "role": "readable evidence report",
-      "sizeBytes": 573763,
-      "sha256": "a8d8a296c5852a929f5f0090b636e1ff7b1633e0a2f4caf739d0e1da8fc0a090"
+      "sizeBytes": 574387,
+      "sha256": "9ac13f124aaadfb33e0d792c3bd078c48ceb5226cf192829849991f3b20290bf"
     },
     {
       "path": "runtime-projection-cht-yangmingshan-sansa-hartebeesthoek-20260517T000000Z-360m.csv",
       "role": "row-level CSV export",
-      "sizeBytes": 35868,
-      "sha256": "806b4abbdfc94e4ea1b88492d2e286491a9cd8732601f2934c248037c26d989e"
+      "sizeBytes": 35920,
+      "sha256": "d74cef8a36004557364b3668599990ec1853e59871af66150edac1d903e77e3f"
     },
     {
       "path": "smoke-manifest.output.json",
       "role": "original smoke manifest copied from ignored output",
       "sizeBytes": 1130,
-      "sha256": "97ba50e639372598ccf50e0409c91bc96dffe66d73f7d358f3ec216e3512439c"
+      "sha256": "becdd3fdf27dc09df1a9ca7f4127e86e26337e91cf71bc685dfc8d2f12c7b2ab"
     },
     {
       "path": "external-source-reconciliation.md",

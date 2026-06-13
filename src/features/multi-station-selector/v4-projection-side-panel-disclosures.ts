@@ -232,8 +232,8 @@ function buildStandardsReferences(result: RuntimeProjectionResult): HTMLElement 
   const list = document.createElement("ul");
   list.className = "v4-projection-side-panel__non-claim-list";
   const refs = [
-    `Handover policy: TR 38.821 §7.3 + V-MO1 (${result.dataCompleteness.policyDisclosure.activePolicyId})`,
-    "Rain attenuation: ITU-R P.618-14 §2.2.1",
+    `Handover policy: TR 38.821 §7.3.2.2 + V-MO1 (${result.dataCompleteness.policyDisclosure.activePolicyId})`,
+    "Rain attenuation: ITU-R P.618-14 §2.2.1.1",
     "Gas absorption: ITU-R P.676-13"
   ];
   for (const ref of refs) {

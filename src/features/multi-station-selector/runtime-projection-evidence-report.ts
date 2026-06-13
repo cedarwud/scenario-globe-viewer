@@ -1020,14 +1020,14 @@ function assumptionsAndLimitsRows(result: RuntimeProjectionResult): ReportRow[] 
 function standardsReferenceRows(result: RuntimeProjectionResult): ReportRow[] {
   const rows: ReportRow[] = [
     [
-      "3GPP TR 38.821 \u00a77.3",
+      "3GPP TR 38.821 \u00a77.3.2.2",
       `Handover policy gates (${result.dataCompleteness.policyDisclosure.activePolicyId})`,
       { html: truthChip("Standards-derived", "standard") },
       "Use as the policy reference for model-selected handover thresholds.",
       "Not an operator event log, RF handover trace, or live gateway record."
     ],
     [
-      "ITU-R P.618-14 \u00a72.2.1",
+      "ITU-R P.618-14 \u00a72.2.1.1",
       "Rain attenuation model",
       { html: truthChip("Standards-derived", "standard") },
       "Use as a formula reference for scenario rain-loss calculation.",
@@ -1449,7 +1449,7 @@ function buildSummaryTab(result: RuntimeProjectionResult): string {
       
       <div class="formula-card">
         <div class="formula-header">
-          <span class="badge badge-standard">ITU-R P.618-14 §2.2.1</span>
+          <span class="badge badge-standard">ITU-R P.618-14 §2.2.1.1</span>
           <h4>Rain Attenuation Estimate</h4>
         </div>
         <div class="formula-math">
@@ -1460,7 +1460,7 @@ function buildSummaryTab(result: RuntimeProjectionResult): string {
 
       <div class="formula-card">
         <div class="formula-header">
-          <span class="badge badge-standard">3GPP TR 38.821 §7.3</span>
+          <span class="badge badge-standard">3GPP TR 38.821 §7.3.2.2</span>
           <h4>Ground-to-Satellite Handover Policy</h4>
         </div>
         <div class="formula-math">

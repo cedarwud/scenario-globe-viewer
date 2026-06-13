@@ -847,7 +847,7 @@ function buildUnavailableRfChainBreakdown(): RuntimeRfChainBreakdownState {
         "ITU-R P.676-13 Annex 2"
       ]),
       term("rain-attenuation", "pending-rf-chain-rain-term", [
-        "ITU-R P.618-14 §2.2.1"
+        "ITU-R P.618-14 §2.2.1.1"
       ]),
       term("rx-antenna-gain", "pending-station-rx-antenna", [
         "ITU-R S.1528",
