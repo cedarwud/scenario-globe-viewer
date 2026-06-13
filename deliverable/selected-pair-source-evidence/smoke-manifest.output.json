@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-06-13T07:17:39.709Z",
+  "generatedAt": "2026-06-13T09:00:19.770Z",
   "route": "/?stationA=cht-yangmingshan&stationB=sansa-hartebeesthoek&startUtc=2026-05-17T00%3A00%3A00.000Z&durationMinutes=360",
   "viewport": "desktop-1440x900",
   "screenshot": "output/selected-pair-source-report/source-report-panel-open.png",
@@ -17,6 +17,6 @@
   "inventoryRows": 3,
   "atmosphericLookupRows": 5,
   "modeledOutputCardsCount": 6,
-  "actorRows": 9,
-  "visibilityRows": 9
+  "actorRows": 3,
+  "visibilityRows": 3
 }

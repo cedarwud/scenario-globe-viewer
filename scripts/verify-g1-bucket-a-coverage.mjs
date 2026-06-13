@@ -359,29 +359,29 @@ const G1_ROWS = [
         }
         const text = writtenHtml;
         const requiredSections = [
-          "Selected-pair evidence report",
+          "Evidence report sections",
           "Visibility windows",
           "Handover events",
-          "Source boundary",
+          "Source limits",
           "Raw JSON payload",
           "Download HTML"
         ];
+        const missingSections = requiredSections.filter((section) => !text.includes(section));
         return {
           passed:
             openArgs?.target === "_blank" &&
             openerValue === null &&
             text.trimStart().startsWith("<!doctype html>") &&
             text.includes("data-report-filename=\"runtime-projection-evidence") &&
-            requiredSections.every((section) => text.includes(section)),
+            missingSections.length === 0,
           evidence: {
             buttonExists: true,
             openArgs,
             focused,
             openerValue,
             prefix: text.slice(0, 80),
-            requiredSectionsPresent: requiredSections.every((section) =>
-              text.includes(section)
-            )
+            requiredSectionsPresent: missingSections.length === 0,
+            missingSections
           }
         };
       })();

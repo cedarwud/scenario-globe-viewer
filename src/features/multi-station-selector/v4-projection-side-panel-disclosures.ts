@@ -182,6 +182,8 @@ function buildMetricAnchorDisclosureBlock(result: RuntimeProjectionResult): HTML
   wrapper.className = "v4-projection-side-panel__section";
   wrapper.dataset.metricAnchorDisclosure = "true";
   wrapper.dataset.carrierSelection = disclosure.carrierSelection ?? "";
+  wrapper.dataset.antennaModel = disclosure.antennaModel ?? "";
+  wrapper.dataset.antennaParameterSource = disclosure.antennaParameterSource ?? "";
   wrapper.dataset.capacityModel = disclosure.capacityModel ?? "";
   wrapper.dataset.jitterModel = disclosure.jitterModel ?? "";
   wrapper.dataset.delayModel = disclosure.delayModel ?? "";
@@ -204,6 +206,8 @@ function buildMetricAnchorDisclosureBlock(result: RuntimeProjectionResult): HTML
   list.className = "v4-projection-side-panel__non-claim-list";
   const rows = [
     ["Carrier selection", disclosure.carrierSelection],
+    ["Antenna model", disclosure.antennaModel],
+    ["Antenna parameter source", disclosure.antennaParameterSource],
     ["Capacity model", disclosure.capacityModel],
     ["Jitter model", disclosure.jitterModel],
     ["Delay model", disclosure.delayModel],
@@ -233,6 +237,8 @@ function buildStandardsReferences(result: RuntimeProjectionResult): HTMLElement 
   list.className = "v4-projection-side-panel__non-claim-list";
   const refs = [
     `Handover policy: TR 38.821 §7.3.2.2 + V-MO1 (${result.dataCompleteness.policyDisclosure.activePolicyId})`,
+    "Satellite antenna gain: ITU-R S.1528-0 Annex 1 (assumed Tier-B parameters)",
+    "Earth-station antenna gain: ITU-R S.465-6 (assumed Tier-B parameters)",
     "Rain attenuation: ITU-R P.618-14 §2.2.1.1",
     "Gas absorption: ITU-R P.676-13"
   ];

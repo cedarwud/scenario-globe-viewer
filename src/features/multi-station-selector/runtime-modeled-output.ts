@@ -1,5 +1,12 @@
 import type { HandoverPolicyConfig } from "../../runtime/link-budget/handover-policy";
 import type { OrbitClass } from "./orbit-types";
+import {
+  RUNTIME_ANTENNA_ASSUMPTION_MODEL_LABEL,
+  RUNTIME_ANTENNA_ASSUMPTION_NON_CLAIM,
+  RUNTIME_ANTENNA_ASSUMPTION_SOURCE_CLASS,
+  RUNTIME_ANTENNA_ASSUMPTION_SOURCE_ID,
+  formatRuntimeAntennaAssumptionSetSummary
+} from "./runtime-antenna-assumptions";
 
 export type RuntimeTruthClass =
   | "tle-derived"
@@ -58,6 +65,8 @@ export interface RuntimePolicyDisclosureState {
 
 export interface RuntimeMetricAnchorDisclosureState {
   readonly carrierSelection: string | null;
+  readonly antennaModel: string | null;
+  readonly antennaParameterSource: string | null;
   readonly capacityModel: string | null;
   readonly jitterModel: string | null;
   readonly delayModel: string | null;
@@ -102,6 +111,16 @@ export function buildModeledOutputs(
   });
   const modelNonClaim =
     "Modeled output only; not measured operator telemetry or private schedule truth.";
+  const antennaInputSummary = {
+    antennaModel: RUNTIME_ANTENNA_ASSUMPTION_MODEL_LABEL,
+    antennaParameterSource: RUNTIME_ANTENNA_ASSUMPTION_SOURCE_ID,
+    antennaSourceClass: RUNTIME_ANTENNA_ASSUMPTION_SOURCE_CLASS,
+    earthStationPatternFrequencyPolicy:
+      "S.465 validation uses carrier frequency when 2-31 GHz; MEO L-band uses 2 GHz lower-bound reference for antenna-pattern validation only",
+    antennaAssumptionSet: formatRuntimeAntennaAssumptionSetSummary()
+  };
+  const linkBudgetModelId = "fspl-rain-gas-assumed-antenna-link-budget-v1";
+  const throughputModelId = "selected-pair-throughput-estimate-v2";
   const provenance = (modelId: string): RuntimeProvenanceTag => ({
     truthClass: "modeled",
     sourceId: "runtime-projection",
@@ -125,35 +144,45 @@ export function buildModeledOutputs(
     },
     {
       kind: "link-budget",
-      modelId: "fspl-rain-gas-link-budget-v1",
+      modelId: linkBudgetModelId,
       standardsRef: [
         "3GPP TR 38.811 §6.6.2",
         "ITU-R P.618-14 §2.2.1.1",
-        "ITU-R P.676-13 Annex 2"
+        "ITU-R P.676-13 Annex 2",
+        "ITU-R S.1528-0 Annex 1",
+        "ITU-R S.465-6"
       ],
       inputSummary: {
         ...baseInputSummary(),
         outputKind: "link-budget",
-        carrierSelection: "orbit-class-default"
+        carrierSelection: "orbit-class-default",
+        ...antennaInputSummary
       },
       outputUnit: "dB",
       rainRateControlMode: input.rainRateControlMode,
-      provenance: provenance("fspl-rain-gas-link-budget-v1"),
-      nonClaim: modelNonClaim
+      provenance: provenance(linkBudgetModelId),
+      nonClaim: `${modelNonClaim} ${RUNTIME_ANTENNA_ASSUMPTION_NON_CLAIM}`
     },
     {
       kind: "throughput",
-      modelId: "selected-pair-throughput-estimate-v1",
-      standardsRef: ["3GPP TR 38.811 §6.6.2", "ITU-R P.618-14 §2.2.1.1"],
+      modelId: throughputModelId,
+      standardsRef: [
+        "3GPP TR 38.811 §6.6.2",
+        "ITU-R P.618-14 §2.2.1.1",
+        "ITU-R S.1528-0 Annex 1",
+        "ITU-R S.465-6"
+      ],
       inputSummary: {
         ...baseInputSummary(),
         outputKind: "throughput",
-        capacityModel: "clear-sky-reference-with-fade-derating"
+        capacityModel:
+          "clear-sky-reference-with-atmospheric-and-assumed-antenna-derating",
+        ...antennaInputSummary
       },
       outputUnit: "Mbps",
       rainRateControlMode: input.rainRateControlMode,
-      provenance: provenance("selected-pair-throughput-estimate-v1"),
-      nonClaim: modelNonClaim
+      provenance: provenance(throughputModelId),
+      nonClaim: `${modelNonClaim} ${RUNTIME_ANTENNA_ASSUMPTION_NON_CLAIM}`
     },
     {
       kind: "jitter",
@@ -219,6 +248,16 @@ export function buildMetricAnchorDisclosure(
       "link-budget",
       "carrierSelection"
     ),
+    antennaModel: stringInputSummaryValue(
+      modeledOutputs,
+      "link-budget",
+      "antennaModel"
+    ),
+    antennaParameterSource: stringInputSummaryValue(
+      modeledOutputs,
+      "link-budget",
+      "antennaParameterSource"
+    ),
     capacityModel: stringInputSummaryValue(
       modeledOutputs,
       "throughput",
@@ -229,6 +268,6 @@ export function buildMetricAnchorDisclosure(
     activePolicyId: policyDisclosure.activePolicyId,
     policyThresholds: policyDisclosure.thresholds,
     nonClaim:
-      "Metric anchors are model labels and policy controls, not measured throughput, jitter, latency, routing, or SLA truth."
+      "Metric anchors are model labels and policy controls, not measured throughput, jitter, latency, routing, SLA, or station RF hardware truth."
   };
 }

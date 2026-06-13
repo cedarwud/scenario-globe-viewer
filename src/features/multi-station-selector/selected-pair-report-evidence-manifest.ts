@@ -68,14 +68,16 @@ export const SELECTED_PAIR_EXTERNAL_EVIDENCE: ReadonlyArray<SelectedPairExternal
     status: "partial",
     artifactRefs: [
       "deliverable/selected-pair-source-evidence/copernicus-dem-selected-pair-sample-2026-06-12.json",
-      "deliverable/selected-pair-source-evidence/rain-source-repair-candidates-2026-06-12.json"
+      "deliverable/selected-pair-source-evidence/copernicus-dem-selected-pair-terrain-mask-2026-06-13.json",
+      "deliverable/selected-pair-source-evidence/rain-source-repair-candidates-2026-06-12.json",
+      "deliverable/selected-pair-source-evidence/local-rain-calibration-2026-06-13.json"
     ],
     evidenceValue:
-      "Retained repair-source artifacts record selected-pair Copernicus GLO-30 tile/cell/datum comparison samples and candidate NASA GPM / CWA rain-calibration source paths.",
+      "Retained repair-source artifacts record selected-pair Copernicus GLO-30 tile/cell/datum samples, a selected-pair public-DEM-derived terrain mask, candidate NASA GPM / CWA rain-calibration source paths, and a public CWA local rain statistic mapped to a 5 mm/h demo preset.",
     howToRead:
-      "Use these artifacts to explain which DEM and rain sources can repair remaining gaps, and where current runtime values still differ from a candidate source.",
+      "Use these artifacts to explain which DEM and rain sources repair selected-pair gaps, which stronger claims remain bounded, and how the public local-rain statistic is bounded.",
     boundary:
-      "They do not replace runtime elevation values, generate terrain horizon masks, attach local rain time series, or prove packet/RF behavior."
+      "They do not provide surveyed RF horizon, full-registry DEM terrain replacement, link-measured weather, long-term R0.01 rain calibration, or packet/RF behavior."
   },
   {
     evidenceId: "selected-pair-route-governance",
@@ -162,25 +164,25 @@ export const SELECTED_PAIR_MISSING_EVIDENCE: ReadonlyArray<SelectedPairMissingEv
     gapId: "local-rain-calibration",
     requirementIds: ["K-A3-b", "(irreducible-3)"],
     missingEvidence:
-      "No local rain calibration constants or measured local weather observations.",
+      "No measured-for-link local weather, SANSA rainfall sample, scenario-window rain source, or long-term R0.01 calibration.",
     neededSource:
-      "Needs local rain statistics, calibration constants, source period, station/cell identity, and citation.",
+      "Needs measured local weather for the selected link or long-term station/grid statistics accepted as a climate calibration source.",
     impact:
-      "Rain impact remains a standards-derived model response to scenario input.",
+      "Rain impact remains a standards-derived model response to scenario input; the retained CWA sample only supports a public local rain statistic and a 5 mm/h demo preset.",
     boundary:
-      "Not measured local weather."
+      "Not measured-for-link weather or R0.01 availability calibration."
   },
   {
-    gapId: "antenna-runtime-output",
+    gapId: "operator-rf-hardware-truth",
     requirementIds: ["K-A3-a", "K-F2"],
     missingEvidence:
-      "Selected-pair payload has no antenna-gain runtime output.",
+      "Selected-pair payload has no operator station RF hardware source for real dish size, EIRP, polarization, beamwidth, or pattern.",
     neededSource:
-      "Needs wired antenna model output or station RF hardware sources covering gain, beamwidth, pattern, EIRP, and polarization.",
+      "Needs station RF hardware sources covering real gain, beamwidth, pattern, EIRP, and polarization if a stronger-than-assumed claim is required.",
     impact:
-      "K-F2 can only be read as partial evidence: rain/gas/link-budget are disclosed, while antenna runtime evidence is still missing.",
+      "K-A3-a/K-F2 can be read as standards-derived model evidence with assumed Tier-B antenna parameters, but not as operator hardware evidence.",
     boundary:
-      "Standalone model support is not selected-pair runtime antenna evidence."
+      "Assumed antenna parameters are not operator hardware truth or measured RF evidence."
   },
   {
     gapId: "external-network-bridge",

@@ -30,7 +30,9 @@ export const EXPECTED_CAP_DISCLOSURE = {
 };
 export const EXPECTED_METRIC_ANCHORS = {
   carrierSelection: "orbit-class-default",
-  capacityModel: "clear-sky-reference-with-fade-derating",
+  antennaModel: "S.1528/S.465-6 assumed Tier-B per-orbit antenna pattern",
+  antennaParameterSource: "assumed-tier-b-antenna-params-selected-pair-v1",
+  capacityModel: "clear-sky-reference-with-atmospheric-and-assumed-antenna-derating",
   jitterModel: "orbit-baseline-with-rain-scale",
   delayModel: "slant-range-one-way-plus-fixed-processing"
 };
@@ -46,12 +48,15 @@ export const EXPECTED_MISSING_ELEVATION_PROVENANCE_STATUS = "legacy-unknown";
 export const EXPECTED_ELEVATION_SOURCE_PATH =
   "public/fixtures/ground-stations/station-elevations-cache.json";
 export const EXPECTED_TERRAIN_MASK_SOURCE_ID = "default-unknown";
+export const EXPECTED_DEM_TERRAIN_MASK_SOURCE_ID =
+  "copernicus-dem-glo-30-terrain-mask-selected-pair-v1";
 export const EXPECTED_RF_FIELD_SOURCE_ID = "unavailable-pending-operator-rf-profile";
 export const EXPECTED_RF_CHAIN_TERM_KINDS = [
   "tx-eirp",
   "free-space-path-loss",
   "gas-absorption",
   "rain-attenuation",
+  "satellite-antenna-gain",
   "rx-antenna-gain"
 ];
 export const EXPECTED_ATMOSPHERIC_LOOKUP_SOURCES = [
@@ -323,6 +328,84 @@ export function assertElevationProvenanceMetadata(label, station) {
     );
     return;
   }
+  if (station.elevationSourceKind === "dem-derived") {
+    assert(
+      station.elevationSourceId === "copernicus-dem-glo-30-public-selected-pair-v1" &&
+        station.elevationDatasetId === "copernicus-dem-glo-30-public-selected-pair-v1",
+      `${label}: station ${station.stationId} DEM elevation source id mismatch`
+    );
+    assert(
+      station.elevationSourcePath === EXPECTED_ELEVATION_SOURCE_PATH,
+      `${label}: station ${station.stationId} DEM elevation source path mismatch`
+    );
+    assert(
+      typeof station.elevationSourceNote === "string" &&
+        station.elevationSourceNote.includes("DEM-derived elevation") &&
+        station.elevationSourceNote.includes("datum"),
+      `${label}: station ${station.stationId} DEM elevation source note mismatch`
+    );
+    assert(
+      station.elevationDatasetVersion === "Copernicus DEM 2021 release" &&
+        station.elevationDatasetResolutionM === 30 &&
+        station.elevationVerticalDatum === "EGM2008 / EPSG:3855" &&
+        typeof station.elevationTileId === "string" &&
+        typeof station.elevationCellId === "string",
+      `${label}: station ${station.stationId} DEM metadata mismatch`
+    );
+    assert(
+      station.elevationSamplingMethod === "nearest-cell-cog-range-read",
+      `${label}: station ${station.stationId} DEM sampling method mismatch`
+    );
+    assert(
+      station.elevationLicenseId === "copernicus-dem-public" &&
+        typeof station.elevationLicenseUrl === "string",
+      `${label}: station ${station.stationId} DEM license metadata mismatch`
+    );
+    assert(
+      station.elevationProvenanceStatus === "public-dem-derived-selected-pair",
+      `${label}: station ${station.stationId} DEM provenance status mismatch`
+    );
+    assert(
+      typeof station.elevationNonClaim === "string" &&
+        station.elevationNonClaim.includes("not operator-measured") &&
+        station.elevationNonClaim.includes("surveyed RF horizon"),
+      `${label}: station ${station.stationId} DEM non-claim missing`
+    );
+    return;
+  }
+  if (station.elevationSourceKind === "operator-stated") {
+    assert(
+      station.elevationSourceId === "sansa-operator-altitude-public-page-v1" &&
+        station.elevationDatasetId === "sansa-operator-altitude-public-page-v1",
+      `${label}: station ${station.stationId} operator elevation source id mismatch`
+    );
+    assert(
+      typeof station.elevationSourceNote === "string" &&
+        station.elevationSourceNote.includes("Operator-stated station altitude"),
+      `${label}: station ${station.stationId} operator elevation source note mismatch`
+    );
+    assert(
+      station.elevationSamplingMethod ===
+        "operator-web-altitude-plus-dem-terrain-comparison",
+      `${label}: station ${station.stationId} operator sampling method mismatch`
+    );
+    assert(
+      station.elevationLicenseId === "operator-public-web" &&
+        typeof station.elevationLicenseUrl === "string",
+      `${label}: station ${station.stationId} operator license metadata mismatch`
+    );
+    assert(
+      station.elevationProvenanceStatus ===
+        "operator-stated-altitude-with-public-dem-terrain",
+      `${label}: station ${station.stationId} operator provenance status mismatch`
+    );
+    assert(
+      typeof station.elevationNonClaim === "string" &&
+        station.elevationNonClaim.includes("not a surveyed RF horizon"),
+      `${label}: station ${station.stationId} operator non-claim missing`
+    );
+    return;
+  }
   assert(
     station.elevationSourceId === EXPECTED_ELEVATION_DATASET_ID,
     `${label}: station ${station.stationId} elevation source id mismatch`
@@ -416,19 +499,32 @@ export function assertStationSourceMetadata(label, station) {
     `${label}: station ${station.stationId} coordinate source URL invalid`
   );
   assertElevationProvenanceMetadata(label, station);
+  const expectedTerrainSourceId =
+    station.terrainMaskDeg === 0
+      ? EXPECTED_TERRAIN_MASK_SOURCE_ID
+      : EXPECTED_DEM_TERRAIN_MASK_SOURCE_ID;
   assert(
-    station.terrainMaskSourceId === EXPECTED_TERRAIN_MASK_SOURCE_ID,
+    station.terrainMaskSourceId === expectedTerrainSourceId,
     `${label}: station ${station.stationId} terrain mask source mismatch`
   );
   assert(
     station.terrainMaskIsDefault === (station.terrainMaskDeg === 0),
     `${label}: station ${station.stationId} terrain mask default flag mismatch`
   );
-  assert(
-    typeof station.terrainMaskNote === "string" &&
-      station.terrainMaskNote.includes("site-specific horizon mask"),
-    `${label}: station ${station.stationId} terrain mask note missing`
-  );
+  if (station.terrainMaskDeg === 0) {
+    assert(
+      typeof station.terrainMaskNote === "string" &&
+        station.terrainMaskNote.includes("site-specific horizon mask"),
+      `${label}: station ${station.stationId} terrain mask note missing`
+    );
+  } else {
+    assert(
+      typeof station.terrainMaskNote === "string" &&
+        station.terrainMaskNote.includes("Copernicus DEM GLO-30") &&
+        station.terrainMaskNote.includes("not a surveyed RF horizon"),
+      `${label}: station ${station.stationId} DEM terrain mask note missing`
+    );
+  }
 }
 
 export const ELEVATION_METADATA_FIELDS = [
@@ -472,14 +568,16 @@ export function assertA8UnavailablePlaceholders(label, data) {
   const breakdown = data.rfChainBreakdown;
   assert(breakdown, `${label}: RF chain breakdown missing`);
   assert(
-    breakdown.carrierBand === null &&
+    breakdown.carrierBand === "orbit-class-default" &&
       breakdown.carrierFrequencyGHz === null &&
       breakdown.receivedPowerProxyDbm === null,
-    `${label}: RF chain should expose unavailable carrier/power fields`
+    `${label}: RF chain should expose modeled carrier and unavailable per-link power fields`
   );
   assert(
-    breakdown.provenance?.truthClass === "unavailable",
-    `${label}: RF chain provenance should be unavailable`
+    breakdown.provenance?.truthClass === "modeled" &&
+      breakdown.provenance?.sourceId === "runtime-projection" &&
+      breakdown.provenance?.modelId === "fspl-rain-gas-assumed-antenna-link-budget-v1",
+    `${label}: RF chain provenance should disclose the runtime antenna/link model`
   );
   assert(
     Array.isArray(breakdown.terms) &&
@@ -491,12 +589,29 @@ export function assertA8UnavailablePlaceholders(label, data) {
       term.kind === EXPECTED_RF_CHAIN_TERM_KINDS[index],
       `${label}: RF chain term order mismatch at ${index}`
     );
-    assert(
-      term.contributionSignedDb === null &&
-        term.provenance?.truthClass === "unavailable" &&
-        term.provenance?.sourceId === EXPECTED_RF_FIELD_SOURCE_ID,
-      `${label}: RF chain term ${term.kind} should be unavailable`
-    );
+    if (term.kind === "tx-eirp") {
+      assert(
+        term.contributionSignedDb === null &&
+          term.provenance?.truthClass === "unavailable" &&
+          term.provenance?.sourceId === EXPECTED_RF_FIELD_SOURCE_ID,
+        `${label}: RF chain term ${term.kind} should preserve the station EIRP gap`
+      );
+    } else {
+      assert(
+        term.contributionSignedDb === null &&
+          term.provenance?.truthClass === "modeled" &&
+          term.provenance?.sourceId === "runtime-projection",
+        `${label}: RF chain term ${term.kind} should disclose modeled provenance`
+      );
+    }
+    if (term.kind.includes("antenna")) {
+      assert(
+        term.inputSummary?.antennaParameterSource ===
+          EXPECTED_METRIC_ANCHORS.antennaParameterSource &&
+          term.inputSummary?.antennaSourceClass === "assumed-Tier-B",
+        `${label}: RF chain antenna term ${term.kind} assumption source missing`
+      );
+    }
     assert(
       Array.isArray(term.standardsRef) &&
         term.standardsRef.length > 0 &&

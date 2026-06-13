@@ -264,7 +264,7 @@ const EXPECTED_RUNTIME_CAP_HEADERS = [
 ];
 const EXPECTED_SOURCE_GAP_FIELDS = [
   "packet-test-trace",
-  "antenna-runtime-output",
+  "operator-rf-hardware-truth",
   "local-rain-calibration",
   "station-rf-profile",
   "station-elevation-dem-metadata",
@@ -284,7 +284,7 @@ const EXPECTED_MISSING_EVIDENCE_IDS = [
   "packet-test-trace",
   "acceptance-threshold-script",
   "local-rain-calibration",
-  "antenna-runtime-output",
+  "operator-rf-hardware-truth",
   "external-network-bridge",
   "dut-traffic-generator-run",
   "final-written-report-package"
@@ -753,6 +753,22 @@ async function captureReportAndSourceState(client) {
             iframe.srcdoc = reportHtml;
             setTimeout(resolve, 500);
           });
+          const waitUntilReportFrameReady = async () => {
+            const deadline = Date.now() + 3000;
+            while (Date.now() < deadline) {
+              const readyDoc = iframe.contentDocument;
+              if (
+                readyDoc?.querySelector("#evidence-detail-toggle") &&
+                readyDoc.querySelector(".toolbar") &&
+                readyDoc.querySelector("#summary")
+              ) {
+                return true;
+              }
+              await new Promise((resolve) => setTimeout(resolve, 50));
+            }
+            return false;
+          };
+          await waitUntilReportFrameReady();
 
           const frameDoc = iframe.contentDocument;
           const frameWindow = iframe.contentWindow;
