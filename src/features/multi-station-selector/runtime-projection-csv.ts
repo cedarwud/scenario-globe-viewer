@@ -644,6 +644,11 @@ export function buildRuntimeProjectionCsv(result: RuntimeProjectionResult): stri
       "carrierSelection",
       result.dataCompleteness.metricAnchorDisclosure.carrierSelection
     ],
+    ["antennaModel", result.dataCompleteness.metricAnchorDisclosure.antennaModel],
+    [
+      "antennaParameterSource",
+      result.dataCompleteness.metricAnchorDisclosure.antennaParameterSource
+    ],
     ["capacityModel", result.dataCompleteness.metricAnchorDisclosure.capacityModel],
     ["jitterModel", result.dataCompleteness.metricAnchorDisclosure.jitterModel],
     ["delayModel", result.dataCompleteness.metricAnchorDisclosure.delayModel],

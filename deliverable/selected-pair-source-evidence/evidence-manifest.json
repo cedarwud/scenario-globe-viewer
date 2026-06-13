@@ -1,8 +1,8 @@
 {
   "statusDate": "2026-06-13",
   "generatedBy": "npm run test:m8a-v4.11:slice5",
-  "generatedAtUtc": "2026-06-13T07:17:29.749Z",
-  "regenerationNote": "Report HTML + CSV regenerated 2026-06-13 to refine standards-section citations (TR 38.811 latency §6.7 -> §6.6.2 + clause 5.3.1.1; rain §2.2.1 -> §2.2.1.1; handover §7.3 -> §7.3.2.2) and the full-P.618 rain model. Numeric outputs unchanged (rain=0 scenario). Other retained artifacts keep their 2026-06-12 date.",
+  "generatedAtUtc": "2026-06-13T08:45:35.391Z",
+  "regenerationNote": "Report HTML + CSV regenerated 2026-06-13 after public data-gap closure for TLE timestamp display, retained CWA local rain statistic, selected-pair Copernicus DEM elevation/terrain mask, and S.1528/S.465 antenna modeling with assumed Tier-B parameters. Numeric outputs changed because selected-pair terrain thresholds and antenna off-axis derating are now applied.",
   "projectionRoute": "/?stationA=cht-yangmingshan&stationB=sansa-hartebeesthoek&startUtc=2026-05-17T00%3A00%3A00.000Z&durationMinutes=360",
   "sourceTier": "geometric-derived",
   "evidenceKind": "cross-family-geometric",
@@ -16,8 +16,9 @@
       "selected route and projection inputs",
       "modeled selected-pair visibility, handover, and link-budget outputs",
       "source class, source tier, and source gap disclosures",
-      "selected-pair Copernicus GLO-30 comparison samples",
-      "candidate local rain calibration source paths",
+      "selected-pair Copernicus GLO-30 elevation comparison and retained terrain masks",
+      "retained public CWA local rain statistic and bounded 5 mm/h demo preset",
+      "standards-derived antenna-pattern model output with disclosed assumed Tier-B parameters",
       "row-level CSV export for slide tables"
     ],
     "doesNotSupport": [
@@ -25,8 +26,9 @@
       "native RF handover or active serving route migration",
       "operator-private station or network validation",
       "station RF hardware truth",
-      "runtime-adopted DEM elevation or terrain horizon data",
-      "sampled local rain calibration time series",
+      "surveyed RF horizon or full-registry DEM/terrain replacement",
+      "measured link-local weather, SANSA rainfall, scenario-window weather, or long-term R0.01 calibration",
+      "operator RF hardware truth for dish size, EIRP, polarization, beamwidth, or antenna pattern",
       "external acceptance thresholds or final written acceptance"
     ]
   },
@@ -34,26 +36,26 @@
     {
       "path": "runtime-projection-evidence-cht-yangmingshan-sansa-hartebeesthoek-20260517T000000Z-360m.html",
       "role": "readable evidence report",
-      "sizeBytes": 574387,
-      "sha256": "9ac13f124aaadfb33e0d792c3bd078c48ceb5226cf192829849991f3b20290bf"
+      "sizeBytes": 543697,
+      "sha256": "d184c8dc2c9657b3752b29a31f1f95e40bb5927ddf78eb392406724517317748"
     },
     {
       "path": "runtime-projection-cht-yangmingshan-sansa-hartebeesthoek-20260517T000000Z-360m.csv",
       "role": "row-level CSV export",
-      "sizeBytes": 35920,
-      "sha256": "d74cef8a36004557364b3668599990ec1853e59871af66150edac1d903e77e3f"
+      "sizeBytes": 38231,
+      "sha256": "662b9238800c7d620ef1cf521e1ea417d69713a81e429a66c13a064f3dd446e5"
     },
     {
       "path": "smoke-manifest.output.json",
       "role": "original smoke manifest copied from ignored output",
       "sizeBytes": 1130,
-      "sha256": "becdd3fdf27dc09df1a9ca7f4127e86e26337e91cf71bc685dfc8d2f12c7b2ab"
+      "sha256": "bb636975fd1c8c0aac39e5a1b46a95dba6af04560b8e6a08d4ce1815936b1fea"
     },
     {
       "path": "external-source-reconciliation.md",
       "role": "public-source reconciliation and remaining gap register",
-      "sizeBytes": 11615,
-      "sha256": "9b42df657555b11388d52a02f045e438c1135ca19ac2ef45c60fd68e9db74b6a"
+      "sizeBytes": 14666,
+      "sha256": "1b3194ac0e619f0e847583b6f783b28ab21f4cd1f39f0811ac0998bfff384ace"
     },
     {
       "path": "open-elevation-selected-pair-query-2026-06-12.json",
@@ -68,10 +70,22 @@
       "sha256": "43a0dc022f2dd687d3812a3689b8f2c036284acf2cad1b8929c86b7bf8a8f349"
     },
     {
+      "path": "copernicus-dem-selected-pair-terrain-mask-2026-06-13.json",
+      "role": "retained Copernicus GLO-30 selected-pair terrain-mask sample and horizon algorithm output",
+      "sizeBytes": 162055,
+      "sha256": "9382f7e36f7abf0fa4988962b5bcf96a80607c208df988de43d61a73e8ce4978"
+    },
+    {
       "path": "rain-source-repair-candidates-2026-06-12.json",
       "role": "retained local rain calibration repair-source candidates",
       "sizeBytes": 3843,
       "sha256": "02d4898bc2d9cd385a0e9d8564f4471bc7de533648416bf498b2636b121835ad"
+    },
+    {
+      "path": "local-rain-calibration-2026-06-13.json",
+      "role": "retained public CWA local rain statistic mapped to a bounded 5 mm/h demo preset",
+      "sizeBytes": 5718,
+      "sha256": "f3a36892ccf01cc7f8cf1c720fc284328e1e92265a487c079e6efbafe0150476"
     }
   ]
 }

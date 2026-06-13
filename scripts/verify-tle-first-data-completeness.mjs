@@ -159,8 +159,8 @@ const walkthroughCases = [
     baselineLinkSelectionEventCount: 9,
     baselineHandoverCount: 8,
     expectedStationPrecision: [
-      { stationId: "cht-yangmingshan", elevationM: 470, terrainMaskDeg: 0 },
-      { stationId: "sansa-hartebeesthoek", elevationM: 1553, terrainMaskDeg: 0 }
+      { stationId: "cht-yangmingshan", elevationM: 489, terrainMaskDeg: 21 },
+      { stationId: "sansa-hartebeesthoek", elevationM: 1553, terrainMaskDeg: 1 }
     ]
   }
 ];

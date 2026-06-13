@@ -1058,14 +1058,14 @@
       "lat": -25.8872,
       "lon": 27.7075,
       "elevationM": 1553,
-      "terrainMaskDeg": 0,
+      "terrainMaskDeg": 1,
       "supportedOrbits": ["LEO", "MEO", "GEO"],
       "supportedBands": ["S", "C", "X", "Ku"],
       "primaryUseCase": "SANSA TT&C for LEO EO, MEO navigation, and GEO comms missions; supports IM-2 lunar TT&C",
       "sourceUrl": "https://www.sansa.org.za/programmes/space-operations/",
       "sourceTier": "operator-stated",
       "disclosurePrecision": "exact-coords",
-      "publicDisclosureNotes": "SANSA states Hartebeesthoek is at 1553 m, coordinates 25°53′S 27°42′E, and antenna systems cover S, C, X, and Ku bands; pair capability remains unclaimed."
+      "publicDisclosureNotes": "SANSA states Hartebeesthoek is at 1553 m, coordinates 25°53′S 27°42′E, and antenna systems cover S, C, X, and Ku bands; terrain mask 1 deg is a public Copernicus DEM GLO-30 selected-pair derivative, not a surveyed RF horizon; pair capability remains unclaimed."
     },
     {
       "id": "ssc-esrange-kiruna",
@@ -1266,15 +1266,15 @@
       "region": "asia",
       "lat": 25.155,
       "lon": 121.55,
-      "elevationM": 470,
-      "terrainMaskDeg": 0,
+      "elevationM": 489,
+      "terrainMaskDeg": 21,
       "supportedOrbits": ["LEO", "MEO", "GEO"],
       "supportedBands": ["C", "Ku", "Ka"],
       "primaryUseCase": "CHT northern Taiwan earth station; ST-2 GEO ops, planned SES O3b mPOWER MEO ground station, OneWeb LEO license",
       "sourceUrl": "https://www.telecompaper.com/news/chunghwa-telecom-ses-to-build-o3b-mpower-meo-satellite-ground-station-in-taiwan--1560056",
       "sourceTier": "industry-disclosure",
       "disclosurePrecision": "operator-family-region",
-      "publicDisclosureNotes": "CHT operator-family multi-orbit infrastructure spans Yangmingshan and Fang-Shan; coords at Yangmingshan area."
+      "publicDisclosureNotes": "CHT operator-family multi-orbit infrastructure spans Yangmingshan and Fang-Shan; coords are representative Yangmingshan-area coordinates. Elevation 489 m and terrain mask 21 deg are public Copernicus DEM GLO-30 selected-pair derivatives, not operator-measured site altitude or surveyed RF horizon."
     },
     {
       "id": "cht-fangshan",

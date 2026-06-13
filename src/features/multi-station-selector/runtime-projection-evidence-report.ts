@@ -79,6 +79,10 @@ function formatInputSummaryToHtml(summary: Record<string, string | number | bool
     outputKind: "Output Kind",
     eventCount: "Event Count",
     carrierSelection: "Carrier Selection",
+    antennaModel: "Antenna Model",
+    antennaParameterSource: "Antenna Source",
+    antennaSourceClass: "Antenna Class",
+    antennaAssumptionSet: "Antenna Assumptions",
     capacityModel: "Capacity Model",
   };
 
@@ -587,7 +591,7 @@ function stationRfProfileRows(result: RuntimeProjectionResult): ReportRow[] {
     stationTerrainSourceCell(
       profile.terrainMaskSourceId,
       profile.terrainMaskIsDefault,
-      "No site-specific local horizon mask source."
+      profile.terrainMaskNote
     ),
     profile.antennaDiameterM ?? "unavailable",
     stationRfSourceCell(
@@ -1039,6 +1043,20 @@ function standardsReferenceRows(result: RuntimeProjectionResult): ReportRow[] {
       { html: truthChip("Standards-derived", "standard") },
       "Use as a formula reference for atmospheric absorption calculation.",
       "Not measured link performance or service availability evidence."
+    ],
+    [
+      "ITU-R S.1528-0 Annex 1",
+      "Satellite antenna gain model with assumed Tier-B parameters",
+      { html: truthChip("Standards-derived", "standard") },
+      "Use as the satellite antenna-pattern reference for the selected-pair runtime model.",
+      "Not operator beam assignment, measured antenna gain, or station RF hardware truth."
+    ],
+    [
+      "ITU-R S.465-6",
+      "Earth-station antenna gain model with assumed Tier-B parameters",
+      { html: truthChip("Standards-derived", "standard") },
+      "Use as the earth-station antenna-pattern reference for the selected-pair runtime model.",
+      "Not real dish size, EIRP, polarization, or measured RF hardware truth."
     ]
   ];
   for (const output of result.dataCompleteness.modeledOutputs) {
@@ -1062,8 +1080,13 @@ function sourceGapRows(result: RuntimeProjectionResult): ReportRow[] {
       profile.peakEirpDbm === null ||
       profile.txPolarization === null
   );
+  const acceptedElevationStatuses = new Set([
+    "dem-provenance-complete",
+    "public-dem-derived-selected-pair",
+    "operator-stated-altitude-with-public-dem-terrain"
+  ]);
   const hasElevationGap = result.dataCompleteness.stationPrecision.some(
-    (station) => station.elevationProvenanceStatus !== "dem-provenance-complete"
+    (station) => !acceptedElevationStatuses.has(station.elevationProvenanceStatus)
   );
   const hasTerrainMaskDefault = result.dataCompleteness.stationPrecision.some(
     (station) => station.terrainMaskIsDefault
@@ -1081,18 +1104,18 @@ function sourceGapRows(result: RuntimeProjectionResult): ReportRow[] {
       "Summary and Visibility expose model values; do not read them as packet-test output."
     ],
     [
-      "antenna-runtime-output",
+      "operator-rf-hardware-truth",
       gapChip,
-      "Selected-pair report payload does not include antenna-gain runtime output.",
-      "RF-chain terms remain disclosed as unavailable or model-anchored.",
-      "Station-specific antenna pattern output is not claimed."
+      "Selected-pair report uses assumed Tier-B antenna pattern parameters, but has no operator station RF hardware source.",
+      "Antenna gain can be read only as standards-derived model output with assumed parameters.",
+      "Do not read assumed antenna values as station dish size, EIRP, polarization, or measured RF hardware truth."
     ],
     [
       "local-rain-calibration",
       gapChip,
-      "Rain-rate control is scenario input; no bundled local calibrated weather observation is present.",
-      "Rain impact is a standards-based model response to that input.",
-      "Not measured local weather."
+      "A retained public CWA station statistic supports a 5 mm/h demo preset, but no measured-for-link weather or long-term R0.01 calibration is attached.",
+      "Rain impact is a standards-based model response to scenario input.",
+      "Not measured-for-link weather."
     ],
     [
       "station-rf-profile",
@@ -1111,9 +1134,13 @@ function sourceGapRows(result: RuntimeProjectionResult): ReportRow[] {
     [
       "terrain-mask-default",
       hasTerrainMaskDefault ? gapChip : { html: truthChip("Public source", "public") },
-      "0 degree terrain mask means no site-specific horizon mask source is attached.",
-      "Visibility thresholds should be read as scenario settings with a default terrain boundary.",
-      "This is not a local horizon survey."
+      hasTerrainMaskDefault
+        ? "0 degree terrain mask means no site-specific horizon mask source is attached."
+        : "Selected-pair stations use public Copernicus DEM-derived terrain masks.",
+      hasTerrainMaskDefault
+        ? "Visibility thresholds should be read as scenario settings with a default terrain boundary."
+        : "Visibility thresholds include the retained DEM-derived selected-pair terrain screening mask.",
+      "This is not a surveyed RF horizon."
     ],
     [
       "atmospheric-grid-lookup",
@@ -1211,12 +1238,12 @@ function requirementCoverageRows(result: RuntimeProjectionResult): ReportRow[] {
     row("A", "R1-D4", "11/30 stable runtime screen for at least 24 hours.", "Retained 24-hour soak artifact: output/soak/2026-05-15T05-42-07-506Z-phase7-0-full/summary.json.", "This is external run evidence; selected-pair report can reference it but does not recompute soak results.", chipCell("External evidence", "external"), "Sources: External evidence register: phase7-0-24h-soak.", "Selected-pair report is not the soak runner and does not prove a new 24-hour run."),
     row("A", "V-MO1", "Disclose cross-orbit handover behavior.", `${crossOrbitCount} cross-orbit migrations.`, "Cross-orbit migration is a model policy event based on visibility candidates.", chipCell("Model-derived", "model"), "Handover; Models: policy gates.", "Not RF handover."),
     row("B", "K-A2", "Use latency, jitter, and network-speed switching rules for link-quality policy.", `Policy: ${result.dataCompleteness.policyDisclosure.activePolicyId}; modeled output kinds: ${result.dataCompleteness.modeledOutputs.map((output) => output.kind).join(", ")}.`, "Report shows the public-standards substitute used by runtime policy and model disclosures.", chipCell("Standards-derived", "standard"), "Models: Modeled outputs; Handover policy gates; Handover events; Missing evidence register: packet-test-trace.", "No operator packet traces or private link-quality time series."),
-    row("B", "K-A3-a", "Antenna parameters: peak gain, beamwidth, pattern.", "Station RF profile fields are unavailable; this report payload has no selected-pair antenna-gain output.", "Unless antenna output is wired into selected-pair payload, the visual runtime cannot prove antenna support.", chipCell("Source gap", "gap"), "Sources: Station RF profile gaps; Models: RF chain; Missing evidence register: antenna-runtime-output.", "Standalone antenna-pattern support is not selected-pair runtime antenna evidence."),
-    row("B", "K-A3-b", "Rain attenuation model.", `${rainRate} mm/h scenario rain input; standards references include ITU-R P.618-14 and ITU-R P.676-13.`, "Rain impact is driven by scenario input and model metadata as a public-standards substitute.", chipCell("Standards-derived", "standard"), "Summary: rain impact; Models: Modeled outputs; Sources: Atmospheric / rain lineage; Missing evidence register: local-rain-calibration.", "No bundled local rain calibration or measured weather observations."),
-    row("B", "K-F2", "Integrate external simulation components: antenna, rain attenuation, and link rules.", "Rain/gas/link-budget and handover policy are disclosed; selected-pair antenna output is still missing.", "This is partial selected-pair evidence: standards-derived rain/gas/link-budget exists, while antenna runtime evidence remains a source gap.", { html: `${truthChip("Standards-derived", "standard")}${truthChip("Source gap", "gap")}` }, "Models: Standards used; Modeled outputs; RF chain; Sources: Station RF profile gaps; Missing evidence register: antenna-runtime-output.", "Standards cannot fill missing station antenna hardware or antenna-gain output."),
+    row("B", "K-A3-a", "Antenna parameters: peak gain, beamwidth, pattern.", "Runtime link budget applies ITU-R S.1528/S.465-6 antenna gain with disclosed assumed Tier-B per-orbit parameters.", "This supports modeled antenna-pattern behavior, not station-specific RF hardware truth.", { html: `${truthChip("Standards-derived", "standard")}${truthChip("Source gap", "gap", "operator RF hardware remains unavailable")}` }, "Models: Modeled outputs; RF chain; Metric anchors; Sources: Station RF profile gaps; Missing evidence register: operator-rf-hardware-truth.", "Assumed antenna values are not operator dish size, EIRP, polarization, or measured RF hardware."),
+    row("B", "K-A3-b", "Rain attenuation model.", `${rainRate} mm/h scenario rain input; standards references include ITU-R P.618-14 and ITU-R P.676-13; retained CWA local statistic maps to a 5 mm/h demo preset.`, "Rain impact is driven by scenario input and model metadata as a public-standards substitute; the local CWA statistic is a bounded public sample, not link-measured weather.", { html: `${truthChip("Standards-derived", "standard")}${truthChip("External evidence", "external")}` }, "Summary: rain impact; Models: Modeled outputs; Sources: Atmospheric / rain lineage; External evidence register: selected-pair-dem-rain-repair-sources; Missing evidence register: local-rain-calibration.", "No measured-for-link weather, SANSA rain sample, scenario-window weather, or long-term R0.01 calibration."),
+    row("B", "K-F2", "Integrate external simulation components: antenna, rain attenuation, and link rules.", "Antenna, rain/gas/link-budget, and handover policy are disclosed as standards-derived model components; antenna parameters are assumed Tier-B defaults.", "This is selected-pair model evidence for integrated antenna/rain/link rules, while operator station RF hardware remains a source gap.", { html: `${truthChip("Standards-derived", "standard")}${truthChip("Source gap", "gap", "operator RF hardware remains unavailable")}` }, "Models: Standards used; Modeled outputs; RF chain; Sources: Station RF profile gaps; Missing evidence register: operator-rf-hardware-truth.", "Standards and assumed defaults cannot prove real station RF hardware or measured link behavior."),
     row("B", "(irreducible-1)", "External packet trace for real latency/jitter time series.", "Packet trace is absent from the payload.", "This row separates packet-test requirements from modeled connectivity.", chipCell("Source gap", "gap"), "Sources: Source gaps; Missing evidence register: packet-test-trace.", "No iperf/ping packet-test trace."),
     row("B", "(irreducible-2)", "Acceptance scenario script and pass/fail thresholds.", "Report captures selected route and projection inputs; payload has no acceptance thresholds.", "Report can support evidence review, but is not an external acceptance script.", chipCell("Source gap", "gap"), "Summary: Projection setup; Sources: Source gaps; Missing evidence register: acceptance-threshold-script.", "No bundled pass/fail threshold script or external acceptance scenario package."),
-    row("B", "(irreducible-3)", "Local rain calibration constants.", `${result.dataCompleteness.atmosphericLookups.length} atmospheric lookup rows; local calibration unavailable.`, "Unavailable local grid lookup and calibration remain explicit gaps.", chipCell("Source gap", "gap"), "Sources: Atmospheric / rain lineage; Source gaps; Missing evidence register: local-rain-calibration.", "No bundled local rain calibration."),
+    row("B", "(irreducible-3)", "Local rain calibration constants.", `${result.dataCompleteness.atmosphericLookups.length} atmospheric lookup rows; retained CWA local statistic supports only a 5 mm/h demo preset.`, "The public CWA sample narrows the local-rain source gap, but does not provide measured-for-link weather or long-term R0.01 constants.", { html: `${truthChip("External evidence", "external")}${truthChip("Source gap", "gap", "measured-for-link/R0.01 still missing")}` }, "Sources: Atmospheric / rain lineage; Source gaps; External evidence register: selected-pair-dem-rain-repair-sources; Missing evidence register: local-rain-calibration.", "No measured-for-link weather or long-term R0.01 calibration."),
     row("C", "K-F1", "Build physical network bridge through an external network simulator.", "External infrastructure evidence only; not in selected-pair runtime payload.", "This selected-pair report cannot validate a physical network bridge.", chipCell("External evidence", "external"), "Sources: External evidence register; Missing evidence register: external-network-bridge.", "Modeled visibility or handover rows cannot be read as physical network-bridge proof."),
     row("C", "K-A5", "Linux main environment and Windows/WSL backup.", "Environment evidence is outside the selected-pair report.", "Report can disclose runtime data, but cannot prove host-environment readiness.", chipCell("External evidence", "external"), "Sources: External evidence register: external-infra-validation-summary.", "Not a UI/runtime projection value."),
     row("C", "K-B1", "Windows tunneling scenario / real-traffic satellite bridge.", "Report has no tunnel, ping path, or traffic-bridge trace.", "This is an external topology item, not selected-pair report data.", chipCell("Source gap", "gap"), "Sources: External evidence register; Missing evidence register: external-network-bridge.", "No bundled tunnel interface, ping trace, or real-traffic bridge evidence."),
@@ -1354,14 +1381,14 @@ function buildSummaryTab(result: RuntimeProjectionResult): string {
         label: "Known gaps",
         chipHtml: truthChip("Source gap", "gap"),
         detail:
-          "Packet traces, local rain calibration, station RF hardware profile, and some local grid lookups are not sources in this payload.",
+          "Packet traces, measured-for-link rain, station RF hardware profile, and some local grid lookups are not sources in this payload.",
         sourceRefs: sourceGapRows(result).map((row) => String(row[0])),
         howToRead:
           "這些是目前缺少的證據，不能只靠模型計算補成真實資料。",
         sourceBoundary:
           "Source gaps table 逐列列出缺少什麼資料以及會影響哪些判讀。",
         nonClaim:
-          "它不會補上缺少的 packet traces、本地天氣校準或射頻硬體來源。",
+          "它不會補上缺少的 packet traces、link-local weather/R0.01 校準或射頻硬體來源。",
         sourceIssue: "Important source gaps exist and remain listed in the Sources tab."
       }
     ],

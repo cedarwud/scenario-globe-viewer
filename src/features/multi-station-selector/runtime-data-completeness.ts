@@ -38,6 +38,13 @@ import {
   type RuntimeRainRateControlMode,
   type RuntimeTruthClass
 } from "./runtime-modeled-output";
+import {
+  RUNTIME_ANTENNA_ASSUMPTION_MODEL_LABEL,
+  RUNTIME_ANTENNA_ASSUMPTION_NON_CLAIM,
+  RUNTIME_ANTENNA_ASSUMPTION_SOURCE_CLASS,
+  RUNTIME_ANTENNA_ASSUMPTION_SOURCE_ID,
+  formatRuntimeAntennaAssumptionSetSummary
+} from "./runtime-antenna-assumptions";
 
 export type {
   RuntimeMetricAnchorDisclosureState,
@@ -77,16 +84,21 @@ export type RuntimeCoordinateSourceAuthority =
 export type RuntimeElevationSourceKind =
   | "legacy-service-cache"
   | "dem-derived"
+  | "operator-stated"
   | "legacy-unknown";
 
 export type RuntimeElevationSamplingMethod =
   | "service-response"
   | "dem-cell-sample"
+  | "nearest-cell-cog-range-read"
+  | "operator-web-altitude-plus-dem-terrain-comparison"
   | "unavailable";
 
 export type RuntimeElevationProvenanceStatus =
   | "legacy-upstream-dem-unknown"
   | "dem-provenance-complete"
+  | "public-dem-derived-selected-pair"
+  | "operator-stated-altitude-with-public-dem-terrain"
   | "legacy-unknown";
 
 interface StationCoordinateAuthorityEntry {
@@ -292,6 +304,7 @@ export type RuntimeRfChainTermKind =
   | "free-space-path-loss"
   | "gas-absorption"
   | "rain-attenuation"
+  | "satellite-antenna-gain"
   | "rx-antenna-gain";
 
 export interface RuntimeRfChainTermState {
@@ -358,6 +371,7 @@ export interface RuntimeStationRfProfileState {
   readonly terrainMaskDeg: number;
   readonly terrainMaskSourceId: string;
   readonly terrainMaskIsDefault: boolean;
+  readonly terrainMaskNote: string;
   readonly antennaDiameterM: number | null;
   readonly antennaDiameterSourceId: string;
   readonly peakEirpDbm: number | null;
@@ -476,6 +490,10 @@ const MISSING_STATION_ELEVATION_NON_CLAIM =
 const TERRAIN_MASK_SOURCE_ID = "default-unknown";
 const TERRAIN_MASK_SOURCE_NOTE =
   "0 means no site-specific horizon mask is available.";
+const DEM_TERRAIN_MASK_SOURCE_ID =
+  "copernicus-dem-glo-30-terrain-mask-selected-pair-v1";
+const DEM_TERRAIN_MASK_SOURCE_NOTE =
+  "Public Copernicus DEM GLO-30 selected-pair terrain mask; not a surveyed RF horizon.";
 const RF_FIELD_SOURCE_ID = "unavailable-pending-operator-rf-profile";
 const ATMOSPHERIC_LOOKUP_SOURCE_ID = "unavailable-pending-itu-grid-bundle";
 const LOCAL_FALLBACK_INVENTORY_NOTE =
@@ -742,10 +760,7 @@ function resolveStationElevationMetadata(
     elevationM: entry.elevationM,
     elevationSourceId: entry.elevationDatasetId,
     elevationSourcePath: STATION_ELEVATION_SOURCE_PATH,
-    elevationSourceNote:
-      entry.elevationSourceKind === "dem-derived"
-        ? DEM_STATION_ELEVATION_SOURCE_NOTE
-        : STATION_ELEVATION_SOURCE_NOTE,
+    elevationSourceNote: resolveStationElevationSourceNote(entry),
     elevationSourceAccessedUtc: entry.sourceAccessedUtc,
     elevationSourceKind: entry.elevationSourceKind,
     elevationDatasetId: entry.elevationDatasetId,
@@ -767,6 +782,30 @@ function resolveStationElevationMetadata(
   };
 }
 
+function resolveStationElevationSourceNote(
+  entry: StationElevationCacheEntry
+): string {
+  if (entry.elevationSourceKind === "dem-derived") {
+    return DEM_STATION_ELEVATION_SOURCE_NOTE;
+  }
+  if (entry.elevationSourceKind === "operator-stated") {
+    return "Operator-stated station altitude with public source citation; surrounding DEM terrain remains a separate derived mask.";
+  }
+  return STATION_ELEVATION_SOURCE_NOTE;
+}
+
+function resolveTerrainMaskSourceId(station: PublicRegistryStation): string {
+  return station.terrainMaskDeg === 0
+    ? TERRAIN_MASK_SOURCE_ID
+    : DEM_TERRAIN_MASK_SOURCE_ID;
+}
+
+function resolveTerrainMaskNote(station: PublicRegistryStation): string {
+  return station.terrainMaskDeg === 0
+    ? TERRAIN_MASK_SOURCE_NOTE
+    : DEM_TERRAIN_MASK_SOURCE_NOTE;
+}
+
 function buildStationPrecisionState(
   station: PublicRegistryStation,
   pairSourceTier: PairSourceTierAttribution["sourceTier"],
@@ -786,9 +825,9 @@ function buildStationPrecisionState(
     rawLon: station.lon,
     ...elevationMetadata,
     terrainMaskDeg: station.terrainMaskDeg,
-    terrainMaskSourceId: TERRAIN_MASK_SOURCE_ID,
+    terrainMaskSourceId: resolveTerrainMaskSourceId(station),
     terrainMaskIsDefault: station.terrainMaskDeg === 0,
-    terrainMaskNote: TERRAIN_MASK_SOURCE_NOTE,
+    terrainMaskNote: resolveTerrainMaskNote(station),
     effectiveElevationThresholdDeg,
     renderPositionIsSourceTruth: coordinateUse === "source-coordinate",
     coordinateUse,
@@ -811,15 +850,37 @@ function buildPairSourceAttributionState(
   };
 }
 
-function buildUnavailableRfChainBreakdown(): RuntimeRfChainBreakdownState {
-  const nonClaim =
-    "RF-chain breakdown is disclosed as unavailable; current link metrics remain modeled outputs, not received-power truth.";
-  const provenance: RuntimeProvenanceTag = {
+function buildAssumedRfChainBreakdown(): RuntimeRfChainBreakdownState {
+  const modelNonClaim =
+    "RF-chain terms are model components, not measured received-power truth.";
+  const unavailableRfNonClaim =
+    "Station EIRP remains unavailable; assumed antenna gains do not provide operator RF hardware truth.";
+  const modelProvenance: RuntimeProvenanceTag = {
+    truthClass: "modeled",
+    sourceId: "runtime-projection",
+    modelId: "fspl-rain-gas-assumed-antenna-link-budget-v1",
+    nonClaim: modelNonClaim
+  };
+  const unavailableProvenance: RuntimeProvenanceTag = {
     truthClass: "unavailable",
     sourceId: RF_FIELD_SOURCE_ID,
-    nonClaim
+    nonClaim: unavailableRfNonClaim
   };
-  const term = (
+  const modelTerm = (
+    kind: RuntimeRfChainTermKind,
+    modelId: string,
+    standardsRef: ReadonlyArray<string>,
+    inputSummary: Readonly<Record<string, string | number | boolean | null>> = {}
+  ): RuntimeRfChainTermState => ({
+    kind,
+    contributionSignedDb: null,
+    modelId,
+    standardsRef,
+    inputSummary,
+    provenance: modelProvenance,
+    nonClaim: modelNonClaim
+  });
+  const unavailableTerm = (
     kind: RuntimeRfChainTermKind,
     modelId: string,
     standardsRef: ReadonlyArray<string>
@@ -829,32 +890,49 @@ function buildUnavailableRfChainBreakdown(): RuntimeRfChainBreakdownState {
     modelId,
     standardsRef,
     inputSummary: {
-      unavailableReason: "missing-station-rf-profile"
+      unavailableReason: "missing-station-eirp"
     },
-    provenance,
-    nonClaim
+    provenance: unavailableProvenance,
+    nonClaim: unavailableRfNonClaim
   });
+  const antennaInputSummary = {
+    antennaModel: RUNTIME_ANTENNA_ASSUMPTION_MODEL_LABEL,
+    antennaParameterSource: RUNTIME_ANTENNA_ASSUMPTION_SOURCE_ID,
+    antennaSourceClass: RUNTIME_ANTENNA_ASSUMPTION_SOURCE_CLASS,
+    earthStationPatternFrequencyPolicy:
+      "S.465 validation uses carrier frequency when 2-31 GHz; MEO L-band uses 2 GHz lower-bound reference for antenna-pattern validation only",
+    antennaAssumptionSet: formatRuntimeAntennaAssumptionSetSummary()
+  };
   return {
-    carrierBand: null,
+    carrierBand: "orbit-class-default",
     carrierFrequencyGHz: null,
     receivedPowerProxyDbm: null,
     terms: [
-      term("tx-eirp", "pending-station-eirp", ["3GPP TR 38.821 §6.1"]),
-      term("free-space-path-loss", "pending-rf-chain-fspl-term", [
+      unavailableTerm("tx-eirp", "pending-station-eirp", [
+        "3GPP TR 38.821 §6.1"
+      ]),
+      modelTerm("free-space-path-loss", "runtime-fspl-term", [
         "3GPP TR 38.811 §6.6.2"
       ]),
-      term("gas-absorption", "pending-rf-chain-gas-term", [
+      modelTerm("gas-absorption", "runtime-gas-absorption-term", [
         "ITU-R P.676-13 Annex 2"
       ]),
-      term("rain-attenuation", "pending-rf-chain-rain-term", [
+      modelTerm("rain-attenuation", "runtime-rain-attenuation-term", [
         "ITU-R P.618-14 §2.2.1.1"
       ]),
-      term("rx-antenna-gain", "pending-station-rx-antenna", [
-        "ITU-R S.1528",
+      modelTerm("satellite-antenna-gain", "runtime-assumed-satellite-antenna-term", [
+        "ITU-R S.1528-0 Annex 1"
+      ], antennaInputSummary),
+      modelTerm("rx-antenna-gain", "runtime-assumed-earth-station-antenna-term", [
         "ITU-R S.465-6"
-      ])
+      ], antennaInputSummary)
     ],
-    provenance
+    provenance: {
+      truthClass: "modeled",
+      sourceId: "runtime-projection",
+      modelId: "fspl-rain-gas-assumed-antenna-link-budget-v1",
+      nonClaim: `${modelNonClaim} ${RUNTIME_ANTENNA_ASSUMPTION_NON_CLAIM}`
+    }
   };
 }
 
@@ -907,6 +985,7 @@ function buildStationRfProfileState(
     terrainMaskDeg: station.terrainMaskDeg,
     terrainMaskSourceId: station.terrainMaskSourceId,
     terrainMaskIsDefault: station.terrainMaskIsDefault,
+    terrainMaskNote: station.terrainMaskNote,
     antennaDiameterM: null,
     antennaDiameterSourceId: RF_FIELD_SOURCE_ID,
     peakEirpDbm: null,
@@ -1411,7 +1490,7 @@ export function buildRuntimeDataCompletenessState(
     stationPrecision,
     tleSources,
     tleFreshness: buildRuntimeTleSourceFreshness(input, tleSources),
-    rfChainBreakdown: buildUnavailableRfChainBreakdown(),
+    rfChainBreakdown: buildAssumedRfChainBreakdown(),
     atmosphericLookups: buildAtmosphericLookups(),
     stationRfProfiles: [
       buildStationRfProfileState(stationPrecision[0]),

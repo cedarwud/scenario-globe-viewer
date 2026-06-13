@@ -345,8 +345,8 @@
     {
       "stationId": "sansa-hartebeesthoek",
       "coordinateSourceAuthority": "operator-web",
-      "coordinateSourceUrl": "https://www.sansa.org.za/products-services2/spaceoperations/",
-      "coordinateSourceNote": "Coordinate source is operator or facility web disclosure; pair capability remains separate."
+      "coordinateSourceUrl": "https://www.sansa.org.za/programmes/space-operations/",
+      "coordinateSourceNote": "Coordinate source is operator or facility web disclosure; operator altitude wins for station elevation, while selected-pair terrain mask uses public Copernicus DEM GLO-30. Pair capability remains separate."
     },
     {
       "stationId": "ssc-esrange-kiruna",
@@ -412,7 +412,7 @@
       "stationId": "cht-yangmingshan",
       "coordinateSourceAuthority": "mixed-public",
       "coordinateSourceUrl": null,
-      "coordinateSourceNote": "Representative regional coordinate; coordinate-specific source is not separated in the current registry."
+      "coordinateSourceNote": "Representative regional coordinate; coordinate-specific source is not separated in the current registry. Elevation and terrain mask for the selected pair are public Copernicus DEM GLO-30 derivatives and do not upgrade coordinate authority."
     },
     {
       "stationId": "cht-fangshan",

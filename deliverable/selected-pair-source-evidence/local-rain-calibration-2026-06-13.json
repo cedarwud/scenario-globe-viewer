@@ -1,0 +1,114 @@
+{
+  "statusDate": "2026-06-13",
+  "generatedAtUtc": "2026-06-13T07:56:13Z",
+  "status": "retained-public-local-rain-statistic",
+  "sourceClass": "public-source",
+  "purpose": "Retain a public local rainfall statistic near the representative CHT/Yangmingshan endpoint and map it to a conservative demo rain-rate preset without upgrading it to measured-for-link weather or RF evidence.",
+  "selectedPair": {
+    "stationA": "cht-yangmingshan",
+    "stationB": "sansa-hartebeesthoek",
+    "scenarioStartUtc": "2026-05-17T00:00:00.000Z",
+    "durationMinutes": 360
+  },
+  "retrieval": {
+    "accessedAtUtc": "2026-06-13T07:56:13Z",
+    "sourceFamily": "Taiwan Central Weather Administration station observations",
+    "sourcePageUrls": [
+      "https://www.cwa.gov.tw/V8/C/W/OBS_Station.html?ID=46691",
+      "https://www.cwa.gov.tw/V8/C/W/OBS_Station.html?ID=46693"
+    ],
+    "sourceDataUrls": [
+      "https://www.cwa.gov.tw/V8/C/W/Observe/MOD/24hr/46691.html",
+      "https://www.cwa.gov.tw/V8/C/W/Observe/MOD/24hr/46693.html"
+    ],
+    "rawRetrievalCommands": [
+      "curl -s https://www.cwa.gov.tw/V8/C/W/Observe/MOD/24hr/46691.html",
+      "curl -s https://www.cwa.gov.tw/V8/C/W/Observe/MOD/24hr/46693.html"
+    ],
+    "rawResponseSha256": {
+      "46691": "c83770e39821466df9aaeb980252c5592bda1f13d98d0b5b531a5fb6965ff9aa",
+      "46693": "5157e48be90975f36f0d77661452022a45380f9f2c9ff06f9352767024cba2fd"
+    },
+    "parser": {
+      "sourceField": "headers=\"rain\" table cell; CWA label is daily accumulated rainfall in millimeters",
+      "timeZone": "Asia/Taipei (UTC+08:00)",
+      "yearInference": "The CWA 24hr table omits the year; 2026 is inferred from the 2026-06-13 retrieval date.",
+      "incrementMethod": "Rows were sorted ascending by observation time. For adjacent daily-accumulation readings, non-decreasing values use current minus previous; when the accumulation drops, the current value is treated as the first post-reset accumulation. This avoids treating the midnight reset as a storm increment.",
+      "rainRateMapping": "Peak 10-minute increment is multiplied by 6 to express an hourly equivalent, then rounded to the viewer slider's 5 mm/h step and capped to the 0-100 mm/h UI range."
+    }
+  },
+  "stations": [
+    {
+      "stationId": "46691",
+      "stationName": "Anpu / Anbu",
+      "candidateUse": "Nearby Yangmingshan-area station observation source for the representative CHT endpoint.",
+      "sourceUrl": "https://www.cwa.gov.tw/V8/C/W/Observe/MOD/24hr/46691.html",
+      "periodStartUtc": "2026-06-12T06:50:00.000Z",
+      "periodEndUtc": "2026-06-13T07:40:00.000Z",
+      "sampleCount": 149,
+      "latestDailyAccumulationMm": 1.5,
+      "totalIncrementOverRetainedWindowMm": 7.5,
+      "latestOneHourAccumulationMm": 0,
+      "latestOneHourMeanRateMmPerHour": 0,
+      "peakTenMinuteIncrement": {
+        "endUtc": "2026-06-12T07:30:00.000Z",
+        "endLocal": "2026-06-12T15:30:00+08:00",
+        "incrementMm": 0.5,
+        "hourlyEquivalentMmPerHour": 3
+      },
+      "demoRainRatePresetMmPerHour": 5
+    },
+    {
+      "stationId": "46693",
+      "stationName": "Yangmingshan (CWA endpoint); repair register previously labeled this ID as a Zhuzihu candidate",
+      "candidateUse": "Nearby Yangmingshan-area station observation source for the representative CHT endpoint.",
+      "sourceUrl": "https://www.cwa.gov.tw/V8/C/W/Observe/MOD/24hr/46693.html",
+      "periodStartUtc": "2026-06-12T06:50:00.000Z",
+      "periodEndUtc": "2026-06-13T07:40:00.000Z",
+      "sampleCount": 149,
+      "latestDailyAccumulationMm": 0.5,
+      "totalIncrementOverRetainedWindowMm": 7.5,
+      "latestOneHourAccumulationMm": 0,
+      "latestOneHourMeanRateMmPerHour": 0,
+      "peakTenMinuteIncrement": {
+        "endUtc": "2026-06-12T07:00:00.000Z",
+        "endLocal": "2026-06-12T15:00:00+08:00",
+        "incrementMm": 0.5,
+        "hourlyEquivalentMmPerHour": 3
+      },
+      "demoRainRatePresetMmPerHour": 5
+    }
+  ],
+  "demoMapping": {
+    "selectedPresetMmPerHour": 5,
+    "selectionRule": "Use the maximum station-level demoRainRatePresetMmPerHour among the retained nearby CWA samples.",
+    "uiMeaning": "A light-rain local public statistic preset for exercising the rain attenuation slider. The clear-sky selected-pair report still uses rainRateMmPerHour=0 unless the user moves the slider or opens a report URL carrying rainRateMmPerHour=5.",
+    "sourceClass": "public-source",
+    "modelInputClass": "assumed-Tier-B",
+    "disclosureLabel": "public local rain statistic mapped to a scenario input"
+  },
+  "citation": {
+    "text": "Taiwan Central Weather Administration station observations, Anpu station 46691 and Yangmingshan station 46693, 24-hour observation HTML accessed 2026-06-13.",
+    "urls": [
+      "https://www.cwa.gov.tw/V8/C/W/OBS_Station.html?ID=46691",
+      "https://www.cwa.gov.tw/V8/C/W/OBS_Station.html?ID=46693",
+      "https://www.cwa.gov.tw/V8/C/W/Observe/MOD/24hr/46691.html",
+      "https://www.cwa.gov.tw/V8/C/W/Observe/MOD/24hr/46693.html"
+    ]
+  },
+  "claimBoundary": {
+    "supports": [
+      "retained public local rainfall statistic near the representative CHT/Yangmingshan endpoint",
+      "a conservative 5 mm/h demo rain-rate preset derived from public CWA station observations",
+      "separating the standards-derived rain attenuation model from its scenario rain input"
+    ],
+    "doesNotSupport": [
+      "measured weather for the CHT-SANSA link",
+      "SANSA endpoint rainfall",
+      "2026-05-17 scenario-window rainfall",
+      "long-term R0.01 rain-rate calibration under ITU-R P.837/P.618 availability workflow",
+      "rain attenuation validation",
+      "packet, RF, active route, or acceptance claims"
+    ]
+  }
+}

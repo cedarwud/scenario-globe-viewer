@@ -2,6 +2,10 @@ import {
   ORBIT_CLASS_CARRIER_DEFAULTS,
   computeFreeSpacePathLossDb
 } from "../../runtime/link-budget/free-space-path-loss";
+import {
+  computeEarthStationAntennaGainDb,
+  computeSatelliteAntennaGainDb
+} from "../../runtime/link-budget/antenna-pattern";
 import { computeGasAbsorptionDb } from "../../runtime/link-budget/gas-absorption";
 import { computeRainAttenuationDb } from "../../runtime/link-budget/rain-attenuation";
 import {
@@ -49,6 +53,11 @@ import {
   type HandoverPolicyConfig,
   type RuntimeHandoverPolicyId
 } from "./runtime-handover-policy";
+import {
+  RUNTIME_ANTENNA_ASSUMPTION_SOURCE_CLASS,
+  RUNTIME_ANTENNA_ASSUMPTION_SOURCE_ID,
+  RUNTIME_ANTENNA_ASSUMPTIONS_BY_ORBIT
+} from "./runtime-antenna-assumptions";
 
 export {
   resolveRuntimeHandoverPolicyId,
@@ -80,6 +89,8 @@ const MIN_ELEVATION_FOR_MODEL_DEG = 1;
 const MIN_NETWORK_SPEED_MBPS = 0.1;
 const RAIN_MODEL_MIN_FREQUENCY_GHZ = 10;
 const RAIN_MODEL_MAX_FREQUENCY_GHZ = 30;
+const S465_PATTERN_MIN_FREQUENCY_GHZ = 2;
+const S465_PATTERN_MAX_FREQUENCY_GHZ = 31;
 const RELATIVE_RSRP_REFERENCE_DBM = 0;
 
 const NOMINAL_ALTITUDE_KM_BY_ORBIT: Readonly<Record<OrbitClass, number>> = {
@@ -252,6 +263,21 @@ interface LinkBudgetDetails extends LinkBudgetMetrics {
   readonly freeSpacePathLossDb: number;
   readonly gasAbsorptionDb: number;
   readonly rainAttenuationDb: number;
+  readonly satelliteAntennaPeakGainDb: number;
+  readonly satelliteAntennaBeamwidthDeg: number;
+  readonly satelliteAntennaOffAxisAngleDeg: number;
+  readonly satelliteAntennaGainDb: number;
+  readonly earthStationAntennaPeakGainDb: number;
+  readonly earthStationAntennaDiameterM: number;
+  readonly earthStationAntennaOffAxisAngleDeg: number;
+  readonly earthStationAntennaPatternFrequencyGHz: number;
+  readonly earthStationAntennaGainDb: number;
+  readonly peakCombinedAntennaGainDb: number;
+  readonly combinedAntennaGainDb: number;
+  readonly antennaOffAxisLossDb: number;
+  readonly antennaAssumptionSourceId: typeof RUNTIME_ANTENNA_ASSUMPTION_SOURCE_ID;
+  readonly antennaAssumptionSourceClass: typeof RUNTIME_ANTENNA_ASSUMPTION_SOURCE_CLASS;
+  readonly receivedPowerProxyDbm: number;
 }
 
 interface HandoverSampleOptions {
@@ -556,6 +582,69 @@ function computeRainAttenuationForCarrierDb(options: {
   });
 }
 
+function computeAssumedAntennaGainDetailsForOrbit(
+  orbitClass: OrbitClass,
+  carrierFrequencyGHz: number
+): Pick<
+  LinkBudgetDetails,
+  | "satelliteAntennaPeakGainDb"
+  | "satelliteAntennaBeamwidthDeg"
+  | "satelliteAntennaOffAxisAngleDeg"
+  | "satelliteAntennaGainDb"
+  | "earthStationAntennaPeakGainDb"
+  | "earthStationAntennaDiameterM"
+  | "earthStationAntennaOffAxisAngleDeg"
+  | "earthStationAntennaPatternFrequencyGHz"
+  | "earthStationAntennaGainDb"
+  | "peakCombinedAntennaGainDb"
+  | "combinedAntennaGainDb"
+  | "antennaOffAxisLossDb"
+  | "antennaAssumptionSourceId"
+  | "antennaAssumptionSourceClass"
+> {
+  const assumption = RUNTIME_ANTENNA_ASSUMPTIONS_BY_ORBIT[orbitClass];
+  const earthStationAntennaPatternFrequencyGHz = Math.min(
+    S465_PATTERN_MAX_FREQUENCY_GHZ,
+    Math.max(S465_PATTERN_MIN_FREQUENCY_GHZ, carrierFrequencyGHz)
+  );
+  const satelliteAntennaGainDb = computeSatelliteAntennaGainDb({
+    peakGainDb: assumption.satellitePeakGainDb,
+    beamwidthDeg: assumption.satelliteBeamwidthDeg,
+    offAxisAngleDeg: assumption.satelliteOffAxisAngleDeg,
+    rolloffModel: assumption.satelliteRolloffModel
+  });
+  const earthStationAntennaGainDb = computeEarthStationAntennaGainDb({
+    peakGainDb: assumption.earthStationPeakGainDb,
+    offAxisAngleDeg: assumption.earthStationOffAxisAngleDeg,
+    antennaDiameterM: assumption.earthStationDiameterM,
+    carrierFrequencyGHz: earthStationAntennaPatternFrequencyGHz
+  });
+  const peakCombinedAntennaGainDb =
+    assumption.satellitePeakGainDb + assumption.earthStationPeakGainDb;
+  const combinedAntennaGainDb =
+    satelliteAntennaGainDb + earthStationAntennaGainDb;
+
+  return {
+    satelliteAntennaPeakGainDb: assumption.satellitePeakGainDb,
+    satelliteAntennaBeamwidthDeg: assumption.satelliteBeamwidthDeg,
+    satelliteAntennaOffAxisAngleDeg: assumption.satelliteOffAxisAngleDeg,
+    satelliteAntennaGainDb,
+    earthStationAntennaPeakGainDb: assumption.earthStationPeakGainDb,
+    earthStationAntennaDiameterM: assumption.earthStationDiameterM,
+    earthStationAntennaOffAxisAngleDeg: assumption.earthStationOffAxisAngleDeg,
+    earthStationAntennaPatternFrequencyGHz,
+    earthStationAntennaGainDb,
+    peakCombinedAntennaGainDb,
+    combinedAntennaGainDb,
+    antennaOffAxisLossDb: Math.max(
+      0,
+      peakCombinedAntennaGainDb - combinedAntennaGainDb
+    ),
+    antennaAssumptionSourceId: RUNTIME_ANTENNA_ASSUMPTION_SOURCE_ID,
+    antennaAssumptionSourceClass: RUNTIME_ANTENNA_ASSUMPTION_SOURCE_CLASS
+  };
+}
+
 function computeLinkBudgetDetailsForOrbit(
   orbitClass: OrbitClass,
   options: LinkBudgetMetricOptions = {}
@@ -592,8 +681,16 @@ function computeLinkBudgetDetailsForOrbit(
     stationHeightAboveSeaKm,
     stationLatitudeDeg: options.stationLatitudeDeg
   });
+  const antennaGainDetails = computeAssumedAntennaGainDetailsForOrbit(
+    orbitClass,
+    carrierFrequencyGHz
+  );
   const totalPathLossDb =
     freeSpacePathLossDb + gasAbsorptionDb + rainAttenuationDb;
+  const receivedPowerProxyDbm =
+    RELATIVE_RSRP_REFERENCE_DBM +
+    antennaGainDetails.combinedAntennaGainDb -
+    totalPathLossDb;
 
   // One-way propagation delay = slantRange / c (range per TR 38.811 §6.6.2 Eq 6.6-3;
   // delay treatment clause 5.3.1.1), not RTT. FIXED_PROCESSING_DELAY_MS is a
@@ -602,11 +699,14 @@ function computeLinkBudgetDetailsForOrbit(
     (slantRangeKm / SPEED_OF_LIGHT_KM_PER_SECOND) * 1000 +
     FIXED_PROCESSING_DELAY_MS;
   const excessAttenuationDb = gasAbsorptionDb + rainAttenuationDb;
-  // Reference capacity is the old clear-sky anchor; atmospheric fade applies a soft exponential de-rating.
+  const modelDeratingDb =
+    excessAttenuationDb + antennaGainDetails.antennaOffAxisLossDb;
+  // Reference capacity is the old clear-sky anchor; atmospheric fade plus
+  // assumed antenna off-axis loss apply a soft exponential de-rating.
   const networkSpeedMbps = Math.max(
     MIN_NETWORK_SPEED_MBPS,
     CLEAR_SKY_REFERENCE_CAPACITY_MBPS_BY_ORBIT[orbitClass] *
-      Math.exp(-excessAttenuationDb / 20)
+      Math.exp(-modelDeratingDb / 20)
   );
   const jitterScale = 1 + Math.min(rainAttenuationDb / 20, 3);
   const jitterMs = BASELINE_JITTER_MS_BY_ORBIT[orbitClass] * jitterScale;
@@ -620,7 +720,47 @@ function computeLinkBudgetDetailsForOrbit(
     totalPathLossDb: roundMetric(totalPathLossDb),
     freeSpacePathLossDb: roundMetric(freeSpacePathLossDb),
     gasAbsorptionDb: roundMetric(gasAbsorptionDb),
-    rainAttenuationDb: roundMetric(rainAttenuationDb)
+    rainAttenuationDb: roundMetric(rainAttenuationDb),
+    satelliteAntennaPeakGainDb: roundMetric(
+      antennaGainDetails.satelliteAntennaPeakGainDb
+    ),
+    satelliteAntennaBeamwidthDeg: roundMetric(
+      antennaGainDetails.satelliteAntennaBeamwidthDeg
+    ),
+    satelliteAntennaOffAxisAngleDeg: roundMetric(
+      antennaGainDetails.satelliteAntennaOffAxisAngleDeg
+    ),
+    satelliteAntennaGainDb: roundMetric(
+      antennaGainDetails.satelliteAntennaGainDb
+    ),
+    earthStationAntennaPeakGainDb: roundMetric(
+      antennaGainDetails.earthStationAntennaPeakGainDb
+    ),
+    earthStationAntennaDiameterM: roundMetric(
+      antennaGainDetails.earthStationAntennaDiameterM
+    ),
+    earthStationAntennaOffAxisAngleDeg: roundMetric(
+      antennaGainDetails.earthStationAntennaOffAxisAngleDeg
+    ),
+    earthStationAntennaPatternFrequencyGHz: roundMetric(
+      antennaGainDetails.earthStationAntennaPatternFrequencyGHz
+    ),
+    earthStationAntennaGainDb: roundMetric(
+      antennaGainDetails.earthStationAntennaGainDb
+    ),
+    peakCombinedAntennaGainDb: roundMetric(
+      antennaGainDetails.peakCombinedAntennaGainDb
+    ),
+    combinedAntennaGainDb: roundMetric(
+      antennaGainDetails.combinedAntennaGainDb
+    ),
+    antennaOffAxisLossDb: roundMetric(
+      antennaGainDetails.antennaOffAxisLossDb
+    ),
+    antennaAssumptionSourceId: antennaGainDetails.antennaAssumptionSourceId,
+    antennaAssumptionSourceClass:
+      antennaGainDetails.antennaAssumptionSourceClass,
+    receivedPowerProxyDbm: roundMetric(receivedPowerProxyDbm)
   };
 }
 
@@ -706,8 +846,8 @@ function toLivePolicyCandidate(
     id: window.satelliteId,
     orbitClass: window.orbitClass,
     elevationDeg: details.representativeElevationDeg,
-    // Relative RSRP proxy: unknown EIRP and antenna gains collapse to a constant offset.
-    rsrpDbm: roundMetric(RELATIVE_RSRP_REFERENCE_DBM - details.totalPathLossDb),
+    // Relative RSRP proxy: EIRP remains unknown, while antenna gain uses disclosed Tier-B defaults.
+    rsrpDbm: roundMetric(details.receivedPowerProxyDbm),
     predictedVisibilityRemainingMs,
     latencyMs: details.latencyMs,
     jitterMs: details.jitterMs
@@ -844,7 +984,8 @@ function buildTruthBoundary(
             : [])
         ];
   const metricNonClaims = [
-    `Per-orbit communication metrics are modeled-precision via 3GPP TR 38.811 + ITU-R P.618-14 / P.676-13 and handover decisions use the ${handoverPolicyId} policy (TR 38.821 §7.3.2.2 + V-MO1 verbal addendum), not measured service telemetry.`,
+    `Per-orbit communication metrics are modeled-precision via 3GPP TR 38.811 + ITU-R P.618-14 / P.676-13 plus assumed Tier-B antenna pattern parameters (ITU-R S.1528 / S.465-6), and handover decisions use the ${handoverPolicyId} policy (TR 38.821 §7.3.2.2 + V-MO1 verbal addendum), not measured service telemetry.`,
+    "Assumed antenna parameters are model inputs only; real station RF hardware, EIRP, dish size, and polarization remain source gaps.",
     `Satellite candidates are limited to orbit classes disclosed by both selected stations (${sharedSupportedOrbits.join("/") || "none"}), ranked by TLE/SGP4 pair-visibility geometry, then capped at LEO ${DEFAULT_TLE_CAPS.LEO}, MEO ${DEFAULT_TLE_CAPS.MEO}, GEO ${DEFAULT_TLE_CAPS.GEO} records for interactive compute.`,
     ...sourceAttributionNonClaims,
     ...(rainRateMmPerHour > 0

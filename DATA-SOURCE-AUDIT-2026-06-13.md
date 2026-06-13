@@ -178,3 +178,124 @@ the package README and `evidence-manifest.json`.
   old SANSA URL — left as historical retained evidence, not back-edited.
 - No commit made (per user instruction). Changes are in the working tree; commit with explicit
   `git add <path>` per repo rule R6 (never `git add -A`).
+
+---
+
+## 7. Executor closure change log -- finish-public-data-gaps-2026-06
+
+Branch: `finish-public-data-gaps-2026-06`
+
+Scope note: sections 1-6 above are the original 2026-06-13 audit record plus earlier follow-up
+fixes. This section records the Codex executor closure for the remaining public-data gaps.
+
+### 7.1 Task 1 -- K-A4 TLE telemetry chip
+
+Implemented in `src/features/multi-station-selector/chrome-telemetry.ts`.
+The chip now prefers the newest retained TLE timestamp from runtime completeness metadata
+(`dataCompleteness.tleSources[].sourceTimestampUtc` / snapshot timestamp) and only falls back to
+a dated fixture filename when timestamp metadata is absent. The displayed value is an ISO date.
+
+Source class: `public-source` CelesTrak/TLE retained metadata. No operator-validation claim.
+
+Result: G1 K-A4 now reports `2026-05-31` and passes.
+
+### 7.2 Task 3 -- local rain calibration sample
+
+Added retained artifact:
+`deliverable/selected-pair-source-evidence/local-rain-calibration-2026-06-13.json`.
+
+The artifact samples public CWA hourly/10-minute observations for stations 46691 Anbu and 46693
+Yangmingshan for the retained 2026-06-12/2026-06-13 window. It maps the observed 3 mm/h peak
+10-minute intensity to a conservative viewer preset of 5 mm/h.
+
+Source class: `public-source` / public local rain statistic. This is not measured-for-this-link,
+not SANSA rainfall, not 2026-05-17 scenario weather, and not a long-term R0.01 statistic.
+
+Docs/report updates: `docs/data-source-index.md`,
+`deliverable/selected-pair-source-evidence/external-source-reconciliation.md`,
+`runtime-projection-evidence-report.ts`, and the selected-pair evidence manifest now disclose the
+retained public sample and its limits.
+
+### 7.3 Task 4 -- selected-pair DEM elevation and terrain mask
+
+Added retained artifact:
+`deliverable/selected-pair-source-evidence/copernicus-dem-selected-pair-terrain-mask-2026-06-13.json`.
+
+Runtime fixture updates are limited to the selected pair:
+
+- `cht-yangmingshan`: elevation adopted from Copernicus GLO-30 sample, 489 m; terrain mask set
+  to 21 deg from a retained DEM horizon-ring computation.
+- `sansa-hartebeesthoek`: operator-stated 1553 m altitude remains authoritative over the
+  Copernicus 1533 m sample; terrain mask set to 1 deg from the retained DEM computation.
+
+Source classes: CHT elevation and both terrain masks are `public-DEM-derived`; SANSA elevation is
+`public-source` operator-stated. Terrain mask is a local DEM screening proxy, not a surveyed RF
+horizon or operator-measured obstruction profile.
+
+Docs/report updates: data-source index, reconciliation notes, fixture provenance, data-completeness
+terms, and source evidence report now disclose the selected-pair-only adoption.
+
+### 7.4 Task 5 -- antenna pattern runtime wiring
+
+Added `src/features/multi-station-selector/runtime-antenna-assumptions.ts` and wired
+`src/runtime/link-budget/antenna-pattern.ts` into the runtime projection path.
+
+The runtime now applies S.1528 satellite antenna gain and S.465-6 earth-station antenna gain using
+disclosed Tier-B default parameters per orbit class. RSRP remains a relative proxy because EIRP is
+still unknown. Throughput now includes atmospheric fade plus assumed antenna off-axis loss.
+
+Source classes:
+
+- Antenna pattern formulas: `standards-derived` (ITU-R S.1528-0 Annex 1, ITU-R S.465-6).
+- Antenna parameters: `assumed-Tier-B`.
+- Real station RF hardware, EIRP, dish size, polarization, and active RF route remain source gaps.
+
+Docs/report/UI updates: `runtime-modeled-output.ts`, CSV export, side-panel disclosures,
+data-completeness report, source evidence report, smoke assertions, and `docs/data-source-index.md`
+now surface the model and the remaining operator-hardware gap.
+
+### 7.5 Task 2 -- TLE refresh decision
+
+Skipped intentionally. K-A4 passes after Task 1 using retained timestamp metadata, and the selected
+demo route is a fixed historical 2026-05-17 window. Refreshing CelesTrak TLEs for the full fixture
+would change the satellite set and force longer backward SGP4 propagation to that fixed window,
+which is not warranted for this deliverable.
+
+Source class retained: existing `public-source` CelesTrak fixture and retained manifest metadata.
+
+### 7.6 Regenerated baselines and evidence
+
+Because Task 5 changes modeled RSRP/throughput and Task 4 changes selected-pair terrain thresholds,
+the wave-1 projection baselines were regenerated from current model output rather than hand-edited:
+`src/features/multi-station-selector/v4-projection-wave1-baselines.ts`.
+
+Retained evidence regenerated via `npm run test:m8a-v4.11:slice5` and copied to
+`deliverable/selected-pair-source-evidence/`:
+
+- `runtime-projection-evidence-cht-yangmingshan-sansa-hartebeesthoek-20260517T000000Z-360m.html`
+  sha256 `d184c8dc2c9657b3752b29a31f1f95e40bb5927ddf78eb392406724517317748`
+- `runtime-projection-cht-yangmingshan-sansa-hartebeesthoek-20260517T000000Z-360m.csv`
+  sha256 `662b9238800c7d620ef1cf521e1ea417d69713a81e429a66c13a064f3dd446e5`
+- `smoke-manifest.output.json`
+  sha256 `bb636975fd1c8c0aac39e5a1b46a95dba6af04560b8e6a08d4ce1815936b1fea`
+
+`README.md` and `evidence-manifest.json` in the evidence folder were updated with the regenerated
+sizes, hashes, dates, and claim boundaries.
+
+### 7.7 Verification record
+
+| Gate | Result |
+|---|---|
+| `node_modules/.bin/tsc --noEmit` | PASS |
+| `npm run build` | PASS |
+| `npm run test:m8a-v4.11:slice5` | PASS |
+| `npm run verify:g1` with Vite dev server on `127.0.0.1:5173` | PASS, 22/22 |
+| Antenna module compile + sample inputs | PASS; LEO/MEO/GEO gains finite and physically sane |
+| Link-budget sample inputs | PASS; clear/rain throughput and latency finite, no NaN |
+
+### 7.8 Still out of scope / ITRI wall
+
+No Tier-A/operator-validated upgrade was attempted. The following remain disclosed gaps rather
+than inferred facts: packet-test latency/jitter/throughput, native RF handover / active serving
+route, real station RF hardware truth, external acceptance threshold script, and any ITRI-private
+operator validation.
