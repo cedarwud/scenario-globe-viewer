@@ -32,7 +32,7 @@ requirements-consolidated.md
 | R1-T4 / K-D3 | r1 + slide 5 | UI 互動介面 | done |
 | R1-T5 / K-D4 | r1 + slide 5 | 通訊換手規則模擬等參數設計 | done — `handover-policy.ts` 三政策 + 可調參數 (2026-05-17) |
 | R1-T6 / K-D5 | r1 + slide 5 | 通訊速率可視化設計 | done — `link-budget/` 五模組接線進 runtime-projection (2026-05-17) |
-| R1-F1 / K-E1 | r1 + slide 5 | 支援 ≥ 500 LEO 模擬 (Starlink、OneWeb) | done — 本地 TLE ~11015 sats (Starlink + OneWeb 2026-05-16) |
+| R1-F1 / K-E1 | r1 + slide 5 | 支援 ≥ 500 LEO 模擬 (Starlink、OneWeb) | done — ≥500 LEO 達標：實際載入 600 OneWeb LEO + 33 MEO (GNSS) + 30 GEO，來源 CelesTrak 2026-05 快照 (GROUP=oneweb/gnss/geo)。Starlink 600 筆 fixture 存於 `public/fixtures/satellites/leo-scale/` 但非預設載入 (runtime LEO=OneWeb)。註：先前「~11015 sats」為 CelesTrak 上游母體數，非本地實際載入數 (663)，2026-06-13 更正。 |
 | R1-F2 / K-E2 | r1 + slide 5 | 模擬速度可調 (real time vs 預錄 TLE 情境切換) | done — Operator HUD 三 bounded preset (30x / 60x / 120x，`src/runtime/m8a-v4-product-ux-model.ts:60-62`);real-time / prerecorded 視窗切換完成 |
 | R1-F3 / K-E3 | r1 + slide 5 | 即時顯示可通訊時間 (利用 iperf、ping 等功能測試) | SGP4 + elevation 已實作；iperf / ping 集成未做 |
 | R1-F4 / K-E4 / K-F4 | r1 + slide 5/6 | 換手策略切換 (依 latency / jitter / network speed 在高/中/低軌間切換) | done — link-budget metric 餵入 handover 引擎 (2026-05-17) |

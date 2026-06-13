@@ -236,6 +236,7 @@ export interface LinkBudgetMetricOptions {
   readonly representativeElevationDeg?: number;
   readonly rainRateMmPerHour?: number;
   readonly stationHeightAboveSeaKm?: number;
+  readonly stationLatitudeDeg?: number;
 }
 
 export interface LinkBudgetMetrics {
@@ -257,6 +258,7 @@ interface HandoverSampleOptions {
   readonly policy: HandoverPolicyConfig;
   readonly rainRateMmPerHour: number;
   readonly stationHeightAboveSeaKm: number;
+  readonly stationLatitudeDeg: number;
 }
 
 interface CandidateGeometryRankScore {
@@ -507,7 +509,9 @@ function computeRepresentativeSlantRangeKm(
   const earthToSatelliteRadiusKm = EARTH_RADIUS_KM + altitudeKm;
   const elevationRad = (elevationDeg * Math.PI) / 180;
 
-  // 3GPP TR 38.811 §6.7 -- propagation delay from slant range.
+  // 3GPP TR 38.811 §6.6.2 (Eq 6.6-3) -- spherical-earth slant range geometry.
+  // (Range feeds one-way delay; delay treatment is clause 5.3.1.1. §6.7 is the
+  // fast-fading model, NOT propagation delay -- earlier §6.7 citation was wrong.)
   // Spherical-earth geometry: rho = sqrt((Re+h)^2 - (Re*cos(E))^2) - Re*sin(E),
   // where E is station elevation, h is nominal orbit altitude, and Re is 6371 km.
   return (
@@ -524,6 +528,7 @@ function computeRainAttenuationForCarrierDb(options: {
   readonly carrierFrequencyGHz: number;
   readonly elevationDeg: number;
   readonly stationHeightAboveSeaKm: number;
+  readonly stationLatitudeDeg?: number;
 }): number {
   const rainRateMmPerHour = normalizeRainRateMmPerHour(options.rainRateMmPerHour);
   if (rainRateMmPerHour === 0) {
@@ -537,7 +542,7 @@ function computeRainAttenuationForCarrierDb(options: {
     return 0;
   }
 
-  // ITU-R P.618-14 §2.2.1.1 / §2.2.1.2 -- rain specific attenuation and effective slant path.
+  // ITU-R P.618-14 §2.2.1.1 path method -- specific attenuation + r0.01/v0.01 effective path.
   // Rain attenuation uses one representative link-path height; only negative altitude is clamped for the rain model.
   return computeRainAttenuationDb({
     rainRateMmPerHour,
@@ -546,7 +551,8 @@ function computeRainAttenuationForCarrierDb(options: {
     stationHeightAboveSeaKm: normalizeRainModelStationHeightAboveSeaKm(
       options.stationHeightAboveSeaKm
     ),
-    polarization: "circular"
+    polarization: "circular",
+    stationLatitudeDeg: options.stationLatitudeDeg
   });
 }
 
@@ -583,12 +589,15 @@ function computeLinkBudgetDetailsForOrbit(
     rainRateMmPerHour,
     carrierFrequencyGHz,
     elevationDeg: representativeElevationDeg,
-    stationHeightAboveSeaKm
+    stationHeightAboveSeaKm,
+    stationLatitudeDeg: options.stationLatitudeDeg
   });
   const totalPathLossDb =
     freeSpacePathLossDb + gasAbsorptionDb + rainAttenuationDb;
 
-  // 3GPP TR 38.811 §6.7 -- one-way propagation delay, not RTT; add a small fixed processing term.
+  // One-way propagation delay = slantRange / c (range per TR 38.811 §6.6.2 Eq 6.6-3;
+  // delay treatment clause 5.3.1.1), not RTT. FIXED_PROCESSING_DELAY_MS is a
+  // non-standard modeling add-on, not a TR 38.811 quantity.
   const latencyMs =
     (slantRangeKm / SPEED_OF_LIGHT_KM_PER_SECOND) * 1000 +
     FIXED_PROCESSING_DELAY_MS;
@@ -672,12 +681,14 @@ function selectVisibleConstellations(
 function computeLinkBudgetDetailsForWindow(
   window: PairVisibilityWindow,
   rainRateMmPerHour: number,
-  stationHeightAboveSeaKm: number
+  stationHeightAboveSeaKm: number,
+  stationLatitudeDeg: number
 ): LinkBudgetDetails {
   return computeLinkBudgetDetailsForOrbit(window.orbitClass, {
     representativeElevationDeg: computeRepresentativeElevationDeg(window),
     rainRateMmPerHour,
-    stationHeightAboveSeaKm
+    stationHeightAboveSeaKm,
+    stationLatitudeDeg
   });
 }
 
@@ -743,7 +754,8 @@ function deriveHandoverEventsAtSampleStep(
       details: computeLinkBudgetDetailsForWindow(
         w,
         options.rainRateMmPerHour,
-        options.stationHeightAboveSeaKm
+        options.stationHeightAboveSeaKm,
+        options.stationLatitudeDeg
       )
     }));
 
@@ -987,6 +999,8 @@ export function computeRuntimeProjection(
     input.stationA,
     input.stationB
   );
+  const pairMidpointLatitudeDeg =
+    (input.stationA.lat + input.stationB.lat) / 2;
   const rainRateMmPerHour = normalizeRainRateMmPerHour(input.rainRateMmPerHour);
 
   const sharedSupportedOrbits = resolveSharedSupportedOrbits(
@@ -1053,7 +1067,8 @@ export function computeRuntimeProjection(
         // station's mask does not globally raise the other station's gate.
         policy: handoverPolicy,
         rainRateMmPerHour,
-        stationHeightAboveSeaKm: pairMidpointHeightAboveSeaKm
+        stationHeightAboveSeaKm: pairMidpointHeightAboveSeaKm,
+        stationLatitudeDeg: pairMidpointLatitudeDeg
       }
     );
 

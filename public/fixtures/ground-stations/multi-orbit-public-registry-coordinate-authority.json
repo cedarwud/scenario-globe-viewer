@@ -345,7 +345,7 @@
     {
       "stationId": "sansa-hartebeesthoek",
       "coordinateSourceAuthority": "operator-web",
-      "coordinateSourceUrl": "https://www.sansa.org.za/products-services2/spaceoperations/",
+      "coordinateSourceUrl": "https://www.sansa.org.za/programmes/space-operations/",
       "coordinateSourceNote": "Coordinate source is operator or facility web disclosure; pair capability remains separate."
     },
     {

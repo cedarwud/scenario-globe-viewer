@@ -54,7 +54,7 @@ GEO and HEO** missions.
 - **Multi-orbit evidence:** "The ISSF currently hosts antennas owned by the German Aerospace Centre (DLR), the SSC (Swedish Space Corporation), by a partnership between SSC and Centre national d'études spatiales (CNES), and C-Core" — a multi-tenant station serving multiple orbital classes via KSAT/SSC contracts.
 
 ### ksat-hartebeesthoek — Hartebeesthoek (co-located with SANSA)
-- **Source:** https://www.sansa.org.za/products-services2/spaceoperations/
+- **Source:** https://www.sansa.org.za/programmes/space-operations/
 - **Multi-orbit evidence:** SANSA "operates across Low Earth Orbits (LEO, earth observation data satellites); Medium Earth Orbits (MEO, navigation satellites); and Geostationary Earth Orbits (GEO, communication satellites)."
 
 ### ksat-singapore, ksat-dubai, ksat-mauritius, ksat-fairbanks, ksat-awarua
@@ -110,7 +110,7 @@ GEO and HEO** missions.
 
 ## Intelsat (now SES Group)
 
-Intelsat became part of SES in April 2024, inheriting SES's GEO + MEO multi-orbit operator status.
+Intelsat's acquisition by SES completed in July 2025 (deal announced 2024), inheriting SES's GEO + MEO multi-orbit operator status.
 
 > "Intelsat's eight teleports… act as gateways between your satellite capacity
 > and the IntelsatOne fiber network."
@@ -289,10 +289,10 @@ Intelsat became part of SES in April 2024, inheriting SES's GEO + MEO multi-orbi
 > "SANSA operates across Low Earth Orbits (LEO, earth observation data
 > satellites); Medium Earth Orbits (MEO, navigation satellites); and
 > Geostationary Earth Orbits (GEO, communication satellites)."
-> — [SANSA Space Operations](https://www.sansa.org.za/products-services2/spaceoperations/)
+> — [SANSA Space Operations](https://www.sansa.org.za/programmes/space-operations/)
 
 ### sansa-hartebeesthoek
-- **Source:** https://www.sansa.org.za/products-services2/spaceoperations/
+- **Source:** https://www.sansa.org.za/programmes/space-operations/
 - **Coords evidence:** "Latitude 25° 53′ South and Longitude 27° 42′ East."
 - **Elevation evidence:** "1553 meters above sea level in Hartebeesthoek."
 - **Band evidence:** Antenna systems cover S, C, X, and Ku bands.
@@ -338,7 +338,7 @@ Intelsat became part of SES in April 2024, inheriting SES's GEO + MEO multi-orbi
 - **Multi-orbit evidence:** WTA-certified GEO teleports advertised as "teleport of choice for Geostationary satellite operators and Non-Geostationary Orbit (NGSO) satellite operators."
 
 ### kt-sat-kumsan (KT SAT, Korea)
-- **Source:** https://www.ktsat.com/content/view.do?cttNm=facilities&cttNo=011
+- **Source:** https://www.ktsat.com/content/view.do?cttNm=facilities&cttNo=011 (Kumsan facility page). PoC/handover quote source: Keysight × KT SAT press release (Dec 2025) — the quote below is from that press release, not the facilities page.
 - **Multi-orbit evidence:** "A lab-based proof-of-concept (PoC) conducted at KT SAT's Kumsan Satellite Network Operation Center in Korea, established a live connection and successfully handed over an active session from the operator's telecom GEO satellite, Koreasat 6A … to an emulated LEO satellite link." Operator demonstrated GEO+LEO multi-orbit handover at this site.
 
 ### measat-cyberjaya (MEASAT, Malaysia)
@@ -351,6 +351,7 @@ Intelsat became part of SES in April 2024, inheriting SES's GEO + MEO multi-orbi
   - https://www.cht.com.tw/en/home/cht/about-cht/products-and-services/international/satellite
   - https://www.worldteleport.org/news/703702/Chunghwa-Telecom-Wins-Taiwans-First-License-for-OneWeb-Satellite-Services.htm
 - **Multi-orbit evidence:** "Chunghwa Telecom has signed an agreement with SES to establish a second-generation MEO O3b mPower ground station in Taiwan" plus "Chunghwa Telecom Wins Taiwan's First License for OneWeb Satellite Services" plus ST-2 GEO operations.
+- **Band note:** CHT's public page states ST-2 C/Ku only. Any Ka band listed for these sites is an inference from the planned Ka-band O3b mPOWER MEO gateway, not a CHT-stated band for these stations.
 
 ---
 

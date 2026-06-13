@@ -1,4 +1,5 @@
-// 3GPP TR 38.821 section 7.3 handover trigger metrics
+// 3GPP TR 38.821 section 7.3.2.2 (Conditional Handover) trigger metrics:
+// elevation / RSRP-measurement / timer-based (broad "section 7.3" is Control-plane enhancements)
 // User verbal addendum V-MO1 cross-orbit LIVE handover
 // Retained PDF: deliverable/3gpp-itu-references/38821-g20.pdf
 // Refines requirement K-A1

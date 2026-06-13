@@ -107,15 +107,15 @@
       "region": "africa",
       "lat": -25.8872,
       "lon": 27.7075,
-      "elevationM": 1538,
+      "elevationM": 1553,
       "terrainMaskDeg": 0,
       "supportedOrbits": ["LEO", "MEO", "GEO"],
       "supportedBands": ["S", "X"],
       "primaryUseCase": "KSAT mid-latitude station co-sited with SANSA TT&C campus; SANSA serves LEO+MEO+GEO commercial+gov missions",
-      "sourceUrl": "https://www.sansa.org.za/products-services2/spaceoperations/",
+      "sourceUrl": "https://www.sansa.org.za/programmes/space-operations/",
       "sourceTier": "operator-stated",
       "disclosurePrecision": "exact-coords",
-      "publicDisclosureNotes": "Coordinates per SANSA / ILRS public station info."
+      "publicDisclosureNotes": "Coordinates per SANSA / ILRS public station info; site altitude 1553 m per SANSA operator page (co-sited with sansa-hartebeesthoek; updated 2026-06-13 from legacy 1538 m)."
     },
     {
       "id": "ksat-singapore",
@@ -1062,7 +1062,7 @@
       "supportedOrbits": ["LEO", "MEO", "GEO"],
       "supportedBands": ["S", "C", "X", "Ku"],
       "primaryUseCase": "SANSA TT&C for LEO EO, MEO navigation, and GEO comms missions; supports IM-2 lunar TT&C",
-      "sourceUrl": "https://www.sansa.org.za/products-services2/spaceoperations/",
+      "sourceUrl": "https://www.sansa.org.za/programmes/space-operations/",
       "sourceTier": "operator-stated",
       "disclosurePrecision": "exact-coords",
       "publicDisclosureNotes": "SANSA states Hartebeesthoek is at 1553 m, coordinates 25°53′S 27°42′E, and antenna systems cover S, C, X, and Ku bands; pair capability remains unclaimed."
