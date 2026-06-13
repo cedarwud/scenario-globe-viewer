@@ -15,7 +15,8 @@
 //
 //   2. TLE telemetry chip — `[data-tle-telemetry-chip="true"]` with
 //      `data-tle-date="<ISO date>"` and `data-source-mode="<mode>"`.
-//      The date is parsed from the resolved LEO TLE snapshot path.
+//      The date comes from runtime TLE source metadata or epoch bounds,
+//      with the snapshot filename used only as a fallback.
 //      Hidden node (display:none): machine-readable only. The visible
 //      bottom-left pill was removed because it overlapped Cesium's
 //      native animation/clock + ion credit + timeline widgets; the
@@ -91,6 +92,24 @@ function extractTleDateFromPath(path: string): string {
   return match?.[1] ?? "unknown";
 }
 
+function formatIsoDateFromTimestamp(timestamp: string | null | undefined): string | null {
+  if (!timestamp) {
+    return null;
+  }
+  const parsed = Date.parse(timestamp);
+  if (!Number.isFinite(parsed)) {
+    return null;
+  }
+  return new Date(parsed).toISOString().slice(0, 10);
+}
+
+function resolveTleDate(
+  timestamp: string | null | undefined,
+  fallbackPath: string
+): string {
+  return formatIsoDateFromTimestamp(timestamp) ?? extractTleDateFromPath(fallbackPath);
+}
+
 function extractTleDateFromLeoPath(): string {
   return extractTleDateFromPath(TLE_FIXTURE_PATHS.LEO);
 }
@@ -160,7 +179,8 @@ function syncTleTelemetryChipSource(chip: HTMLElement): void {
   void loadDefaultTleSources()
     .then((sources) => {
       const sourceMode = sources.sourceMode ?? "local-snapshot";
-      const tleDate = extractTleDateFromPath(
+      const tleDate = resolveTleDate(
+        sources.snapshotFetchedUtc,
         sources.sourcePaths?.LEO ?? TLE_FIXTURE_PATHS.LEO
       );
       chip.dataset.tleDate = tleDate;
@@ -266,6 +286,13 @@ export function syncTleTelemetryChip(result: RuntimeProjectionResult): void {
     .filter((timestamp): timestamp is string => timestamp !== null)
     .sort()
     .pop();
+  const leoSourcePath =
+    sources.find((source) => source.orbitClass === "LEO")?.sourcePath ??
+    TLE_FIXTURE_PATHS.LEO;
+  const newestDate = resolveTleDate(
+    newestTimestamp,
+    leoSourcePath
+  );
 
   chip.dataset.sourceCount = String(sources.length);
   chip.dataset.acceptedRecordCount = String(acceptedCount);
@@ -276,5 +303,7 @@ export function syncTleTelemetryChip(result: RuntimeProjectionResult): void {
   if (newestTimestamp) {
     chip.dataset.sourceTimestampUtc = newestTimestamp;
   }
-  chip.textContent = `${chip.textContent?.split(" · ")[0] ?? "TLE"} · ${healthSummary}`;
+  chip.dataset.tleDate = newestDate;
+  chip.setAttribute("aria-label", `TLE source date ${newestDate}`);
+  chip.textContent = `TLE ${newestDate} · ${healthSummary}`;
 }
