@@ -41,3 +41,7 @@ public/fixtures/satellites-network/*.tle
 !public/fixtures/satellites-network/leo-latest.tle
 !public/fixtures/satellites-network/meo-latest.tle
 !public/fixtures/satellites-network/geo-latest.tle
+
+# Python bytecode caches from the presentation/report builder scripts.
+__pycache__/
+*.pyc

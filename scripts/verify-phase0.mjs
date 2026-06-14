@@ -74,7 +74,16 @@ function collectTextFiles(relativePath) {
   return readdirSync(absolutePath, { withFileTypes: true }).flatMap((dirent) => {
     const childRelativePath = path.join(relativePath, dirent.name);
     if (dirent.isDirectory()) {
+      // Skip generated Python bytecode caches: they are regenerated on every
+      // builder run and are not delivery text, so scanning them for wording is
+      // a false-positive footgun (the source .py is scanned directly).
+      if (dirent.name === "__pycache__") {
+        return [];
+      }
       return collectTextFiles(childRelativePath);
+    }
+    if (dirent.name.endsWith(".pyc")) {
+      return [];
     }
     return [childRelativePath];
   });

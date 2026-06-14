@@ -1,22 +1,18 @@
 {
   "comment": "# Data source: CelesTrak (celestrak.org), Terms of Use: https://celestrak.org/terms-of-use.php",
-  "generatedAtUtc": "2026-05-18T22:36:10.000Z",
+  "generatedAtUtc": "2026-06-14T08:32:49.625Z",
   "leo": {
     "path": "leo-latest.tle",
-    "recordCount": 600,
-    "epochRangeUtc": {
-      "startUtc": "2026-05-30T06:11:07.306Z",
-      "endUtc": "2026-05-31T05:15:18.812Z"
-    },
-    "latestTleEpochUtc": "2026-05-31T05:15:18.812Z",
-    "localSourceConstellation": "oneweb",
-    "localSourcePath": "/home/sat/satellite/tle_data/oneweb/tle/oneweb_20260531.tle",
-    "localSourceDateUtc": "2026-05-31T00:00:00.000Z",
-    "sourceRecordLimit": 600,
     "format": "tle-3le",
     "apiClass": "celestrak-gp-tle",
     "sourcePolicy": "refresh-artifact",
-    "catalogNumberCompatibility": "tle-limited-5-digit-catalog"
+    "catalogNumberCompatibility": "tle-limited-5-digit-catalog",
+    "recordCount": 651,
+    "epochRangeUtc": {
+      "startUtc": "2026-06-11T02:10:21.029Z",
+      "endUtc": "2026-06-13T23:03:32.116Z"
+    },
+    "latestTleEpochUtc": "2026-06-13T23:03:32.116Z"
   },
   "meo": {
     "path": "meo-latest.tle",
@@ -26,10 +22,10 @@
     "catalogNumberCompatibility": "tle-limited-5-digit-catalog",
     "recordCount": 33,
     "epochRangeUtc": {
-      "startUtc": "2026-04-25T15:10:52.485Z",
-      "endUtc": "2026-05-12T13:12:24.687Z"
+      "startUtc": "2026-05-24T07:17:44.873Z",
+      "endUtc": "2026-06-13T19:46:07.933Z"
     },
-    "latestTleEpochUtc": "2026-05-12T13:12:24.687Z"
+    "latestTleEpochUtc": "2026-06-13T19:46:07.933Z"
   },
   "geo": {
     "path": "geo-latest.tle",
@@ -37,14 +33,13 @@
     "apiClass": "celestrak-gp-tle",
     "sourcePolicy": "refresh-artifact",
     "catalogNumberCompatibility": "tle-limited-5-digit-catalog",
-    "recordCount": 30,
+    "recordCount": 574,
     "epochRangeUtc": {
-      "startUtc": "2026-05-11T06:21:38.641Z",
-      "endUtc": "2026-05-12T20:33:28.077Z"
+      "startUtc": "2026-05-16T19:27:04.075Z",
+      "endUtc": "2026-06-14T02:28:48.158Z"
     },
-    "latestTleEpochUtc": "2026-05-12T20:33:28.077Z"
+    "latestTleEpochUtc": "2026-06-14T02:28:48.158Z"
   },
-  "partialRefreshAtUtc": "2026-06-02T05:20:23.171Z",
   "localImports": [
     {
       "group": "leo",

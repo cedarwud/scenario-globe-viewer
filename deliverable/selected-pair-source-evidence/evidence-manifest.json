@@ -1,8 +1,8 @@
 {
-  "statusDate": "2026-06-13",
+  "statusDate": "2026-06-14",
   "generatedBy": "npm run test:m8a-v4.11:slice5",
-  "generatedAtUtc": "2026-06-13T08:45:35.391Z",
-  "regenerationNote": "Report HTML + CSV regenerated 2026-06-13 after public data-gap closure for TLE timestamp display, retained CWA local rain statistic, selected-pair Copernicus DEM elevation/terrain mask, and S.1528/S.465 antenna modeling with assumed Tier-B parameters. Numeric outputs changed because selected-pair terrain thresholds and antenna off-axis derating are now applied.",
+  "generatedAtUtc": "2026-06-14T09:15:38.468Z",
+  "regenerationNote": "Report HTML + CSV regenerated 2026-06-14 from refreshed CelesTrak TLE (1258 loaded actors: 651 OneWeb LEO + 33 Galileo MEO + 574 GEO group; was 663). Mutually-visible selected-pair actor rows rose to 63 (visibility windows 64), driven by the GEO group growth (30 hand-curated -> 574 full geostationary catalog); TLE rows 3, requirement rows 34, station rows 2 unchanged. The prior 2026-06-13 regeneration applied public data-gap closure (TLE timestamp display, retained CWA local rain statistic, selected-pair Copernicus DEM elevation/terrain mask, S.1528/S.465 antenna modeling with assumed Tier-B parameters); those numeric changes (terrain thresholds, antenna off-axis derating) remain.",
   "projectionRoute": "/?stationA=cht-yangmingshan&stationB=sansa-hartebeesthoek&startUtc=2026-05-17T00%3A00%3A00.000Z&durationMinutes=360",
   "sourceTier": "geometric-derived",
   "evidenceKind": "cross-family-geometric",
@@ -36,20 +36,20 @@
     {
       "path": "runtime-projection-evidence-cht-yangmingshan-sansa-hartebeesthoek-20260517T000000Z-360m.html",
       "role": "readable evidence report",
-      "sizeBytes": 543697,
-      "sha256": "d184c8dc2c9657b3752b29a31f1f95e40bb5927ddf78eb392406724517317748"
+      "sizeBytes": 1646168,
+      "sha256": "05bf3293c0cb878d4ac373c2cbb89c86139472f2341c60ac3c3f058e4a9e2fd1"
     },
     {
       "path": "runtime-projection-cht-yangmingshan-sansa-hartebeesthoek-20260517T000000Z-360m.csv",
       "role": "row-level CSV export",
-      "sizeBytes": 38231,
-      "sha256": "662b9238800c7d620ef1cf521e1ea417d69713a81e429a66c13a064f3dd446e5"
+      "sizeBytes": 104776,
+      "sha256": "0c1331963c09daf61e29c2e1be7e9cb459cd07f29bb4485051e8f54a9b273ccd"
     },
     {
       "path": "smoke-manifest.output.json",
       "role": "original smoke manifest copied from ignored output",
-      "sizeBytes": 1130,
-      "sha256": "bb636975fd1c8c0aac39e5a1b46a95dba6af04560b8e6a08d4ce1815936b1fea"
+      "sizeBytes": 1132,
+      "sha256": "f81d0d51e72e81d0266b847d97e23cd5d63990e16dd25621922cd45788d62d71"
     },
     {
       "path": "external-source-reconciliation.md",

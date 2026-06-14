@@ -91,6 +91,13 @@ async function assertCoordinateAuthorityFixtureCoverage() {
   }
 }
 
+// baseline*Count fields are golden regression anchors against the SHIPPED
+// CelesTrak fixture (public/fixtures/satellites-network). They are compared with
+// a 50% tolerance for the visibility-window count and recorded for the
+// link-selection / handover counts. After an INTENTIONAL `npm run refresh:tle`
+// that materially changes inventory, re-run `TLE_DEBUG=1 npm run verify:tle` to
+// read the new actuals and update these anchors. Last re-baselined 2026-06-14
+// (LEO 651 / MEO 33 / GEO 574 fixture).
 const walkthroughCases = [
   {
     label: "Walkthrough 1 - Svalbard / Tromso ready pair",
@@ -98,9 +105,9 @@ const walkthroughCases = [
     stationB: "ksat-tromso",
     expectedStatus: "ready",
     expectedRuntimeLinkVisible: true,
-    baselineVisibilityWindowCount: 709,
-    baselineLinkSelectionEventCount: 25,
-    baselineHandoverCount: 24,
+    baselineVisibilityWindowCount: 779,
+    baselineLinkSelectionEventCount: 32,
+    baselineHandoverCount: 31,
     expectedStationPrecision: [
       { stationId: "ksat-svalsat-svalbard", elevationM: 0, terrainMaskDeg: 0 },
       { stationId: "ksat-tromso", elevationM: 0, terrainMaskDeg: 0 }
@@ -127,7 +134,7 @@ const walkthroughCases = [
     stationB: "intelsat-atlanta",
     expectedStatus: "ready",
     expectedRuntimeLinkVisible: true,
-    baselineVisibilityWindowCount: 15,
+    baselineVisibilityWindowCount: 40,
     baselineLinkSelectionEventCount: 9,
     baselineHandoverCount: 8,
     expectedStationPrecision: [
@@ -141,7 +148,7 @@ const walkthroughCases = [
     stationB: "measat-cyberjaya",
     expectedStatus: "ready",
     expectedRuntimeLinkVisible: true,
-    baselineVisibilityWindowCount: 358,
+    baselineVisibilityWindowCount: 427,
     baselineLinkSelectionEventCount: 16,
     baselineHandoverCount: 15,
     expectedStationPrecision: [
@@ -155,9 +162,9 @@ const walkthroughCases = [
     stationB: "sansa-hartebeesthoek",
     expectedStatus: "ready",
     expectedRuntimeLinkVisible: true,
-    baselineVisibilityWindowCount: 9,
-    baselineLinkSelectionEventCount: 9,
-    baselineHandoverCount: 8,
+    baselineVisibilityWindowCount: 64,
+    baselineLinkSelectionEventCount: 6,
+    baselineHandoverCount: 5,
     expectedStationPrecision: [
       { stationId: "cht-yangmingshan", elevationM: 489, terrainMaskDeg: 21 },
       { stationId: "sansa-hartebeesthoek", elevationM: 1553, terrainMaskDeg: 1 }

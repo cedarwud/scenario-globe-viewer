@@ -921,7 +921,16 @@ async function captureReportAndSourceState(client) {
           } else {
             frameWindow.scrollTo(0, 900);
           }
+          // Let layout + the scroll-spy IntersectionObserver settle. Two rAF are
+          // not enough once the report grows tall (more satellites / larger source
+          // pool), so poll on a short timeout until an outline link becomes active.
           await new Promise((resolve) => frameWindow.requestAnimationFrame(resolve));
+          for (let settleTry = 0; settleTry < 40; settleTry += 1) {
+            if (activeOutlineState().count >= 1) {
+              break;
+            }
+            await new Promise((resolve) => frameWindow.setTimeout(resolve, 25));
+          }
           await new Promise((resolve) => frameWindow.requestAnimationFrame(resolve));
 
           const fieldGuideTitles = Array.from(
@@ -980,6 +989,11 @@ async function captureReportAndSourceState(client) {
           };
           const waitForReportFrame = async () => {
             await new Promise((resolve) => frameWindow.requestAnimationFrame(resolve));
+            await new Promise((resolve) => frameWindow.requestAnimationFrame(resolve));
+            // Tab switches re-render the panel + restore per-tab scroll position
+            // asynchronously; with a tall report that needs more than two frames to
+            // lay out and apply the restored scroll, so add a short settle.
+            await new Promise((resolve) => frameWindow.setTimeout(resolve, 200));
             await new Promise((resolve) => frameWindow.requestAnimationFrame(resolve));
           };
           const tabButtonFor = (id) =>
@@ -1327,9 +1341,20 @@ function assertRuntimeSourceState(state) {
       dataCompleteness?.tleSources
     )}`
   );
+  const visibilitySatelliteIds = new Set(
+    dataCompleteness.visibilityProvenance.map((row) => row.satelliteId)
+  );
   assert(
     dataCompleteness.actorProvenance.length === projection.actorCount &&
-      dataCompleteness.visibilityProvenance.length === projection.actorCount &&
+      // A satellite can legitimately have MORE than one pair-visibility window
+      // (multiple mutual-visibility passes) within the time window. Actor
+      // provenance is per-satellite (deduped); visibility provenance is
+      // per-window, so visibility rows may exceed the actor count. Correct
+      // invariant = coverage (>=) + a 1:1 satellite-set match, not strict count
+      // equality (that assumed one window per satellite — only true for the
+      // older curated fixture; richer/refreshed data has multi-pass satellites).
+      dataCompleteness.visibilityProvenance.length >= projection.actorCount &&
+      visibilitySatelliteIds.size === projection.actorCount &&
       projection.actorCount > 0 &&
       projection.linkFlowCueCount > 0 &&
       projection.eventCueCount > 0,
@@ -1338,6 +1363,7 @@ function assertRuntimeSourceState(state) {
         actorCount: projection.actorCount,
         actorProvenance: dataCompleteness.actorProvenance.length,
         visibilityProvenance: dataCompleteness.visibilityProvenance.length,
+        visibilitySatellites: visibilitySatelliteIds.size,
         linkFlowCueCount: projection.linkFlowCueCount,
         eventCueCount: projection.eventCueCount
       }

@@ -23,10 +23,14 @@ export const COORDINATE_SOURCE_AUTHORITIES = new Set([
   "unknown-public"
 ]);
 export const DEFAULT_HANDOVER_POLICY_ID = "demo-balanced-v1";
+// Inventory mirrors the live CelesTrak fixture (public/fixtures/satellites-network/
+// manifest.json). 2026-06-14 refresh: LEO oneweb 600->651, GEO 30 (hand-curated) ->
+// 574 (full geostationary group), MEO galileo 33 unchanged. GEO now exceeds its
+// runtime cap (574 > 60) so cappedAtRuntime.GEO flips false->true.
 export const EXPECTED_CAP_DISCLOSURE = {
   perOrbitCap: { LEO: 200, MEO: 100, GEO: 60 },
-  perOrbitInventory: { LEO: 600, MEO: 33, GEO: 30 },
-  cappedAtRuntime: { LEO: true, MEO: false, GEO: false }
+  perOrbitInventory: { LEO: 651, MEO: 33, GEO: 574 },
+  cappedAtRuntime: { LEO: true, MEO: false, GEO: true }
 };
 export const EXPECTED_METRIC_ANCHORS = {
   carrierSelection: "orbit-class-default",
@@ -1405,6 +1409,17 @@ export function visibilityDeltaSummary(testCase, actualCount) {
 
 export function assertVisibilityDeltaWithinTolerance(testCase, actualCount) {
   const summary = visibilityDeltaSummary(testCase, actualCount);
+  // Re-baseline capture mode: `TLE_DEBUG=1 npm run verify:tle` logs every case's
+  // actual counts (and skips the assertion) so the fixture-coupled anchors above
+  // can be refreshed after an intentional `npm run refresh:tle`. Off by default.
+  if (process.env.TLE_DEBUG) {
+    console.error(
+      `[TLE_DEBUG vis] ${testCase.label}: ` +
+        `baseline=${summary.baselineVisibilityWindowCount} ` +
+        `actual=${summary.visibilityWindowCount} deltaPct=${summary.visibilityWindowDeltaPct}`
+    );
+    return summary;
+  }
   if (testCase.baselineVisibilityWindowCount === 0) {
     assert(
       actualCount === 0,

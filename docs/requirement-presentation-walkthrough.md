@@ -76,8 +76,8 @@ are added here for the 2026-06-13 merge artifacts.
 | [1] | `requirements-consolidated.md` | Canonical 34-row list, bucket counts, IDs, tier policy. | Runtime proof, packet/RF measurement, acceptance. **Note: the spine's Bucket B rows + standards §-sections were synced to the merged state on 2026-06-14 (both repo + `/home/u24/papers/itri/` copies); `docs/data-source-index.md` [2] remains the governing contract.** |
 | [2] | `docs/data-source-index.md` | Data-source classes, presentation source map, gap repair plan, "models stay models". | Original evidence store, acceptance certificate. **Current authority over [1] on antenna wiring + standards sections.** |
 | [3] | `deliverable/selected-pair-source-evidence/README.md` | Retained selected-pair package, route, generated time, file hashes, package claim boundary. | Packet/RF/operator validation, final written acceptance. |
-| [4] | `…/runtime-projection-evidence-cht-yangmingshan-sansa-hartebeesthoek-20260517T000000Z-360m.html` | Readable report: requirements, sources, models, handover, visibility, raw data. Regenerated 2026-06-13 (sha `d184c8dc…`). | Original evidence store, rerun proof, packet/RF measurement, formal acceptance. |
-| [5] | `…/runtime-projection-cht-yangmingshan-sansa-hartebeesthoek-20260517T000000Z-360m.csv` | Row-level export: fields, source tier, station precision, model outputs, gaps, non-claims. Regenerated 2026-06-13 (sha `662b9238…`). | Narrative beyond payload, packet logs, acceptance. |
+| [4] | `…/runtime-projection-evidence-cht-yangmingshan-sansa-hartebeesthoek-20260517T000000Z-360m.html` | Readable report: requirements, sources, models, handover, visibility, raw data. Regenerated 2026-06-14 from refreshed TLE (sha `05bf3293…`). | Original evidence store, rerun proof, packet/RF measurement, formal acceptance. |
+| [5] | `…/runtime-projection-cht-yangmingshan-sansa-hartebeesthoek-20260517T000000Z-360m.csv` | Row-level export: fields, source tier, station precision, model outputs, gaps, non-claims. Regenerated 2026-06-14 from refreshed TLE (sha `0c133196…`). | Narrative beyond payload, packet logs, acceptance. |
 | [6] | `…/external-source-reconciliation.md` | Public-source reconciliation for CHT/SANSA values, conflicts, verdicts, repair paths, non-observable gaps. | Exact CHT facility coordinate, active route, native RF handover, packet measurement, acceptance. |
 | [7] | `deliverable/3gpp-itu-references/README.md` + PDFs | Retained 3GPP/ITU-R PDF map, section citations, checksums. | Operator-validated data, measured quality, local weather, hardware, packet/RF results. **Note: the README's "38811 §6.7 propagation delay" descriptor was corrected 2026-06-14 to §6.6.2 (slant range) + clause 5.3.1.1 (one-way delay) — see K-A2.** |
 | [8] | `public/fixtures/ground-stations/multi-orbit-public-registry-sources.md` | Public station capability notes, source URLs, coordinate/elevation/band notes, non-claims. | Commercial pair routing, active serving satellite, private facility geometry, RF hardware completeness. |
@@ -123,8 +123,9 @@ telemetry.
   `public/fixtures/satellites-network/manifest.json`; selected-pair switching
   candidates from `src/features/multi-station-selector/runtime-projection.ts`
   feeding `src/runtime/link-budget/handover-policy.ts`. Visible on the demo route.
-- **Data source:** 663 actors loaded (600 OneWeb LEO + 33 GNSS MEO + 30 GEO),
-  CelesTrak 2026-05 snapshot · **geometric-derived** · TLE/SGP4 · [1] [4] [13].
+- **Data source:** 1258 actors loaded (651 OneWeb LEO + 33 Galileo MEO + 574 GEO group),
+  CelesTrak 2026-06-13 snapshot · **geometric-derived** · TLE/SGP4 · [1] [4] [13].
+  (Runtime ranks by selected-pair visibility then caps per orbit: LEO 200 / MEO 100 / GEO 60.)
 - **Boundary:** Model-selected switching candidates, **not** active serving-route
   migration or an operator event log.
 
@@ -180,14 +181,14 @@ telemetry.
 ### R1-F1 / K-E1 — Support ≥ 500 LEO simulation actors (Starlink, OneWeb)
 *(Bucket A · complete)*
 - **Asks:** Simulate at least 500 LEO satellites.
-- **Satisfied by:** Default load of **600 OneWeb LEO** (plus 33 MEO, 30 GEO) from
-  the CelesTrak 2026-05 snapshot (`GROUP=oneweb|gnss|geo`).
-- **Data source:** 600 OneWeb LEO ≥ 500 target · **public source / geometric-derived**
+- **Satisfied by:** Default load of **651 OneWeb LEO** (plus 33 Galileo MEO, 574 GEO
+  group) from the CelesTrak 2026-06-13 snapshot (`GROUP=oneweb|galileo|geo`).
+- **Data source:** 651 OneWeb LEO ≥ 500 target · **public source / geometric-derived**
   · [1] [4] [5] [13]. A 600-record Starlink fixture exists at
   `public/fixtures/satellites/leo-scale/` but is **not default-loaded**.
 - **Boundary:** "≥ 500 LEO" is met by OneWeb; the runtime LEO set is OneWeb, not
   Starlink. The "~11015 satellites" figure was the **upstream CelesTrak catalog
-  size**, not the local load (663) — corrected 2026-06-13.
+  size**, not the local load (1258) — corrected 2026-06-13.
 
 ### R1-F2 / K-E2 — Adjustable simulation speed (real-time vs prerecorded TLE)
 *(Bucket A · complete)*
@@ -233,8 +234,8 @@ telemetry.
 - **Satisfied by:** V4 side-panel CSV export (RFC-4180) via
   `runtime-projection-csv.ts`; standalone HTML report via
   `runtime-projection-evidence-report.ts`; both retained with SHA-256 in [3].
-- **Data source:** Report HTML (543697 B, sha `d184c8dc…`) + CSV (38231 B, sha
-  `662b9238…`) · **display transform / external evidence** · [1] [3] [4] [5].
+- **Data source:** Report HTML (1646168 B, sha `05bf3293…`) + CSV (104776 B, sha
+  `0c133196…`) · **display transform / external evidence** · [1] [3] [4] [5].
 - **Boundary:** HTML/CSV are evidence surfaces, **not** a final acceptance
   certificate.
 
@@ -573,8 +574,16 @@ spine `requirements-consolidated.md`, after reconciling with merge `1496a03` and
    (`resolveTleDate`), shows `2026-05-31`, and is the fix for the prior lone G1
    failure.
 5. **R1-F1 satellite count.** Spine previously said "~11015 Starlink+OneWeb."
-   **Corrected:** 600 OneWeb LEO + 33 MEO + 30 GEO = **663** loaded; 11015 is the
+   **Corrected (2026-06-14 TLE refresh):** 651 OneWeb LEO + 33 Galileo MEO + 574
+   GEO group = **1258** loaded (CelesTrak 2026-06-13 snapshot); 11015 is the
    upstream CelesTrak catalog size; Starlink fixture not default-loaded.
+   **Note:** `scripts/refresh-tle.mjs` had drifted to `GROUP=gnss` for MEO (pulls
+   all GNSS + SBAS, mixing GEO/IGSO into MEO); fixed back to `GROUP=galileo`
+   (pure MEO, 33). GEO uses the full `GROUP=geo` (574; the prior fixture's 30 was a
+   hand-curated subset that no CelesTrak group reproduces) — runtime ranks by
+   selected-pair visibility then caps to 60, so demo behaviour is unchanged. Demo
+   scenario window stays 2026-05-17 (matches the retained evidence package; the
+   refreshed TLE is propagated to that fixed window).
 6. **Latency citation (K-A2).** Spine/catalog say TR 38.811 "§6.7." **Corrected:**
    latency = **§6.6.2 (slant range) + clause 5.3.1.1 (propagation delay)**; the
    `+2 ms` processing term disclosed as non-standard.
@@ -583,11 +592,11 @@ spine `requirements-consolidated.md`, after reconciling with merge `1496a03` and
 8. **Handover citation (R1-T5 / R1-F4 / V-MO1).** Earlier "§7.3." **Corrected:**
    **§7.3.2.2** (Conditional Handover); `cross-orbit-live` attributed to V-MO1, not
    3GPP.
-9. **Evidence package date/hashes ([4]/[5]).** Inventory cites the 2026-06-12
-   report (generated `2026-06-12T13:38:43Z`). **Corrected:** the retained package
-   was **regenerated 2026-06-13** (`2026-06-13T08:45:35Z`; HTML sha `d184c8dc…`,
-   CSV sha `662b9238…`); numeric outputs changed because terrain thresholds +
-   antenna off-axis de-rating now apply.
+9. **Evidence package date/hashes ([4]/[5]).** **Regenerated 2026-06-14** from the
+   refreshed TLE fixture (HTML 1646168 B sha `05bf3293…`, CSV 104776 B sha
+   `0c133196…`). Numeric outputs + report size grew because the source pool is now
+   the full refreshed snapshot (651 OneWeb LEO / 33 Galileo MEO / 574 GEO group);
+   runtime still ranks by selected-pair visibility and caps per orbit (200/100/60).
 10. **Catalog extended.** Added [14] local rain, [15] DEM/terrain mask, [16]
     antenna assumption module.
 

@@ -2,7 +2,7 @@
 // Build-time CelesTrak GP downloader for SDD Slice F7.
 
 import { mkdir, readdir, readFile, rm, writeFile } from "node:fs/promises";
-import { join, resolve } from "node:path";
+import { dirname, join, resolve } from "node:path";
 
 const GROUPS = {
   leo: {
@@ -12,8 +12,11 @@ const GROUPS = {
   },
   meo: {
     orbitClass: "MEO",
-    celestrakGroup: "gnss",
-    url: "https://celestrak.org/NORAD/elements/gp.php?GROUP=gnss&FORMAT=tle"
+    // Galileo is a pure-MEO constellation; the broad `gnss` group mixes in
+    // GPS/GLONASS/BeiDou plus IGSO/GEO SBAS sats, which would mislabel non-MEO
+    // orbits as MEO. Keep MEO = Galileo (matches the curated source design).
+    celestrakGroup: "galileo",
+    url: "https://celestrak.org/NORAD/elements/gp.php?GROUP=galileo&FORMAT=tle"
   },
   geo: {
     orbitClass: "GEO",
@@ -23,6 +26,12 @@ const GROUPS = {
 };
 
 const DEFAULT_OUTPUT_DIR = "public/fixtures/satellites-network";
+// The runtime bundles a compile-time copy of the per-orbit manifest for its
+// network-snapshot inventory disclosure (imported by
+// src/features/multi-station-selector/runtime-data-completeness.ts). Keep it in
+// sync with the public fixture so networkSnapshotInventoryCount matches the
+// actually-loaded inventory after every refresh.
+const RUNTIME_MANIFEST_MIRROR = "src/fixtures/satellites-network/manifest.json";
 const DEFAULT_RETAIN_COUNT = 3;
 const ATTRIBUTION_COMMENT =
   "# Data source: CelesTrak (celestrak.org), Terms of Use: https://celestrak.org/terms-of-use.php";
@@ -430,7 +439,8 @@ async function main() {
     }
   }
 
-  const manifestText = `${JSON.stringify(withSnapshotMetadataForManifest(manifest), null, 2)}\n`;
+  const finalManifest = withSnapshotMetadataForManifest(manifest);
+  const manifestText = `${JSON.stringify(finalManifest, null, 2)}\n`;
   if (args["dry-run"]) {
     console.log(manifestText);
     return;
@@ -442,11 +452,32 @@ async function main() {
     await removeNonCurrentSnapshots(outputDir, groupKey, snapshot.path);
   }
   await writeFile(join(outputDir, "manifest.json"), manifestText, "utf8");
+  // Mirror the per-orbit blocks into the runtime-bundled manifest so the
+  // network-snapshot inventory disclosure stays consistent with the loaded
+  // fixture. Only mirror the canonical public refresh, not custom output dirs.
+  let runtimeMirrorPath = null;
+  if (resolve(outputDir) === resolve(DEFAULT_OUTPUT_DIR)) {
+    const runtimeMirror = {
+      comment: finalManifest.comment,
+      generatedAtUtc: finalManifest.generatedAtUtc,
+      leo: finalManifest.leo,
+      meo: finalManifest.meo,
+      geo: finalManifest.geo
+    };
+    await mkdir(dirname(RUNTIME_MANIFEST_MIRROR), { recursive: true });
+    await writeFile(
+      RUNTIME_MANIFEST_MIRROR,
+      `${JSON.stringify(runtimeMirror, null, 2)}\n`,
+      "utf8"
+    );
+    runtimeMirrorPath = RUNTIME_MANIFEST_MIRROR;
+  }
   console.log(
     JSON.stringify(
       {
         outputDir,
         manifestPath: join(outputDir, "manifest.json"),
+        runtimeMirrorPath,
         groups,
         fetchFallbacks
       },
