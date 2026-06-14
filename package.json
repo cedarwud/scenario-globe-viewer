@@ -6,7 +6,12 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
-    "test": "npm run verify:selected-pair-route-governance && npm run build && node scripts/verify-phase0.mjs",
+    "test": "npm run verify:selected-pair-route-governance && npm run build && node scripts/verify-phase0.mjs && npm run test:unit && npm run verify:itu",
+    "test:unit": "node scripts/run-unit-tests.mjs",
+    "verify:itu": "npm run verify:itu:p618 && npm run verify:itu:p838 && npm run verify:itu:f699",
+    "verify:itu:p618": "node scripts/verify-itu-r-p618-link-budget.mjs",
+    "verify:itu:p838": "node scripts/verify-itu-r-p838-rain-attenuation.mjs",
+    "verify:itu:f699": "node scripts/verify-itu-r-f699-antenna-pattern.mjs",
     "refresh:tle": "node scripts/refresh-tle.mjs --if-older-than-days 7 --min-refresh-interval-hours 2",
     "refresh:tle:local": "node scripts/import-local-tle-cache.mjs",
     "tle:schedule:install": "bash scripts/tle-cron-scheduler.sh install",
