@@ -21,6 +21,7 @@ import {
   buildOpenEvidenceReportButton,
   buildDownloadCsvButton
 } from "./v4-projection-report-actions";
+import { buildTrajectoryProvenanceControl } from "./trajectory-provenance-popup";
 import {
   buildPolicyDisclosure,
   buildSourceConfidenceDisclosure,
@@ -2329,7 +2330,8 @@ function buildFooterRow(result: RuntimeProjectionResult): HTMLElement {
 
 
 function buildEvidenceEntryRow(
-  result: RuntimeProjectionResult
+  result: RuntimeProjectionResult,
+  tleRecords: ReadonlyArray<RuntimeOrbitRecord> | null
 ): HTMLElement {
   const row = buildFooterRow(result);
   const actions = document.createElement("div");
@@ -2338,8 +2340,12 @@ function buildEvidenceEntryRow(
   const reportButton = buildOpenEvidenceReportButton(result, "Report");
   const csvButton = buildDownloadCsvButton(result, "CSV");
   const csvHelp = buildCsvHelpControl(csvButton);
-  actions.append(reportButton, csvHelp.root);
-  (row as any).__disposeHelp = csvHelp.dispose;
+  const traceControl = buildTrajectoryProvenanceControl(result, tleRecords);
+  actions.append(traceControl.root, reportButton, csvHelp.root);
+  (row as any).__disposeHelp = (): void => {
+    csvHelp.dispose();
+    traceControl.dispose();
+  };
   row.prepend(actions);
   return row;
 }
@@ -2499,6 +2505,7 @@ interface RenderResultOptions {
   readonly compareMode: CompareMode;
   readonly viewer?: Viewer;
   readonly onDurationChange: (durationMinutes: number) => void;
+  readonly tleRecords: ReadonlyArray<RuntimeOrbitRecord> | null;
 }
 
 function renderResult(
@@ -2514,7 +2521,8 @@ function renderResult(
     durationMinutes,
     compareMode,
     viewer,
-    onDurationChange
+    onDurationChange,
+    tleRecords
   } = options;
 
   // Preserve slider focus across re-renders: the rain control node is reused,
@@ -2562,7 +2570,7 @@ function renderResult(
       buildSummariesRow(result, compareMode),
       buildPolicyDisclosure(result),
       buildSourceConfidenceDisclosure(result),
-      buildEvidenceEntryRow(result),
+      buildEvidenceEntryRow(result, tleRecords),
       buildHiddenMachineEvidenceBlock(result)
     );
   } else {
@@ -2575,7 +2583,7 @@ function renderResult(
       buildRainImpactMainRow(rainControl, result, rainRateMmPerHour, clearSky),
       buildPolicyDisclosure(result),
       buildSourceConfidenceDisclosure(result),
-      buildEvidenceEntryRow(result),
+      buildEvidenceEntryRow(result, tleRecords),
       buildHiddenMachineEvidenceBlock(result)
     );
   }
@@ -2686,7 +2694,8 @@ export function mountV4ProjectionSidePanel(
         durationMinutes,
         compareMode,
         viewer: input.viewer,
-        onDurationChange: setProjectionDurationMinutes
+        onDurationChange: setProjectionDurationMinutes,
+        tleRecords
       });
       publishRuntimeResult(result);
     } catch (error) {
@@ -2756,7 +2765,8 @@ export function mountV4ProjectionSidePanel(
         durationMinutes,
         compareMode,
         viewer: input.viewer,
-        onDurationChange: setProjectionDurationMinutes
+        onDurationChange: setProjectionDurationMinutes,
+        tleRecords
       });
       publishRuntimeResult(result);
     } catch (error) {
@@ -2811,7 +2821,8 @@ export function mountV4ProjectionSidePanel(
         durationMinutes,
         compareMode,
         viewer: input.viewer,
-        onDurationChange: setProjectionDurationMinutes
+        onDurationChange: setProjectionDurationMinutes,
+        tleRecords
       });
       publishRuntimeResult(clearSkyResult);
     } catch (error) {
