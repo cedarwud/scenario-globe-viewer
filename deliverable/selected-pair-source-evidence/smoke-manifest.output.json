@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-06-14T09:15:38.468Z",
+  "generatedAt": "2026-06-14T21:25:51.110Z",
   "route": "/?stationA=cht-yangmingshan&stationB=sansa-hartebeesthoek&startUtc=2026-05-17T00%3A00%3A00.000Z&durationMinutes=360",
   "viewport": "desktop-1440x900",
   "screenshot": "output/selected-pair-source-report/source-report-panel-open.png",

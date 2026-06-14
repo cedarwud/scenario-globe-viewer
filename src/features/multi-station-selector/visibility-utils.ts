@@ -47,10 +47,19 @@ export interface StationVisibilityComputationResult {
   readonly propagationStatsBySatellite: Map<string, TlePropagationStats>;
 }
 
-interface StationEcefKm {
+export interface StationEcefKm {
   readonly x: number; readonly y: number; readonly z: number;
   readonly sinLat: number; readonly cosLat: number;
   readonly sinLon: number; readonly cosLon: number;
+}
+
+export interface InstantaneousSatelliteGeometry {
+  /** Instantaneous look-angle elevation at station A at the sample instant (deg). */
+  readonly elevationStationADeg: number;
+  /** Instantaneous look-angle elevation at station B at the sample instant (deg). */
+  readonly elevationStationBDeg: number;
+  /** Geocentric radius of the SGP4-propagated satellite position (km, = Re + altitude). */
+  readonly satelliteRadiusKm: number;
 }
 
 const WGS84_A_M = 6378137;
@@ -59,7 +68,7 @@ const WGS84_E2 = WGS84_F * (2 - WGS84_F);
 const DEG_TO_RAD = Math.PI / 180;
 const RAD_TO_DEG = 180 / Math.PI;
 
-function stationToEcefKm(station: StationGeodetic): StationEcefKm {
+export function stationToEcefKm(station: StationGeodetic): StationEcefKm {
   const latRad = station.lat * DEG_TO_RAD;
   const lonRad = station.lon * DEG_TO_RAD;
   const sinLat = Math.sin(latRad);
@@ -86,6 +95,58 @@ function lookAngleElevationDeg(s: StationEcefKm, sat: { x: number; y: number; z:
   const elevRad = Math.asin(up / range);
   if (!Number.isFinite(elevRad)) return Number.NEGATIVE_INFINITY;
   return elevRad * RAD_TO_DEG;
+}
+
+/**
+ * Re-propagate one satellite at a single instant and return its instantaneous
+ * look geometry from two stations plus its geocentric radius. This is the same
+ * SGP4 -> ECI -> GMST -> ECEF chain used for visibility sampling; it is exposed
+ * so the link-budget path can use the propagated (not nominal) altitude and the
+ * instantaneous (not pass-maximum) elevation. Returns null if propagation fails
+ * at this instant so callers can fall back to the window's representative value.
+ */
+export function computeInstantaneousSatelliteGeometry(
+  satrec: Parameters<typeof propagate>[0],
+  stationAEcef: StationEcefKm,
+  stationBEcef: StationEcefKm,
+  when: Date
+): InstantaneousSatelliteGeometry | null {
+  let propagated: ReturnType<typeof propagate> | null;
+  try {
+    propagated = propagate(satrec, when);
+  } catch {
+    return null;
+  }
+  const posEci = propagated?.position;
+  if (
+    !posEci ||
+    typeof posEci !== "object" ||
+    !Number.isFinite(posEci.x) ||
+    !Number.isFinite(posEci.y) ||
+    !Number.isFinite(posEci.z)
+  ) {
+    return null;
+  }
+  const posEcf = eciToEcf(posEci, gstime(when));
+  if (
+    !posEcf ||
+    !Number.isFinite(posEcf.x) ||
+    !Number.isFinite(posEcf.y) ||
+    !Number.isFinite(posEcf.z)
+  ) {
+    return null;
+  }
+  const satelliteRadiusKm = Math.sqrt(
+    posEcf.x * posEcf.x + posEcf.y * posEcf.y + posEcf.z * posEcf.z
+  );
+  if (!Number.isFinite(satelliteRadiusKm) || satelliteRadiusKm <= 0) {
+    return null;
+  }
+  return {
+    elevationStationADeg: lookAngleElevationDeg(stationAEcef, posEcf),
+    elevationStationBDeg: lookAngleElevationDeg(stationBEcef, posEcf),
+    satelliteRadiusKm
+  };
 }
 
 function emitWindow(out: VisibilityWindow[], startMs: number, endMs: number, maxElev: number, thresholdDeg: number): void {

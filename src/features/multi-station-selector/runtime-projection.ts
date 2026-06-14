@@ -15,14 +15,19 @@ import {
 } from "./tier-inference";
 
 import {
+  computeInstantaneousSatelliteGeometry,
   intersectStationWindowsForPair,
+  stationToEcefKm,
+  type InstantaneousSatelliteGeometry,
   type OrbitClass,
   type PairVisibilityWindow,
   type RuntimeOrbitRecord,
+  type StationEcefKm,
   type StationGeodetic,
   type TleRecord,
   type VisibilityWindow
 } from "./visibility-utils";
+import { createRuntimeSatrec } from "./orbit-propagation";
 import {
   computeVisibilityWindowsForStationByOrbitCadence,
   resolveVisibilityCadenceSecondsByOrbit
@@ -158,6 +163,48 @@ export interface TruthBoundary {
   readonly nonClaims: ReadonlyArray<string>;
 }
 
+/** Per-endpoint rain geometry + attenuation for the route-representative link budget. */
+export interface RepresentativeRainEndpoint {
+  readonly stationLabel: "A" | "B";
+  readonly latitudeDeg: number;
+  readonly heightAboveSeaKm: number;
+  /** Instantaneous look-angle elevation at this station at the representative sample (deg). */
+  readonly elevationDeg: number;
+  /** This endpoint's modeled rain attenuation at the current rate (dB); 0 when rate is 0. */
+  readonly rainAttenuationDb: number;
+}
+
+/**
+ * Route-representative per-orbit link budget, computed from the dominant
+ * mutual-visibility window using the SGP4-propagated satellite radius (F1) and
+ * the instantaneous per-station elevation at the window mid-time (F2), with rain
+ * taken from the binding (worse) endpoint (F3). All magnitudes are MODELED /
+ * standard-derived, never measured: throughput is an illustrative capacity proxy
+ * (no packet test) and receivedPowerProxyDbm is a relative proxy (EIRP unknown).
+ */
+export interface RepresentativeLinkBudget {
+  readonly orbitClass: OrbitClass;
+  readonly representativeElevationDeg: number;
+  readonly satelliteAltitudeKm: number;
+  readonly satelliteRadiusKm: number;
+  readonly slantRangeKm: number;
+  readonly carrierFrequencyGHz: number;
+  readonly freeSpacePathLossDb: number;
+  readonly gasAbsorptionDb: number;
+  readonly rainAttenuationDb: number;
+  readonly rainBindingStation: "A" | "B" | null;
+  readonly totalPathLossDb: number;
+  readonly combinedAntennaGainDb: number;
+  readonly receivedPowerProxyDbm: number;
+  readonly latencyMs: number;
+  readonly jitterMs: number;
+  readonly illustrativeThroughputMbps: number;
+  readonly rainEndpoints: ReadonlyArray<RepresentativeRainEndpoint>;
+  readonly geometrySource: "sgp4-propagated-representative" | "nominal-fallback";
+  readonly representativeSatelliteId: string;
+  readonly representativeSampleUtc: string;
+}
+
 export interface RuntimeProjectionInput {
   readonly stationA: PublicRegistryStation;
   readonly stationB: PublicRegistryStation;
@@ -188,6 +235,9 @@ export interface RuntimeProjectionResult {
   readonly visibilityWindows: ReadonlyArray<PairVisibilityWindow>;
   readonly handoverEvents: ReadonlyArray<HandoverEvent>;
   readonly communicationStats: CommunicationStats;
+  readonly representativeLinkBudgetByOrbit: Readonly<
+    Partial<Record<OrbitClass, RepresentativeLinkBudget>>
+  >;
   readonly truthBoundary: TruthBoundary;
   readonly dataCompleteness: RuntimeDataCompletenessState;
 }
@@ -243,11 +293,30 @@ interface RuntimeTleSourceSelection {
   readonly sourceMetadataByOrbit: Readonly<Record<OrbitClass, OrbitSourceMetadata>>;
 }
 
+/** One ground-station endpoint for the per-station (F3) rain-attenuation pass. */
+export interface LinkBudgetRainEndpoint {
+  readonly stationLabel: "A" | "B";
+  readonly latitudeDeg: number;
+  readonly heightAboveSeaKm: number;
+  readonly elevationDeg: number;
+}
+
 export interface LinkBudgetMetricOptions {
   readonly representativeElevationDeg?: number;
   readonly rainRateMmPerHour?: number;
   readonly stationHeightAboveSeaKm?: number;
   readonly stationLatitudeDeg?: number;
+  /**
+   * F1 (WS-F): SGP4-propagated satellite geocentric radius (km). When present it
+   * overrides the nominal class altitude in the slant-range geometry.
+   */
+  readonly satelliteRadiusKm?: number;
+  /**
+   * F3 (WS-F): per-station rain endpoints. When present, rain attenuation is
+   * computed at each endpoint's own latitude/height/elevation and the binding
+   * (worse) station is reported, instead of a single pair-midpoint latitude.
+   */
+  readonly rainEndpoints?: ReadonlyArray<LinkBudgetRainEndpoint>;
 }
 
 export interface LinkBudgetMetrics {
@@ -259,10 +328,13 @@ export interface LinkBudgetMetrics {
 interface LinkBudgetDetails extends LinkBudgetMetrics {
   readonly representativeElevationDeg: number;
   readonly slantRangeKm: number;
+  readonly satelliteRadiusKm: number;
+  readonly geometrySource: "sgp4-propagated-representative" | "nominal-fallback";
   readonly totalPathLossDb: number;
   readonly freeSpacePathLossDb: number;
   readonly gasAbsorptionDb: number;
   readonly rainAttenuationDb: number;
+  readonly rainBindingStation: "A" | "B" | null;
   readonly satelliteAntennaPeakGainDb: number;
   readonly satelliteAntennaBeamwidthDeg: number;
   readonly satelliteAntennaOffAxisAngleDeg: number;
@@ -280,11 +352,31 @@ interface LinkBudgetDetails extends LinkBudgetMetrics {
   readonly receivedPowerProxyDbm: number;
 }
 
+/**
+ * Geometry inputs the handover loop needs to re-propagate each visible satellite
+ * at each sample instant (F2): the per-satellite satrec, both station ECEF
+ * positions, and each station's latitude/height for the per-station rain pass.
+ */
+interface HandoverSampleGeometry {
+  readonly satrecById: ReadonlyMap<
+    string,
+    Parameters<typeof computeInstantaneousSatelliteGeometry>[0]
+  >;
+  readonly stationAEcef: StationEcefKm;
+  readonly stationBEcef: StationEcefKm;
+  readonly stationALatitudeDeg: number;
+  readonly stationBLatitudeDeg: number;
+  readonly stationAHeightAboveSeaKm: number;
+  readonly stationBHeightAboveSeaKm: number;
+}
+
 interface HandoverSampleOptions {
   readonly policy: HandoverPolicyConfig;
   readonly rainRateMmPerHour: number;
+  // Pair-midpoint fallbacks, used only if re-propagation fails at an instant.
   readonly stationHeightAboveSeaKm: number;
   readonly stationLatitudeDeg: number;
+  readonly geometry: HandoverSampleGeometry;
 }
 
 interface CandidateGeometryRankScore {
@@ -529,17 +621,29 @@ function computeRepresentativeElevationDeg(
 
 function computeRepresentativeSlantRangeKm(
   orbitClass: OrbitClass,
-  elevationDeg: number
+  elevationDeg: number,
+  satelliteRadiusKm?: number
 ): number {
-  const altitudeKm = NOMINAL_ALTITUDE_KM_BY_ORBIT[orbitClass];
-  const earthToSatelliteRadiusKm = EARTH_RADIUS_KM + altitudeKm;
+  // F1 (WS-F): when the SGP4-propagated geocentric radius is supplied, use it
+  // directly so slant range reflects the satellite's actual instantaneous
+  // altitude instead of the NOMINAL per-class altitude. The propagated radius is
+  // already computed for the visibility/elevation gate, so this adds no new
+  // assumption. Falls back to Re + nominal altitude when no propagated radius is
+  // available (e.g. the standalone computeLinkBudgetMetricsForOrbit entry point).
+  const earthToSatelliteRadiusKm =
+    satelliteRadiusKm !== undefined &&
+    Number.isFinite(satelliteRadiusKm) &&
+    satelliteRadiusKm > EARTH_RADIUS_KM
+      ? satelliteRadiusKm
+      : EARTH_RADIUS_KM + NOMINAL_ALTITUDE_KM_BY_ORBIT[orbitClass];
   const elevationRad = (elevationDeg * Math.PI) / 180;
 
   // 3GPP TR 38.811 §6.6.2 (Eq 6.6-3) -- spherical-earth slant range geometry.
   // (Range feeds one-way delay; delay treatment is clause 5.3.1.1. §6.7 is the
   // fast-fading model, NOT propagation delay -- earlier §6.7 citation was wrong.)
   // Spherical-earth geometry: rho = sqrt((Re+h)^2 - (Re*cos(E))^2) - Re*sin(E),
-  // where E is station elevation, h is nominal orbit altitude, and Re is 6371 km.
+  // where E is station elevation, (Re+h) is the satellite geocentric radius
+  // (propagated when available, else Re + nominal altitude), and Re is 6371 km.
   return (
     Math.sqrt(
       earthToSatelliteRadiusKm * earthToSatelliteRadiusKm -
@@ -580,6 +684,46 @@ function computeRainAttenuationForCarrierDb(options: {
     polarization: "circular",
     stationLatitudeDeg: options.stationLatitudeDeg
   });
+}
+
+function computeBindingRainAttenuationDb(input: {
+  readonly rainRateMmPerHour: number;
+  readonly carrierFrequencyGHz: number;
+  readonly representativeElevationDeg: number;
+  readonly stationHeightAboveSeaKm: number;
+  readonly stationLatitudeDeg?: number;
+  readonly rainEndpoints?: ReadonlyArray<LinkBudgetRainEndpoint>;
+}): { readonly rainAttenuationDb: number; readonly rainBindingStation: "A" | "B" | null } {
+  if (input.rainEndpoints && input.rainEndpoints.length > 0) {
+    let worstDb = 0;
+    let rainBindingStation: "A" | "B" | null = null;
+    for (const endpoint of input.rainEndpoints) {
+      const endpointDb = computeRainAttenuationForCarrierDb({
+        rainRateMmPerHour: input.rainRateMmPerHour,
+        carrierFrequencyGHz: input.carrierFrequencyGHz,
+        // Per-station elevation can dip below the model floor near a window edge;
+        // normalize to the [1, 90] modeling band the rain path requires.
+        elevationDeg: normalizeElevationDeg(endpoint.elevationDeg),
+        stationHeightAboveSeaKm: endpoint.heightAboveSeaKm,
+        stationLatitudeDeg: endpoint.latitudeDeg
+      });
+      if (endpointDb > worstDb) {
+        worstDb = endpointDb;
+        rainBindingStation = endpoint.stationLabel;
+      }
+    }
+    return { rainAttenuationDb: worstDb, rainBindingStation };
+  }
+  return {
+    rainAttenuationDb: computeRainAttenuationForCarrierDb({
+      rainRateMmPerHour: input.rainRateMmPerHour,
+      carrierFrequencyGHz: input.carrierFrequencyGHz,
+      elevationDeg: input.representativeElevationDeg,
+      stationHeightAboveSeaKm: input.stationHeightAboveSeaKm,
+      stationLatitudeDeg: input.stationLatitudeDeg
+    }),
+    rainBindingStation: null
+  };
 }
 
 function computeAssumedAntennaGainDetailsForOrbit(
@@ -660,9 +804,20 @@ function computeLinkBudgetDetailsForOrbit(
       : options.stationHeightAboveSeaKm;
   const carrierFrequencyGHz =
     ORBIT_CLASS_CARRIER_DEFAULTS[orbitClass].carrierFrequencyGHz;
+  const usePropagatedRadius =
+    options.satelliteRadiusKm !== undefined &&
+    Number.isFinite(options.satelliteRadiusKm) &&
+    options.satelliteRadiusKm > EARTH_RADIUS_KM;
+  const geometrySource: LinkBudgetDetails["geometrySource"] = usePropagatedRadius
+    ? "sgp4-propagated-representative"
+    : "nominal-fallback";
+  const satelliteRadiusKm = usePropagatedRadius
+    ? (options.satelliteRadiusKm as number)
+    : EARTH_RADIUS_KM + NOMINAL_ALTITUDE_KM_BY_ORBIT[orbitClass];
   const slantRangeKm = computeRepresentativeSlantRangeKm(
     orbitClass,
-    representativeElevationDeg
+    representativeElevationDeg,
+    options.satelliteRadiusKm
   );
 
   const freeSpacePathLossDb = computeFreeSpacePathLossDb({
@@ -674,12 +829,17 @@ function computeLinkBudgetDetailsForOrbit(
     carrierFrequencyGHz,
     elevationDeg: representativeElevationDeg
   });
-  const rainAttenuationDb = computeRainAttenuationForCarrierDb({
+  // F3 (WS-F): when per-station rain endpoints are supplied, compute rain at each
+  // endpoint's own latitude/height/elevation and bind to the worse (higher) one,
+  // instead of a single pair-midpoint latitude (physically meaningless on
+  // near-antipodal routes). Falls back to the single representative pass.
+  const { rainAttenuationDb, rainBindingStation } = computeBindingRainAttenuationDb({
     rainRateMmPerHour,
     carrierFrequencyGHz,
-    elevationDeg: representativeElevationDeg,
+    representativeElevationDeg,
     stationHeightAboveSeaKm,
-    stationLatitudeDeg: options.stationLatitudeDeg
+    stationLatitudeDeg: options.stationLatitudeDeg,
+    rainEndpoints: options.rainEndpoints
   });
   const antennaGainDetails = computeAssumedAntennaGainDetailsForOrbit(
     orbitClass,
@@ -717,10 +877,13 @@ function computeLinkBudgetDetailsForOrbit(
     networkSpeedMbps: roundMetric(networkSpeedMbps),
     representativeElevationDeg,
     slantRangeKm: roundMetric(slantRangeKm),
+    satelliteRadiusKm: roundMetric(satelliteRadiusKm),
+    geometrySource,
     totalPathLossDb: roundMetric(totalPathLossDb),
     freeSpacePathLossDb: roundMetric(freeSpacePathLossDb),
     gasAbsorptionDb: roundMetric(gasAbsorptionDb),
     rainAttenuationDb: roundMetric(rainAttenuationDb),
+    rainBindingStation,
     satelliteAntennaPeakGainDb: roundMetric(
       antennaGainDetails.satelliteAntennaPeakGainDb
     ),
@@ -832,6 +995,200 @@ function computeLinkBudgetDetailsForWindow(
   });
 }
 
+/**
+ * F1+F2+F3 (WS-F): link budget at one sample instant. Re-propagates the
+ * satellite to get its instantaneous geocentric radius (F1) and the
+ * instantaneous per-station elevation (F2 -- representative = the worse, lower
+ * elevation of the two stations), and runs rain per station to bind the worse
+ * one (F3). Falls back to the window's pass-maximum representative if
+ * re-propagation fails at this instant.
+ */
+function computeLinkBudgetDetailsAtSample(
+  window: PairVisibilityWindow,
+  sampleTimeMs: number,
+  geometry: HandoverSampleGeometry,
+  rainRateMmPerHour: number,
+  fallbackStationHeightAboveSeaKm: number,
+  fallbackStationLatitudeDeg: number
+): LinkBudgetDetails {
+  const satrec = geometry.satrecById.get(window.satelliteId);
+  const instantaneous = satrec
+    ? computeInstantaneousSatelliteGeometry(
+        satrec,
+        geometry.stationAEcef,
+        geometry.stationBEcef,
+        new Date(sampleTimeMs)
+      )
+    : null;
+  if (instantaneous) {
+    return computeLinkBudgetDetailsForOrbit(window.orbitClass, {
+      representativeElevationDeg: Math.min(
+        instantaneous.elevationStationADeg,
+        instantaneous.elevationStationBDeg
+      ),
+      satelliteRadiusKm: instantaneous.satelliteRadiusKm,
+      rainRateMmPerHour,
+      rainEndpoints: [
+        {
+          stationLabel: "A",
+          latitudeDeg: geometry.stationALatitudeDeg,
+          heightAboveSeaKm: geometry.stationAHeightAboveSeaKm,
+          elevationDeg: instantaneous.elevationStationADeg
+        },
+        {
+          stationLabel: "B",
+          latitudeDeg: geometry.stationBLatitudeDeg,
+          heightAboveSeaKm: geometry.stationBHeightAboveSeaKm,
+          elevationDeg: instantaneous.elevationStationBDeg
+        }
+      ]
+    });
+  }
+  return computeLinkBudgetDetailsForWindow(
+    window,
+    rainRateMmPerHour,
+    fallbackStationHeightAboveSeaKm,
+    fallbackStationLatitudeDeg
+  );
+}
+
+/**
+ * Route-representative per-orbit link budget (drives the side-panel display and
+ * the evidence report). For each shared orbit class it evaluates the dominant
+ * (longest) mutual-visibility window at its mid-time using the SGP4-propagated
+ * geometry, so the displayed numbers reflect the actual route rather than a
+ * fixed 35 deg / nominal-altitude placeholder. All magnitudes are modeled /
+ * standard-derived; throughput and RSRP remain proxies (see field docs).
+ */
+function buildRepresentativeLinkBudgetByOrbit(
+  visibilityWindows: ReadonlyArray<PairVisibilityWindow>,
+  sharedSupportedOrbits: ReadonlyArray<OrbitClass>,
+  rainRateMmPerHour: number,
+  geometry: HandoverSampleGeometry,
+  fallbackStationHeightAboveSeaKm: number,
+  fallbackStationLatitudeDeg: number
+): Partial<Record<OrbitClass, RepresentativeLinkBudget>> {
+  const byOrbit: Partial<Record<OrbitClass, RepresentativeLinkBudget>> = {};
+  for (const orbitClass of sharedSupportedOrbits) {
+    const windowsForOrbit = visibilityWindows.filter(
+      (window) => window.orbitClass === orbitClass
+    );
+    if (windowsForOrbit.length === 0) {
+      continue;
+    }
+    const dominant = windowsForOrbit.reduce((best, candidate) => {
+      const bestDuration = pairVisibilityDurationMs(best);
+      const candidateDuration = pairVisibilityDurationMs(candidate);
+      if (candidateDuration > bestDuration) {
+        return candidate;
+      }
+      if (
+        candidateDuration === bestDuration &&
+        candidate.satelliteId.localeCompare(best.satelliteId) < 0
+      ) {
+        return candidate;
+      }
+      return best;
+    });
+    const startMs = Date.parse(dominant.intersectionStartUtc);
+    const endMs = Date.parse(dominant.intersectionEndUtc);
+    const sampleMs =
+      Number.isFinite(startMs) && Number.isFinite(endMs)
+        ? Math.round((startMs + endMs) / 2)
+        : startMs;
+    const details = computeLinkBudgetDetailsAtSample(
+      dominant,
+      sampleMs,
+      geometry,
+      rainRateMmPerHour,
+      fallbackStationHeightAboveSeaKm,
+      fallbackStationLatitudeDeg
+    );
+    const satrec = geometry.satrecById.get(dominant.satelliteId);
+    const instantaneous = satrec
+      ? computeInstantaneousSatelliteGeometry(
+          satrec,
+          geometry.stationAEcef,
+          geometry.stationBEcef,
+          new Date(sampleMs)
+        )
+      : null;
+    byOrbit[orbitClass] = {
+      orbitClass,
+      representativeElevationDeg: details.representativeElevationDeg,
+      satelliteAltitudeKm: roundMetric(details.satelliteRadiusKm - EARTH_RADIUS_KM),
+      satelliteRadiusKm: details.satelliteRadiusKm,
+      slantRangeKm: details.slantRangeKm,
+      carrierFrequencyGHz:
+        ORBIT_CLASS_CARRIER_DEFAULTS[orbitClass].carrierFrequencyGHz,
+      freeSpacePathLossDb: details.freeSpacePathLossDb,
+      gasAbsorptionDb: details.gasAbsorptionDb,
+      rainAttenuationDb: details.rainAttenuationDb,
+      rainBindingStation: details.rainBindingStation,
+      totalPathLossDb: details.totalPathLossDb,
+      combinedAntennaGainDb: details.combinedAntennaGainDb,
+      receivedPowerProxyDbm: details.receivedPowerProxyDbm,
+      latencyMs: details.latencyMs,
+      jitterMs: details.jitterMs,
+      illustrativeThroughputMbps: details.networkSpeedMbps,
+      rainEndpoints: buildRepresentativeRainEndpoints(
+        geometry,
+        instantaneous,
+        rainRateMmPerHour,
+        orbitClass
+      ),
+      geometrySource: details.geometrySource,
+      representativeSatelliteId: dominant.satelliteId,
+      representativeSampleUtc: new Date(sampleMs).toISOString()
+    };
+  }
+  return byOrbit;
+}
+
+function buildRepresentativeRainEndpoints(
+  geometry: HandoverSampleGeometry,
+  instantaneous: InstantaneousSatelliteGeometry | null,
+  rainRateMmPerHour: number,
+  orbitClass: OrbitClass
+): ReadonlyArray<RepresentativeRainEndpoint> {
+  const carrierFrequencyGHz =
+    ORBIT_CLASS_CARRIER_DEFAULTS[orbitClass].carrierFrequencyGHz;
+  const endpoints: Array<{
+    readonly stationLabel: "A" | "B";
+    readonly latitudeDeg: number;
+    readonly heightAboveSeaKm: number;
+    readonly elevationDeg: number;
+  }> = [
+    {
+      stationLabel: "A",
+      latitudeDeg: geometry.stationALatitudeDeg,
+      heightAboveSeaKm: geometry.stationAHeightAboveSeaKm,
+      elevationDeg: instantaneous?.elevationStationADeg ?? REPRESENTATIVE_ELEVATION_DEG
+    },
+    {
+      stationLabel: "B",
+      latitudeDeg: geometry.stationBLatitudeDeg,
+      heightAboveSeaKm: geometry.stationBHeightAboveSeaKm,
+      elevationDeg: instantaneous?.elevationStationBDeg ?? REPRESENTATIVE_ELEVATION_DEG
+    }
+  ];
+  return endpoints.map((endpoint) => ({
+    stationLabel: endpoint.stationLabel,
+    latitudeDeg: roundMetric(endpoint.latitudeDeg),
+    heightAboveSeaKm: roundMetric(endpoint.heightAboveSeaKm),
+    elevationDeg: roundMetric(endpoint.elevationDeg),
+    rainAttenuationDb: roundMetric(
+      computeRainAttenuationForCarrierDb({
+        rainRateMmPerHour,
+        carrierFrequencyGHz,
+        elevationDeg: normalizeElevationDeg(endpoint.elevationDeg),
+        stationHeightAboveSeaKm: endpoint.heightAboveSeaKm,
+        stationLatitudeDeg: endpoint.latitudeDeg
+      })
+    )
+  }));
+}
+
 function toLivePolicyCandidate(
   window: PairVisibilityWindow,
   details: LinkBudgetDetails,
@@ -891,8 +1248,10 @@ function deriveHandoverEventsAtSampleStep(
 
     const linkBudgetRows = visibleAtSample.map((w) => ({
       window: w,
-      details: computeLinkBudgetDetailsForWindow(
+      details: computeLinkBudgetDetailsAtSample(
         w,
+        t,
+        options.geometry,
         options.rainRateMmPerHour,
         options.stationHeightAboveSeaKm,
         options.stationLatitudeDeg
@@ -1197,6 +1556,29 @@ export function computeRuntimeProjection(
     cappedRecords
   );
 
+  // F1/F2/F3 (WS-F): geometry inputs for per-sample re-propagation in the link
+  // budget. satrecs are built once from the capped, orbit-filtered records that
+  // can actually appear in a mutual-visibility window.
+  const handoverSatrecById = new Map<
+    string,
+    Parameters<typeof computeInstantaneousSatelliteGeometry>[0]
+  >();
+  for (const record of cappedRecords) {
+    const { satrec } = createRuntimeSatrec(record);
+    if (satrec) {
+      handoverSatrecById.set(record.satelliteId, satrec);
+    }
+  }
+  const handoverGeometry: HandoverSampleGeometry = {
+    satrecById: handoverSatrecById,
+    stationAEcef: stationToEcefKm(toStationGeodetic(input.stationA)),
+    stationBEcef: stationToEcefKm(toStationGeodetic(input.stationB)),
+    stationALatitudeDeg: input.stationA.lat,
+    stationBLatitudeDeg: input.stationB.lat,
+    stationAHeightAboveSeaKm: input.stationA.elevationM / 1000,
+    stationBHeightAboveSeaKm: input.stationB.elevationM / 1000
+  };
+
   const { handoverEvents, totalCommunicatingMs, byOrbitMs } =
     deriveHandoverEventsAtSampleStep(
       visibilityWindows,
@@ -1209,9 +1591,19 @@ export function computeRuntimeProjection(
         policy: handoverPolicy,
         rainRateMmPerHour,
         stationHeightAboveSeaKm: pairMidpointHeightAboveSeaKm,
-        stationLatitudeDeg: pairMidpointLatitudeDeg
+        stationLatitudeDeg: pairMidpointLatitudeDeg,
+        geometry: handoverGeometry
       }
     );
+
+  const representativeLinkBudgetByOrbit = buildRepresentativeLinkBudgetByOrbit(
+    visibilityWindows,
+    sharedSupportedOrbits,
+    rainRateMmPerHour,
+    handoverGeometry,
+    pairMidpointHeightAboveSeaKm,
+    pairMidpointLatitudeDeg
+  );
 
   const meanLinkDwellMs =
     handoverEvents.length === 0
@@ -1291,6 +1683,7 @@ export function computeRuntimeProjection(
     visibilityWindows,
     handoverEvents,
     communicationStats,
+    representativeLinkBudgetByOrbit,
     truthBoundary,
     dataCompleteness
   };

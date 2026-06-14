@@ -1,8 +1,8 @@
 {
-  "statusDate": "2026-06-14",
+  "statusDate": "2026-06-15",
   "generatedBy": "npm run test:m8a-v4.11:slice5",
-  "generatedAtUtc": "2026-06-14T09:15:38.468Z",
-  "regenerationNote": "Report HTML + CSV regenerated 2026-06-14 from refreshed CelesTrak TLE (1258 loaded actors: 651 OneWeb LEO + 33 Galileo MEO + 574 GEO group; was 663). Mutually-visible selected-pair actor rows rose to 63 (visibility windows 64), driven by the GEO group growth (30 hand-curated -> 574 full geostationary catalog); TLE rows 3, requirement rows 34, station rows 2 unchanged. The prior 2026-06-13 regeneration applied public data-gap closure (TLE timestamp display, retained CWA local rain statistic, selected-pair Copernicus DEM elevation/terrain mask, S.1528/S.465 antenna modeling with assumed Tier-B parameters); those numeric changes (terrain thresholds, antenna off-axis derating) remain.",
+  "generatedAtUtc": "2026-06-14T21:25:39.324Z",
+  "regenerationNote": "Report HTML + CSV regenerated 2026-06-15 after the WS-F model-fidelity change: the per-sample link budget now uses the SGP4-propagated satellite geocentric radius for slant range and the instantaneous per-station elevation, and rain attenuation binds to the worse of the two stations at its own latitude/height. Mutual-visibility geometry is unchanged (visibility windows 64, actor rows 63, TLE rows 3, requirement rows 34, station rows 2) because window membership is gated by elevation geometry only; the handover sequence re-ranked among same-orbit GEO candidates (for example ABS-2 now binds where BEIDOU-2 IGSO-4 / UFO 11 did before), and a route-representative per-orbit link budget is now surfaced on the projection result. Per-orbit network-snapshot inventory now reads the synced runtime manifest (651 / 33 / 574). All link-budget magnitudes remain modeled / standards-derived; throughput is an illustrative capacity proxy and the received-power value is a relative proxy (EIRP is not available).",
   "projectionRoute": "/?stationA=cht-yangmingshan&stationB=sansa-hartebeesthoek&startUtc=2026-05-17T00%3A00%3A00.000Z&durationMinutes=360",
   "sourceTier": "geometric-derived",
   "evidenceKind": "cross-family-geometric",
@@ -36,20 +36,20 @@
     {
       "path": "runtime-projection-evidence-cht-yangmingshan-sansa-hartebeesthoek-20260517T000000Z-360m.html",
       "role": "readable evidence report",
-      "sizeBytes": 1646168,
-      "sha256": "05bf3293c0cb878d4ac373c2cbb89c86139472f2341c60ac3c3f058e4a9e2fd1"
+      "sizeBytes": 1657206,
+      "sha256": "14143135de816fdad2e8b15ec8ed90074b435ac8afcef190cb073f1e1450ea53"
     },
     {
       "path": "runtime-projection-cht-yangmingshan-sansa-hartebeesthoek-20260517T000000Z-360m.csv",
       "role": "row-level CSV export",
-      "sizeBytes": 104776,
-      "sha256": "0c1331963c09daf61e29c2e1be7e9cb459cd07f29bb4485051e8f54a9b273ccd"
+      "sizeBytes": 104747,
+      "sha256": "e07359f8cff094718eacdf796931981939fce0b34e064009dfefcfe138101a6d"
     },
     {
       "path": "smoke-manifest.output.json",
       "role": "original smoke manifest copied from ignored output",
       "sizeBytes": 1132,
-      "sha256": "f81d0d51e72e81d0266b847d97e23cd5d63990e16dd25621922cd45788d62d71"
+      "sha256": "77b77e9484cd4150920f64edc9c9ae9b6e17e25ac6c74c7719f7053f62e585ce"
     },
     {
       "path": "external-source-reconciliation.md",

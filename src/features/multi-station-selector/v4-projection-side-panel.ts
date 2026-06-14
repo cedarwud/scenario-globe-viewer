@@ -14,6 +14,7 @@ import {
   parseRuntimeOrbitSources,
   resolveRuntimeHandoverPolicyId,
   SELECTED_PAIR_DEMO_HANDOVER_POLICY_ID,
+  type LinkBudgetMetricOptions,
   type RuntimeHandoverPolicyId,
   type RuntimeProjectionResult
 } from "./runtime-projection";
@@ -820,6 +821,39 @@ function computeProjectionPairMidpointHeightAboveSeaKm(
 }
 
 /**
+ * WS-F display path: price the per-orbit link budget at the route's actual
+ * representative geometry (SGP4-propagated satellite radius + instantaneous
+ * per-station elevation + per-station rain endpoints) instead of the fixed
+ * 35 deg / nominal-altitude / pair-midpoint-latitude placeholder. Falls back to
+ * the pair-midpoint height when no propagated representative budget is available
+ * for that orbit (e.g. no mutual-visibility window).
+ */
+function resolveRouteGeometryLinkBudgetOptions(
+  result: RuntimeProjectionResult,
+  orbit: OrbitClass,
+  fallbackStationHeightAboveSeaKm: number
+): LinkBudgetMetricOptions {
+  const representative = result.representativeLinkBudgetByOrbit[orbit];
+  if (
+    !representative ||
+    representative.geometrySource !== "sgp4-propagated-representative"
+  ) {
+    return { stationHeightAboveSeaKm: fallbackStationHeightAboveSeaKm };
+  }
+  return {
+    representativeElevationDeg: representative.representativeElevationDeg,
+    satelliteRadiusKm: representative.satelliteRadiusKm,
+    stationHeightAboveSeaKm: fallbackStationHeightAboveSeaKm,
+    rainEndpoints: representative.rainEndpoints.map((endpoint) => ({
+      stationLabel: endpoint.stationLabel,
+      latitudeDeg: endpoint.latitudeDeg,
+      heightAboveSeaKm: endpoint.heightAboveSeaKm,
+      elevationDeg: endpoint.elevationDeg
+    }))
+  };
+}
+
+/**
  * Per-orbit downlink-throughput contrast. `computeLinkBudgetMetricsForOrbit`
  * runs the same ITU-R P.618-14 model the projection uses; pricing it at
  * 0 mm/h vs the current rate makes the rain fade visible even when the
@@ -838,13 +872,18 @@ function buildRainSpeedComparison(
   for (const orbit of ORBIT_DISPLAY_ORDER.filter((orbitClass) =>
     allowedOrbits.has(orbitClass)
   )) {
-    const clear = computeLinkBudgetMetricsForOrbit(orbit, {
-      rainRateMmPerHour: 0,
+    const routeGeometry = resolveRouteGeometryLinkBudgetOptions(
+      result,
+      orbit,
       stationHeightAboveSeaKm
+    );
+    const clear = computeLinkBudgetMetricsForOrbit(orbit, {
+      ...routeGeometry,
+      rainRateMmPerHour: 0
     });
     const wet = computeLinkBudgetMetricsForOrbit(orbit, {
-      rainRateMmPerHour,
-      stationHeightAboveSeaKm
+      ...routeGeometry,
+      rainRateMmPerHour
     });
     const dropFraction =
       clear.networkSpeedMbps > 0
@@ -1903,8 +1942,8 @@ function computeClearSkyThroughputByOrbit(
       continue;
     }
     values[orbit] = computeLinkBudgetMetricsForOrbit(orbit, {
-      rainRateMmPerHour: 0,
-      stationHeightAboveSeaKm
+      ...resolveRouteGeometryLinkBudgetOptions(result, orbit, stationHeightAboveSeaKm),
+      rainRateMmPerHour: 0
     }).networkSpeedMbps;
   }
   return values;

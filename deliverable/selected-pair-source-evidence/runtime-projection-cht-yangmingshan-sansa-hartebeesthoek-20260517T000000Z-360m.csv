@@ -93,10 +93,10 @@ BEIDOU-2 IGSO-7,GEO,2026-05-17T01:06:53.251Z,2026-05-17T01:38:07.891Z,1874640
 handoverAtUtc,fromSatelliteId,toSatelliteId,reasonKind
 2026-05-17T00:00:00.000Z,,ABS-2,current-link-unavailable
 2026-05-17T00:39:30.000Z,ABS-2,GSAT0220 (GALILEO 24),cross-orbit-migration
-2026-05-17T01:24:30.000Z,GSAT0220 (GALILEO 24),BEIDOU-2 IGSO-4,cross-orbit-migration
-2026-05-17T02:20:00.000Z,BEIDOU-2 IGSO-4,ABS-2A (MONGOLSAT-1),current-link-unavailable
+2026-05-17T01:24:30.000Z,GSAT0220 (GALILEO 24),ABS-2,cross-orbit-migration
+2026-05-17T02:06:00.000Z,ABS-2,ABS-2A (MONGOLSAT-1),current-link-unavailable
 2026-05-17T05:00:00.000Z,ABS-2A (MONGOLSAT-1),GSAT0215 (GALILEO 19),cross-orbit-migration
-2026-05-17T05:45:00.000Z,GSAT0215 (GALILEO 19),UFO 11 (USA 174),cross-orbit-migration
+2026-05-17T05:45:00.000Z,GSAT0215 (GALILEO 19),ABS-2,cross-orbit-migration
 
 # Non-claims
 nonClaim
@@ -311,9 +311,9 @@ GEO,60,574,true
 
 # Runtime inventory disclosure
 orbitClass,inventorySourceMode,networkSnapshotInventoryCount,localFallbackInventoryCount,localFallbackInventoryNote,activeInventoryCount,acceptedRecordCount,runtimeCap,cappedAtRuntime,visibleActorCount
-LEO,network-snapshot,600,,Separate local fallback inventory is not loaded beside the active runtime source in this disclosure slice.,651,200,200,true,0
+LEO,network-snapshot,651,,Separate local fallback inventory is not loaded beside the active runtime source in this disclosure slice.,651,200,200,true,0
 MEO,network-snapshot,33,,Separate local fallback inventory is not loaded beside the active runtime source in this disclosure slice.,33,33,100,false,3
-GEO,network-snapshot,30,,Separate local fallback inventory is not loaded beside the active runtime source in this disclosure slice.,574,60,60,true,60
+GEO,network-snapshot,574,,Separate local fallback inventory is not loaded beside the active runtime source in this disclosure slice.,574,60,60,true,60
 
 # Metric anchor disclosure
 field,value
@@ -341,7 +341,7 @@ fakeActorCount,0
 visibilityCadenceSecondsByOrbit,"{""LEO"":30,""MEO"":60,""GEO"":120}"
 capDisclosure,"{""perOrbitCap"":{""LEO"":200,""MEO"":100,""GEO"":60},""perOrbitInventory"":{""LEO"":651,""MEO"":33,""GEO"":574},""cappedAtRuntime"":{""LEO"":true,""MEO"":false,""GEO"":true}}"
 pairSourceAttribution,"{""sourceTier"":""geometric-derived"",""evidenceKind"":""cross-family-geometric"",""badgeLabel"":""Geometric pair · visibility-derived only"",""nonClaims"":[""Pair derivable from public station coordinates and satellite ephemerides only. No operator or contractual attestation.""]}"
-runtimeInventoryDisclosure,"{""perOrbit"":{""LEO"":{""orbitClass"":""LEO"",""inventorySourceMode"":""network-snapshot"",""networkSnapshotInventoryCount"":600,""localFallbackInventoryCount"":null,""localFallbackInventoryNote"":""Separate local fallback inventory is not loaded beside the active runtime source in this disclosure slice."",""activeInventoryCount"":651,""acceptedRecordCount"":200,""runtimeCap"":200,""cappedAtRuntime"":true,""visibleActorCount"":0},""MEO"":{""orbitClass"":""MEO"",""inventorySourceMode"":""network-snapshot"",""networkSnapshotInventoryCount"":33,""localFallbackInventoryCount"":null,""localFallbackInventoryNote"":""Separate local fallback inventory is not loaded beside the active runtime source in this disclosure slice."",""activeInventoryCount"":33,""acceptedRecordCount"":33,""runtimeCap"":100,""cappedAtRuntime"":false,""visibleActorCount"":3},""GEO"":{""orbitClass"":""GEO"",""inventorySourceMode"":""network-snapshot"",""networkSnapshotInventoryCount"":30,""localFallbackInventoryCount"":null,""localFallbackInventoryNote"":""Separate local fallback inventory is not loaded beside the active runtime source in this disclosure slice."",""activeInventoryCount"":574,""acceptedRecordCount"":60,""runtimeCap"":60,""cappedAtRuntime"":true,""visibleActorCount"":60}},""note"":""Network snapshot inventory, active runtime inventory, accepted records, runtime cap, and visible actor count are separate counts.""}"
+runtimeInventoryDisclosure,"{""perOrbit"":{""LEO"":{""orbitClass"":""LEO"",""inventorySourceMode"":""network-snapshot"",""networkSnapshotInventoryCount"":651,""localFallbackInventoryCount"":null,""localFallbackInventoryNote"":""Separate local fallback inventory is not loaded beside the active runtime source in this disclosure slice."",""activeInventoryCount"":651,""acceptedRecordCount"":200,""runtimeCap"":200,""cappedAtRuntime"":true,""visibleActorCount"":0},""MEO"":{""orbitClass"":""MEO"",""inventorySourceMode"":""network-snapshot"",""networkSnapshotInventoryCount"":33,""localFallbackInventoryCount"":null,""localFallbackInventoryNote"":""Separate local fallback inventory is not loaded beside the active runtime source in this disclosure slice."",""activeInventoryCount"":33,""acceptedRecordCount"":33,""runtimeCap"":100,""cappedAtRuntime"":false,""visibleActorCount"":3},""GEO"":{""orbitClass"":""GEO"",""inventorySourceMode"":""network-snapshot"",""networkSnapshotInventoryCount"":574,""localFallbackInventoryCount"":null,""localFallbackInventoryNote"":""Separate local fallback inventory is not loaded beside the active runtime source in this disclosure slice."",""activeInventoryCount"":574,""acceptedRecordCount"":60,""runtimeCap"":60,""cappedAtRuntime"":true,""visibleActorCount"":60}},""note"":""Network snapshot inventory, active runtime inventory, accepted records, runtime cap, and visible actor count are separate counts.""}"
 metricAnchorDisclosure,"{""carrierSelection"":""orbit-class-default"",""antennaModel"":""S.1528/S.465-6 assumed Tier-B per-orbit antenna pattern"",""antennaParameterSource"":""assumed-tier-b-antenna-params-selected-pair-v1"",""capacityModel"":""clear-sky-reference-with-atmospheric-and-assumed-antenna-derating"",""jitterModel"":""orbit-baseline-with-rain-scale"",""delayModel"":""slant-range-one-way-plus-fixed-processing"",""activePolicyId"":""demo-balanced-v1"",""policyThresholds"":{""latencyBudgetMs"":600,""hysteresisDb"":2,""minVisibilityWindowMs"":60000,""elevationThresholdDeg"":10},""nonClaim"":""Metric anchors are model labels and policy controls, not measured throughput, jitter, latency, routing, SLA, or station RF hardware truth.""}"
 activePolicyId,demo-balanced-v1
 policyDisclosureThresholds,"{""latencyBudgetMs"":600,""hysteresisDb"":2,""minVisibilityWindowMs"":60000,""elevationThresholdDeg"":10}"

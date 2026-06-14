@@ -74,3 +74,62 @@ test("missing elevation falls back to the representative default without throwin
   const m = computeLinkBudgetMetricsForOrbit("LEO", {});
   assert.ok(Number.isFinite(m.latencyMs) && Number.isFinite(m.jitterMs) && Number.isFinite(m.networkSpeedMbps));
 });
+
+// --- WS-F coverage -----------------------------------------------------------
+// The goldens above (4.974 / 129.35 / 44.009) intentionally pin the NOMINAL
+// closed form: the calls omit satelliteRadiusKm, so the slant-range geometry
+// falls back to Re + nominal class altitude. WS-F adds an OPTIONAL propagated
+// geocentric radius (F1) and per-station rain endpoints (F3); these tests cover
+// those new inputs without disturbing the nominal-fallback regression locks.
+
+test("F1: supplying the SGP4-propagated geocentric radius drives slant range / one-way delay", () => {
+  const radiusKm = EARTH_RADIUS_KM + 1200; // a non-nominal LEO altitude (550 nominal)
+  const m = computeLinkBudgetMetricsForOrbit("LEO", {
+    representativeElevationDeg: 35,
+    rainRateMmPerHour: 0,
+    satelliteRadiusKm: radiusKm,
+  });
+  const e = (35 * Math.PI) / 180;
+  const expectedSlant = Math.sqrt(radiusKm * radiusKm - (EARTH_RADIUS_KM * Math.cos(e)) ** 2) - EARTH_RADIUS_KM * Math.sin(e);
+  const expectedLatency = (expectedSlant / C_KM_S) * 1000 + PROCESSING_DELAY_MS;
+  assert.ok(Math.abs(m.latencyMs - expectedLatency) < 5e-3, `propagated-radius latency ${m.latencyMs} vs ${expectedLatency}`);
+  const nominal = computeLinkBudgetMetricsForOrbit("LEO", { representativeElevationDeg: 35 });
+  assert.ok(m.latencyMs > nominal.latencyMs, "a 1200 km satellite is farther than the 550 km nominal LEO");
+});
+
+test("F1: a radius at or below Earth radius is ignored and the nominal altitude is used", () => {
+  const nominal = computeLinkBudgetMetricsForOrbit("LEO", { representativeElevationDeg: 35 });
+  const ignored = computeLinkBudgetMetricsForOrbit("LEO", { representativeElevationDeg: 35, satelliteRadiusKm: 1000 });
+  assert.equal(ignored.latencyMs, nominal.latencyMs);
+});
+
+test("F3: per-station rain endpoints bind to the worse (more-attenuated) station", () => {
+  const base = { representativeElevationDeg: 30, rainRateMmPerHour: 50, stationHeightAboveSeaKm: 0 };
+  const tropical = computeLinkBudgetMetricsForOrbit("GEO", { ...base, stationLatitudeDeg: 0 });
+  const polar = computeLinkBudgetMetricsForOrbit("GEO", { ...base, stationLatitudeDeg: 60 });
+  // The two latitudes must produce a genuinely different rain attenuation, else
+  // the binding test would be vacuous.
+  assert.notEqual(tropical.networkSpeedMbps, polar.networkSpeedMbps);
+  const worseThroughput = Math.min(tropical.networkSpeedMbps, polar.networkSpeedMbps);
+  const bound = computeLinkBudgetMetricsForOrbit("GEO", {
+    ...base,
+    rainEndpoints: [
+      { stationLabel: "A", latitudeDeg: 0, heightAboveSeaKm: 0, elevationDeg: 30 },
+      { stationLabel: "B", latitudeDeg: 60, heightAboveSeaKm: 0, elevationDeg: 30 },
+    ],
+  });
+  assert.ok(
+    Math.abs(bound.networkSpeedMbps - worseThroughput) < 1e-9,
+    `binding endpoint throughput ${bound.networkSpeedMbps} should equal the worse single-station ${worseThroughput}`,
+  );
+  // Clear sky with endpoints: no rain -> back to the clear-sky proxy.
+  const clearBound = computeLinkBudgetMetricsForOrbit("GEO", {
+    representativeElevationDeg: 30,
+    rainRateMmPerHour: 0,
+    rainEndpoints: [
+      { stationLabel: "A", latitudeDeg: 0, heightAboveSeaKm: 0, elevationDeg: 30 },
+      { stationLabel: "B", latitudeDeg: 60, heightAboveSeaKm: 0, elevationDeg: 30 },
+    ],
+  });
+  assert.ok(clearBound.networkSpeedMbps > bound.networkSpeedMbps, "rain must reduce throughput below clear sky");
+});

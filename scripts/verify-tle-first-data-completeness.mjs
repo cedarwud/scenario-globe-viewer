@@ -95,9 +95,15 @@ async function assertCoordinateAuthorityFixtureCoverage() {
 // CelesTrak fixture (public/fixtures/satellites-network). They are compared with
 // a 50% tolerance for the visibility-window count and recorded for the
 // link-selection / handover counts. After an INTENTIONAL `npm run refresh:tle`
-// that materially changes inventory, re-run `TLE_DEBUG=1 npm run verify:tle` to
-// read the new actuals and update these anchors. Last re-baselined 2026-06-14
-// (LEO 651 / MEO 33 / GEO 574 fixture).
+// that materially changes inventory, OR a model-fidelity change that re-ranks
+// handover candidates, re-run `TLE_DEBUG=1 npm run verify:tle` to read the new
+// actuals and update these anchors. Visibility-window counts are unaffected by
+// the link budget (they are gated purely by elevation geometry); only the
+// link-selection / handover counts move when the RSRP ranking changes.
+// Last re-baselined 2026-06-15 after WS-F (SGP4-propagated link-budget geometry):
+// visibility counts unchanged; W1 linkSel 32->19 / handover 31->18 and
+// W4 linkSel 16->14 / handover 15->13 shifted as the propagated per-satellite
+// altitude + instantaneous elevation re-ordered same-class candidates.
 const walkthroughCases = [
   {
     label: "Walkthrough 1 - Svalbard / Tromso ready pair",
@@ -106,8 +112,8 @@ const walkthroughCases = [
     expectedStatus: "ready",
     expectedRuntimeLinkVisible: true,
     baselineVisibilityWindowCount: 779,
-    baselineLinkSelectionEventCount: 32,
-    baselineHandoverCount: 31,
+    baselineLinkSelectionEventCount: 19,
+    baselineHandoverCount: 18,
     expectedStationPrecision: [
       { stationId: "ksat-svalsat-svalbard", elevationM: 0, terrainMaskDeg: 0 },
       { stationId: "ksat-tromso", elevationM: 0, terrainMaskDeg: 0 }
@@ -149,8 +155,8 @@ const walkthroughCases = [
     expectedStatus: "ready",
     expectedRuntimeLinkVisible: true,
     baselineVisibilityWindowCount: 427,
-    baselineLinkSelectionEventCount: 16,
-    baselineHandoverCount: 15,
+    baselineLinkSelectionEventCount: 14,
+    baselineHandoverCount: 13,
     expectedStationPrecision: [
       { stationId: "singtel-bukit-timah", elevationM: 58, terrainMaskDeg: 0 },
       { stationId: "measat-cyberjaya", elevationM: 22, terrainMaskDeg: 0 }
