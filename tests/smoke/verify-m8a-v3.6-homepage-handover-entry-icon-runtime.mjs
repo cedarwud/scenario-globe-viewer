@@ -321,6 +321,22 @@ async function main() {
             const timelinePlaceholder = document.querySelector(
               "[data-time-placeholder='true']"
             );
+            const statusPanelComputedVisibility =
+              statusPanel instanceof HTMLElement
+                ? getComputedStyle(statusPanel).visibility
+                : null;
+            const statusPanelComputedOpacity =
+              statusPanel instanceof HTMLElement
+                ? Number.parseFloat(getComputedStyle(statusPanel).opacity)
+                : null;
+            const leoActorCountChip = document.querySelector(
+              "[data-leo-actor-count-chip='true']"
+            );
+            const tleTelemetryChip = document.querySelector(
+              "[data-tle-telemetry-chip='true']"
+            );
+            const viewerMode =
+              document.documentElement.dataset.viewerMode ?? null;
             const statusRect = rectToPlain(statusPanel);
 
             assert(capture, "Missing runtime capture seam on bare /.");
@@ -338,18 +354,42 @@ async function main() {
                 v4Entry instanceof HTMLAnchorElement,
               "Homepage must not expose the historical V3.6 aviation handover icon; the V4 entry remains the visible product entry."
             );
-            assert(
+            // Post-redesign IA (59349b0 + 2026-05-30 governance): the operator
+            // status HUD mounts in status-only mode on bare / and is visually
+            // suppressed via data-viewer-mode="clean-home" (visibility:hidden +
+            // opacity:0, NOT display:none), so the status panel keeps a non-zero
+            // layout box. The pre-IA legacy path (display:none via
+            // hudVisibility="hidden" with width/height=0) remains an accepted
+            // alternative. The user-visible truth — no bottom status HUD on the
+            // bare homepage — holds in either path. Mirrors
+            // verify-m8a-v4.4-homepage-ground-station-entry-runtime.mjs.
+            const hudSuppressedLegacy =
               hudFrame instanceof HTMLElement &&
-                hudFrame.dataset.hudVisibility === "hidden" &&
-                timelinePlaceholder === null &&
-                statusRect &&
-                statusRect.width === 0 &&
-                statusRect.height === 0,
+              hudFrame.dataset.hudVisibility === "hidden" &&
+              timelinePlaceholder === null &&
+              statusRect &&
+              statusRect.width === 0 &&
+              statusRect.height === 0;
+            const hudSuppressedCleanHome =
+              hudFrame instanceof HTMLElement &&
+              hudFrame.dataset.hudVisibility === "status-only" &&
+              viewerMode === "clean-home" &&
+              statusPanelComputedVisibility === "hidden" &&
+              statusPanelComputedOpacity === 0 &&
+              leoActorCountChip instanceof HTMLElement &&
+              tleTelemetryChip instanceof HTMLElement;
+            assert(
+              hudSuppressedLegacy || hudSuppressedCleanHome,
               "Homepage must not show the default bottom HUD while V3.6 remains direct-route only: " +
                 JSON.stringify({
                   hudVisibility: hudFrame?.dataset?.hudVisibility,
                   hasTimelinePlaceholder: timelinePlaceholder !== null,
-                  statusRect
+                  statusRect,
+                  viewerMode,
+                  statusPanelComputedVisibility,
+                  statusPanelComputedOpacity,
+                  hasLeoActorCountChip: leoActorCountChip !== null,
+                  hasTleTelemetryChip: tleTelemetryChip !== null
                 })
             );
 

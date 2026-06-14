@@ -13,6 +13,10 @@ const bootstrapOperatorControllerPath = new URL(
   "../src/runtime/bootstrap-operator-controller.ts",
   import.meta.url
 );
+const bootstrapOperatorContractPath = new URL(
+  "../src/features/operator/bootstrap-operator-contract.ts",
+  import.meta.url
+);
 const bootstrapScenarioSessionPath = new URL(
   "../src/runtime/scenario-bootstrap-session.ts",
   import.meta.url
@@ -42,10 +46,15 @@ function transpileTypeScript(source, fileName) {
 }
 
 function localizeControllerImports(source) {
-  return source.replace(
-    /from "\.\.\/features\/handover-decision"/g,
-    'from "./handover-decision.mjs"'
-  );
+  return source
+    .replace(
+      /from "\.\.\/features\/handover-decision"/g,
+      'from "./handover-decision.mjs"'
+    )
+    .replace(
+      /from "\.\.\/features\/operator\/bootstrap-operator-contract"/g,
+      'from "./bootstrap-operator-contract.mjs"'
+    );
 }
 
 function resolveScenarioInputs(definition) {
@@ -129,6 +138,7 @@ try {
   const [
     bootstrapScenarioSource,
     bootstrapOperatorControllerSource,
+    bootstrapOperatorContractSource,
     bootstrapScenarioSessionSource,
     bootstrapOperatorHudSource,
     mainSource,
@@ -137,6 +147,7 @@ try {
   ] = await Promise.all([
     readFile(bootstrapScenarioModulePath, "utf8"),
     readFile(bootstrapOperatorControllerPath, "utf8"),
+    readFile(bootstrapOperatorContractPath, "utf8"),
     readFile(bootstrapScenarioSessionPath, "utf8"),
     readFile(bootstrapOperatorHudPath, "utf8"),
     readFile(mainPath, "utf8"),
@@ -159,9 +170,24 @@ try {
     );
   }
 
-  const requiredControllerSnippets = [
+  // BOOTSTRAP_REPLAY_SPEED_PRESETS + BootstrapOperatorControllerState were
+  // extracted into bootstrap-operator-contract.ts by the f828f09 "split large
+  // viewer surfaces" refactor; assert their declarations there and assert the
+  // controller still re-exports the bounded-preset constant.
+  const requiredContractSnippets = [
     "export const BOOTSTRAP_REPLAY_SPEED_PRESETS = [",
-    "export interface BootstrapOperatorControllerState {",
+    "export interface BootstrapOperatorControllerState {"
+  ];
+
+  for (const snippet of requiredContractSnippets) {
+    assert(
+      bootstrapOperatorContractSource.includes(snippet),
+      `Missing bootstrap operator contract snippet: ${snippet}`
+    );
+  }
+
+  const requiredControllerSnippets = [
+    "BOOTSTRAP_REPLAY_SPEED_PRESETS",
     "selectScenarioPreset(",
     "selectReplayMode(",
     "selectReplaySpeed(",
@@ -219,6 +245,13 @@ try {
     writeFile(
       join(tempModuleDir, "handover-decision.mjs"),
       transpileTypeScript(handoverDecisionSource, "handover-decision.ts")
+    ),
+    writeFile(
+      join(tempModuleDir, "bootstrap-operator-contract.mjs"),
+      transpileTypeScript(
+        bootstrapOperatorContractSource,
+        "bootstrap-operator-contract.ts"
+      )
     ),
     writeFile(
       join(tempModuleDir, "bootstrap-operator-controller.mjs"),

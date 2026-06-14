@@ -507,17 +507,30 @@ async function main() {
                 rootData.firstIntakeSatcomContextOverlayState === undefined,
               "Default route must not publish R1V visual telemetry."
             );
+            const alwaysVisibleHudKeys = ["status", "time", "communication"];
             assert(
               hudFrame?.dataset?.r1vVisualAcceptanceHudCleanup === undefined &&
-                Object.values(hudStates).every(
-                  (panel) =>
-                    panel.mounted &&
-                    panel.hidden === false &&
-                    panel.rect.width > 0 &&
-                    panel.rect.height > 0 &&
-                    panel.cleanupReason === null
+                alwaysVisibleHudKeys.every(
+                  (key) =>
+                    hudStates[key].mounted &&
+                    hudStates[key].hidden === false &&
+                    hudStates[key].rect.width > 0 &&
+                    hudStates[key].rect.height > 0 &&
+                    hudStates[key].cleanupReason === null
                 ),
               "Default route bootstrap HUD behavior must remain unchanged and visible."
+            );
+            // D-03.S1 status-panel containment (b4ae72a) deliberately moved
+            // physical input into the collapsed-by-default "boundary & physical"
+            // disclosure (.operator-status-hud__telemetry-secondary[hidden]), so
+            // on the default route it is mounted but collapsed (zero box) with no
+            // R1V cleanup applied.
+            assert(
+              hudStates.physical.mounted &&
+                hudStates.physical.rect.width === 0 &&
+                hudStates.physical.rect.height === 0 &&
+                hudStates.physical.cleanupReason === null,
+              "Default route physical-input panel must stay mounted but collapsed behind the boundary & physical disclosure."
             );
             assert(
               cameraButtons.length === 0,

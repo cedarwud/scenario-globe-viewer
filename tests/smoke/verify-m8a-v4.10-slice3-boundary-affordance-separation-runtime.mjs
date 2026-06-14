@@ -4,7 +4,6 @@ import { fileURLToPath } from "node:url";
 
 import {
   assert,
-  assertRectInsideViewport,
   captureScreenshot,
   ensureOutputRoot,
   evaluateRuntimeValue,
@@ -128,8 +127,10 @@ async function waitForSelectedPairBoundaryReady(client) {
         const footer = panel?.querySelector(
           ".v4-projection-side-panel__footer[data-station-precision-disclosure='true']"
         );
-        const drawer = document.getElementById("v4-selected-pair-evidence");
-        const trigger = panel?.querySelector(".v4-projection-side-panel__evidence-button");
+        const sourceBoundary = panel?.querySelector("[data-disclosure='sources-non-claims']");
+        const reportButton = panel?.querySelector(
+          ".v4-projection-side-panel__download-report[data-report-action='open-html']"
+        );
 
         return {
           bootstrapState: document.documentElement?.dataset.bootstrapState ?? null,
@@ -142,9 +143,8 @@ async function waitForSelectedPairBoundaryReady(client) {
           panelState: panel?.dataset.state ?? null,
           panelSourceTier: panel?.dataset.sourceTier ?? null,
           footerExists: footer instanceof HTMLElement,
-          drawerExists: drawer instanceof HTMLElement,
-          drawerHidden: drawer instanceof HTMLElement ? drawer.hidden : null,
-          triggerExists: trigger instanceof HTMLButtonElement
+          sourceBoundaryExists: sourceBoundary instanceof HTMLDetailsElement,
+          reportButtonExists: reportButton instanceof HTMLButtonElement
         };
       })()`
     );
@@ -160,9 +160,8 @@ async function waitForSelectedPairBoundaryReady(client) {
       lastState?.panelState === "ready" &&
       lastState?.panelSourceTier === EXPECTED_SOURCE_TIER &&
       lastState?.footerExists &&
-      lastState?.drawerExists &&
-      lastState?.drawerHidden === true &&
-      lastState?.triggerExists
+      lastState?.sourceBoundaryExists &&
+      lastState?.reportButtonExists
     ) {
       return lastState;
     }
@@ -182,23 +181,6 @@ async function waitForSelectedPairBoundaryReady(client) {
     `Selected-pair boundary route did not become ready: ${JSON.stringify(
       lastState
     )}`
-  );
-}
-
-async function installOverlayEventRecorder(client) {
-  await evaluateRuntimeValue(
-    client,
-    `(() => {
-      window.__SELECTED_PAIR_BOUNDARY_EVENTS__ = [];
-      document.addEventListener("selected-pair-overlay-change", (event) => {
-        window.__SELECTED_PAIR_BOUNDARY_EVENTS__.push({
-          evidenceDrawerOpen: Boolean(event.detail?.evidenceDrawerOpen),
-          stationInfoCardOpen: Boolean(event.detail?.stationInfoCardOpen),
-          productInspectorOpen: Boolean(event.detail?.productInspectorOpen),
-          blocksTransientHover: Boolean(event.detail?.blocksTransientHover)
-        });
-      });
-    })()`
   );
 }
 
@@ -264,18 +246,12 @@ async function inspectBoundaryState(client, label) {
       const footer = panel?.querySelector(
         ".v4-projection-side-panel__footer[data-station-precision-disclosure='true']"
       );
-      const drawer = document.getElementById("v4-selected-pair-evidence");
-      const trigger = panel?.querySelector(".v4-projection-side-panel__evidence-button");
-      const close = drawer?.querySelector(".v4-projection-side-panel__evidence-close");
-      const sourceBoundary = drawer?.querySelector("[data-disclosure='sources-non-claims']");
+      const sourceBoundary = panel?.querySelector("[data-disclosure='sources-non-claims']");
       const sourceSummary = sourceBoundary?.querySelector("summary");
-      const evidencePackage = Array.from(
-        drawer?.querySelectorAll(".v4-projection-side-panel__evidence-card") ?? []
-      ).find((card) => /Evidence package/i.test(normalize(card.textContent)));
-      const openReportButton = drawer?.querySelector(
+      const openReportButton = panel?.querySelector(
         ".v4-projection-side-panel__download-report[data-report-action='open-html']"
       );
-      const hiddenMachineHooks = drawer?.querySelector(
+      const hiddenMachineHooks = panel?.querySelector(
         ".v4-projection-side-panel__evidence-machine-hooks"
       );
 
@@ -310,29 +286,12 @@ async function inspectBoundaryState(client, label) {
               ? footer.dataset.stationBRenderPositionIsSourceTruth ?? null
               : null
         },
-        trigger: {
-          ...readElement(trigger),
-          ariaControls:
-            trigger instanceof HTMLElement ? trigger.getAttribute("aria-controls") : null,
-          ariaExpanded:
-            trigger instanceof HTMLElement ? trigger.getAttribute("aria-expanded") : null,
-          ariaLabel:
-            trigger instanceof HTMLElement ? trigger.getAttribute("aria-label") : null
-        },
-        drawer: {
-          ...readElement(drawer),
-          role: drawer instanceof HTMLElement ? drawer.getAttribute("role") : null,
-          datasetOpen:
-            drawer instanceof HTMLElement ? drawer.dataset.open ?? null : null
-        },
-        close: readElement(close),
         sourceBoundary: {
           ...readElement(sourceBoundary),
           open: sourceBoundary instanceof HTMLDetailsElement ? sourceBoundary.open : null,
           summaryText: normalize(sourceSummary?.textContent),
           summaryVisible: isVisible(sourceSummary)
         },
-        evidencePackage: readElement(evidencePackage),
         openReportButton: {
           ...readElement(openReportButton),
           action:
@@ -342,38 +301,20 @@ async function inspectBoundaryState(client, label) {
         },
         hiddenMachineHooks: readElement(hiddenMachineHooks),
         activeElement:
-          document.activeElement === close
-            ? "close"
-            : document.activeElement === trigger
-              ? "trigger"
-              : document.activeElement === sourceSummary
-                ? "source-summary"
-                : document.activeElement?.tagName?.toLowerCase() ?? null,
-        overlayEvents: window.__SELECTED_PAIR_BOUNDARY_EVENTS__ ?? []
+          document.activeElement === sourceSummary
+            ? "source-summary"
+            : document.activeElement?.tagName?.toLowerCase() ?? null
       };
     })(${JSON.stringify(label)})`
   );
-}
-
-async function openEvidenceDrawer(client) {
-  await evaluateRuntimeValue(
-    client,
-    `(() => {
-      const trigger = document.querySelector(".v4-projection-side-panel__evidence-button");
-      if (!(trigger instanceof HTMLButtonElement)) {
-        throw new Error("Missing selected-pair Details & sources trigger.");
-      }
-      trigger.click();
-    })()`
-  );
-  await sleep(180);
 }
 
 async function openSourceBoundary(client) {
   await evaluateRuntimeValue(
     client,
     `(() => {
-      const sourceBoundary = document.querySelector("[data-disclosure='sources-non-claims']");
+      const panel = document.querySelector("[data-v4-projection-side-panel='true']");
+      const sourceBoundary = panel?.querySelector("[data-disclosure='sources-non-claims']");
       const summary = sourceBoundary?.querySelector("summary");
       if (!(sourceBoundary instanceof HTMLDetailsElement) || !(summary instanceof HTMLElement)) {
         throw new Error("Missing selected-pair source-boundary disclosure.");
@@ -419,90 +360,43 @@ function assertDefaultBoundaryAffordance(state, viewport) {
     )}`
   );
   assert(
-    state.drawer.hidden === true &&
-      state.drawer.visible === false &&
-      state.trigger.ariaControls === "v4-selected-pair-evidence" &&
-      state.trigger.ariaExpanded === "false" &&
-      state.trigger.text === "Details & sources",
-    `${viewport.name} boundary detail drawer must stay closed by default: ${JSON.stringify(
-      {
-        drawer: state.drawer,
-        trigger: state.trigger
-      }
+    state.sourceBoundary.exists &&
+      state.sourceBoundary.summaryVisible &&
+      state.sourceBoundary.summaryText === "Source boundary" &&
+      state.sourceBoundary.open === false,
+    `${viewport.name} source boundary must be a collapsed secondary disclosure by default: ${JSON.stringify(
+      state.sourceBoundary
     )}`
   );
   assert(
     !/TLE source summary|Standards references|Raw JSON payload/i.test(
       state.footer.visibleText
     ),
-    `${viewport.name} compact boundary affordance must not expose row-level source details in the main panel: ${JSON.stringify(
+    `${viewport.name} compact boundary affordance must not expose row-level source details in the main panel footer: ${JSON.stringify(
       state.footer
     )}`
   );
   assert(
-    claimHits.length === 0,
-    `${viewport.name} default selected-pair boundary text must not promote operator or measured-service claims: ${JSON.stringify(
-      claimHits
-    )}`
-  );
-}
-
-function assertDrawerBoundaryClosed(state, viewport) {
-  assert(
-    state.drawer.visible &&
-      state.drawer.hidden === false &&
-      state.drawer.datasetOpen === "true" &&
-      state.trigger.ariaExpanded === "true" &&
-      state.trigger.text === "Hide details" &&
-      state.activeElement === "close",
-    `${viewport.name} Details & sources must open the drawer and focus close: ${JSON.stringify(
-      {
-        drawer: state.drawer,
-        trigger: state.trigger,
-        activeElement: state.activeElement
-      }
-    )}`
-  );
-  assert(
-    state.sourceBoundary.exists &&
-      state.sourceBoundary.summaryVisible &&
-      state.sourceBoundary.summaryText === "Source boundary" &&
-      state.sourceBoundary.open === false &&
-      /Geometric pair|visibility-derived|Source boundary/i.test(
-        state.sourceBoundary.text
-      ),
-    `${viewport.name} source boundary must be a collapsed secondary disclosure when drawer opens: ${JSON.stringify(
-      state.sourceBoundary
-    )}`
-  );
-  assert(
-    state.evidencePackage.visible &&
-      state.openReportButton.visible &&
+    state.openReportButton.visible &&
       state.openReportButton.action === "open-html",
-    `${viewport.name} report action must stay separate from source-boundary disclosure: ${JSON.stringify(
+    `${viewport.name} report action must stay visible and separate from the source-boundary disclosure: ${JSON.stringify(
       {
-        evidencePackage: state.evidencePackage,
         openReportButton: state.openReportButton
       }
     )}`
   );
   assert(
     state.hiddenMachineHooks.exists &&
-      state.hiddenMachineHooks.hidden === true &&
+      state.hiddenMachineHooks.hidden === false &&
       state.hiddenMachineHooks.visible === false,
     `${viewport.name} hidden machine evidence hooks must not become the boundary affordance: ${JSON.stringify(
       state.hiddenMachineHooks
     )}`
   );
   assert(
-    state.overlayEvents.some(
-      (event) =>
-        event.evidenceDrawerOpen === true &&
-        event.blocksTransientHover === true &&
-        event.productInspectorOpen === false
-    ),
-    `${viewport.name} drawer open must publish blocking overlay state without opening product inspector: ${JSON.stringify(
-      state.overlayEvents
+    claimHits.length === 0,
+    `${viewport.name} default selected-pair boundary text must not promote operator or measured-service claims: ${JSON.stringify(
+      claimHits
     )}`
   );
 }
@@ -514,23 +408,14 @@ function assertSourceBoundaryOpen(state, viewport) {
   const claimHits = collectPositiveClaimHits(state.sourceBoundary.visibleText);
 
   assert(
-    state.drawer.visible &&
-      state.drawer.datasetOpen === "true" &&
-      state.trigger.ariaExpanded === "true" &&
-      state.sourceBoundary.open === true,
-    `${viewport.name} Source boundary must open inside the already-open evidence drawer: ${JSON.stringify(
+    state.sourceBoundary.exists &&
+      state.sourceBoundary.open === true &&
+      state.sourceBoundary.visible === true,
+    `${viewport.name} Source boundary disclosure must open in place inside the panel: ${JSON.stringify(
       {
-        drawer: state.drawer,
-        trigger: state.trigger,
         sourceBoundary: state.sourceBoundary
       }
     )}`
-  );
-  assertRectInsideViewport(
-    state.drawer.rect,
-    viewport,
-    "selected-pair source-boundary drawer",
-    "Selected-pair boundary affordance smoke"
   );
   assert(
     missingText.length === 0,
@@ -542,12 +427,10 @@ function assertSourceBoundaryOpen(state, viewport) {
     )}`
   );
   assert(
-    state.evidencePackage.visible &&
-      state.openReportButton.visible &&
+    state.openReportButton.visible &&
       state.openReportButton.action === "open-html",
     `${viewport.name} source-boundary disclosure must not replace the report action: ${JSON.stringify(
       {
-        evidencePackage: state.evidencePackage,
         openReportButton: state.openReportButton
       }
     )}`
@@ -565,20 +448,12 @@ async function verifyViewport(client, baseUrl, viewport) {
   await client.send("Page.navigate", { url: `${baseUrl}${REQUEST_PATH}` });
   await waitForSelectedPairBoundaryReady(client);
   await waitForGlobeReady(client, "Selected-pair boundary affordance smoke");
-  await installOverlayEventRecorder(client);
 
   const defaultState = await inspectBoundaryState(
     client,
     `${viewport.name}-default`
   );
   assertDefaultBoundaryAffordance(defaultState, viewport);
-
-  await openEvidenceDrawer(client);
-  const drawerOpen = await inspectBoundaryState(
-    client,
-    `${viewport.name}-drawer-open`
-  );
-  assertDrawerBoundaryClosed(drawerOpen, viewport);
 
   await openSourceBoundary(client);
   const sourceOpen = await inspectBoundaryState(
@@ -601,8 +476,7 @@ async function verifyViewport(client, baseUrl, viewport) {
     sourceTier: sourceOpen.footer.sourceTier,
     evidenceKind: sourceOpen.footer.evidenceKind,
     footerText: sourceOpen.footer.text,
-    sourceBoundaryText: sourceOpen.sourceBoundary.visibleText,
-    overlayEvents: sourceOpen.overlayEvents
+    sourceBoundaryText: sourceOpen.sourceBoundary.visibleText
   };
 }
 

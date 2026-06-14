@@ -355,16 +355,34 @@ async function main() {
       initial.editor.fieldCount > 0 && initial.editor.visibleFieldCount === 0,
       `F-11 closed editor must keep fields mounted but hidden: ${JSON.stringify(initial.editor)}`
     );
+    // Clean-home design (commit 6c270c6, 2026-05-16) intentionally hides the
+    // bootstrap operator status HUD on the bare /?scenePreset=global route via
+    // data-viewer-mode="clean-home" -> .hud-panel--status { visibility:hidden;
+    // opacity:0 } (src/styles/app-shell-hud.css:95-101). The DOM is preserved
+    // (status panel still mounted; mountBootstrapOperatorStatusHud =
+    // !isM8aV4RuntimeRequest in src/runtime/bootstrap/composition.ts:685), so
+    // the F-11 summary stays mounted with a stable label but is not
+    // computed-visible. Assert the DOM/structure contract here (mounted SUMMARY
+    // element + stable label), matching the D-03.S1 sibling reconciliation that
+    // reads DOM attributes and getBoundingClientRect rather than computed
+    // visibility. Rendered-visibility coupling on the deliberately hidden
+    // surface is retired; presence, structure, default-closed, ranks,
+    // containment, and the functional apply/reset/round-trip checks below stay.
     assert(
-      initial.editor.summaryVisible &&
+      initial.editor.summaryTagName === "SUMMARY" &&
         initial.editor.summaryText === "Handover Rule Config",
-      `F-11 summary must stay visible with stable label: ${JSON.stringify(initial.editor)}`
+      `F-11 summary must remain mounted with stable label: ${JSON.stringify(initial.editor)}`
     );
 
+    // Focusability is contracted via the summary's tabIndex (a DOM attribute),
+    // not via document.activeElement: a visibility:hidden element is not a
+    // focus target, so on the clean-home route .focus() is a no-op by design.
+    // Assert the keyboard-affordance attribute is intact rather than the
+    // rendered focus outcome on the hidden surface.
     const focused = await focusSummary(client);
     assert(
-      focused.summaryFocused === true,
-      `F-11 summary must be keyboard-focusable: ${JSON.stringify(focused)}`
+      focused.summaryTabIndex >= 0,
+      `F-11 summary must keep its keyboard-focusable tabindex: ${JSON.stringify(focused)}`
     );
 
     assert(
@@ -397,9 +415,13 @@ async function main() {
       opened.editor.open === true,
       "F-11 summary click activation must open the editor."
     );
+    // opened.editor.formVisible is intentionally false on the clean-home route
+    // (the whole status panel is visibility:hidden), so it is retired here. The
+    // functional contract that survives is the structural one: opening the
+    // <details> exposes the form, status output, and the apply/reset/cancel
+    // controls in the DOM. Those presence checks are kept verbatim.
     assert(
       opened.editor.formPresent &&
-        opened.editor.formVisible &&
         opened.editor.statusPresent &&
         opened.editor.actionsPresent.apply &&
         opened.editor.actionsPresent.reset &&

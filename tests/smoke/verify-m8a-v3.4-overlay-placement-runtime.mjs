@@ -514,7 +514,7 @@ async function main() {
               )
             ).filter(elementIsVisible);
             const ctaRoot = document.querySelector(
-              "[data-m8a-v31-homepage-cta='true']"
+              "[data-m8a-v44-homepage-ground-station-entry-surface='true']"
             );
             const satcomRoot = document.querySelector(
               "[data-r1v-satcom-context-overlay='true']"
@@ -525,7 +525,7 @@ async function main() {
 
             assert(
               ctaRoot instanceof HTMLElement && elementIsVisible(ctaRoot),
-              "Bare / entry must keep the V3.1 CTA visible after returning from addressed close-view."
+              "Bare / entry must keep the homepage ground-station entry surface visible after returning from addressed close-view."
             );
             assert(
               satcomRoot === null && nearbyInfoRoot === null,

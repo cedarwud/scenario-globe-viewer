@@ -290,8 +290,13 @@ async function waitForReportExportReady(client) {
     if (
       lastState.bootstrapState === "ready" &&
       lastState.hasCapture &&
-      lastState.action.visible &&
-      lastState.primary.visible &&
+      // The F-16 report-export panel mounts inside `.hud-panel--status`, which
+      // the bare `/` (clean-home) viewer mode hides by design with
+      // `visibility: hidden` while preserving DOM/structure/ARIA. Readiness is
+      // therefore gated on the DOM contract, not rendered visibility.
+      lastState.action.mounted &&
+      lastState.heading.exists &&
+      lastState.action.state &&
       lastState.primary.disabled === false &&
       lastState.action.format === "both"
     ) {
@@ -319,7 +324,16 @@ async function clickDisclosure(client) {
   for (let attempt = 0; attempt < 30; attempt += 1) {
     const state = await inspectReportExport(client);
 
-    if (state.disclosure.ariaExpanded === "true" && state.options.visible) {
+    // Structural expansion contract under clean-home (panel is visibility:hidden
+    // by design): the disclosure reports aria-expanded="true" and the options
+    // panel sheds its `hidden` attribute with its option families/formats
+    // populated — instead of the retired rendered-visibility coupling.
+    if (
+      state.disclosure.ariaExpanded === "true" &&
+      state.options.hidden === false &&
+      state.options.families.length > 0 &&
+      state.options.formats.length > 0
+    ) {
       return state;
     }
 
@@ -578,7 +592,8 @@ async function main() {
 
     const expanded = await clickDisclosure(client);
     assert(
-      expanded.disclosure.ariaExpanded === "true" && expanded.options.visible,
+      expanded.disclosure.ariaExpanded === "true" &&
+        expanded.options.hidden === false,
       `F-16 options did not expand: ${JSON.stringify(expanded)}`
     );
     assertForbiddenClaimsAbsent("F-16 expanded DOM", expanded.action.text);

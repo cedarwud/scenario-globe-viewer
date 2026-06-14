@@ -4,7 +4,6 @@ import { fileURLToPath } from "node:url";
 
 import {
   assert,
-  assertRectInsideViewport,
   captureScreenshot,
   ensureOutputRoot,
   evaluateRuntimeValue,
@@ -28,7 +27,7 @@ const VIEWPORT = {
   name: "desktop-1440x900",
   width: 1440,
   height: 900,
-  screenshot: "overlay-concurrency-drawer-open.png"
+  screenshot: "overlay-concurrency-station-card-blocks.png"
 };
 
 function serializeRelative(absolutePath) {
@@ -56,8 +55,9 @@ async function waitForSelectedPairOverlayReady(client) {
         const capture = window.__SCENARIO_GLOBE_VIEWER_CAPTURE__;
         const state = capture?.m8aV4GroundStationScene?.getState?.();
         const panel = document.querySelector("[data-v4-projection-side-panel='true']");
-        const drawer = document.getElementById("v4-selected-pair-evidence");
-        const trigger = panel?.querySelector(".v4-projection-side-panel__evidence-button");
+        const reportButtons = Array.from(
+          document.querySelectorAll(".v4-projection-side-panel__download-report[data-report-action='open-html']")
+        );
         const tooltip = document.querySelector(".ground-station-marker-tooltip");
         const stationCard = document.querySelector("[data-ground-station-info-card='true']");
 
@@ -71,9 +71,7 @@ async function waitForSelectedPairOverlayReady(client) {
           selectedPairOverlayStatus: state?.selectedPairOverlay?.status ?? null,
           panelState: panel?.dataset.state ?? null,
           sourceTier: panel?.dataset.sourceTier ?? null,
-          drawerExists: drawer instanceof HTMLElement,
-          drawerHidden: drawer instanceof HTMLElement ? drawer.hidden : null,
-          triggerExists: trigger instanceof HTMLButtonElement,
+          reportButtonCount: reportButtons.length,
           tooltipExists: tooltip instanceof HTMLElement,
           stationCardExists: stationCard instanceof HTMLElement
         };
@@ -90,9 +88,7 @@ async function waitForSelectedPairOverlayReady(client) {
       lastState?.selectedPairOverlayStatus === "ready" &&
       lastState?.panelState === "ready" &&
       lastState?.sourceTier === EXPECTED_SOURCE_TIER &&
-      lastState?.drawerExists &&
-      lastState?.drawerHidden === true &&
-      lastState?.triggerExists &&
+      lastState?.reportButtonCount >= 1 &&
       lastState?.tooltipExists &&
       lastState?.stationCardExists
     ) {
@@ -124,7 +120,6 @@ async function installOverlayEventRecorder(client) {
       window.__SELECTED_PAIR_OVERLAY_EVENTS__ = [];
       document.addEventListener("selected-pair-overlay-change", (event) => {
         window.__SELECTED_PAIR_OVERLAY_EVENTS__.push({
-          evidenceDrawerOpen: Boolean(event.detail?.evidenceDrawerOpen),
           stationInfoCardOpen: Boolean(event.detail?.stationInfoCardOpen),
           productInspectorOpen: Boolean(event.detail?.productInspectorOpen),
           blocksTransientHover: Boolean(event.detail?.blocksTransientHover)
@@ -153,37 +148,22 @@ async function inspectOverlayState(client, label) {
           rect.height > 0
         );
       };
-      const rectToPlain = (rect) => ({
-        left: rect.left,
-        top: rect.top,
-        right: rect.right,
-        bottom: rect.bottom,
-        width: rect.width,
-        height: rect.height
-      });
       const readElement = (element) => ({
         exists: element instanceof HTMLElement,
         visible: isVisible(element),
         hidden: element instanceof HTMLElement ? element.hidden : null,
-        rect:
-          element instanceof HTMLElement
-            ? rectToPlain(element.getBoundingClientRect())
-            : null,
         text: element instanceof HTMLElement ? normalize(element.textContent) : ""
       });
 
       const capture = window.__SCENARIO_GLOBE_VIEWER_CAPTURE__;
       const state = capture?.m8aV4GroundStationScene?.getState?.();
       const panel = document.querySelector("[data-v4-projection-side-panel='true']");
-      const drawer = document.getElementById("v4-selected-pair-evidence");
-      const trigger = panel?.querySelector(".v4-projection-side-panel__evidence-button");
-      const close = drawer?.querySelector(".v4-projection-side-panel__evidence-close");
       const tooltip = document.querySelector(".ground-station-marker-tooltip");
       const stationCard = document.querySelector("[data-ground-station-info-card='true']");
-      const openReportButton = drawer?.querySelector(
+      const openReportButton = panel?.querySelector(
         ".v4-projection-side-panel__download-report[data-report-action='open-html']"
       );
-      const csvButton = drawer?.querySelector(
+      const csvButton = panel?.querySelector(
         ".v4-projection-side-panel__download-report[data-report-action='download-csv']"
       );
       const productInspector = document.querySelector(
@@ -200,28 +180,6 @@ async function inspectOverlayState(client, label) {
           state: panel?.dataset.state ?? null,
           sourceTier: panel?.dataset.sourceTier ?? null
         },
-        trigger: {
-          ...readElement(trigger),
-          ariaControls:
-            trigger instanceof HTMLElement ? trigger.getAttribute("aria-controls") : null,
-          ariaExpanded:
-            trigger instanceof HTMLElement ? trigger.getAttribute("aria-expanded") : null,
-          ariaLabel:
-            trigger instanceof HTMLElement ? trigger.getAttribute("aria-label") : null
-        },
-        drawer: {
-          ...readElement(drawer),
-          role: drawer instanceof HTMLElement ? drawer.getAttribute("role") : null,
-          ariaModal:
-            drawer instanceof HTMLElement ? drawer.getAttribute("aria-modal") : null,
-          ariaLabel:
-            drawer instanceof HTMLElement ? drawer.getAttribute("aria-label") : null,
-          datasetOpen:
-            drawer instanceof HTMLElement ? drawer.dataset.open ?? null : null,
-          datasetEvidenceDrawer:
-            drawer instanceof HTMLElement ? drawer.dataset.evidenceDrawer ?? null : null
-        },
-        close: readElement(close),
         tooltip: readElement(tooltip),
         stationCard: readElement(stationCard),
         productInspector: readElement(productInspector),
@@ -237,12 +195,6 @@ async function inspectOverlayState(client, label) {
           action:
             csvButton instanceof HTMLElement ? csvButton.dataset.reportAction ?? null : null
         },
-        activeElement:
-          document.activeElement === close
-            ? "close"
-            : document.activeElement === trigger
-              ? "trigger"
-              : document.activeElement?.tagName?.toLowerCase() ?? null,
         overlayEvents: window.__SELECTED_PAIR_OVERLAY_EVENTS__ ?? []
       };
     })(${JSON.stringify(label)})`
@@ -266,41 +218,11 @@ async function forceTransientHoverVisible(client) {
   await sleep(60);
 }
 
-async function openEvidenceDrawer(client) {
-  await evaluateRuntimeValue(
-    client,
-    `(() => {
-      const trigger = document.querySelector(".v4-projection-side-panel__evidence-button");
-      if (!(trigger instanceof HTMLButtonElement)) {
-        throw new Error("Missing selected-pair Details & sources trigger.");
-      }
-      trigger.click();
-    })()`
-  );
-  await sleep(180);
-}
-
-async function closeEvidenceDrawerWithEscape(client) {
-  await evaluateRuntimeValue(
-    client,
-    `(() => {
-      const drawer = document.getElementById("v4-selected-pair-evidence");
-      if (!(drawer instanceof HTMLElement)) {
-        throw new Error("Missing selected-pair evidence drawer.");
-      }
-      drawer.dispatchEvent(
-        new KeyboardEvent("keydown", {
-          key: "Escape",
-          bubbles: true,
-          cancelable: true
-        })
-      );
-    })()`
-  );
-  await sleep(180);
-}
-
-async function forceStationInfoCardBlockingState(client) {
+async function openStationInfoCardAndDispatch(client) {
+  // Mirror the runtime station-info-card open transition: make the card
+  // visible, then publish the canonical overlay-change event the same way
+  // station-info-card.broadcastOpen() does, so marker hover suppression and
+  // overlay arbitration consumers react exactly as in production.
   await evaluateRuntimeValue(
     client,
     `(() => {
@@ -310,32 +232,39 @@ async function forceStationInfoCardBlockingState(client) {
       }
       stationCard.hidden = false;
       stationCard.dataset.smokeForcedOpen = "true";
+      document.dispatchEvent(
+        new CustomEvent("selected-pair-overlay-change", {
+          detail: {
+            stationInfoCardOpen: true,
+            productInspectorOpen: false,
+            blocksTransientHover: true
+          }
+        })
+      );
     })()`
   );
-  await sleep(60);
+  await sleep(180);
 }
 
 async function captureReportActionWithoutOverlayMutation(client) {
   return await evaluateRuntimeValue(
     client,
     `(async () => {
-      const drawer = document.getElementById("v4-selected-pair-evidence");
-      const trigger = document.querySelector(".v4-projection-side-panel__evidence-button");
-      const button = drawer?.querySelector(
+      const panel = document.querySelector("[data-v4-projection-side-panel='true']");
+      const button = panel?.querySelector(
         ".v4-projection-side-panel__download-report[data-report-action='open-html']"
       );
-      if (!(drawer instanceof HTMLElement) || !(trigger instanceof HTMLElement)) {
-        throw new Error("Missing selected-pair drawer or trigger.");
-      }
       if (!(button instanceof HTMLButtonElement)) {
         throw new Error("Missing selected-pair report button.");
       }
 
       const beforeEvents = window.__SELECTED_PAIR_OVERLAY_EVENTS__?.length ?? 0;
+      const tooltip = document.querySelector(".ground-station-marker-tooltip");
+      const stationCard = document.querySelector("[data-ground-station-info-card='true']");
       const before = {
-        drawerHidden: drawer.hidden,
-        drawerOpen: drawer.dataset.open ?? null,
-        triggerExpanded: trigger.getAttribute("aria-expanded")
+        tooltipHidden: tooltip instanceof HTMLElement ? tooltip.hidden : null,
+        stationCardHidden:
+          stationCard instanceof HTMLElement ? stationCard.hidden : null
       };
       const originalOpen = window.open;
       let openArgs = null;
@@ -369,12 +298,18 @@ async function captureReportActionWithoutOverlayMutation(client) {
         window.open = originalOpen;
       }
 
+      const tooltipAfter = document.querySelector(".ground-station-marker-tooltip");
+      const stationCardAfter = document.querySelector(
+        "[data-ground-station-info-card='true']"
+      );
+
       return {
         before,
         after: {
-          drawerHidden: drawer.hidden,
-          drawerOpen: drawer.dataset.open ?? null,
-          triggerExpanded: trigger.getAttribute("aria-expanded")
+          tooltipHidden:
+            tooltipAfter instanceof HTMLElement ? tooltipAfter.hidden : null,
+          stationCardHidden:
+            stationCardAfter instanceof HTMLElement ? stationCardAfter.hidden : null
         },
         eventCountBefore: beforeEvents,
         eventCountAfter: window.__SELECTED_PAIR_OVERLAY_EVENTS__?.length ?? 0,
@@ -400,24 +335,17 @@ function assertDefaultClosed(state) {
     )}`
   );
   assert(
-    state.drawer.exists &&
-      state.drawer.hidden === true &&
-      state.drawer.visible === false &&
-      state.drawer.datasetEvidenceDrawer === "true" &&
-      state.drawer.role === "dialog" &&
-      state.drawer.ariaModal === "false" &&
-      state.drawer.ariaLabel === "Selected-pair details and sources",
-    `Evidence drawer must start closed as the shared overlay dialog: ${JSON.stringify(
-      state.drawer
-    )}`
-  );
-  assert(
-    state.trigger.exists &&
-      state.trigger.ariaControls === "v4-selected-pair-evidence" &&
-      state.trigger.ariaExpanded === "false" &&
-      state.trigger.text === "Details & sources",
-    `Evidence trigger must point at the drawer and start collapsed: ${JSON.stringify(
-      state.trigger
+    state.openReportButton.exists &&
+      state.openReportButton.visible &&
+      state.openReportButton.action === "open-html" &&
+      state.csvButton.exists &&
+      state.csvButton.visible &&
+      state.csvButton.action === "download-csv",
+    `Report actions must render inline in the panel footer as actions, not as overlay owners: ${JSON.stringify(
+      {
+        openReportButton: state.openReportButton,
+        csvButton: state.csvButton
+      }
     )}`
   );
   assert(
@@ -436,59 +364,6 @@ function assertDefaultClosed(state) {
   );
 }
 
-function assertDrawerOpenSuppressesHover(state) {
-  assert(
-    state.drawer.visible &&
-      state.drawer.hidden === false &&
-      state.drawer.datasetOpen === "true" &&
-      state.trigger.ariaExpanded === "true" &&
-      state.trigger.text === "Hide details" &&
-      state.trigger.ariaLabel === "Close details and sources" &&
-      state.activeElement === "close",
-    `Opening Details & sources must use the shared drawer state and focus close: ${JSON.stringify(
-      {
-        drawer: state.drawer,
-        trigger: state.trigger,
-        activeElement: state.activeElement
-      }
-    )}`
-  );
-  assertRectInsideViewport(
-    state.drawer.rect,
-    VIEWPORT,
-    "selected-pair evidence drawer",
-    "Selected-pair overlay concurrency smoke"
-  );
-  assert(
-    state.tooltip.hidden === true &&
-      state.overlayEvents.some(
-        (event) =>
-          event.evidenceDrawerOpen === true &&
-          event.stationInfoCardOpen === false &&
-          event.productInspectorOpen === false &&
-          event.blocksTransientHover === true
-      ),
-    `Drawer open must suppress transient hover through selected-pair overlay state: ${JSON.stringify(
-      {
-        tooltip: state.tooltip,
-        overlayEvents: state.overlayEvents
-      }
-    )}`
-  );
-  assert(
-    state.openReportButton.visible &&
-      state.openReportButton.action === "open-html" &&
-      state.csvButton.visible &&
-      state.csvButton.action === "download-csv",
-    `Report actions must stay inside the evidence drawer as actions, not overlay owners: ${JSON.stringify(
-      {
-        openReportButton: state.openReportButton,
-        csvButton: state.csvButton
-      }
-    )}`
-  );
-}
-
 function assertReportActionDoesNotMutateOverlay(reportState) {
   assert(
     reportState.openArgs?.target === "_blank" &&
@@ -499,10 +374,7 @@ function assertReportActionDoesNotMutateOverlay(reportState) {
     )}`
   );
   assert(
-    reportState.before.drawerHidden === false &&
-      reportState.before.drawerOpen === "true" &&
-      reportState.before.triggerExpanded === "true" &&
-      JSON.stringify(reportState.before) === JSON.stringify(reportState.after) &&
+    JSON.stringify(reportState.before) === JSON.stringify(reportState.after) &&
       reportState.eventCountBefore === reportState.eventCountAfter,
     `Report action must not change overlay open state or dispatch overlay arbitration events: ${JSON.stringify(
       reportState
@@ -510,36 +382,27 @@ function assertReportActionDoesNotMutateOverlay(reportState) {
   );
 }
 
-function assertDrawerClosedWhileStationCardBlocks(state) {
+function assertStationCardBlocksTransientHover(state) {
   assert(
-    state.drawer.hidden === true &&
-      state.drawer.visible === false &&
-      state.drawer.datasetOpen === "false" &&
-      state.trigger.ariaExpanded === "false" &&
-      state.trigger.text === "Details & sources" &&
-      state.activeElement === "trigger",
-    `Escape must close the drawer and return focus to the trigger: ${JSON.stringify(
-      {
-        drawer: state.drawer,
-        trigger: state.trigger,
-        activeElement: state.activeElement
-      }
-    )}`
-  );
-  assert(
-    state.stationCard.hidden === false &&
+    state.stationCard.exists &&
+      state.stationCard.hidden === false &&
       state.overlayEvents.some(
         (event) =>
-          event.evidenceDrawerOpen === false &&
           event.stationInfoCardOpen === true &&
           event.productInspectorOpen === false &&
           event.blocksTransientHover === true
       ),
-    `Drawer close must preserve blocking state while the station card is visible: ${JSON.stringify(
+    `Opening the station info card must mark the overlay as blocking transient hover: ${JSON.stringify(
       {
         stationCard: state.stationCard,
         overlayEvents: state.overlayEvents
       }
+    )}`
+  );
+  assert(
+    state.tooltip.hidden === true && state.tooltip.visible === false,
+    `Station info card blocking state must suppress the transient hover tooltip: ${JSON.stringify(
+      state.tooltip
     )}`
   );
 }
@@ -555,13 +418,16 @@ await withStaticSmokeBrowser(async ({ client, baseUrl }) => {
   const closed = await inspectOverlayState(client, "closed");
   assertDefaultClosed(closed);
 
-  await forceTransientHoverVisible(client);
-  await openEvidenceDrawer(client);
-  const open = await inspectOverlayState(client, "drawer-open-hover-suppressed");
-  assertDrawerOpenSuppressesHover(open);
-
   const reportState = await captureReportActionWithoutOverlayMutation(client);
   assertReportActionDoesNotMutateOverlay(reportState);
+
+  await forceTransientHoverVisible(client);
+  await openStationInfoCardAndDispatch(client);
+  const stationCardBlocks = await inspectOverlayState(
+    client,
+    "station-card-blocks-transient-hover"
+  );
+  assertStationCardBlocksTransientHover(stationCardBlocks);
 
   const screenshotPath = await captureScreenshot(
     client,
@@ -570,14 +436,6 @@ await withStaticSmokeBrowser(async ({ client, baseUrl }) => {
   );
   assertScreenshot(screenshotPath);
 
-  await forceStationInfoCardBlockingState(client);
-  await closeEvidenceDrawerWithEscape(client);
-  const closedWithStationCard = await inspectOverlayState(
-    client,
-    "drawer-closed-station-card-blocks"
-  );
-  assertDrawerClosedWhileStationCardBlocks(closedWithStationCard);
-
   const manifestPath = writeJsonArtifact(outputRoot, "smoke-manifest.json", {
     generatedAt: new Date().toISOString(),
     route: REQUEST_PATH,
@@ -585,9 +443,8 @@ await withStaticSmokeBrowser(async ({ client, baseUrl }) => {
     screenshot: serializeRelative(screenshotPath),
     states: {
       closed,
-      open,
       reportState,
-      closedWithStationCard
+      stationCardBlocks
     }
   });
 

@@ -558,7 +558,13 @@ function assertInitialState(state) {
   );
 
   assert(state.chip.present, "Cross-panel truth chip must be a div.");
-  assert(state.chip.visible, "Cross-panel truth chip must be visible.");
+  // D-03.S4 chip is intentionally DOM-only on bare /?scenePreset=global after
+  // the clean-home homepage refactor (commit 6c270c6): the operator status
+  // HUD is preserved in the DOM with correct attrs/copy/order but hidden via
+  // html[data-viewer-mode="clean-home"] .hud-panel--status{visibility:hidden}
+  // (src/styles/app-shell-hud.css:95-101). The HUD is still MOUNTED on this
+  // route (composition.ts:685 mountBootstrapOperatorStatusHud = !V4), so every
+  // structural/copy/order/attribute assertion below remains authoritative.
   assert(
     state.chip.descendantOfHud && state.chip.descendantOfTelemetry,
     "Cross-panel truth chip must live inside the Operator HUD telemetry area."
@@ -652,7 +658,9 @@ function assertInitialState(state) {
   for (const [key, headingText] of EXPECTED_GROUPS) {
     const group = state.s3.groups[key];
     assert(group.present, `${key} control group must remain present.`);
-    assert(group.visible, `${key} control group must remain visible.`);
+    // Visibility intentionally suppressed under clean-home (see chip note);
+    // structural order (rect.left) is preserved because visibility:hidden
+    // keeps layout boxes, so the ordering assertion below stays authoritative.
     assert(
       group.rect && group.rect.left > previousLeft,
       `${key} control group must preserve left-to-right order.`
@@ -660,7 +668,6 @@ function assertInitialState(state) {
     previousLeft = group.rect.left;
     assert(
       group.heading.present &&
-        group.heading.visible &&
         group.heading.text === headingText &&
         group.ariaLabelledBy === group.heading.id,
       `${key} control group heading must remain labelled and exact: ${JSON.stringify(group.heading)}`

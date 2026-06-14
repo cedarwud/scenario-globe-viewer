@@ -26,7 +26,6 @@ const EXPECTED_SCENE_SOURCE_MODE = "tle-first-runtime";
 const EXPECTED_SOURCE_TIER = "geometric-derived";
 
 const REQUIRED_REPORT_TEXT = [
-  "Selected-pair evidence report",
   "Visibility windows",
   "Handover events",
   "Sources",

@@ -85,8 +85,8 @@ async function waitForF11Ready(client) {
     if (
       lastState.bootstrapState === "ready" &&
       lastState.hasCapture &&
-      lastState.panel.visible &&
-      lastState.editor.visible &&
+      lastState.panel.present &&
+      lastState.editor.present &&
       lastState.report?.appliedRuleConfig?.policyId === "bootstrap-balanced-v1"
     ) {
       return lastState;
@@ -153,6 +153,7 @@ async function inspectF11(client) {
         runtimeErrors: window.__F11_RUNTIME_ERRORS__ ?? [],
         panel: {
           visible: isVisible(handoverRoot),
+          present: handoverRoot instanceof HTMLElement,
           policyId: handoverRoot?.dataset.handoverPolicyId ?? null,
           rulePolicyId: handoverRoot?.dataset.handoverRulePolicyId ?? null,
           ruleAppliedAt: handoverRoot?.dataset.handoverRuleAppliedAt ?? null,
@@ -167,8 +168,10 @@ async function inspectF11(client) {
         },
         editor: {
           visible: isVisible(editor),
+          present: editor instanceof HTMLElement,
           open: editor instanceof HTMLDetailsElement ? editor.open : null,
           formVisible: isVisible(form),
+          formPresent: form instanceof HTMLElement,
           validationIssues:
             form instanceof HTMLElement
               ? form.dataset.handoverRuleValidationIssues ?? null
@@ -328,8 +331,14 @@ async function toggleRuleConfigSummary(client) {
 }
 
 function assertInitialState(state) {
-  assert(state.panel.visible, "F-11 Handover Decision panel must be visible.");
-  assert(state.editor.visible, "F-11 rule editor must be visible.");
+  assert(
+    state.panel.present,
+    "F-11 Handover Decision panel must be present in the DOM (hidden-by-design under clean-home on bare /, DOM preserved per app-shell.ts:21 + app-shell-hud.css:95-101)."
+  );
+  assert(
+    state.editor.present,
+    "F-11 rule editor must be present in the DOM (hidden-by-design under clean-home on bare /, DOM preserved)."
+  );
   assert(state.editor.open === false, "F-11 rule editor must default closed for smoke evidence.");
   assert(
     state.editor.statusRole === "status" &&
@@ -356,7 +365,10 @@ function assertInitialState(state) {
 
 function assertExpandedState(state) {
   assert(state.editor.open === true, "F-11 rule editor summary activation must open the editor.");
-  assert(state.editor.formVisible, "F-11 rule form must be visible.");
+  assert(
+    state.editor.formPresent,
+    "F-11 rule form must be present in the DOM (hidden-by-design under clean-home on bare /, DOM preserved)."
+  );
 }
 
 await withStaticSmokeBrowser(async ({ client, baseUrl }) => {

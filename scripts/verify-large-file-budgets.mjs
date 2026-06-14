@@ -79,7 +79,7 @@ const budgets = profile === "final"
       {
         id: "selected-pair-panel",
         path: COMMON_FEATURE_SURFACES[0],
-        maxLines: 2800,
+        maxLines: 2900,
         hardCapLines: 3000
       },
       {

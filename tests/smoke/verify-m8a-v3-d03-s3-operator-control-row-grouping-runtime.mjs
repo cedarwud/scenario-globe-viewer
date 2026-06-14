@@ -411,9 +411,9 @@ async function waitForD03S3Ready(client) {
 
     if (
       lastState.bootstrapState === "ready" &&
-      lastState.groups.scenario.visible &&
-      lastState.groups.replay.visible &&
-      lastState.groups.policy.visible &&
+      lastState.groups.scenario.present &&
+      lastState.groups.replay.present &&
+      lastState.groups.policy.present &&
       lastState.v412Selectors.policySelect &&
       lastState.policy.reportPolicyId === "bootstrap-balanced-v1" &&
       lastState.s2.editorPresent
@@ -476,11 +476,13 @@ function assertGroupingState(state) {
   for (const [key, headingText] of EXPECTED_GROUPS) {
     const group = state.groups[key];
     assert(group.present, `${key} group must be present.`);
-    assert(group.visible, `${key} group must be visible.`);
+    // Bare/global route intentionally suppresses the operator status HUD via
+    // data-viewer-mode="clean-home" (visibility:hidden + opacity:0), per
+    // governance commit 6c270c6. The group must still be present and laid out
+    // (geometry survives visibility:hidden) but is NOT visually visible here.
     assert(group.rect && group.rect.left > previousLeft, `${key} group must preserve left-to-right order.`);
     previousLeft = group.rect.left;
     assert(group.heading.present, `${key} group heading must be present.`);
-    assert(group.heading.visible, `${key} group heading must be visible.`);
     assert(
       group.heading.text === headingText,
       `${key} group heading must be exactly "${headingText}", got "${group.heading.text}".`
