@@ -3,19 +3,23 @@
 Status date: 2026-06-15
 
 This folder retains one generated selected-pair evidence package for slide and
-review citations. The report HTML + CSV were last regenerated on 2026-06-15
-after the WS-F model-fidelity change: the per-sample link budget now uses the
-SGP4-propagated satellite geocentric radius for slant range and the
-instantaneous per-station elevation, and rain attenuation binds to the worse of
-the two stations at its own latitude/height. The mutual-visibility geometry is
-unchanged (actor rows 63, visibility windows 64) because window membership is
-gated by elevation geometry only; the handover sequence re-ranked among
-same-orbit GEO candidates, and a route-representative per-orbit link budget is
-now surfaced on the projection result. Per-orbit network-snapshot inventory now
-reads the synced runtime manifest (651 OneWeb LEO / 33 Galileo MEO / 574 GEO).
-All link-budget magnitudes remain modeled / standards-derived; throughput is an
-illustrative capacity proxy and the received-power value is a relative proxy
-(EIRP is not available). It was produced by running:
+review citations. The report HTML was last regenerated on 2026-06-15 for WS-C: a
+new Audit & evidence tab carries the honesty grading matrix, the model-boundary
+disclosure, a standards-conformance table (formula -> clause -> retained-PDF
+sha256 -> sample input/output from this route), a rain-rate sensitivity sweep, a
+reproducibility imprint, and a verification-status strip. The underlying
+projection numbers are unchanged from the WS-F regeneration (the CSV is
+byte-identical); only the report HTML grew. WS-F context (carried over): the
+per-sample link budget uses the SGP4-propagated satellite geocentric radius for
+slant range and the instantaneous per-station elevation, and rain attenuation
+binds to the worse of the two stations at its own latitude/height. The
+mutual-visibility geometry is unchanged (actor rows 63, visibility windows 64)
+because window membership is gated by elevation geometry only; the handover
+sequence re-ranked among same-orbit GEO candidates. Per-orbit network-snapshot
+inventory reads the synced runtime manifest (651 OneWeb LEO / 33 Galileo MEO /
+574 GEO). All link-budget magnitudes remain modeled / standards-derived;
+throughput is an illustrative capacity proxy and the received-power value is a
+relative proxy (EIRP is not available). It was produced by running:
 
 ```sh
 npm run test:m8a-v4.11:slice5
@@ -30,7 +34,7 @@ CSV, and smoke manifest were copied here as retained delivery evidence.
 | Field | Value |
 |---|---|
 | Route | `/?stationA=cht-yangmingshan&stationB=sansa-hartebeesthoek&startUtc=2026-05-17T00%3A00%3A00.000Z&durationMinutes=360` |
-| Generated at | `2026-06-14T21:25:39.324Z` |
+| Generated at | `2026-06-14T21:58:34.532Z` |
 | Source tier | `geometric-derived` |
 | Evidence kind | `cross-family-geometric` |
 | Requirement rows | `34` |
@@ -43,16 +47,16 @@ CSV, and smoke manifest were copied here as retained delivery evidence.
 
 | File | Role | Size bytes | SHA-256 |
 |---|---|---:|---|
-| `runtime-projection-evidence-cht-yangmingshan-sansa-hartebeesthoek-20260517T000000Z-360m.html` | Readable evidence report with Requirements, Sources, Models, Raw data, and HTML download state. | 1657206 | `14143135de816fdad2e8b15ec8ed90074b435ac8afcef190cb073f1e1450ea53` |
+| `runtime-projection-evidence-cht-yangmingshan-sansa-hartebeesthoek-20260517T000000Z-360m.html` | Readable evidence report with Requirements, Sources, Models, Audit & evidence, Raw data, and HTML download state. | 1670097 | `9061837b5955d2d1becc79c4909285896cc3453e75b7272b0ca2c6a7950eccdd` |
 | `runtime-projection-cht-yangmingshan-sansa-hartebeesthoek-20260517T000000Z-360m.csv` | Row-level export with source, provenance, and non-claim columns. | 104747 | `e07359f8cff094718eacdf796931981939fce0b34e064009dfefcfe138101a6d` |
-| `smoke-manifest.output.json` | Original smoke manifest copied from ignored `output/selected-pair-source-report/`. | 1132 | `77b77e9484cd4150920f64edc9c9ae9b6e17e25ac6c74c7719f7053f62e585ce` |
+| `smoke-manifest.output.json` | Original smoke manifest copied from ignored `output/selected-pair-source-report/`. | 1132 | `db9ed6f4552fc3b1d8ce4232cb6e035e26b1eb825d635b4056bacc8fea374b79` |
 | `external-source-reconciliation.md` | Public-source reconciliation for selected-pair station values, recovered elevation source method, source conflicts, repair paths, and non-observable gaps. | 14666 | `1b3194ac0e619f0e847583b6f783b28ab21f4cd1f39f0811ac0998bfff384ace` |
 | `open-elevation-selected-pair-query-2026-06-12.json` | Retained Open-Elevation query response that reproduces selected-pair legacy elevation cache values. | 2425 | `b21930f25a3da975fd16ac74a2b650bb9c6f31d230c92a2f9cde70c5226217e2` |
 | `copernicus-dem-selected-pair-sample-2026-06-12.json` | Retained Copernicus GLO-30 selected-pair DEM comparison sample with tile/cell/datum traceability. | 6159 | `43a0dc022f2dd687d3812a3689b8f2c036284acf2cad1b8929c86b7bf8a8f349` |
 | `copernicus-dem-selected-pair-terrain-mask-2026-06-13.json` | Retained Copernicus GLO-30 selected-pair terrain-mask sample and horizon algorithm output. | 162055 | `9382f7e36f7abf0fa4988962b5bcf96a80607c208df988de43d61a73e8ce4978` |
 | `rain-source-repair-candidates-2026-06-12.json` | Retained local rain calibration repair-source candidates. | 3843 | `02d4898bc2d9cd385a0e9d8564f4471bc7de533648416bf498b2636b121835ad` |
 | `local-rain-calibration-2026-06-13.json` | Retained public CWA local rain statistic mapped to a bounded 5 mm/h demo preset. | 5718 | `f3a36892ccf01cc7f8cf1c720fc284328e1e92265a487c079e6efbafe0150476` |
-| `evidence-manifest.json` | Delivery-local structured manifest for this retained package. | 5347 | `029c9e2dca1c201bff86e43fea2ebda977420f07b83f488eb9daa0bcca3abcf9` |
+| `evidence-manifest.json` | Delivery-local structured manifest for this retained package. | 5619 | `db960ff4baf4d527ef3f7bdc82d32bb5b058b11a5428e7778f0a7a93f994e165` |
 
 ## Source Chain
 

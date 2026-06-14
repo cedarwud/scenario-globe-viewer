@@ -76,7 +76,7 @@ are added here for the 2026-06-13 merge artifacts.
 | [1] | `requirements-consolidated.md` | Canonical 34-row list, bucket counts, IDs, tier policy. | Runtime proof, packet/RF measurement, acceptance. **Note: the spine's Bucket B rows + standards §-sections were synced to the merged state on 2026-06-14 (both repo + `/home/u24/papers/itri/` copies); `docs/data-source-index.md` [2] remains the governing contract.** |
 | [2] | `docs/data-source-index.md` | Data-source classes, presentation source map, gap repair plan, "models stay models". | Original evidence store, acceptance certificate. **Current authority over [1] on antenna wiring + standards sections.** |
 | [3] | `deliverable/selected-pair-source-evidence/README.md` | Retained selected-pair package, route, generated time, file hashes, package claim boundary. | Packet/RF/operator validation, final written acceptance. |
-| [4] | `…/runtime-projection-evidence-cht-yangmingshan-sansa-hartebeesthoek-20260517T000000Z-360m.html` | Readable report: requirements, sources, models, handover, visibility, raw data. Regenerated 2026-06-15 after WS-F propagated-geometry link budget (sha `14143135…`). | Original evidence store, rerun proof, packet/RF measurement, formal acceptance. |
+| [4] | `…/runtime-projection-evidence-cht-yangmingshan-sansa-hartebeesthoek-20260517T000000Z-360m.html` | Readable report: requirements, sources, models, handover, visibility, audit & evidence, raw data. Regenerated 2026-06-15 with the WS-C audit tab on the WS-F propagated-geometry link budget (sha `9061837b…`). | Original evidence store, rerun proof, packet/RF measurement, formal acceptance. |
 | [5] | `…/runtime-projection-cht-yangmingshan-sansa-hartebeesthoek-20260517T000000Z-360m.csv` | Row-level export: fields, source tier, station precision, model outputs, gaps, non-claims. Regenerated 2026-06-15 after WS-F propagated-geometry link budget (sha `e07359f8…`). | Narrative beyond payload, packet logs, acceptance. |
 | [6] | `…/external-source-reconciliation.md` | Public-source reconciliation for CHT/SANSA values, conflicts, verdicts, repair paths, non-observable gaps. | Exact CHT facility coordinate, active route, native RF handover, packet measurement, acceptance. |
 | [7] | `deliverable/3gpp-itu-references/README.md` + PDFs | Retained 3GPP/ITU-R PDF map, section citations, checksums. | Operator-validated data, measured quality, local weather, hardware, packet/RF results. **Note: the README's "38811 §6.7 propagation delay" descriptor was corrected 2026-06-14 to §6.6.2 (slant range) + clause 5.3.1.1 (one-way delay) — see K-A2.** |
@@ -234,7 +234,7 @@ telemetry.
 - **Satisfied by:** V4 side-panel CSV export (RFC-4180) via
   `runtime-projection-csv.ts`; standalone HTML report via
   `runtime-projection-evidence-report.ts`; both retained with SHA-256 in [3].
-- **Data source:** Report HTML (1657206 B, sha `14143135…`) + CSV (104747 B, sha
+- **Data source:** Report HTML (1670097 B, sha `9061837b…`) + CSV (104747 B, sha
   `e07359f8…`) · **display transform / external evidence** · [1] [3] [4] [5].
 - **Boundary:** HTML/CSV are evidence surfaces, **not** a final acceptance
   certificate.
@@ -592,15 +592,19 @@ spine `requirements-consolidated.md`, after reconciling with merge `1496a03` and
 8. **Handover citation (R1-T5 / R1-F4 / V-MO1).** Earlier "§7.3." **Corrected:**
    **§7.3.2.2** (Conditional Handover); `cross-orbit-live` attributed to V-MO1, not
    3GPP.
-9. **Evidence package date/hashes ([4]/[5]).** **Regenerated 2026-06-15** after the
-   WS-F propagated-geometry link budget (HTML 1657206 B sha `14143135…`, CSV
-   104747 B sha `e07359f8…`). The link budget now uses the SGP4-propagated
-   satellite radius for slant range and the instantaneous per-station elevation,
-   with rain bound to the worse station; mutual-visibility geometry is unchanged
-   (actor rows 63, visibility windows 64), and the handover sequence re-ranked
-   among same-orbit GEO candidates. Source pool remains the full refreshed
-   snapshot (651 OneWeb LEO / 33 Galileo MEO / 574 GEO group); runtime still
-   ranks by selected-pair visibility and caps per orbit (200/100/60).
+9. **Evidence package date/hashes ([4]/[5]).** **Regenerated 2026-06-15** with the
+   WS-C audit tab on the WS-F propagated-geometry link budget (HTML 1670097 B sha
+   `9061837b…`, CSV 104747 B sha `e07359f8…`). WS-C added an Audit & evidence tab
+   (honesty grading matrix, model-boundary disclosure, standards conformance with
+   retained-PDF sha256 + sample I/O, rain sensitivity, reproducibility imprint,
+   verification status); the projection numbers are unchanged from WS-F so the CSV
+   is byte-identical. WS-F: the link budget uses the SGP4-propagated satellite
+   radius for slant range and the instantaneous per-station elevation, with rain
+   bound to the worse station; mutual-visibility geometry is unchanged (actor rows
+   63, visibility windows 64), and the handover sequence re-ranked among
+   same-orbit GEO candidates. Source pool remains the full refreshed snapshot
+   (651 OneWeb LEO / 33 Galileo MEO / 574 GEO group); runtime still ranks by
+   selected-pair visibility and caps per orbit (200/100/60).
 10. **Catalog extended.** Added [14] local rain, [15] DEM/terrain mask, [16]
     antenna assumption module.
 

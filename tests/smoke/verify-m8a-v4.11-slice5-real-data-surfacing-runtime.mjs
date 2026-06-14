@@ -33,6 +33,7 @@ const EXPECTED_REPORT_TABS = [
   "Handover",
   "Sources",
   "Models",
+  "Audit & evidence",
   "Raw data"
 ];
 const EXPECTED_SOURCE_HEADINGS = [
