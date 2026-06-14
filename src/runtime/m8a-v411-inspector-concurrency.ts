@@ -52,9 +52,9 @@ const M8A_V411_W5_LEGACY_DETAIL =
 
 const M8A_V411_STATE_EVIDENCE_COPY = {
   "leo-acquisition-context": {
-    title: "Just connected OneWeb LEO · LEO review focus",
+    title: "Modeled OneWeb LEO acquisition · LEO review focus",
     paragraph:
-      "Just connected to OneWeb LEO with strong link quality. In ~22 min, geometry change triggers signal degradation.",
+      "Modeled narrative: OneWeb LEO is the simulated primary for this window, with a modeled strong-link quality class. In ~22 min, geometry change drives modeled signal degradation.",
     now: "Now: LEO is the modeled primary service state for this window.",
     why: "Why: position conditions support low-latency LEO review focus.",
     next: "Next: watch for LEO aging pressure before the MEO hold window.",

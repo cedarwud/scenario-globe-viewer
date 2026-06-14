@@ -2297,3 +2297,11 @@ body:has([data-v4-projection-side-panel="true"])
 .v4-projection-side-panel__trace-links-note {
   color: rgba(157, 196, 232, 0.78);
 }
+
+/* WS-B — modeled-capacity-proxy disclosure under the rain-impact throughput list. */
+.v4-projection-side-panel__rain-proxy-note {
+  margin: 0.4rem 0 0;
+  font-size: 0.8rem;
+  line-height: 1.35;
+  color: rgba(157, 196, 232, 0.78);
+}

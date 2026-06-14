@@ -1290,12 +1290,12 @@ function buildOutcomeRow(viewModel: SelectedPairPanelViewModel): HTMLElement {
   row.dataset.row = "2";
   row.setAttribute(
     "aria-label",
-    `Available ${viewModel.availabilityLabel}; handovers ${viewModel.handoverCountLabel}`
+    `Available (modeled) ${viewModel.availabilityLabel}; handovers ${viewModel.handoverCountLabel}`
   );
 
   const grid = document.createElement("div");
   grid.className = "v4-projection-side-panel__outcome-grid";
-  const available = buildStatBlock("Available", viewModel.availabilityLabel);
+  const available = buildStatBlock("Available (modeled)", viewModel.availabilityLabel);
   available.classList.add("v4-projection-side-panel__stat--hero");
   const handovers = buildStatBlock("Handovers", viewModel.handoverCountLabel);
   grid.append(available, handovers);
@@ -1582,22 +1582,24 @@ function syncDynamicOutcomeAndCards(
     const primaryEl = card0.querySelector('.v4-projection-side-panel__decision-primary');
     const secondaryEl = card0.querySelector('.v4-projection-side-panel__decision-secondary');
 
-    if (labelEl) labelEl.textContent = "Active Link";
+    if (labelEl) labelEl.textContent = "Geometry link";
     if (activeSatId) {
       const orbit = resolveSatelliteOrbitClass(result, activeSatId);
-      if (timeEl) timeEl.textContent = "Active now";
+      if (timeEl) timeEl.textContent = "In view now";
       if (primaryEl) {
         const val = `${formatSatelliteShort(activeSatId)} · ${orbit}`;
         primaryEl.textContent = val;
         primaryEl.setAttribute('title', val);
       }
       if (secondaryEl) {
-        const text = "Connected · Stable route";
+        const text = "Geometry-visible · modeled link";
         secondaryEl.textContent = text;
         secondaryEl.setAttribute('title', text);
       }
-      card0.style.borderColor = "rgba(126, 226, 184, 0.45)";
-      card0.style.background = "rgba(126, 226, 184, 0.08)";
+      // Neutral accent (not success-green): the link is geometry-visible and
+      // modeled, not a measured served connection.
+      card0.style.borderColor = "rgba(143, 208, 255, 0.4)";
+      card0.style.background = "rgba(143, 208, 255, 0.08)";
     } else {
       if (timeEl) timeEl.textContent = "Inactive";
       if (primaryEl) {
@@ -1864,10 +1866,16 @@ function buildRainImpactMainRow(
       ? `${formatDurationMs(lostMs)} comm time lost`
       : "Throughput/jitter delta only";
 
+  const proxyNote = document.createElement("p");
+  proxyNote.className = "v4-projection-side-panel__rain-proxy-note";
+  proxyNote.textContent =
+    "Throughput = modeled capacity proxy (no packet test); jitter is a modeled proxy.";
+
   row.append(
     rainControl.control,
     summary,
-    buildRainSpeedComparison(rainRateMmPerHour, result)
+    buildRainSpeedComparison(rainRateMmPerHour, result),
+    proxyNote
   );
   return row;
 }
@@ -1940,11 +1948,13 @@ function buildCompareFlatStatsRow(
     if (currentMbps === undefined && baselineMbps === undefined) {
       continue;
     }
+    // The "Current" throughput is a clear-sky modeled capacity proxy, not a
+    // measured rate — label it so it does not read as live served throughput.
     currentPaneChildren.push(
       currentMbps === undefined || baselineMbps === undefined
-        ? buildStatBlock(`${orbit} Mbps`, currentMbps === undefined ? "n/a" : formatMbpsValue(currentMbps))
+        ? buildStatBlock(`${orbit} clear-sky ref`, currentMbps === undefined ? "n/a" : formatMbpsValue(currentMbps))
         : buildCompareStatBlock(
-            `${orbit} Mbps`,
+            `${orbit} clear-sky ref`,
             formatMbpsValue(currentMbps),
             currentMbps - baselineMbps,
             formatMbpsValue
