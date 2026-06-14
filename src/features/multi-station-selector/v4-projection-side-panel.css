@@ -2305,3 +2305,21 @@ body:has([data-v4-projection-side-panel="true"])
   line-height: 1.35;
   color: rgba(157, 196, 232, 0.78);
 }
+
+/* WS-A — recompute cue: a brief pulse on each fresh worker result, proving the
+   projection is computed live (not a recording). Honors reduced-motion. */
+.v4-projection-side-panel__recompute-cue {
+  margin: 0.25rem 0 0;
+  font-size: 0.76rem;
+  letter-spacing: 0.01em;
+  color: rgba(126, 226, 184, 0.92);
+  animation: v4-recompute-pulse 1.4s ease-out 1;
+}
+@keyframes v4-recompute-pulse {
+  0% { opacity: 0; transform: translateY(-2px); }
+  18% { opacity: 1; }
+  100% { opacity: 0.6; transform: translateY(0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .v4-projection-side-panel__recompute-cue { animation: none; opacity: 0.85; }
+}

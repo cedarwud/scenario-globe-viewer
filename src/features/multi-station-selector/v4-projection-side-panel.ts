@@ -1267,10 +1267,21 @@ function buildHeaderRow(
   windowLine.title = `${formatIsoSecond(result.timeWindow.startUtc)} to ${formatIsoSecond(result.timeWindow.endUtc)}`;
   row.setAttribute("aria-label", `${titleText} · ${tierLabel} · ${windowText}`);
 
+  // A1 recompute cue: the side panel is rebuilt on every fresh worker result,
+  // so this element (and its one-shot pulse animation) re-mounts on each
+  // recompute — visible proof that the projection is computed live, not replayed.
+  const recomputeCue = document.createElement("p");
+  recomputeCue.className = "v4-projection-side-panel__recompute-cue";
+  recomputeCue.dataset.recomputeCue = "true";
+  const recomputedAt = new Date().toTimeString().slice(0, 8);
+  recomputeCue.textContent = `↻ recomputed live ${recomputedAt}`;
+  recomputeCue.title = "Recomputed live in the projection worker on this input.";
+
   row.append(
     titleContainer,
     buildPlainTextSeparator(),
-    windowLine
+    windowLine,
+    recomputeCue
   );
 
   return row;
