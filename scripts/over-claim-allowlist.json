@@ -1,0 +1,41 @@
+{
+  "_doc": "Reviewed-honest string literals that contain an over-claim term but are NOT viewer-facing provenance claims. The over-claim gate (scripts/helpers/over-claim-scan.mjs, called by verify-phase0.mjs) fails on any asserting over-claim literal NOT listed here, forcing human review of additions. Each entry needs a reason. Match is exact string equality against the scanned literal's inner content.",
+  "allow": [
+    {
+      "match": "operator-validated",
+      "reason": "sourceTier enum comparison value in code (station.sourceTier === 'operator-validated'); gates the Tier-1 badge, not rendered prose."
+    },
+    {
+      "match": "<span class=\"context-only badge-provenance badge-tier-1\">Operator-validated (Tier 1)</span>",
+      "reason": "Tier-1 authority-class badge label; renders ONLY when a pair genuinely is operator-validated (legacy CHT x Speedcast fixture). Correct authority naming, not a claim about a modeled value."
+    },
+    {
+      "match": "Measured operation, service-level guarantee, radio-layer switch trace, or real route.",
+      "reason": "evidenceBoundary column of a truthBoundary non-claim row = the upper bound of what the report explicitly CANNOT prove."
+    },
+    {
+      "match": "Measured service KPI, packet trace, or customer acceptance evidence.",
+      "reason": "evidenceBoundary of the metric-anchor row = explicitly NOT proven by the report."
+    },
+    {
+      "match": "active-serving-satellite",
+      "reason": "TypeScript union-type member / mustNotImply category key (names a thing the demo must not imply)."
+    },
+    {
+      "match": "measured-performance",
+      "reason": "TypeScript union-type member / mustNotImply category key (names a thing the demo must not imply)."
+    },
+    {
+      "match": "active serving satellite identity",
+      "reason": "Item inside a mustNotImply array (tier-1 fixture projection): the thing the demo must NOT imply."
+    },
+    {
+      "match": "measured latency/jitter/throughput truth",
+      "reason": "Item inside a mustNotImply array (tier-1 fixture projection): the thing the demo must NOT imply."
+    },
+    {
+      "match": "Measured communication-rate visualization beyond route F-09 class",
+      "reason": "Value of a gap: field declaring an external (not-yet-available) capability; hookpoint text states 'measurement truth remains external'."
+    }
+  ]
+}

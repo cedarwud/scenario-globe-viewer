@@ -2,6 +2,7 @@ import { createHash } from "node:crypto";
 import { readFileSync, existsSync, lstatSync, readdirSync, statSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { scanText } from "./helpers/over-claim-scan.mjs";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -102,6 +103,51 @@ function verifyNeutralWording() {
       }
     }
   }
+}
+
+function collectSourceCodeFiles(relativePath) {
+  const absolutePath = resolveRepoPath(relativePath);
+  const entry = statSync(absolutePath);
+  if (entry.isFile()) {
+    return /\.(ts|tsx|mjs|js)$/.test(relativePath) ? [relativePath] : [];
+  }
+  return readdirSync(absolutePath, { withFileTypes: true }).flatMap((dirent) => {
+    const childRelativePath = path.join(relativePath, dirent.name);
+    if (dirent.isDirectory()) {
+      if (dirent.name === "__pycache__" || dirent.name === "node_modules") {
+        return [];
+      }
+      return collectSourceCodeFiles(childRelativePath);
+    }
+    return /\.(ts|tsx|mjs|js)$/.test(dirent.name) ? [childRelativePath] : [];
+  });
+}
+
+// Honesty regression guard: no UNQUALIFIED over-claim term (operator-validated,
+// measured, active-serving, certified, guaranteed, ...) may appear in a rendered-text
+// string literal unless it is negated/disclosure text or explicitly reviewed in
+// scripts/over-claim-allowlist.json. See scripts/helpers/over-claim-scan.mjs for the
+// deliberate scope + limitations (it catches hard provenance TERMS in string literals,
+// not phrasing/omitted-qualifier over-claims, which need human review).
+function verifyNoUnqualifiedOverClaims() {
+  const allowlist = JSON.parse(readText("scripts/over-claim-allowlist.json"));
+  const allowed = new Set((allowlist.allow ?? []).map((entry) => entry.match));
+  const violations = [];
+  for (const relativePath of collectSourceCodeFiles("src")) {
+    const normalizedPath = relativePath.replace(/\\/g, "/");
+    for (const finding of scanText(readText(relativePath))) {
+      if (allowed.has(finding.literal)) {
+        continue;
+      }
+      violations.push(`${normalizedPath}:${finding.line} [${finding.term}] "${finding.literal}"`);
+    }
+  }
+  assert(
+    violations.length === 0,
+    `Found ${violations.length} unqualified over-claim term(s) in rendered string literals ` +
+      `(add a negation/disclosure qualifier, or review into scripts/over-claim-allowlist.json):\n` +
+      violations.map((v) => `  - ${v}`).join("\n")
+  );
 }
 
 function verifyBuiltOutput() {
@@ -208,6 +254,7 @@ function main() {
   verifyBuiltOutput();
   verifyInstalledCesiumEvidence();
   verifyNeutralWording();
+  verifyNoUnqualifiedOverClaims();
   console.log("Phase 0 verification passed.");
 }
 
