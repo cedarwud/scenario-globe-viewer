@@ -1,0 +1,55 @@
+{
+  "title": "System architecture & dataflow v2 — clean dataflow, honesty-tiered (no ray geometry)",
+  "canvas": { "width": 1680, "height": 1000, "units": "px", "backgroundFill": "#ffffff" },
+  "style": {
+    "node": { "fill": "#ffffff", "stroke": "#1a2238", "strokeWidth": 1.5, "rx": 9, "fontFamily": "Noto Sans TC, sans-serif", "fontSize": 16, "textFill": "#1a2238" },
+    "edge": { "stroke": "#2a9d8f", "strokeWidth": 2.0, "arrowSize": 11, "labelFontFamily": "Noto Sans TC, sans-serif", "labelFontSize": 13, "labelFill": "#5b6372" },
+    "section": { "fill": "#f7f9fc", "stroke": "#c2cede", "strokeWidth": 1.4, "rx": 12, "fontFamily": "Noto Sans TC, sans-serif", "fontSize": 17, "textFill": "#44506a", "textOffsetX": 18, "textOffsetY": 30 },
+    "annotation": { "fontFamily": "Noto Sans TC, sans-serif", "fontSize": 13, "textFill": "#6b7280", "lineHeight": 20 }
+  },
+  "sections": [
+    { "id": "sec-model", "label": "② 標準接地之模型層　依 3GPP / ITU 標準（modeled，非營運商實測）", "x": 30, "y": 80, "w": 1620, "h": 640, "style": { "fill": "#eaf6ef", "stroke": "#2e7d5b", "textFill": "#226048" } },
+    { "id": "sec-lb",    "label": "鏈路預算分解 link budget（各項標註標準出處）", "x": 660, "y": 318, "w": 722, "h": 362, "style": { "fill": "#e2f1ea", "stroke": "#2e7d5b", "strokeWidth": 1.2, "dash": "4 4", "fontSize": 15, "textFill": "#226048" } },
+    { "id": "sec-proxy", "label": "③ 示意代理層　proxy（非實測・分級顯示・不可宣稱絕對量化值）", "x": 30, "y": 748, "w": 1620, "h": 180, "style": { "fill": "#fdeede", "stroke": "#c96a00", "textFill": "#9a5500" } }
+  ],
+  "nodes": [
+    { "id": "title", "label": ["系統架構與資料流 v2：公開 TLE → 標準模型管線 → 示意代理（分層標註誠實邊界）"], "x": 30, "y": 16, "w": 1620, "h": 46, "style": { "fill": "#1a2238", "stroke": "#1a2238", "textFill": "#ffffff", "fontSize": 19 } },
+
+    { "id": "tle",   "label": ["公開 TLE", "CelesTrak GP"], "x": 60, "y": 130, "w": 250, "h": 100, "style": { "fill": "#eef2f5" } },
+    { "id": "sgp4",  "label": ["SGP4 傳播", "→ ECI 位置 · 速度", "AIAA-2006 · WGS72"], "x": 360, "y": 130, "w": 250, "h": 100, "style": { "fill": "#e8f5e9" } },
+    { "id": "coord", "label": ["座標轉換", "ECI→ECEF→大地", "GMST 旋轉"], "x": 660, "y": 130, "w": 250, "h": 100, "style": { "fill": "#e8f5e9" } },
+    { "id": "vis",   "label": ["可視 / 互視視窗", "ENU 仰角門檻", "距離 · 都卜勒幾何"], "x": 960, "y": 130, "w": 250, "h": 100, "style": { "fill": "#e8f5e9" } },
+
+    { "id": "fspl", "label": ["自由空間損耗 FSPL", "TR 38.811 §6.6.2"], "x": 695, "y": 360, "w": 300, "h": 64, "style": { "fill": "#e0f2f1" } },
+    { "id": "rain", "label": ["雨衰 Rain", "P.618-14 §2.2.1.1"], "x": 695, "y": 444, "w": 300, "h": 64, "style": { "fill": "#e0f2f1" } },
+    { "id": "gas",  "label": ["氣體吸收 Gas", "P.676-13 Annex 2"], "x": 695, "y": 528, "w": 300, "h": 64, "style": { "fill": "#e0f2f1" } },
+    { "id": "ant",  "label": ["天線增益 Antenna", "S.1528-0 衛星 + S.465-6 地面站"], "x": 695, "y": 612, "w": 300, "h": 64, "style": { "fill": "#e0f2f1", "fontSize": 14 } },
+
+    { "id": "rsrp", "label": ["收訊功率代理 RSRP", "Σ增益 − ΣLoss", "相對 proxy", "（非絕對 dBm 校準）"], "x": 1090, "y": 392, "w": 270, "h": 252, "style": { "fill": "#d7ece6", "stroke": "#2e7d5b" } },
+    { "id": "ho",   "label": ["換手決策", "argmax 代理", "TR 38.821 §7.3.2.2", "V-MO1 跨軌即時"], "x": 1420, "y": 453, "w": 180, "h": 130, "style": { "fill": "#e0f2f1", "fontSize": 14 } },
+
+    { "id": "noncl", "label": ["不可宣稱", "無 EIRP · 雜訊指數", "封包實測 · 營運商校準"], "x": 60, "y": 800, "w": 264, "h": 96, "style": { "fill": "#fdecea", "stroke": "#c62828", "fontSize": 14 } },
+    { "id": "thr",   "label": ["吞吐 Throughput", "分級 class（非實測 Mbps）"], "x": 346, "y": 800, "w": 264, "h": 96, "style": { "fill": "#fbe3cf", "stroke": "#c96a00", "fontSize": 15 } },
+    { "id": "jit",   "label": ["抖動 Jitter", "分級 class（非實測 ms）"], "x": 632, "y": 800, "w": 264, "h": 96, "style": { "fill": "#fbe3cf", "stroke": "#c96a00", "fontSize": 15 } },
+    { "id": "rsrpp", "label": ["RSRP 顯示", "相對代理（非校準 dBm）"], "x": 1090, "y": 800, "w": 270, "h": 96, "style": { "fill": "#fbe3cf", "stroke": "#c96a00", "fontSize": 15 } },
+    { "id": "cont",  "label": ["連續性", "可視 / 換手導出"], "x": 1382, "y": 800, "w": 264, "h": 96, "style": { "fill": "#fbe3cf", "stroke": "#c96a00", "fontSize": 15 } }
+  ],
+  "edges": [
+    { "id": "p1", "from": "tle",   "to": "sgp4",  "fromAnchor": "right", "toAnchor": "left" },
+    { "id": "p2", "from": "sgp4",  "to": "coord", "fromAnchor": "right", "toAnchor": "left" },
+    { "id": "p3", "from": "coord", "to": "vis",   "fromAnchor": "right", "toAnchor": "left" },
+    { "id": "p4", "from": "vis",   "to": "fspl",  "fromAnchor": "bottom", "toAnchor": "left", "waypoints": [ { "x": 1085, "y": 290 }, { "x": 648, "y": 290 }, { "x": 648, "y": 392 } ] },
+
+    { "id": "l1", "from": "fspl", "to": "rsrp", "fromAnchor": "right", "toAnchor": "left", "waypoints": [ { "x": 1042, "y": 392 }, { "x": 1042, "y": 518 } ], "style": { "strokeWidth": 1.6 } },
+    { "id": "l2", "from": "rain", "to": "rsrp", "fromAnchor": "right", "toAnchor": "left", "waypoints": [ { "x": 1042, "y": 476 }, { "x": 1042, "y": 518 } ], "style": { "strokeWidth": 1.6 } },
+    { "id": "l3", "from": "gas",  "to": "rsrp", "fromAnchor": "right", "toAnchor": "left", "waypoints": [ { "x": 1042, "y": 560 }, { "x": 1042, "y": 518 } ], "style": { "strokeWidth": 1.6 } },
+    { "id": "l4", "from": "ant",  "to": "rsrp", "fromAnchor": "right", "toAnchor": "left", "waypoints": [ { "x": 1042, "y": 644 }, { "x": 1042, "y": 518 } ], "style": { "strokeWidth": 1.6 } },
+    { "id": "l5", "from": "rsrp", "to": "ho",   "fromAnchor": "right", "toAnchor": "left", "style": { "labelFontSize": 12 }, "label": "排序" },
+
+    { "id": "x1", "from": "rsrp", "to": "rsrpp", "fromAnchor": "bottom", "toAnchor": "top", "style": { "stroke": "#c96a00", "labelFontSize": 12, "labelFill": "#9a5500" }, "label": "示意映射" },
+    { "id": "x2", "from": "ho",   "to": "cont",  "fromAnchor": "bottom", "toAnchor": "top", "style": { "stroke": "#c96a00", "labelFontSize": 12, "labelFill": "#9a5500" }, "label": "示意映射" }
+  ],
+  "annotations": [
+    { "id": "foot", "x": 30, "y": 940, "w": 1620, "label": ["誠實分層：① 公開幾何（座標 / TLE）與 ② 標準模型（3GPP / ITU）為可宣稱之模型結果；③ 示意代理為非實測、分級顯示，未含 EIRP・雜訊指數・封包實測・營運商校準，不可作為絕對量化保證。"], "style": { "fontSize": 13, "textFill": "#6b7280" } }
+  ]
+}

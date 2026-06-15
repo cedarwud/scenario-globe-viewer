@@ -1,0 +1,33 @@
+{
+  "title": "Capability map — plain-language coverage by class + status",
+  "canvas": { "width": 1568, "height": 712, "units": "px", "backgroundFill": "#ffffff" },
+  "style": {
+    "node": { "fill": "#ffffff", "stroke": "#1a2238", "strokeWidth": 1.4, "rx": 8, "fontFamily": "Noto Sans TC, sans-serif", "fontSize": 15, "textFill": "#1a2238" },
+    "edge": { "stroke": "#ffffff", "strokeWidth": 0.1, "arrowSize": 0.1, "labelFontFamily": "Noto Sans TC, sans-serif", "labelFontSize": 1, "labelFill": "#ffffff" }
+  },
+  "nodes": [
+    { "id": "h1", "label": ["第一類 ｜ 專案展示需求", "demo 已實作"],          "x": 24,   "y": 18, "w": 496, "h": 56, "style": { "fill": "#1a2238", "stroke": "#1a2238", "textFill": "#ffffff" } },
+    { "id": "h2", "label": ["第二類 ｜ 公開標準替代", "待 Tier A 營運商資料"],   "x": 536,  "y": 18, "w": 496, "h": 56, "style": { "fill": "#1a2238", "stroke": "#1a2238", "textFill": "#ffffff" } },
+    { "id": "h3", "label": ["第三類 ｜ 外部基礎設施 · 報告層"],                 "x": 1048, "y": 18, "w": 496, "h": 56, "style": { "fill": "#1a2238", "stroke": "#1a2238", "textFill": "#ffffff" } },
+
+    { "id": "a1", "label": ["軌道模型整合與多軌切換", "3 項 · 完成"], "x": 24, "y": 88,  "w": 496, "h": 62, "style": { "fill": "#e8f5e9", "stroke": "#2e7d32" } },
+    { "id": "a2", "label": ["TLE 追蹤與軌道里程碑", "2 項 · 完成"],   "x": 24, "y": 160, "w": 496, "h": 62, "style": { "fill": "#e8f5e9", "stroke": "#2e7d32" } },
+    { "id": "a3", "label": ["換手與跨軌", "3 項 · 完成"],            "x": 24, "y": 232, "w": 496, "h": 62, "style": { "fill": "#e8f5e9", "stroke": "#2e7d32" } },
+    { "id": "a4", "label": ["連結預算與通訊速率", "2 項 · 完成"],     "x": 24, "y": 304, "w": 496, "h": 62, "style": { "fill": "#e8f5e9", "stroke": "#2e7d32" } },
+    { "id": "a5", "label": ["可通訊時間與統計", "2 項 · 多為完成（R1-F3 部分）"], "x": 24, "y": 376, "w": 496, "h": 62, "style": { "fill": "#fdebd0", "stroke": "#e08a1e" } },
+    { "id": "a6", "label": ["視覺場景與互動 UI", "2 項 · 完成"],     "x": 24, "y": 448, "w": 496, "h": 62, "style": { "fill": "#e8f5e9", "stroke": "#2e7d32" } },
+    { "id": "a7", "label": ["報告匯出與 demo", "2 項 · 完成"],       "x": 24, "y": 520, "w": 496, "h": 62, "style": { "fill": "#e8f5e9", "stroke": "#2e7d32" } },
+    { "id": "a8", "label": ["模擬控制與穩定性里程碑", "3 項 · 完成（含 24h soak）"], "x": 24, "y": 592, "w": 496, "h": 62, "style": { "fill": "#e8f5e9", "stroke": "#2e7d32" } },
+
+    { "id": "b1", "label": ["連線品質與天線（Tier B）", "2 項 · 部分 · 待 Tier A"], "x": 536, "y": 88,  "w": 496, "h": 62, "style": { "fill": "#fdebd0", "stroke": "#e08a1e" } },
+    { "id": "b2", "label": ["降雨與整合（Tier B）", "2 項 · 部分 · 待 Tier A"],     "x": 536, "y": 160, "w": 496, "h": 62, "style": { "fill": "#fdebd0", "stroke": "#e08a1e" } },
+    { "id": "b3", "label": ["irreducible 缺口", "3 項 · irr-3 部分／irr-1·2 缺口"], "x": 536, "y": 232, "w": 496, "h": 62, "style": { "fill": "#fdecea", "stroke": "#c62828" } },
+
+    { "id": "c1", "label": ["外部網路橋接與環境", "3 項 · 範圍外（外部基礎設施）"], "x": 1048, "y": 88,  "w": 496, "h": 62, "style": { "fill": "#eef0f2", "stroke": "#6b7280" } },
+    { "id": "c2", "label": ["路由 / DUT / 流量產生器", "3 項 · 範圍外（外部基礎設施）"], "x": 1048, "y": 160, "w": 496, "h": 62, "style": { "fill": "#eef0f2", "stroke": "#6b7280" } },
+    { "id": "c3", "label": ["報告層交付", "2 項 · 資料缺口（報告層）"], "x": 1048, "y": 232, "w": 496, "h": 62, "style": { "fill": "#fdecea", "stroke": "#c62828" } },
+
+    { "id": "lg", "label": ["狀態圖例：綠＝完成 · 邊界內　琥珀＝部分／Tier B　紅＝缺口　灰＝範圍外", "需求 ID（R1-F1 / K-A2 / V-MO1…）見後續分類明細表，此圖以白話能力為主"], "x": 536, "y": 520, "w": 1008, "h": 92, "style": { "fill": "#f7f9fb", "stroke": "#d9dde3" } }
+  ],
+  "edges": []
+}

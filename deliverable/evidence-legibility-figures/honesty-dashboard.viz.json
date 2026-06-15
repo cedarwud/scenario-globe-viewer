@@ -1,0 +1,54 @@
+{
+  "title": "誠實儀表板 · 可宣稱 / 代理 / 不可宣稱（每條邊界都畫出來）",
+  "canvas": { "width": 1680, "height": 920, "units": "px", "backgroundFill": "#f7f9fc" },
+  "style": {
+    "node": { "fill": "#ffffff", "stroke": "#1a2238", "strokeWidth": 1.5, "rx": 9, "fontFamily": "Noto Sans TC, sans-serif", "fontSize": 17, "textFill": "#1a2238" },
+    "edge": { "stroke": "#ffffff", "strokeWidth": 0.1, "arrowSize": 0.1, "labelFontFamily": "Noto Sans TC, sans-serif", "labelFontSize": 1, "labelFill": "#ffffff" },
+    "section": { "fill": "#f7f9fc", "stroke": "#c2cede", "strokeWidth": 1.6, "rx": 14, "fontFamily": "Noto Sans TC, sans-serif", "fontSize": 19, "textFill": "#44506a", "textOffsetX": 0, "textOffsetY": 38 },
+    "annotation": { "fontFamily": "Noto Sans TC, sans-serif", "fontSize": 16, "textFill": "#6b7280", "lineHeight": 22 }
+  },
+  "sections": [
+    { "id": "zoneA", "label": "可宣稱", "x": 40,   "y": 408, "w": 512, "h": 372, "style": { "fill": "#e8f5e9", "stroke": "#2e7d5b", "strokeWidth": 2.0, "fontSize": 1, "textFill": "#e8f5e9" } },
+    { "id": "zoneB", "label": "示意代理", "x": 584,  "y": 408, "w": 512, "h": 372, "style": { "fill": "#fbe3cf", "stroke": "#c96a00", "strokeWidth": 2.0, "fontSize": 1, "textFill": "#fbe3cf" } },
+    { "id": "zoneC", "label": "不可宣稱", "x": 1128, "y": 408, "w": 512, "h": 372, "style": { "fill": "#fdecea", "stroke": "#c62828", "strokeWidth": 2.0, "fontSize": 1, "textFill": "#fdecea" } }
+  ],
+  "nodes": [
+    { "id": "title", "label": ["誠實儀表板 · 可宣稱 / 代理 / 不可宣稱（每條邊界都畫出來）"], "x": 40, "y": 24, "w": 1600, "h": 60, "style": { "fill": "#1a2238", "stroke": "#1a2238", "textFill": "#ffffff", "fontSize": 24 } },
+
+    { "id": "statNum1", "label": ["0"], "x": 40,   "y": 110, "w": 512, "h": 100, "style": { "fill": "#2e7d5b", "stroke": "#2e7d5b", "strokeWidth": 2.4, "textFill": "#ffffff", "fontSize": 62 } },
+    { "id": "statCap1", "label": ["偽稱 over-claim（CI 自動掃描）"], "x": 40, "y": 212, "w": 512, "h": 56, "style": { "fill": "#e8f5e9", "stroke": "#2e7d5b", "textFill": "#1c5a3f", "fontSize": 18 } },
+
+    { "id": "statNum2", "label": ["7"], "x": 584,  "y": 110, "w": 512, "h": 100, "style": { "fill": "#ffffff", "stroke": "#1a2238", "strokeWidth": 2.4, "textFill": "#1a2238", "fontSize": 62 } },
+    { "id": "statCap2", "label": ["缺口 · 全部揭露（逐條畫出邊界）"], "x": 584, "y": 212, "w": 512, "h": 56, "style": { "fill": "#eef0f2", "stroke": "#6b7280", "textFill": "#1a2238", "fontSize": 18 } },
+
+    { "id": "statNum3", "label": ["0"], "x": 1128, "y": 110, "w": 512, "h": 100, "style": { "fill": "#ffffff", "stroke": "#1a2238", "strokeWidth": 2.4, "textFill": "#1a2238", "fontSize": 62 } },
+    { "id": "statCap3", "label": ["模型值升級為營運商真值"], "x": 1128, "y": 212, "w": 512, "h": 56, "style": { "fill": "#eef0f2", "stroke": "#6b7280", "textFill": "#1a2238", "fontSize": 18 } },
+
+    { "id": "hA", "label": ["① 可宣稱（模型 / 幾何）"], "x": 40,   "y": 318, "w": 512, "h": 60, "style": { "fill": "#1a2238", "stroke": "#1a2238", "textFill": "#ffffff", "fontSize": 21 } },
+    { "id": "hB", "label": ["② 示意代理（非實測 · 分級）"], "x": 584,  "y": 318, "w": 512, "h": 60, "style": { "fill": "#1a2238", "stroke": "#1a2238", "textFill": "#ffffff", "fontSize": 21 } },
+    { "id": "hC", "label": ["③ 不可宣稱（本系統未提供）"], "x": 1128, "y": 318, "w": 512, "h": 60, "style": { "fill": "#1a2238", "stroke": "#1a2238", "textFill": "#ffffff", "fontSize": 21 } },
+
+    { "id": "a1", "label": ["軌道整合 · 多軌切換", "幾何 · 標準模型"], "x": 64, "y": 430, "w": 464, "h": 78, "style": { "fill": "#ffffff", "stroke": "#2e7d5b", "strokeWidth": 1.8, "textFill": "#1c5a3f" } },
+    { "id": "a2", "label": ["可視 · 互視視窗", "幾何 · 標準模型"], "x": 64, "y": 524, "w": 464, "h": 78, "style": { "fill": "#ffffff", "stroke": "#2e7d5b", "strokeWidth": 1.8, "textFill": "#1c5a3f" } },
+    { "id": "a3", "label": ["換手序列（V-MO1）", "幾何 · 標準模型"], "x": 64, "y": 618, "w": 464, "h": 78, "style": { "fill": "#ffffff", "stroke": "#2e7d5b", "strokeWidth": 1.8, "textFill": "#1c5a3f" } },
+
+    { "id": "b1", "label": ["RSRP", "相對 proxy · 非絕對 dBm"], "x": 608, "y": 430, "w": 464, "h": 78, "style": { "fill": "#ffffff", "stroke": "#c96a00", "strokeWidth": 1.8, "textFill": "#8a4a00" } },
+    { "id": "b2", "label": ["吞吐 · 抖動", "分級 class"], "x": 608, "y": 524, "w": 464, "h": 78, "style": { "fill": "#ffffff", "stroke": "#c96a00", "strokeWidth": 1.8, "textFill": "#8a4a00" } },
+    { "id": "b3", "label": ["連續性", "可視 · 換手導出"], "x": 608, "y": 618, "w": 464, "h": 78, "style": { "fill": "#ffffff", "stroke": "#c96a00", "strokeWidth": 1.8, "textFill": "#8a4a00" } },
+
+    { "id": "c1", "label": ["EIRP · 雜訊指數"], "x": 1152, "y": 430, "w": 222, "h": 78, "style": { "fill": "#ffffff", "stroke": "#c62828", "strokeWidth": 1.8, "textFill": "#a01818", "fontSize": 16 } },
+    { "id": "c2", "label": ["封包實測"], "x": 1394, "y": 430, "w": 222, "h": 78, "style": { "fill": "#ffffff", "stroke": "#c62828", "strokeWidth": 1.8, "textFill": "#a01818", "fontSize": 16 } },
+    { "id": "c3", "label": ["營運商 RF 硬體"], "x": 1152, "y": 524, "w": 222, "h": 78, "style": { "fill": "#ffffff", "stroke": "#c62828", "strokeWidth": 1.8, "textFill": "#a01818", "fontSize": 16 } },
+    { "id": "c4", "label": ["R0.01 校準"], "x": 1394, "y": 524, "w": 222, "h": 78, "style": { "fill": "#ffffff", "stroke": "#c62828", "strokeWidth": 1.8, "textFill": "#a01818", "fontSize": 16 } },
+    { "id": "c5", "label": ["驗收門檻腳本"], "x": 1152, "y": 618, "w": 222, "h": 78, "style": { "fill": "#ffffff", "stroke": "#c62828", "strokeWidth": 1.8, "textFill": "#a01818", "fontSize": 16 } },
+    { "id": "c6", "label": ["實體網路橋接"], "x": 1394, "y": 618, "w": 222, "h": 78, "style": { "fill": "#ffffff", "stroke": "#c62828", "strokeWidth": 1.8, "textFill": "#a01818", "fontSize": 16 } },
+
+    { "id": "footA", "label": ["綠＝標準接地之模型 / 幾何，可宣稱"], "x": 64,   "y": 716, "w": 464, "h": 52, "style": { "fill": "#d6efe4", "stroke": "#2e7d5b", "textFill": "#1c5a3f", "fontSize": 15 } },
+    { "id": "footB", "label": ["橘＝示意代理 · 相對分級 · 非實測"], "x": 608,  "y": 716, "w": 464, "h": 52, "style": { "fill": "#f9d6b8", "stroke": "#c96a00", "textFill": "#8a4a00", "fontSize": 15 } },
+    { "id": "footC", "label": ["紅＝本系統 0 提供 · 不暗示已量測"], "x": 1152, "y": 716, "w": 464, "h": 52, "style": { "fill": "#f9d8d4", "stroke": "#c62828", "textFill": "#a01818", "fontSize": 15 } }
+  ],
+  "edges": [],
+  "annotations": [
+    { "id": "foot", "x": 40, "y": 876, "w": 1600, "label": ["功能展示 ≠ 來源權威；缺口全揭露，不偽稱、不升級。"], "style": { "fontSize": 18, "textFill": "#6b7280" } }
+  ]
+}

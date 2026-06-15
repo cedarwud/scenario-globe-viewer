@@ -1,0 +1,46 @@
+{
+  "title": "資料來源 → 模型 → 誠實分級（provenance & honesty grading）",
+  "canvas": { "width": 1560, "height": 880, "units": "px", "backgroundFill": "#ffffff" },
+  "style": {
+    "node": { "fill": "#ffffff", "stroke": "#1a2238", "strokeWidth": 1.5, "rx": 9, "fontFamily": "Noto Sans TC, sans-serif", "fontSize": 16, "textFill": "#1a2238" },
+    "edge": { "stroke": "#2a9d8f", "strokeWidth": 2.2, "arrowSize": 11, "labelFontFamily": "Noto Sans TC, sans-serif", "labelFontSize": 13, "labelFill": "#5b6372" },
+    "section": { "fill": "#f7f9fc", "stroke": "#c2cede", "strokeWidth": 1.4, "rx": 12, "fontFamily": "Noto Sans TC, sans-serif", "fontSize": 17, "textFill": "#44506a", "textOffsetX": 18, "textOffsetY": 30 },
+    "annotation": { "fontFamily": "Noto Sans TC, sans-serif", "fontSize": 14, "textFill": "#6b7280", "lineHeight": 20 }
+  },
+  "sections": [
+    { "id": "sec1", "label": "① 公開來源　public inputs", "x": 30, "y": 120, "w": 470, "h": 600, "style": { "fill": "#eef4fb", "stroke": "#3a6ea5", "textFill": "#2c557f" } },
+    { "id": "sec2", "label": "② 模型計算　standards-grounded model", "x": 545, "y": 120, "w": 470, "h": 600, "style": { "fill": "#eaf6ef", "stroke": "#2e7d5b", "textFill": "#226048" } },
+    { "id": "sec3", "label": "③ 誠實分級輸出　honesty grading", "x": 1060, "y": 120, "w": 470, "h": 600, "style": { "fill": "#f7f9fc", "stroke": "#8a93a3", "textFill": "#44506a" } }
+  ],
+  "nodes": [
+    { "id": "title", "label": ["資料來源 → 模型 → 誠實分級（provenance & honesty grading）"], "x": 30, "y": 24, "w": 1500, "h": 52, "style": { "fill": "#1a2238", "stroke": "#1a2238", "textFill": "#ffffff", "fontSize": 21 } },
+
+    { "id": "h1", "label": ["① 公開來源"], "x": 60, "y": 156, "w": 410, "h": 52, "style": { "fill": "#1a2238", "stroke": "#1a2238", "textFill": "#ffffff", "fontSize": 18 } },
+    { "id": "h2", "label": ["② 模型計算"], "x": 575, "y": 156, "w": 410, "h": 52, "style": { "fill": "#1a2238", "stroke": "#1a2238", "textFill": "#ffffff", "fontSize": 18 } },
+    { "id": "h3", "label": ["③ 誠實分級輸出"], "x": 1090, "y": 156, "w": 410, "h": 52, "style": { "fill": "#1a2238", "stroke": "#1a2238", "textFill": "#ffffff", "fontSize": 18 } },
+
+    { "id": "s1", "label": ["公開 TLE", "CelesTrak GP"], "x": 60, "y": 250, "w": 410, "h": 120, "style": { "fill": "#dbe9f7", "stroke": "#3a6ea5", "fontSize": 16 } },
+    { "id": "s2", "label": ["公開站座標", "CHT · SANSA"], "x": 60, "y": 400, "w": 410, "h": 120, "style": { "fill": "#dbe9f7", "stroke": "#3a6ea5", "fontSize": 16 } },
+    { "id": "s3", "label": ["3GPP · ITU 標準 PDF", "12 份"], "x": 60, "y": 550, "w": 410, "h": 120, "style": { "fill": "#dbe9f7", "stroke": "#3a6ea5", "fontSize": 16 } },
+
+    { "id": "m1", "label": ["SGP4 + 座標轉換", "ECI→ECEF→大地 · GMST"], "x": 575, "y": 250, "w": 410, "h": 120, "style": { "fill": "#d6efe4", "stroke": "#2e7d5b", "fontSize": 16 } },
+    { "id": "m2", "label": ["可視 · 互視 · 鏈路預算", "FSPL / 雨 / 氣 / 天線"], "x": 575, "y": 400, "w": 410, "h": 120, "style": { "fill": "#d6efe4", "stroke": "#2e7d5b", "fontSize": 16 } },
+    { "id": "m3", "label": ["換手", "argmax · V-MO1"], "x": 575, "y": 550, "w": 410, "h": 120, "style": { "fill": "#d6efe4", "stroke": "#2e7d5b", "fontSize": 16 } },
+
+    { "id": "g1", "label": ["可宣稱（模型 / 幾何）", "可視視窗 · 互視 · 換手序列"], "x": 1090, "y": 250, "w": 410, "h": 120, "style": { "fill": "#d6efe4", "stroke": "#2e7d5b", "strokeWidth": 2.2, "textFill": "#1c5a3f", "fontSize": 16 } },
+    { "id": "g2", "label": ["代理（非實測 · 分級）", "RSRP（相對）· 吞吐 · 抖動"], "x": 1090, "y": 400, "w": 410, "h": 120, "style": { "fill": "#fbe3cf", "stroke": "#c96a00", "strokeWidth": 2.2, "textFill": "#8a4a00", "fontSize": 16 } },
+    { "id": "g3", "label": ["不可宣稱", "EIRP · 雜訊指數", "封包實測 · 營運商校準"], "x": 1090, "y": 550, "w": 410, "h": 120, "style": { "fill": "#fdecea", "stroke": "#c62828", "strokeWidth": 2.2, "textFill": "#a01818", "fontSize": 16 } }
+  ],
+  "edges": [
+    { "id": "e1", "from": "s1", "to": "m1", "fromAnchor": "right", "toAnchor": "left" },
+    { "id": "e2", "from": "s2", "to": "m1", "fromAnchor": "right", "toAnchor": "bottom", "waypoints": [ { "x": 540, "y": 460 }, { "x": 540, "y": 385 }, { "x": 780, "y": 385 } ], "style": { "stroke": "#3a6ea5", "dash": "5 5", "arrowSize": 9 } },
+    { "id": "e3", "from": "s3", "to": "m2", "fromAnchor": "right", "toAnchor": "bottom", "waypoints": [ { "x": 540, "y": 610 }, { "x": 540, "y": 535 }, { "x": 780, "y": 535 } ] },
+
+    { "id": "f1", "from": "m1", "to": "g1", "fromAnchor": "right", "toAnchor": "left" },
+    { "id": "f2", "from": "m2", "to": "g2", "fromAnchor": "right", "toAnchor": "left", "style": { "stroke": "#c96a00" } },
+    { "id": "f3", "from": "m3", "to": "g1", "fromAnchor": "right", "toAnchor": "bottom", "waypoints": [ { "x": 1037, "y": 610 }, { "x": 1037, "y": 385 }, { "x": 1295, "y": 385 } ], "style": { "stroke": "#2e7d5b", "dash": "5 5" } }
+  ],
+  "annotations": [
+    { "id": "foot", "x": 30, "y": 742, "w": 1500, "label": ["綠＝標準接地之模型結果（可宣稱）；橘＝示意代理（非實測）；紅＝本系統未提供（不可宣稱）。"], "style": { "fontSize": 15, "textFill": "#5b6372" } }
+  ]
+}

@@ -1,0 +1,39 @@
+{
+  "title": "來源權威階梯 · 現在在 Tier-B，缺一階到 Tier-A",
+  "canvas": { "width": 1620, "height": 920, "units": "px", "backgroundFill": "#f7f9fc" },
+  "style": {
+    "node": { "fill": "#ffffff", "stroke": "#1a2238", "strokeWidth": 1.6, "rx": 10, "fontFamily": "Noto Sans TC, sans-serif", "fontSize": 17, "textFill": "#1a2238" },
+    "edge": { "stroke": "#1a2238", "strokeWidth": 2.4, "arrowSize": 12, "labelFontFamily": "Noto Sans TC, sans-serif", "labelFontSize": 13, "labelFill": "#5b6372" },
+    "section": { "fill": "#f7f9fc", "stroke": "#c2cede", "strokeWidth": 1.4, "rx": 12, "fontFamily": "Noto Sans TC, sans-serif", "fontSize": 16, "textFill": "#44506a", "textOffsetX": 18, "textOffsetY": 30 },
+    "annotation": { "fontFamily": "Noto Sans TC, sans-serif", "fontSize": 15, "textFill": "#6b7280", "lineHeight": 22 }
+  },
+  "sections": [
+    { "id": "stairband", "label": "權威階梯（由下而上攀升）", "x": 40, "y": 150, "w": 940, "h": 620, "style": { "fill": "#ffffff", "stroke": "#dfe5ee", "strokeWidth": 1.2, "textFill": "#9aa6b0", "fontSize": 15, "fontFamily": "Noto Sans TC, sans-serif" } }
+  ],
+  "nodes": [
+    { "id": "title", "label": ["來源權威階梯 · 現在在 Tier-B，缺一階到 Tier-A"], "x": 40, "y": 30, "w": 1540, "h": 60, "style": { "fill": "#1a2238", "stroke": "#1a2238", "textFill": "#ffffff", "fontSize": 24 } },
+
+    { "id": "step1", "label": ["Tier 1 · Geometric 幾何推導"], "x": 80, "y": 590, "w": 420, "h": 64, "style": { "fill": "#eaf0ec", "stroke": "#6b7d72", "textFill": "#33433a", "fontSize": 19 } },
+    { "id": "step1d", "label": ["可見性 · 仰角幾何（TLE + SGP4）", "多數需求列的底層依據"], "x": 80, "y": 656, "w": 420, "h": 86, "style": { "fill": "#f3f6f4", "stroke": "#aebbb3", "textFill": "#445049", "fontSize": 15 } },
+
+    { "id": "step2", "label": ["Tier 2 · Tier-B 公開標準自實作"], "x": 295, "y": 388, "w": 440, "h": 64, "style": { "fill": "#fbe3cf", "stroke": "#c96a00", "textFill": "#8a4a00", "fontSize": 19, "strokeWidth": 2.4 } },
+    { "id": "step2d", "label": ["ITU-R / 3GPP 自實作替代", "5 模組接入（4 列 runtime-wired）"], "x": 295, "y": 454, "w": 440, "h": 86, "style": { "fill": "#fdeede", "stroke": "#d98a3a", "textFill": "#8a4a00", "fontSize": 15 } },
+    { "id": "step2badge", "label": ["◀ 目前在這"], "x": 745, "y": 400, "w": 178, "h": 52, "style": { "fill": "#c96a00", "stroke": "#c96a00", "textFill": "#ffffff", "fontSize": 19 } },
+
+    { "id": "step3", "label": ["Tier 3 · Tier-A 營運商驗證"], "x": 520, "y": 188, "w": 440, "h": 64, "style": { "fill": "#ffffff", "stroke": "#2e7d5b", "textFill": "#1c5a3f", "fontSize": 19, "strokeWidth": 2.6 } },
+    { "id": "step3d", "label": ["0 交付 · 待補一階"], "x": 520, "y": 254, "w": 440, "h": 86, "style": { "fill": "#ffffff", "stroke": "#c62828", "textFill": "#a01818", "fontSize": 20, "strokeWidth": 2.2 } },
+
+    { "id": "callout_h", "label": ["差這一階需要（營運商資料）"], "x": 1040, "y": 188, "w": 540, "h": 56, "style": { "fill": "#1a2238", "stroke": "#1a2238", "textFill": "#ffffff", "fontSize": 19 } },
+    { "id": "callout_b", "label": ["EIRP · RF 硬體盤徑 · 波束", "實測連線天氣 / R0.01", "真實封包軌跡", "外部驗收門檻腳本"], "x": 1040, "y": 250, "w": 540, "h": 200, "style": { "fill": "#fdecea", "stroke": "#c62828", "textFill": "#a01818", "fontSize": 17, "strokeWidth": 1.8 } },
+
+    { "id": "foot", "label": ["本專案以 Tier-B 公開標準替代營運商缺口；功能展示 ≠ Tier-A 來源權威。"], "x": 40, "y": 818, "w": 1540, "h": 60, "style": { "fill": "#eef0f2", "stroke": "#d9dde3", "textFill": "#5b6372", "fontSize": 17 } }
+  ],
+  "edges": [
+    { "id": "up1", "from": "step1", "to": "step2d", "fromAnchor": "top", "toAnchor": "bottom", "waypoints": [ { "x": 290, "y": 540 }, { "x": 515, "y": 540 } ], "style": { "stroke": "#9aa6b0", "dash": "6 6", "arrowSize": 10 } },
+    { "id": "up2", "from": "step2", "to": "step3d", "fromAnchor": "top", "toAnchor": "bottom", "waypoints": [ { "x": 515, "y": 358 }, { "x": 740, "y": 358 } ], "style": { "stroke": "#9aa6b0", "dash": "6 6", "arrowSize": 10 } },
+    { "id": "ask", "from": "step3", "to": "callout_h", "fromAnchor": "right", "toAnchor": "left", "style": { "stroke": "#c62828", "strokeWidth": 2.6, "arrowSize": 13 } }
+  ],
+  "annotations": [
+    { "id": "stairnote", "x": 80, "y": 770, "w": 880, "label": ["階梯由下而上攀升：幾何，到公開標準替代（目前），到營運商驗證（未交付）。"], "style": { "fontSize": 14, "textFill": "#8a93a3" } }
+  ]
+}

@@ -1,0 +1,25 @@
+{
+  "title": "D2 compute pipeline — every step tagged with its standard",
+  "canvas": { "width": 1580, "height": 560, "units": "px", "backgroundFill": "#ffffff" },
+  "style": {
+    "node": { "fill": "#ffffff", "stroke": "#1a2238", "strokeWidth": 1.6, "rx": 10, "fontFamily": "Noto Sans TC, sans-serif", "fontSize": 18, "textFill": "#1a2238" },
+    "edge": { "stroke": "#2a9d8f", "strokeWidth": 2.0, "arrowSize": 12, "labelFontFamily": "Noto Sans TC, sans-serif", "labelFontSize": 13, "labelFill": "#5b6372" }
+  },
+  "nodes": [
+    { "id": "tle",  "label": ["公開 TLE", "CelesTrak GP", "公開來源"],          "x": 20,   "y": 90,  "w": 232, "h": 150, "style": { "fill": "#eef2f5" } },
+    { "id": "sgp4", "label": ["SGP4 傳播", "→ ECI 位置 / 速度", "AIAA 2006 · WGS72"], "x": 276,  "y": 90,  "w": 232, "h": 150, "style": { "fill": "#e8f5e9" } },
+    { "id": "geo",  "label": ["ECI→ECEF→大地", "GMST 旋轉", "satellite.js"],    "x": 532,  "y": 90,  "w": 232, "h": 150, "style": { "fill": "#e8f5e9" } },
+    { "id": "vis",  "label": ["仰角 / 可視視窗", "互視交集", "ENU 仰角門檻"],     "x": 788,  "y": 90,  "w": 232, "h": 150, "style": { "fill": "#e8f5e9" } },
+    { "id": "lb",   "label": ["鏈路預算", "FSPL · 氣 · 雨 · 天線", "TR 38.811 §6.6.2"], "x": 1044, "y": 90, "w": 232, "h": 150, "style": { "fill": "#e0f2f1" } },
+    { "id": "ho",   "label": ["換手決策", "argmax 代理", "TR 38.821 §7.3.2.2"],  "x": 1300, "y": 90,  "w": 260, "h": 150, "style": { "fill": "#e0f2f1" } },
+    { "id": "proxy","label": ["吞吐 / RSRP / 抖動", "示意代理（proxy）", "無 EIRP · 雜訊 · 封包實測"], "x": 1044, "y": 370, "w": 232, "h": 140, "style": { "fill": "#fde7d3", "stroke": "#c96a00" } }
+  ],
+  "edges": [
+    { "id": "e1", "from": "tle",  "to": "sgp4", "fromAnchor": "right", "toAnchor": "left" },
+    { "id": "e2", "from": "sgp4", "to": "geo",  "fromAnchor": "right", "toAnchor": "left" },
+    { "id": "e3", "from": "geo",  "to": "vis",  "fromAnchor": "right", "toAnchor": "left" },
+    { "id": "e4", "from": "vis",  "to": "lb",   "fromAnchor": "right", "toAnchor": "left" },
+    { "id": "e5", "from": "lb",   "to": "ho",   "fromAnchor": "right", "toAnchor": "left" },
+    { "id": "e6", "from": "lb",   "to": "proxy","fromAnchor": "bottom", "toAnchor": "top", "style": { "stroke": "#c96a00" } }
+  ]
+}

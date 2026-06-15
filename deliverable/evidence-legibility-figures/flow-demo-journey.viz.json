@@ -1,0 +1,35 @@
+{
+  "title": "Demo 操作流程（雙站投影 → 播放 → 證據）",
+  "canvas": { "width": 1620, "height": 720, "units": "px", "backgroundFill": "#ffffff" },
+  "style": {
+    "node": { "fill": "#ffffff", "stroke": "#1a2238", "strokeWidth": 1.5, "rx": 12, "fontFamily": "Noto Sans TC, sans-serif", "fontSize": 17, "textFill": "#1a2238" },
+    "edge": { "stroke": "#5b6372", "strokeWidth": 2.4, "arrowSize": 12, "labelFontFamily": "Noto Sans TC, sans-serif", "labelFontSize": 13, "labelFill": "#5b6372" },
+    "section": { "fill": "#f7f9fc", "stroke": "#c2cede", "strokeWidth": 1.4, "rx": 14, "fontFamily": "Noto Sans TC, sans-serif", "fontSize": 16, "textFill": "#44506a", "textOffsetX": 20, "textOffsetY": 32 },
+    "annotation": { "fontFamily": "Noto Sans TC, sans-serif", "fontSize": 14, "textFill": "#6b7280", "lineHeight": 22 }
+  },
+  "sections": [
+    { "id": "band-input",    "label": "輸入：選站", "x": 30, "y": 196, "w": 624, "h": 268, "style": { "fill": "#eef4fb", "stroke": "#3a6ea5", "textFill": "#2c557f" } },
+    { "id": "band-modeled",  "label": "標準接地模型（modeled，非營運商實測）", "x": 674, "y": 196, "w": 624, "h": 268, "style": { "fill": "#eaf6ef", "stroke": "#2e7d5b", "textFill": "#226048" } },
+    { "id": "band-evidence", "label": "證據", "x": 1318, "y": 196, "w": 272, "h": 268, "style": { "fill": "#e2f1ea", "stroke": "#2a9d8f", "textFill": "#1f7a6e" } }
+  ],
+  "nodes": [
+    { "id": "title", "label": ["Demo 操作流程（雙站投影 → 播放 → 證據）"], "x": 30, "y": 28, "w": 1560, "h": 56, "style": { "fill": "#1a2238", "stroke": "#1a2238", "textFill": "#ffffff", "fontSize": 22 } },
+
+    { "id": "s1", "label": ["①  選擇站 A", "地圖標記 / 清單 / URL ?stationA="], "x": 54, "y": 262, "w": 276, "h": 132, "style": { "fill": "#dbe9f7", "stroke": "#3a6ea5", "fontSize": 16 } },
+    { "id": "s2", "label": ["②  選擇站 B → 自動投影", "?stationB= · scenePreset=regional"], "x": 354, "y": 262, "w": 276, "h": 132, "style": { "fill": "#dbe9f7", "stroke": "#3a6ea5", "fontSize": 16 } },
+    { "id": "s3", "label": ["③  即時播放", "360 分鐘視窗", "預設倍速 30x / 60x / 120x"], "x": 698, "y": 262, "w": 276, "h": 132, "style": { "fill": "#d6efe4", "stroke": "#2e7d5b", "fontSize": 16 } },
+    { "id": "s4", "label": ["④  觀察換手與互視", "V-MO1 跨軌即時", "仰角門檻"], "x": 998, "y": 262, "w": 276, "h": 132, "style": { "fill": "#d6efe4", "stroke": "#2e7d5b", "fontSize": 16 } },
+    { "id": "s5", "label": ["⑤  讀取證據", "來源分級 · 不可宣稱", "報告匯出"], "x": 1342, "y": 262, "w": 226, "h": 132, "style": { "fill": "#cdeae2", "stroke": "#2a9d8f", "fontSize": 16 } },
+
+    { "id": "honesty", "label": ["畫面數值為模型 / 示意代理（RSRP 相對、吞吐 / 抖動分級）；非營運商實測。"], "x": 698, "y": 520, "w": 870, "h": 78, "style": { "fill": "#fdeede", "stroke": "#c96a00", "textFill": "#9a5500", "fontSize": 16, "rx": 10 } }
+  ],
+  "edges": [
+    { "id": "e1", "from": "s1", "to": "s2", "fromAnchor": "right", "toAnchor": "left" },
+    { "id": "e2", "from": "s2", "to": "s3", "fromAnchor": "right", "toAnchor": "left" },
+    { "id": "e3", "from": "s3", "to": "s4", "fromAnchor": "right", "toAnchor": "left" },
+    { "id": "e4", "from": "s4", "to": "s5", "fromAnchor": "right", "toAnchor": "left" }
+  ],
+  "annotations": [
+    { "id": "foot", "x": 30, "y": 632, "w": 1560, "label": ["流程左→右：輸入（藍，選站）→ 模型（綠，依 3GPP / ITU 標準播放與換手）→ 證據（藍綠，來源分級與不可宣稱）。畫面數值為模型結果或示意代理，未含 EIRP・雜訊指數・封包實測・營運商校準。"], "style": { "fontSize": 14, "textFill": "#6b7280" } }
+  ]
+}

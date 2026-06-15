@@ -1,0 +1,30 @@
+{
+  "title": "第一類 · 能力卡片牆",
+  "canvas": { "width": 1680, "height": 940, "units": "px", "backgroundFill": "#f7f9fc" },
+  "style": {
+    "node": { "fill": "#ffffff", "stroke": "#1a2238", "strokeWidth": 1.6, "rx": 12, "fontFamily": "Noto Sans TC, sans-serif", "fontSize": 17, "textFill": "#1a2238" },
+    "edge": { "stroke": "#ffffff", "strokeWidth": 0.1, "arrowSize": 0.1, "labelFontFamily": "Noto Sans TC, sans-serif", "labelFontSize": 1, "labelFill": "#ffffff" },
+    "section": { "fill": "#f7f9fc", "stroke": "#c2cede", "strokeWidth": 1.2, "rx": 12, "fontFamily": "Noto Sans TC, sans-serif", "fontSize": 16, "textFill": "#44506a", "textOffsetX": 18, "textOffsetY": 28 },
+    "annotation": { "fontFamily": "Noto Sans TC, sans-serif", "fontSize": 15, "textFill": "#6b7280", "lineHeight": 22 }
+  },
+  "sections": [],
+  "nodes": [
+    { "id": "title", "label": ["第一類 · 能力卡片牆（取代 8 張密表；逐列明細見附錄）"], "x": 40, "y": 28, "w": 1600, "h": 70, "style": { "fill": "#1a2238", "stroke": "#1a2238", "textFill": "#ffffff", "fontSize": 28 } },
+
+    { "id": "c1", "label": ["軌道模型整合與多軌切換", "3 項 · 完成", "邊界：模型切換候選，非主動路徑／營運商記錄"], "x": 40,   "y": 150, "w": 388, "h": 168, "style": { "fill": "#e8f5e9", "stroke": "#2e7d5b", "strokeWidth": 2.2, "fontSize": 19 } },
+    { "id": "c2", "label": ["TLE 追蹤與軌道里程碑", "2 項 · 完成", "邊界：讀打包檔，非即時目錄連線"], "x": 444,  "y": 150, "w": 388, "h": 168, "style": { "fill": "#e8f5e9", "stroke": "#2e7d5b", "strokeWidth": 2.2, "fontSize": 19 } },
+    { "id": "c3", "label": ["換手與跨軌", "3 項 · 完成", "邊界：模型策略遷移，非原生 RF 換手"], "x": 848,  "y": 150, "w": 388, "h": 168, "style": { "fill": "#e8f5e9", "stroke": "#2e7d5b", "strokeWidth": 2.2, "fontSize": 19 } },
+    { "id": "c4", "label": ["連結預算與通訊速率", "2 項 · 完成", "邊界：模型估計，RF 硬體缺口"], "x": 1252, "y": 150, "w": 388, "h": 168, "style": { "fill": "#e8f5e9", "stroke": "#2e7d5b", "strokeWidth": 2.2, "fontSize": 19 } },
+
+    { "id": "c5", "label": ["可通訊時間與統計", "2 項 · 多為完成（R1-F3 部分）", "邊界：模型時間，非 ping／iperf 實測"], "x": 40,   "y": 360, "w": 388, "h": 168, "style": { "fill": "#fbe3cf", "stroke": "#c96a00", "strokeWidth": 2.2, "fontSize": 19 } },
+    { "id": "c6", "label": ["視覺場景與互動 UI", "2 項 · 完成", "邊界：顯示轉換，不生新來源真實性"], "x": 444,  "y": 360, "w": 388, "h": 168, "style": { "fill": "#e8f5e9", "stroke": "#2e7d5b", "strokeWidth": 2.2, "fontSize": 19 } },
+    { "id": "c7", "label": ["報告匯出與 demo", "2 項 · 完成", "邊界：證據面，非最終驗收證明"], "x": 848,  "y": 360, "w": 388, "h": 168, "style": { "fill": "#e8f5e9", "stroke": "#2e7d5b", "strokeWidth": 2.2, "fontSize": 19 } },
+    { "id": "c8", "label": ["模擬控制與穩定性里程碑", "3 項 · 完成（含 24h soak 0 fail）", "邊界：快照，非完整控制記錄"], "x": 1252, "y": 360, "w": 388, "h": 168, "style": { "fill": "#e8f5e9", "stroke": "#2e7d5b", "strokeWidth": 2.2, "fontSize": 19 } },
+
+    { "id": "legend", "label": ["綠＝完成 · 邊界內　　　琥珀＝部分"], "x": 40, "y": 600, "w": 1600, "h": 64, "style": { "fill": "#ffffff", "stroke": "#c2cede", "strokeWidth": 1.4, "fontSize": 19, "textFill": "#44506a" } }
+  ],
+  "edges": [],
+  "annotations": [
+    { "id": "foot", "x": 40, "y": 720, "w": 1600, "label": ["每張卡 = 一個能力主題；綠＝完成 · 邊界內，琥珀＝部分。逐列需求 ID 與模組見附錄明細表。"], "style": { "fontSize": 18, "textFill": "#6b7280" } }
+  ]
+}

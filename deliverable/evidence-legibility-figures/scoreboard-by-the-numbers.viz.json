@@ -1,0 +1,50 @@
+{
+  "title": "驗收計分板 · by the numbers",
+  "canvas": { "width": 1680, "height": 900, "units": "px", "backgroundFill": "#f7f9fc" },
+  "style": {
+    "node": { "fill": "#ffffff", "stroke": "#1a2238", "strokeWidth": 1.4, "rx": 14, "fontFamily": "Noto Sans TC, sans-serif", "fontSize": 16, "textFill": "#1a2238" },
+    "edge": { "stroke": "#ffffff", "strokeWidth": 0.1, "arrowSize": 0.1, "labelFontFamily": "Noto Sans TC, sans-serif", "labelFontSize": 1, "labelFill": "#ffffff" },
+    "section": { "fill": "#ffffff", "stroke": "#d9dde3", "strokeWidth": 1.2, "rx": 16, "fontFamily": "Noto Sans TC, sans-serif", "fontSize": 14, "textFill": "#6b7280", "textOffsetX": 16, "textOffsetY": 26 },
+    "annotation": { "fontFamily": "Noto Sans TC, sans-serif", "fontSize": 15, "textFill": "#6b7280", "lineHeight": 22 }
+  },
+  "nodes": [
+    { "id": "title", "label": ["驗收計分板 · by the numbers"], "x": 40, "y": 32, "w": 1600, "h": 64, "style": { "fill": "#1a2238", "stroke": "#1a2238", "textFill": "#ffffff", "fontSize": 28 } },
+
+    { "id": "card1", "label": [""], "x": 40,   "y": 132, "w": 380, "h": 300, "style": { "fill": "#e8f5e9", "stroke": "#2e7d5b", "strokeWidth": 1.8, "rx": 16 } },
+    { "id": "card2", "label": [""], "x": 444,  "y": 132, "w": 380, "h": 300, "style": { "fill": "#fdecea", "stroke": "#c62828", "strokeWidth": 1.8, "rx": 16 } },
+    { "id": "card3", "label": [""], "x": 848,  "y": 132, "w": 380, "h": 300, "style": { "fill": "#fbe3cf", "stroke": "#c96a00", "strokeWidth": 1.8, "rx": 16 } },
+    { "id": "card4", "label": [""], "x": 1252, "y": 132, "w": 388, "h": 300, "style": { "fill": "#e8f5e9", "stroke": "#2e7d5b", "strokeWidth": 1.8, "rx": 16 } },
+    { "id": "card5", "label": [""], "x": 40,   "y": 456, "w": 380, "h": 300, "style": { "fill": "#e8f5e9", "stroke": "#2e7d5b", "strokeWidth": 1.8, "rx": 16 } },
+    { "id": "card6", "label": [""], "x": 444,  "y": 456, "w": 380, "h": 300, "style": { "fill": "#e8f5e9", "stroke": "#2e7d5b", "strokeWidth": 1.8, "rx": 16 } },
+    { "id": "card7", "label": [""], "x": 848,  "y": 456, "w": 380, "h": 300, "style": { "fill": "#e8f5e9", "stroke": "#2e7d5b", "strokeWidth": 1.8, "rx": 16 } },
+    { "id": "card8", "label": [""], "x": 1252, "y": 456, "w": 388, "h": 300, "style": { "fill": "#e8f5e9", "stroke": "#2e7d5b", "strokeWidth": 1.8, "rx": 16 } },
+
+    { "id": "n1", "label": ["19/19"], "x": 70,  "y": 178, "w": 320, "h": 116, "style": { "fill": "#e8f5e9", "stroke": "#e8f5e9", "textFill": "#1c5a3f", "fontSize": 72 } },
+    { "id": "p1", "label": ["第一類需求完成", "（邊界內）"], "x": 70, "y": 308, "w": 320, "h": 96, "style": { "fill": "#e8f5e9", "stroke": "#e8f5e9", "textFill": "#226048", "fontSize": 20 } },
+
+    { "id": "n2", "label": ["0"], "x": 474, "y": 178, "w": 320, "h": 116, "style": { "fill": "#fdecea", "stroke": "#fdecea", "textFill": "#a01818", "fontSize": 90 } },
+    { "id": "p2", "label": ["Tier-A 營運商交付", "（已揭露缺口）"], "x": 474, "y": 308, "w": 320, "h": 96, "style": { "fill": "#fdecea", "stroke": "#fdecea", "textFill": "#a01818", "fontSize": 20 } },
+
+    { "id": "n3", "label": ["4 (+3)"], "x": 878, "y": 178, "w": 320, "h": 116, "style": { "fill": "#fbe3cf", "stroke": "#fbe3cf", "textFill": "#8a4a00", "fontSize": 60 } },
+    { "id": "p3", "label": ["Tier-B 公開標準已接線", "（+3 irreducible）"], "x": 878, "y": 308, "w": 320, "h": 96, "style": { "fill": "#fbe3cf", "stroke": "#fbe3cf", "textFill": "#8a4a00", "fontSize": 19 } },
+
+    { "id": "n4", "label": ["5"], "x": 1282, "y": 178, "w": 328, "h": 116, "style": { "fill": "#e8f5e9", "stroke": "#e8f5e9", "textFill": "#1c5a3f", "fontSize": 90 } },
+    { "id": "p4", "label": ["link-budget 模組全接入", "FSPL／雨／氣／天線／換手"], "x": 1282, "y": 308, "w": 328, "h": 96, "style": { "fill": "#e8f5e9", "stroke": "#e8f5e9", "textFill": "#226048", "fontSize": 18 } },
+
+    { "id": "n5", "label": ["12"], "x": 70,  "y": 502, "w": 320, "h": 116, "style": { "fill": "#e8f5e9", "stroke": "#e8f5e9", "textFill": "#1c5a3f", "fontSize": 90 } },
+    { "id": "p5", "label": ["3GPP／ITU 標準 PDF", "（§-引用對照）"], "x": 70, "y": 632, "w": 320, "h": 96, "style": { "fill": "#e8f5e9", "stroke": "#e8f5e9", "textFill": "#226048", "fontSize": 20 } },
+
+    { "id": "n6", "label": ["24h"], "x": 474, "y": 502, "w": 320, "h": 116, "style": { "fill": "#e8f5e9", "stroke": "#e8f5e9", "textFill": "#1c5a3f", "fontSize": 80 } },
+    { "id": "p6", "label": ["soak 連續穩定", "· 0 fail"], "x": 474, "y": 632, "w": 320, "h": 96, "style": { "fill": "#e8f5e9", "stroke": "#e8f5e9", "textFill": "#226048", "fontSize": 20 } },
+
+    { "id": "n7", "label": ["651"], "x": 878, "y": 502, "w": 320, "h": 116, "style": { "fill": "#e8f5e9", "stroke": "#e8f5e9", "textFill": "#1c5a3f", "fontSize": 80 } },
+    { "id": "p7", "label": ["OneWeb LEO actor", "全軌道共 1258（+MEO 33 / GEO 574）"], "x": 878, "y": 632, "w": 320, "h": 96, "style": { "fill": "#e8f5e9", "stroke": "#e8f5e9", "textFill": "#226048", "fontSize": 20 } },
+
+    { "id": "n8", "label": ["0"], "x": 1282, "y": 502, "w": 328, "h": 116, "style": { "fill": "#e8f5e9", "stroke": "#e8f5e9", "textFill": "#1c5a3f", "fontSize": 90 } },
+    { "id": "p8", "label": ["偽稱／over-claim", "（CI 掃描通過）"], "x": 1282, "y": 632, "w": 328, "h": 96, "style": { "fill": "#e8f5e9", "stroke": "#e8f5e9", "textFill": "#226048", "fontSize": 20 } }
+  ],
+  "edges": [],
+  "annotations": [
+    { "id": "foot", "x": 40, "y": 802, "w": 1600, "label": ["數字皆可由保存證據重核；模型／代理值不等於營運商實測。"], "style": { "fontSize": 17, "textFill": "#6b7280" } }
+  ]
+}

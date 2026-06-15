@@ -1,0 +1,70 @@
+{
+  "title": "System architecture & dataflow — dual-station × multi-orbit link-budget pipeline (honesty-tiered)",
+  "canvas": { "width": 1880, "height": 1150, "units": "px", "backgroundFill": "#ffffff" },
+  "style": {
+    "node": { "fill": "#ffffff", "stroke": "#1a2238", "strokeWidth": 1.5, "rx": 9, "fontFamily": "Noto Sans TC, sans-serif", "fontSize": 16, "textFill": "#1a2238" },
+    "edge": { "stroke": "#2a9d8f", "strokeWidth": 2.0, "arrowSize": 11, "labelFontFamily": "Noto Sans TC, sans-serif", "labelFontSize": 13, "labelFill": "#5b6372" },
+    "section": { "fill": "#f7f9fc", "stroke": "#c2cede", "strokeWidth": 1.4, "rx": 12, "fontFamily": "Noto Sans TC, sans-serif", "fontSize": 17, "textFill": "#44506a", "textOffsetX": 18, "textOffsetY": 30 },
+    "annotation": { "fontFamily": "Noto Sans TC, sans-serif", "fontSize": 13, "textFill": "#6b7280", "lineHeight": 20 }
+  },
+  "sections": [
+    { "id": "sec-geo",   "label": "① 場景幾何　雙站 × 多軌 × 互視（公開座標 / 公開 TLE）", "x": 30, "y": 76,  "w": 1820, "h": 330, "style": { "fill": "#eef4fb", "stroke": "#3a6ea5", "textFill": "#2c557f" } },
+    { "id": "sec-model", "label": "② 標準接地之模型層　依 3GPP / ITU 標準（modeled，非營運商實測）", "x": 30, "y": 438, "w": 1820, "h": 472, "style": { "fill": "#eaf6ef", "stroke": "#2e7d5b", "textFill": "#226048" } },
+    { "id": "sec-lb",    "label": "鏈路預算分解 link budget（各項標註標準出處）", "x": 1175, "y": 470, "w": 630, "h": 300, "style": { "fill": "#e2f1ea", "stroke": "#2e7d5b", "strokeWidth": 1.2, "dash": "4 4", "fontSize": 15, "textFill": "#226048" } },
+    { "id": "sec-proxy", "label": "③ 示意代理層　proxy（非實測・分級顯示・不可宣稱絕對量化值）", "x": 30, "y": 938, "w": 1820, "h": 172, "style": { "fill": "#fdeede", "stroke": "#c96a00", "textFill": "#9a5500" } }
+  ],
+  "nodes": [
+    { "id": "title", "label": ["系統架構與資料流：雙站 × 多軌鏈路預算管線（公開來源 → 標準模型 → 示意代理，分層標註誠實邊界）"], "x": 30, "y": 16, "w": 1820, "h": 46, "style": { "fill": "#1a2238", "stroke": "#1a2238", "textFill": "#ffffff", "fontSize": 19 } },
+
+    { "id": "sta", "label": ["▢ 站 A｜中華電信 陽明山地球站", "台灣・公開座標"], "x": 60, "y": 150, "w": 330, "h": 96, "style": { "fill": "#dbe9f7", "stroke": "#3a6ea5", "fontSize": 15 } },
+    { "id": "stb", "label": ["▢ 站 B｜SANSA Hartebeesthoek", "南非・公開座標"], "x": 60, "y": 280, "w": 330, "h": 96, "style": { "fill": "#dbe9f7", "stroke": "#3a6ea5", "fontSize": 15 } },
+    { "id": "geosat", "label": ["GEO 衛星", "~35,786 km"], "x": 1300, "y": 128, "w": 270, "h": 72, "style": { "fill": "#fff4d6", "stroke": "#b8860b", "fontSize": 15 } },
+    { "id": "meosat", "label": ["MEO（Galileo）", "~23,222 km"], "x": 1300, "y": 220, "w": 270, "h": 72, "style": { "fill": "#ffe8b0", "stroke": "#c77f00", "strokeWidth": 2.2, "fontSize": 15 } },
+    { "id": "leosat", "label": ["LEO", "~550 km（示例）"], "x": 1300, "y": 312, "w": 270, "h": 72, "style": { "fill": "#fff4d6", "stroke": "#b8860b", "fontSize": 15 } },
+    { "id": "mutual", "label": ["雙站互視交集", "可視視窗｜仰角 ≥ 門檻"], "x": 690, "y": 252, "w": 360, "h": 92, "style": { "fill": "#d6efe4", "stroke": "#2e7d5b", "fontSize": 15 } },
+
+    { "id": "tle",   "label": ["公開 TLE", "CelesTrak GP"], "x": 55, "y": 504, "w": 250, "h": 104, "style": { "fill": "#eef2f5" } },
+    { "id": "sgp4",  "label": ["SGP4 傳播", "→ ECI 位置 · 速度", "AIAA-2006 · WGS72"], "x": 325, "y": 504, "w": 250, "h": 104, "style": { "fill": "#e8f5e9" } },
+    { "id": "coord", "label": ["座標轉換", "ECI→ECEF→大地", "GMST 旋轉"], "x": 595, "y": 504, "w": 250, "h": 104, "style": { "fill": "#e8f5e9" } },
+    { "id": "vis",   "label": ["可視 / 互視視窗", "ENU 仰角門檻", "距離 · 都卜勒幾何"], "x": 865, "y": 504, "w": 250, "h": 104, "style": { "fill": "#e8f5e9" } },
+
+    { "id": "fspl", "label": ["自由空間損耗 FSPL", "TR 38.811 §6.6.2"], "x": 1195, "y": 512, "w": 290, "h": 90, "style": { "fill": "#e0f2f1" } },
+    { "id": "rain", "label": ["雨衰 Rain", "P.618-14 §2.2.1.1"], "x": 1500, "y": 512, "w": 290, "h": 90, "style": { "fill": "#e0f2f1" } },
+    { "id": "gas",  "label": ["氣體吸收 Gas", "P.676-13 Annex 2"], "x": 1195, "y": 614, "w": 290, "h": 90, "style": { "fill": "#e0f2f1" } },
+    { "id": "ant",  "label": ["天線增益 Antenna", "S.1528-0 衛星 + S.465-6 地面站"], "x": 1500, "y": 614, "w": 290, "h": 90, "style": { "fill": "#e0f2f1", "fontSize": 14 } },
+
+    { "id": "rsrp", "label": ["收訊功率代理 RSRP", "Σ增益 − ΣLoss｜相對 proxy", "（非絕對 dBm 校準）"], "x": 1175, "y": 800, "w": 430, "h": 95, "style": { "fill": "#d7ece6", "stroke": "#2e7d5b" } },
+    { "id": "ho",   "label": ["換手決策", "argmax 代理", "TR 38.821 §7.3.2.2", "V-MO1 跨軌即時"], "x": 1635, "y": 766, "w": 220, "h": 130, "style": { "fill": "#e0f2f1", "fontSize": 14 } },
+
+    { "id": "noncl", "label": ["不可宣稱", "無 EIRP · 雜訊指數 · 封包實測", "· 營運商實測校準"], "x": 55, "y": 970, "w": 560, "h": 96, "style": { "fill": "#fdecea", "stroke": "#c62828", "fontSize": 14 } },
+    { "id": "cont",  "label": ["連續性", "可視 / 換手導出"], "x": 635, "y": 970, "w": 280, "h": 96, "style": { "fill": "#fbe3cf", "stroke": "#c96a00", "fontSize": 15 } },
+    { "id": "jit",   "label": ["抖動 Jitter", "分級 class（非實測 ms）"], "x": 935, "y": 970, "w": 280, "h": 96, "style": { "fill": "#fbe3cf", "stroke": "#c96a00", "fontSize": 15 } },
+    { "id": "thr",   "label": ["吞吐 Throughput", "分級 class（非實測 Mbps）"], "x": 1235, "y": 970, "w": 275, "h": 96, "style": { "fill": "#fbe3cf", "stroke": "#c96a00", "fontSize": 15 } },
+    { "id": "rsrpp", "label": ["RSRP 顯示", "相對代理（非校準 dBm）"], "x": 1525, "y": 970, "w": 280, "h": 96, "style": { "fill": "#fbe3cf", "stroke": "#c96a00", "fontSize": 15 } }
+  ],
+  "edges": [
+    { "id": "g1", "from": "sta", "to": "meosat", "fromAnchor": "right", "toAnchor": "left", "style": { "labelFontSize": 12 }, "label": "仰角 / 可視" },
+    { "id": "g2", "from": "stb", "to": "meosat", "fromAnchor": "right", "toAnchor": "left" },
+    { "id": "g3", "from": "sta", "to": "leosat", "fromAnchor": "right", "toAnchor": "left", "style": { "stroke": "#8a93a3", "dash": "5 5", "arrowSize": 8 } },
+    { "id": "g4", "from": "stb", "to": "geosat", "fromAnchor": "right", "toAnchor": "left", "style": { "stroke": "#8a93a3", "dash": "5 5", "arrowSize": 8 } },
+    { "id": "g5", "from": "meosat", "to": "mutual", "fromAnchor": "left", "toAnchor": "right", "label": "共視 → 視窗" },
+    { "id": "g6", "from": "mutual", "to": "vis", "fromAnchor": "bottom", "toAnchor": "top", "style": { "stroke": "#3a6ea5", "dash": "5 5" }, "label": "站–星幾何" },
+
+    { "id": "p1", "from": "tle",   "to": "sgp4",  "fromAnchor": "right", "toAnchor": "left" },
+    { "id": "p2", "from": "sgp4",  "to": "coord", "fromAnchor": "right", "toAnchor": "left" },
+    { "id": "p3", "from": "coord", "to": "vis",   "fromAnchor": "right", "toAnchor": "left" },
+    { "id": "p4", "from": "vis",   "to": "fspl",  "fromAnchor": "right", "toAnchor": "left", "style": { "labelFontSize": 12 }, "label": "距離 → 損耗" },
+
+    { "id": "l1", "from": "fspl", "to": "rsrp", "fromAnchor": "bottom", "toAnchor": "top", "style": { "strokeWidth": 1.6 } },
+    { "id": "l2", "from": "rain", "to": "rsrp", "fromAnchor": "bottom", "toAnchor": "top", "style": { "strokeWidth": 1.6 } },
+    { "id": "l3", "from": "gas",  "to": "rsrp", "fromAnchor": "bottom", "toAnchor": "top", "style": { "strokeWidth": 1.6 } },
+    { "id": "l4", "from": "ant",  "to": "rsrp", "fromAnchor": "bottom", "toAnchor": "top", "style": { "strokeWidth": 1.6 } },
+    { "id": "l5", "from": "rsrp", "to": "ho",   "fromAnchor": "right", "toAnchor": "left", "style": { "labelFontSize": 12 }, "label": "排序" },
+
+    { "id": "x1", "from": "rsrp", "to": "thr",   "fromAnchor": "bottom", "toAnchor": "top", "style": { "stroke": "#c96a00", "labelFontSize": 12, "labelFill": "#9a5500" }, "label": "示意映射" },
+    { "id": "x2", "from": "rsrp", "to": "rsrpp", "fromAnchor": "bottom", "toAnchor": "top", "style": { "stroke": "#c96a00" } }
+  ],
+  "annotations": [
+    { "id": "foot", "x": 30, "y": 1116, "w": 1820, "label": ["誠實分層：① 公開幾何（座標 / TLE）與 ② 標準模型（3GPP / ITU）為可宣稱之模型結果；③ 示意代理為非實測、分級顯示，未含 EIRP・雜訊指數・封包實測・營運商校準，不可作為絕對量化保證。"], "style": { "fontSize": 13, "textFill": "#6b7280" } }
+  ]
+}
