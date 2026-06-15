@@ -1,5 +1,7 @@
 // Shared assertion helpers for verify-tle-first-data-completeness.mjs.
 
+import { SELECTED_PAIR_DEMO_START_UTC } from "./demo-scenario.mjs";
+
 export const RUNTIME_MODE = "tle-first-runtime";
 export const FIXTURE_MODE = "fixture-fallback";
 export const TLE_SOURCE_MODES = new Set([
@@ -761,7 +763,7 @@ export function assertDataCompletenessShape(
     );
     assert(source.epochEndUtc, `${label}: ${source.orbitClass} epoch end missing`);
     assert(
-      source.health === expectedSourceHealth(source, "2026-05-17T00:00:00.000Z"),
+      source.health === expectedSourceHealth(source, SELECTED_PAIR_DEMO_START_UTC),
       `${label}: ${source.orbitClass} health not based on max source/epoch date`
     );
     assert(

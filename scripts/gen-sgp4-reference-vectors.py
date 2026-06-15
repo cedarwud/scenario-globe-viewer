@@ -20,7 +20,9 @@ from pathlib import Path
 
 from sgp4 import __version__ as sgp4_version
 from sgp4.api import Satrec, jday, WGS72
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
+
+import demo_scenario as ds  # demo window single source of truth
 
 # Representative demo satellites, one per orbit class, with literal TLE lines so
 # the golden artifact is self-contained (independent of fixture-file churn).
@@ -48,12 +50,19 @@ SATELLITES = [
     },
 ]
 
-# Fixed sample instants inside the demo window (2026-05-17 00:00Z + 0/180/360 min).
-SAMPLE_TIMES_UTC = [
-    "2026-05-17T00:00:00.000Z",
-    "2026-05-17T03:00:00.000Z",
-    "2026-05-17T06:00:00.000Z",
-]
+# Sample instants = demo window start + 0 / half / full duration, derived from the
+# single source of truth (demo-scenario-config.json) so goldens track the config.
+def _sample_times_utc():
+    start = datetime.fromisoformat(ds.WINDOW_START_UTC.replace("Z", "+00:00"))
+    fmt = lambda d: d.strftime("%Y-%m-%dT%H:%M:%S.000Z")
+    return [
+        ds.WINDOW_START_UTC,
+        fmt(start + timedelta(minutes=ds.WINDOW_DURATION_MIN / 2)),
+        ds.WINDOW_END_UTC,
+    ]
+
+
+SAMPLE_TIMES_UTC = _sample_times_utc()
 
 
 def parse_iso_utc(value: str) -> datetime:

@@ -14,7 +14,15 @@ import { existsSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
+import {
+  SELECTED_PAIR_DEMO_START_UTC,
+  SELECTED_PAIR_DEMO_END_UTC,
+  SELECTED_PAIR_DEMO_DURATION_MINUTES
+} from "./helpers/demo-scenario.mjs";
 
+const WINDOW_START_UTC = SELECTED_PAIR_DEMO_START_UTC;
+const WINDOW_END_UTC = SELECTED_PAIR_DEMO_END_UTC;
+const WINDOW_DURATION = String(SELECTED_PAIR_DEMO_DURATION_MINUTES);
 const moduleDir = dirname(fileURLToPath(import.meta.url));
 const projectRoot = join(moduleDir, "..");
 const registryPath = join(
@@ -203,8 +211,8 @@ const results = [];
 const baseUrl0 = new URL(baseUrl);
 baseUrl0.searchParams.set("stationA", targetPairs[0].stationAId);
 baseUrl0.searchParams.set("stationB", targetPairs[0].stationBId);
-baseUrl0.searchParams.set("startUtc", "2026-05-17T00:00:00.000Z");
-baseUrl0.searchParams.set("durationMinutes", "360");
+baseUrl0.searchParams.set("startUtc", WINDOW_START_UTC);
+baseUrl0.searchParams.set("durationMinutes", WINDOW_DURATION);
 await send("Page.navigate", { url: baseUrl0.href });
 
 // Wait for the first panel ready so TLE is loaded and the worker is up.
@@ -260,7 +268,7 @@ for (const pair of targetPairs) {
           const { client, tleRecords, tleParseStats } = window.__sgvG4;
           const stationA = ${stationAJson};
           const stationB = ${stationBJson};
-          const timeWindow = { startUtc: "2026-05-17T00:00:00.000Z", endUtc: "2026-05-17T06:00:00.000Z" };
+          const timeWindow = { startUtc: "${WINDOW_START_UTC}", endUtc: "${WINDOW_END_UTC}" };
           const t0 = performance.now();
           try {
             const result = await client.compute({ stationA, stationB, timeWindow, tleRecords, tleParseStats, rainRateMmPerHour: 0 });

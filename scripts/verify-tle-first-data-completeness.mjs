@@ -28,7 +28,16 @@ import {
   assertVisibilityDeltaWithinTolerance
 } from "./helpers/tle-data-completeness-assertions.mjs";
 import { assertCsvEvidence } from "./helpers/tle-data-completeness-csv-assertions.mjs";
+import {
+  SELECTED_PAIR_DEMO_START_UTC,
+  SELECTED_PAIR_DEMO_END_UTC,
+  SELECTED_PAIR_DEMO_DURATION_MINUTES,
+  TLE_FIXTURE_PATHS
+} from "./helpers/demo-scenario.mjs";
 
+const WINDOW_START_UTC = SELECTED_PAIR_DEMO_START_UTC;
+const WINDOW_END_UTC = SELECTED_PAIR_DEMO_END_UTC;
+const WINDOW_DURATION = String(SELECTED_PAIR_DEMO_DURATION_MINUTES);
 const DEFAULT_SERVER_PORT = 5173;
 const VIEWPORT = { width: 1440, height: 900 };
 const READY_TIMEOUT_MS = 30_000;
@@ -282,8 +291,8 @@ function buildSelectedPairUrl(testCase) {
   const url = new URL(baseUrl);
   url.searchParams.set("stationA", testCase.stationA);
   url.searchParams.set("stationB", testCase.stationB);
-  url.searchParams.set("startUtc", "2026-05-17T00:00:00.000Z");
-  url.searchParams.set("durationMinutes", "360");
+  url.searchParams.set("startUtc", WINDOW_START_UTC);
+  url.searchParams.set("durationMinutes", WINDOW_DURATION);
   if (testCase.policy) {
     url.searchParams.set("policy", testCase.policy);
   }
@@ -417,8 +426,8 @@ async function readCsvEvidence(client, testCase) {
         stationA,
         stationB,
         timeWindow: {
-          startUtc: "2026-05-17T00:00:00.000Z",
-          endUtc: "2026-05-17T06:00:00.000Z"
+          startUtc: "${WINDOW_START_UTC}",
+          endUtc: "${WINDOW_END_UTC}"
         },
         tleRecords,
         tleParseStats,
@@ -426,7 +435,7 @@ async function readCsvEvidence(client, testCase) {
         rainRateMmPerHour: 0
       });
       const text = csv.buildRuntimeProjectionCsv(result);
-      const defaultWindow = rt.buildDefaultTimeWindow("2026-05-17T00:00:00.000Z");
+      const defaultWindow = rt.buildDefaultTimeWindow("${WINDOW_START_UTC}");
       return {
         text,
         dataCompleteness: result.dataCompleteness,
@@ -458,8 +467,8 @@ async function readMissingSourceEvidence(client, testCase) {
         stationA,
         stationB,
         timeWindow: {
-          startUtc: "2026-05-17T00:00:00.000Z",
-          endUtc: "2026-05-17T06:00:00.000Z"
+          startUtc: "${WINDOW_START_UTC}",
+          endUtc: "${WINDOW_END_UTC}"
         },
         tleRecords: [],
         tleParseStats: [
@@ -508,11 +517,7 @@ async function readSourceModeResolutionEvidence(client) {
         meo: { path: "meo-frozen.tle", recordCount: 1, epochRangeUtc: { startUtc: now, endUtc: now } },
         geo: { path: "geo-frozen.tle", recordCount: 1, epochRangeUtc: { startUtc: now, endUtc: now } }
       };
-      const localPaths = {
-        LEO: "/fixtures/satellites/leo-scale/oneweb-2026-05-15T12-00-00Z.tle",
-        MEO: "/fixtures/satellites/multi-orbit/meo/galileo-2026-05-13T01-28-37Z.tle",
-        GEO: "/fixtures/satellites/multi-orbit/geo/commercial-geo-top30-2026-05-13T01-28-37Z.tle"
-      };
+      const localPaths = ${JSON.stringify(TLE_FIXTURE_PATHS)};
       const networkPaths = new Set([
         "/fixtures/satellites-network/leo-frozen.tle",
         "/fixtures/satellites-network/meo-frozen.tle",

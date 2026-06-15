@@ -13,12 +13,20 @@ import {
   verifyFetches
 } from "./bootstrap-smoke-server.mjs";
 import { SELECTED_PAIR_DEMO_REQUEST_PATH } from "../../scripts/helpers/demo-routes.mjs";
+import {
+  SELECTED_PAIR_DEMO_STATION_A_ID,
+  SELECTED_PAIR_DEMO_STATION_B_ID,
+  SELECTED_PAIR_DEMO_START_UTC,
+  SELECTED_PAIR_DEMO_DURATION_MINUTES
+} from "../../scripts/helpers/demo-scenario.mjs";
 
 const DEFAULT_REQUEST_PATH = "/";
 const V4_ENTRY_HREF = SELECTED_PAIR_DEMO_REQUEST_PATH;
 const V4_RUNTIME_STATE = "active-v4.3-continuous-multi-orbit-handover-scene";
-const EXPECTED_STATION_A_ID = "cht-yangmingshan";
-const EXPECTED_STATION_B_ID = "sansa-hartebeesthoek";
+const EXPECTED_STATION_A_ID = SELECTED_PAIR_DEMO_STATION_A_ID;
+const EXPECTED_STATION_B_ID = SELECTED_PAIR_DEMO_STATION_B_ID;
+const EXPECTED_START_UTC = SELECTED_PAIR_DEMO_START_UTC;
+const EXPECTED_DURATION = String(SELECTED_PAIR_DEMO_DURATION_MINUTES);
 const VIEWPORT = {
   width: 1440,
   height: 900
@@ -353,8 +361,8 @@ async function main() {
                 v4Url?.searchParams.get("stationA") === "${EXPECTED_STATION_A_ID}" &&
                 v4Url?.searchParams.get("stationB") === "${EXPECTED_STATION_B_ID}" &&
                 v4Url?.searchParams.get("startUtc") ===
-                  "2026-05-17T00:00:00.000Z" &&
-                v4Url?.searchParams.get("durationMinutes") === "360" &&
+                  "${EXPECTED_START_UTC}" &&
+                v4Url?.searchParams.get("durationMinutes") === "${EXPECTED_DURATION}" &&
                 !v4Url?.searchParams.has("m8aV4GroundStationScene") &&
                 !v4Url?.searchParams.has("firstIntakeScenarioId") &&
                 /selected.pair/i.test(v4Text) &&
@@ -421,8 +429,8 @@ async function main() {
             assert(
               params.get("stationA") === "${EXPECTED_STATION_A_ID}" &&
                 params.get("stationB") === "${EXPECTED_STATION_B_ID}" &&
-                params.get("startUtc") === "2026-05-17T00:00:00.000Z" &&
-                params.get("durationMinutes") === "360" &&
+                params.get("startUtc") === "${EXPECTED_START_UTC}" &&
+                params.get("durationMinutes") === "${EXPECTED_DURATION}" &&
                 !params.has("m8aV4GroundStationScene") &&
                 !params.has("firstIntakeScenarioId"),
               "V4.4 click must navigate to the selected-pair route: " +

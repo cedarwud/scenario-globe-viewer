@@ -7,7 +7,8 @@ import {
   computeRuntimeProjection,
   loadDefaultTleSources,
   parseRuntimeOrbitSources,
-  parseRuntimeTleSources
+  parseRuntimeTleSources,
+  TLE_FIXTURE_PATHS
 } from "../../src/features/multi-station-selector/runtime-projection.ts";
 import { buildRuntimeProjectionCsv } from "../../src/features/multi-station-selector/runtime-projection-csv.ts";
 
@@ -124,18 +125,9 @@ function fallbackRoutes(manifest) {
     ["/fixtures/satellites-network/leo-old.tle", response(500, "failed")],
     ["/fixtures/satellites-network/meo-old.tle", response(500, "failed")],
     ["/fixtures/satellites-network/geo-old.tle", response(500, "failed")],
-    [
-      "/fixtures/satellites/leo-scale/oneweb-2026-05-15T12-00-00Z.tle",
-      TLE_TEXT
-    ],
-    [
-      "/fixtures/satellites/multi-orbit/meo/galileo-2026-05-13T01-28-37Z.tle",
-      TLE_TEXT
-    ],
-    [
-      "/fixtures/satellites/multi-orbit/geo/commercial-geo-top30-2026-05-13T01-28-37Z.tle",
-      TLE_TEXT
-    ]
+    [TLE_FIXTURE_PATHS.LEO, TLE_TEXT],
+    [TLE_FIXTURE_PATHS.MEO, TLE_TEXT],
+    [TLE_FIXTURE_PATHS.GEO, TLE_TEXT]
   ]);
 }
 

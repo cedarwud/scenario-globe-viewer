@@ -15,8 +15,15 @@ import { existsSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
+import {
+  SELECTED_PAIR_DEMO_START_UTC,
+  SELECTED_PAIR_DEMO_DURATION_MINUTES
+} from "./helpers/demo-scenario.mjs";
+
 const DEFAULT_URL =
-  "http://127.0.0.1:5173/?stationA=ksat-svalsat-svalbard&stationB=ksat-tromso&startUtc=2026-05-17T00%3A00%3A00.000Z&durationMinutes=360";
+  `http://127.0.0.1:5173/?stationA=ksat-svalsat-svalbard&stationB=ksat-tromso` +
+  `&startUtc=${encodeURIComponent(SELECTED_PAIR_DEMO_START_UTC)}` +
+  `&durationMinutes=${SELECTED_PAIR_DEMO_DURATION_MINUTES}`;
 const CHROMIUM_PATH =
   "/home/u24/.cache/ms-playwright/chromium-1217/chrome-linux64/chrome";
 const WALL_CLOCK_RUN_SECONDS = 360; // 6 min == 60x of 6 h window

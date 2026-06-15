@@ -13,6 +13,7 @@ import { tmpdir } from "node:os";
 import { isAbsolute, join, resolve } from "node:path";
 
 import { SELECTED_PAIR_DEMO_BASE_URL } from "./helpers/demo-routes.mjs";
+import { TLE_FIXTURE_PATHS } from "./helpers/demo-scenario.mjs";
 
 const DEFAULT_URL = SELECTED_PAIR_DEMO_BASE_URL;
 const CHROMIUM_PATH =
@@ -60,11 +61,7 @@ const G1_ROWS = [
         const first = document.querySelector('.v4-projection-side-panel__timeline-segment[data-satellite-id]');
         const satelliteId = first?.getAttribute("data-satellite-id") ?? "";
         const idShapeOk = /^[A-Z0-9_-]+(?:\s+\([^)]+\))?$/.test(satelliteId);
-        const paths = [
-          "/fixtures/satellites/leo-scale/oneweb-2026-05-15T12-00-00Z.tle",
-          "/fixtures/satellites/multi-orbit/meo/galileo-2026-05-13T01-28-37Z.tle",
-          "/fixtures/satellites/multi-orbit/geo/commercial-geo-top30-2026-05-13T01-28-37Z.tle"
-        ];
+        const paths = ${JSON.stringify([TLE_FIXTURE_PATHS.LEO, TLE_FIXTURE_PATHS.MEO, TLE_FIXTURE_PATHS.GEO])};
         const known = new Set();
         const fetchEvidence = [];
         for (const path of paths) {
@@ -487,11 +484,7 @@ const G1_ROWS = [
       (async () => {
         const first = document.querySelector('.v4-projection-side-panel__timeline-segment[data-satellite-id]');
         const satelliteId = first?.getAttribute("data-satellite-id") ?? "";
-        const paths = [
-          "/fixtures/satellites/leo-scale/oneweb-2026-05-15T12-00-00Z.tle",
-          "/fixtures/satellites/multi-orbit/meo/galileo-2026-05-13T01-28-37Z.tle",
-          "/fixtures/satellites/multi-orbit/geo/commercial-geo-top30-2026-05-13T01-28-37Z.tle"
-        ];
+        const paths = ${JSON.stringify([TLE_FIXTURE_PATHS.LEO, TLE_FIXTURE_PATHS.MEO, TLE_FIXTURE_PATHS.GEO])};
         let fetchedCount = 0;
         let tleMatch = false;
         for (const path of paths) {

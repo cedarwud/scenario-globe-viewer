@@ -15,7 +15,13 @@ import {
   startHeadlessBrowser,
   stopHeadlessBrowser
 } from "../tests/smoke/bootstrap-smoke-browser.mjs";
+import {
+  SELECTED_PAIR_DEMO_START_UTC,
+  SELECTED_PAIR_DEMO_DURATION_MINUTES
+} from "./helpers/demo-scenario.mjs";
 
+const WINDOW_START_UTC = SELECTED_PAIR_DEMO_START_UTC;
+const WINDOW_DURATION = String(SELECTED_PAIR_DEMO_DURATION_MINUTES);
 const DEFAULT_SERVER_PORT = 5173;
 const VIEWPORT = { width: 1440, height: 900 };
 const READY_TIMEOUT_MS = 30_000;
@@ -45,8 +51,8 @@ const cases = [
     label: "Svalbard / Tromso ready pair",
     stationA: "ksat-svalsat-svalbard",
     stationB: "ksat-tromso",
-    startUtc: "2026-05-17T00:00:00.000Z",
-    durationMinutes: "360",
+    startUtc: WINDOW_START_UTC,
+    durationMinutes: WINDOW_DURATION,
     expectedStatus: "ready",
     expectedActorRelation: "positive",
     expectedRuntimeLinkVisible: true,
@@ -57,8 +63,8 @@ const cases = [
     label: "Svalbard / TrollSat zero-window pair",
     stationA: "ksat-svalsat-svalbard",
     stationB: "ksat-trollsat-antarctica",
-    startUtc: "2026-05-17T00:00:00.000Z",
-    durationMinutes: "360",
+    startUtc: WINDOW_START_UTC,
+    durationMinutes: WINDOW_DURATION,
     expectedStatus: "empty",
     expectedActorRelation: "zero",
     expectedRuntimeLinkVisible: false,
@@ -69,8 +75,8 @@ const cases = [
     label: "Singtel / MEASAT short-baseline pair",
     stationA: "singtel-bukit-timah",
     stationB: "measat-cyberjaya",
-    startUtc: "2026-05-17T00:00:00.000Z",
-    durationMinutes: "360",
+    startUtc: WINDOW_START_UTC,
+    durationMinutes: WINDOW_DURATION,
     expectedStatus: "ready",
     expectedActorRelation: "positive",
     expectedRuntimeLinkVisible: true,
