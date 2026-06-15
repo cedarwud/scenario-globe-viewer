@@ -200,6 +200,58 @@ function buildReferenceExhibit(): HTMLElement {
   return wrap;
 }
 
+function buildTraceHelpRow(term: string, desc: string): HTMLElement {
+  const row = el("div", "v4-projection-side-panel__trace-help-row");
+  row.append(
+    el("strong", "v4-projection-side-panel__trace-help-term", term),
+    el("span", "v4-projection-side-panel__trace-help-desc", desc)
+  );
+  return row;
+}
+
+// Plain-language explanation of every field shown in the trace popover.
+function buildTraceHelpBody(): HTMLElement {
+  const body = el("div", "v4-projection-side-panel__trace-help-body");
+  body.append(
+    el(
+      "p",
+      "v4-projection-side-panel__trace-help-intro",
+      "對應左側「How this trajectory was computed」每個欄位的白話說明。此視窗只證明「軌跡幾何鏈（TLE → 位置）為真且可獨立重現」；link-budget 數值仍為模型／標準、外部缺口仍揭露，不被此視窗升級。"
+    )
+  );
+  body.append(el("h5", "v4-projection-side-panel__trace-help-heading", "1 · 軌道根數來源"));
+  body.append(
+    buildTraceHelpRow("Satellite", "被追蹤的衛星 ID 與軌道類（LEO／MEO／GEO）。"),
+    buildTraceHelpRow("NORAD id", "該衛星在 NORAD 目錄的編號（全球唯一識別）。"),
+    buildTraceHelpRow("TLE epoch", "這組軌道根數的「量測時刻」；傳播以此為基準，時間離 epoch 越近越準。"),
+    buildTraceHelpRow("Snapshot source", "TLE 來源（CelesTrak）與抓取時間。"),
+    buildTraceHelpRow("原始 TLE（兩行）", "實際的兩行軌道根數（Two-Line Element）；可按「Copy raw TLE」複製到外部驗證。")
+  );
+  body.append(el("h5", "v4-projection-side-panel__trace-help-heading", "2 · 解析後的軌道要素（TLE 第 2 行）"));
+  body.append(
+    buildTraceHelpRow("傾角 Inclination", "軌道平面與赤道的夾角。"),
+    buildTraceHelpRow("升交點赤經 RAAN", "軌道由南往北穿越赤道的經度方位。"),
+    buildTraceHelpRow("離心率 Eccentricity", "軌道偏離正圓的程度（0 = 圓）。"),
+    buildTraceHelpRow("近地點幅角 Arg of perigee", "近地點在軌道平面內的角位置。"),
+    buildTraceHelpRow("平近點角 Mean anomaly", "衛星在 epoch 當下沿軌道的相位。"),
+    buildTraceHelpRow("平均運動 Mean motion", "每天繞地圈數（決定軌道高度與週期）。")
+  );
+  body.append(el("h5", "v4-projection-side-panel__trace-help-heading", "3 · 即時運算鏈（互視窗中點時刻）"));
+  body.append(
+    buildTraceHelpRow("SGP4 → ECI 位置", "用標準 SGP4 從 TLE 算出的「地心慣性系」座標 (x, y, z km)。"),
+    buildTraceHelpRow("ECI 速度", "同一時刻的速度向量 (km/s)。"),
+    buildTraceHelpRow("GMST 旋轉", "格林威治平恆星時（地球自轉角），用來換算座標系。"),
+    buildTraceHelpRow("ECI → ECEF", "從慣性系轉到「地固系」（隨地球自轉）。"),
+    buildTraceHelpRow("ECEF → 經緯度 = 螢幕上的點", "最終轉成 WGS84 經緯度／高度，就是畫面上那一刻的位置。")
+  );
+  body.append(el("h5", "v4-projection-side-panel__trace-help-heading", "4 · 自己驗證"));
+  body.append(
+    buildTraceHelpRow("提示", "把上面的原始 TLE 貼到 CelesTrak 或 python-sgp4，會得到相同 ECI。"),
+    buildTraceHelpRow("參考向量表", "把 app 的 SGP4 輸出，跟一份獨立的 python-sgp4（Vallado）逐筆比對；誤差在容差內 → 算法正確、非造假。")
+  );
+  return body;
+}
+
 function buildPopoverBody(
   result: RuntimeProjectionResult,
   pass: RepresentativePass,
@@ -380,13 +432,37 @@ export function buildTrajectoryProvenanceControl(
 
   const header = el("header", "v4-projection-side-panel__trace-header");
   header.append(el("strong", "", "How this trajectory was computed"));
+  const helpButton = document.createElement("button");
+  helpButton.type = "button";
+  helpButton.className = "v4-projection-side-panel__trace-help";
+  helpButton.textContent = "?";
+  helpButton.title = "欄位說明：每一項代表什麼";
+  helpButton.setAttribute("aria-label", "開啟欄位說明");
+  helpButton.setAttribute("aria-expanded", "false");
   const closeButton = document.createElement("button");
   closeButton.type = "button";
   closeButton.className = "v4-projection-side-panel__trace-close";
   closeButton.setAttribute("aria-label", "Close trajectory provenance");
   closeButton.textContent = "×";
-  header.append(closeButton);
+  header.append(helpButton, closeButton);
+
   popover.append(header, buildPopoverBody(result, pass, tle));
+
+  // Field-explanation help popover — opens to the LEFT of the trace popover at
+  // the same height, explaining every field shown inside it.
+  const helpPopover = el("div", "v4-projection-side-panel__trace-help-popover");
+  helpPopover.hidden = true;
+  helpPopover.setAttribute("role", "dialog");
+  helpPopover.setAttribute("aria-label", "欄位說明");
+  const helpHeader = el("header", "v4-projection-side-panel__trace-help-header");
+  helpHeader.append(el("strong", "", "欄位說明 · 每一項代表什麼"));
+  const helpClose = document.createElement("button");
+  helpClose.type = "button";
+  helpClose.className = "v4-projection-side-panel__trace-help-close";
+  helpClose.setAttribute("aria-label", "關閉欄位說明");
+  helpClose.textContent = "×";
+  helpHeader.append(helpClose);
+  helpPopover.append(helpHeader, buildTraceHelpBody());
 
   const ownerDocument = root.ownerDocument;
 
@@ -415,6 +491,34 @@ export function buildTrajectoryProvenanceControl(
     popover.style.top = `${Math.round(top)}px`;
   };
 
+  const placeHelpPopover = (): void => {
+    if (!ownerDocument.defaultView) {
+      return;
+    }
+    const marginPx = 12;
+    const gapPx = 12;
+    const traceRect = popover.getBoundingClientRect();
+    helpPopover.style.position = "fixed";
+    helpPopover.style.height = `${Math.round(traceRect.height)}px`;
+    helpPopover.style.left = "0px";
+    helpPopover.style.top = "0px";
+    const helpRect = helpPopover.getBoundingClientRect();
+    const left = Math.max(marginPx, traceRect.left - helpRect.width - gapPx);
+    helpPopover.style.left = `${Math.round(left)}px`;
+    helpPopover.style.top = `${Math.round(traceRect.top)}px`;
+  };
+
+  const setHelpOpen = (open: boolean, focusHelp = false): void => {
+    helpPopover.hidden = !open;
+    helpButton.setAttribute("aria-expanded", open ? "true" : "false");
+    if (open) {
+      placeHelpPopover();
+      helpClose.focus();
+    } else if (focusHelp) {
+      helpButton.focus();
+    }
+  };
+
   const setOpen = (open: boolean, focusTrigger = false): void => {
     popover.hidden = !open;
     trigger.setAttribute("aria-expanded", open ? "true" : "false");
@@ -424,6 +528,7 @@ export function buildTrajectoryProvenanceControl(
       closeButton.focus();
     } else {
       delete popover.dataset.trajectoryProvenanceOpen;
+      setHelpOpen(false);
       if (focusTrigger) {
         trigger.focus();
       }
@@ -439,44 +544,69 @@ export function buildTrajectoryProvenanceControl(
     event.stopPropagation();
     setOpen(false, true);
   };
+  const helpToggle = (event: Event): void => {
+    event.stopPropagation();
+    setHelpOpen(Boolean(helpPopover.hidden));
+  };
+  const helpCloseHandler = (event: Event): void => {
+    event.stopPropagation();
+    setHelpOpen(false, true);
+  };
   const handleOutsideClick = (event: Event): void => {
     const target = event.target as Node;
-    if (!root.contains(target) && !popover.contains(target)) {
+    if (
+      !root.contains(target) &&
+      !popover.contains(target) &&
+      !helpPopover.contains(target)
+    ) {
       if (!popover.hidden) {
         setOpen(false);
       }
     }
   };
   const handleKeydown = (event: KeyboardEvent): void => {
-    if (event.key === "Escape" && !popover.hidden) {
+    if (event.key !== "Escape") {
+      return;
+    }
+    if (!helpPopover.hidden) {
+      setHelpOpen(false, true);
+    } else if (!popover.hidden) {
       setOpen(false, true);
     }
   };
   const handleResize = (): void => {
     if (!popover.hidden) {
       placePopover();
+      if (!helpPopover.hidden) {
+        placeHelpPopover();
+      }
     }
   };
 
   trigger.addEventListener("click", toggle);
   closeButton.addEventListener("click", close);
+  helpButton.addEventListener("click", helpToggle);
+  helpClose.addEventListener("click", helpCloseHandler);
   ownerDocument.addEventListener("click", handleOutsideClick);
   ownerDocument.addEventListener("keydown", handleKeydown);
   ownerDocument.defaultView?.addEventListener("resize", handleResize);
 
   root.append(trigger);
-  ownerDocument.body.append(popover);
+  ownerDocument.body.append(popover, helpPopover);
 
   return {
     root,
     dispose(): void {
       trigger.removeEventListener("click", toggle);
       closeButton.removeEventListener("click", close);
+      helpButton.removeEventListener("click", helpToggle);
+      helpClose.removeEventListener("click", helpCloseHandler);
       ownerDocument.removeEventListener("click", handleOutsideClick);
       ownerDocument.removeEventListener("keydown", handleKeydown);
       ownerDocument.defaultView?.removeEventListener("resize", handleResize);
       const wasOpen = !popover.hidden;
       popover.remove();
+      helpPopover.remove();
       if (wasOpen) {
         dispatchSelectedPairOverlayChange(ownerDocument);
       }

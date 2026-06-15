@@ -2123,8 +2123,10 @@ body:has([data-v4-projection-side-panel="true"])
 .v4-projection-side-panel__trace-control {
   position: relative;
   min-width: 0;
+  grid-column: 1 / -1;
 }
 .v4-projection-side-panel__trace-trigger {
+  width: 100%;
   font: inherit;
   font-size: 0.95rem;
   font-weight: 700;
@@ -2174,6 +2176,95 @@ body:has([data-v4-projection-side-panel="true"])
   border-bottom: 1px solid rgba(157, 196, 232, 0.14);
   color: #f8fbff;
   font-size: 1.08rem;
+}
+.v4-projection-side-panel__trace-help {
+  flex: 0 0 auto;
+  margin-left: auto;
+  width: 1.4rem;
+  height: 1.4rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  border: 1px solid rgba(157, 196, 232, 0.42);
+  background: rgba(9, 24, 34, 0.96);
+  color: #dbe9f5;
+  font: inherit;
+  font-size: 0.9rem;
+  font-weight: 800;
+  line-height: 1;
+  cursor: pointer;
+}
+.v4-projection-side-panel__trace-help:hover,
+.v4-projection-side-panel__trace-help:focus-visible {
+  border-color: rgba(157, 196, 232, 0.7);
+  background: rgba(14, 34, 48, 0.98);
+}
+.v4-projection-side-panel__trace-help-popover {
+  position: fixed;
+  width: min(23rem, calc(100vw - 2rem));
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+  padding: 0.9rem 1rem;
+  border-radius: 0.55rem;
+  border: 1px solid rgba(157, 196, 232, 0.22);
+  background: linear-gradient(135deg, rgba(12, 26, 42, 0.99), rgba(6, 14, 24, 0.99));
+  color: #cbd5e1;
+  box-shadow:
+    0 0 0 1px rgba(3, 10, 14, 0.8),
+    0 16px 40px rgba(0, 0, 0, 0.66);
+  z-index: 100000;
+}
+.v4-projection-side-panel__trace-help-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.65rem;
+  padding-bottom: 0.5rem;
+  margin-bottom: 0.6rem;
+  border-bottom: 1px solid rgba(157, 196, 232, 0.14);
+  color: #f8fbff;
+  font-size: 1rem;
+}
+.v4-projection-side-panel__trace-help-close {
+  flex: 0 0 auto;
+  width: 1.5rem;
+  height: 1.5rem;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: rgba(203, 213, 225, 0.82);
+  font-size: 1.3rem;
+  line-height: 1;
+  cursor: pointer;
+}
+.v4-projection-side-panel__trace-help-body {
+  display: grid;
+  gap: 0.3rem;
+  font-size: 0.82rem;
+  line-height: 1.45;
+}
+.v4-projection-side-panel__trace-help-intro {
+  margin: 0 0 0.5rem;
+  color: #9fb6cc;
+}
+.v4-projection-side-panel__trace-help-heading {
+  margin: 0.55rem 0 0.2rem;
+  font-size: 0.86rem;
+  color: #eaf2fb;
+}
+.v4-projection-side-panel__trace-help-row {
+  display: grid;
+  gap: 0.05rem;
+  padding: 0.15rem 0;
+}
+.v4-projection-side-panel__trace-help-term {
+  color: #dbe9f5;
+  font-weight: 700;
+}
+.v4-projection-side-panel__trace-help-desc {
+  color: #aebfd2;
 }
 .v4-projection-side-panel__trace-close {
   flex: 0 0 auto;

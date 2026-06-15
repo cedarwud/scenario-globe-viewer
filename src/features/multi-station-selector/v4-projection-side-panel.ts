@@ -2401,7 +2401,7 @@ function buildEvidenceEntryRow(
   const csvButton = buildDownloadCsvButton(result, "CSV");
   const csvHelp = buildCsvHelpControl(csvButton);
   const traceControl = buildTrajectoryProvenanceControl(result, tleRecords);
-  actions.append(traceControl.root, reportButton, csvHelp.root);
+  actions.append(reportButton, csvHelp.root, traceControl.root);
   (row as any).__disposeHelp = (): void => {
     csvHelp.dispose();
     traceControl.dispose();
