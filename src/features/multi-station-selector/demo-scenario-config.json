@@ -1,0 +1,20 @@
+{
+  "$comment": "SINGLE SOURCE OF TRUTH for the selected-pair demo scenario (window + pinned TLE snapshots). Every other site that needs the demo window/TLE imports from here (TS: demo-scenario-config.ts; .mjs: scripts/helpers/demo-scenario.mjs; Python: scripts via json.load). Do NOT duplicate these literals elsewhere. Changing the window or snapshots requires regenerating the frozen artifacts (golden ECI vectors, wave handover baselines, retained evidence) via the demo regen pipeline; the drift-guard test (tests/unit/demo-scenario-config-drift.test.mjs) fails loudly if a frozen artifact's date diverges from this config.",
+  "stationAId": "cht-yangmingshan",
+  "stationBId": "sansa-hartebeesthoek",
+  "windowStartUtc": "2026-06-15T00:00:00.000Z",
+  "windowDurationMinutes": 360,
+  "tleSnapshots": {
+    "LEO": "/fixtures/satellites/leo-scale/oneweb-2026-06-15T00-00-00Z.tle",
+    "MEO": "/fixtures/satellites/multi-orbit/meo/galileo-2026-06-15T00-00-00Z.tle",
+    "GEO": "/fixtures/satellites/multi-orbit/geo/commercial-geo-top30-2026-06-15T00-00-00Z.tle"
+  },
+  "provenance": {
+    "note": "Re-pinned 2026-06-15T00:00:00.000Z from the fresh catalog (public/fixtures/satellites-network/). Window sits a few days after each snapshot's TLE epoch (near-epoch SGP4). The refreshed catalog proves fresh-data capability and does NOT feed this demo geometry.",
+    "tleSnapshotEpochMedianUtc": {
+      "LEO": "2026-05-15T03:46:00Z",
+      "MEO": "2026-05-11T08:03:00Z",
+      "GEO": "2026-05-12T15:12:00Z"
+    }
+  }
+}

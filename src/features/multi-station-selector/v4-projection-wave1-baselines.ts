@@ -1,3 +1,15 @@
+// FROZEN HISTORICAL BASELINE — intentionally NOT tracked by demo-scenario-config.
+//
+// These are the *pre-wave-2* projection results for the comparison test pairs
+// (KSAT / Intelsat / Singtel — NOT the CHT↔SANSA demo pair). The side panel's
+// opt-in `?compare=pre-wave-2` view renders the delta between the CURRENT result
+// and this snapshot to show the wave-2 improvement. Regenerating these from the
+// current code would make that delta ~0 and destroy the comparison, so this file
+// is deliberately left frozen — `npm run update:demo` does NOT regenerate it and
+// the demo-scenario drift guard intentionally excludes it. The 2026-05-17 stamps
+// are the historical capture instants; they do not move with the demo window. To
+// intentionally re-capture a NEW pre-wave-2 reference (rare), compute the pre-
+// wave-2 projection for these pairs and replace the literals by hand.
 import type { RuntimeProjectionResult } from "./runtime-projection";
 import type { OrbitClass } from "./visibility-utils";
 

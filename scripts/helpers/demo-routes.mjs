@@ -1,5 +1,8 @@
-export const SELECTED_PAIR_DEMO_REQUEST_PATH =
-  "/?stationA=cht-yangmingshan&stationB=sansa-hartebeesthoek&startUtc=2026-05-17T00%3A00%3A00.000Z&durationMinutes=360";
+import { SELECTED_PAIR_DEMO_REQUEST_PATH } from "./demo-scenario.mjs";
+
+// Re-exported from the demo scenario single source of truth (demo-scenario.mjs
+// -> demo-scenario-config.json) so the route window can never drift from config.
+export { SELECTED_PAIR_DEMO_REQUEST_PATH };
 
 export const SELECTED_PAIR_DEMO_BASE_URL =
   `http://127.0.0.1:5173${SELECTED_PAIR_DEMO_REQUEST_PATH}`;

@@ -8,6 +8,7 @@ import {
 } from "../../runtime/link-budget/antenna-pattern";
 import { computeGasAbsorptionDb } from "../../runtime/link-budget/gas-absorption";
 import { computeRainAttenuationDb } from "../../runtime/link-budget/rain-attenuation";
+import { TLE_FIXTURE_PATHS } from "./demo-scenario-config";
 import {
   inferPairSourceTier,
   type PairSourceTierAttribution,
@@ -116,11 +117,9 @@ const BASELINE_JITTER_MS_BY_ORBIT: Readonly<Record<OrbitClass, number>> = {
   GEO: 8
 };
 
-export const TLE_FIXTURE_PATHS: Readonly<Record<OrbitClass, string>> = {
-  LEO: "/fixtures/satellites/leo-scale/oneweb-2026-05-15T12-00-00Z.tle",
-  MEO: "/fixtures/satellites/multi-orbit/meo/galileo-2026-05-13T01-28-37Z.tle",
-  GEO: "/fixtures/satellites/multi-orbit/geo/commercial-geo-top30-2026-05-13T01-28-37Z.tle"
-};
+// Pinned demo TLE snapshot paths live in the single source of truth
+// (demo-scenario-config.json); imported above, re-exported for existing importers.
+export { TLE_FIXTURE_PATHS };
 
 const NETWORK_TLE_MANIFEST_PATH = "/fixtures/satellites-network/manifest.json";
 const NETWORK_TLE_BASE_PATH = "/fixtures/satellites-network/";

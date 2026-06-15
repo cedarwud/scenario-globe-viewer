@@ -8,5 +8,5 @@ Phase 7.1 multi-orbit viewer gate.
 - GEO uses a deterministic top-30 active commercial subset from the
   Celestrak `geo` catalog.
 
-These files are not Requirement orbit-model data, measured network truth,
+These files are not customer orbit-model data, measured network truth,
 radio-layer handover evidence, or external validation closure.

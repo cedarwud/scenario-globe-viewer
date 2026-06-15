@@ -1,14 +1,24 @@
 import type { SelectionSnapshot } from "./selection-store";
+import {
+  SELECTED_PAIR_DEMO_STATION_A_ID,
+  SELECTED_PAIR_DEMO_STATION_B_ID,
+  SELECTED_PAIR_DEMO_START_UTC,
+  SELECTED_PAIR_DEMO_DURATION_MINUTES
+} from "./demo-scenario-config";
 
 const STATION_A_PARAM = "stationA";
 const STATION_B_PARAM = "stationB";
 const START_UTC_PARAM = "startUtc";
 const DURATION_MINUTES_PARAM = "durationMinutes";
 
-export const SELECTED_PAIR_DEMO_STATION_A_ID = "cht-yangmingshan";
-export const SELECTED_PAIR_DEMO_STATION_B_ID = "sansa-hartebeesthoek";
-export const SELECTED_PAIR_DEMO_START_UTC = "2026-05-17T00:00:00.000Z";
-export const SELECTED_PAIR_DEMO_DURATION_MINUTES = 360;
+// Re-exported from the single source of truth (demo-scenario-config.json) so
+// existing importers of these names keep working; do not redefine here.
+export {
+  SELECTED_PAIR_DEMO_STATION_A_ID,
+  SELECTED_PAIR_DEMO_STATION_B_ID,
+  SELECTED_PAIR_DEMO_START_UTC,
+  SELECTED_PAIR_DEMO_DURATION_MINUTES
+};
 
 export interface BuildV4PairHrefInput {
   readonly stationAId: string;
