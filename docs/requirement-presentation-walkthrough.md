@@ -4,6 +4,10 @@ Status date: 2026-06-14
 Reconciled against: merge `1496a03` (2026-06-13 public-data-gap closure) and
 `docs/data-source-index.md` (the governing honesty contract).
 
+> Building/maintaining the `.pptx` deck and seeing red spell-check squiggles?
+> See [`pptx-spell-check-squiggles.md`](pptx-spell-check-squiggles.md)
+> (fix: `python3 scripts/fix-pptx-proofing.py <file.pptx>`).
+
 This document is the detailed, per-requirement walkthrough that backs a future
 slide deck. It is **text content only** — not slides, not layout, not a `.pptx`.
 For each of the 34 canonical requirements in `requirements-consolidated.md`, it
