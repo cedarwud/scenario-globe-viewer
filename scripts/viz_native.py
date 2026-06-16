@@ -20,6 +20,9 @@ LAT = "Times New Roman"
 def _setfont(run):
     run.font.name = LAT
     rPr = run._r.get_or_add_rPr()
+    rPr.set("lang", "zh-TW")
+    rPr.set("altLang", "zh-TW")
+    rPr.set("noProof", "1")
     for tag in ("a:latin", "a:ea", "a:cs"):
         e = rPr.find(qn(tag))
         if e is None:

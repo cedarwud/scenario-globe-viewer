@@ -151,6 +151,9 @@ def build_charts():
 def _set_font(run, latin=LAT_FONT, ea=EA_FONT):
     run.font.name = latin
     rPr = run._r.get_or_add_rPr()
+    rPr.set("lang", "zh-TW")
+    rPr.set("altLang", "zh-TW")
+    rPr.set("noProof", "1")
     for tag in ("a:latin", "a:ea", "a:cs"):
         el = rPr.find(qn(tag))
         if el is None:

@@ -82,6 +82,9 @@ CAT = {"A": ("第一類", "專案展示需求（demo 已實作）"),
 def setfont(run, latin=LAT, ea=EA):
     run.font.name = latin
     rPr = run._r.get_or_add_rPr()
+    rPr.set("lang", "zh-TW")
+    rPr.set("altLang", "zh-TW")
+    rPr.set("noProof", "1")
     for tag in ("a:latin", "a:ea", "a:cs"):
         el = rPr.find(qn(tag))
         if el is None:
@@ -320,9 +323,28 @@ def s_ops_tle(prs, L):
         "CelesTrak 官方限流：同一筆資料約 2 小時內勿重複抓取，否則會被擋（回 error）。例行更新即足夠；refresh:tle 內建 --if-older-than-days 7 門檻，自動避免過度抓取。",
         "catalog = 新鮮度／規模證明（≥500 LEO），不是 demo 幾何來源（demo 用釘死快照）。")
 
+def s_ops_cron(prs, L):
+    s = prs.slides.add_slide(L[1])
+    fill_title(s, [("維運指令 ②", {"sz": T_TITLE, "b": True, "c": NAVY}), ("　TLE 排程自動更新（cron）", {"sz": T_SUB, "b": True, "c": SOFT})])
+    clear_body_ph(s)
+    tb = textbox(s, Inches(0.6), Inches(TOP_CONTENT), Inches(12.1), Inches(1.85), shrink=True)
+    para(tb, [("做什麼　", {"sz": 16, "b": True, "c": INK}), ("把 catalog 更新排成 cron，每天自動跑兩次（08:00 / 20:00 伺服器本地時間），免手動。每輪＝refresh:tle ＋ refresh:tle:local（匯入本地快取）。", {"sz": 15, "c": INK})], first=True, sa=8, line=1.25)
+    para(tb, [("⚠ 注意　", {"sz": 15, "b": True, "c": DRED}), ("有 lock 防併發；log（logs/tle/）超過 1MB 自動壓縮、保留 30 天；仍受 CelesTrak ~2h 限流（refresh:tle 門檻自動保護）。demo 用釘死快照，不受排程影響。", {"sz": 14, "c": INK})], sa=0, line=1.25)
+    headers = ["指令", "做什麼"]
+    rows = [
+        [("npm run tle:schedule:install", {"c": NAVY, "b": True}), "安裝 cron 排程（每天 08:00、20:00 自動更新 catalog）"],
+        [("npm run tle:schedule:status", {"c": NAVY, "b": True}), "查排程是否安裝 ＋ log 狀態"],
+        [("npm run tle:schedule:logs", {"c": NAVY, "b": True}), "看最近更新紀錄"],
+        [("npm run tle:schedule:run", {"c": NAVY, "b": True}), "立刻手動跑一輪（不等排程）"],
+        [("npm run tle:schedule:uninstall", {"c": NAVY, "b": True}), "移除排程"],
+    ]
+    col_w = [Inches(4.7), Inches(7.6)]
+    _put_table(s, headers, rows, col_w, 3.25, 14, TBL_HEAD)
+    return s
+
 def s_ops_gate(prs, L):
     return _ops_slide(prs, L,
-        "維運指令 ②", "npm run verify:tle · 驗證 gate 執行環境",
+        "維運指令 ③", "npm run verify:tle · 驗證 gate 執行環境",
         "npm run verify:tle（＋ G1 / G3 / G4）",
         "在無頭瀏覽器驗證 runtime 投影、可見視窗、換手等數字是否符合保存基準。",
         "這些 gate 在瀏覽器直接 import 原始碼，需在「乾淨環境 / CI」啟動 dev-server 執行。本機長時 dev-server 對 session 內新建的 public 檔有服務怪癖（curl／build 版正常，僅瀏覽器 fetch 偶 404）—— re-pin 後於乾淨 shell 重跑即可，非資料問題。",
@@ -570,6 +592,7 @@ def main():
     s_demo(prs, L)
     s_data_model(prs, L)
     s_ops_tle(prs, L)
+    s_ops_cron(prs, L)
     s_ops_gate(prs, L)
     s_viznative(prs, L, "Demo 操作流程", "雙站投影 → 播放 → 證據", "flow-demo-journey.viz.json")
     s_viznative(prs, L, "系統架構與資料流", "公開來源 → 標準模型 → 示意代理", "system-architecture-v2.viz.json")
@@ -614,6 +637,15 @@ def main():
     s_closing(prs, L)
 
     os.makedirs(os.path.dirname(OUT), exist_ok=True)
+    # Kill PowerPoint spell-check squiggles: tag EVERY run lang=zh-TW + noProof
+    # (PP otherwise proofs generated CJK text against the default en-US dictionary
+    # and red-underlines it; copy/paste used to be the only clear-it workaround).
+    for _sl in prs.slides:
+        for _tag in ("a:rPr", "a:endParaRPr", "a:defRPr"):
+            for _rpr in _sl._element.iter(qn(_tag)):
+                _rpr.set("lang", "zh-TW")
+                _rpr.set("altLang", "zh-TW")  # PP proofs CJK via altLang; en-US here = squiggle
+                _rpr.set("noProof", "1")
     prs.save(OUT)
     print(f"slides: {len(prs.slides)}  ->  {OUT}")
 
