@@ -38,6 +38,12 @@ jobs:
       - name: Build
         run: npm run build
 
+      - name: Honesty + structural gate (phase0 + over-claim scan)
+        run: node scripts/verify-phase0.mjs
+
+      - name: Unit goldens + demo-scenario-config drift
+        run: npm run test:unit
+
       - name: Enforce final large-file budgets
         run: npm run verify:large-file-budgets:final
 
