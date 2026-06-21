@@ -7,7 +7,7 @@
   "tleSnapshots": {
     "LEO": "/fixtures/satellites/leo-scale/oneweb-2026-06-15T00-00-00Z.tle",
     "MEO": "/fixtures/satellites/multi-orbit/meo/galileo-2026-06-15T00-00-00Z.tle",
-    "GEO": "/fixtures/satellites/multi-orbit/geo/commercial-geo-top30-2026-06-15T00-00-00Z.tle"
+    "GEO": "/fixtures/satellites/multi-orbit/geo/commercial-geo-2026-06-15T00-00-00Z.tle"
   },
   "provenance": {
     "note": "Re-pinned 2026-06-15T00:00:00.000Z from the fresh catalog (public/fixtures/satellites-network/). Window sits a few days after each snapshot's TLE epoch (near-epoch SGP4). The refreshed catalog proves fresh-data capability and does NOT feed this demo geometry.",

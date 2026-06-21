@@ -5,7 +5,7 @@ Phase 7.1 multi-orbit viewer gate.
 
 - LEO remains sourced from `public/fixtures/satellites/leo-scale/`.
 - MEO uses `gps-ops` plus `galileo` catalogs.
-- GEO uses a deterministic top-30 active commercial subset from the
+- GEO uses the full active commercial subset from the
   Celestrak `geo` catalog.
 
 These files are not customer orbit-model data, measured network truth,

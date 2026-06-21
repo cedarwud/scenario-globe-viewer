@@ -75,26 +75,34 @@ const demoResult = computeRuntimeProjection({
 
 test("D1 pinned demo (CHT x SANSA, 06-15 +360m): communication-time golden", () => {
   assert.deepEqual([...demoResult.sharedSupportedOrbits], ["LEO", "MEO", "GEO"]);
-  assert.equal(demoResult.visibilityWindows.length, 5);
-  assert.equal(demoResult.handoverEvents.length, 3);
+  assert.equal(demoResult.visibilityWindows.length, 17);
+  assert.equal(demoResult.handoverEvents.length, 6);
   assert.deepEqual(demoResult.communicationStats, {
-    totalCommunicatingMs: 5_160_000,
-    byOrbit: { LEO: 0, MEO: 5_160_000, GEO: 0 },
-    handoverCount: 0,
-    meanLinkDwellMs: 1_720_000,
+    totalCommunicatingMs: 21_600_000,
+    byOrbit: { LEO: 0, MEO: 5_160_000, GEO: 16_440_000 },
+    handoverCount: 5,
+    meanLinkDwellMs: 3_600_000,
   });
-  // All three events are fresh acquisitions (no within-link transition), so the
-  // audit rule "handoverCount excludes the initial acquisition" yields 0.
+  // 1 initial acquisition + 5 transitions; handoverCount excludes the acquisition.
   assert.equal(
     demoResult.handoverEvents.filter((e) => e.fromSatelliteId === null).length,
-    3,
+    1,
+  );
+  // The route opens on a commercial GEO bird, then a cross-orbit migration hands
+  // over to Galileo MEO (V-MO1 cross-orbit-live policy).
+  assert.equal(demoResult.handoverEvents[0].fromSatelliteId, null);
+  assert.equal(demoResult.handoverEvents[0].toSatelliteId, "APSTAR-7");
+  assert.ok(
+    demoResult.handoverEvents.some((e) => e.reasonKind === "cross-orbit-migration"),
+    "expected a cross-orbit migration in the demo route",
   );
 });
 
-test("D1 pinned demo: representative link budget is MEO-only and matches the budget golden", () => {
-  // CHT (Taiwan) + SANSA (South Africa) are too far apart for LEO/GEO mutual
-  // visibility above their masks; only Galileo MEO yields a representative window.
-  assert.deepEqual(Object.keys(demoResult.representativeLinkBudgetByOrbit), ["MEO"]);
+test("D1 pinned demo: representative MEO + GEO link budgets match the budget golden", () => {
+  // CHT (Taiwan) + SANSA (South Africa) are too far apart for LEO mutual
+  // visibility above their masks; the route is carried by Galileo MEO plus a
+  // commercial GEO bird (full commercial GEO subset, ~249 records).
+  assert.deepEqual(Object.keys(demoResult.representativeLinkBudgetByOrbit), ["MEO", "GEO"]);
   const meo = demoResult.representativeLinkBudgetByOrbit.MEO;
   assert.equal(meo.representativeSatelliteId, "GSAT0102 (GALILEO-FM2)");
   assert.equal(meo.geometrySource, "sgp4-propagated-representative");
@@ -104,6 +112,16 @@ test("D1 pinned demo: representative link budget is MEO-only and matches the bud
   assert.equal(meo.illustrativeThroughputMbps, 89.583);
   assert.equal(meo.totalPathLossDb, 184.764);
   assert.equal(meo.receivedPowerProxyDbm, -100.847);
+  const geo = demoResult.representativeLinkBudgetByOrbit.GEO;
+  assert.equal(geo.representativeSatelliteId, "APSTAR-7");
+  assert.equal(geo.geometrySource, "sgp4-propagated-representative");
+  assert.equal(geo.representativeSampleUtc, "2026-06-15T03:00:00.000Z");
+  assert.equal(geo.slantRangeKm, 38_724.148);
+  assert.equal(geo.latencyMs, 131.17);
+  assert.equal(geo.jitterMs, 8);
+  assert.equal(geo.illustrativeThroughputMbps, 43.811);
+  assert.equal(geo.totalPathLossDb, 210.79);
+  assert.equal(geo.receivedPowerProxyDbm, -118.873);
 });
 
 // ---------------------------------------------------------------------------

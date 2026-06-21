@@ -14,7 +14,7 @@ const GALILEO_SOURCE_URL =
 const GEO_SOURCE_URL =
   "https://celestrak.org/NORAD/elements/gp.php?GROUP=geo&FORMAT=tle";
 
-const GEO_CAP = 30;
+const GEO_CAP_DEFAULT = 30;
 const outputRoot = path.join(repoRoot, "public/fixtures/satellites/multi-orbit");
 
 const commercialGeoNamePatterns = [
@@ -212,7 +212,7 @@ function writeJson(filePath, payload) {
   writeFileSync(filePath, `${JSON.stringify(payload, null, 2)}\n`, "utf8");
 }
 
-function writeReadme() {
+function writeReadme(geoSubsetDescription) {
   mkdirSync(outputRoot, { recursive: true });
   writeFileSync(
     path.join(outputRoot, "README.md"),
@@ -223,7 +223,7 @@ Phase 7.1 multi-orbit viewer gate.
 
 - LEO remains sourced from \`public/fixtures/satellites/leo-scale/\`.
 - MEO uses \`gps-ops\` plus \`galileo\` catalogs.
-- GEO uses a deterministic top-${GEO_CAP} active commercial subset from the
+- GEO uses ${geoSubsetDescription} from the
   Celestrak \`geo\` catalog.
 
 These files are not customer orbit-model data, measured network truth,
@@ -252,6 +252,20 @@ function main() {
   const meoOutputDir = path.join(outputRoot, "meo");
   const geoOutputDir = path.join(outputRoot, "geo");
 
+  // GEO subset cap. Default keeps the historical top-30 curation; `--geo-cap all`
+  // (or 0) retains every curated commercial GEO record (no count cap).
+  const geoCapOption = options["geo-cap"];
+  const geoCapAll = geoCapOption === "all" || geoCapOption === "0";
+  const geoCap = geoCapAll
+    ? Infinity
+    : geoCapOption
+      ? Number.parseInt(geoCapOption, 10)
+      : GEO_CAP_DEFAULT;
+  assert(
+    geoCapAll || (Number.isInteger(geoCap) && geoCap > 0),
+    '--geo-cap must be a positive integer or "all".'
+  );
+
   const gpsRecords = parseTleRecords(readFileSync(gpsInput, "utf8"), "gps-ops");
   const galileoRecords = parseTleRecords(readFileSync(galileoInput, "utf8"), "galileo");
   const geoRecords = parseTleRecords(readFileSync(geoInput, "utf8"), "geo");
@@ -271,7 +285,7 @@ function main() {
   const commercialGeoRecords = geoRecords
     .filter(isCommercialGeoRecord)
     .toSorted(sortByNoradThenName)
-    .slice(0, GEO_CAP);
+    .slice(0, geoCap);
   assert(
     commercialGeoRecords.length >= 20,
     `GEO fixture needs at least 20 records, got ${commercialGeoRecords.length}.`
@@ -279,7 +293,9 @@ function main() {
 
   const gpsFixtureFile = `gps-ops-${fileTimestamp}.tle`;
   const galileoFixtureFile = `galileo-${fileTimestamp}.tle`;
-  const geoFixtureFile = `commercial-geo-top30-${fileTimestamp}.tle`;
+  const geoFixtureFile = geoCapAll
+    ? `commercial-geo-${fileTimestamp}.tle`
+    : `commercial-geo-top${geoCap}-${fileTimestamp}.tle`;
 
   const gpsFixtureRecords = meoDedupe.deduped.filter(
     (record) => record.sourceId === "gps-ops"
@@ -288,7 +304,11 @@ function main() {
     (record) => record.sourceId === "galileo"
   );
 
-  writeReadme();
+  writeReadme(
+    geoCapAll
+      ? "the full active commercial subset"
+      : `a deterministic top-${geoCap} active commercial subset`
+  );
   writeCatalog(meoOutputDir, gpsFixtureFile, gpsFixtureRecords);
   writeCatalog(meoOutputDir, galileoFixtureFile, galileoFixtureRecords);
   writeCatalog(geoOutputDir, geoFixtureFile, commercialGeoRecords);
@@ -340,7 +360,7 @@ function main() {
     sourceSet: ["geo"],
     catalogs: [
       {
-        sourceId: "geo-commercial-top30",
+        sourceId: geoCapAll ? "geo-commercial" : `geo-commercial-top${geoCap}`,
         source: "Celestrak",
         sourceUrl: GEO_SOURCE_URL,
         fixtureFile: geoFixtureFile,
@@ -352,7 +372,7 @@ function main() {
     classTagDerivation:
       "meanMotionRevPerDay > 11 => leo; 0.9..1.1 => geo; >1.1..11 => meo; out-of-band records are outside this gate",
     subsetPolicy:
-      `deterministic top-${GEO_CAP} active commercial GEO records sorted by NORAD catalog id; excludes obvious debris, rocket bodies, transfer objects, and military/government-only names by repo-owned name filters`,
+      `${geoCapAll ? "all" : `deterministic top-${geoCap}`} active commercial GEO records sorted by NORAD catalog id; excludes obvious debris, rocket bodies, transfer objects, and military/government-only names by repo-owned name filters`,
     renderPolicy:
       "one current SGP4-propagated point primitive per copied TLE; no labels, paths, polylines, or orbit-history accumulation in multi-orbit-scale-points mode",
     licenseNote:

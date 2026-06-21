@@ -55,7 +55,7 @@ for (const [label, p] of [["LEO", leoSrc], ["MEO", meoSrc], ["GEO", geoSrc]]) {
 const newSnapshots = {
   LEO: `/fixtures/satellites/leo-scale/oneweb-${fts}.tle`,
   MEO: `/fixtures/satellites/multi-orbit/meo/galileo-${fts}.tle`,
-  GEO: `/fixtures/satellites/multi-orbit/geo/commercial-geo-top30-${fts}.tle`
+  GEO: `/fixtures/satellites/multi-orbit/geo/commercial-geo-${fts}.tle`
 };
 
 console.log("RE-PIN demo scenario");
@@ -92,10 +92,10 @@ rmSync(leoOneWebSrc, { force: true });
 // filler MUST contain 0 MEO sats or it would steal the galileo records. leo-latest
 // (OneWeb, all LEO) filters to 0 MEO -> galileo survives intact; its gps-ops output
 // is empty and unused by the demo.
-run("curate MEO galileo + GEO top-30", "node", [
+run("curate MEO galileo + GEO (full commercial subset)", "node", [
   "scripts/build-v4.13-multi-orbit-fixture.mjs",
   "--gps-ops-input", leoSrc, "--galileo-input", meoSrc, "--geo-input", geoSrc,
-  "--captured-at", capturedAt
+  "--captured-at", capturedAt, "--geo-cap", "all"
 ]);
 
 // 2. patch the single source of truth to point at the new snapshots + window.
