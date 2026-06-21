@@ -83,6 +83,16 @@ if (!metadataOnly) {
     copyFileSync(join(SCRATCH, f), join(DELIVERABLE, f));
     console.log(`   promoted ${f}`);
   }
+
+  // Also refresh the retained smoke-manifest copy. Its body embeds the window-
+  // named report filenames plus the actor/visibility row counts; update-evidence
+  // used to leave it stale (a 05-17/network smoke manifest survived the 06-15
+  // re-pin) because isReport() only matches the HTML/CSV report files.
+  const scratchSmoke = join(SCRATCH, "smoke-manifest.json");
+  if (existsSync(scratchSmoke)) {
+    copyFileSync(scratchSmoke, join(DELIVERABLE, "smoke-manifest.output.json"));
+    console.log("   promoted smoke-manifest.output.json");
+  }
 }
 
 // 4. Resync the evidence manifest integrity metadata from the on-disk package:

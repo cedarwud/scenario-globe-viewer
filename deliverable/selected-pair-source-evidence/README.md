@@ -1,25 +1,28 @@
 # Selected-Pair Source Evidence Package
 
-Status date: 2026-06-15
+Status date: 2026-06-22
 
 This folder retains one generated selected-pair evidence package for slide and
-review citations. The report HTML was last regenerated on 2026-06-15 for WS-C: a
-new Audit & evidence tab carries the honesty grading matrix, the model-boundary
-disclosure, a standards-conformance table (formula -> clause -> retained-PDF
-sha256 -> sample input/output from this route), a rain-rate sensitivity sweep, a
-reproducibility imprint, and a verification-status strip. The underlying
-projection numbers are unchanged from the WS-F regeneration (the CSV is
-byte-identical); only the report HTML grew. WS-F context (carried over): the
+review citations. The report HTML was last regenerated on 2026-06-22 (track B —
+pinned local-snapshot default) on the WS-C Audit & evidence tab, which carries the
+honesty grading matrix, the model-boundary disclosure, a standards-conformance
+table (formula -> clause -> retained-PDF sha256 -> sample input/output from this
+route), a rain-rate sensitivity sweep, a reproducibility imprint, and a
+verification-status strip. The default source is now the pinned 2026-06-15 local
+snapshots (`public/fixtures/satellites/…`, 882 actors = 600 OneWeb LEO / 33 Galileo
+MEO / 249 commercial GEO); the CelesTrak network catalog (651 / 33 / 574 = 1258) is
+an opt-in `?tleSource=network` refresh source. WS-F context (carried over): the
 per-sample link budget uses the SGP4-propagated satellite geocentric radius for
 slant range and the instantaneous per-station elevation, and rain attenuation
-binds to the worse of the two stations at its own latitude/height. The
-mutual-visibility geometry is unchanged (actor rows 63, visibility windows 64)
-because window membership is gated by elevation geometry only; the handover
-sequence re-ranked among same-orbit GEO candidates. Per-orbit network-snapshot
-inventory reads the synced runtime manifest (651 OneWeb LEO / 33 Galileo MEO /
-574 GEO). All link-budget magnitudes remain modeled / standards-derived;
-throughput is an illustrative capacity proxy and the received-power value is a
-relative proxy (EIRP is not available). It was produced by running:
+binds to the worse of the two stations at its own latitude/height. The selected
+pair's mutual-visibility geometry over this window is actor rows 17, visibility
+windows 17 (window membership is gated by elevation geometry only); the handover
+sequence migrates across orbit classes under the cross-orbit-live policy. The
+runtime-inventory disclosure records the active pinned inventory (600 / 33 / 249)
+alongside the network-snapshot reference counts (651 / 33 / 574). All link-budget
+magnitudes remain modeled / standards-derived; throughput is an illustrative
+capacity proxy and the received-power value is a relative proxy (EIRP is not
+available). It was produced by running:
 
 ```sh
 npm run test:m8a-v4.11:slice5
@@ -34,29 +37,29 @@ CSV, and smoke manifest were copied here as retained delivery evidence.
 | Field | Value |
 |---|---|
 | Route | `/?stationA=cht-yangmingshan&stationB=sansa-hartebeesthoek&startUtc=2026-06-15T00%3A00%3A00.000Z&durationMinutes=360` |
-| Generated at | `2026-06-15T12:59:41.459Z` |
+| Generated at | `2026-06-21T16:18:45.767Z` |
 | Source tier | `geometric-derived` |
 | Evidence kind | `cross-family-geometric` |
 | Requirement rows | `34` |
 | Station rows | `2` |
 | TLE rows | `3` |
-| Actor rows | `63` |
-| Visibility rows | `64` |
+| Actor rows | `17` |
+| Visibility rows | `17` |
 
 ## Retained Files
 
 | File | Role | Size bytes | SHA-256 |
 |---|---|---:|---|
-| `runtime-projection-evidence-cht-yangmingshan-sansa-hartebeesthoek-20260615T000000Z-360m.html` | Readable evidence report with Requirements, Sources, Models, Audit & evidence, Raw data, and HTML download state. | 1681355 | `0b653e9e1ab107df42d8e86e8e0b1b307f60294ac050ed398dfd231c7274e9cf` |
-| `runtime-projection-cht-yangmingshan-sansa-hartebeesthoek-20260615T000000Z-360m.csv` | Row-level export with source, provenance, and non-claim columns. | 105335 | `78485e72e3657a2f5a92f642f41ff6b70acdd348da632de58e09955ace1f8290` |
-| `smoke-manifest.output.json` | Original smoke manifest copied from ignored `output/selected-pair-source-report/`. | 1132 | `db9ed6f4552fc3b1d8ce4232cb6e035e26b1eb825d635b4056bacc8fea374b79` |
+| `runtime-projection-evidence-cht-yangmingshan-sansa-hartebeesthoek-20260615T000000Z-360m.html` | Readable evidence report with Requirements, Sources, Models, Audit & evidence, Raw data, and HTML download state. | 942065 | `6e6546e3e6be1d4b048775b990ea4f4a38492598ca79aca7edafbc22c218620a` |
+| `runtime-projection-cht-yangmingshan-sansa-hartebeesthoek-20260615T000000Z-360m.csv` | Row-level export with source, provenance, and non-claim columns. | 61992 | `17fff9d9801b213819e38df1d681eff4cddb1a33462a1efb54f4903c64d0643d` |
+| `smoke-manifest.output.json` | Original smoke manifest copied from ignored `output/selected-pair-source-report/`. | 1132 | `f56d842ed4b84206002ea168d84c8d92bfd03b4a1624be2b442ab77bb6e46b50` |
 | `external-source-reconciliation.md` | Public-source reconciliation for selected-pair station values, recovered elevation source method, source conflicts, repair paths, and non-observable gaps. | 14666 | `1b3194ac0e619f0e847583b6f783b28ab21f4cd1f39f0811ac0998bfff384ace` |
 | `open-elevation-selected-pair-query-2026-06-12.json` | Retained Open-Elevation query response that reproduces selected-pair legacy elevation cache values. | 2425 | `b21930f25a3da975fd16ac74a2b650bb9c6f31d230c92a2f9cde70c5226217e2` |
 | `copernicus-dem-selected-pair-sample-2026-06-12.json` | Retained Copernicus GLO-30 selected-pair DEM comparison sample with tile/cell/datum traceability. | 6159 | `43a0dc022f2dd687d3812a3689b8f2c036284acf2cad1b8929c86b7bf8a8f349` |
 | `copernicus-dem-selected-pair-terrain-mask-2026-06-13.json` | Retained Copernicus GLO-30 selected-pair terrain-mask sample and horizon algorithm output. | 162055 | `9382f7e36f7abf0fa4988962b5bcf96a80607c208df988de43d61a73e8ce4978` |
 | `rain-source-repair-candidates-2026-06-12.json` | Retained local rain calibration repair-source candidates. | 3843 | `02d4898bc2d9cd385a0e9d8564f4471bc7de533648416bf498b2636b121835ad` |
 | `local-rain-calibration-2026-06-13.json` | Retained public CWA local rain statistic mapped to a bounded 5 mm/h demo preset. | 5718 | `f3a36892ccf01cc7f8cf1c720fc284328e1e92265a487c079e6efbafe0150476` |
-| `evidence-manifest.json` | Delivery-local structured manifest for this retained package. | 4603 | `74dded0982bc9a055ecce5f0ea1aed479c1f78d76704d31ca35310334e124c5a` |
+| `evidence-manifest.json` | Delivery-local structured manifest for this retained package. | 4741 | `9d046e97a89356d5f06ed0ade5397ed4ffdfcd3936015f9f9c1d36d26ba9dbbb` |
 
 ## Source Chain
 
@@ -82,8 +85,9 @@ Use this package with:
   preset.
 - [`../3gpp-itu-references/README.md`](../3gpp-itu-references/README.md) for
   retained 3GPP / ITU-R PDF citations and checksums.
-- `public/fixtures/satellites-network/manifest.json` for TLE source manifest
-  metadata.
+- `public/fixtures/satellites/…` pinned TLE snapshots (default delivery geometry,
+  per `demo-scenario-config.json`) and `public/fixtures/satellites-network/manifest.json`
+  (opt-in `?tleSource=network`) for TLE source manifest metadata.
 - `public/fixtures/ground-stations/multi-orbit-public-registry.json` and
   `public/fixtures/ground-stations/multi-orbit-public-registry-sources.md` for
   station registry source notes.

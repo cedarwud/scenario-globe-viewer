@@ -1,8 +1,11 @@
 # Requirement Presentation Walkthrough (Phase 1 — text content)
 
-Status date: 2026-06-14
-Reconciled against: merge `1496a03` (2026-06-13 public-data-gap closure) and
-`docs/data-source-index.md` (the governing honesty contract).
+Status date: 2026-06-22
+Reconciled against: merge `1496a03` (2026-06-13 public-data-gap closure),
+`docs/data-source-index.md` (the governing honesty contract), and the track-B
+pinned-local-snapshot default (commit `cfc6471`): the default demo geometry is the
+pinned 2026-06-15 snapshots (882 actors); the CelesTrak network catalog is opt-in
+(`?tleSource=network`).
 
 > Building/maintaining the `.pptx` deck and seeing red spell-check squiggles?
 > See [`pptx-spell-check-squiggles.md`](pptx-spell-check-squiggles.md)
@@ -80,8 +83,8 @@ are added here for the 2026-06-13 merge artifacts.
 | [1] | `requirements-consolidated.md` | Canonical 34-row list, bucket counts, IDs, tier policy. | Runtime proof, packet/RF measurement, acceptance. **Note: the spine's Bucket B rows + standards §-sections were synced to the merged state on 2026-06-14 (both repo + `/home/u24/papers/itri/` copies); `docs/data-source-index.md` [2] remains the governing contract.** |
 | [2] | `docs/data-source-index.md` | Data-source classes, presentation source map, gap repair plan, "models stay models". | Original evidence store, acceptance certificate. **Current authority over [1] on antenna wiring + standards sections.** |
 | [3] | `deliverable/selected-pair-source-evidence/README.md` | Retained selected-pair package, route, generated time, file hashes, package claim boundary. | Packet/RF/operator validation, final written acceptance. |
-| [4] | `…/runtime-projection-evidence-cht-yangmingshan-sansa-hartebeesthoek-20260517T000000Z-360m.html` | Readable report: requirements, sources, models, handover, visibility, audit & evidence, raw data. Regenerated 2026-06-15 with the WS-C audit tab on the WS-F propagated-geometry link budget (sha `9061837b…`). | Original evidence store, rerun proof, packet/RF measurement, formal acceptance. |
-| [5] | `…/runtime-projection-cht-yangmingshan-sansa-hartebeesthoek-20260517T000000Z-360m.csv` | Row-level export: fields, source tier, station precision, model outputs, gaps, non-claims. Regenerated 2026-06-15 after WS-F propagated-geometry link budget (sha `e07359f8…`). | Narrative beyond payload, packet logs, acceptance. |
+| [4] | `…/runtime-projection-evidence-cht-yangmingshan-sansa-hartebeesthoek-20260615T000000Z-360m.html` | Readable report: requirements, sources, models, handover, visibility, audit & evidence, raw data. Regenerated 2026-06-22 from the pinned local-snapshot default (882 actors) on the WS-F propagated-geometry link budget (sha `6e6546e3…`). | Original evidence store, rerun proof, packet/RF measurement, formal acceptance. |
+| [5] | `…/runtime-projection-cht-yangmingshan-sansa-hartebeesthoek-20260615T000000Z-360m.csv` | Row-level export: fields, source tier, station precision, model outputs, gaps, non-claims. Regenerated 2026-06-22 from the pinned local-snapshot default after the WS-F propagated-geometry link budget (sha `17fff9d9…`). | Narrative beyond payload, packet logs, acceptance. |
 | [6] | `…/external-source-reconciliation.md` | Public-source reconciliation for CHT/SANSA values, conflicts, verdicts, repair paths, non-observable gaps. | Exact CHT facility coordinate, active route, native RF handover, packet measurement, acceptance. |
 | [7] | `deliverable/3gpp-itu-references/README.md` + PDFs | Retained 3GPP/ITU-R PDF map, section citations, checksums. | Operator-validated data, measured quality, local weather, hardware, packet/RF results. **Note: the README's "38811 §6.7 propagation delay" descriptor was corrected 2026-06-14 to §6.6.2 (slant range) + clause 5.3.1.1 (one-way delay) — see K-A2.** |
 | [8] | `public/fixtures/ground-stations/multi-orbit-public-registry-sources.md` | Public station capability notes, source URLs, coordinate/elevation/band notes, non-claims. | Commercial pair routing, active serving satellite, private facility geometry, RF hardware completeness. |
@@ -89,13 +92,13 @@ are added here for the 2026-06-13 merge artifacts.
 | [10] | `…/copernicus-dem-selected-pair-sample-2026-06-12.json` | Selected-pair Copernicus GLO-30 comparison cells with tile/row/col/CRS/datum/license. | Full-registry replacement; packet/RF/route/acceptance. |
 | [11] | `…/rain-source-repair-candidates-2026-06-12.json` | Candidate public rain sources (NASA GPM IMERG, CWA Anbu/Zhuzihu) for calibration repair. | Any sampled rain value, measured weather, rain validation. |
 | [12] | `README.md` | Repo scope, data-boundary rule, command list. | Requirement-coverage detail or original proof. |
-| [13] | `public/fixtures/satellites-network/manifest.json` | CelesTrak-sourced orbit manifest, generated time, orbit-class counts, epoch ranges. | Live upstream catalog, active serving satellite, operator assignment. |
-| **[14]** | `…/local-rain-calibration-2026-06-13.json` | Retained public CWA statistic (stations 46691 Anpu, 46693 Yangmingshan), raw `curl` commands + `rawResponseSha256` ×2, 149 samples each, peak 10-min increment → ×6 hourly equivalent → 5 mm/h preset mapping. Source class public-source; model-input `assumed-Tier-B`. | Measured-for-link weather, SANSA rainfall, 2026-05-17 scenario-window weather, long-term R0.01 calibration, rain-attenuation validation. |
+| [13] | `public/fixtures/satellites-network/manifest.json` (opt-in `?tleSource=network`; the default demo loads the pinned `public/fixtures/satellites/…` snapshots per `demo-scenario-config.json`) | CelesTrak-sourced orbit manifest, generated time, orbit-class counts, epoch ranges. | Live upstream catalog, active serving satellite, operator assignment, or the default delivery geometry (that is the pinned snapshot). |
+| **[14]** | `…/local-rain-calibration-2026-06-13.json` | Retained public CWA statistic (stations 46691 Anpu, 46693 Yangmingshan), raw `curl` commands + `rawResponseSha256` ×2, 149 samples each, peak 10-min increment → ×6 hourly equivalent → 5 mm/h preset mapping. Source class public-source; model-input `assumed-Tier-B`. | Measured-for-link weather, SANSA rainfall, 2026-06-15 scenario-window weather, long-term R0.01 calibration, rain-attenuation validation. |
 | **[15]** | `…/copernicus-dem-selected-pair-terrain-mask-2026-06-13.json` | Selected-pair Copernicus GLO-30 elevation adoption (CHT 489 m; tile `Copernicus_DSM_COG_10_N25_00_E121_00_DEM`, cell row-3041-col-1979, EGM2008/EPSG:3855, 2021 release, 1 arcsec) and terrain-mask algorithm `radial-nearest-cell-horizon-v1` (5 km radius, 500 m step, 15° azimuth, ceil rule) → CHT 21°, SANSA 1°, with per-station ring checksums. Source class `public-DEM-derived`. | Surveyed RF horizon, clutter/vegetation/building obstruction, operator-measured CHT altitude, full 69-row registry replacement. |
 | **[16]** | `src/features/multi-station-selector/runtime-antenna-assumptions.ts` | The disclosed `assumed-tier-b-antenna-params-selected-pair-v1` per-orbit antenna parameters wired into selected-pair RSRP/throughput. | Operator dish size, EIRP, polarization, beamwidth, antenna model, or measured antenna gain. |
 
 **Selected-pair demo route (used throughout):**
-`/?stationA=cht-yangmingshan&stationB=sansa-hartebeesthoek&startUtc=2026-05-17T00%3A00%3A00.000Z&durationMinutes=360`
+`/?stationA=cht-yangmingshan&stationB=sansa-hartebeesthoek&startUtc=2026-06-15T00%3A00%3A00.000Z&durationMinutes=360`
 Short form `/?stationA=<id>&stationB=<id>` auto-activates the V4 scene
 (`isM8aV4GroundStationRuntimeRequested` in
 `src/runtime/m8a-v4-ground-station-handover-scene-controller.ts`;
@@ -123,12 +126,17 @@ telemetry.
 *(Bucket A · complete)*
 - **Asks:** Integrate the three orbit classes and produce multi-orbit signal
   switching.
-- **Satisfied by:** SGP4 propagation of the three orbit classes from
-  `public/fixtures/satellites-network/manifest.json`; selected-pair switching
-  candidates from `src/features/multi-station-selector/runtime-projection.ts`
-  feeding `src/runtime/link-budget/handover-policy.ts`. Visible on the demo route.
-- **Data source:** 1258 actors loaded (651 OneWeb LEO + 33 Galileo MEO + 574 GEO group),
-  CelesTrak 2026-06-13 snapshot · **geometric-derived** · TLE/SGP4 · [1] [4] [13].
+- **Satisfied by:** SGP4 propagation of the three orbit classes from the pinned
+  local snapshots (`public/fixtures/satellites/…`, the default per
+  `src/features/multi-station-selector/demo-scenario-config.json`; the CelesTrak
+  network catalog `public/fixtures/satellites-network/manifest.json` is an opt-in
+  `?tleSource=network` refresh source); selected-pair switching candidates from
+  `src/features/multi-station-selector/runtime-projection.ts` feeding
+  `src/runtime/link-budget/handover-policy.ts`. Visible on the demo route.
+- **Data source:** 882 actors loaded by default (600 OneWeb LEO + 33 Galileo MEO +
+  249 commercial GEO) from the pinned 2026-06-15 snapshots · **geometric-derived** ·
+  TLE/SGP4 · [1] [4] [13]. (Opt-in `?tleSource=network` instead loads the 1258-actor
+  CelesTrak 2026-06-13 snapshot: 651 OneWeb LEO + 33 Galileo MEO + 574 GEO group.)
   (Runtime ranks by selected-pair visibility then caps per orbit: LEO 200 / MEO 100 / GEO 60.)
 - **Boundary:** Model-selected switching candidates, **not** active serving-route
   migration or an operator event log.
@@ -185,14 +193,19 @@ telemetry.
 ### R1-F1 / K-E1 — Support ≥ 500 LEO simulation actors (Starlink, OneWeb)
 *(Bucket A · complete)*
 - **Asks:** Simulate at least 500 LEO satellites.
-- **Satisfied by:** Default load of **651 OneWeb LEO** (plus 33 Galileo MEO, 574 GEO
-  group) from the CelesTrak 2026-06-13 snapshot (`GROUP=oneweb|galileo|geo`).
-- **Data source:** 651 OneWeb LEO ≥ 500 target · **public source / geometric-derived**
-  · [1] [4] [5] [13]. A 600-record Starlink fixture exists at
-  `public/fixtures/satellites/leo-scale/` but is **not default-loaded**.
+- **Satisfied by:** Default load of **600 OneWeb LEO** (plus 33 Galileo MEO, 249
+  commercial GEO) from the pinned 2026-06-15 local snapshots. (Opt-in
+  `?tleSource=network` refreshes from the CelesTrak snapshot
+  `GROUP=oneweb|galileo|geo` → 651 OneWeb LEO.)
+- **Data source:** 600 OneWeb LEO ≥ 500 target · **public source / geometric-derived**
+  · [1] [4] [5] [13]. The pinned LEO snapshot is
+  `…/leo-scale/oneweb-2026-06-15T00-00-00Z.tle`; a sibling 600-record Starlink
+  fixture (`…/leo-scale/starlink-…tle`) exists in the same directory but is **not
+  default-loaded**.
 - **Boundary:** "≥ 500 LEO" is met by OneWeb; the runtime LEO set is OneWeb, not
   Starlink. The "~11015 satellites" figure was the **upstream CelesTrak catalog
-  size**, not the local load (1258) — corrected 2026-06-13.
+  size**, not the default local load (882; or 1258 under the opt-in network
+  snapshot) — corrected 2026-06-13.
 
 ### R1-F2 / K-E2 — Adjustable simulation speed (real-time vs prerecorded TLE)
 *(Bucket A · complete)*
@@ -454,7 +467,7 @@ its current (post-merge) honest form.
   hourly equivalent → rounded to the slider step → **5 mm/h demo preset** ·
   **public source** (model input `assumed-Tier-B`) · [1] [2] [6] [11] [14].
 - **Boundary:** **Not** measured weather for the CHT-SANSA link, **not** SANSA
-  rainfall, **not** 2026-05-17 scenario-window weather, and **not** an
+  rainfall, **not** 2026-06-15 scenario-window weather, and **not** an
   R0.01/availability calibration under the P.837/P.618 workflow. The clear-sky
   report still uses rain rate 0 unless the slider is moved.
 - **Correction vs stale inventory:** The 2026-06-12 inventory marks this a pure
@@ -585,9 +598,10 @@ spine `requirements-consolidated.md`, after reconciling with merge `1496a03` and
    all GNSS + SBAS, mixing GEO/IGSO into MEO); fixed back to `GROUP=galileo`
    (pure MEO, 33). GEO uses the full `GROUP=geo` (574; the prior fixture's 30 was a
    hand-curated subset that no CelesTrak group reproduces) — runtime ranks by
-   selected-pair visibility then caps to 60, so demo behaviour is unchanged. Demo
-   scenario window stays 2026-05-17 (matches the retained evidence package; the
-   refreshed TLE is propagated to that fixed window).
+   selected-pair visibility then caps to 60, so demo behaviour is unchanged.
+   **Superseded 2026-06-22 (track B — see item 11):** the default source and demo
+   window were re-pinned to the 2026-06-15 local snapshots, and GEO now ships the
+   full commercial subset (249) rather than the 574-record network `GROUP=geo`.
 6. **Latency citation (K-A2).** Spine/catalog say TR 38.811 "§6.7." **Corrected:**
    latency = **§6.6.2 (slant range) + clause 5.3.1.1 (propagation delay)**; the
    `+2 ms` processing term disclosed as non-standard.
@@ -596,7 +610,8 @@ spine `requirements-consolidated.md`, after reconciling with merge `1496a03` and
 8. **Handover citation (R1-T5 / R1-F4 / V-MO1).** Earlier "§7.3." **Corrected:**
    **§7.3.2.2** (Conditional Handover); `cross-orbit-live` attributed to V-MO1, not
    3GPP.
-9. **Evidence package date/hashes ([4]/[5]).** **Regenerated 2026-06-15** with the
+9. **Evidence package date/hashes ([4]/[5]).** **(Network-snapshot state;
+   superseded 2026-06-22 — see item 11.)** **Regenerated 2026-06-15** with the
    WS-C audit tab on the WS-F propagated-geometry link budget (HTML 1670097 B sha
    `9061837b…`, CSV 104747 B sha `e07359f8…`). WS-C added an Audit & evidence tab
    (honesty grading matrix, model-boundary disclosure, standards conformance with
@@ -611,6 +626,17 @@ spine `requirements-consolidated.md`, after reconciling with merge `1496a03` and
    selected-pair visibility and caps per orbit (200/100/60).
 10. **Catalog extended.** Added [14] local rain, [15] DEM/terrain mask, [16]
     antenna assumption module.
+11. **Track B — pinned local-snapshot default + full commercial GEO (2026-06-22).**
+    The default runtime + delivery source is now the pinned 2026-06-15 local
+    snapshots (`public/fixtures/satellites/…`, per `demo-scenario-config.json`):
+    **600 OneWeb LEO + 33 Galileo MEO + 249 commercial GEO = 882** actors. The
+    CelesTrak network catalog (651 / 33 / 574 = 1258) is retained as an opt-in
+    refresh source (`?tleSource=network`), so the demo is no longer
+    wall-clock-date-dependent (commit `cfc6471`; ADR 0014 #6). The evidence package
+    [4]/[5] was regenerated from this pinned default (HTML sha `6e6546e3…`, CSV sha
+    `17fff9d9…`): selected-pair visibility windows **17**, handover events **6** (5
+    transitions, 1 acquisition), comm time 360 min, representative MEO GSAT0102 /
+    GEO APSTAR-7 link budgets. Supersedes items 5 and 9.
 
 ---
 
