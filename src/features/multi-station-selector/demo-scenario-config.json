@@ -12,9 +12,9 @@
   "provenance": {
     "note": "Re-pinned 2026-06-15T00:00:00.000Z from the fresh catalog (public/fixtures/satellites-network/). Window sits a few days after each snapshot's TLE epoch (near-epoch SGP4). The refreshed catalog proves fresh-data capability and does NOT feed this demo geometry.",
     "tleSnapshotEpochMedianUtc": {
-      "LEO": "2026-05-15T03:46:00Z",
-      "MEO": "2026-05-11T08:03:00Z",
-      "GEO": "2026-05-12T15:12:00Z"
+      "LEO": "2026-06-13T21:21:00Z",
+      "MEO": "2026-06-12T10:04:00Z",
+      "GEO": "2026-06-13T17:40:00Z"
     }
   }
 }

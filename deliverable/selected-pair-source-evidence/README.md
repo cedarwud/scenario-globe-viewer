@@ -33,8 +33,8 @@ CSV, and smoke manifest were copied here as retained delivery evidence.
 
 | Field | Value |
 |---|---|
-| Route | `/?stationA=cht-yangmingshan&stationB=sansa-hartebeesthoek&startUtc=2026-05-17T00%3A00%3A00.000Z&durationMinutes=360` |
-| Generated at | `2026-06-14T21:58:34.532Z` |
+| Route | `/?stationA=cht-yangmingshan&stationB=sansa-hartebeesthoek&startUtc=2026-06-15T00%3A00%3A00.000Z&durationMinutes=360` |
+| Generated at | `2026-06-15T12:59:41.459Z` |
 | Source tier | `geometric-derived` |
 | Evidence kind | `cross-family-geometric` |
 | Requirement rows | `34` |
@@ -47,8 +47,8 @@ CSV, and smoke manifest were copied here as retained delivery evidence.
 
 | File | Role | Size bytes | SHA-256 |
 |---|---|---:|---|
-| `runtime-projection-evidence-cht-yangmingshan-sansa-hartebeesthoek-20260517T000000Z-360m.html` | Readable evidence report with Requirements, Sources, Models, Audit & evidence, Raw data, and HTML download state. | 1670097 | `9061837b5955d2d1becc79c4909285896cc3453e75b7272b0ca2c6a7950eccdd` |
-| `runtime-projection-cht-yangmingshan-sansa-hartebeesthoek-20260517T000000Z-360m.csv` | Row-level export with source, provenance, and non-claim columns. | 104747 | `e07359f8cff094718eacdf796931981939fce0b34e064009dfefcfe138101a6d` |
+| `runtime-projection-evidence-cht-yangmingshan-sansa-hartebeesthoek-20260615T000000Z-360m.html` | Readable evidence report with Requirements, Sources, Models, Audit & evidence, Raw data, and HTML download state. | 1681355 | `0b653e9e1ab107df42d8e86e8e0b1b307f60294ac050ed398dfd231c7274e9cf` |
+| `runtime-projection-cht-yangmingshan-sansa-hartebeesthoek-20260615T000000Z-360m.csv` | Row-level export with source, provenance, and non-claim columns. | 105335 | `78485e72e3657a2f5a92f642f41ff6b70acdd348da632de58e09955ace1f8290` |
 | `smoke-manifest.output.json` | Original smoke manifest copied from ignored `output/selected-pair-source-report/`. | 1132 | `db9ed6f4552fc3b1d8ce4232cb6e035e26b1eb825d635b4056bacc8fea374b79` |
 | `external-source-reconciliation.md` | Public-source reconciliation for selected-pair station values, recovered elevation source method, source conflicts, repair paths, and non-observable gaps. | 14666 | `1b3194ac0e619f0e847583b6f783b28ab21f4cd1f39f0811ac0998bfff384ace` |
 | `open-elevation-selected-pair-query-2026-06-12.json` | Retained Open-Elevation query response that reproduces selected-pair legacy elevation cache values. | 2425 | `b21930f25a3da975fd16ac74a2b650bb9c6f31d230c92a2f9cde70c5226217e2` |
@@ -56,7 +56,7 @@ CSV, and smoke manifest were copied here as retained delivery evidence.
 | `copernicus-dem-selected-pair-terrain-mask-2026-06-13.json` | Retained Copernicus GLO-30 selected-pair terrain-mask sample and horizon algorithm output. | 162055 | `9382f7e36f7abf0fa4988962b5bcf96a80607c208df988de43d61a73e8ce4978` |
 | `rain-source-repair-candidates-2026-06-12.json` | Retained local rain calibration repair-source candidates. | 3843 | `02d4898bc2d9cd385a0e9d8564f4471bc7de533648416bf498b2636b121835ad` |
 | `local-rain-calibration-2026-06-13.json` | Retained public CWA local rain statistic mapped to a bounded 5 mm/h demo preset. | 5718 | `f3a36892ccf01cc7f8cf1c720fc284328e1e92265a487c079e6efbafe0150476` |
-| `evidence-manifest.json` | Delivery-local structured manifest for this retained package. | 5619 | `db960ff4baf4d527ef3f7bdc82d32bb5b058b11a5428e7778f0a7a93f994e165` |
+| `evidence-manifest.json` | Delivery-local structured manifest for this retained package. | 4603 | `74dded0982bc9a055ecce5f0ea1aed479c1f78d76704d31ca35310334e124c5a` |
 
 ## Source Chain
 

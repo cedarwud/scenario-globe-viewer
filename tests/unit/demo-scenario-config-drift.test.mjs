@@ -8,11 +8,13 @@
 // the config currently declares, catching a config bump that forgot the regen.
 import test from "node:test";
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { readFileSync, statSync, readdirSync } from "node:fs";
+import { createHash } from "node:crypto";
 import { fileURLToPath } from "node:url";
 
 import config from "../../src/features/multi-station-selector/demo-scenario-config.json" with { type: "json" };
 import golden from "../golden/sgp4-reference-vectors.json" with { type: "json" };
+import { SELECTED_PAIR_DEMO_REQUEST_PATH } from "../../scripts/helpers/demo-scenario.mjs";
 
 const startMs = Date.parse(config.windowStartUtc);
 const endMs = startMs + config.windowDurationMinutes * 60_000;
@@ -71,5 +73,136 @@ test("frozen TS artifacts' embedded timestamps stay inside the configured demo w
           `Regenerate the frozen artifact after editing demo-scenario-config.json.`
       );
     }
+  }
+});
+
+// ---------------------------------------------------------------------------
+// Evidence-package integrity drift guard (added 2026-06-21, pre-acceptance T1).
+//
+// The retained selected-pair evidence package (deliverable/selected-pair-source-
+// evidence/) is cited by slides and review. Its manifest records each file's
+// sizeBytes + sha256 and the projection route; update-evidence.mjs regenerates
+// the HTML/CSV and must also resync that integrity metadata. This guard fails
+// loudly if the manifest, README, or slide inventory drift from the on-disk
+// files or the configured demo window — the exact failure that shipped a
+// 2026-05-17 manifest after the 2026-06-15 re-pin. Node-only, runs under npm test.
+const EVIDENCE_DIR = "deliverable/selected-pair-source-evidence";
+
+function repoAbs(rel) {
+  return fileURLToPath(new URL(`../../${rel}`, import.meta.url));
+}
+function sha256Of(rel) {
+  return createHash("sha256").update(readFileSync(repoAbs(rel))).digest("hex");
+}
+
+// Window token the report filenames must encode, derived from the config so it
+// can never drift: "2026-06-15T00:00:00.000Z" + 360 -> "20260615T000000Z-360m".
+const windowToken =
+  `${config.windowStartUtc.slice(0, 19).replace(/[-:]/g, "")}Z-${config.windowDurationMinutes}m`;
+const reportNameRe = /runtime-projection(?:-evidence)?-[\w-]+-\d{8}T\d{6}Z-\d+m\.(?:html|csv)/g;
+
+test("evidence manifest files[] match on-disk size + sha256", () => {
+  const manifest = JSON.parse(readRepo(`${EVIDENCE_DIR}/evidence-manifest.json`));
+  assert.ok(Array.isArray(manifest.files) && manifest.files.length > 0, "manifest has files[]");
+  for (const entry of manifest.files) {
+    const rel = `${EVIDENCE_DIR}/${entry.path}`;
+    let stat;
+    try {
+      stat = statSync(repoAbs(rel));
+    } catch {
+      assert.fail(`manifest lists ${entry.path} but it is missing on disk (${rel})`);
+      continue;
+    }
+    assert.equal(
+      stat.size,
+      entry.sizeBytes,
+      `${entry.path}: manifest sizeBytes ${entry.sizeBytes} != on-disk ${stat.size}. ` +
+        `Resync the manifest (node scripts/update-evidence.mjs --metadata-only).`
+    );
+    assert.equal(
+      sha256Of(rel),
+      entry.sha256,
+      `${entry.path}: manifest sha256 drifted from on-disk content. Resync the manifest.`
+    );
+  }
+});
+
+test("evidence manifest projectionRoute matches the configured demo window", () => {
+  const manifest = JSON.parse(readRepo(`${EVIDENCE_DIR}/evidence-manifest.json`));
+  assert.equal(
+    manifest.projectionRoute,
+    SELECTED_PAIR_DEMO_REQUEST_PATH,
+    `manifest projectionRoute drifted from the demo config window. ` +
+      `Expected ${SELECTED_PAIR_DEMO_REQUEST_PATH}.`
+  );
+});
+
+test("retained report files encode the configured window (exactly one HTML + one CSV)", () => {
+  const entries = readdirSync(repoAbs(EVIDENCE_DIR));
+  const html = entries.filter((f) => /^runtime-projection-evidence-.*\.html$/.test(f));
+  const csv = entries.filter((f) => /^runtime-projection-(?!evidence-).*\.csv$/.test(f));
+  assert.equal(html.length, 1, `expected exactly 1 report HTML, found: ${html.join(", ") || "none"}`);
+  assert.equal(csv.length, 1, `expected exactly 1 report CSV, found: ${csv.join(", ") || "none"}`);
+  assert.ok(html[0].includes(windowToken), `report HTML ${html[0]} does not encode window token ${windowToken}`);
+  assert.ok(csv[0].includes(windowToken), `report CSV ${csv[0]} does not encode window token ${windowToken}`);
+});
+
+test("README + slide inventory reference only the current report files and window", () => {
+  const currentReports = readdirSync(repoAbs(EVIDENCE_DIR)).filter(
+    (f) => /^runtime-projection-evidence-.*\.html$/.test(f) || /^runtime-projection-(?!evidence-).*\.csv$/.test(f)
+  );
+  const docs = {
+    README: `${EVIDENCE_DIR}/README.md`,
+    "slide-content-inventory": "deliverable/slide-content-inventory.md"
+  };
+  for (const [label, rel] of Object.entries(docs)) {
+    for (const ref of readRepo(rel).match(reportNameRe) ?? []) {
+      assert.ok(
+        currentReports.includes(ref),
+        `${label} references stale report file ${ref}; current package is ${currentReports.join(", ")}. ` +
+          `Resync ${rel} to the current evidence package.`
+      );
+    }
+  }
+  assert.ok(
+    readRepo(docs.README).includes(SELECTED_PAIR_DEMO_REQUEST_PATH),
+    `README route cell drifted from the configured window ${SELECTED_PAIR_DEMO_REQUEST_PATH}.`
+  );
+});
+
+test("config TLE provenance median epochs match the shipped snapshots (±2 days)", () => {
+  // GAP1 recurrence guard: provenance.tleSnapshotEpochMedianUtc is a human-stated
+  // claim about the pinned TLE files. Re-pinning the snapshots without recomputing
+  // it shipped a ~30-day-stale median (corrected 2026-06-21). Recompute the median
+  // epoch from each shipped TLE and assert the claim is within 2 days.
+  const medians = config.provenance?.tleSnapshotEpochMedianUtc;
+  if (!medians) return; // provenance medians are optional
+  const tleEpochMs = (line1) => {
+    const e = line1.slice(18, 32);
+    const yy = Number(e.slice(0, 2));
+    const doy = Number(e.slice(2));
+    const year = yy < 57 ? 2000 + yy : 1900 + yy;
+    return Date.UTC(year, 0, 1) + (doy - 1) * 86_400_000;
+  };
+  for (const [orbit, claimedIso] of Object.entries(medians)) {
+    const url = config.tleSnapshots?.[orbit];
+    assert.ok(url, `tleSnapshots.${orbit} present for provenance ${orbit}`);
+    const rel = url.replace(/^\/fixtures\//, "public/fixtures/");
+    const epochs = readRepo(rel)
+      .split("\n")
+      .filter((l) => l.startsWith("1 "))
+      .map(tleEpochMs)
+      .sort((a, b) => a - b);
+    assert.ok(epochs.length > 0, `${rel}: no TLE line-1 epochs parsed`);
+    const mid = epochs.length % 2
+      ? epochs[(epochs.length - 1) / 2]
+      : (epochs[epochs.length / 2 - 1] + epochs[epochs.length / 2]) / 2;
+    const driftDays = Math.abs(mid - Date.parse(claimedIso)) / 86_400_000;
+    assert.ok(
+      driftDays <= 2,
+      `provenance.tleSnapshotEpochMedianUtc.${orbit}=${claimedIso} drifts ${driftDays.toFixed(1)}d ` +
+        `from the shipped snapshot median (${new Date(mid).toISOString()}). ` +
+        `Recompute it from ${rel} after re-pinning the TLE.`
+    );
   }
 });
