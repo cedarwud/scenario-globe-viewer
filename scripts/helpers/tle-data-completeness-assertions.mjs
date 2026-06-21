@@ -31,9 +31,19 @@ export const DEFAULT_HANDOVER_POLICY_ID = "demo-balanced-v1";
 // runtime cap (574 > 60) so cappedAtRuntime.GEO flips false->true.
 export const EXPECTED_CAP_DISCLOSURE = {
   perOrbitCap: { LEO: 200, MEO: 100, GEO: 60 },
-  perOrbitInventory: { LEO: 651, MEO: 33, GEO: 574 },
+  // ACTIVE source inventory = the pinned local snapshot (the default delivery
+  // surface after the TLE-source opt-in change): OneWeb LEO 600, Galileo MEO 33,
+  // full commercial GEO subset 249.
+  perOrbitInventory: { LEO: 600, MEO: 33, GEO: 249 },
   cappedAtRuntime: { LEO: true, MEO: false, GEO: true }
 };
+
+// The bundled CelesTrak network manifest (src/fixtures/satellites-network/
+// manifest.json) record counts. The runtime inventory disclosure surfaces these
+// as the opt-in (?tleSource=network) catalog size regardless of the active
+// source — it is a static import, so it is unaffected by the local-snapshot
+// default flip and stays the network catalog's own counts.
+export const EXPECTED_NETWORK_SNAPSHOT_INVENTORY = { LEO: 651, MEO: 33, GEO: 574 };
 export const EXPECTED_METRIC_ANCHORS = {
   carrierSelection: "orbit-class-default",
   antennaModel: "S.1528/S.465-6 assumed Tier-B per-orbit antenna pattern",
@@ -170,7 +180,7 @@ export function assertRuntimeInventoryDisclosurePayload(label, disclosure, data)
       `${label}: ${orbit} inventory source mode invalid`
     );
     assert(
-      row.networkSnapshotInventoryCount === EXPECTED_CAP_DISCLOSURE.perOrbitInventory[orbit],
+      row.networkSnapshotInventoryCount === EXPECTED_NETWORK_SNAPSHOT_INVENTORY[orbit],
       `${label}: ${orbit} network snapshot inventory mismatch`
     );
     assert(
@@ -1149,7 +1159,7 @@ export function assertRow5DisclosureDatasets(
     );
     assert(
       inventory.networkSnapshotInventoryCount ===
-        EXPECTED_CAP_DISCLOSURE.perOrbitInventory[key],
+        EXPECTED_NETWORK_SNAPSHOT_INVENTORY[key],
       `${label}: Row 5 ${key} network inventory fixture mismatch`
     );
     assert(

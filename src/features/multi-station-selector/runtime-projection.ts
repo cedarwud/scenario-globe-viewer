@@ -1935,10 +1935,51 @@ async function loadRuntimeSatcatSummary(
   }
 }
 
+/** URL query parameter that opts the runtime into the live-refreshed network TLE catalog. */
+const TLE_SOURCE_QUERY_PARAM = "tleSource";
+const TLE_SOURCE_NETWORK_OPT_IN_VALUE = "network";
+
+export interface LoadDefaultTleSourcesOptions {
+  /**
+   * Force the network-snapshot resolution path on/off, bypassing the
+   * `?tleSource=network` URL probe. Tests and gates that exercise the network
+   * fallback contract head-on pass `true`; production callers omit it and inherit
+   * the URL-driven default (off).
+   */
+  readonly networkOptIn?: boolean;
+}
+
+/**
+ * The delivered demo consumes the pinned bundled TLE snapshots
+ * (demo-scenario-config.json) by DEFAULT so the scene is byte-reproducible across
+ * runs and wall-clock dates — the runtime never silently swaps in a live-refreshed
+ * catalog (honors docs/decisions/0014 decision #6). The network catalog under
+ * /fixtures/satellites-network/ stays reachable as an explicit OPT-IN overlay via
+ * `?tleSource=network`, preserving the fresh-data (F7) capability without mutating
+ * the default delivery surface. Resolved from the URL on first load; node /
+ * non-browser contexts default off.
+ */
+function isNetworkTleSourceOptInRequested(): boolean {
+  if (typeof window === "undefined" || !window.location) {
+    return false;
+  }
+  try {
+    return (
+      new URLSearchParams(window.location.search).get(TLE_SOURCE_QUERY_PARAM) ===
+      TLE_SOURCE_NETWORK_OPT_IN_VALUE
+    );
+  } catch {
+    return false;
+  }
+}
+
 async function loadDefaultTleSourcesUncached(
-  fetchImpl: typeof fetch
+  fetchImpl: typeof fetch,
+  networkOptIn: boolean
 ): Promise<RuntimeTleSources> {
-  const selection = await resolveTleSourceSelection(fetchImpl);
+  const selection = networkOptIn
+    ? await resolveTleSourceSelection(fetchImpl)
+    : localTleSourceSelection("local-snapshot", null);
   const satcatSummary = await loadRuntimeSatcatSummary(fetchImpl);
   if (selection.sourceMode === "network-snapshot") {
     try {
@@ -1983,13 +2024,18 @@ async function loadDefaultTleSourcesUncached(
 }
 
 export async function loadDefaultTleSources(
-  fetchImpl: typeof fetch = fetch
+  fetchImpl: typeof fetch = fetch,
+  options: LoadDefaultTleSourcesOptions = {}
 ): Promise<RuntimeTleSources> {
-  if (fetchImpl === fetch) {
-    defaultTleSourcesPromise ??= loadDefaultTleSourcesUncached(fetchImpl);
+  const networkOptIn = options.networkOptIn ?? isNetworkTleSourceOptInRequested();
+  // Only the canonical production call (real fetch, URL-driven opt-in) shares the
+  // module cache; an explicit networkOptIn override bypasses it so a test/gate
+  // probe can never poison the default-route promise.
+  if (fetchImpl === fetch && options.networkOptIn === undefined) {
+    defaultTleSourcesPromise ??= loadDefaultTleSourcesUncached(fetchImpl, networkOptIn);
     return defaultTleSourcesPromise;
   }
-  return loadDefaultTleSourcesUncached(fetchImpl);
+  return loadDefaultTleSourcesUncached(fetchImpl, networkOptIn);
 }
 
 export async function resolveDefaultTleFixturePaths(

@@ -1330,15 +1330,15 @@ function assertRuntimeSourceState(state) {
     JSON.stringify(tleSourceIds) === JSON.stringify(EXPECTED_TLE_SOURCE_IDS) &&
       dataCompleteness.tleSources.every(
         (entry) =>
-          entry.sourcePath.startsWith("/fixtures/satellites-network/") &&
+          entry.sourcePath.startsWith("/fixtures/satellites/") &&
           entry.apiClass === "celestrak-gp-tle" &&
-          entry.sourcePolicy === "refresh-artifact" &&
+          entry.sourcePolicy === "bundled-snapshot" &&
           entry.acceptedRecordCount > 0 &&
           entry.parserFailureCount === 0 &&
           entry.health === "fresh" &&
           typeof entry.sourceTimestampUtc === "string"
       ),
-    `TLE source manifest must use bundled refresh artifacts with healthy parsed rows: ${JSON.stringify(
+    `TLE source rows must use the pinned bundled snapshot with healthy parsed rows: ${JSON.stringify(
       dataCompleteness?.tleSources
     )}`
   );

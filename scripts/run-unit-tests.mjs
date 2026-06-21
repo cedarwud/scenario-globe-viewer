@@ -3,13 +3,12 @@
 // hook (tests/helpers/register-ts-hook.mjs) so tests can import the app's `.ts`
 // modules directly.
 //
-// DENYLIST: runtime-tle-manifest-compat.test.mjs is a pre-existing
-// server/contract integration test (it drives `loadDefaultTleSources` through a
-// mocked fetch route-map that encodes an older network-manifest fallback
-// contract). It has never been wired into CI and is red against the current
-// runtime-data contract for reasons unrelated to the physics/coverage work this
-// runner exists for. It is skipped here and printed loudly rather than silently
-// dropped. Re-enable once the manifest fallback contract is reconciled.
+// DENYLIST: empty. runtime-tle-manifest-compat.test.mjs was previously skipped
+// because its mocked network-manifest fallback contract had drifted red against
+// the runtime-data contract (stale hardcoded manifest epochs judged against
+// wall-clock freshness). Reconciled 2026-06-21 with the TLE-source opt-in change
+// (network resolution is now explicit via `networkOptIn`, manifests are
+// now-relative) and re-enabled. Keep the scaffold for any future quarantine.
 import { readdirSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { spawnSync } from "node:child_process";
@@ -17,7 +16,7 @@ import { spawnSync } from "node:child_process";
 const UNIT_DIR = new URL("../tests/unit/", import.meta.url);
 const REGISTER = fileURLToPath(new URL("../tests/helpers/register-ts-hook.mjs", import.meta.url));
 
-const DENYLIST = new Set(["runtime-tle-manifest-compat.test.mjs"]);
+const DENYLIST = new Set();
 
 const all = readdirSync(UNIT_DIR).filter((name) => name.endsWith(".test.mjs"));
 const skipped = all.filter((name) => DENYLIST.has(name));

@@ -100,19 +100,22 @@ async function assertCoordinateAuthorityFixtureCoverage() {
   }
 }
 
-// baseline*Count fields are golden regression anchors against the SHIPPED
-// CelesTrak fixture (public/fixtures/satellites-network). They are compared with
-// a 50% tolerance for the visibility-window count and recorded for the
-// link-selection / handover counts. After an INTENTIONAL `npm run refresh:tle`
-// that materially changes inventory, OR a model-fidelity change that re-ranks
-// handover candidates, re-run `TLE_DEBUG=1 npm run verify:tle` to read the new
-// actuals and update these anchors. Visibility-window counts are unaffected by
-// the link budget (they are gated purely by elevation geometry); only the
-// link-selection / handover counts move when the RSRP ranking changes.
-// Last re-baselined 2026-06-15 after WS-F (SGP4-propagated link-budget geometry):
-// visibility counts unchanged; W1 linkSel 32->19 / handover 31->18 and
-// W4 linkSel 16->14 / handover 15->13 shifted as the propagated per-satellite
-// altitude + instantaneous elevation re-ordered same-class candidates.
+// baseline*Count fields are golden regression anchors against the PINNED demo TLE
+// snapshot (demo-scenario-config.json, the default local-snapshot delivery
+// surface). They are compared with a 50% tolerance for the visibility-window
+// count and recorded for the link-selection / handover counts. After an
+// INTENTIONAL `npm run repin:demo` that materially changes inventory, OR a
+// model-fidelity change that re-ranks handover candidates, re-measure on the
+// pinned snapshot (node --import ./tests/helpers/register-ts-hook.mjs over
+// computeRuntimeProjection, or read the actuals printed by a passing verify:tle)
+// and update these anchors. Visibility-window counts are unaffected by the link
+// budget (gated purely by elevation geometry); only the link-selection / handover
+// counts move when the RSRP ranking changes.
+// Last re-baselined 2026-06-21 after track B made the pinned local snapshot the
+// default (was network-snapshot; ?tleSource=network is now opt-in) over the full
+// commercial GEO subset (249): W1 vis 779->789 / linkSel 19->20 / handover 18->19,
+// W3 vis 40->27, W4 vis 427->406, W5 vis 64->17 as the pinned commercial-GEO and
+// OneWeb inventory replaced the live catalog. W2 stays the zero-window pair.
 const walkthroughCases = [
   {
     label: "Walkthrough 1 - Svalbard / Tromso ready pair",
@@ -120,9 +123,9 @@ const walkthroughCases = [
     stationB: "ksat-tromso",
     expectedStatus: "ready",
     expectedRuntimeLinkVisible: true,
-    baselineVisibilityWindowCount: 779,
-    baselineLinkSelectionEventCount: 19,
-    baselineHandoverCount: 18,
+    baselineVisibilityWindowCount: 789,
+    baselineLinkSelectionEventCount: 20,
+    baselineHandoverCount: 19,
     expectedStationPrecision: [
       { stationId: "ksat-svalsat-svalbard", elevationM: 0, terrainMaskDeg: 0 },
       { stationId: "ksat-tromso", elevationM: 0, terrainMaskDeg: 0 }
@@ -149,7 +152,7 @@ const walkthroughCases = [
     stationB: "intelsat-atlanta",
     expectedStatus: "ready",
     expectedRuntimeLinkVisible: true,
-    baselineVisibilityWindowCount: 40,
+    baselineVisibilityWindowCount: 27,
     baselineLinkSelectionEventCount: 9,
     baselineHandoverCount: 8,
     expectedStationPrecision: [
@@ -163,7 +166,7 @@ const walkthroughCases = [
     stationB: "measat-cyberjaya",
     expectedStatus: "ready",
     expectedRuntimeLinkVisible: true,
-    baselineVisibilityWindowCount: 427,
+    baselineVisibilityWindowCount: 406,
     baselineLinkSelectionEventCount: 14,
     baselineHandoverCount: 13,
     expectedStationPrecision: [
@@ -177,7 +180,7 @@ const walkthroughCases = [
     stationB: "sansa-hartebeesthoek",
     expectedStatus: "ready",
     expectedRuntimeLinkVisible: true,
-    baselineVisibilityWindowCount: 64,
+    baselineVisibilityWindowCount: 17,
     baselineLinkSelectionEventCount: 6,
     baselineHandoverCount: 5,
     expectedStationPrecision: [
@@ -528,7 +531,11 @@ async function readSourceModeResolutionEvidence(client) {
         statusText: status === 200 ? "OK" : status === 404 ? "Not Found" : "Failure"
       });
       const runCase = async (label, fakeFetch) => {
-        const sources = await rt.loadDefaultTleSources(fakeFetch);
+        // These cases exercise the network-snapshot RESOLUTION contract head-on,
+        // which is now an explicit opt-in (default route consumes the pinned
+        // local snapshot). Force the network path on so the offline / fresh /
+        // fallback branches are still covered.
+        const sources = await rt.loadDefaultTleSources(fakeFetch, { networkOptIn: true });
         return {
           label,
           sourceMode: sources.sourceMode,

@@ -44,32 +44,39 @@ const OMM_ROW = {
   MEAN_MOTION_DDOT: 0
 };
 
+// Network freshness is judged against wall-clock now (resolveTleSourceSelection's
+// default referenceUtc), so the mock manifest must carry a recent generatedAt /
+// epoch end or every case degrades to fallback-local-snapshot. Anchored once at
+// load and reused so the "old" qualifier names the manifest SHAPE (missing
+// format/apiClass fields), not a stale date.
+const RECENT_UTC = new Date().toISOString();
+
 function oldManifest() {
   return {
     comment: "# CelesTrak network snapshot",
-    generatedAtUtc: "2026-05-20T00:00:00.000Z",
+    generatedAtUtc: RECENT_UTC,
     leo: {
       path: "leo-old.tle",
       recordCount: 1,
       epochRangeUtc: {
-        startUtc: "2026-05-20T00:00:00.000Z",
-        endUtc: "2026-05-20T00:00:00.000Z"
+        startUtc: RECENT_UTC,
+        endUtc: RECENT_UTC
       }
     },
     meo: {
       path: "meo-old.tle",
       recordCount: 1,
       epochRangeUtc: {
-        startUtc: "2026-05-20T00:00:00.000Z",
-        endUtc: "2026-05-20T00:00:00.000Z"
+        startUtc: RECENT_UTC,
+        endUtc: RECENT_UTC
       }
     },
     geo: {
       path: "geo-old.tle",
       recordCount: 1,
       epochRangeUtc: {
-        startUtc: "2026-05-20T00:00:00.000Z",
-        endUtc: "2026-05-20T00:00:00.000Z"
+        startUtc: RECENT_UTC,
+        endUtc: RECENT_UTC
       }
     }
   };
@@ -151,7 +158,9 @@ function assertTleDefaults(stats, sourcePolicy) {
 }
 
 test("old manifest shape still resolves network snapshot with TLE defaults", async () => {
-  const sources = await loadDefaultTleSources(fetchFromMap(networkRoutes(oldManifest())));
+  const sources = await loadDefaultTleSources(fetchFromMap(networkRoutes(oldManifest())), {
+    networkOptIn: true
+  });
   const stats = buildRuntimeTleSourceParseStats(sources);
 
   assert.equal(sources.sourceMode, "network-snapshot");
@@ -174,18 +183,51 @@ test("missing manifest uses local snapshot defaults", async () => {
   assertTleDefaults(stats, "bundled-snapshot");
 });
 
+test("default (no opt-in) pins the local snapshot and never fetches the network manifest", async () => {
+  // B2 contract: a fresh network catalog is reachable but must stay an explicit
+  // opt-in (?tleSource=network). With no opt-in the runtime resolves the pinned
+  // bundled snapshot directly and does not even probe the manifest (ADR 0014 #6).
+  const requested = [];
+  const dualRoutes = new Map([
+    ...networkRoutes(freshManifest()),
+    [TLE_FIXTURE_PATHS.LEO, TLE_TEXT],
+    [TLE_FIXTURE_PATHS.MEO, TLE_TEXT],
+    [TLE_FIXTURE_PATHS.GEO, TLE_TEXT]
+  ]);
+  const base = fetchFromMap(dualRoutes);
+  const recordingFetch = async (path) => {
+    requested.push(String(path));
+    return base(path);
+  };
+
+  const sources = await loadDefaultTleSources(recordingFetch);
+  const stats = buildRuntimeTleSourceParseStats(sources);
+
+  assert.equal(sources.sourceMode, "local-snapshot");
+  assert.deepEqual(sources.sourcePaths, TLE_FIXTURE_PATHS);
+  assertTleDefaults(stats, "bundled-snapshot");
+  assert.ok(
+    !requested.some((path) => path.endsWith("/manifest.json")),
+    `default route must not fetch the network manifest; requested: ${requested.join(", ")}`
+  );
+});
+
 test("fresh manifest with failed TLE fetch falls back to local snapshot", async () => {
-  const sources = await loadDefaultTleSources(fetchFromMap(fallbackRoutes(freshManifest())));
+  const sources = await loadDefaultTleSources(fetchFromMap(fallbackRoutes(freshManifest())), {
+    networkOptIn: true
+  });
   const stats = buildRuntimeTleSourceParseStats(sources);
 
   assert.equal(sources.sourceMode, "fallback-local-snapshot");
-  assert.equal(sources.snapshotFetchedUtc, "2026-05-20T00:00:00.000Z");
+  assert.equal(sources.snapshotFetchedUtc, RECENT_UTC);
   assert.ok(sources.sourcePaths.GEO.endsWith(".tle"));
   assertTleDefaults(stats, "fallback-local-snapshot");
 });
 
 test("manifest metadata flows through parse stats, data completeness, and CSV", async () => {
-  const sources = await loadDefaultTleSources(fetchFromMap(networkRoutes(freshManifest())));
+  const sources = await loadDefaultTleSources(fetchFromMap(networkRoutes(freshManifest())), {
+    networkOptIn: true
+  });
   const records = parseRuntimeTleSources(sources);
   const stats = buildRuntimeTleSourceParseStats(sources);
   const [stationA, stationB] = stationRegistry.stations.filter((station) =>
@@ -344,7 +386,9 @@ test("OMM JSON source metadata flows to runtime accepted propagation records", (
 });
 
 test("default source behavior has no OMM, CSV, or Space-Track source path", async () => {
-  const sources = await loadDefaultTleSources(fetchFromMap(networkRoutes(freshManifest())));
+  const sources = await loadDefaultTleSources(fetchFromMap(networkRoutes(freshManifest())), {
+    networkOptIn: true
+  });
   for (const path of Object.values(sources.sourcePaths)) {
     assert.ok(path.endsWith(".tle"));
     assert.ok(!path.toLowerCase().includes("omm"));
