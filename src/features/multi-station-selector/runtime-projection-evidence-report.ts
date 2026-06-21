@@ -2642,10 +2642,15 @@ function buildAuditTab(
 }
 
 export function buildRuntimeProjectionEvidenceReportHtml(
-  result: RuntimeProjectionResult
+  result: RuntimeProjectionResult,
+  // Optional injected generation timestamp. Defaults to wall-clock, so every
+  // existing single-argument caller stays byte-for-byte identical; the golden
+  // test passes a fixed value to make the whole report deterministic. This is
+  // the report's only wall-clock input and is excluded from the payload
+  // checksum (see the Determinism callout in the Audit & evidence tab).
+  generatedAtUtc: string = new Date().toISOString()
 ): string {
   const title = `${formatReportTitleStation(result.pair.stationA)} - ${formatReportTitleStation(result.pair.stationB)}`;
-  const generatedAtUtc = new Date().toISOString();
   const filename = buildRuntimeProjectionEvidenceReportFilename(result);
   const tabs = [
     ["summary", "Summary"],
