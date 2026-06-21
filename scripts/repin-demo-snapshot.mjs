@@ -105,8 +105,10 @@ cfg.tleSnapshots = { ...cfg.tleSnapshots, ...newSnapshots };
 if (cfg.provenance) {
   cfg.provenance.note =
     `Re-pinned ${capturedAt} from the fresh catalog (public/fixtures/satellites-network/). ` +
-    `Window sits a few days after each snapshot's TLE epoch (near-epoch SGP4). The refreshed ` +
-    `catalog proves fresh-data capability and does NOT feed this demo geometry.`;
+    `Window sits a few days after each snapshot's TLE epoch (near-epoch SGP4). These pinned ` +
+    `snapshots ARE the default runtime + delivery geometry: loadDefaultTleSources resolves ` +
+    `local-snapshot unless ?tleSource=network is set. The refreshed CelesTrak catalog proves ` +
+    `fresh-data capability and feeds the scene only under that explicit opt-in, never by default.`;
 }
 writeFileSync(CONFIG, `${JSON.stringify(cfg, null, 2)}\n`);
 console.log(`\n✓ patched ${CONFIG.replace(root + "/", "")} (window + tleSnapshots)`);

@@ -50,10 +50,25 @@ should be verified against current code before relying on them.
    (`src/styles/ground-station-selector.css`, `runtime-panels.css`,
    `app-shell-hud.css`, ...); structural validation is wired into CI and the
    local build.
-6. **TLE refresh isolation**: refresh is a manual maintenance command
-   (`npm run refresh:tle` -> `scripts/refresh-tle.mjs`), refusing repeats within
-   2 hours and skipping when the manifest is younger than 7 days; runtime and
-   standard builds consume only bundled local snapshots.
+6. **TLE refresh isolation + network opt-in**: refresh is a manual maintenance
+   command (`npm run refresh:tle` -> `scripts/refresh-tle.mjs`), refusing repeats
+   within 2 hours and skipping when the manifest is younger than 7 days. The
+   runtime and standard builds consume the pinned bundled local snapshots
+   (`src/features/multi-station-selector/demo-scenario-config.json`) BY DEFAULT, so
+   the delivered scene is reproducible across runs and wall-clock dates and never
+   silently swaps in the live-refreshed catalog. The CelesTrak network catalog under
+   `/fixtures/satellites-network/` stays reachable only as an explicit per-load
+   opt-in (`?tleSource=network`), preserving the fresh-data (F7) capability without
+   mutating the default delivery surface.
+
+   _Amended 2026-06-21 (commit `cfc6471`)._ The original clause asserted the runtime
+   "consume only bundled local snapshots", but the code silently overruled it:
+   `loadDefaultTleSources` defaulted to the network snapshot whenever the manifest
+   was fresh and fell back to the pinned snapshots only once it went stale — making
+   the demo geometry wall-clock-date-dependent. The default is now actually
+   pinned-local (`loadDefaultTleSources` resolves `local-snapshot` unless
+   `?tleSource=network` is present), reconciling code with this rule and demoting
+   the network catalog to an explicit opt-in.
 
 ## Consequences
 

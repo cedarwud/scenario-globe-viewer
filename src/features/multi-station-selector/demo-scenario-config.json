@@ -10,7 +10,7 @@
     "GEO": "/fixtures/satellites/multi-orbit/geo/commercial-geo-2026-06-15T00-00-00Z.tle"
   },
   "provenance": {
-    "note": "Re-pinned 2026-06-15T00:00:00.000Z from the fresh catalog (public/fixtures/satellites-network/). Window sits a few days after each snapshot's TLE epoch (near-epoch SGP4). The refreshed catalog proves fresh-data capability and does NOT feed this demo geometry.",
+    "note": "Re-pinned 2026-06-15T00:00:00.000Z from the fresh catalog (public/fixtures/satellites-network/). Window sits a few days after each snapshot's TLE epoch (near-epoch SGP4). These pinned snapshots ARE the default runtime + delivery geometry (commit cfc6471): loadDefaultTleSources resolves local-snapshot unless ?tleSource=network is set. The refreshed CelesTrak catalog proves fresh-data capability and feeds the scene only under that explicit opt-in, never by default.",
     "tleSnapshotEpochMedianUtc": {
       "LEO": "2026-06-13T21:21:00Z",
       "MEO": "2026-06-12T10:04:00Z",
