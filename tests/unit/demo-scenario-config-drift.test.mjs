@@ -32,6 +32,19 @@ function readRepo(rel) {
 test("config window is internally well-formed", () => {
   assert.ok(Number.isFinite(startMs), "windowStartUtc parses");
   assert.ok(config.windowDurationMinutes > 0, "windowDurationMinutes positive");
+  // Pinned demo window (track-B reproducible delivery): the selected-pair demo
+  // must show the same geometry on every run. A deliberate `npm run repin:demo`
+  // to a new date must update this lock AND regenerate the frozen goldens below.
+  assert.equal(
+    config.windowStartUtc,
+    "2026-06-15T00:00:00.000Z",
+    "demo replay window is pinned to 2026-06-15",
+  );
+  assert.equal(
+    config.windowDurationMinutes,
+    360,
+    "demo replay window duration is pinned to 360 minutes",
+  );
   for (const orbit of ["LEO", "MEO", "GEO"]) {
     assert.ok(
       typeof config.tleSnapshots?.[orbit] === "string" && config.tleSnapshots[orbit].length > 0,
