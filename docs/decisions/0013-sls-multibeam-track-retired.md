@@ -15,12 +15,12 @@ TTL / drop model, surfaced as an opt-in panel overlay, a toolbar toggle, and a
 floating queue window.
 
 In review it became clear this was the **wrong abstraction level for the
-viewer's actual deliverable**. The accepted product (ITRI 19/19) is the
+viewer's actual deliverable**. The accepted product (the customer's 19/19) is the
 **two-station cross-orbit handover scene** — a single-path connectivity and
 geometry story. A multi-beam *system-capacity* model has no spatial or physical
 home in that single-path frame, so its metrics (per-orbit SINR/CQI lines, a
-multi-beam cell queue) read as meaningless numbers. ITRI never required multi-beam;
-ESTNeT (packet-level, per-path) does not need it either. The multi-beam direction
+multi-beam cell queue) read as meaningless numbers. The customer never required
+multi-beam; ESTNeT (packet-level, per-path) does not need it either. The multi-beam direction
 was self-directed over-reach.
 
 ## Decision

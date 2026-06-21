@@ -81,6 +81,13 @@ function collectTextFiles(relativePath) {
       if (dirent.name === "__pycache__") {
         return [];
       }
+      // Skip docs/sdd: gitignored, local-only working SDDs that are not part of
+      // the delivered text surface. The neutral-wording gate guards what ships;
+      // tracked delivery docs elsewhere under docs/ are still scanned. (This
+      // exemption existed before the 2026-06-21 SLS reset and is restored here.)
+      if (childRelativePath.replace(/\\/g, "/") === "docs/sdd") {
+        return [];
+      }
       return collectTextFiles(childRelativePath);
     }
     if (dirent.name.endsWith(".pyc")) {
