@@ -1343,6 +1343,8 @@ function buildTruthBoundary(
         ];
   const metricNonClaims = [
     `Per-orbit communication metrics are modeled-precision via 3GPP TR 38.811 + ITU-R P.618-14 / P.676-13 plus assumed Tier-B antenna pattern parameters (ITU-R S.1528 / S.465-6), and handover decisions use the ${handoverPolicyId} policy (TR 38.821 §7.3.2.2 + V-MO1 verbal addendum), not measured service telemetry.`,
+    `Communication time and handover timing are quantized to the ${DEFAULT_SAMPLE_STEP_SECONDS}-second default simulation sample step (candidate visibility ranking uses a coarser per-orbit cadence of ${RANKING_VISIBILITY_CADENCE_SECONDS_BY_ORBIT.LEO}/${RANKING_VISIBILITY_CADENCE_SECONDS_BY_ORBIT.MEO}/${RANKING_VISIBILITY_CADENCE_SECONDS_BY_ORBIT.GEO} s for LEO/MEO/GEO); reported durations carry a ±one-sample-step granularity, not continuous-time resolution.`,
+    `Per-orbit latency includes a fixed ${FIXED_PROCESSING_DELAY_MS} ms processing constant (a non-standard modeling add-on, not a TR 38.811 quantity) and is displayed to sub-millisecond digits that reflect arithmetic rounding, not measured timing accuracy.`,
     "Assumed antenna parameters are model inputs only; real station RF hardware, EIRP, dish size, and polarization remain source gaps.",
     `Satellite candidates are limited to orbit classes disclosed by both selected stations (${sharedSupportedOrbits.join("/") || "none"}), ranked by TLE/SGP4 pair-visibility geometry, then capped at LEO ${DEFAULT_TLE_CAPS.LEO}, MEO ${DEFAULT_TLE_CAPS.MEO}, GEO ${DEFAULT_TLE_CAPS.GEO} records for interactive compute.`,
     ...sourceAttributionNonClaims,
