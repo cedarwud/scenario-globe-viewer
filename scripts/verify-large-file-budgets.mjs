@@ -98,6 +98,16 @@ const budgets = profile === "final"
         maxLines: 1800
       },
       {
+        id: "runtime-tle-sources",
+        path: "src/features/multi-station-selector/runtime-tle-sources.ts",
+        maxLines: 900
+      },
+      {
+        id: "side-panel-csv-help",
+        path: "src/features/multi-station-selector/v4-projection-csv-help.ts",
+        maxLines: 600
+      },
+      {
         id: "tle-data-completeness-gate",
         path: COMMON_SCRIPT_SURFACES[0],
         maxLines: 1200
@@ -171,6 +181,18 @@ const budgets = profile === "final"
         path: COMMON_FEATURE_SURFACES[3],
         maxLines: 1800,
         targetLines: 1500
+      },
+      {
+        id: "runtime-tle-sources",
+        path: "src/features/multi-station-selector/runtime-tle-sources.ts",
+        maxLines: 900,
+        targetLines: 800
+      },
+      {
+        id: "side-panel-csv-help",
+        path: "src/features/multi-station-selector/v4-projection-csv-help.ts",
+        maxLines: 600,
+        targetLines: 400
       },
       {
         id: "tle-data-completeness-gate",
