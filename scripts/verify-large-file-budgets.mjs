@@ -107,6 +107,38 @@ const budgets = profile === "final"
         path: "src/features/multi-station-selector/v4-projection-csv-help.ts",
         maxLines: 600
       },
+      // Evidence-report split modules (2026-06-22) — ratchet so they cannot re-bloat.
+      {
+        id: "evidence-report-styles",
+        path: "src/features/multi-station-selector/runtime-projection-evidence-report-styles.ts",
+        maxLines: 1800
+      },
+      {
+        id: "evidence-report-html-helpers",
+        path: "src/features/multi-station-selector/runtime-projection-evidence-report-html-helpers.ts",
+        maxLines: 800
+      },
+      {
+        id: "evidence-report-rows",
+        path: "src/features/multi-station-selector/runtime-projection-evidence-report-rows.ts",
+        maxLines: 1200
+      },
+      {
+        id: "evidence-report-tabs",
+        path: "src/features/multi-station-selector/runtime-projection-evidence-report-tabs.ts",
+        maxLines: 1500
+      },
+      {
+        id: "evidence-report-audit",
+        path: "src/features/multi-station-selector/runtime-projection-evidence-report-audit.ts",
+        maxLines: 700
+      },
+      // scene-controller pure-builder split module (2026-06-22).
+      {
+        id: "scene-surface-state-builders",
+        path: "src/runtime/m8a-v4-ground-station-surface-state-builders.ts",
+        maxLines: 800
+      },
       {
         id: "tle-data-completeness-gate",
         path: COMMON_SCRIPT_SURFACES[0],
@@ -193,6 +225,44 @@ const budgets = profile === "final"
         path: "src/features/multi-station-selector/v4-projection-csv-help.ts",
         maxLines: 600,
         targetLines: 400
+      },
+      // Evidence-report split modules (2026-06-22) — ratchet so they cannot re-bloat.
+      {
+        id: "evidence-report-styles",
+        path: "src/features/multi-station-selector/runtime-projection-evidence-report-styles.ts",
+        maxLines: 1800,
+        targetLines: 1600
+      },
+      {
+        id: "evidence-report-html-helpers",
+        path: "src/features/multi-station-selector/runtime-projection-evidence-report-html-helpers.ts",
+        maxLines: 800,
+        targetLines: 600
+      },
+      {
+        id: "evidence-report-rows",
+        path: "src/features/multi-station-selector/runtime-projection-evidence-report-rows.ts",
+        maxLines: 1200,
+        targetLines: 1000
+      },
+      {
+        id: "evidence-report-tabs",
+        path: "src/features/multi-station-selector/runtime-projection-evidence-report-tabs.ts",
+        maxLines: 1500,
+        targetLines: 1300
+      },
+      {
+        id: "evidence-report-audit",
+        path: "src/features/multi-station-selector/runtime-projection-evidence-report-audit.ts",
+        maxLines: 700,
+        targetLines: 500
+      },
+      // scene-controller pure-builder split module (2026-06-22).
+      {
+        id: "scene-surface-state-builders",
+        path: "src/runtime/m8a-v4-ground-station-surface-state-builders.ts",
+        maxLines: 800,
+        targetLines: 600
       },
       {
         id: "tle-data-completeness-gate",
