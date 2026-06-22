@@ -1,0 +1,675 @@
+{
+  "serializeList": "b|a|c",
+  "serializeJson": "{\"z\":1,\"a\":[2,3],\"nested\":{\"ok\":true}}",
+  "fallbackGuardCueMode_geoGuard": "representative-context-ribbon-in-geo-continuity-guard",
+  "fallbackGuardCueMode_other": "low-opacity-geo-guard-cue",
+  "requirementGapSurface": {
+    "version": "requirement-demo-route-requirement-gap-surface-runtime.v1",
+    "route": "/?scenePreset=regional&m8aV4GroundStationScene=1",
+    "endpointPairId": "taiwan-cht-speedcast-singapore-operator-family-2026-04-26",
+    "acceptedPairPrecision": "operator-family-only",
+    "truthBoundaryLabels": [
+      "bounded-route-representation",
+      "bounded-repo-owned-seam",
+      "external-validation-required"
+    ],
+    "demoPolishDisposition": "demo-polish-no-requirement-closure",
+    "routeNativeMeasuredTruthClaimed": false,
+    "groups": [
+      {
+        "groupId": "route-owned-visual-baseline",
+        "label": "Route baseline",
+        "disposition": "true-route-closure",
+        "status": "closed",
+        "requirementIds": [
+          "F-04",
+          "F-05",
+          "F-14",
+          "V-01",
+          "D-01"
+        ],
+        "routeClaim": "scene UI and replay baseline only"
+      },
+      {
+        "groupId": "bounded-route-representation",
+        "label": "Bounded route",
+        "disposition": "bounded-route-representation",
+        "status": "bounded",
+        "requirementIds": [
+          "F-02",
+          "F-03",
+          "F-06",
+          "F-09",
+          "F-10",
+          "F-11",
+          "F-12",
+          "F-15",
+          "F-16",
+          "D-02",
+          "D-03"
+        ],
+        "routeClaim": "modeled route context, F-09 class, F-10/F-11 replay presets, and F-16 JSON export; no route-native measurement or live control"
+      },
+      {
+        "groupId": "bounded-repo-owned-seam",
+        "label": "Repo seam",
+        "disposition": "bounded-repo-owned-seam",
+        "status": "open",
+        "requirementIds": [
+          "F-07",
+          "F-08",
+          "F-17",
+          "F-18",
+          "P-01",
+          "P-02",
+          "P-03"
+        ],
+        "routeClaim": "named gap, not mounted here"
+      },
+      {
+        "groupId": "not-mounted-route-gap",
+        "label": "Not mounted",
+        "disposition": "not-in-this-route",
+        "status": "open",
+        "requirementIds": [],
+        "routeClaim": "no F-10/F-11 route gap after Phase 5; live control remains out of scope"
+      },
+      {
+        "groupId": "external-validation-gap",
+        "label": "External validation",
+        "disposition": "external-validation-required",
+        "status": "open",
+        "requirementIds": [
+          "F-01",
+          "F-09",
+          "F-10",
+          "F-11",
+          "F-13",
+          "F-16",
+          "V-02",
+          "V-03",
+          "V-04",
+          "V-05",
+          "V-06"
+        ],
+        "routeClaim": "outside this scene or external/live truth not claimed"
+      }
+    ],
+    "openRequirementIds": [
+      "F-07",
+      "F-08",
+      "F-17",
+      "F-18",
+      "P-01",
+      "P-02",
+      "P-03",
+      "F-01",
+      "F-09",
+      "F-10",
+      "F-11",
+      "F-13",
+      "F-16",
+      "V-02",
+      "V-03",
+      "V-04",
+      "V-05",
+      "V-06"
+    ]
+  },
+  "acceptanceLayer": {
+    "version": "requirement-demo-view-acceptance-layer-runtime.v1",
+    "layerId": "L2-acceptance-evidence",
+    "truthBoundary": "route-local bounded closure with retained external gaps",
+    "requirementIds": [
+      "F-01",
+      "F-02",
+      "F-03",
+      "F-04",
+      "F-05",
+      "F-06",
+      "F-07",
+      "F-08",
+      "F-09",
+      "F-10",
+      "F-11",
+      "F-12",
+      "F-13",
+      "F-14",
+      "F-15",
+      "F-16",
+      "F-17",
+      "F-18",
+      "V-01",
+      "V-02",
+      "V-03",
+      "V-04",
+      "V-05",
+      "V-06",
+      "P-01",
+      "P-02",
+      "P-03",
+      "D-01",
+      "D-02",
+      "D-03"
+    ],
+    "coverageRecords": [
+      {
+        "requirementId": "F-01",
+        "primaryLayer": "L2-acceptance-evidence",
+        "status": "external-gap",
+        "disposition": "external-integration-gap",
+        "surface": "acceptance-boundary",
+        "routeReality": "No live customer orbit-model integration in this route.",
+        "evidenceBoundary": "Integration remains outside route-local demo closure."
+      },
+      {
+        "requirementId": "F-02",
+        "primaryLayer": "L0-first-read-demo-stage",
+        "status": "bounded",
+        "disposition": "bounded-route-representation",
+        "surface": "globe-and-briefing",
+        "routeReality": "LEO, MEO, and GEO display-context actors are present.",
+        "evidenceBoundary": "Representation is the 13-actor route set, not fleet truth."
+      },
+      {
+        "requirementId": "F-03",
+        "primaryLayer": "L2-acceptance-evidence",
+        "status": "bounded",
+        "disposition": "bounded-route-representation",
+        "surface": "source-lineage",
+        "routeReality": "Display actors carry source lineage.",
+        "evidenceBoundary": "No general TLE upload or live source workflow is mounted."
+      },
+      {
+        "requirementId": "F-04",
+        "primaryLayer": "L0-first-read-demo-stage",
+        "status": "closed",
+        "disposition": "route-local-closed",
+        "surface": "interactive-globe",
+        "routeReality": "Interactive 3D route is the visual center.",
+        "evidenceBoundary": "Closure is route-local visual/demo behavior."
+      },
+      {
+        "requirementId": "F-05",
+        "primaryLayer": "L0-first-read-demo-stage",
+        "status": "closed",
+        "disposition": "route-local-closed",
+        "surface": "default-focus-view",
+        "routeReality": "Default view is staged as a readable briefing.",
+        "evidenceBoundary": "UI closure does not close external validation."
+      },
+      {
+        "requirementId": "F-06",
+        "primaryLayer": "L0-first-read-demo-stage",
+        "status": "bounded",
+        "disposition": "bounded-route-representation",
+        "surface": "replay-controls",
+        "routeReality": "Pause, restart, speed, and review-mode controls are present.",
+        "evidenceBoundary": "Controls operate route replay only."
+      },
+      {
+        "requirementId": "F-07",
+        "primaryLayer": "L2-acceptance-evidence",
+        "status": "seam-open",
+        "disposition": "bounded-repo-owned-seam",
+        "surface": "timing-boundary",
+        "routeReality": "Modeled replay timing exists.",
+        "evidenceBoundary": "Measured communication time is not claimed."
+      },
+      {
+        "requirementId": "F-08",
+        "primaryLayer": "L2-acceptance-evidence",
+        "status": "seam-open",
+        "disposition": "bounded-repo-owned-seam",
+        "surface": "timing-statistics-boundary",
+        "routeReality": "Modeled timing context exists.",
+        "evidenceBoundary": "Communication-time statistics are not route-owned closure."
+      },
+      {
+        "requirementId": "F-09",
+        "primaryLayer": "L2-acceptance-evidence",
+        "status": "bounded",
+        "disposition": "bounded-route-representation",
+        "surface": "f09-rate",
+        "routeReality": "Modeled network-speed class/proxy is displayed.",
+        "evidenceBoundary": "No throughput sample, ping result, or iperf truth."
+      },
+      {
+        "requirementId": "F-10",
+        "primaryLayer": "L2-acceptance-evidence",
+        "status": "bounded",
+        "disposition": "bounded-route-representation",
+        "surface": "policy-preset",
+        "routeReality": "Modeled policy preset selector is mounted.",
+        "evidenceBoundary": "Preset-only; no live policy control."
+      },
+      {
+        "requirementId": "F-11",
+        "primaryLayer": "L2-acceptance-evidence",
+        "status": "bounded",
+        "disposition": "bounded-route-representation",
+        "surface": "rule-preset",
+        "routeReality": "Bounded rule/parameter preset surface is mounted.",
+        "evidenceBoundary": "No arbitrary rule editor or backend rule engine."
+      },
+      {
+        "requirementId": "F-12",
+        "primaryLayer": "L1-focus-inspector",
+        "status": "bounded",
+        "disposition": "bounded-route-representation",
+        "surface": "metrics-tab",
+        "routeReality": "Modeled latency, continuity, rate, and state classes exist.",
+        "evidenceBoundary": "No latency, jitter, or throughput sample values."
+      },
+      {
+        "requirementId": "F-13",
+        "primaryLayer": "L2-acceptance-evidence",
+        "status": "readiness",
+        "disposition": "route-native-scale-readiness",
+        "surface": "f13-scale-readiness",
+        "routeReality": "Route-native readiness surface reports 540 LEO / 549 total fixture/model-backed scale points.",
+        "evidenceBoundary": "Readiness only; not route-native >=500 LEO closure/proof or external validation closure."
+      },
+      {
+        "requirementId": "F-14",
+        "primaryLayer": "L0-first-read-demo-stage",
+        "status": "closed",
+        "disposition": "route-local-closed",
+        "surface": "replay-speed-controls",
+        "routeReality": "Replay speed controls are visible in the default route.",
+        "evidenceBoundary": "Replay speed is demo playback, not network timing truth."
+      },
+      {
+        "requirementId": "F-15",
+        "primaryLayer": "L2-acceptance-evidence",
+        "status": "bounded",
+        "disposition": "bounded-route-representation",
+        "surface": "demo-mode-boundary",
+        "routeReality": "Bounded prerecorded/replay demo mode exists.",
+        "evidenceBoundary": "No full source switching workflow is mounted."
+      },
+      {
+        "requirementId": "F-16",
+        "primaryLayer": "L2-acceptance-evidence",
+        "status": "bounded",
+        "disposition": "bounded-route-representation",
+        "surface": "f16-export",
+        "routeReality": "Bounded route JSON export is available.",
+        "evidenceBoundary": "Not external report-system or measured-result truth."
+      },
+      {
+        "requirementId": "F-17",
+        "primaryLayer": "L2-acceptance-evidence",
+        "status": "seam-open",
+        "disposition": "bounded-repo-owned-seam",
+        "surface": "rain-seam",
+        "routeReality": "Rain attenuation remains a named seam.",
+        "evidenceBoundary": "Not mounted as physical-layer truth in this route."
+      },
+      {
+        "requirementId": "F-18",
+        "primaryLayer": "L2-acceptance-evidence",
+        "status": "seam-open",
+        "disposition": "bounded-repo-owned-seam",
+        "surface": "stability-boundary",
+        "routeReality": "Stability evidence is retained outside this route.",
+        "evidenceBoundary": "No route-native 24h hardware/GPU proof."
+      },
+      {
+        "requirementId": "V-01",
+        "primaryLayer": "L2-acceptance-evidence",
+        "status": "closed",
+        "disposition": "route-local-closed",
+        "surface": "local-dev-baseline",
+        "routeReality": "Linux/dev baseline is retained for the demo route.",
+        "evidenceBoundary": "This does not imply Windows/WSL or DUT closure."
+      },
+      {
+        "requirementId": "V-02",
+        "primaryLayer": "L2-acceptance-evidence",
+        "status": "external-fail",
+        "disposition": "external-validation-fail",
+        "surface": "external-v02-v06",
+        "routeReality": "Windows/WSL retained pass evidence is missing.",
+        "evidenceBoundary": "Current retained package records fail/gap."
+      },
+      {
+        "requirementId": "V-03",
+        "primaryLayer": "L2-acceptance-evidence",
+        "status": "external-fail",
+        "disposition": "external-validation-fail",
+        "surface": "external-v02-v06",
+        "routeReality": "Tunnel/bridge retained pass evidence is missing.",
+        "evidenceBoundary": "Current retained package records fail/gap."
+      },
+      {
+        "requirementId": "V-04",
+        "primaryLayer": "L2-acceptance-evidence",
+        "status": "external-fail",
+        "disposition": "external-validation-fail",
+        "surface": "external-v02-v06",
+        "routeReality": "NAT/ESTNeT/INET retained pass evidence is missing.",
+        "evidenceBoundary": "Current retained package records fail/gap."
+      },
+      {
+        "requirementId": "V-05",
+        "primaryLayer": "L2-acceptance-evidence",
+        "status": "external-fail",
+        "disposition": "external-validation-fail",
+        "surface": "external-v02-v06",
+        "routeReality": "Virtual DUT retained pass evidence is missing.",
+        "evidenceBoundary": "Current retained package records fail/gap."
+      },
+      {
+        "requirementId": "V-06",
+        "primaryLayer": "L2-acceptance-evidence",
+        "status": "external-fail",
+        "disposition": "external-validation-fail",
+        "surface": "external-v02-v06",
+        "routeReality": "Physical DUT/NE-ONE retained pass evidence is missing.",
+        "evidenceBoundary": "Current retained package records fail/gap."
+      },
+      {
+        "requirementId": "P-01",
+        "primaryLayer": "L2-acceptance-evidence",
+        "status": "seam-open",
+        "disposition": "bounded-repo-owned-seam",
+        "surface": "physical-layer-seam",
+        "routeReality": "Antenna parameters are a named seam.",
+        "evidenceBoundary": "Not physical-layer truth in this route."
+      },
+      {
+        "requirementId": "P-02",
+        "primaryLayer": "L2-acceptance-evidence",
+        "status": "seam-open",
+        "disposition": "bounded-repo-owned-seam",
+        "surface": "physical-layer-seam",
+        "routeReality": "Rain attenuation is a named seam.",
+        "evidenceBoundary": "Not physical-layer truth in this route."
+      },
+      {
+        "requirementId": "P-03",
+        "primaryLayer": "L2-acceptance-evidence",
+        "status": "seam-open",
+        "disposition": "bounded-repo-owned-seam",
+        "surface": "physical-layer-seam",
+        "routeReality": "ITU factors are a named seam.",
+        "evidenceBoundary": "Not physical-layer truth in this route."
+      },
+      {
+        "requirementId": "D-01",
+        "primaryLayer": "L0-first-read-demo-stage",
+        "status": "closed",
+        "disposition": "route-local-closed",
+        "surface": "default-focus-view",
+        "routeReality": "Visual/demo value is staged as the primary route view.",
+        "evidenceBoundary": "Demo quality does not close external validation."
+      },
+      {
+        "requirementId": "D-02",
+        "primaryLayer": "L0-first-read-demo-stage",
+        "status": "bounded",
+        "disposition": "bounded-route-representation",
+        "surface": "replay-demo-mode",
+        "routeReality": "Bounded replay demo is present.",
+        "evidenceBoundary": "Replay is not live network truth."
+      },
+      {
+        "requirementId": "D-03",
+        "primaryLayer": "L0-first-read-demo-stage",
+        "status": "bounded",
+        "disposition": "bounded-route-representation",
+        "surface": "handover-briefing",
+        "routeReality": "Communication, switch, satellite, and link state are expressed.",
+        "evidenceBoundary": "Expression is staged route context, not measured state."
+      }
+    ],
+    "requirementStatusPairs": [
+      "F-01:external-gap",
+      "F-02:bounded",
+      "F-03:bounded",
+      "F-04:closed",
+      "F-05:closed",
+      "F-06:bounded",
+      "F-07:seam-open",
+      "F-08:seam-open",
+      "F-09:bounded",
+      "F-10:bounded",
+      "F-11:bounded",
+      "F-12:bounded",
+      "F-13:readiness",
+      "F-14:closed",
+      "F-15:bounded",
+      "F-16:bounded",
+      "F-17:seam-open",
+      "F-18:seam-open",
+      "V-01:closed",
+      "V-02:external-fail",
+      "V-03:external-fail",
+      "V-04:external-fail",
+      "V-05:external-fail",
+      "V-06:external-fail",
+      "P-01:seam-open",
+      "P-02:seam-open",
+      "P-03:seam-open",
+      "D-01:closed",
+      "D-02:bounded",
+      "D-03:bounded"
+    ],
+    "requirementLayerPairs": [
+      "F-01:L2-acceptance-evidence",
+      "F-02:L0-first-read-demo-stage",
+      "F-03:L2-acceptance-evidence",
+      "F-04:L0-first-read-demo-stage",
+      "F-05:L0-first-read-demo-stage",
+      "F-06:L0-first-read-demo-stage",
+      "F-07:L2-acceptance-evidence",
+      "F-08:L2-acceptance-evidence",
+      "F-09:L2-acceptance-evidence",
+      "F-10:L2-acceptance-evidence",
+      "F-11:L2-acceptance-evidence",
+      "F-12:L1-focus-inspector",
+      "F-13:L2-acceptance-evidence",
+      "F-14:L0-first-read-demo-stage",
+      "F-15:L2-acceptance-evidence",
+      "F-16:L2-acceptance-evidence",
+      "F-17:L2-acceptance-evidence",
+      "F-18:L2-acceptance-evidence",
+      "V-01:L2-acceptance-evidence",
+      "V-02:L2-acceptance-evidence",
+      "V-03:L2-acceptance-evidence",
+      "V-04:L2-acceptance-evidence",
+      "V-05:L2-acceptance-evidence",
+      "V-06:L2-acceptance-evidence",
+      "P-01:L2-acceptance-evidence",
+      "P-02:L2-acceptance-evidence",
+      "P-03:L2-acceptance-evidence",
+      "D-01:L0-first-read-demo-stage",
+      "D-02:L0-first-read-demo-stage",
+      "D-03:L0-first-read-demo-stage"
+    ],
+    "externalFailIds": [
+      "V-02",
+      "V-03",
+      "V-04",
+      "V-05",
+      "V-06"
+    ],
+    "boundedRouteRepresentationIds": [
+      "F-09",
+      "F-10",
+      "F-11",
+      "F-16"
+    ],
+    "f13Phase71Evidence": {
+      "artifact": "output/validation/phase7.1/2026-05-11T16-43-23.879Z-phase7-1-first-slice/summary.json",
+      "generatedAtUtc": "2026-05-11T16:43:23.879Z",
+      "staleAfterUtc": "2026-05-25T16:43:23.879Z",
+      "leoCount": 540,
+      "totalCount": 549,
+      "routeNativeScaleClaimed": false
+    },
+    "f13RouteNativeScaleReadiness": {
+      "version": "requirement-demo-route-f13-scale-readiness-runtime.v1",
+      "currentRouteActorCount": 63,
+      "readinessActorCount": 549,
+      "readinessLeoActorCount": 540,
+      "readinessMeoActorCount": 6,
+      "readinessGeoActorCount": 3,
+      "targetLeoCount": 500,
+      "targetReached": true,
+      "sourceType": "fixture/model-backed",
+      "sourceMode": "multi-orbit-scale-points",
+      "sourceUrl": "not-applicable-repo-local-fixture",
+      "dataSourceLabel": "repo-local walker-derived multi-orbit scale fixture",
+      "publicSourceUsed": false,
+      "builtAtUtc": "2026-05-12T09:53:20Z",
+      "freshnessTimestampUtc": "2026-05-12T09:53:20Z",
+      "freshnessNotes": "Static fixture/model-backed demo input; no public-source retrieval was used for this implementation.",
+      "licenseNotes": "Uses the repo-local bundled walker TLE fixture as model input; not customer authority and not public-source authority.",
+      "knownGaps": [
+        "Readiness surface only; not route-native >=500 LEO closure/proof.",
+        "The handover scene remains the 13-actor service demonstration.",
+        "No customer orbit-model integration or external validation closure.",
+        "No live network truth, active satellite, active gateway, pair-specific path, or network performance samples.",
+        "If customer requires authority-backed constellation input, controlled customer/testbed artifacts are still required."
+      ],
+      "nonClaims": [
+        "not external validation closure",
+        "not customer orbit-model integration",
+        "not live network truth",
+        "not active satellite/gateway/path",
+        "not measured network-performance samples"
+      ],
+      "routeNativeScaleClosureClaimed": false,
+      "externalValidationClosureClaimed": false,
+      "sourceAuthorityClaimed": false
+    },
+    "externalValidationPackage": {
+      "artifact": "output/validation/external-v02-v06/2026-05-11T16-59-27.404Z-external-validation/summary.json",
+      "status": "explicit-fail-no-retained-pass",
+      "failIds": [
+        "V-02",
+        "V-03",
+        "V-04",
+        "V-05",
+        "V-06"
+      ]
+    }
+  },
+  "f16ExportSurface_null": {
+    "version": "requirement-demo-route-f16-export-disposition-runtime.v1",
+    "schemaVersion": "requirement-demo-route-bounded-export.v1",
+    "disposition": "bounded-route-representation",
+    "externalTruthDisposition": "external-validation-required",
+    "artifactTruth": "bounded-proxy-report-export",
+    "exportFormat": "json",
+    "provenance": "route-owned bounded state from V4 demo controller",
+    "routeOwnedStateOnly": true,
+    "measuredValuesIncluded": false,
+    "externalReportSystemTruthClaimed": false,
+    "explicitNonClaims": [
+      "No external measurement report truth is claimed.",
+      "No live iperf or ping truth is claimed.",
+      "No active gateway, active serving satellite, or pair-specific teleport path is claimed.",
+      "No native RF handover or >=500 LEO validation is claimed.",
+      "F-09 rate fields are modeled classes only; no Mbps or Gbps values are exported.",
+      "Latency and jitter are not exported as measured ms values."
+    ],
+    "lastStatus": "ready",
+    "lastGeneratedAtUtc": "",
+    "lastFilename": "",
+    "lastErrorMessage": ""
+  },
+  "policyRuleControls": {
+    "version": "requirement-demo-route-policy-rule-controls-runtime.v1",
+    "disposition": "bounded-route-representation",
+    "externalTruthDisposition": "external-validation-required",
+    "truthBoundary": "modeled-policy-demo-not-live-control",
+    "exportAdjacentTruth": "modeled-replay-preset-state-not-live-control",
+    "f10RequirementId": "F-10",
+    "f11RequirementId": "F-11",
+    "policyPresetMode": "modeled-replay-policy-preset-not-live-control",
+    "rulePresetMode": "bounded-replay-rule-parameter-preset-not-live-control",
+    "defaultPolicyPresetId": "balanced-continuity-review",
+    "defaultRulePresetId": "standard-window-thresholds",
+    "activePolicyPreset": {
+      "presetId": "balanced-continuity-review",
+      "label": "Balanced continuity review",
+      "summary": "Default modeled replay preset balancing candidate review and continuity guard; not live control.",
+      "preview": "Modeled replay preview keeps candidate and continuity review balanced. Preset only; not live control."
+    },
+    "activeRulePreset": {
+      "presetId": "standard-window-thresholds",
+      "label": "Standard window thresholds",
+      "summary": "Default bounded replay rule preset for standard review windows; not live control.",
+      "parameterChips": [
+        "candidate review preset: standard",
+        "continuity guard preset: standard",
+        "replay hold preset: standard"
+      ],
+      "preview": "Bounded replay rule preset keeps standard review windows. Preset only; not live control."
+    },
+    "policyPresets": [
+      {
+        "presetId": "balanced-continuity-review",
+        "label": "Balanced continuity review",
+        "summary": "Default modeled replay preset balancing candidate review and continuity guard; not live control.",
+        "preview": "Modeled replay preview keeps candidate and continuity review balanced. Preset only; not live control."
+      },
+      {
+        "presetId": "candidate-first-review",
+        "label": "Candidate-first review",
+        "summary": "Modeled replay preset that foregrounds candidate review copy; not live control.",
+        "preview": "Modeled replay preview foregrounds candidate review. Preset only; not live control."
+      },
+      {
+        "presetId": "continuity-guard-review",
+        "label": "Continuity guard review",
+        "summary": "Modeled replay preset that foregrounds continuity guard copy; not live control.",
+        "preview": "Modeled replay preview foregrounds continuity guard. Preset only; not live control."
+      }
+    ],
+    "rulePresets": [
+      {
+        "presetId": "standard-window-thresholds",
+        "label": "Standard window thresholds",
+        "summary": "Default bounded replay rule preset for standard review windows; not live control.",
+        "parameterChips": [
+          "candidate review preset: standard",
+          "continuity guard preset: standard",
+          "replay hold preset: standard"
+        ],
+        "preview": "Bounded replay rule preset keeps standard review windows. Preset only; not live control."
+      },
+      {
+        "presetId": "early-candidate-review",
+        "label": "Early candidate review",
+        "summary": "Bounded replay rule preset that reviews candidate context earlier; not live control.",
+        "parameterChips": [
+          "candidate review preset: early",
+          "continuity guard preset: standard",
+          "replay hold preset: standard"
+        ],
+        "preview": "Bounded replay rule preset previews earlier candidate review. Preset only; not live control."
+      },
+      {
+        "presetId": "guard-hold-review",
+        "label": "Guard hold review",
+        "summary": "Bounded replay rule preset that holds guard review emphasis; not live control.",
+        "parameterChips": [
+          "candidate review preset: standard",
+          "continuity guard preset: hold",
+          "replay hold preset: guard"
+        ],
+        "preview": "Bounded replay rule preset previews guard-hold review. Preset only; not live control."
+      }
+    ],
+    "routeOwnedStateOnly": true,
+    "liveControlClaimed": false,
+    "backendControlClaimed": false,
+    "networkControlClaimed": false,
+    "arbitraryRuleEditorClaimed": false,
+    "measuredDecisionTruthClaimed": false
+  }
+}
