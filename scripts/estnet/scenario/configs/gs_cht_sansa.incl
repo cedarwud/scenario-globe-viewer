@@ -1,0 +1,32 @@
+# GROUND STATIONS — CHT-Yangmingshan (TW) and SANSA-Hartebeesthoek (ZA).
+# Coordinates lifted from scenario-globe-viewer's pinned public registry:
+#   public/fixtures/ground-stations/multi-orbit-public-registry.json
+# Node numbering (NodeRegistry): sat[0]=node 1, cg[0]=node 2, cg[1]=node 3.
+#
+# internetConnection=false on BOTH is REQUIRED: a GroundStation defaults to
+# internetConnection=true, which lets two ground stations exchange app traffic
+# through a virtual terrestrial internet, short-circuiting the satellite. We
+# want the traffic to go GS-A -> Satellite -> GS-B over the RF link only.
+*.numCg = 2
+
+# Antenna pointing: the GS yagi is directional (18.9 dB boresight) so it MUST
+# track the satellite or the link loses ~20 dB off-boresight and never closes.
+# The stock default (ContactPlanBasedNodeTracking) needs a contact plan; with
+# none loaded the dish sits mispointed. TargetTracking aims straight at the
+# relay sat (node 1) every update interval.
+*.cg[*].trackingType = "estnet.node.tracking.target.TargetTracking"
+*.cg[*].nodeTracking.target = "1"
+
+# cg[0] = CHT Yangmingshan (node 2) — traffic source
+*.cg[0].networkHost.mobility.lat = 25.1550deg
+*.cg[0].networkHost.mobility.lon = 121.5500deg
+*.cg[0].networkHost.mobility.alt = 600m
+*.cg[0].label = "CHT Yangmingshan, TW"
+*.cg[0].internetConnection = false
+
+# cg[1] = SANSA Hartebeesthoek (node 3) — traffic destination
+*.cg[1].networkHost.mobility.lat = -25.8872deg
+*.cg[1].networkHost.mobility.lon = 27.7075deg
+*.cg[1].networkHost.mobility.alt = 1540m
+*.cg[1].label = "SANSA Hartebeesthoek, ZA"
+*.cg[1].internetConnection = false

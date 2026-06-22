@@ -1,0 +1,13 @@
+# SATELLITE ORBIT — single GEO relay for the CHT x SANSA two-hop scenario.
+# ABS-2A (MONGOLSAT-1), NORAD 41588, ~75 deg E GEO, inclination 0.0256 deg.
+# Picked because it is the lowest-inclination commercial GEO from the pinned
+# scenario-globe-viewer snapshot that is simultaneously visible to both
+# CHT-Yangmingshan (TW) and SANSA-Hartebeesthoek (ZA) at ~30 deg elevation.
+# TLE is lifted verbatim from
+#   scenario-globe-viewer/public/fixtures/satellites/multi-orbit/geo/
+#   commercial-geo-2026-06-15T00-00-00Z.tle  (pinned demo snapshot).
+# Sim epoch anchors to this TLE epoch: 2026-06-13T20:13:00Z.
+*.numS = 1
+*.sat[*].networkHost.mobility.positionPropagatorType = "PositionPropagatorSGP4File"
+*.sat[*].networkHost.mobility.positionPropagator.tleFile = "./configs/tles/abs2a_geo.tle"
+*.globalJulianDate.tleFile = "./configs/tles/abs2a_geo.tle"

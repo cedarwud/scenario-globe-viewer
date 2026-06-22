@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>ESTNeT Packet Trace — CHT × SANSA</title>
+<style>
+  :root{
+    --bg:#0b1020; --panel:#121a30; --ink:#e8eefc; --muted:#8b9bc4; --line:#2a3a5e;
+    --lat:#4cc2ff; --tput:#7CFFB2; --loss:#ff6b6b; --accent:#ffcf5c;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:radial-gradient(1200px 600px at 70% -10%,#16213f,#0b1020);
+       color:var(--ink);font:14px/1.45 -apple-system,Segoe UI,Roboto,"Noto Sans TC",sans-serif}
+  .wrap{max-width:1080px;margin:0 auto;padding:24px}
+  h1{font-size:20px;margin:0 0 2px}
+  .path{color:var(--lat);font-weight:600;letter-spacing:.2px}
+  .badges{margin:10px 0 18px;display:flex;gap:8px;flex-wrap:wrap}
+  .badge{font-size:11.5px;padding:3px 9px;border-radius:999px;border:1px solid var(--line);
+         background:#0e1733;color:var(--muted)}
+  .badge.warn{border-color:#5c4a1e;background:#241d08;color:var(--accent)}
+  .badge.sim{border-color:#1e4a5c;background:#08222b;color:var(--lat)}
+  .cards{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:18px}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px 14px}
+  .card .k{color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.6px}
+  .card .v{font-size:22px;font-weight:700;margin-top:4px}
+  .card .u{color:var(--muted);font-size:12px;font-weight:500}
+  .chart{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px 8px 6px}
+  .legend{display:flex;gap:18px;align-items:center;padding:4px 12px 10px;color:var(--muted);font-size:12px}
+  .sw{display:inline-block;width:11px;height:11px;border-radius:3px;margin-right:6px;vertical-align:-1px}
+  .foot{margin-top:16px;color:var(--muted);font-size:12px}
+  .foot b{color:var(--ink)}
+  .nonclaims{margin:8px 0 0;padding-left:18px}
+  .nonclaims li{margin:2px 0}
+  .ctl{display:flex;gap:12px;align-items:center;padding:6px 12px 2px;color:var(--muted);font-size:12px}
+  input[type=range]{flex:1;accent-color:var(--lat)}
+  text{fill:var(--muted);font-size:11px}
+  .axis line{stroke:var(--line)}
+  .err{background:#241010;border:1px solid #5c1e1e;color:#ffb4b4;padding:14px;border-radius:10px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>ESTNeT Packet Trace</h1>
+  <div class="path" id="path">…</div>
+  <div class="badges" id="badges"></div>
+  <div class="cards" id="cards"></div>
+
+  <div class="chart">
+    <div class="legend">
+      <span><span class="sw" style="background:var(--lat)"></span>end-to-end latency (ms)</span>
+      <span><span class="sw" style="background:var(--tput)"></span>throughput</span>
+      <span><span class="sw" style="background:var(--loss)"></span>packet loss / outage</span>
+      <span id="hops" style="margin-left:auto"></span>
+    </div>
+    <svg id="svg" width="1064" height="320" viewBox="0 0 1064 320"></svg>
+    <div class="ctl">
+      <span>playhead</span>
+      <input type="range" id="play" min="0" max="100" value="100" />
+      <span id="playt">t = —</span>
+    </div>
+  </div>
+
+  <div class="foot" id="foot"></div>
+</div>
+
+<script>
+const TRACE_URL = "/fixtures/estnet/cht-sansa-abs2a-packet-trace.json";
+const SVGNS = "http://www.w3.org/2000/svg";
+const W=1064, H=320, M={l:54,r:54,t:16,b:28};
+const el = (n,a={})=>{const e=document.createElementNS(SVGNS,n);for(const k in a)e.setAttribute(k,a[k]);return e;};
+
+function fmt(x,d=1){return x==null?"—":Number(x).toFixed(d);}
+
+(async function(){
+  let trace;
+  try{
+    const r = await fetch(TRACE_URL); if(!r.ok) throw new Error(r.status);
+    trace = await r.json();
+  }catch(e){
+    document.getElementById("cards").innerHTML =
+      `<div class="err">Could not load <code>${TRACE_URL}</code> (${e}). Run the adapter and serve from the dev server.</div>`;
+    return;
+  }
+  render(trace);
+})();
+
+function render(t){
+  document.getElementById("path").textContent = t.pathLabel;
+
+  const b = document.getElementById("badges");
+  const srcLabel = {"synthetic-placeholder":"synthetic placeholder",
+    "external-simulator-derived":"ESTNeT-simulated (not operator-measured)",
+    "measured":"measured"}[t.sourceClass] || t.sourceClass;
+  b.append(mkBadge(srcLabel,"sim"), mkBadge("tool: "+(t.toolProvenance||"—")));
+  (t.nonClaims||[]).slice(0,1).forEach(()=>{});
+  b.append(mkBadge("derived: jitter + loss","warn"));
+
+  const s = t.summary||{};
+  const cards = [
+    ["mean latency", fmt(s.meanLatencyMs,1), "ms"],
+    ["jitter (RFC-3550)", fmt(s.finalJitterMs,2), "ms"],
+    ["packet loss", fmt((s.overallPacketLossRatio||0)*100,2), "%"],
+    ["throughput", fmt((t.samples.find(x=>x.throughputMbps>0)||{}).throughputMbps*1000||0,2), "kbps"],
+    ["delivered", `${s.deliveredEndToEnd}/${s.sentPackets}`, "pkts"],
+  ];
+  document.getElementById("cards").innerHTML = cards.map(c=>
+    `<div class="card"><div class="k">${c[0]}</div><div class="v">${c[1]} <span class="u">${c[2]}</span></div></div>`).join("");
+
+  const hops = t.samples.find(x=>x.hops!=null);
+  document.getElementById("hops").textContent = hops?`${hops.hops} hops (uplink + downlink)`:"";
+
+  drawChart(t);
+
+  const f = document.getElementById("foot");
+  f.innerHTML = `<b>Assumptions:</b> ${t.assumptionSet||"—"}` +
+    (t.nonClaims?`<ul class="nonclaims">${t.nonClaims.map(n=>`<li>${n}</li>`).join("")}</ul>`:"") +
+    (t.metadata?`<div style="margin-top:6px">sat: <b>${t.metadata.satellite}</b> · sim epoch ${t.metadata.simEpochUtc} · ~${t.metadata.propagationPerHopMs} ms/hop propagation</div>`:"");
+}
+
+function mkBadge(txt,cls){const d=document.createElement("span");d.className="badge"+(cls?" "+cls:"");d.textContent=txt;return d;}
+
+function drawChart(t){
+  const svg = document.getElementById("svg"); svg.innerHTML="";
+  const S = t.samples;
+  const xs = S.map(d=>d.tMs);
+  const xMin=Math.min(...xs), xMax=Math.max(...xs);
+  const lat = S.filter(d=>d.latencyMs!=null).map(d=>d.latencyMs);
+  let yMin=Math.min(...lat), yMax=Math.max(...lat);
+  if(yMax-yMin < 1){ const c=(yMax+yMin)/2; yMin=c-5; yMax=c+5; } // pad a flat line so it's centered & legible
+  yMin=Math.max(0,yMin- (yMax-yMin)*0.15); yMax=yMax+(yMax-yMin)*0.15;
+  const X=v=>M.l+(v-xMin)/((xMax-xMin)||1)*(W-M.l-M.r);
+  const Y=v=>H-M.b-(v-yMin)/((yMax-yMin)||1)*(H-M.t-M.b);
+
+  // grid + y labels
+  const g=el("g",{class:"axis"});
+  for(let i=0;i<=4;i++){const yv=yMin+(yMax-yMin)*i/4;const y=Y(yv);
+    g.append(el("line",{x1:M.l,y1:y,x2:W-M.r,y2:y}));
+    const tx=el("text",{x:M.l-8,y:y+3,"text-anchor":"end"});tx.textContent=fmt(yv,0);g.append(tx);}
+  // x labels (seconds)
+  for(let i=0;i<=5;i++){const xv=xMin+(xMax-xMin)*i/5;const x=X(xv);
+    const tx=el("text",{x,y:H-8,"text-anchor":"middle"});tx.textContent=(xv/1000).toFixed(0)+"s";g.append(tx);}
+  svg.append(g);
+
+  // loss / outage shading
+  S.forEach((d,i)=>{
+    if(d.linkUp===false || (d.packetLossRatio||0)>0){
+      const x0=X(d.tMs), x1=i+1<S.length?X(S[i+1].tMs):x0+6;
+      svg.append(el("rect",{x:x0,y:M.t,width:Math.max(2,x1-x0),height:H-M.t-M.b,
+        fill:"var(--loss)","fill-opacity":d.linkUp===false?0.28:0.14}));
+    }
+  });
+
+  // throughput area (scaled to its own max, drawn low)
+  const tp = S.map(d=>d.throughputMbps||0); const tpMax=Math.max(...tp,1e-9);
+  const baseY=H-M.b;
+  let area=`M ${X(S[0].tMs)} ${baseY}`;
+  S.forEach(d=>{ const h=(d.throughputMbps||0)/tpMax*((H-M.t-M.b)*0.28);
+    area+=` L ${X(d.tMs)} ${baseY-h}`; });
+  area+=` L ${X(S[S.length-1].tMs)} ${baseY} Z`;
+  svg.append(el("path",{d:area,fill:"var(--tput)","fill-opacity":0.16,stroke:"none"}));
+
+  // latency line
+  let dpath="";
+  S.forEach(d=>{ if(d.latencyMs==null){dpath+=" ";return;}
+    dpath+=(dpath===""?"M":"L")+` ${X(d.tMs)} ${Y(d.latencyMs)} `; });
+  svg.append(el("path",{d:dpath,fill:"none",stroke:"var(--lat)","stroke-width":2.2}));
+  // points
+  S.forEach(d=>{ if(d.latencyMs==null)return;
+    svg.append(el("circle",{cx:X(d.tMs),cy:Y(d.latencyMs),r:2.6,fill:"var(--lat)"})); });
+
+  // playhead
+  const ph=el("line",{x1:X(xMax),y1:M.t,x2:X(xMax),y2:H-M.b,stroke:"var(--accent)","stroke-width":1.5,"stroke-dasharray":"4 3"});
+  svg.append(ph);
+  const play=document.getElementById("play"), playt=document.getElementById("playt");
+  function setPlay(p){ const xv=xMin+(xMax-xMin)*p/100; ph.setAttribute("x1",X(xv));ph.setAttribute("x2",X(xv));
+    // nearest sample
+    let near=S[0]; for(const d of S) if(Math.abs(d.tMs-xv)<Math.abs(near.tMs-xv)) near=d;
+    playt.textContent=`t = ${(xv/1000).toFixed(1)}s · latency ${fmt(near.latencyMs,1)} ms · loss ${fmt((near.packetLossRatio||0)*100,1)}%`;
+  }
+  play.oninput=()=>setPlay(+play.value); setPlay(100);
+}
+</script>
+</body>
+</html>

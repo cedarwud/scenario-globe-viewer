@@ -1,0 +1,57 @@
+# MEDIUM, OBSTACLES, RADIO AND DATA RATE  —  GEO-strengthened variant.
+#
+# Derived from radio_apsk_UHF_9k6.incl (stock UWE-3 cubesat UHF link). The
+# stock link is sized for a ~600 km LEO pass and DOES NOT CLOSE over a ~38,500
+# km GEO range: the sat->GS downlink falls ~7 dB short of the 11.26 dB GMSK
+# SNIR threshold at 1 W. The only change here is the SATELLITE transmit power,
+# raised 1 W -> 20 W (+13 dB), which lifts the downlink SNIR to ~17 dB
+# (~6 dB margin) so the two-hop GS-A -> Sat -> GS-B path closes.
+#
+# HONESTY (R12): this is an ASSUMED RF configuration chosen to close a GEO
+# link in simulation, NOT an operator-measured EIRP. 20 W at the modelled
+# isotropic sat antenna ~= 43 dBW EIRP, the right order of magnitude for a
+# commercial GEO transponder carrier, but it is a simulation assumption. The
+# noise floor, bandwidth, modulation and SNIR threshold are unchanged from the
+# stock GMSK model so the link budget stays internally consistent.
+#
+# Link budget at 38,577 km, 435.6 MHz (FSPL 176.95 dB):
+#   downlink (sat 20 W=43.0 dBm + 0 dB sat ant + 18.9 dB GS yagi - 176.95 + 132.39) = 17.3 dB  > 11.26 OK
+#   uplink   (GS 25 W=44.0 dBm + 18.9 dB GS yagi + 0 dB sat ant - 176.95 + 132.39) = 18.3 dB  > 11.26 OK
+
+# EARTH OBSTACLE
+*.physicalEnvironment.config = xmldoc("../data/earthObstacle.xml")
+*.radioMedium.obstacleLoss.typename = "IdealObstacleLoss"
+
+# RADIO MEDIUM
+*.mediumType = "inet.physicallayer.apskradio.packetlevel.ApskScalarRadioMedium"
+*.radioMedium.propagation.typename = "estnet.radio.propagation.ConstantSpeedPropagationWithMovement"
+*.radioMedium.pathLoss.typename = "FreeSpacePathLoss"
+*.radioMedium.analogModel.typename = "ScalarAnalogModel"
+*.radioMedium.backgroundNoise.typename = "IsotropicScalarBackgroundNoise"
+*.radioMedium.backgroundNoise.power = -132.39dBm	# -132.39dBm noise floor at reference temp 290K and 14.4 kHz bandwidth
+*.radioMedium.mediumLimitCache.maxTransmissionDuration = 300 ms
+
+# GENERAL RADIO PARAMETERS
+*.*.networkHost.wlan[*].radioType = "estnet.radio.apsk.APSKScalarRadioExtraStatistics"
+*.*.networkHost.wlan[*].radio.transmitter.typename = "estnet.radio.gmsk.APSKScalarTransmitterWithGMSK"
+*.*.networkHost.wlan[*].radio.receiver.typename = "estnet.radio.gmsk.APSKScalarReceiverWithGMSK"
+*.*.networkHost.wlan[*].radio.receiver.snirThreshold = 11.26dB      # at BER 10^-5 for GMSK
+*.*.networkHost.wlan[*].radio.centerFrequency = 435.600MHz
+*.*.networkHost.wlan[*].radio.bandwidth = 14.4kHz	# typically 1.5x bit rate
+*.*.networkHost.wlan[*].radio.transmitter.preambleDuration = 0s
+*.*.networkHost.wlan[*].radio.transmitter.headerLength = 1B
+*.*.networkHost.wlan[*].radio.*.modulation = "GMSK"
+*.*.networkHost.wlan[*].radio.receiver.errorModel.typename = "estnet.radio.errormodel.PerfectErrorModel"
+
+# SATELLITE RADIO  — power raised from 1 W to 20 W to close the GEO downlink
+*.sat[*].networkHost.wlan[*].radio.transmitter.power = 20W
+*.sat[*].networkHost.wlan[*].radio.receiver.energyDetection = -132.38dBm
+*.sat[*].networkHost.wlan[*].radio.receiver.sensitivity = -132.38dBm
+
+# GROUND STATION RADIO
+*.cg[*].networkHost.wlan[*].radio.transmitter.power = 25W
+*.cg[*].networkHost.wlan[*].radio.receiver.energyDetection = -132.38dBm
+*.cg[*].networkHost.wlan[*].radio.receiver.sensitivity = -132.38dBm
+
+# DATA RATE
+*.*.networkHost.wlan[*].bitrate = 9600bps
