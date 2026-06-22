@@ -483,7 +483,7 @@ GROUPS = [
  dict(bucket="A", title="換手與跨軌", status_text="完成 · 邊界內", status_color=GREEN, rows=[
    ("R1-T5 / K-D4", "換手規則 + 可調參數", "handover-policy.ts(TR 38.821 §7.3.2.2)", ["standards"], None, "模型控制；非 SLA / 封包軌跡"),
    ("R1-F4 / K-E4 / K-F4", "依延遲/抖動/速率切換", "link-budget → 換手引擎", ["standards"], None, "無營運商事件 / RF 換手軌跡"),
-   ("V-MO1", "跨軌 LIVE 換手", "cross-orbit-live（預設唯一）", ["geometric"], None, "模型策略遷移；非原生 RF 換手"),
+   ("V-MO1", "跨軌 LIVE 換手", "demo-balanced-v1（demo route 採用）", ["geometric"], None, "模型策略遷移;非原生 RF 換手;此 pair LEO=0，實為 GEO⇄MEO"),
  ]),
  dict(bucket="A", title="連結預算與通訊速率", status_text="完成 · 邊界內", status_color=GREEN, rows=[
    ("R1-T6 / K-D5", "通訊速率視覺化", "link-budget → 吞吐估計", ["standards", "assumed"], None, "延遲/吞吐為模型估計；RF 硬體缺口"),
@@ -600,7 +600,7 @@ def main():
           "高度為公開標稱值；半徑為示意壓縮比例（非等比繪製）。")
     s_fig(prs, L, "雙站互視幾何", "互視交集 = 雙站可視時間窗", figp("scene-mutual-visibility.png"),
           "幾何由公開站座標 + SGP4 軌道計算；仰角門檻為模型參數，非實測。")
-    s_fig(prs, L, "衛星跨軌道換手場景", "V-MO1 cross-orbit-live · TR 38.821 §7.3.2.2", figp("scene-handover.png"),
+    s_fig(prs, L, "衛星跨軌道換手場景", "V-MO1 · demo-balanced-v1 · TR 38.821 §7.3.2.2", figp("scene-handover.png"),
           "換手依模型仰角 / 幾何計算，非營運商實測；RSRP 為相對代理。")
     s_fig(prs, L, "鏈路預算沿路徑分解", "FSPL · 雨衰 · 氣體 · 天線（各標標準出處）", figp("scene-link-budget-path.png"),
           "各項依 3GPP / ITU 標準建模；未含 EIRP / 雜訊指數 / 封包實測 / 營運商校準。")

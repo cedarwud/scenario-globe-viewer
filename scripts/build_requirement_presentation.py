@@ -428,7 +428,7 @@ REQS_A = [
    img=IMG_REPORT, cap="V4 側欄 + 來源報告面板"),
  dict(id="R1-T5 / K-D4", name="換手規則與可調參數", bucket="A", status="complete",
    asks="設計換手規則與其驅動參數。",
-   sat="handover-policy.ts（三策略 + 可調 gate），預設 cross-orbit-live；報告 Handover 分頁揭露門檻與事件。",
+   sat="handover-policy.ts（四策略 + 可調 gate）;demo route 採 demo-balanced-v1 策略，cross-orbit-live 為非-demo 泛用 default;報告 Handover 分頁揭露門檻與事件。",
    src="引用 TR 38.821 §7.3.2.2 之策略 gate · [1][4][5][7]",
    classes=["standards"],
    bnd="模型化控制，非營運商 SLA 或封包軌跡。",
@@ -515,10 +515,10 @@ REQS_A = [
    bnd="開啟報告不會重跑 soak；主張依賴保存產物。"),
  dict(id="V-MO1", name="跨軌 LIVE 換手（K-A1 口頭補充）", bucket="A", status="complete",
    asks="單一服務連續換手 LEO → MEO → GEO（真實 live 換手，非軌道類型選擇器）。",
-   sat="handover-policy.ts cross-orbit-live 為 demo route 預設且唯一策略（opt-in 旗標已移除）；跨軌遷移時 replay pill 帶 data-v-mo1=\"true\"。",
+   sat="handover-policy.ts 實作四策略;demo route 採 demo-balanced-v1 策略（cross-orbit-live 為非-demo 泛用 default，opt-in 旗標已移除）；跨軌遷移時 replay pill 帶 data-v-mo1=\"true\"。",
    src="模型選出之跨軌遷移事件 · [1][4][5][7]",
    classes=["geometric","standards"],
-   bnd="不可稱原生 RF 換手、主動服務路徑遷移或營運商事件證明；為 TLE 幾何上之模型策略遷移。",
+   bnd="不可稱原生 RF 換手、主動服務路徑遷移或營運商事件證明；為 TLE 幾何上之模型策略遷移。CHT×SANSA demo pair 之 LEO 互視窗為 0，實際呈現 GEO⇄MEO，非完整 LEO→MEO→GEO 全鏈。",
    img=IMG_LINK, cap="跨軌模型策略遷移（V-MO1）"),
 ]
 
