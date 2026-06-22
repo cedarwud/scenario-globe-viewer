@@ -92,11 +92,6 @@ const HISTORICAL_FIXTURE_ROUTE_PATTERNS = [
       /^tests\/smoke\/verify-m8a-v4\.6d-simulation-handover-model-runtime\.mjs$/
   },
   {
-    status: "historical-compatibility-product-shell-smoke",
-    pattern:
-      /^tests\/smoke\/verify-m8a-v4\.11-correction-a-phase-c-runtime\.mjs$/
-  },
-  {
     status: "historical-fixture-smoke",
     pattern:
       /^tests\/smoke\/verify-m8a-v4\.(?:3|5|6a|6b|6d|6e|7|8|10|11)(?:[.-].*)?runtime\.mjs$/
