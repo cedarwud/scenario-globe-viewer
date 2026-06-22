@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>ESTNeT Packet Trace — CHT × SANSA GEO↔MEO handover</title>
+<style>
+  :root{
+    --bg:#0b1020; --panel:#121a30; --ink:#e8eefc; --muted:#8b9bc4; --line:#2a3a5e;
+    --geo:#4cc2ff; --meo:#7CFFB2; --tput:#c9b6ff; --loss:#ff6b6b; --accent:#ffcf5c;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:radial-gradient(1200px 600px at 70% -10%,#16213f,#0b1020);
+       color:var(--ink);font:14px/1.45 -apple-system,Segoe UI,Roboto,"Noto Sans TC",sans-serif}
+  .wrap{max-width:1080px;margin:0 auto;padding:24px}
+  h1{font-size:20px;margin:0 0 2px}
+  .path{color:var(--geo);font-weight:600;letter-spacing:.2px}
+  .badges{margin:10px 0 18px;display:flex;gap:8px;flex-wrap:wrap}
+  .badge{font-size:11.5px;padding:3px 9px;border-radius:999px;border:1px solid var(--line);
+         background:#0e1733;color:var(--muted)}
+  .badge.warn{border-color:#5c4a1e;background:#241d08;color:var(--accent)}
+  .badge.sim{border-color:#1e4a5c;background:#08222b;color:var(--geo)}
+  .cards{display:grid;grid-template-columns:repeat(6,1fr);gap:12px;margin-bottom:18px}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px 14px}
+  .card .k{color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.6px}
+  .card .v{font-size:21px;font-weight:700;margin-top:4px}
+  .card .u{color:var(--muted);font-size:12px;font-weight:500}
+  .card.geo{border-color:#1e4a5c}.card.geo .v{color:var(--geo)}
+  .card.meo{border-color:#2a5c3e}.card.meo .v{color:var(--meo)}
+  .chart{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px 8px 6px}
+  .legend{display:flex;gap:18px;align-items:center;padding:4px 12px 10px;color:var(--muted);font-size:12px;flex-wrap:wrap}
+  .sw{display:inline-block;width:11px;height:11px;border-radius:3px;margin-right:6px;vertical-align:-1px}
+  .foot{margin-top:16px;color:var(--muted);font-size:12px}
+  .foot b{color:var(--ink)}
+  .nonclaims{margin:8px 0 0;padding-left:18px}
+  .nonclaims li{margin:2px 0}
+  .ctl{display:flex;gap:12px;align-items:center;padding:6px 12px 2px;color:var(--muted);font-size:12px}
+  input[type=range]{flex:1;accent-color:var(--geo)}
+  text{fill:var(--muted);font-size:11px}
+  .axis line{stroke:var(--line)}
+  .err{background:#241010;border:1px solid #5c1e1e;color:#ffb4b4;padding:14px;border-radius:10px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>ESTNeT Packet Trace — GEO↔MEO handover</h1>
+  <div class="path" id="path">…</div>
+  <div class="badges" id="badges"></div>
+  <div class="cards" id="cards"></div>
+
+  <div class="chart">
+    <div class="legend">
+      <span><span class="sw" style="background:var(--geo)"></span>latency — GEO relay</span>
+      <span><span class="sw" style="background:var(--meo)"></span>latency — MEO relay</span>
+      <span><span class="sw" style="background:var(--accent)"></span>handover</span>
+      <span id="hops" style="margin-left:auto"></span>
+    </div>
+    <svg id="svg" width="1064" height="340" viewBox="0 0 1064 340"></svg>
+    <div class="ctl">
+      <span>playhead</span>
+      <input type="range" id="play" min="0" max="100" value="0" />
+      <span id="playt">t = —</span>
+    </div>
+  </div>
+
+  <div class="foot" id="foot"></div>
+</div>
+
+<script>
+const TRACE_URL = "/fixtures/estnet/cht-sansa-handover-packet-trace.json";
+const SVGNS = "http://www.w3.org/2000/svg";
+const W=1064, H=340, M={l:56,r:20,t:30,b:30};
+const ORBIT_COLOR = {GEO:"var(--geo)", MEO:"var(--meo)"};
+const el = (n,a={})=>{const e=document.createElementNS(SVGNS,n);for(const k in a)e.setAttribute(k,a[k]);return e;};
+const fmt=(x,d=1)=>x==null?"—":Number(x).toFixed(d);
+
+(async function(){
+  let trace;
+  try{
+    const r = await fetch(TRACE_URL); if(!r.ok) throw new Error(r.status);
+    trace = await r.json();
+  }catch(e){
+    document.getElementById("cards").innerHTML =
+      `<div class="err">Could not load <code>${TRACE_URL}</code> (${e}). Run the handover adapter and serve from the dev server.</div>`;
+    return;
+  }
+  render(trace);
+})();
+
+function render(t){
+  document.getElementById("path").textContent = t.pathLabel;
+
+  const b = document.getElementById("badges");
+  b.append(mkBadge("ESTNeT-simulated (not operator-measured)","sim"),
+           mkBadge("tool: "+(t.toolProvenance||"—")),
+           mkBadge("showcase handover (not RF-failure)","warn"),
+           mkBadge("derived: jitter + loss","warn"));
+
+  const s = t.summary||{}, bo = s.meanLatencyByOrbitMs||{};
+  const step = (bo.GEO!=null&&bo.MEO!=null)?(bo.GEO-bo.MEO):null;
+  const cards = [
+    ["GEO latency", fmt(bo.GEO,1), "ms","geo"],
+    ["MEO latency", fmt(bo.MEO,1), "ms","meo"],
+    ["handover step", "−"+fmt(step,1), "ms",""],
+    ["handovers", s.handoverCount, "",""],
+    ["packet loss", fmt((s.overallPacketLossRatio||0)*100,2), "%",""],
+    ["delivered", `${s.deliveredEndToEnd}/${s.sentPackets}`, "pkts",""],
+  ];
+  document.getElementById("cards").innerHTML = cards.map(c=>
+    `<div class="card ${c[3]}"><div class="k">${c[0]}</div><div class="v">${c[1]} <span class="u">${c[2]}</span></div></div>`).join("");
+
+  const hops = t.samples.find(x=>x.hops!=null);
+  document.getElementById("hops").textContent = hops?`${hops.hops} hops/leg (uplink + downlink) · ${fmt(s.finalJitterMs,2)} ms jitter`:"";
+
+  drawChart(t);
+
+  const f = document.getElementById("foot");
+  const m=t.metadata||{};
+  f.innerHTML = `<b>Assumptions:</b> ${t.assumptionSet||"—"}` +
+    (t.nonClaims?`<ul class="nonclaims">${t.nonClaims.map(n=>`<li>${n}</li>`).join("")}</ul>`:"") +
+    (m.satellites?`<div style="margin-top:6px">relays: <b>${m.satellites.GEO}</b> · <b>${m.satellites.MEO}</b> · sim epoch ${m.simEpochUtc}</div>`:"");
+}
+
+function mkBadge(txt,cls){const d=document.createElement("span");d.className="badge"+(cls?" "+cls:"");d.textContent=txt;return d;}
+
+function drawChart(t){
+  const svg = document.getElementById("svg"); svg.innerHTML="";
+  const S = t.samples;
+  const xs = S.map(d=>d.tMs);
+  const xMin=Math.min(...xs), xMax=Math.max(...xs);
+  const lat = S.filter(d=>d.latencyMs!=null).map(d=>d.latencyMs);
+  let yMin=Math.min(...lat), yMax=Math.max(...lat);
+  const padY=(yMax-yMin)*0.18 || 5; yMin=Math.max(0,yMin-padY); yMax=yMax+padY;
+  const X=v=>M.l+(v-xMin)/((xMax-xMin)||1)*(W-M.l-M.r);
+  const Y=v=>H-M.b-(v-yMin)/((yMax-yMin)||1)*(H-M.t-M.b);
+
+  // segment bands (colored by orbit) + segment labels
+  (t.segments||[]).forEach(seg=>{
+    const x0=X(seg.startMs), x1=X(seg.endMs);
+    svg.append(el("rect",{x:x0,y:M.t,width:Math.max(2,x1-x0),height:H-M.t-M.b,
+      fill:ORBIT_COLOR[seg.orbitClass]||"#888","fill-opacity":0.06}));
+    const lab=el("text",{x:(x0+x1)/2,y:M.t-8,"text-anchor":"middle","fill":ORBIT_COLOR[seg.orbitClass]});
+    lab.style.fontWeight="600"; lab.textContent=`${seg.orbitClass} · ${seg.satellite.split(" (")[0]}`;
+    svg.append(lab);
+  });
+
+  // grid + y labels
+  const g=el("g",{class:"axis"});
+  for(let i=0;i<=4;i++){const yv=yMin+(yMax-yMin)*i/4;const y=Y(yv);
+    g.append(el("line",{x1:M.l,y1:y,x2:W-M.r,y2:y}));
+    const tx=el("text",{x:M.l-8,y:y+3,"text-anchor":"end"});tx.textContent=fmt(yv,0);g.append(tx);}
+  for(let i=0;i<=5;i++){const xv=xMin+(xMax-xMin)*i/5;const x=X(xv);
+    const tx=el("text",{x,y:H-9,"text-anchor":"middle"});tx.textContent=(xv/60000).toFixed(0)+"m";g.append(tx);}
+  const yl=el("text",{x:M.l-8,y:M.t-8,"text-anchor":"end"});yl.textContent="ms";g.append(yl);
+  svg.append(g);
+
+  // handover boundary markers (between consecutive segments)
+  const segs=t.segments||[];
+  for(let i=1;i<segs.length;i++){
+    const xb=X((segs[i-1].endMs+segs[i].startMs)/2);
+    svg.append(el("line",{x1:xb,y1:M.t,x2:xb,y2:H-M.b,stroke:"var(--accent)","stroke-width":1.4,"stroke-dasharray":"5 3"}));
+    const tx=el("text",{x:xb,y:H-M.b-4,"text-anchor":"middle","fill":"var(--accent)"});
+    tx.textContent="⇄ handover"; svg.append(tx);
+  }
+
+  // latency polyline split by orbit segment (break the line across handover gaps)
+  let cur=null, path="", color=null;
+  const flush=()=>{ if(path) svg.append(el("path",{d:path,fill:"none",stroke:color,"stroke-width":2.4})); path=""; };
+  S.forEach(d=>{
+    if(d.latencyMs==null){flush();cur=null;return;}
+    if(d.orbitClass!==cur){flush();cur=d.orbitClass;color=ORBIT_COLOR[cur]||"#fff";path=`M ${X(d.tMs)} ${Y(d.latencyMs)}`;}
+    else path+=` L ${X(d.tMs)} ${Y(d.latencyMs)}`;
+  });
+  flush();
+
+  // playhead
+  const ph=el("line",{x1:X(xMin),y1:M.t,x2:X(xMin),y2:H-M.b,stroke:"#fff","stroke-opacity":0.5,"stroke-width":1.2});
+  svg.append(ph);
+  const dot=el("circle",{r:4,fill:"#fff"}); svg.append(dot);
+  const play=document.getElementById("play"), playt=document.getElementById("playt");
+  function setPlay(p){ const xv=xMin+(xMax-xMin)*p/100;
+    let near=S[0]; for(const d of S) if(Math.abs(d.tMs-xv)<Math.abs(near.tMs-xv)) near=d;
+    ph.setAttribute("x1",X(near.tMs));ph.setAttribute("x2",X(near.tMs));
+    if(near.latencyMs!=null){dot.setAttribute("cx",X(near.tMs));dot.setAttribute("cy",Y(near.latencyMs));dot.setAttribute("fill",ORBIT_COLOR[near.orbitClass]);}
+    playt.textContent=`t = ${(near.tMs/60000).toFixed(1)}m · ${near.orbitClass} ${near.servingSatellite.split(" (")[0]} · latency ${fmt(near.latencyMs,1)} ms · jitter ${fmt(near.jitterMs,2)} ms`;
+  }
+  play.oninput=()=>setPlay(+play.value); setPlay(0);
+}
+</script>
+</body>
+</html>

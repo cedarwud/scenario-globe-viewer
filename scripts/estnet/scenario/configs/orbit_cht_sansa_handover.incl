@@ -1,0 +1,25 @@
+# SATELLITE ORBIT — TWO relay sats for the CHT x SANSA handover scenario.
+#   sat[0] = node 1 = APSTAR-7  (GEO ~76.5E, NORAD 38107) -- continuous relay
+#   sat[1] = node 2 = GSAT0102  (Galileo MEO, NORAD 37847) -- transient relay
+# Both TLEs are lifted verbatim from the scenario-globe-viewer pinned demo
+# snapshot (demo-scenario-config.json):
+#   commercial-geo-2026-06-15T00-00-00Z.tle  (APSTAR-7)
+#   galileo-2026-06-15T00-00-00Z.tle         (GSAT0102 = GALILEO-FM2)
+# These are the two satellites the viewer's own computeRuntimeProjection selects
+# for the demo's first GEO<->MEO handover cycle (verified: APSTAR-7 continuous,
+# GSAT0102 mutually visible 2026-06-15T00:49:30Z..01:30:00Z).
+#
+# PositionPropagatorSGP4File maps TLE 3-line blocks to sat[] by node index:
+#   sat[0] (node 1) -> block 0 (APSTAR-7) ; sat[1] (node 2) -> block 1 (GSAT0102).
+#
+# SIM EPOCH: anchored to an EXPLICIT UTC instant (NOT a TLE epoch) so the sim
+# clock is real wall-clock and SGP4 places both sats at the demo geometry.
+# globalJulianDate.tleFile MUST be empty, otherwise the first TLE's epoch would
+# override simulationStart (GlobalJulianDate.cc:82-95). t=0 == 2026-06-15T00:30Z,
+# so the GSAT0102 mutual-visibility window 00:49:30..01:30:00Z falls at sim
+# t = 1170s..3600s.
+*.numS = 2
+*.sat[*].networkHost.mobility.positionPropagatorType = "PositionPropagatorSGP4File"
+*.sat[*].networkHost.mobility.positionPropagator.tleFile = "./configs/tles/geo_meo_handover.tle"
+*.globalJulianDate.tleFile = ""
+*.globalJulianDate.simulationStart = "2026-06-15T00:30:00.00+00:00Z"
