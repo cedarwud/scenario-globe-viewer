@@ -16,9 +16,9 @@ import {
   buildHandoverTab,
   buildSourcesTab,
   buildModelsTab,
-  buildRuntimeTab,
-  buildAuditTab
+  buildRuntimeTab
 } from "./runtime-projection-evidence-report-tabs";
+import { buildAuditTab } from "./runtime-projection-evidence-report-audit";
 
 export function buildRuntimeProjectionEvidenceReportHtml(
   result: RuntimeProjectionResult,
