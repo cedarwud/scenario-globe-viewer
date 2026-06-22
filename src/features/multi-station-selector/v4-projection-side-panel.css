@@ -2414,3 +2414,188 @@ body:has([data-v4-projection-side-panel="true"])
 @media (prefers-reduced-motion: reduce) {
   .v4-projection-side-panel__recompute-cue { animation: none; opacity: 0.85; }
 }
+
+/* ESTNeT packet-trace disclosure (opt-in `?estnet=1`). Ports the standalone
+   preview pages into the side panel; styled to sit with the other disclosures. */
+.v4-estnet-trace .v4-projection-side-panel__details-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  padding: 0.2rem 0.8rem 0.7rem;
+}
+.v4-estnet-trace__intro {
+  margin: 0;
+  font-size: 1.05rem;
+  line-height: 1.4;
+  color: rgba(157, 196, 232, 0.72);
+}
+.v4-estnet-trace__toggle {
+  display: inline-flex;
+  align-self: flex-start;
+  gap: 0;
+  border: 1px solid rgba(126, 226, 184, 0.22);
+  border-radius: 0.45rem;
+  overflow: hidden;
+}
+.v4-estnet-trace__toggle-btn {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  color: rgba(157, 196, 232, 0.82);
+  font: inherit;
+  font-size: 1.05rem;
+  padding: 0.32rem 0.7rem;
+  cursor: pointer;
+  transition: background-color 0.18s ease, color 0.18s ease;
+}
+.v4-estnet-trace__toggle-btn + .v4-estnet-trace__toggle-btn {
+  border-left: 1px solid rgba(126, 226, 184, 0.18);
+}
+.v4-estnet-trace__toggle-btn:hover {
+  color: #e6f7f1;
+  background: rgba(126, 226, 184, 0.08);
+}
+.v4-estnet-trace__toggle-btn--active {
+  color: #06121b;
+  background: rgba(126, 226, 184, 0.78);
+  font-weight: 600;
+}
+.v4-estnet-trace__mount {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+.v4-estnet-trace__mount[data-loading="true"] {
+  opacity: 0.55;
+}
+.v4-estnet-trace__badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+.v4-estnet-trace__badge {
+  font-size: 0.95rem;
+  padding: 0.12rem 0.55rem;
+  border-radius: 999px;
+  border: 1px solid rgba(126, 226, 184, 0.2);
+  background: rgba(14, 23, 51, 0.6);
+  color: rgba(157, 196, 232, 0.85);
+}
+.v4-estnet-trace__badge--sim {
+  border-color: rgba(76, 194, 255, 0.4);
+  background: rgba(8, 34, 43, 0.7);
+  color: #9bd8ff;
+}
+.v4-estnet-trace__badge--warn {
+  border-color: rgba(255, 207, 92, 0.4);
+  background: rgba(36, 29, 8, 0.7);
+  color: #ffcf5c;
+}
+.v4-estnet-trace__cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(7.5rem, 1fr));
+  gap: 0.45rem;
+}
+.v4-estnet-trace__card {
+  background: rgba(126, 226, 184, 0.04);
+  border: 1px solid rgba(126, 226, 184, 0.16);
+  border-radius: 0.5rem;
+  padding: 0.45rem 0.6rem;
+}
+.v4-estnet-trace__card--geo {
+  border-color: rgba(76, 194, 255, 0.32);
+}
+.v4-estnet-trace__card--meo {
+  border-color: rgba(124, 255, 178, 0.32);
+}
+.v4-estnet-trace__card-k {
+  font-size: 0.92rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: rgba(157, 196, 232, 0.7);
+}
+.v4-estnet-trace__card-v {
+  font-size: 1.55rem;
+  font-weight: 700;
+  margin-top: 0.15rem;
+  color: #e6f7f1;
+}
+.v4-estnet-trace__card--geo .v4-estnet-trace__card-v {
+  color: #9bd8ff;
+}
+.v4-estnet-trace__card--meo .v4-estnet-trace__card-v {
+  color: #b8ffd9;
+}
+.v4-estnet-trace__card-u {
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: rgba(157, 196, 232, 0.7);
+}
+.v4-estnet-trace__legend {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem 0.85rem;
+  font-size: 0.98rem;
+  color: rgba(157, 196, 232, 0.75);
+}
+.v4-estnet-trace__legend-sw {
+  display: inline-block;
+  width: 0.7rem;
+  height: 0.7rem;
+  border-radius: 0.18rem;
+  margin-right: 0.35rem;
+  vertical-align: -0.05rem;
+}
+.v4-estnet-trace__legend-note {
+  margin-left: auto;
+}
+.v4-estnet-trace__svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  background: rgba(8, 16, 32, 0.45);
+  border: 1px solid rgba(126, 226, 184, 0.14);
+  border-radius: 0.5rem;
+}
+.v4-estnet-trace__svg text {
+  fill: rgba(157, 196, 232, 0.78);
+  font-size: 20px;
+}
+.v4-estnet-trace__svg-seg-label,
+.v4-estnet-trace__svg-ho-label {
+  font-size: 19px;
+}
+.v4-estnet-trace__svg-axis line {
+  stroke: rgba(126, 226, 184, 0.16);
+}
+.v4-estnet-trace__foot {
+  font-size: 1rem;
+  line-height: 1.42;
+  color: rgba(157, 196, 232, 0.72);
+}
+.v4-estnet-trace__assumptions {
+  margin: 0;
+}
+.v4-estnet-trace__assumptions strong {
+  color: #e6f7f1;
+}
+.v4-estnet-trace__nonclaims {
+  margin: 0.35rem 0 0;
+  padding-left: 1.1rem;
+}
+.v4-estnet-trace__nonclaims li {
+  margin: 0.15rem 0;
+}
+.v4-estnet-trace__meta {
+  margin-top: 0.4rem;
+  color: rgba(157, 196, 232, 0.6);
+}
+.v4-estnet-trace__error {
+  background: rgba(36, 16, 16, 0.7);
+  border: 1px solid rgba(92, 30, 30, 0.8);
+  color: #ffb4b4;
+  padding: 0.7rem 0.85rem;
+  border-radius: 0.5rem;
+  font-size: 1rem;
+}

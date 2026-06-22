@@ -146,11 +146,20 @@ SGP4-verified); the re-point models the single-dish constraint, not a dropped GE
 
 ## Status / next
 
-Opt-in preview; does **not** touch the accepted 19/19 surface. Both panels are
-**standalone** pages, not yet mounted into the v4 side panel (a future opt-in
-slice). The flat GEO trace (`cht-sansa-abs2a-packet-trace.json` /
+Opt-in preview; does **not** touch the accepted 19/19 surface. The two
+standalone pages (`estnet-trace-panel.html`, `estnet-handover-trace-panel.html`)
+remain as quick previews, and the same two traces are **now also mounted into
+the V4 ground-station side panel** as an opt-in `?estnet=1` disclosure section
+(`src/features/multi-station-selector/estnet-trace-panel-section.ts`): a
+collapsible "ESTNeT packet trace" row whose in-body toggle switches between the
+GEO steady-state and GEO↔MEO handover traces (one generalized SVG renderer
+consumes both fixture schemas). Absent `?estnet=1` nothing is appended, so the
+accepted 19/19 surface is untouched — view at
+`/?stationA=cht-yangmingshan&stationB=sansa-hartebeesthoek&estnet=1`.
+
+The flat GEO trace (`cht-sansa-abs2a-packet-trace.json` /
 `estnet-trace-panel.html`) is the honest steady-state signature; the **handover
 variant** (`cht-sansa-handover-packet-trace.json` /
 `estnet-handover-trace-panel.html`) adds the GEO↔MEO latency-step dynamics. Next
-candidates: in-viewer mount of a panel as an opt-in overlay; the faithful full
-6-hour timeline (all 5 demo handovers, vs this representative single cycle).
+candidate: the faithful full 6-hour timeline (all 5 demo handovers, vs this
+representative single cycle).

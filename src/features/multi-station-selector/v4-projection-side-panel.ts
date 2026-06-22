@@ -32,6 +32,7 @@ import {
 import { createRuntimeProjectionWorkerClient } from "./runtime-projection-worker-client";
 import { buildReplayControlRow } from "./v4-projection-replay-controls";
 import { buildCsvHelpControl } from "./v4-projection-csv-help";
+import { buildEstnetTracePanelSection } from "./estnet-trace-panel-section";
 import {
   WAVE1_BASELINE_BY_PAIR,
   type Wave1Baseline
@@ -76,6 +77,8 @@ const DURATION_MINUTES_PARAM = "durationMinutes";
 const POLICY_PARAM = "policy";
 const COMPARE_PARAM = "compare";
 const PRE_WAVE2_COMPARE_MODE = "pre-wave-2";
+const ESTNET_PARAM = "estnet";
+const ESTNET_OPT_IN_VALUE = "1";
 let rainHelpIdCounter = 0;
 
 const RAIN_RATE_MIN_MM_PER_HOUR = 0;
@@ -302,6 +305,17 @@ function resolveProjectionCompareMode(): CompareMode {
   return search.get(COMPARE_PARAM) === PRE_WAVE2_COMPARE_MODE
     ? PRE_WAVE2_COMPARE_MODE
     : null;
+}
+
+// Opt-in only: `?estnet=1` reveals the ESTNeT packet-trace disclosure section.
+// Absent the param nothing is appended, so the accepted 19/19 default surface
+// is untouched.
+function resolveEstnetTraceOptIn(): boolean {
+  const search =
+    typeof window === "undefined"
+      ? new URLSearchParams()
+      : new URLSearchParams(window.location.search);
+  return search.get(ESTNET_PARAM) === ESTNET_OPT_IN_VALUE;
 }
 
 function buildStatBlock(
@@ -2474,6 +2488,10 @@ function renderResult(
     durationMinutes
   );
 
+  const estnetSection = resolveEstnetTraceOptIn()
+    ? buildEstnetTracePanelSection()
+    : null;
+
   if (compareMode === PRE_WAVE2_COMPARE_MODE) {
     root.append(
       buildHeaderRow(result, viewModel),
@@ -2483,6 +2501,7 @@ function renderResult(
       buildSummariesRow(result, compareMode),
       buildPolicyDisclosure(result),
       buildSourceConfidenceDisclosure(result),
+      ...(estnetSection ? [estnetSection] : []),
       buildEvidenceEntryRow(result, tleRecords),
       buildHiddenMachineEvidenceBlock(result)
     );
@@ -2496,6 +2515,7 @@ function renderResult(
       buildRainImpactMainRow(rainControl, result, rainRateMmPerHour, clearSky),
       buildPolicyDisclosure(result),
       buildSourceConfidenceDisclosure(result),
+      ...(estnetSection ? [estnetSection] : []),
       buildEvidenceEntryRow(result, tleRecords),
       buildHiddenMachineEvidenceBlock(result)
     );
