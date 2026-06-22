@@ -3,6 +3,7 @@ import { mountAppShell } from "../../features/app/app-shell";
 import { mountHomepageEntryCta } from "../../features/app/homepage-entry-cta";
 import { refreshLightingForSceneMode } from "../../features/globe/lighting";
 import { mountLightingToggle } from "../../features/globe/lighting-toggle";
+import { mountEstnetTraceToggle } from "../../features/globe/estnet-trace-toggle";
 import { mountHomeButtonRouteOverride } from "../../features/globe/camera-language";
 import { mountGroundStationMarkers } from "../../features/multi-station-selector/station-markers";
 import { mountGroundStationInfoCard } from "../../features/multi-station-selector/station-info-card";
@@ -952,6 +953,10 @@ export function startBootstrapComposition(app: HTMLDivElement): BootstrapComposi
   }
 
   const unmountLightingToggle = mountLightingToggle(viewer);
+  // Mounted AFTER the lighting toggle so the lighting button exists as the
+  // insert anchor; this lands the ESTNeT toggle between the geocoder (magnifier)
+  // and the lighting (sun) toggle. Opt-in, default-off (see estnet-display-mode).
+  const unmountEstnetTraceToggle = mountEstnetTraceToggle(viewer);
   const unmountOsmBuildingsShowcase = mountOptionalOsmBuildingsShowcase(
     viewer,
     buildingShowcase
@@ -1154,6 +1159,7 @@ export function startBootstrapComposition(app: HTMLDivElement): BootstrapComposi
       groundStationMarkers?.dispose();
       disposeLightingRefresh();
       unmountOsmBuildingsShowcase();
+      unmountEstnetTraceToggle();
       unmountLightingToggle();
       m8aV4GroundStationScene?.dispose();
       firstIntakeOrbitContextActors?.dispose();

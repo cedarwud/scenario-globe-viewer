@@ -7,10 +7,16 @@
   z-index: 3;
 }
 
-.viewer-lighting-toggle {
+.viewer-lighting-toggle,
+.viewer-estnet-trace-toggle {
   height: 32px;
   width: 32px;
   padding: 0;
+}
+
+.viewer-estnet-trace-toggle[data-estnet-enabled="true"] {
+  background: #1f5b52;
+  border-color: #74e9c8;
 }
 
 .viewer-cinematic-preset-button {
@@ -60,7 +66,8 @@
 }
 
 .viewer-cinematic-preset-icon,
-.viewer-lighting-toggle-icon {
+.viewer-lighting-toggle-icon,
+.viewer-estnet-trace-toggle-icon {
   display: block;
   fill: none;
   stroke: currentColor;
@@ -75,7 +82,8 @@
   margin: 2px auto 0;
 }
 
-.viewer-lighting-toggle-icon {
+.viewer-lighting-toggle-icon,
+.viewer-estnet-trace-toggle-icon {
   width: 30px;
   height: 30px;
   margin: 0 auto 2px;

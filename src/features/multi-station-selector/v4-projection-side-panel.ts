@@ -34,6 +34,10 @@ import { buildReplayControlRow } from "./v4-projection-replay-controls";
 import { buildCsvHelpControl } from "./v4-projection-csv-help";
 import { buildEstnetTracePanelSection } from "./estnet-trace-panel-section";
 import {
+  isEstnetTraceDisplayEnabled,
+  subscribeEstnetTraceDisplay
+} from "./estnet-display-mode";
+import {
   WAVE1_BASELINE_BY_PAIR,
   type Wave1Baseline
 } from "./v4-projection-wave1-baselines";
@@ -77,8 +81,6 @@ const DURATION_MINUTES_PARAM = "durationMinutes";
 const POLICY_PARAM = "policy";
 const COMPARE_PARAM = "compare";
 const PRE_WAVE2_COMPARE_MODE = "pre-wave-2";
-const ESTNET_PARAM = "estnet";
-const ESTNET_OPT_IN_VALUE = "1";
 let rainHelpIdCounter = 0;
 
 const RAIN_RATE_MIN_MM_PER_HOUR = 0;
@@ -307,15 +309,12 @@ function resolveProjectionCompareMode(): CompareMode {
     : null;
 }
 
-// Opt-in only: `?estnet=1` reveals the ESTNeT packet-trace disclosure section.
-// Absent the param nothing is appended, so the accepted 19/19 default surface
-// is untouched.
+// Opt-in only: the persisted display mode (toolbar toggle, seeded once from the
+// legacy `?estnet=1` deep link) reveals the ESTNeT packet-trace disclosure
+// section. Default-off, so absent any opt-in nothing is appended and the
+// accepted 19/19 default surface is untouched. See [[estnet-display-mode]].
 function resolveEstnetTraceOptIn(): boolean {
-  const search =
-    typeof window === "undefined"
-      ? new URLSearchParams()
-      : new URLSearchParams(window.location.search);
-  return search.get(ESTNET_PARAM) === ESTNET_OPT_IN_VALUE;
+  return isEstnetTraceDisplayEnabled();
 }
 
 function buildStatBlock(
@@ -2768,6 +2767,29 @@ export function mountV4ProjectionSidePanel(
     }
   })();
 
+  // Re-render (no recompute) when the ESTNeT display mode is toggled, so the
+  // opt-in disclosure section appears/disappears live. Before the first compute
+  // there is no result yet, so this no-ops until a render has happened. Reuses
+  // the same renderResult path as every other render, so with the mode OFF the
+  // output is byte-identical to the default single-link surface.
+  const unsubscribeEstnetDisplay = subscribeEstnetTraceDisplay(() => {
+    const result = latestResult;
+    const clearSky = clearSkyResult;
+    if (disposed || !result || !clearSky || !rainControl) {
+      return;
+    }
+    renderResult(root, pair, result, {
+      rainRateMmPerHour: currentRainRate,
+      clearSky,
+      rainControl,
+      durationMinutes,
+      compareMode,
+      viewer: input.viewer,
+      onDurationChange: setProjectionDurationMinutes,
+      tleRecords
+    });
+  });
+
   return {
     subscribeRuntimeResult(
       listener: (result: RuntimeProjectionResult | null) => void
@@ -2790,6 +2812,7 @@ export function mountV4ProjectionSidePanel(
         return;
       }
       disposed = true;
+      unsubscribeEstnetDisplay();
       if (debounceTimer !== null) {
         clearTimeout(debounceTimer);
         debounceTimer = null;
