@@ -17,7 +17,8 @@ slant range and the instantaneous per-station elevation, and rain attenuation
 binds to the worse of the two stations at its own latitude/height. The selected
 pair's mutual-visibility geometry over this window is actor rows 17, visibility
 windows 17 (window membership is gated by elevation geometry only); the handover
-sequence migrates across orbit classes under the cross-orbit-live policy. The
+sequence migrates between the GEO and MEO orbit classes (APSTAR-7 ⇄ Galileo MEO)
+under the `demo-balanced-v1` policy — this pair has no LEO mutual-visibility window. The
 runtime-inventory disclosure records the active pinned inventory (600 / 33 / 249)
 alongside the network-snapshot reference counts (651 / 33 / 574). All link-budget
 magnitudes remain modeled / standards-derived; throughput is an illustrative
@@ -37,7 +38,7 @@ CSV, and smoke manifest were copied here as retained delivery evidence.
 | Field | Value |
 |---|---|
 | Route | `/?stationA=cht-yangmingshan&stationB=sansa-hartebeesthoek&startUtc=2026-06-15T00%3A00%3A00.000Z&durationMinutes=360` |
-| Generated at | `2026-06-21T16:18:45.767Z` |
+| Generated at | `2026-06-22T07:47:45.785Z` |
 | Source tier | `geometric-derived` |
 | Evidence kind | `cross-family-geometric` |
 | Requirement rows | `34` |

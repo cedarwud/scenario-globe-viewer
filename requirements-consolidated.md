@@ -52,7 +52,7 @@ A.1 合計：**18 條** (文件來源)。
 
 | ID | 來源 | 需求 | 完成度 | 與文件需求的關係 |
 |---|---|---|---|---|
-| V-MO1 | user 口頭追加，後續展開資料在 `multi-orbit/` | 跨軌道 handover demo 必須是真實 LIVE handover (單一服務連續從 LEO → MEO → GEO 切換)，不是 orbit-type scenario picker | done — `handover-policy.ts` cross-orbit-live 政策已實作 + runtime-projection 預設且僅使用此政策 (2026-05-17 砍除 opt-in 旗標);V4 side panel handover events 由此政策產生 | 細化 K-A1 「可於低/中/高軌切換」；K-A1 未明示是 live handover，V-MO1 為 user 補強的解釋 |
+| V-MO1 | user 口頭追加，後續展開資料在 `multi-orbit/` | 跨軌道 handover demo 必須是真實 LIVE handover (單一服務連續從 LEO → MEO → GEO 切換)，不是 orbit-type scenario picker | done (模型政策層) — `handover-policy.ts` 四政策已實作;demo route 實採 `demo-balanced-v1` 政策 (`SELECTED_PAIR_DEMO_HANDOVER_POLICY_ID`)，`cross-orbit-live` 為非-demo 泛用 default (`DEFAULT_RUNTIME_HANDOVER_POLICY_ID`)。Demo 換手 = 6 事件 (5 次 GEO⇄MEO 跨軌遷移 + 1 次初始 GEO 取得);**此 pair 之 LEO 互視窗為 0 (`leoCommunicatingMs=0`)，實際呈現 GEO⇄MEO，非完整 LEO→MEO→GEO 全鏈** (全鏈需另選具 LEO 互視幾何的 pair)。模型政策 over TLE 幾何，非 native RF handover;V4 side panel handover events 由此政策產生 | 細化 K-A1 「可於低/中/高軌切換」；K-A1 未明示是 live handover，V-MO1 為 user 補強的解釋 |
 
 A.2 合計：**1 條** (口頭追加)。
 
@@ -118,10 +118,11 @@ C 合計：**8 條** (其中 R1-D5 + K-F8 為本專案文書層交付，其他 6
 - **2026-05-17**：從 `r1.docx` + `kickoff.pptx` 去重整理初版；加入 V-MO1 (口頭追加跨軌道 live handover)；加入 Bucket B/C 分類；標註 Requirement infra 已完成項目與 irreducibly-only 項目。
 - **2026-05-17 (compute layer 落地後)**：更新完成度 — A 桶 R1-T1、R1-T5、R1-T6、R1-F4、R1-F5、K-E6、R1-D3 改為 done (link-budget 五模組 + runtime-projection 接線 + 雨衰 UI + CSV 匯出已 commit)；V-MO1 更新為「cross-orbit-live 政策已實作、demo UI toggle 待補」；K-A2、K-A3-a、K-A3-b、K-F2 註記 Tier B 替代已實作。
 - **2026-05-17 (B/C relabel)**：重排桶順序為 demo 相關性遞減 — 新 **B = 舊 C** (7 條,需 Requirement 資料但 Tier B 替代已實作,屬本專案交付);新 **C = 舊 B** (8 條,Requirement 既有 infra / 報告層,非本專案 UI scope)。A 不變,所有 ID 與計數本質未變,只字母互換 + 排序更動以反映 demo 優先序 (本專案交付物在前,Requirement 既有 infra 在後)。
-- **2026-05-17 (V-MO1 demo 化)**：runtime-projection.ts 砍除 `enableCrossOrbitLivePolicy` opt-in 旗標;V4 demo route 預設且僅使用 `cross-orbit-live` 政策。**V-MO1 從 partial → done**。Bucket A 19 條全部 done (R1-F3 iperf 子項仍 partial,iperf/ping 實測整合屬 Bucket B irreducible-1)。
+- **2026-05-17 (V-MO1 demo 化)**：runtime-projection.ts 砍除 `enableCrossOrbitLivePolicy` opt-in 旗標;V4 demo route 預設且僅使用 `cross-orbit-live` 政策。**V-MO1 從 partial → done**。Bucket A 19 條全部 done (R1-F3 iperf 子項仍 partial,iperf/ping 實測整合屬 Bucket B irreducible-1)。（**註：此為 2026-05-17 當時狀態;demo route 政策後改為 `demo-balanced-v1`，見下方 2026-06-22 更正。**）
 - **2026-05-17 (short URL + irreducible-2)**：V4 demo route 縮短為 `/?stationA=<id>&stationB=<id>` (合法 station id 即自動啟用 V4 場景與 regional 預設;長形 URL 仍支援)。Bucket B irreducible-2 以 5 組 selected-pair baseline 保留於 `src/features/multi-station-selector/v4-projection-wave1-baselines.ts`，作為 demo case 說明；外部 acceptance threshold script 仍是 source gap。
 - **2026-06-12 (presentation source traceability)**：新增 `docs/data-source-index.md` 作為簡報/審查用的 data source map；不可由現有 artifact 證明的 packet test、native RF handover、DEM/terrain mask、local rain calibration、station RF profile、external acceptance threshold script 均維持 source gap，不升級 claim。
 - **2026-06-13 (data-source audit + public-gap closure,merge `1496a03`)**：link-budget §引用校正 (latency §6.7→§6.6.2+clause 5.3.1.1、rain §2.2.1→§2.2.1.1、handover §7.3→§7.3.2.2);rain 升級為全 P.618-14 path method;天線 S.1528/S.465 接線進 runtime-projection (assumed Tier-B 參數,K-A3-a/K-F2,RSRP 為相對 proxy);DEM CHT 489 m + terrain mask CHT 21°/SANSA 1° (selected-pair);本地雨 CWA 公開樣本 → 5 mm/h preset (irreducible-3);R1-F1 衛星數 663 (先前已更正)。詳見 `docs/data-source-index.md` + `docs/requirement-presentation-walkthrough.md`。
+- **2026-06-22 (handover 政策名稱更正 + LEO 邊界澄清)**：更正先前各列「demo route 預設且僅使用 `cross-orbit-live`」之陳述 (2026-05-17 當時為真,後已改)。實況：demo route 採 `demo-balanced-v1` 政策 (`SELECTED_PAIR_DEMO_HANDOVER_POLICY_ID`,dwell-rotation showcase);`cross-orbit-live` 降為非-demo 泛用 default (`DEFAULT_RUNTIME_HANDOVER_POLICY_ID`)。動態程式碼面 (`runtime-projection.ts` truthBoundary、V4 side-panel disclosure、CSV) 早已渲染真實 policy id,僅靜態 audit 引用字串與本散文落後,本次一併更正。另澄清:V-MO1 需求文字為 LEO→MEO→GEO 全鏈,但 **demo pair CHT×SANSA 之 LEO 互視窗為 0,實際交付 GEO⇄MEO 跨軌遷移** (5 次 + 1 次初始 GEO 取得);全 LEO→MEO→GEO 鏈需另具 LEO 互視幾何的 pair。全程為模型政策 over TLE 幾何,非 native RF handover。
 
 ## 相關文件
 

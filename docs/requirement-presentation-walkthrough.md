@@ -172,9 +172,10 @@ telemetry.
 ### R1-T5 / K-D4 — Handover rule + adjustable parameters
 *(Bucket A · complete)*
 - **Asks:** Design the handover rules and the parameters that drive them.
-- **Satisfied by:** `src/runtime/link-budget/handover-policy.ts` (three policies +
-  adjustable gates), default `cross-orbit-live`; thresholds + events disclosed in
-  the report Handover tab.
+- **Satisfied by:** `src/runtime/link-budget/handover-policy.ts` (four policies +
+  adjustable gates); the demo route runs the `demo-balanced-v1` policy
+  (`SELECTED_PAIR_DEMO_HANDOVER_POLICY_ID`) while `cross-orbit-live` is the generic
+  non-demo default; thresholds + events disclosed in the report Handover tab.
 - **Data source:** Policy gates referencing TR 38.821 §7.3.2.2 · **standards-derived
   / model policy** · [1] [4] [5] [7].
 - **Boundary:** Modeled controls, **not** operator SLA or packet trace.
@@ -335,14 +336,18 @@ telemetry.
 *(Bucket A · complete)*
 - **Asks:** A single service continuously handed over LEO → MEO → GEO — a real
   live handover, not an orbit-type picker.
-- **Satisfied by:** `handover-policy.ts` `cross-orbit-live` policy is the default
-  and only policy on the demo route (opt-in flag removed); the replay event pill
-  carries `data-v-mo1="true"` on cross-orbit migration.
+- **Satisfied by:** `handover-policy.ts` implements four policies; the demo route
+  runs the `demo-balanced-v1` policy (`SELECTED_PAIR_DEMO_HANDOVER_POLICY_ID`),
+  while `cross-orbit-live` is the generic non-demo default. The replay event pill
+  carries `data-v-mo1="true"` on each cross-orbit (GEO⇄MEO) migration.
 - **Data source:** Model-selected cross-orbit migration events · **geometric-derived
   / model policy** · [1] [4] [5] [7].
 - **Boundary:** Do **not** call this native RF handover, active serving-route
   migration, or an operator event proof. It is a model-policy migration over TLE
-  geometry.
+  geometry. For the CHT×SANSA demo pair, LEO mutual-visibility is zero
+  (`leoCommunicatingMs=0`), so the delivered migration is **GEO⇄MEO** only; the
+  full LEO→MEO→GEO chain would need a pair with LEO co-visibility. Demo policy =
+  `demo-balanced-v1`.
 
 ---
 
@@ -607,9 +612,12 @@ spine `requirements-consolidated.md`, after reconciling with merge `1496a03` and
    `+2 ms` processing term disclosed as non-standard.
 7. **Rain citation (K-A3-b).** Spine says P.618-14 "§2.2.1." **Corrected:**
    **§2.2.1.1** path method.
-8. **Handover citation (R1-T5 / R1-F4 / V-MO1).** Earlier "§7.3." **Corrected:**
+8. **Handover citation + policy (R1-T5 / R1-F4 / V-MO1).** Earlier "§7.3." **Corrected:**
    **§7.3.2.2** (Conditional Handover); `cross-orbit-live` attributed to V-MO1, not
-   3GPP.
+   3GPP. **[2026-06-22] Policy name corrected:** the demo route runs
+   `demo-balanced-v1` (`SELECTED_PAIR_DEMO_HANDOVER_POLICY_ID`); `cross-orbit-live`
+   is the generic `DEFAULT_RUNTIME_HANDOVER_POLICY_ID` only. Demo delivers GEO⇄MEO
+   (LEO mutual-visibility = 0 for this pair).
 9. **Evidence package date/hashes ([4]/[5]).** **(Network-snapshot state;
    superseded 2026-06-22 — see item 11.)** **Regenerated 2026-06-15** with the
    WS-C audit tab on the WS-F propagated-geometry link budget (HTML 1670097 B sha

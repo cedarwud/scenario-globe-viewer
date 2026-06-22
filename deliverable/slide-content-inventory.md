@@ -109,8 +109,9 @@ Status terms in the requirement inventory mean:
 ### Selected-Pair Evidence Claims
 
 - The retained selected-pair package covers
-  `cht-yangmingshan` to `sansa-hartebeesthoek`, regenerated on
-  `2026-06-13T08:45:35.391Z` (after the public-data-gap merge), with
+  `cht-yangmingshan` to `sansa-hartebeesthoek`, regenerated for the pinned
+  2026-06-15 demo window (exact generation timestamp in the Selected-Pair Source
+  Evidence Package README Projection table), with
   `geometric-derived` source tier and `cross-family-geometric` evidence kind.
   [3] [4] [5]
 - The selected route spans `2026-06-15T00:00:00Z` to

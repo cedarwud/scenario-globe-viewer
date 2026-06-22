@@ -1,6 +1,6 @@
 {
   "description": "Byte-exact sha256 of buildRuntimeProjectionEvidenceReportHtml(pinned demo, fixed timestamp). Refactor safety net; re-baseline with UPDATE_GOLDENS=1 on an intended report-format or demo-regen change.",
   "fixedGeneratedAtUtc": "2026-06-15T00:00:00.000Z",
-  "byteLength": 939840,
-  "sha256": "94dd28f3051aab6e3033a136f30be9fbbc17cdf971df88c7e64eb5478946d026"
+  "byteLength": 940016,
+  "sha256": "576da2170227a4307d18563b317f2bf55de5fad322519e2a7c92df933f8096ce"
 }

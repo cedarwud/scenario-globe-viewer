@@ -72,7 +72,7 @@ const STANDARDS_CONFORMANCE: ReadonlyArray<StandardsConformanceEntry> = [
   {
     quantity: "Handover trigger",
     formula: "argmax(received-power proxy) + hysteresis + dwell gate",
-    standardSection: "3GPP TR 38.821 §7.3.2.2 + V-MO1 cross-orbit-live",
+    standardSection: "3GPP TR 38.821 §7.3.2.2 + V-MO1 verbal addendum",
     retainedPdf: "38821-g20.pdf",
     pdfSha256: "4ac0c498187d91c17b1a8cb900364e6c692d1ce29619bd243a678c2bfdc67378"
   }

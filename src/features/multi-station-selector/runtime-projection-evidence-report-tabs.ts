@@ -286,7 +286,7 @@ export function buildSummaryTab(result: RuntimeProjectionResult): string {
         <div class="formula-math">
           Serving Link = argmax<sub>s &isin; Vis</sub> { SNR(s) }, with &Delta;t &ge; T<sub>min</sub> and SNR hysteresis &ge; H<sub>dB</sub>
         </div>
-        <p>Defines how the station selects a serving link among visible satellites. The V-MO1 policy limits excessive switching to avoid modeled refocus churn and signal oscillation.</p>
+        <p>Illustrative selection rule among visible satellites. The demo route runs the <code>demo-balanced-v1</code> policy (implementing the V-MO1 cross-orbit addendum) — a received-power proxy with hysteresis and minimum-dwell gates plus orbit-rotation timers — to limit excessive switching. Modeled policy over TLE geometry, not an RF-native handover.</p>
       </div>
       
       <div class="formula-card">
