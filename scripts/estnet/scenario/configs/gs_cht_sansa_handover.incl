@@ -1,30 +1,31 @@
 # GROUND STATIONS — CHT-Yangmingshan (TW) + SANSA-Hartebeesthoek (ZA),
-# handover variant.
-# Node numbering with numS=2: sat[0]=1, sat[1]=2, cg[0]=3 (CHT), cg[1]=4 (SANSA).
+# full-6h handover variant.
+# Node numbering with numS=4: sat[0..3]=node 1..4, cg[0]=node 5 (CHT),
+# cg[1]=node 6 (SANSA).
 #
 # internetConnection=false on BOTH is REQUIRED so traffic goes over the RF link
 # (GS-A -> Sat -> GS-B), not through the virtual terrestrial internet shortcut.
 #
 # ANTENNA POINTING = ContactPlanBasedNodeTracking (NOT TargetTracking).
 # The directional yagi (18.9 dB boresight) can only point ONE way at a time, so
-# it cannot simultaneously track the GEO and the MEO. The re-pointing IS the
+# it cannot simultaneously track the GEO and a MEO. The re-pointing IS the
 # handover. TargetTracking cannot re-point at runtime (setTarget has no callers),
 # so the moving-relay handover must be contact-plan driven: the contact plan
-# (cht_sansa_handover.cp) lists NON-OVERLAPPING per-GS contacts (GEO, then MEO,
-# then GEO) so the tracker re-selects when the current target leaves the set
+# (cht_sansa_handover.cp) lists NON-OVERLAPPING per-GS contacts (GEO, MEO, GEO,
+# MEO, GEO, MEO) so the tracker re-selects when the current target leaves the set
 # (ContactPlanBasedNodeTracking points at *nodesAvailableToBeTracked.begin(),
 # sticky to the current target until it drops out).
 *.numCg = 2
 *.cg[*].trackingType = "estnet.node.tracking.contactplanbased.ContactPlanBasedNodeTracking"
 
-# cg[0] = CHT Yangmingshan (node 3) — traffic source
+# cg[0] = CHT Yangmingshan (node 5) — traffic source
 *.cg[0].networkHost.mobility.lat = 25.1550deg
 *.cg[0].networkHost.mobility.lon = 121.5500deg
 *.cg[0].networkHost.mobility.alt = 600m
 *.cg[0].label = "CHT Yangmingshan, TW"
 *.cg[0].internetConnection = false
 
-# cg[1] = SANSA Hartebeesthoek (node 4) — traffic destination
+# cg[1] = SANSA Hartebeesthoek (node 6) — traffic destination
 *.cg[1].networkHost.mobility.lat = -25.8872deg
 *.cg[1].networkHost.mobility.lon = 27.7075deg
 *.cg[1].networkHost.mobility.alt = 1540m

@@ -13,13 +13,17 @@ adapter reads each phase's two one-hop legs, composes them (latency = uplink +
 downlink, like the single-GEO adapter), tags every sample with the serving
 satellite + orbit class, and concatenates the phases on the sim-time axis.
 
-    phase A (GEO APSTAR-7): CHT--cg0.app0-->sat0.app0 ; sat0.app0-->SANSA.app0
-    phase B (MEO GSAT0102): CHT--cg0.app1-->sat1.app0 ; sat1.app0-->SANSA.app1
-    phase C (GEO APSTAR-7): CHT--cg0.app2-->sat0.app1 ; sat0.app1-->SANSA.app2
+    phase 1 (GEO APSTAR-7): CHT--cg0.app0-->sat0.app0 ; sat0.app0-->SANSA.app0
+    phase 2 (MEO GSAT0102): CHT--cg0.app1-->sat1.app0 ; sat1.app0-->SANSA.app1
+    phase 3 (GEO APSTAR-7): CHT--cg0.app2-->sat0.app1 ; sat0.app1-->SANSA.app2
+    phase 4 (MEO GSAT0232): CHT--cg0.app3-->sat2.app0 ; sat2.app0-->SANSA.app3
+    phase 5 (GEO APSTAR-7): CHT--cg0.app4-->sat0.app2 ; sat0.app2-->SANSA.app4
+    phase 6 (MEO GSAT0209): CHT--cg0.app5-->sat3.app0 ; sat3.app0-->SANSA.app5
 
-tMs is ABSOLUTE sim time (t=0 == 2026-06-15T00:30:00Z), so the handover
-boundaries land at the geometry-true times (MEO mutual-visibility 1170..3600 s).
-The ~10 s app guard at each boundary appears as a short no-sample handover gap.
+tMs is ABSOLUTE sim time (t=0 == 2026-06-15T00:00:00Z), so the handover
+boundaries land at the geometry-true times (MEO mutual-visibility windows
+2970..5400 / 11310..13620 / 21180..21600 s). The ~10 s app guard at each
+boundary appears as a short no-sample handover gap.
 
 HONESTY (R12): ESTNeT-SIMULATED, not operator-measured. The GEO<->MEO route
 preference mirrors the viewer's demo-balanced-v1 SHOWCASE policy -- it is NOT an
@@ -38,22 +42,34 @@ import argparse
 import json
 import sqlite3
 
-SIM_EPOCH_UTC = "2026-06-15T00:30:00Z"  # explicit simulationStart = sim t=0
+SIM_EPOCH_UTC = "2026-06-15T00:00:00Z"  # explicit simulationStart = sim t=0
 
 # Phase map (see omnetpp_cht_sansa_handover.ini). Module-name LIKE patterns.
 PHASES = [
-    {"label": "GEO-A", "orbit": "GEO", "satellite": "APSTAR-7",
+    {"label": "GEO-1", "orbit": "GEO", "satellite": "APSTAR-7",
      "uplink_src":   "%cg[0]%appWrapper[0].app",
      "uplink_sink":  "%sat[0]%appWrapper[0].app",
      "downlink_sink": "%cg[1]%appWrapper[0].app"},
-    {"label": "MEO-B", "orbit": "MEO", "satellite": "GSAT0102 (GALILEO-FM2)",
+    {"label": "MEO-2", "orbit": "MEO", "satellite": "GSAT0102 (GALILEO-FM2)",
      "uplink_src":   "%cg[0]%appWrapper[1].app",
      "uplink_sink":  "%sat[1]%appWrapper[0].app",
      "downlink_sink": "%cg[1]%appWrapper[1].app"},
-    {"label": "GEO-C", "orbit": "GEO", "satellite": "APSTAR-7",
+    {"label": "GEO-3", "orbit": "GEO", "satellite": "APSTAR-7",
      "uplink_src":   "%cg[0]%appWrapper[2].app",
      "uplink_sink":  "%sat[0]%appWrapper[1].app",
      "downlink_sink": "%cg[1]%appWrapper[2].app"},
+    {"label": "MEO-4", "orbit": "MEO", "satellite": "GSAT0232 (GALILEO 32)",
+     "uplink_src":   "%cg[0]%appWrapper[3].app",
+     "uplink_sink":  "%sat[2]%appWrapper[0].app",
+     "downlink_sink": "%cg[1]%appWrapper[3].app"},
+    {"label": "GEO-5", "orbit": "GEO", "satellite": "APSTAR-7",
+     "uplink_src":   "%cg[0]%appWrapper[4].app",
+     "uplink_sink":  "%sat[0]%appWrapper[2].app",
+     "downlink_sink": "%cg[1]%appWrapper[4].app"},
+    {"label": "MEO-6", "orbit": "MEO", "satellite": "GSAT0209 (GALILEO 12)",
+     "uplink_src":   "%cg[0]%appWrapper[5].app",
+     "uplink_sink":  "%sat[3]%appWrapper[0].app",
+     "downlink_sink": "%cg[1]%appWrapper[5].app"},
 ]
 
 
@@ -218,25 +234,27 @@ def build_trace(vec_path):
 
     return {
         "schemaVersion": 2,
-        "pathLabel": "CHT-Yangmingshan → [ APSTAR-7 GEO ⇄ GSAT0102 MEO ] → SANSA-Hartebeesthoek",
+        "pathLabel": "CHT-Yangmingshan → [ APSTAR-7 GEO ⇄ Galileo MEO (GSAT0102/0232/0209) ] → SANSA-Hartebeesthoek",
         "sourceClass": "external-simulator-derived",
         "toolProvenance": "estnet-inet",
         "handover": True,
         "assumptionSet": (
-            "ESTNeT v1.0 (OMNeT++/INET) GEO↔MEO handover model. Relay satellites: "
-            "APSTAR-7 (~76.5°E GEO) and GSAT0102 (Galileo MEO), both from the pinned "
-            "scenario-globe-viewer snapshot. The directional GS yagi re-points from "
-            "the GEO to the Galileo MEO while the MEO is mutually visible "
-            "(2026-06-15T00:49:30Z..01:30:00Z = sim 1170..3600 s), then back. Each "
-            "phase is two one-hop unicast RF legs (uplink+downlink) composed in the "
-            "adapter; assumed 20 W sat EIRP + 9600 bps GMSK UHF PHY (latency ≈ 2× "
-            "one-way propagation + ~236 ms serialization). The lower MEO range "
-            "(~27,100 km vs GEO ~38,700 km) is why the latency steps down ~81 ms."
+            "ESTNeT v1.0 (OMNeT++/INET) GEO↔MEO handover model, full 6-hour demo "
+            "timeline. Relay satellites: APSTAR-7 (~76.5°E GEO, continuous) and three "
+            "Galileo MEOs (GSAT0102, GSAT0232, GSAT0209), all from the pinned "
+            "scenario-globe-viewer snapshot. The single directional GS yagi re-points "
+            "from the GEO to whichever Galileo MEO is mutually visible, then back — six "
+            "serving phases over the window (MEO mutual-vis 00:49:30..01:30:00Z, "
+            "03:08:30..03:47:00Z, 05:53:00..06:00:00Z), reproducing the viewer's six "
+            "handover events. Each phase is two one-hop unicast RF legs (uplink+downlink) "
+            "composed in the adapter; assumed 20 W sat EIRP + 9600 bps GMSK UHF PHY "
+            "(latency ≈ 2× one-way propagation + ~236 ms serialization). The lower MEO "
+            "range (~27,100 km vs GEO ~38,700 km) is why the latency steps down ~81 ms."
         ),
         "nonClaims": [
             "SIMULATION, not operator-measured (not Tier-A).",
             "The GEO↔MEO handover is a SHOWCASE route preference (mirrors the viewer's demo-balanced-v1 policy), NOT an RF-failure-driven handover — the GEO stays visible the whole run.",
-            "Both satellites are genuinely mutually visible at the handover times (independently SGP4-verified), but a single dish can only point one way, so the re-point IS the modeled handover.",
+            "The GEO and the serving Galileo MEO are genuinely mutually visible at each handover time (independently SGP4-verified), but a single dish can only point one way, so the re-point IS the modeled handover.",
             "jitter and loss are adapter-derived, not native ESTNeT signals.",
             "each phase's end-to-end is a composition of two independent one-hop RF legs, not a single relayed packet.",
             "RF EIRP/bitrate are assumed link parameters chosen so both links close.",
@@ -245,11 +263,15 @@ def build_trace(vec_path):
             "simEpochUtc": SIM_EPOCH_UTC,
             "satellites": {
                 "GEO": "APSTAR-7, NORAD 38107, ~76.5°E GEO",
-                "MEO": "GSAT0102 (GALILEO-FM2), NORAD 37847, Galileo MEO ~23,222 km",
+                "MEO": "GSAT0102 / GSAT0232 / GSAT0209 (Galileo, ~23,222 km)",
             },
             "stationA": {"id": "cht-yangmingshan", "lat": 25.155, "lon": 121.55},
             "stationB": {"id": "sansa-hartebeesthoek", "lat": -25.8872, "lon": 27.7075},
-            "handoverWindowUtc": ["2026-06-15T00:49:30Z", "2026-06-15T01:30:00Z"],
+            "handoverWindowUtc": [
+                "2026-06-15T00:49:30Z", "2026-06-15T01:30:00Z",
+                "2026-06-15T03:08:30Z", "2026-06-15T03:47:00Z",
+                "2026-06-15T05:53:00Z", "2026-06-15T06:00:00Z",
+            ],
             "vecSource": vec_path,
         },
         "segments": segments,

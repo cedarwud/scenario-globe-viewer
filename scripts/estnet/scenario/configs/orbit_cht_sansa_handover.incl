@@ -1,25 +1,31 @@
-# SATELLITE ORBIT — TWO relay sats for the CHT x SANSA handover scenario.
+# SATELLITE ORBIT — FOUR relay sats for the CHT x SANSA full-6h handover scenario.
 #   sat[0] = node 1 = APSTAR-7  (GEO ~76.5E, NORAD 38107) -- continuous relay
-#   sat[1] = node 2 = GSAT0102  (Galileo MEO, NORAD 37847) -- transient relay
-# Both TLEs are lifted verbatim from the scenario-globe-viewer pinned demo
+#   sat[1] = node 2 = GSAT0102  (Galileo MEO, NORAD 37847) -- transient relay (phase 2)
+#   sat[2] = node 3 = GSAT0232  (Galileo MEO, NORAD 61182) -- transient relay (phase 4)
+#   sat[3] = node 4 = GSAT0209  (Galileo MEO, NORAD 41174) -- transient relay (phase 6)
+# All four TLEs are lifted verbatim from the scenario-globe-viewer pinned demo
 # snapshot (demo-scenario-config.json):
 #   commercial-geo-2026-06-15T00-00-00Z.tle  (APSTAR-7)
-#   galileo-2026-06-15T00-00-00Z.tle         (GSAT0102 = GALILEO-FM2)
-# These are the two satellites the viewer's own computeRuntimeProjection selects
-# for the demo's first GEO<->MEO handover cycle (verified: APSTAR-7 continuous,
-# GSAT0102 mutually visible 2026-06-15T00:49:30Z..01:30:00Z).
+#   galileo-2026-06-15T00-00-00Z.tle         (GSAT0102 / GSAT0232 / GSAT0209)
+# These are the satellites the viewer's own computeRuntimeProjection selects for
+# the demo's six-event GEO<->MEO handover timeline. Independently SGP4 cross-
+# checked (precheck_2hop_geometry{,_independent}): APSTAR-7 continuous; the three
+# Galileo MEO mutual-visibility windows are
+#   GSAT0102  00:49:30..01:30:00Z   GSAT0232  03:08:30..03:47:00Z
+#   GSAT0209  05:53:00..06:00:00Z.
 #
 # PositionPropagatorSGP4File maps TLE 3-line blocks to sat[] by node index:
-#   sat[0] (node 1) -> block 0 (APSTAR-7) ; sat[1] (node 2) -> block 1 (GSAT0102).
+#   sat[0]->block0 (APSTAR-7) ; sat[1]->block1 (GSAT0102) ;
+#   sat[2]->block2 (GSAT0232) ; sat[3]->block3 (GSAT0209).
 #
 # SIM EPOCH: anchored to an EXPLICIT UTC instant (NOT a TLE epoch) so the sim
-# clock is real wall-clock and SGP4 places both sats at the demo geometry.
+# clock is real wall-clock and SGP4 places all sats at the demo geometry.
 # globalJulianDate.tleFile MUST be empty, otherwise the first TLE's epoch would
-# override simulationStart (GlobalJulianDate.cc:82-95). t=0 == 2026-06-15T00:30Z,
-# so the GSAT0102 mutual-visibility window 00:49:30..01:30:00Z falls at sim
-# t = 1170s..3600s.
-*.numS = 2
+# override simulationStart (GlobalJulianDate.cc:82-95). t=0 == 2026-06-15T00:00:00Z,
+# so the MEO mutual-visibility windows fall at sim t = 2970..5400 s (GSAT0102),
+# 11310..13620 s (GSAT0232) and 21180..21600 s (GSAT0209).
+*.numS = 4
 *.sat[*].networkHost.mobility.positionPropagatorType = "PositionPropagatorSGP4File"
 *.sat[*].networkHost.mobility.positionPropagator.tleFile = "./configs/tles/geo_meo_handover.tle"
 *.globalJulianDate.tleFile = ""
-*.globalJulianDate.simulationStart = "2026-06-15T00:30:00.00+00:00Z"
+*.globalJulianDate.simulationStart = "2026-06-15T00:00:00.00+00:00Z"
