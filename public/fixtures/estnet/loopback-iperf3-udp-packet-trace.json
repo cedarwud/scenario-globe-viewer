@@ -1,0 +1,307 @@
+{
+  "schemaVersion": 1,
+  "pathLabel": "127.0.0.1 loopback — iperf3 UDP throughput rehearsal",
+  "sourceClass": "network-test-derived",
+  "toolProvenance": "iperf3",
+  "latencySemantic": "none",
+  "assumptionSet": "Ingested from a iperf3 artifact by external_trace_ingest.py v1; field derivations and semantics are disclosed in nonClaims; the input artifact is identified by sha256 in metadata.inputArtifact.",
+  "nonClaims": [
+    "Network-test tool output (ping/iperf class), not an operator RF measurement.",
+    "Artifact delivered by: local-rehearsal.",
+    "iperf3 reports throughput/jitter/loss; it carries NO latency signal — latencyMs is null.",
+    "per-interval jitter/loss are the tool's own UDP report fields when present."
+  ],
+  "metadata": {
+    "simEpochUtc": "2026-07-02T03:54:07Z",
+    "ingestTool": "external_trace_ingest.py v1",
+    "ingestFormat": "iperf3",
+    "deliveredBy": "local-rehearsal",
+    "inputArtifact": {
+      "name": "loopback-iperf3-udp.json",
+      "sha256": "9c6c981edfb798ac5e1bb73f06766de704a433c91edf53237c6121bb0bda8669",
+      "bytes": 16739
+    }
+  },
+  "summary": {
+    "sentPackets": 573,
+    "deliveredEndToEnd": 573,
+    "overallPacketLossRatio": 0.0,
+    "meanLatencyMs": null,
+    "minLatencyMs": null,
+    "maxLatencyMs": null,
+    "finalJitterMs": 0.038,
+    "meanThroughputMbps": 5.006869
+  },
+  "samples": [
+    {
+      "tMs": 0.0,
+      "latencyMs": null,
+      "jitterMs": null,
+      "throughputMbps": 5.242162,
+      "packetLossRatio": null,
+      "linkUp": true,
+      "hops": null
+    },
+    {
+      "tMs": 1000.137,
+      "latencyMs": null,
+      "jitterMs": null,
+      "throughputMbps": 4.98112,
+      "packetLossRatio": null,
+      "linkUp": true,
+      "hops": null
+    },
+    {
+      "tMs": 2000.06,
+      "latencyMs": null,
+      "jitterMs": null,
+      "throughputMbps": 4.980681,
+      "packetLossRatio": null,
+      "linkUp": true,
+      "hops": null
+    },
+    {
+      "tMs": 3000.071,
+      "latencyMs": null,
+      "jitterMs": null,
+      "throughputMbps": 4.980586,
+      "packetLossRatio": null,
+      "linkUp": true,
+      "hops": null
+    },
+    {
+      "tMs": 4000.101,
+      "latencyMs": null,
+      "jitterMs": null,
+      "throughputMbps": 4.980816,
+      "packetLossRatio": null,
+      "linkUp": true,
+      "hops": null
+    },
+    {
+      "tMs": 5000.085,
+      "latencyMs": null,
+      "jitterMs": null,
+      "throughputMbps": 4.980791,
+      "packetLossRatio": null,
+      "linkUp": true,
+      "hops": null
+    },
+    {
+      "tMs": 6000.074,
+      "latencyMs": null,
+      "jitterMs": null,
+      "throughputMbps": 4.980821,
+      "packetLossRatio": null,
+      "linkUp": true,
+      "hops": null
+    },
+    {
+      "tMs": 7000.057,
+      "latencyMs": null,
+      "jitterMs": null,
+      "throughputMbps": 4.980691,
+      "packetLossRatio": null,
+      "linkUp": true,
+      "hops": null
+    },
+    {
+      "tMs": 8000.066,
+      "latencyMs": null,
+      "jitterMs": null,
+      "throughputMbps": 4.980592,
+      "packetLossRatio": null,
+      "linkUp": true,
+      "hops": null
+    },
+    {
+      "tMs": 9000.095,
+      "latencyMs": null,
+      "jitterMs": null,
+      "throughputMbps": 4.980656,
+      "packetLossRatio": null,
+      "linkUp": true,
+      "hops": null
+    },
+    {
+      "tMs": 10000.111,
+      "latencyMs": null,
+      "jitterMs": null,
+      "throughputMbps": 4.980905,
+      "packetLossRatio": null,
+      "linkUp": true,
+      "hops": null
+    },
+    {
+      "tMs": 11000.077,
+      "latencyMs": null,
+      "jitterMs": null,
+      "throughputMbps": 4.980841,
+      "packetLossRatio": null,
+      "linkUp": true,
+      "hops": null
+    },
+    {
+      "tMs": 12000.056,
+      "latencyMs": null,
+      "jitterMs": null,
+      "throughputMbps": 4.980716,
+      "packetLossRatio": null,
+      "linkUp": true,
+      "hops": null
+    },
+    {
+      "tMs": 13000.06,
+      "latencyMs": null,
+      "jitterMs": null,
+      "throughputMbps": 5.242618,
+      "packetLossRatio": null,
+      "linkUp": true,
+      "hops": null
+    },
+    {
+      "tMs": 14000.11,
+      "latencyMs": null,
+      "jitterMs": null,
+      "throughputMbps": 4.980696,
+      "packetLossRatio": null,
+      "linkUp": true,
+      "hops": null
+    },
+    {
+      "tMs": 15000.118,
+      "latencyMs": null,
+      "jitterMs": null,
+      "throughputMbps": 4.980826,
+      "packetLossRatio": null,
+      "linkUp": true,
+      "hops": null
+    },
+    {
+      "tMs": 16000.1,
+      "latencyMs": null,
+      "jitterMs": null,
+      "throughputMbps": 4.980895,
+      "packetLossRatio": null,
+      "linkUp": true,
+      "hops": null
+    },
+    {
+      "tMs": 17000.068,
+      "latencyMs": null,
+      "jitterMs": null,
+      "throughputMbps": 4.980741,
+      "packetLossRatio": null,
+      "linkUp": true,
+      "hops": null
+    },
+    {
+      "tMs": 18000.067,
+      "latencyMs": null,
+      "jitterMs": null,
+      "throughputMbps": 4.980681,
+      "packetLossRatio": null,
+      "linkUp": true,
+      "hops": null
+    },
+    {
+      "tMs": 19000.078,
+      "latencyMs": null,
+      "jitterMs": null,
+      "throughputMbps": 4.980646,
+      "packetLossRatio": null,
+      "linkUp": true,
+      "hops": null
+    },
+    {
+      "tMs": 20000.096,
+      "latencyMs": null,
+      "jitterMs": null,
+      "throughputMbps": 4.980726,
+      "packetLossRatio": null,
+      "linkUp": true,
+      "hops": null
+    },
+    {
+      "tMs": 21000.098,
+      "latencyMs": null,
+      "jitterMs": null,
+      "throughputMbps": 4.980756,
+      "packetLossRatio": null,
+      "linkUp": true,
+      "hops": null
+    },
+    {
+      "tMs": 22000.094,
+      "latencyMs": null,
+      "jitterMs": null,
+      "throughputMbps": 4.980836,
+      "packetLossRatio": null,
+      "linkUp": true,
+      "hops": null
+    },
+    {
+      "tMs": 23000.074,
+      "latencyMs": null,
+      "jitterMs": null,
+      "throughputMbps": 4.980582,
+      "packetLossRatio": null,
+      "linkUp": true,
+      "hops": null
+    },
+    {
+      "tMs": 24000.105,
+      "latencyMs": null,
+      "jitterMs": null,
+      "throughputMbps": 4.980746,
+      "packetLossRatio": null,
+      "linkUp": true,
+      "hops": null
+    },
+    {
+      "tMs": 25000.103,
+      "latencyMs": null,
+      "jitterMs": null,
+      "throughputMbps": 4.980781,
+      "packetLossRatio": null,
+      "linkUp": true,
+      "hops": null
+    },
+    {
+      "tMs": 26000.094,
+      "latencyMs": null,
+      "jitterMs": null,
+      "throughputMbps": 4.980816,
+      "packetLossRatio": null,
+      "linkUp": true,
+      "hops": null
+    },
+    {
+      "tMs": 27000.078,
+      "latencyMs": null,
+      "jitterMs": null,
+      "throughputMbps": 5.242885,
+      "packetLossRatio": null,
+      "linkUp": true,
+      "hops": null
+    },
+    {
+      "tMs": 28000.077,
+      "latencyMs": null,
+      "jitterMs": null,
+      "throughputMbps": 4.980726,
+      "packetLossRatio": null,
+      "linkUp": true,
+      "hops": null
+    },
+    {
+      "tMs": 29000.079,
+      "latencyMs": null,
+      "jitterMs": null,
+      "throughputMbps": 4.978695,
+      "packetLossRatio": null,
+      "linkUp": true,
+      "hops": null
+    }
+  ]
+}

@@ -12,6 +12,16 @@
       "id": "geo",
       "label": "GEO steady-state",
       "url": "/fixtures/estnet/cht-sansa-apstar7-packet-trace.json"
+    },
+    {
+      "id": "ping-rehearsal",
+      "label": "Ping rehearsal (loopback)",
+      "url": "/fixtures/estnet/loopback-ping-packet-trace.json"
+    },
+    {
+      "id": "iperf3-rehearsal",
+      "label": "iperf3 UDP rehearsal (loopback)",
+      "url": "/fixtures/estnet/loopback-iperf3-udp-packet-trace.json"
     }
   ]
 }

@@ -47,6 +47,35 @@ const FIXTURES = [
       lossTailClustered: true,
     },
   },
+  // R1-F3 functional-test rehearsal captures: REAL local loopback runs of the
+  // two requirement-named tools (ping / iperf3), ingested via
+  // external_trace_ingest.py. network-test tier — a machine-local capture,
+  // NOT a satellite-path artifact and NOT an operator RF measurement; see
+  // scripts/estnet/captures/README.md for the exact commands + audit chain.
+  {
+    file: "public/fixtures/estnet/loopback-ping-packet-trace.json",
+    pins: {
+      schemaVersion: 1,
+      samples: 100,
+      overallPacketLossRatio: 0,
+      sourceClass: "network-test-derived",
+      latencySemantic: "rtt",
+      deliveredBy: "local-rehearsal",
+      ingested: true,
+    },
+  },
+  {
+    file: "public/fixtures/estnet/loopback-iperf3-udp-packet-trace.json",
+    pins: {
+      schemaVersion: 1,
+      samples: 30,
+      overallPacketLossRatio: 0,
+      sourceClass: "network-test-derived",
+      latencySemantic: "none",
+      deliveredBy: "local-rehearsal",
+      ingested: true,
+    },
+  },
 ];
 const ALLOWED_SOURCE_CLASSES = new Set([
   "external-simulator-derived",
@@ -205,8 +234,18 @@ for (const { file, pins } of FIXTURES) {
     continue;
   }
   const trace = JSON.parse(fs.readFileSync(abs, "utf-8"));
-  validateTrace(target, trace);
-  check(target, trace.sourceClass === "external-simulator-derived", "committed fixtures are self-run ESTNeT → external-simulator-derived");
+  validateTrace(target, trace, { ingest: pins.ingested === true });
+  // Provenance pin: self-run ESTNeT fixtures stay external-simulator-derived;
+  // ingested rehearsal captures stay network-test-derived. Changing a pin here
+  // is a provenance change — review it, never upgrade a tier (R12).
+  const expectedClass = pins.sourceClass ?? "external-simulator-derived";
+  check(target, trace.sourceClass === expectedClass, `pinned sourceClass ${expectedClass} (got ${trace.sourceClass})`);
+  if (pins.latencySemantic !== undefined) {
+    check(target, trace.latencySemantic === pins.latencySemantic, `pinned latencySemantic ${pins.latencySemantic} (got ${trace.latencySemantic})`);
+  }
+  if (pins.deliveredBy !== undefined) {
+    check(target, trace.metadata.deliveredBy === pins.deliveredBy, `pinned deliveredBy ${pins.deliveredBy} (got ${trace.metadata.deliveredBy})`);
+  }
   check(target, trace.schemaVersion === pins.schemaVersion, `pinned schemaVersion ${pins.schemaVersion}`);
   check(target, trace.samples.length === pins.samples, `pinned sample count ${pins.samples} (got ${trace.samples.length}) — regen drift? update pin CONSCIOUSLY`);
   if (pins.overallPacketLossRatio !== undefined) {

@@ -50,6 +50,7 @@ never to run the demo. Acceptance opens this repo only.
 | `regen.sh` | one command (`npm run estnet:regen`): scenario → kit → both sims → adapters → fixture drift report → gate |
 | `crosscheck_estnet_vs_sgp4.py` | `npm run estnet:crosscheck` — dual-model consistency: every delivered sample's latency must equal independent-SGP4 range/c + one fitted serialization constant; MEO segments must sit inside independently computed co-visibility (agreement = implementation cross-proof, never a measurement claim) |
 | `testdata/` | ingest format samples for the gate (test-only, see its README) |
+| `captures/` | REAL local loopback ping + iperf3 UDP rehearsal captures (R1-F3 tools) — the ingest inputs behind the two committed `loopback-*` fixtures, with their audit chain (see its README) |
 | `../verify-estnet-trace-contract.mjs` | `npm run verify:estnet` — fixture contract + honesty invariants + ingest regression + provenance-refusal guard |
 
 The scenario `include`s three more files (`basic.incl`, `antenna_sat_isotropic.incl`,
@@ -243,6 +244,12 @@ K-B1 bridge). This pipeline doubles as the **rehearsal** for that delivery:
   in one of those shapes, integration should reduce to a gated data-review
   step — ingest → stage → review → curated fixture commit — subject to the
   parser gate; an unlisted format still means adapter work.
+- The ping/iperf3 leg of that chain has been **exercised for real** (R1-F3
+  "iperf / ping test integration"): `captures/` holds real local loopback
+  runs of both tools, ingested into the committed `loopback-*` fixtures and
+  selectable in the panel menu. Machine-local rehearsal, tier
+  `network-test-derived` — not a satellite-path artifact (see
+  `captures/README.md`).
 - `npm run estnet:regen` regenerates our own traces end-to-end;
   `npm run verify:estnet` gates the contract, the honesty invariants, and the
   ingest parsers (including the `operator-measured` refusal guard).
