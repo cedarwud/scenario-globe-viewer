@@ -102,9 +102,13 @@ export function mountEstnetSideTab(
 
   const stripHeader = document.createElement("div");
   stripHeader.className = "v4-estnet-strip__header";
+  // Merged header row: once a trace renders, the content swaps this generic
+  // title for the trace's path label (setChartTitle sink) — the strip spends
+  // exactly one text row above the legend, keeping plot height.
+  const STRIP_DEFAULT_TITLE = "Packet trace — time series";
   const stripTitle = document.createElement("span");
   stripTitle.className = "v4-estnet-strip__title";
-  stripTitle.textContent = "Packet trace — time series";
+  stripTitle.textContent = STRIP_DEFAULT_TITLE;
   const stripClose = document.createElement("button");
   stripClose.type = "button";
   stripClose.className = "v4-estnet-strip__close";
@@ -130,13 +134,17 @@ export function mountEstnetSideTab(
     content = null;
     panelBody.replaceChildren();
     stripBody.replaceChildren();
+    stripTitle.textContent = STRIP_DEFAULT_TITLE;
   };
 
   const rebuild = (): void => {
     disposeContent();
     content = buildEstnetTraceExplorerContent({
       runtimeResult: latestResult,
-      replayClock: latestClock
+      replayClock: latestClock,
+      setChartTitle: (label) => {
+        stripTitle.textContent = label;
+      }
     });
     panelBody.append(content.element);
     stripBody.append(content.chartPanel);

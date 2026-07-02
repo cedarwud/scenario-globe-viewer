@@ -250,10 +250,17 @@ Two prior lessons bound the design:
     below 110px of chart height; a hidden strip measures 0×0 and keeps
     the fallback, so the reopen path re-renders against the visible box).
     Lifecycle unchanged; the reopen click now also re-renders so the
-    refit sees a real box. Gate re-anchored to 92 checks: split-screen
-    zero overlap ON (canvas bottom ≤ strip top from client rects, strip
-    full-width), full-height canvas + attribute removal on strip close /
-    back-to-pair / OFF, plus the whole fifth-pass walk.
+    refit sees a real box. Same-day follow-up (user: non-chart text rows
+    still cost too much strip height): the strip header and the chart
+    title merged into ONE row — the per-trace path label replaces the
+    generic "Packet trace — time series" title next to the close button
+    (`setChartTitle` sink; teardown/error restore the generic title), so
+    the strip carries exactly one text row + the legend above the plot.
+    Gate re-anchored to 97 checks: split-screen zero overlap ON (canvas
+    bottom ≤ strip top from client rects, strip full-width), full-height
+    canvas + attribute removal on strip close / back-to-pair / OFF, the
+    merged header carrying each trace's exact path label, plus the whole
+    fifth-pass walk.
 
 ## Consequences
 

@@ -315,6 +315,8 @@ function readEstnetState() {
       stripCount: strips.length,
       tabActive: tab ? !tab.hidden : null,
       stripVisible: strip ? !strip.hidden : null,
+      stripTitle:
+        strip?.querySelector(".v4-estnet-strip__title")?.textContent ?? null,
       bodyTabAttr: document.body.getAttribute("data-estnet-tab"),
       bodyStripAttr: document.body.getAttribute("data-estnet-strip-open"),
       pairPanelDisplayed: pairPanel
@@ -804,6 +806,11 @@ try {
       `menu[${entry.id}]-y-axis-semantic (data-y-axis == ${expectedYAxis(fixture)})`,
       s.yAxis === expectedYAxis(fixture),
       { got: s.yAxis, want: expectedYAxis(fixture) }
+    );
+    check(
+      `menu[${entry.id}]-strip-header-carries-path-label (merged header row: no separate chart-title row)`,
+      s.stripTitle === fixture.pathLabel,
+      { got: s.stripTitle, want: fixture.pathLabel }
     );
     // Panel-density second pass: the panel carries the honesty CLAIM (one
     // non-expandable pointer line with the count) and NONE of the verbatim

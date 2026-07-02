@@ -275,7 +275,10 @@ strip's top edge and the globe stays fully visible on any viewport height —
 zero overlap by construction, not an overlay. The chart aspect-fits the
 strip's measured box (~1 viewBox unit per CSS pixel) instead of letterboxing
 a fixed 1064×340 viewBox; below 110px of chart height the in-plot text
-layers drop and the legend carries the semantics. The verbatim
+layers drop and the legend carries the semantics. The strip header and the
+chart title are ONE merged row — the per-trace path label sits next to the
+close button, so only that row and the legend stand above the plot. The
+verbatim
 honesty text (assumptionSet / nonClaims, relay-name lists) renders ONLY in
 the evidence report's **ESTNeT appendix** tab; the gate asserts it is
 absent from the card, the tab panel and the strip. The Report button

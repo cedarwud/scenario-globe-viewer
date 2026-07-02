@@ -256,6 +256,14 @@ export interface EstnetTracePanelSectionOptions {
    * (e.g. the live wall-clock route vs a pinned trace). Optional.
    */
   readonly replayClock?: ReplayClock | null;
+  /**
+   * Sink for the strip header title. When provided, the per-trace path
+   * label renders THERE (one merged header row: path label + close button)
+   * and the chart panel skips its own title row — in the split-screen
+   * strip every non-chart row costs plot height. Without it the chart
+   * panel keeps a local title row.
+   */
+  readonly setChartTitle?: (label: string) => void;
 }
 
 interface ModelOverlayOrbit {
@@ -1523,14 +1531,21 @@ export function buildEstnetTraceExplorerContent(
         // A hidden strip (recompute while the user keeps it closed) measures
         // 0×0 and keeps the fallback — the reopen path re-renders visible.
         let chart = buildChart(trace, overlay);
-        const chartTitle = document.createElement("div");
-        chartTitle.className = "v4-estnet-trace__chart-title";
-        chartTitle.textContent = trace.pathLabel;
-        chartMount.replaceChildren(
-          chartTitle,
-          buildLegend(trace, overlay),
-          chart.svg
-        );
+        if (options.setChartTitle) {
+          // Merged header row: the path label replaces the strip's generic
+          // title, so the strip spends no row on a separate chart title.
+          options.setChartTitle(trace.pathLabel);
+          chartMount.replaceChildren(buildLegend(trace, overlay), chart.svg);
+        } else {
+          const chartTitle = document.createElement("div");
+          chartTitle.className = "v4-estnet-trace__chart-title";
+          chartTitle.textContent = trace.pathLabel;
+          chartMount.replaceChildren(
+            chartTitle,
+            buildLegend(trace, overlay),
+            chart.svg
+          );
+        }
         const fitW = Math.round(chartMount.clientWidth);
         const fitH = Math.round(chart.svg.getBoundingClientRect().height);
         if (
@@ -1563,6 +1578,8 @@ export function buildEstnetTraceExplorerContent(
         delete chartMount.dataset.loading;
         detachReplayCursor?.();
         detachReplayCursor = null;
+        // A stale path label above an error block would misattribute it.
+        options.setChartTitle?.("Packet trace — time series");
         mount.replaceChildren(buildErrorBlock(`the "${entry.label}" trace fixture`, error));
         chartMount.replaceChildren(
           buildErrorBlock(`the "${entry.label}" trace fixture`, error)

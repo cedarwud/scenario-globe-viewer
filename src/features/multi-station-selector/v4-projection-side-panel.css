@@ -2849,6 +2849,12 @@ body[data-estnet-strip-open="on"] .v4-estnet-tab-panel {
   border-bottom: 1px solid rgba(126, 226, 184, 0.12);
 }
 .v4-estnet-strip__title {
+  /* Carries the per-trace path label (merged header row) — may be long. */
+  flex: 1;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
   font-weight: 600;
   font-size: 0.98rem;
   letter-spacing: 0.03em;
