@@ -28,9 +28,14 @@ Checks:
      at 9600 bps, payload is 100 B).
   C3 per-segment median residual |lat_obs - lat_pred| < 0.5 ms.
   C4 overall p95 |residual| < 1.0 ms.
-  C5 (v2) every MEO segment lies inside that satellite's independently
-     computed mutual-visibility window (elevation thresholds mirror the
-     viewer: 10 deg base + terrain mask, CHT 31 / SANSA 11, strict >).
+  C5 (v2) every MEO segment's DELIVERED span lies inside that satellite's
+     independently computed mutual-visibility window (elevation thresholds
+     mirror the viewer: 10 deg base + terrain mask, CHT 31 / SANSA 11,
+     strict >). Lost samples are exempt BY DESIGN: the deliberate re-point
+     overrun sends frames to the previous relay after the dishes re-pointed
+     (they are dropped, latency=null), so a segment's raw span may extend a
+     few tens of seconds past LOS while its delivered traffic never does —
+     the overrun must be disclosed in the fixture's nonClaims or C5 fails.
 
 Usage:
   python3 scripts/estnet/crosscheck_estnet_vs_sgp4.py            # handover fixture
@@ -263,7 +268,10 @@ def main():
     p95 = percentile(abs_sorted, 0.95)
     check(p95 <= args.p95_tol_ms, f"C4 overall p95 |residual| {p95:.4f} ms within {args.p95_tol_ms}")
 
-    # C5 — (v2) MEO segments must sit inside independently computed co-visibility
+    # C5 — (v2) every MEO segment's DELIVERED span must sit inside
+    # independently computed co-visibility. Lost samples (the disclosed
+    # re-point overrun: frames to the previous relay after the dishes
+    # re-pointed) are exempt — but only if the fixture DISCLOSES the overrun.
     if v2:
         for seg in fx.get("segments", []):
             if seg["orbitClass"] != "MEO":
@@ -273,9 +281,25 @@ def main():
                 check(False, f"C5 {seg['label']}: satellite {seg['satellite']!r} not in TLE file")
                 continue
             name = candidates[0]
+            delivered_ts = [s["tMs"] for s in fx["samples"]
+                            if s.get("linkUp") and seg["startMs"] <= s["tMs"] <= seg["endMs"]]
+            if not delivered_ts:
+                check(False, f"C5 {seg['label']}: no delivered samples in segment")
+                continue
+            span_lo, span_hi = min(delivered_ts), max(delivered_ts)
+            if span_lo > seg["startMs"] or span_hi < seg["endMs"]:
+                lost_n = sum(1 for s in fx["samples"]
+                             if s.get("linkUp") is False and seg["startMs"] <= s["tMs"] <= seg["endMs"])
+                disclosed = any("re-point overrun" in n.lower() for n in fx.get("nonClaims", []))
+                check(disclosed,
+                      f"C5 {seg['label']}: segment span exceeds its delivered span "
+                      f"({lost_n} lost) — the re-point overrun must be disclosed in nonClaims")
+                print(f"  note C5 {seg['label']}: delivered span {span_lo/1000:.0f}..{span_hi/1000:.0f}s "
+                      f"< segment span {seg['startMs']/1000:.0f}..{seg['endMs']/1000:.0f}s "
+                      f"({lost_n} lost re-point-overrun frames exempt, disclosed)")
             ok = True
-            t_ms = seg["startMs"]
-            while t_ms <= seg["endMs"]:
+            t_ms = span_lo
+            while t_ms <= span_hi:
                 ecef = sat_ecef_at(tles[name], epoch + timedelta(milliseconds=t_ms))
                 if ecef is None:
                     ok = False
@@ -286,7 +310,16 @@ def main():
                     ok = False
                     break
                 t_ms += 30_000
-            check(ok, f"C5 {seg['label']} {name}: entire segment inside independent co-visibility "
+            # Close the 30 s grid: check the exact delivered-span endpoint too.
+            if ok:
+                ecef = sat_ecef_at(tles[name], epoch + timedelta(milliseconds=span_hi))
+                if ecef is None:
+                    ok = False
+                else:
+                    _, ea = range_and_elev(st_a, ecef)
+                    _, eb = range_and_elev(st_b, ecef)
+                    ok = ea > thr_a - args.elev_margin_deg and eb > thr_b - args.elev_margin_deg
+            check(ok, f"C5 {seg['label']} {name}: delivered span inside independent co-visibility "
                       f"(CHT>{thr_a} SANSA>{thr_b})")
 
     return finish(failures)

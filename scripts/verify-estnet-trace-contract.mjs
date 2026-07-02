@@ -2,16 +2,20 @@
 // verify:estnet — PacketTrace contract + honesty gate for the ESTNeT-trace
 // pipeline (opt-in track; NOT part of the accepted 19/19 surface).
 //
-// Validates three layers:
-//   1. The two committed ESTNeT fixtures conform to the PacketTrace contract
+// Validates four layers:
+//   1. The committed ESTNeT fixtures conform to the PacketTrace contract
 //      (scripts/estnet/PACKET-TRACE-CONTRACT.md): schema, sample invariants,
 //      summary self-consistency, segment coverage, and the mandatory honesty
 //      disclosures (sourceClass tier + "not operator-measured" nonClaims).
-//   2. The multi-format ingestion tool (external_trace_ingest.py) still
+//   2. The panel trace manifest (public/fixtures/estnet/manifest.json) is
+//      well-formed, every listed fixture exists and passes the contract, and
+//      no committed fixture is orphaned (unlisted) — the manifest is the
+//      panel's single menu source of truth.
+//   3. The multi-format ingestion tool (external_trace_ingest.py) still
 //      round-trips every rehearsal format — vec-single (hermetic synthetic
 //      .vec), scavetool CSV, ping, iperf3 — to contract-conforming output
 //      with the right latencySemantic and provenance fields.
-//   3. The provenance guard holds: --source-class operator-measured is
+//   4. The provenance guard holds: --source-class operator-measured is
 //      REFUSED (this chain must never launder simulation into measurement).
 //
 // Node-only, no browser, no ESTNeT kit required (kit-based live ingest runs
@@ -30,7 +34,18 @@ const FIXTURES = [
   },
   {
     file: "public/fixtures/estnet/cht-sansa-handover-packet-trace.json",
-    pins: { schemaVersion: 2, samples: 2140, handoverCount: 5, distinctMeoSatellites: 3 },
+    // 15 lost = 3 re-point overrun clusters of 5 (boundaries 5400/11310/21180 s);
+    // see the adapter's re-point-gap disclosure. Loss must stay tail-clustered
+    // (checked below), never mid-segment.
+    pins: {
+      schemaVersion: 2,
+      samples: 2138,
+      handoverCount: 5,
+      distinctMeoSatellites: 3,
+      lostSamples: 15,
+      overallPacketLossRatio: 0.007016,
+      lossTailClustered: true,
+    },
   },
 ];
 const ALLOWED_SOURCE_CLASSES = new Set([
@@ -204,10 +219,73 @@ for (const { file, pins } of FIXTURES) {
     const meo = new Set(trace.segments.filter((s) => s.orbitClass === "MEO").map((s) => s.satellite));
     check(target, meo.size === pins.distinctMeoSatellites, `pinned ${pins.distinctMeoSatellites} distinct MEO satellites (got ${meo.size})`);
   }
+  if (pins.lostSamples !== undefined) {
+    const lost = trace.samples.filter((s) => s.linkUp === false);
+    check(target, lost.length === pins.lostSamples, `pinned ${pins.lostSamples} lost samples (got ${lost.length})`);
+    check(target, trace.nonClaims.some((n) => /re-point overrun/i.test(n)), "loss > 0 requires the re-point-overrun disclosure in nonClaims");
+  }
+  if (pins.lossTailClustered) {
+    // Every lost sample must sit in the last 45 s of its segment — the
+    // disclosed re-point overrun. A mid-segment loss would be an undisclosed
+    // regression (RF no longer closing), not the modeled handover gap.
+    for (const s of trace.samples) {
+      if (s.linkUp !== false) continue;
+      const seg = (trace.segments ?? []).find((g) => s.tMs >= g.startMs && s.tMs <= g.endMs);
+      check(target, seg !== undefined && seg.endMs - s.tMs <= 45_000,
+        `lost sample at tMs ${s.tMs} is not in its segment's 45 s re-point tail`);
+    }
+  }
   console.log(`  ${target}: samples=${trace.samples.length} sourceClass=${trace.sourceClass}`);
 }
 
 // ---------------------------------------------------------------- layer 2
+section("panel trace manifest");
+{
+  const manifestFile = "public/fixtures/estnet/manifest.json";
+  const abs = path.join(ROOT, manifestFile);
+  if (!fs.existsSync(abs)) {
+    check("manifest", false, "manifest.json missing");
+  } else {
+    const manifest = JSON.parse(fs.readFileSync(abs, "utf-8"));
+    check("manifest", manifest.schemaVersion === 1, "schemaVersion must be 1");
+    check("manifest", Array.isArray(manifest.traces) && manifest.traces.length > 0, "traces must be a non-empty array");
+    const ids = new Set();
+    const urls = new Set();
+    let defaults = 0;
+    for (const [i, entry] of (manifest.traces ?? []).entries()) {
+      const at = `traces[${i}]`;
+      check("manifest", typeof entry.id === "string" && entry.id.length > 0, `${at}.id required`);
+      check("manifest", typeof entry.label === "string" && entry.label.length > 0, `${at}.label required`);
+      check("manifest", typeof entry.url === "string" && entry.url.startsWith("/fixtures/estnet/"), `${at}.url must start with /fixtures/estnet/`);
+      check("manifest", !ids.has(entry.id), `${at}.id "${entry.id}" duplicated`);
+      ids.add(entry.id);
+      check("manifest", !urls.has(entry.url), `${at}.url duplicated`);
+      urls.add(entry.url);
+      if (entry.default === true) defaults += 1;
+      const fixtureAbs = path.join(ROOT, "public", entry.url);
+      check("manifest", fs.existsSync(fixtureAbs), `${at}.url points at a missing fixture: ${entry.url}`);
+      // Entries beyond the pinned FIXTURES list still pass the full contract —
+      // this is the "add a manifest line and it shows" path, gate-guarded.
+      const pinned = FIXTURES.some((f) => path.join(ROOT, f.file) === fixtureAbs);
+      if (!pinned && fs.existsSync(fixtureAbs)) {
+        validateTrace(`manifest:${entry.id}`, JSON.parse(fs.readFileSync(fixtureAbs, "utf-8")));
+      }
+    }
+    check("manifest", defaults === 1, `exactly one default entry required (got ${defaults})`);
+    // No orphans: every committed fixture must be reachable from the menu.
+    for (const f of FIXTURES) {
+      const rel = "/" + path.relative(path.join(ROOT, "public"), path.join(ROOT, f.file)).replace(/\\/g, "/");
+      check("manifest", urls.has(rel), `pinned fixture not listed in manifest: ${rel}`);
+    }
+    const dirFiles = fs.readdirSync(path.join(ROOT, "public/fixtures/estnet")).filter((n) => n.endsWith(".json") && n !== "manifest.json");
+    for (const name of dirFiles) {
+      check("manifest", urls.has(`/fixtures/estnet/${name}`), `orphan fixture not listed in manifest: ${name}`);
+    }
+    console.log(`  manifest: ${manifest.traces.length} trace(s), 1 default, no orphans ✓`);
+  }
+}
+
+// ---------------------------------------------------------------- layer 3
 section("ingest regression (all rehearsal formats)");
 const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "estnet-gate-"));
 
@@ -327,7 +405,7 @@ const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "estnet-gate-"));
   }
 }
 
-// ---------------------------------------------------------------- layer 3
+// ---------------------------------------------------------------- layer 4
 section("provenance guard");
 {
   const vec = path.join(tmp, "mini2.vec");

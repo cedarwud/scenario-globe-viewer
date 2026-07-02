@@ -22,8 +22,19 @@ satellite + orbit class, and concatenates the phases on the sim-time axis.
 
 tMs is ABSOLUTE sim time (t=0 == 2026-06-15T00:00:00Z), so the handover
 boundaries land at the geometry-true times (MEO mutual-visibility windows
-2970..5400 / 11310..13620 / 21180..21600 s). The ~10 s app guard at each
-boundary appears as a short no-sample handover gap.
+2970..5400 / 11310..13620 / 21180..21600 s).
+
+RE-POINT GAP LOSS: phases 2/3/5 deliberately keep sending ~45 s PAST their
+contact-plan boundary (5400/11310/21180 s) while both GS dishes have already
+re-pointed to the next relay, so those frames are genuinely dropped by the RF
+model (mispointed yagi). The cross-window sequence statistics below (union of
+sent + both legs' received seqs) surface them as linkUp=false samples whose
+cluster STARTS at the geometry-true handover instant. At the other two
+boundaries the old relay stays angularly close enough to the new pointing that
+overrun frames still deliver (verified on the .vec) — and a delivered
+below-mask MEO frame would break golden-D1 mask alignment — so phases 1/4
+send no overrun traffic. Next streams start 50 s after their boundary,
+keeping phase send-spans non-overlapping.
 
 HONESTY (R12): ESTNeT-SIMULATED, not operator-measured. The GEO<->MEO route
 preference mirrors the viewer's demo-balanced-v1 SHOWCASE policy -- it is NOT an
@@ -249,7 +260,14 @@ def build_trace(vec_path):
             "handover events. Each phase is two one-hop unicast RF legs (uplink+downlink) "
             "composed in the adapter; assumed 20 W sat EIRP + 9600 bps GMSK UHF PHY "
             "(latency ≈ 2× one-way propagation + ~236 ms serialization). The lower MEO "
-            "range (~27,100 km vs GEO ~38,700 km) is why the latency steps down ~81 ms."
+            "range (~27,100 km vs GEO ~38,700 km) is why the latency steps down ~81 ms. "
+            "Three phases keep sending ~45 s past their contact-plan boundary while both "
+            "dishes have re-pointed to the next relay, so the RF model drops those "
+            "frames — a real packet-loss spike starting at the handover instant "
+            "(boundaries at 01:30 / 03:08:30 / 05:53); at the other two boundaries the "
+            "old relay stays angularly close to the new pointing and overrun frames "
+            "would still deliver, so no overrun traffic is sent there. Each next stream "
+            "starts 50 s after its boundary."
         ),
         "nonClaims": [
             "SIMULATION, not operator-measured (not Tier-A).",
@@ -258,6 +276,8 @@ def build_trace(vec_path):
             "jitter and loss are adapter-derived, not native ESTNeT signals.",
             "each phase's end-to-end is a composition of two independent one-hop RF legs, not a single relayed packet.",
             "RF EIRP/bitrate are assumed link parameters chosen so both links close.",
+            "packet loss occurs ONLY in the deliberate ~45 s re-point overrun windows (traffic addressed to the previous relay after both dishes re-pointed) — a modeling consequence of a single dish sending through the handover, not an RF fade or congestion measurement.",
+            "the overrun is modeled at the three boundaries where the RF model actually drops the mispointed frames (verified on the simulation output); at the other two the old relay stays angularly close to the new pointing and overrun frames would still deliver, so no overrun traffic is sent there — the antenna-pattern geometry decides, nothing is scripted to fail.",
         ],
         "metadata": {
             "simEpochUtc": SIM_EPOCH_UTC,
@@ -272,6 +292,8 @@ def build_trace(vec_path):
                 "2026-06-15T03:08:30Z", "2026-06-15T03:47:00Z",
                 "2026-06-15T05:53:00Z", "2026-06-15T06:00:00Z",
             ],
+            "repointOverrunSeconds": 45,
+            "postHandoverStartDelaySeconds": 50,
             "vecSource": vec_path,
         },
         "segments": segments,

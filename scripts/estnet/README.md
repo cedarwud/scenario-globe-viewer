@@ -130,8 +130,22 @@ concatenates the six phases.
 
 Result: latency ≈ **493.9 ms (GEO) ↔ 412.9 ms (MEO, ~81 ms step down)**, stepping
 down at each of the 5 cross-orbit migrations and back up between them; each MEO
-segment slopes as the satellite moves; a short handover gap appears at each
-re-point. 2140 samples, loss-free. Panel: `public/estnet-handover-trace-panel.html`.
+segment slopes as the satellite moves. 2138 samples, **15 lost (0.70 %) in three
+re-point loss clusters**. Panel: `public/estnet-handover-trace-panel.html`.
+
+**Re-point gap loss (real, not scripted).** Phases 2/3/5 deliberately keep
+sending ~45 s past their contact-plan boundary (01:30 / 03:08:30 / 05:53) while
+both GS dishes have already re-pointed to the next relay; the RF model
+genuinely drops those mispointed frames, so a packet-loss spike **starts at the
+geometry-true handover instant**. Empirical asymmetry (verified on the `.vec`):
+at the other two boundaries the old relay stays angularly close enough to the
+new pointing that overrun frames still deliver — and a delivered below-mask MEO
+frame would break the fixture's golden-D1 mask alignment — so phases 1/4 send
+no overrun traffic. The antenna-pattern geometry decides; nothing is scripted
+to fail. Disclosed in the fixture's `nonClaims`; `estnet:crosscheck` C5 checks
+each MEO segment's **delivered** span against independent co-visibility (lost
+overrun frames are exempt only when the overrun is disclosed), and
+`verify:estnet` pins the loss to the segments' 45 s re-point tails.
 
 ```bash
 # regen the handover trace (after copying scenario/*handover* into the kit)
@@ -173,14 +187,38 @@ SGP4-verified); the re-point models the single-dish constraint, not a dropped GE
 
 Opt-in preview; does **not** touch the accepted 19/19 surface. The two
 standalone pages (`estnet-trace-panel.html`, `estnet-handover-trace-panel.html`)
-remain as quick previews, and the same two traces are **now also mounted into
-the V4 ground-station side panel** as an opt-in `?estnet=1` disclosure section
-(`src/features/multi-station-selector/estnet-trace-panel-section.ts`): a
-collapsible "ESTNeT packet trace" row whose in-body toggle switches between the
-GEO steady-state and GEO↔MEO handover traces (one generalized SVG renderer
-consumes both fixture schemas). Absent `?estnet=1` nothing is appended, so the
-accepted 19/19 surface is untouched — view at
+remain as quick previews, and the same traces are **also mounted into the V4
+ground-station side panel** as an opt-in disclosure section
+(`src/features/multi-station-selector/estnet-trace-panel-section.ts`). Absent
+the opt-in (toolbar toggle / `?estnet=1`) nothing is appended, so the accepted
+19/19 surface is untouched — view at
 `/?stationA=cht-yangmingshan&stationB=sansa-hartebeesthoek&estnet=1`.
+
+The in-panel section is **manifest-driven**: the trace menu comes from
+`public/fixtures/estnet/manifest.json`, so a future reviewed fixture (e.g. a
+requirement-side delivery ingested via `external_trace_ingest.py`) becomes
+selectable by committing the fixture plus one manifest line — no code change.
+`verify:estnet` gates the manifest (unique ids, one default, every entry
+contract-valid, no orphan fixtures). The renderer is `latencySemantic`-aware
+(`rtt` axes for ping-class traces, throughput-primary charts for iperf3-class
+`none` traces) and renders each trace's own provenance badges; the
+`operator-measured` tier is refused upstream and never rendered.
+
+Panel extras on top of the raw trace (all opt-in, disclosure-first):
+
+- **Model ↔ simulator overlay** — the viewer's own analytic 2-hop latency
+  prediction (2 × `representativeLinkBudgetByOrbit`, dashed step) drawn over
+  the ESTNeT line, plus a delta-decomposition block: serialization
+  (2 legs × 142 B @ 9600 bps ≈ 236.7 ms, ESTNeT-only), the viewer model's
+  per-hop processing add-on (recovered from the budget's own fields), and the
+  geometry residual. Both sides are models; agreement is implementation
+  consistency, not validation against a measurement. A projection window that
+  does not overlap the trace window is flagged in the block, and the same
+  reconciliation is what a requirement-side delivery would drop into.
+- **Replay cursor** — a vertical time cursor subscribed to the replay clock
+  (`tMs = wallMs − simEpochUtc`); on the pinned demo route the on-globe
+  handover events and the chart's latency steps/loss clusters cross the same
+  instant. Hidden while the replay time is outside the trace's window.
 
 The flat GEO trace (`cht-sansa-abs2a-packet-trace.json` /
 `estnet-trace-panel.html`) is the honest steady-state signature; the **handover
