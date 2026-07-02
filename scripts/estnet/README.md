@@ -44,6 +44,7 @@ never to run the demo. Acceptance opens this repo only.
 | `estnet_handover_trace_adapter.py` | composes the 6 phases; tags each sample with serving sat + orbit |
 | `precheck_2hop_geometry.mjs` | viewer-model ground-truth: which sats 2-hop CHT×SANSA + the handover sequence |
 | `precheck_2hop_geometry_independent.py` | independent python-sgp4 co-visibility cross-check (R12) |
+| `precheck_leo_pair_scan.mjs` | READ-ONLY registry-wide tri-orbit second-pair scan: which pairs have real LEO mutual visibility (the full LEO+MEO+GEO chain CHT×SANSA lacks); 3 stages — baseline bound → bitmap scan → viewer `computeRuntimeProjection` truth for top candidates / `--pair a,b` |
 | **Requirement-data readiness layer:** | |
 | `PACKET-TRACE-CONTRACT.md` | the ingestion contract: PacketTrace schema, provenance tiers, mandatory nonClaims, and the delivery checklist to hand the requirement side |
 | `external_trace_ingest.py` | generic multi-format ingestion: ESTNeT `.vec` single-flow / `opp_scavetool` CSV-R / `ping` text / `iperf3 --json` → PacketTrace JSON (refuses `operator-measured`) |
