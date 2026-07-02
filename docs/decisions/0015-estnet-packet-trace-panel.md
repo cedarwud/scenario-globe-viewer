@@ -228,6 +228,33 @@ Two prior lessons bound the design:
     the first write-up of this decision lasted one review round —
     recorded here as the path, not the outcome.
 
+    *Revised again (sixth pass, 2026-07-03, user field test: on a short
+    screen the overlay strip still covered the whole globe — overlay
+    height math is viewport-sensitive and fails exactly where the demo
+    runs).* The strip is now **split-screen, not an overlay**: while it
+    is open the body carries `data-estnet-strip-open` and CSS shrinks the
+    Cesium viewer shell (`.viewer-shell`) by the strip height
+    (`--v4-estnet-strip-height: clamp(180px, 22vh, 260px)`, down from
+    ~28vh), so the canvas itself ends at the strip's top edge — the globe
+    is fully visible at any viewport height, with zero overlap by
+    construction (Cesium's default render loop calls `widget.resize()`
+    every frame, so the drawing buffer follows the shrunk shell). The tab
+    panel shortens by the same amount and the strip runs **full width**,
+    which also retires the ≤720px right-calc misplacement of the old
+    overlay. Because the strip is now much shorter and much wider, the
+    chart **aspect-fits** instead of letterboxing its fixed 1064×340
+    viewBox: each render mounts with the fallback viewBox, measures the
+    flex box the svg actually received, and rebuilds the chart at that
+    size (~1 viewBox unit per CSS pixel; compact vertical margins, 3
+    y-gridlines, and legend-only semantics — no in-plot text layers —
+    below 110px of chart height; a hidden strip measures 0×0 and keeps
+    the fallback, so the reopen path re-renders against the visible box).
+    Lifecycle unchanged; the reopen click now also re-renders so the
+    refit sees a real box. Gate re-anchored to 92 checks: split-screen
+    zero overlap ON (canvas bottom ≤ strip top from client rects, strip
+    full-width), full-height canvas + attribute removal on strip close /
+    back-to-pair / OFF, plus the whole fifth-pass walk.
+
 ## Consequences
 
 - The accepted 19/19 surface stays untouched by default — proven by gates,

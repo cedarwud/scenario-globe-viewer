@@ -381,9 +381,14 @@ export function computeModelOverlay(
 }
 
 const SVGNS = "http://www.w3.org/2000/svg";
+// Fallback viewBox size — used when the chart renders into a box it cannot
+// measure (hidden strip). Visible renders aspect-fit instead: buildChart
+// receives the strip's live flex-box size, so one viewBox unit ≈ one CSS
+// pixel and the full-width split-screen strip is filled edge to edge (a
+// fixed 1064×340 viewBox letterboxed to a stamp-sized chart in short strips).
 const W = 1064;
 const H = 340;
-const MARGIN = { l: 56, r: 24, t: 30, b: 30 } as const;
+const BASE_MARGIN = { l: 56, r: 24, t: 30, b: 30 } as const;
 const ORBIT_COLOR: Record<string, string> = {
   GEO: "#4cc2ff",
   MEO: "#7cffb2",
@@ -705,11 +710,37 @@ interface ChartHandle {
   readonly toX: (tMs: number) => number;
   readonly xMinMs: number;
   readonly xMaxMs: number;
+  /** viewBox size this chart was laid out for (aspect-fit varies it). */
+  readonly w: number;
+  readonly h: number;
+  /** Plot-area vertical bounds — the replay cursor spans exactly these. */
+  readonly plotY0: number;
+  readonly plotY1: number;
 }
 
-function buildChart(trace: PacketTrace, overlay: ModelOverlay | null): ChartHandle {
+function buildChart(
+  trace: PacketTrace,
+  overlay: ModelOverlay | null,
+  dims?: { readonly w: number; readonly h: number }
+): ChartHandle {
+  const cw = dims?.w ?? W;
+  const ch = dims?.h ?? H;
+  // Adaptive vertical margins: a short aspect-fit strip cannot afford 60px
+  // of chrome around the plot. Shadows the module fallback on purpose so
+  // every layout expression below picks the fitted values.
+  const MARGIN = {
+    l: BASE_MARGIN.l,
+    r: BASE_MARGIN.r,
+    t: ch < 220 ? 18 : BASE_MARGIN.t,
+    b: ch < 220 ? 20 : BASE_MARGIN.b
+  } as const;
+  // Very short strips drop the in-plot text layers (segment labels, the
+  // "⇄ handover" captions, the model-line caption) — they collide in a
+  // few dozen pixels of plot, and the legend row already carries the same
+  // semantics. Bands, markers and lines always stay.
+  const showPlotLabels = ch >= 110;
   const svg = svgEl("svg", {
-    viewBox: `0 0 ${W} ${H}`,
+    viewBox: `0 0 ${cw} ${ch}`,
     preserveAspectRatio: "xMidYMid meet",
     class: "v4-estnet-trace__svg"
   }) as SVGSVGElement;
@@ -735,14 +766,23 @@ function buildChart(trace: PacketTrace, overlay: ModelOverlay | null): ChartHand
   if (primaryValues.length === 0) {
     svg.dataset.yAxis = "none";
     const empty = svgEl("text", {
-      x: W / 2,
-      y: H / 2,
+      x: cw / 2,
+      y: ch / 2,
       "text-anchor": "middle",
       class: "v4-estnet-trace__svg-axis"
     });
     empty.textContent = "no plottable metric channel in this trace";
     svg.append(empty);
-    return { svg, toX: () => MARGIN.l, xMinMs: xMin, xMaxMs: xMax };
+    return {
+      svg,
+      toX: () => MARGIN.l,
+      xMinMs: xMin,
+      xMaxMs: xMax,
+      w: cw,
+      h: ch,
+      plotY0: MARGIN.t,
+      plotY1: ch - MARGIN.b
+    };
   }
   let yMin = Math.min(...primaryValues);
   let yMax = Math.max(...primaryValues);
@@ -758,9 +798,9 @@ function buildChart(trace: PacketTrace, overlay: ModelOverlay | null): ChartHand
   yMax = yMax + padY;
 
   const xScale = (v: number): number =>
-    MARGIN.l + ((v - xMin) / ((xMax - xMin) || 1)) * (W - MARGIN.l - MARGIN.r);
+    MARGIN.l + ((v - xMin) / ((xMax - xMin) || 1)) * (cw - MARGIN.l - MARGIN.r);
   const yScale = (v: number): number =>
-    H - MARGIN.b - ((v - yMin) / ((yMax - yMin) || 1)) * (H - MARGIN.t - MARGIN.b);
+    ch - MARGIN.b - ((v - yMin) / ((yMax - yMin) || 1)) * (ch - MARGIN.t - MARGIN.b);
 
   const handover = Boolean(trace.handover);
   const segments = trace.segments ?? [];
@@ -774,6 +814,9 @@ function buildChart(trace: PacketTrace, overlay: ModelOverlay | null): ChartHand
   // put segment midpoints a few px apart on a 6 h axis and the overlapped
   // strip was unreadable).
   const SEG_MIN_LABEL_GAP_PX = 150;
+  // Compact margins put MARGIN.t - 10 above the glyph ascent — clamp the
+  // above-plot label row so it never clips at the viewBox top edge.
+  const plotLabelY = Math.max(MARGIN.t - 10, 11);
   let lastSegLabelX = -Infinity;
   for (const seg of segments) {
     const x0 = xScale(seg.startMs);
@@ -783,17 +826,18 @@ function buildChart(trace: PacketTrace, overlay: ModelOverlay | null): ChartHand
         x: x0,
         y: MARGIN.t,
         width: Math.max(2, x1 - x0),
-        height: H - MARGIN.t - MARGIN.b,
+        height: ch - MARGIN.t - MARGIN.b,
         fill: ORBIT_COLOR[seg.orbitClass] ?? "#888",
         "fill-opacity": 0.06
       })
     );
+    if (!showPlotLabels) continue;
     const labelX = (x0 + x1) / 2;
     if (labelX - lastSegLabelX < SEG_MIN_LABEL_GAP_PX) continue;
     lastSegLabelX = labelX;
     const label = svgEl("text", {
       x: labelX,
-      y: MARGIN.t - 10,
+      y: plotLabelY,
       "text-anchor": "middle",
       fill: ORBIT_COLOR[seg.orbitClass] ?? "#fff",
       class: "v4-estnet-trace__svg-seg-label"
@@ -802,27 +846,40 @@ function buildChart(trace: PacketTrace, overlay: ModelOverlay | null): ChartHand
     svg.append(label);
   }
 
-  // Grid + y labels.
+  // Grid + y labels. Short aspect-fit strips drop to 3 y-gridlines so the
+  // labels stay clear of each other in the compressed plot.
+  const yDivisions = ch < 220 ? 2 : 4;
   const grid = svgEl("g", { class: "v4-estnet-trace__svg-axis" });
-  for (let i = 0; i <= 4; i++) {
-    const yv = yMin + ((yMax - yMin) * i) / 4;
+  for (let i = 0; i <= yDivisions; i++) {
+    const yv = yMin + ((yMax - yMin) * i) / yDivisions;
     const y = yScale(yv);
-    grid.append(svgEl("line", { x1: MARGIN.l, y1: y, x2: W - MARGIN.r, y2: y }));
+    grid.append(svgEl("line", { x1: MARGIN.l, y1: y, x2: cw - MARGIN.r, y2: y }));
     const tx = svgEl("text", { x: MARGIN.l - 8, y: y + 3, "text-anchor": "end" });
     tx.textContent = fmt(yv, hasLatency ? 0 : 2);
+    // No room for the standalone unit label in a short strip — fold the
+    // unit into the topmost tick instead.
+    if (!showPlotLabels && i === yDivisions) {
+      tx.textContent += hasLatency ? " ms" : " Mbps";
+    }
     grid.append(tx);
   }
   // x labels.
   for (let i = 0; i <= 5; i++) {
     const xv = xMin + ((xMax - xMin) * i) / 5;
     const x = xScale(xv);
-    const tx = svgEl("text", { x, y: H - 9, "text-anchor": "middle" });
+    const tx = svgEl("text", { x, y: ch - 9, "text-anchor": "middle" });
     tx.textContent = `${(xv / xUnitDivisor).toFixed(0)}${xUnitSuffix}`;
     grid.append(tx);
   }
-  const yUnit = svgEl("text", { x: MARGIN.l - 8, y: MARGIN.t - 10, "text-anchor": "end" });
-  yUnit.textContent = hasLatency ? (semantic === "rtt" ? "ms (RTT)" : "ms") : "Mbps";
-  grid.append(yUnit);
+  if (showPlotLabels) {
+    const yUnit = svgEl("text", {
+      x: MARGIN.l - 8,
+      y: Math.max(MARGIN.t - 10, 11),
+      "text-anchor": "end"
+    });
+    yUnit.textContent = hasLatency ? (semantic === "rtt" ? "ms (RTT)" : "ms") : "Mbps";
+    grid.append(yUnit);
+  }
   svg.append(grid);
 
   if (handover) {
@@ -837,7 +894,7 @@ function buildChart(trace: PacketTrace, overlay: ModelOverlay | null): ChartHand
             x: x0,
             y: MARGIN.t,
             width: Math.max(2, x1 - x0),
-            height: H - MARGIN.t - MARGIN.b,
+            height: ch - MARGIN.t - MARGIN.b,
             fill: LOSS_COLOR,
             "fill-opacity": 0.3,
             class: "v4-estnet-trace__svg-loss"
@@ -856,7 +913,7 @@ function buildChart(trace: PacketTrace, overlay: ModelOverlay | null): ChartHand
             x: x0,
             y: MARGIN.t,
             width: Math.max(2, x1 - x0),
-            height: H - MARGIN.t - MARGIN.b,
+            height: ch - MARGIN.t - MARGIN.b,
             fill: LOSS_COLOR,
             "fill-opacity": d.linkUp === false ? 0.28 : 0.14,
             class: "v4-estnet-trace__svg-loss"
@@ -870,11 +927,11 @@ function buildChart(trace: PacketTrace, overlay: ModelOverlay | null): ChartHand
     // drawn as the main line below instead.
     if (hasLatency && throughputs.length > 0) {
       const tpMax = Math.max(...throughputs, 1e-9);
-      const baseY = H - MARGIN.b;
+      const baseY = ch - MARGIN.b;
       let area = `M ${xScale(samples[0].tMs)} ${baseY}`;
       for (const d of samples) {
         const tp = isFiniteNumber(d.throughputMbps) ? d.throughputMbps : 0;
-        const h = (tp / tpMax) * ((H - MARGIN.t - MARGIN.b) * 0.28);
+        const h = (tp / tpMax) * ((ch - MARGIN.t - MARGIN.b) * 0.28);
         area += ` L ${xScale(d.tMs)} ${baseY - h}`;
       }
       area += ` L ${xScale(samples[samples.length - 1].tMs)} ${baseY} Z`;
@@ -916,7 +973,7 @@ function buildChart(trace: PacketTrace, overlay: ModelOverlay | null): ChartHand
         })
       );
     }
-    if (spans.length > 0) {
+    if (spans.length > 0 && showPlotLabels) {
       // Anchor the caption to the HIGHEST dashed level (highest = furthest
       // from the x-axis), so it never collides with the handover labels that
       // sit along the chart bottom.
@@ -965,18 +1022,19 @@ function buildChart(trace: PacketTrace, overlay: ModelOverlay | null): ChartHand
           x1: xb,
           y1: MARGIN.t,
           x2: xb,
-          y2: H - MARGIN.b,
+          y2: ch - MARGIN.b,
           stroke: HANDOVER_COLOR,
           "stroke-width": 1.4,
           "stroke-dasharray": "5 3",
           class: "v4-estnet-trace__svg-ho-marker"
         })
       );
+      if (!showPlotLabels) continue;
       if (xb - lastLabelX < MIN_LABEL_GAP_PX) continue;
       lastLabelX = xb;
       const tx = svgEl("text", {
         x: xb,
-        y: H - MARGIN.b - 4,
+        y: ch - MARGIN.b - 4,
         "text-anchor": "middle",
         fill: HANDOVER_COLOR,
         class: "v4-estnet-trace__svg-ho-label"
@@ -1049,7 +1107,16 @@ function buildChart(trace: PacketTrace, overlay: ModelOverlay | null): ChartHand
     }
   }
 
-  return { svg, toX: xScale, xMinMs: xMin, xMaxMs: xMax };
+  return {
+    svg,
+    toX: xScale,
+    xMinMs: xMin,
+    xMaxMs: xMax,
+    w: cw,
+    h: ch,
+    plotY0: MARGIN.t,
+    plotY1: ch - MARGIN.b
+  };
 }
 
 // Replay-time cursor: a vertical line swept across the chart by the replay
@@ -1071,14 +1138,14 @@ function attachReplayCursor(
     display: "none"
   });
   const line = svgEl("line", {
-    y1: MARGIN.t,
-    y2: H - MARGIN.b,
+    y1: handle.plotY0,
+    y2: handle.plotY1,
     stroke: "#ffffff",
     "stroke-width": 1.6,
     "stroke-opacity": 0.85
   });
   const label = svgEl("text", {
-    y: MARGIN.t + 14,
+    y: handle.plotY0 + 14,
     "text-anchor": "middle",
     fill: "#ffffff",
     class: "v4-estnet-trace__svg-cursor-label"
@@ -1120,7 +1187,10 @@ function attachReplayCursor(
     line.setAttribute("x1", String(x));
     line.setAttribute("x2", String(x));
     // Keep the label inside the plot area near the edges.
-    const labelX = Math.min(Math.max(x, MARGIN.l + 34), W - MARGIN.r - 34);
+    const labelX = Math.min(
+      Math.max(x, BASE_MARGIN.l + 34),
+      handle.w - BASE_MARGIN.r - 34
+    );
     label.setAttribute("x", String(labelX));
     label.textContent = `▶ ${new Date(wallMs).toISOString().slice(11, 19)}Z`;
   };
@@ -1445,7 +1515,33 @@ export function buildEstnetTraceExplorerContent(
         const pairNote = options.runtimeResult
           ? pairCompatibilityDisclosure(trace, route)
           : null;
-        const chart = buildChart(trace, overlay);
+        // Wide strip: path title + legend + the chart itself. Mounted first
+        // with the fallback viewBox, then aspect-fit: measure the flex box
+        // the svg actually received and rebuild the chart at that size
+        // (~1 viewBox unit per CSS pixel), so the full-width split-screen
+        // strip is filled instead of letterboxing a fixed 1064×340 chart.
+        // A hidden strip (recompute while the user keeps it closed) measures
+        // 0×0 and keeps the fallback — the reopen path re-renders visible.
+        let chart = buildChart(trace, overlay);
+        const chartTitle = document.createElement("div");
+        chartTitle.className = "v4-estnet-trace__chart-title";
+        chartTitle.textContent = trace.pathLabel;
+        chartMount.replaceChildren(
+          chartTitle,
+          buildLegend(trace, overlay),
+          chart.svg
+        );
+        const fitW = Math.round(chartMount.clientWidth);
+        const fitH = Math.round(chart.svg.getBoundingClientRect().height);
+        if (
+          fitW >= 320 &&
+          fitH >= 56 &&
+          (fitW !== chart.w || fitH !== chart.h)
+        ) {
+          const fitted = buildChart(trace, overlay, { w: fitW, h: fitH });
+          chart.svg.replaceWith(fitted.svg);
+          chart = fitted;
+        }
         detachReplayCursor?.();
         detachReplayCursor = options.replayClock
           ? attachReplayCursor(chart, trace, options.replayClock)
@@ -1457,15 +1553,6 @@ export function buildEstnetTraceExplorerContent(
           buildCards(trace),
           ...(overlay ? [buildModelDeltaBlock(overlay)] : []),
           buildFoot(trace)
-        );
-        // Wide strip: path title + legend + the chart itself.
-        const chartTitle = document.createElement("div");
-        chartTitle.className = "v4-estnet-trace__chart-title";
-        chartTitle.textContent = trace.pathLabel;
-        chartMount.replaceChildren(
-          chartTitle,
-          buildLegend(trace, overlay),
-          chart.svg
         );
       })
       .catch((error) => {

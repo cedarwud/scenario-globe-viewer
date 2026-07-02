@@ -267,8 +267,15 @@ side panel switched via a **"Pair analysis | ESTNeT" tab strip**
 (`src/features/multi-station-selector/estnet-side-tab.ts`; same rectangle,
 the pair panel is hidden via `body[data-estnet-tab]`, DOM untouched). The
 time-series chart — the only piece needing BOTH width and the globe — lives
-in a **thin bottom chart strip** (~28vh, legend + chart only), so the
-on-globe replay and the packet curve stay visible together. The verbatim
+in a **split-screen bottom chart strip** (full width,
+`clamp(180px, 22vh, 260px)` tall, legend + chart only; ADR 0015 decision 10
+sixth pass): while the strip is open, `body[data-estnet-strip-open]` shrinks
+the Cesium viewer shell by the strip height, so the canvas ends at the
+strip's top edge and the globe stays fully visible on any viewport height —
+zero overlap by construction, not an overlay. The chart aspect-fits the
+strip's measured box (~1 viewBox unit per CSS pixel) instead of letterboxing
+a fixed 1064×340 viewBox; below 110px of chart height the in-plot text
+layers drop and the legend carries the semantics. The verbatim
 honesty text (assumptionSet / nonClaims, relay-name lists) renders ONLY in
 the evidence report's **ESTNeT appendix** tab; the gate asserts it is
 absent from the card, the tab panel and the strip. The Report button
@@ -284,7 +291,10 @@ The whole opt-in surface is gate-guarded by `npm run verify:estnet:panel`
 not part of `npm test`): card+tab+strip absence by default with a fresh
 Chrome profile, toggle-ON adds exactly one card row (structural signature),
 auto-activates the tab (pair panel hidden, DOM untouched) and opens the
-strip, per-trace axis/pair-binding assertions (tab and strip mounts must
+strip, split-screen geometry (strip open ⇒ canvas bottom ≤ strip top from
+client rects with the strip full-width; strip close / back-to-pair /
+toggle-OFF ⇒ attribute removed and canvas back to full viewport height),
+per-trace axis/pair-binding assertions (tab and strip mounts must
 render the same trace; the y-axis reads from the strip chart) plus the
 density contract (one-line intro, honesty pointer line with the non-claim
 count, verbatim honesty text ABSENT from the card/tab/strip DOM, per-orbit

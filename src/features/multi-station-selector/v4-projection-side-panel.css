@@ -2795,22 +2795,45 @@ body[data-estnet-tab="on"] .v4-projection-side-panel {
   flex-direction: column;
   gap: 0.55rem;
 }
-/* Thin bottom chart strip: the only estnet piece that needs BOTH width and
-   the globe (replay cursor ↔ handover correspondence). Leaves ~72% of the
-   viewport height to the globe; stops left of the side panel column. */
+/* Split-screen bottom chart strip (sixth pass, 2026-07-03): the only estnet
+   piece that needs BOTH width and the globe (replay cursor ↔ handover
+   correspondence). NOT an overlay — while the strip is open the body carries
+   data-estnet-strip-open and the rules below shrink the Cesium viewer shell
+   (and the tab panel) by the strip height, so the canvas ends exactly at the
+   strip's top edge and the globe stays fully visible on any viewport height
+   (an overlay strip covered the whole globe on short screens). Cesium's
+   default render loop calls widget.resize() every frame, so the drawing
+   buffer follows the shrunk shell. With the shell and the panel both
+   yielding the bottom row the strip runs FULL width — this also retires the
+   old right-calc that misplaced the strip's right edge under the ≤720px
+   panel width:auto media query. */
+:root {
+  --v4-estnet-strip-height: clamp(180px, 22vh, 260px);
+}
+body[data-estnet-strip-open="on"] .viewer-shell {
+  height: calc(100% - var(--v4-estnet-strip-height));
+}
+body[data-estnet-strip-open="on"] .v4-estnet-tab-panel {
+  height: calc(
+    100dvh - 4rem - var(--v4-estnet-strip-height) -
+      var(--v4-projection-native-bottom-clearance, 4.25rem)
+  );
+  max-height: calc(
+    100dvh - 4rem - var(--v4-estnet-strip-height) -
+      var(--v4-projection-native-bottom-clearance, 4.25rem)
+  );
+}
 .v4-estnet-strip {
   position: fixed;
   left: 0;
-  right: calc(1.75rem + clamp(25rem, 35vw, 30rem) + 0.75rem);
+  right: 0;
   bottom: 0;
   z-index: 48;
-  height: clamp(240px, 28vh, 320px);
+  height: var(--v4-estnet-strip-height);
   display: flex;
   flex-direction: column;
   background: rgba(6, 12, 24, 0.96);
   border-top: 1px solid rgba(126, 226, 184, 0.28);
-  border-right: 1px solid rgba(126, 226, 184, 0.18);
-  border-top-right-radius: 0.6rem;
   box-shadow: 0 -10px 26px rgba(0, 0, 0, 0.45);
   color: rgba(240, 240, 240, 0.9);
 }

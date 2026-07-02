@@ -15,6 +15,13 @@
 //     signature comparison, no pixels), auto-activates the ESTNeT tab (the
 //     pair panel is HIDDEN via a body attribute, its DOM untouched) and
 //     opens the chart strip.
+//   - The strip is SPLIT-SCREEN, not an overlay (sixth pass, 2026-07-03):
+//     while it is open the body carries `data-estnet-strip-open` and the
+//     Cesium viewer shell shrinks by the strip height — asserted from
+//     client rects as canvas bottom ≤ strip top (zero overlap, so the
+//     globe is never covered on short viewports) with the strip running
+//     full width; closing the strip or toggling OFF removes the attribute
+//     and restores the full-height canvas.
 //   - Every manifest trace is selectable (in the tab panel) without an error
 //     block; each trace's y-axis semantic is asserted via the STRIP chart's
 //     `data-y-axis` attribute (never by crawling SVG internals); the tab and
@@ -250,6 +257,7 @@ function readDefaultState() {
       estnetTabPanel: Boolean(document.querySelector('[data-estnet-tab-panel="true"]')),
       estnetStrip: Boolean(document.querySelector('[data-estnet-strip="true"]')),
       bodyTabAttr: document.body.getAttribute("data-estnet-tab"),
+      bodyStripAttr: document.body.getAttribute("data-estnet-strip-open"),
       togglePresent: Boolean(toggle),
       toggleEnabled: toggle ? (toggle.dataset.estnetEnabled ?? null) : null,
       storedMode: (() => {
@@ -308,6 +316,7 @@ function readEstnetState() {
       tabActive: tab ? !tab.hidden : null,
       stripVisible: strip ? !strip.hidden : null,
       bodyTabAttr: document.body.getAttribute("data-estnet-tab"),
+      bodyStripAttr: document.body.getAttribute("data-estnet-strip-open"),
       pairPanelDisplayed: pairPanel
         ? window.getComputedStyle(pairPanel).display !== "none"
         : null,
@@ -356,6 +365,35 @@ function readEstnetState() {
           return "ERR";
         }
       })()
+    };
+  })()`);
+}
+
+// Split-screen geometry read (sixth pass, 2026-07-03): the strip must never
+// cover the globe. While it is open, body[data-estnet-strip-open] shrinks
+// the Cesium viewer shell by the strip height, so the canvas bottom must sit
+// at (or above) the strip top; a closed strip / OFF must restore the
+// full-height canvas. Client rects are CSS-layout truths — reading them
+// forces a reflow, so the assertion is deterministic under the fixed
+// emulation viewport (no need to wait for Cesium's own drawing-buffer
+// resize, which follows via widget.resize() in the render loop).
+function readSplitState() {
+  return evald(`(() => {
+    const strip = document.querySelector('[data-estnet-strip="true"]');
+    const canvas = document.querySelector(".viewer-root .cesium-widget canvas");
+    const shell = document.querySelector(".viewer-shell");
+    const canvasRect = canvas ? canvas.getBoundingClientRect() : null;
+    const stripRect = strip && !strip.hidden ? strip.getBoundingClientRect() : null;
+    return {
+      bodyStripAttr: document.body.getAttribute("data-estnet-strip-open"),
+      stripVisible: strip ? !strip.hidden : null,
+      stripTop: stripRect ? stripRect.top : null,
+      stripLeft: stripRect ? stripRect.left : null,
+      stripRight: stripRect ? stripRect.right : null,
+      canvasBottom: canvasRect ? canvasRect.bottom : null,
+      shellBottom: shell ? shell.getBoundingClientRect().bottom : null,
+      innerWidth: window.innerWidth,
+      innerHeight: window.innerHeight
     };
   })()`);
 }
@@ -599,7 +637,8 @@ try {
     s0.estnetCard === false &&
       s0.estnetTabPanel === false &&
       s0.estnetStrip === false &&
-      s0.bodyTabAttr === null,
+      s0.bodyTabAttr === null &&
+      s0.bodyStripAttr === null,
     s0
   );
   check("default-panel-ready", s0.panelState === "ready", s0.panelState);
@@ -698,6 +737,23 @@ try {
     "ON-chart-strip-open (thin bottom strip carries the chart; globe stays visible)",
     sOn.stripCount === 1 && sOn.stripVisible === true,
     { strips: sOn.stripCount, visible: sOn.stripVisible }
+  );
+  const splitOn = await readSplitState();
+  check(
+    "ON-split-screen-zero-overlap (body attr set; canvas bottom ≤ strip top — the strip never covers the globe)",
+    splitOn.bodyStripAttr === "on" &&
+      typeof splitOn.canvasBottom === "number" &&
+      typeof splitOn.stripTop === "number" &&
+      splitOn.canvasBottom <= splitOn.stripTop + 0.5,
+    splitOn
+  );
+  check(
+    "ON-strip-full-width (split layout: the shell yields the bottom row, so no side-panel column is reserved)",
+    typeof splitOn.stripLeft === "number" &&
+      typeof splitOn.stripRight === "number" &&
+      splitOn.stripLeft <= 0.5 &&
+      splitOn.stripRight >= splitOn.innerWidth - 0.5,
+    splitOn
   );
   check(
     "ON-chart-and-tab-render-the-same-trace (split mounts stay in lockstep)",
@@ -843,6 +899,12 @@ try {
     tab: Boolean(document.querySelector('[data-estnet-tab-panel="true"]')),
     strip: Boolean(document.querySelector('[data-estnet-strip="true"]')),
     bodyTabAttr: document.body.getAttribute("data-estnet-tab"),
+    bodyStripAttr: document.body.getAttribute("data-estnet-strip-open"),
+    canvasBottom: (() => {
+      const c = document.querySelector(".viewer-root .cesium-widget canvas");
+      return c ? c.getBoundingClientRect().bottom : null;
+    })(),
+    innerHeight: window.innerHeight,
     pairPanelDisplayed: (() => {
       const p = document.querySelector('[data-v4-projection-side-panel="true"]');
       return p ? window.getComputedStyle(p).display !== "none" : null;
@@ -861,6 +923,13 @@ try {
     "OFF-pair-panel-visible-again (tab teardown restores the default panel)",
     sOff.pairPanelDisplayed === true,
     sOff.pairPanelDisplayed
+  );
+  check(
+    "OFF-split-screen-restored (strip body attr removed, canvas back to full viewport height)",
+    sOff.bodyStripAttr === null &&
+      typeof sOff.canvasBottom === "number" &&
+      sOff.canvasBottom >= sOff.innerHeight - 0.5,
+    { attr: sOff.bodyStripAttr, canvasBottom: sOff.canvasBottom, innerHeight: sOff.innerHeight }
   );
   check("OFF-zero-estnet-node-leftovers", sOff.leftoverNodes === 0, sOff.leftoverNodes);
   check(
@@ -997,6 +1066,14 @@ try {
         sRerender.stripVisible === false,
       { cards: sRerender.cardCount, tab: sRerender.tabActive, strip: sRerender.stripVisible }
     );
+    const splitClosed = await readSplitState();
+    check(
+      "seed-strip-close-restores-full-canvas (split-screen releases the bottom row on an explicit close)",
+      splitClosed.bodyStripAttr === null &&
+        typeof splitClosed.canvasBottom === "number" &&
+        splitClosed.canvasBottom >= splitClosed.innerHeight - 0.5,
+      splitClosed
+    );
     // Clicking the active ESTNeT tab button is the in-tab affordance that
     // re-opens the strip; the chart must come back bound to the NEW result.
     const reopened = await evald(`(() => {
@@ -1016,6 +1093,15 @@ try {
         sReopen.errorBlock === false,
       { visible: sReopen.stripVisible, variant: sReopen.variant, chart: sReopen.chartVariant, error: sReopen.errorBlock }
     );
+    const splitReopen = await readSplitState();
+    check(
+      "seed-reopened-strip-zero-overlap (split-screen re-engages on reopen)",
+      splitReopen.bodyStripAttr === "on" &&
+        typeof splitReopen.canvasBottom === "number" &&
+        typeof splitReopen.stripTop === "number" &&
+        splitReopen.canvasBottom <= splitReopen.stripTop + 0.5,
+      splitReopen
+    );
     // 7c. tab swap back: the "Pair analysis" tab restores the default panel
     // (DOM was only hidden, never touched) and hides the estnet surfaces.
     const backClicked = await evald(`(() => {
@@ -1027,13 +1113,14 @@ try {
     check("seed-back-to-pair-clicked", backClicked === true, backClicked);
     const sBack = await readEstnetState();
     check(
-      "seed-back-to-pair-restores-the-panel (estnet tab hidden, strip hidden, pair panel visible)",
+      "seed-back-to-pair-restores-the-panel (estnet tab hidden, strip hidden + split released, pair panel visible)",
       sBack.tabActive === false &&
         sBack.stripVisible === false &&
         sBack.bodyTabAttr === null &&
+        sBack.bodyStripAttr === null &&
         sBack.pairPanelDisplayed === true &&
         sBack.cardCount === 1,
-      { tab: sBack.tabActive, strip: sBack.stripVisible, attr: sBack.bodyTabAttr, pair: sBack.pairPanelDisplayed, cards: sBack.cardCount }
+      { tab: sBack.tabActive, strip: sBack.stripVisible, attr: sBack.bodyTabAttr, stripAttr: sBack.bodyStripAttr, pair: sBack.pairPanelDisplayed, cards: sBack.cardCount }
     );
   } else {
     check("seed-cross-route-step", false, "no cross-pair hinted manifest entry found — cannot exercise the seed/cross-route step");

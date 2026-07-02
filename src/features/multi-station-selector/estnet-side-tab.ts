@@ -10,7 +10,13 @@
 //   surface stays byte-identical when the mode is off.
 // - The time-series chart is the ONE piece needing BOTH width and the globe
 //   simultaneously (replay cursor ↔ on-globe handover correspondence) → it
-//   renders in a THIN bottom strip (~28vh) that leaves the globe visible.
+//   renders in a THIN bottom strip. The strip is SPLIT-SCREEN, not an
+//   overlay (2026-07-03 sixth pass): while it is open the body carries
+//   `data-estnet-strip-open` and CSS shrinks the Cesium viewer shell by the
+//   strip height, so the canvas itself ends above the strip — the globe
+//   stays fully visible on any viewport height instead of being covered on
+//   short screens. Cesium's default render loop calls `widget.resize()`
+//   every frame, so the drawing buffer follows the shrunk container.
 //
 // Lifecycle contract (mirrors the prior dock's, gate-locked):
 // - Mounted/destroyed strictly with the ESTNeT display mode; OFF tears down
@@ -51,6 +57,10 @@ export interface EstnetSideTabMountOptions {
 }
 
 const TAB_BODY_ATTR = "data-estnet-tab";
+// Split-screen contract: present exactly while the strip is visible. CSS
+// keys off it to shrink the Cesium viewer shell (and the tab panel) by the
+// strip height so nothing renders under the strip.
+const STRIP_BODY_ATTR = "data-estnet-strip-open";
 
 export function mountEstnetSideTab(
   options: EstnetSideTabMountOptions = {}
@@ -134,6 +144,11 @@ export function mountEstnetSideTab(
 
   const setStripVisible = (visible: boolean): void => {
     strip.hidden = !visible;
+    if (visible) {
+      document.body.setAttribute(STRIP_BODY_ATTR, "on");
+    } else {
+      document.body.removeAttribute(STRIP_BODY_ATTR);
+    }
   };
 
   const handle: EstnetSideTabHandle = {
@@ -144,8 +159,11 @@ export function mountEstnetSideTab(
       active = true;
       panel.hidden = false;
       document.body.setAttribute(TAB_BODY_ATTR, "on");
-      rebuild();
+      // Strip before rebuild: the chart render aspect-fits to the strip's
+      // live flex box, so the strip must be visible (and the split-screen
+      // body attribute applied) before the async render measures it.
       setStripVisible(true);
+      rebuild();
     },
     deactivate(): void {
       if (destroyed) {
@@ -180,6 +198,7 @@ export function mountEstnetSideTab(
       active = false;
       disposeContent();
       document.body.removeAttribute(TAB_BODY_ATTR);
+      document.body.removeAttribute(STRIP_BODY_ATTR);
       panel.remove();
       strip.remove();
     }
@@ -190,10 +209,14 @@ export function mountEstnetSideTab(
     options.onUserLeave?.();
   });
   // Clicking the already-active ESTNeT tab re-opens a closed strip — the
-  // only in-tab affordance to get the chart back after a strip close.
+  // only in-tab affordance to get the chart back after a strip close. The
+  // rebuild re-renders against the now-visible strip so the chart aspect-fit
+  // gets a real box (renders while the strip was closed measured 0×0 and
+  // kept the fallback viewBox).
   estnetTabButton.addEventListener("click", () => {
     if (!destroyed && active && strip.hidden) {
       setStripVisible(true);
+      rebuild();
     }
   });
   stripClose.addEventListener("click", () => {
