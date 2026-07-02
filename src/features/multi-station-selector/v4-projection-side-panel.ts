@@ -2460,9 +2460,8 @@ function renderResult(
   // preserve whatever open/closed state the user left the ESTNeT section in.
   // Captured HERE — before replaceChildren() below removes the old node; a
   // later read would always see undefined and silently force the section back
-  // open. (The nested honesty / model-delta expandables are rebuilt async by
-  // the section itself and reset to collapsed — known limit, ADR 0015
-  // decision 9.)
+  // open. (Since the density third pass the section has no nested
+  // expandables, so this is the only open/closed state to preserve.)
   const previousEstnetOpen = root.querySelector<HTMLDetailsElement>(
     '[data-disclosure="estnet-packet-trace"]'
   )?.open;

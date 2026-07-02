@@ -1128,102 +1128,93 @@ function attachReplayCursor(
   return replayClock.onTick(update);
 }
 
-// Delta-decomposition disclosure: reconciles the dashed viewer-model step with
-// the solid trace, per orbit. Serialization is split out only when the trace's
-// own assumptionSet declares the stock 9600 bps PHY; otherwise the delta stays
-// un-decomposed (honest: no invented terms for an unknown PHY).
+// Delta reconciliation: reconciles the dashed viewer-model step with the
+// solid trace, per orbit. Serialization is split out only when the trace's
+// own assumptionSet declares the stock 9600 bps PHY; otherwise the delta
+// stays un-decomposed (honest: no invented terms for an unknown PHY).
 //
-// Panel-density rule: the block is a collapsed <details> whose summary carries
-// the per-orbit Δ as chips (the claim, readable in one glance) plus a warn
-// chip when the comparison crosses windows; the decomposition prose expands
-// on demand. The full text also lands in the report's ESTNeT appendix.
+// Panel-density rule (third pass, 2026-07-02): the reconciliation is
+// claim-level evidence and STAYS in the panel — but as visuals, not prose.
+// One always-visible card per orbit: orbit-colored Δ figure, sim-vs-model
+// sub-line, compact labeled decomposition terms (the anchor provenance
+// moves to the terms' hover title). The prose sentences the first pass hid
+// behind a collapsed <details> are gone; the two honesty one-liners
+// (cross-window caveat, consistency ≠ validation) stay as single muted
+// lines under the cards.
 function buildModelDeltaBlock(overlay: ModelOverlay): HTMLElement {
-  const block = document.createElement("details");
+  const block = document.createElement("div");
   block.className = "v4-estnet-trace__model-delta";
   block.dataset.modelDelta = "true";
 
-  const summaryLine = document.createElement("summary");
-  summaryLine.className = "v4-estnet-trace__expand-summary";
+  const header = document.createElement("div");
+  header.className = "v4-estnet-trace__model-delta-header";
   const title = document.createElement("span");
   title.className = "v4-estnet-trace__expand-title";
   title.textContent = "Model ↔ simulator Δ";
-  summaryLine.append(title);
-  for (const level of overlay.perOrbit) {
-    const delta =
-      level.observedMeanMs != null
-        ? level.observedMeanMs - level.model2HopMs
-        : null;
-    const chip = document.createElement("span");
-    chip.className = "v4-estnet-trace__delta-chip";
-    chip.style.setProperty(
-      "--orbit-color",
-      ORBIT_COLOR[level.orbitClass] ?? MODEL_COLOR
-    );
-    chip.textContent = `${level.orbitClass} ${
-      delta != null && delta >= 0 ? "+" : ""
-    }${fmt(delta, 1)} ms`;
-    summaryLine.append(chip);
-  }
+  header.append(title);
   if (overlay.windowAligned === false) {
     const warn = document.createElement("span");
     warn.className =
       "v4-estnet-trace__delta-chip v4-estnet-trace__delta-chip--warn";
     warn.textContent = "⚠ window mismatch";
-    summaryLine.append(warn);
+    header.append(warn);
   }
-  const bodyWrap = document.createElement("div");
-  bodyWrap.className = "v4-estnet-trace__model-delta-body";
-  block.append(summaryLine, bodyWrap);
+  block.append(header);
+
+  const grid = document.createElement("div");
+  grid.className = "v4-estnet-trace__delta-grid";
+  block.append(grid);
 
   for (const level of overlay.perOrbit) {
-    const row = document.createElement("div");
-    row.className = "v4-estnet-trace__model-delta-orbit";
-    row.dataset.orbit = level.orbitClass;
-
-    const head = document.createElement("div");
-    head.className = "v4-estnet-trace__model-delta-head";
     const observed = level.observedMeanMs;
     const delta = observed != null ? observed - level.model2HopMs : null;
-    head.textContent =
-      `${level.orbitClass}: ESTNeT mean ${fmt(observed, 1)} ms · ` +
-      `viewer model ${fmt(level.model2HopMs, 1)} ms · Δ ${
-        delta != null && delta >= 0 ? "+" : ""
-      }${fmt(delta, 1)} ms`;
-    row.append(head);
 
-    const list = document.createElement("ul");
-    list.className = "v4-estnet-trace__model-delta-terms";
-    const term = (text: string): void => {
-      const li = document.createElement("li");
-      li.textContent = text;
-      list.append(li);
-    };
+    const card = document.createElement("div");
+    card.className = "v4-estnet-trace__delta-card";
+    card.dataset.orbit = level.orbitClass;
+    card.style.setProperty(
+      "--orbit-color",
+      ORBIT_COLOR[level.orbitClass] ?? MODEL_COLOR
+    );
+
+    const orbitTag = document.createElement("span");
+    orbitTag.className = "v4-estnet-trace__delta-card-orbit";
+    orbitTag.textContent = level.orbitClass;
+
+    const figure = document.createElement("span");
+    figure.className = "v4-estnet-trace__delta-card-figure";
+    figure.dataset.deltaFigure = "true";
+    figure.textContent = `${
+      delta != null && delta >= 0 ? "+" : ""
+    }${fmt(delta, 1)} ms`;
+
+    const compare = document.createElement("span");
+    compare.className = "v4-estnet-trace__delta-card-compare";
+    compare.textContent = `sim ${fmt(observed, 1)} · model ${fmt(level.model2HopMs, 1)} ms`;
+
+    const terms = document.createElement("span");
+    terms.className = "v4-estnet-trace__delta-card-terms";
     if (overlay.serializationApplicable && delta != null) {
       const residual =
         delta - overlay.serialization2LegMs + level.modelProcessingMs;
-      term(
-        `serialization +${fmt(overlay.serialization2LegMs, 1)} ms — ` +
-          `${TRACE_HOP_COUNT} legs × ${ESTNET_FRAME_BYTES} B @ ${ESTNET_PHY_BPS} bps ` +
-          `(ESTNeT stock PHY; not in the viewer model)`
-      );
-      term(
-        `processing −${fmt(level.modelProcessingMs, 1)} ms — viewer-model per-hop ` +
-          `add-on (not in the ESTNeT scenario)`
-      );
-      term(
-        `geometry residual ${residual >= 0 ? "+" : ""}${fmt(residual, 1)} ms — ` +
-          `representative-sample slant (${level.anchor.representativeSatelliteId} @ ` +
-          `${level.anchor.representativeSampleUtc.slice(11, 19)}Z, ` +
-          `${fmt(level.anchor.slantRangeKm, 0)} km/hop) vs per-packet slant over the segment`
-      );
+      terms.textContent =
+        `serialization +${fmt(overlay.serialization2LegMs, 1)} (stock PHY) · ` +
+        `processing −${fmt(level.modelProcessingMs, 1)} (model add-on) · ` +
+        `residual ${residual >= 0 ? "+" : ""}${fmt(residual, 1)} (slant sampling)`;
+      terms.title =
+        `serialization: ${TRACE_HOP_COUNT} legs × ${ESTNET_FRAME_BYTES} B @ ` +
+        `${ESTNET_PHY_BPS} bps (ESTNeT stock PHY; not in the viewer model). ` +
+        `processing: viewer-model per-hop add-on (not in the ESTNeT scenario). ` +
+        `residual anchor: ${level.anchor.representativeSatelliteId} @ ` +
+        `${level.anchor.representativeSampleUtc.slice(11, 19)}Z, ` +
+        `${fmt(level.anchor.slantRangeKm, 0)} km/hop vs per-packet slant.`;
     } else {
-      term(
-        "delta not decomposed: the trace does not declare the stock 9600 bps PHY, " +
-          "so no serialization term is assumed"
-      );
+      terms.textContent =
+        "Δ not decomposed — the trace declares no stock 9600 bps PHY";
     }
-    row.append(list);
-    bodyWrap.append(row);
+
+    card.append(orbitTag, figure, compare, terms);
+    grid.append(card);
   }
 
   if (overlay.windowAligned === false) {
@@ -1231,12 +1222,10 @@ function buildModelDeltaBlock(overlay: ModelOverlay): HTMLElement {
     windowNote.className = "v4-estnet-trace__model-delta-note";
     windowNote.dataset.windowMismatch = "true";
     windowNote.textContent =
-      `⚠ window mismatch: model anchors are sampled in the panel's current ` +
-      `projection window (${overlay.projectionWindowLabel}), not the trace's ` +
-      `simulated window (${overlay.traceWindowLabel ?? "—"}) — cross-window ` +
-      `comparison is orbit-representative only. Open the pinned demo route ` +
-      `(startUtc=trace window) for a same-window reconciliation.`;
-    bodyWrap.append(windowNote);
+      `⚠ cross-window: model sampled in ${overlay.projectionWindowLabel}, ` +
+      `trace simulated ${overlay.traceWindowLabel ?? "—"} — ` +
+      `orbit-representative only; same-window via the pinned demo route.`;
+    block.append(windowNote);
   }
 
   const note = document.createElement("p");
@@ -1244,7 +1233,7 @@ function buildModelDeltaBlock(overlay: ModelOverlay): HTMLElement {
   note.textContent =
     "Both sides are models (analytic geometry vs packet simulation); agreement " +
     "is implementation consistency, not validation against a measurement.";
-  bodyWrap.append(note);
+  block.append(note);
 
   return block;
 }

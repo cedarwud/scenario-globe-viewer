@@ -17,8 +17,9 @@
 //     in the panel at all — the panel carries a one-line honesty POINTER
 //     (title + non-claim count + "Report" hint, not an expandable), and the
 //     per-trace checks assert the verbatim text is ABSENT from the panel DOM;
-//     the intro stays a one-liner and the model-delta block stays a collapsed
-//     expandable. Badges are label-mapped, so they are presence-checked only.
+//     the intro stays a one-liner and the model-delta block renders as
+//     always-visible per-orbit Δ cards (third pass — no collapsed prose).
+//     Badges are label-mapped, so they are presence-checked only.
 //   - Report appendix (the report-density landing, and since the second pass
 //     the ONLY place the verbatim honesty text renders): /report opened WITH
 //     `estnet=1` renders an "ESTNeT appendix" tab carrying every fixture's
@@ -288,7 +289,14 @@ function readEstnetState() {
       yAxis: mount?.querySelector("svg")?.dataset.yAxis ?? null,
       pairNote: note ? note.textContent : null,
       modelDelta: Boolean(modelDeltaEl),
-      modelDeltaOpen: modelDeltaEl ? modelDeltaEl.open : null,
+      deltaCards: Array.from(
+        modelDeltaEl?.querySelectorAll(".v4-estnet-trace__delta-card") ?? [],
+        (card) => ({
+          orbit: card.dataset.orbit ?? null,
+          figure:
+            card.querySelector('[data-delta-figure="true"]')?.textContent ?? ""
+        })
+      ),
       modelLine: Boolean(mount?.querySelector(".v4-estnet-trace__svg-model-line")),
       introChars:
         sections[0]?.querySelector(".v4-estnet-trace__intro")?.textContent.length ?? null,
@@ -736,9 +744,16 @@ try {
     );
     if (wantOverlay) {
       check(
-        `menu[${entry.id}]-model-delta-collapsed-expandable (Δ chips visible, decomposition prose on demand)`,
-        s.modelDeltaOpen === false,
-        { open: s.modelDeltaOpen }
+        `menu[${entry.id}]-model-delta-cards (always-visible per-orbit Δ figures, orbit-tagged)`,
+        Array.isArray(s.deltaCards) &&
+          s.deltaCards.length > 0 &&
+          s.deltaCards.every(
+            (card) =>
+              typeof card.orbit === "string" &&
+              card.orbit.length > 0 &&
+              card.figure.includes("ms")
+          ),
+        { got: s.deltaCards }
       );
     }
   }

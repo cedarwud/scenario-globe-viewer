@@ -2593,42 +2593,63 @@ body:has([data-v4-projection-side-panel="true"])
   border-radius: 0;
   vertical-align: 0.15rem;
 }
+/* Model ↔ simulator Δ (panel-density third pass): always-visible per-orbit
+   cards — orbit-colored Δ figure carries the claim; decomposition terms are
+   a compact labeled line (full provenance on hover title); the two honesty
+   one-liners sit under the grid. */
 .v4-estnet-trace__model-delta {
   background: rgba(240, 240, 240, 0.04);
   border: 1px dashed rgba(240, 240, 240, 0.28);
   border-radius: 0.5rem;
-  padding: 0.45rem 0.75rem;
-}
-.v4-estnet-trace__model-delta-body {
+  padding: 0.55rem 0.75rem 0.6rem;
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
-  margin-top: 0.55rem;
 }
-/* Compact expandable summary line (panel-density rule): claim visible in one
-   glance — title + chips — prose only on expand. Shared by the model-delta
-   and the assumptions/non-claims honesty disclosures. */
-.v4-estnet-trace__expand-summary {
+.v4-estnet-trace__model-delta-header {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: 0.4rem;
-  cursor: pointer;
-  list-style: none;
   font-size: 1rem;
   color: rgba(240, 240, 240, 0.85);
 }
-.v4-estnet-trace__expand-summary::-webkit-details-marker {
-  display: none;
+.v4-estnet-trace__delta-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 0.5rem;
 }
-.v4-estnet-trace__expand-summary::before {
-  content: "▸";
-  font-size: 0.85em;
-  color: rgba(157, 196, 232, 0.65);
-  transition: transform 0.15s ease;
+.v4-estnet-trace__delta-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.18rem;
+  border-left: 3px solid var(--orbit-color, rgba(157, 196, 232, 0.45));
+  border-radius: 0.35rem;
+  background: rgba(8, 16, 32, 0.45);
+  padding: 0.45rem 0.6rem;
 }
-details[open] > .v4-estnet-trace__expand-summary::before {
-  transform: rotate(90deg);
+.v4-estnet-trace__delta-card-orbit {
+  font-size: 0.95rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: var(--orbit-color, rgba(157, 196, 232, 0.85));
+}
+.v4-estnet-trace__delta-card-figure {
+  font-size: 1.45rem;
+  font-weight: 700;
+  line-height: 1.1;
+  color: var(--orbit-color, #f0f0f0);
+  font-variant-numeric: tabular-nums;
+}
+.v4-estnet-trace__delta-card-compare {
+  font-size: 1rem;
+  color: rgba(240, 240, 240, 0.8);
+  font-variant-numeric: tabular-nums;
+}
+.v4-estnet-trace__delta-card-terms {
+  font-size: 0.95rem;
+  line-height: 1.35;
+  color: rgba(157, 196, 232, 0.75);
 }
 .v4-estnet-trace__expand-title {
   font-weight: 600;
@@ -2665,27 +2686,6 @@ details[open] > .v4-estnet-trace__expand-summary::before {
   background: rgba(126, 226, 184, 0.03);
   margin-top: 0.45rem;
   color: rgba(240, 240, 240, 0.85);
-}
-.v4-estnet-trace__model-delta-head {
-  font-size: 1.02rem;
-  color: #e6f7f1;
-}
-.v4-estnet-trace__model-delta-orbit[data-orbit="GEO"] .v4-estnet-trace__model-delta-head {
-  border-left: 3px solid #4cc2ff;
-  padding-left: 0.5rem;
-}
-.v4-estnet-trace__model-delta-orbit[data-orbit="MEO"] .v4-estnet-trace__model-delta-head {
-  border-left: 3px solid #7cffb2;
-  padding-left: 0.5rem;
-}
-.v4-estnet-trace__model-delta-terms {
-  margin: 0.25rem 0 0;
-  padding-left: 1.3rem;
-  font-size: 0.98rem;
-  color: rgba(157, 196, 232, 0.8);
-}
-.v4-estnet-trace__model-delta-terms li {
-  margin: 0.12rem 0;
 }
 .v4-estnet-trace__model-delta-note {
   margin: 0;

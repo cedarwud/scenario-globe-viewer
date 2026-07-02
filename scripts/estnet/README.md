@@ -260,7 +260,7 @@ upstream and never rendered.
 
 **Panel density (2026-07-02, ADR 0015 decision 9 + second pass):** the
 section is visual-first — one-line intro, per-trace badges, stat cards,
-chart, per-orbit Δ chips; the verbatim honesty text (assumptionSet /
+chart, per-orbit model-delta Δ cards; the verbatim honesty text (assumptionSet /
 nonClaims, relay-name lists) renders ONLY in the evidence report's **ESTNeT
 appendix** tab — the panel keeps a single non-expandable pointer line
 ("Assumptions & non-claims · N non-claims · verbatim → Report") and the gate
@@ -275,14 +275,14 @@ not part of `npm test`): default-off absence with a fresh Chrome profile,
 toggle-ON add-only + open-by-default + scroll-into-view, per-trace
 axis/pair-binding assertions plus the density contract (one-line intro,
 honesty pointer line with the non-claim count, verbatim honesty text
-ABSENT from the panel DOM, model-delta collapsed), the report ESTNeT
-appendix end-to-end (with/without `estnet=1` — the appendix is the only
-place the verbatim text renders, asserted character-exact per fixture),
-the REAL Report button probed in both modes (its URL carries `estnet=1`
-exactly when the mode is on; the async mock-window fallback write honors
-the same opt-in), a rain-drag re-render check (the section's open/closed
-state survives; nested expandables reset — known limit, ADR 0015 d9),
-and toggle-OFF full DOM teardown. Track decisions are recorded in
+ABSENT from the panel DOM, per-orbit model-delta Δ cards), the report
+ESTNeT appendix end-to-end (with/without `estnet=1` — the appendix is the
+only place the verbatim text renders, asserted character-exact per
+fixture), the REAL Report button probed in both modes (its URL carries
+`estnet=1` exactly when the mode is on; the async mock-window fallback
+write honors the same opt-in), a rain-drag re-render check (the section's
+open/closed state survives), and toggle-OFF full DOM teardown. Track
+decisions are recorded in
 `docs/decisions/0015-estnet-packet-trace-panel.md`.
 
 Panel extras on top of the raw trace (all opt-in, disclosure-first):

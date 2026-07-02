@@ -158,6 +158,23 @@ Two prior lessons bound the design:
    relay-name list follows the same rule (orbit keys in the panel, verbatim
    descriptors in the appendix provenance table).
 
+   *Third pass (same day): Model ↔ simulator Δ stays in the panel, as
+   visuals.* The reconciliation is claim-level evidence (the demo's "our
+   analytic model and the external simulator agree, and we can say why they
+   differ" moment), so it earns the panel — but the first-pass presentation
+   (a collapsed `<details>` whose body was uniform small prose) failed the
+   legibility bar. Now: always-visible per-orbit **Δ cards** — orbit-colored
+   left border, orbit tag, large orbit-colored Δ figure, a sim-vs-model
+   sub-line, and one compact labeled decomposition line (serialization /
+   processing / residual; the anchor provenance — representative satellite,
+   sample time, slant km — moved to the line's hover title). The
+   cross-window caveat and the consistency-≠-validation line stay as single
+   muted one-liners under the grid. This also retires the prior known
+   limit: no nested expandables remain in the section, so section-level
+   open/closed state is the only state to preserve. Gate: the
+   collapsed-expandable check became `model-delta-cards` (per-orbit,
+   orbit-tagged, ms figures present).
+
 ## Consequences
 
 - The accepted 19/19 surface stays untouched by default — proven by gates,
