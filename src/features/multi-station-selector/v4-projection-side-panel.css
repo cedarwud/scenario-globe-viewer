@@ -2739,7 +2739,12 @@ body[data-estnet-tab="on"] .v4-projection-side-panel {
 .v4-estnet-tab-panel {
   position: fixed;
   top: 4rem;
-  right: 1.75rem;
+  /* Tighter than the pair panel's 1.75rem anchor: that constant is load-
+     bearing there (the evidence drawer's right-calc math and the accepted
+     default geometry), but nothing anchors off THIS opt-in panel — the
+     16px jump on tab switch is imperceptible and the analysis view keeps
+     the width. */
+  right: 0.75rem;
   z-index: 40;
   width: clamp(25rem, 35vw, 30rem);
   height: calc(100dvh - 4rem - var(--v4-projection-native-bottom-clearance, 4.25rem));
@@ -2813,15 +2818,14 @@ body[data-estnet-tab="on"] .v4-projection-side-panel {
 body[data-estnet-strip-open="on"] .viewer-shell {
   height: calc(100% - var(--v4-estnet-strip-height));
 }
+/* While the strip is open the panel runs down to just above it: the native
+   Cesium bottom controls (timeline right end, fullscreen button) sit under
+   the panel column in this state — an accepted trade-off; "Pair analysis"
+   restores the cleared layout. With the strip closed the canvas is
+   full-height again and the base rule's 4.25rem clearance applies. */
 body[data-estnet-strip-open="on"] .v4-estnet-tab-panel {
-  height: calc(
-    100dvh - 4rem - var(--v4-estnet-strip-height) -
-      var(--v4-projection-native-bottom-clearance, 4.25rem)
-  );
-  max-height: calc(
-    100dvh - 4rem - var(--v4-estnet-strip-height) -
-      var(--v4-projection-native-bottom-clearance, 4.25rem)
-  );
+  height: calc(100dvh - 4rem - var(--v4-estnet-strip-height) - 0.75rem);
+  max-height: calc(100dvh - 4rem - var(--v4-estnet-strip-height) - 0.75rem);
 }
 .v4-estnet-strip {
   position: fixed;

@@ -384,8 +384,10 @@ function readSplitState() {
     const strip = document.querySelector('[data-estnet-strip="true"]');
     const canvas = document.querySelector(".viewer-root .cesium-widget canvas");
     const shell = document.querySelector(".viewer-shell");
+    const tab = document.querySelector('[data-estnet-tab-panel="true"]');
     const canvasRect = canvas ? canvas.getBoundingClientRect() : null;
     const stripRect = strip && !strip.hidden ? strip.getBoundingClientRect() : null;
+    const tabRect = tab && !tab.hidden ? tab.getBoundingClientRect() : null;
     return {
       bodyStripAttr: document.body.getAttribute("data-estnet-strip-open"),
       stripVisible: strip ? !strip.hidden : null,
@@ -394,6 +396,7 @@ function readSplitState() {
       stripRight: stripRect ? stripRect.right : null,
       canvasBottom: canvasRect ? canvasRect.bottom : null,
       shellBottom: shell ? shell.getBoundingClientRect().bottom : null,
+      tabPanelBottom: tabRect ? tabRect.bottom : null,
       innerWidth: window.innerWidth,
       innerHeight: window.innerHeight
     };
@@ -756,6 +759,13 @@ try {
       splitOn.stripLeft <= 0.5 &&
       splitOn.stripRight >= splitOn.innerWidth - 0.5,
     splitOn
+  );
+  check(
+    "ON-tab-panel-clears-strip (panel bottom ends above the full-width strip, no stacking)",
+    typeof splitOn.tabPanelBottom === "number" &&
+      typeof splitOn.stripTop === "number" &&
+      splitOn.tabPanelBottom <= splitOn.stripTop + 0.5,
+    { tabPanelBottom: splitOn.tabPanelBottom, stripTop: splitOn.stripTop }
   );
   check(
     "ON-chart-and-tab-render-the-same-trace (split mounts stay in lockstep)",
