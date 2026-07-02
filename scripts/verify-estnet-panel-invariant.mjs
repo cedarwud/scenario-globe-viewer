@@ -2,22 +2,25 @@
 // ESTNeT panel opt-in invariant gate (verify:estnet:panel).
 //
 // Guards the LOAD-BEARING rule that the opt-in ESTNeT packet-trace surface —
-// a one-line summary CARD in the side panel plus a full-width bottom DOCK
-// holding the trace explorer (panel-density fourth pass, 2026-07-03) — never
-// touches the accepted single-link default surface:
+// a one-line summary CARD in the pair panel, a second side panel shown as a
+// TAB ("Pair analysis | ESTNeT") in the same rectangle, and a THIN bottom
+// chart STRIP that leaves the globe visible (panel-density fifth pass,
+// 2026-07-03) — never touches the accepted single-link default surface:
 //
-//   - DEFAULT (fresh profile, no ?estnet=1, no stored mode): the card and
-//     the dock are ABSENT, the toolbar toggle reads off, and the page loads
-//     with ZERO console errors and ZERO uncaught exceptions / unhandled
-//     promise rejections.
-//   - Toggling ON only ADDS the one card row to the panel (structural
-//     signature comparison, no pixels) and mounts the dock, which
-//     auto-opens so the toggle visibly does something.
-//   - Every manifest trace is selectable (in the dock) without an error
-//     block; each trace's y-axis semantic is asserted via the chart's
-//     `data-y-axis` attribute (never by crawling SVG internals). Density
-//     contract: the verbatim assumptionSet/nonClaims text does NOT render in
-//     the card or the dock — the explorer carries a one-line honesty POINTER
+//   - DEFAULT (fresh profile, no ?estnet=1, no stored mode): the card, the
+//     tab panel and the strip are ABSENT (and no body[data-estnet-tab]), the
+//     toolbar toggle reads off, and the page loads with ZERO console errors
+//     and ZERO uncaught exceptions / unhandled promise rejections.
+//   - Toggling ON only ADDS the one card row to the pair panel (structural
+//     signature comparison, no pixels), auto-activates the ESTNeT tab (the
+//     pair panel is HIDDEN via a body attribute, its DOM untouched) and
+//     opens the chart strip.
+//   - Every manifest trace is selectable (in the tab panel) without an error
+//     block; each trace's y-axis semantic is asserted via the STRIP chart's
+//     `data-y-axis` attribute (never by crawling SVG internals); the tab and
+//     strip mounts must render the same trace. Density contract: the
+//     verbatim assumptionSet/nonClaims text does NOT render in the card, the
+//     tab panel or the strip — the tab carries a one-line honesty POINTER
 //     (title + non-claim count + "Report" hint, not an expandable) and the
 //     per-trace checks assert the verbatim text is ABSENT from that DOM; the
 //     intro stays a one-liner and the model-delta block renders as
@@ -32,15 +35,17 @@
 //     trace (manifest pair hints); a same-pair trace shows the viewer-model
 //     overlay, a cross-pair trace hides it AND renders the exact one-line
 //     disclosure.
-//   - Toggling OFF removes the card AND the dock DOM entirely (querySelector
-//     null — removal, not display:none) with zero leftover estnet nodes, and
-//     the panel's structural signature returns to the default exactly.
+//   - Toggling OFF removes the card, the tab panel AND the strip entirely
+//     (querySelector null — removal, not display:none), restores the pair
+//     panel, leaves zero estnet nodes, and the panel's structural signature
+//     returns to the default exactly.
 //   - A `?estnet=1` deep link seeds the mode IN-MEMORY for that load only
 //     (nothing persisted until an explicit toggle; storage cleared first —
 //     a stored "off" would win over the URL by design).
-//   - Recomputes (rain drags) keep the card, update dock content, and NEVER
-//     re-open a dock the user explicitly closed; the card's button reopens
-//     it rebuilt from the latest result.
+//   - Recomputes (rain drags) keep the card and the active tab, update
+//     content, and NEVER re-open a strip the user explicitly closed;
+//     clicking the active ESTNeT tab re-opens it rebuilt from the latest
+//     result; the "Pair analysis" tab restores the default panel.
 //
 // A FRESH Chrome profile is mandatory, not an optimization: an explicit
 // toggle persists the display mode in localStorage (`estnet-display-mode`),
@@ -242,7 +247,9 @@ function readDefaultState() {
     return {
       panelState: panel ? (panel.dataset.state ?? null) : null,
       estnetCard: Boolean(document.querySelector('[data-estnet-summary-card="true"]')),
-      estnetDock: Boolean(document.querySelector('[data-estnet-dock="true"]')),
+      estnetTabPanel: Boolean(document.querySelector('[data-estnet-tab-panel="true"]')),
+      estnetStrip: Boolean(document.querySelector('[data-estnet-strip="true"]')),
+      bodyTabAttr: document.body.getAttribute("data-estnet-tab"),
       togglePresent: Boolean(toggle),
       toggleEnabled: toggle ? (toggle.dataset.estnetEnabled ?? null) : null,
       storedMode: (() => {
@@ -280,24 +287,35 @@ const PANEL_SIGNATURE_EXPR = `(() => {
   });
 })()`;
 
-// One read of everything the estnet section assertions need.
+// One read of everything the estnet card + tab-panel + strip assertions need.
 function readEstnetState() {
   return evald(`(() => {
     const cards = document.querySelectorAll('[data-estnet-summary-card="true"]');
-    const docks = document.querySelectorAll('[data-estnet-dock="true"]');
-    const dock = docks[0] ?? null;
-    const mount = dock?.querySelector(".v4-estnet-trace__mount") ?? null;
+    const tabs = document.querySelectorAll('[data-estnet-tab-panel="true"]');
+    const strips = document.querySelectorAll('[data-estnet-strip="true"]');
+    const tab = tabs[0] ?? null;
+    const strip = strips[0] ?? null;
+    const mount = tab?.querySelector(".v4-estnet-trace__mount") ?? null;
+    const chartMount = strip?.querySelector(".v4-estnet-trace__chart-mount") ?? null;
     const note = mount?.querySelector('[data-pair-mismatch="true"]') ?? null;
     const honesty = mount?.querySelector('[data-honesty-pointer="true"]') ?? null;
     const modelDeltaEl = mount?.querySelector('[data-model-delta="true"]') ?? null;
+    const pairPanel = document.querySelector('[data-v4-projection-side-panel="true"]');
     return {
       cardCount: cards.length,
-      dockCount: docks.length,
-      dockVisible: dock ? !dock.hidden : null,
+      tabCount: tabs.length,
+      stripCount: strips.length,
+      tabActive: tab ? !tab.hidden : null,
+      stripVisible: strip ? !strip.hidden : null,
+      bodyTabAttr: document.body.getAttribute("data-estnet-tab"),
+      pairPanelDisplayed: pairPanel
+        ? window.getComputedStyle(pairPanel).display !== "none"
+        : null,
       loading: mount ? mount.dataset.loading === "true" : null,
       variant: mount?.dataset.variant ?? null,
+      chartVariant: chartMount?.dataset.variant ?? null,
       errorBlock: Boolean(mount?.querySelector(".v4-estnet-trace__error")),
-      yAxis: mount?.querySelector("svg")?.dataset.yAxis ?? null,
+      yAxis: chartMount?.querySelector("svg")?.dataset.yAxis ?? null,
       pairNote: note ? note.textContent : null,
       modelDelta: Boolean(modelDeltaEl),
       deltaCards: Array.from(
@@ -308,9 +326,9 @@ function readEstnetState() {
             card.querySelector('[data-delta-figure="true"]')?.textContent ?? ""
         })
       ),
-      modelLine: Boolean(mount?.querySelector(".v4-estnet-trace__svg-model-line")),
+      modelLine: Boolean(chartMount?.querySelector(".v4-estnet-trace__svg-model-line")),
       introChars:
-        dock?.querySelector(".v4-estnet-trace__intro")?.textContent.length ?? null,
+        tab?.querySelector(".v4-estnet-trace__intro")?.textContent.length ?? null,
       honestyPresent: Boolean(honesty),
       honestyIsExpandable: honesty ? honesty.tagName === "DETAILS" : null,
       honestyLine: honesty ? honesty.textContent : null,
@@ -318,17 +336,19 @@ function readEstnetState() {
         mount?.querySelector(".v4-estnet-trace__assumptions") ||
           mount?.querySelector(".v4-estnet-trace__nonclaims")
       ),
-      // Verbatim-absence surface: the dock (explorer) AND the panel card.
+      // Verbatim-absence surface: tab panel + chart strip + summary card.
       panelText:
-        (dock ? dock.textContent : "") +
+        (tab ? tab.textContent : "") +
+        "\\n" +
+        (strip ? strip.textContent : "") +
         "\\n" +
         (cards[0] ? cards[0].textContent : ""),
       buttons: Array.from(
-        dock?.querySelectorAll(".v4-estnet-trace__toggle-btn") ?? [],
+        tab?.querySelectorAll(".v4-estnet-trace__toggle-btn") ?? [],
         (b) => b.dataset.variant
       ),
       activeButton:
-        dock?.querySelector(".v4-estnet-trace__toggle-btn--active")?.dataset.variant ?? null,
+        tab?.querySelector(".v4-estnet-trace__toggle-btn--active")?.dataset.variant ?? null,
       storedMode: (() => {
         try {
           return window.localStorage.getItem("estnet-display-mode");
@@ -355,13 +375,17 @@ async function waitForCondition(expr, timeoutMs, label) {
 function waitEstnetLoaded(timeoutMs = 30000) {
   return waitForCondition(
     `(() => {
-      const dock = document.querySelector('[data-estnet-dock="true"]');
-      if (!dock || dock.hidden) return false;
-      const m = dock.querySelector(".v4-estnet-trace__mount");
-      return Boolean(m && m.dataset.loading !== "true" && m.dataset.variant);
+      const tab = document.querySelector('[data-estnet-tab-panel="true"]');
+      if (!tab || tab.hidden) return false;
+      const m = tab.querySelector(".v4-estnet-trace__mount");
+      const c = document.querySelector('[data-estnet-strip="true"] .v4-estnet-trace__chart-mount');
+      return Boolean(
+        m && m.dataset.loading !== "true" && m.dataset.variant &&
+        c && c.dataset.loading !== "true"
+      );
     })()`,
     timeoutMs,
-    "estnet dock open with a loaded trace"
+    "estnet tab active with a loaded trace (tab + chart mounts)"
   );
 }
 
@@ -571,8 +595,11 @@ try {
 
   const s0 = await readDefaultState();
   check(
-    "default-estnet-card-and-dock-absent (opt-in surface must not exist without opt-in)",
-    s0.estnetCard === false && s0.estnetDock === false,
+    "default-estnet-card-tab-strip-absent (opt-in surface must not exist without opt-in)",
+    s0.estnetCard === false &&
+      s0.estnetTabPanel === false &&
+      s0.estnetStrip === false &&
+      s0.bodyTabAttr === null,
     s0
   );
   check("default-panel-ready", s0.panelState === "ready", s0.panelState);
@@ -653,14 +680,29 @@ try {
   );
   const sOn = await readEstnetState();
   check(
-    "ON-card-present-once (panel carries exactly one summary card)",
+    "ON-card-present-once (pair panel carries exactly one summary card)",
     sOn.cardCount === 1,
     sOn.cardCount
   );
   check(
-    "ON-dock-present-once-and-auto-open (live toggle-on reveals the explorer, not just a card)",
-    sOn.dockCount === 1 && sOn.dockVisible === true,
-    { docks: sOn.dockCount, visible: sOn.dockVisible }
+    "ON-tab-auto-activates (live toggle-on switches to the ESTNeT tab, not just a card)",
+    sOn.tabCount === 1 && sOn.tabActive === true && sOn.bodyTabAttr === "on",
+    { tabs: sOn.tabCount, active: sOn.tabActive, attr: sOn.bodyTabAttr }
+  );
+  check(
+    "ON-pair-panel-hidden-while-tab-active (tab swap, DOM untouched)",
+    sOn.pairPanelDisplayed === false,
+    sOn.pairPanelDisplayed
+  );
+  check(
+    "ON-chart-strip-open (thin bottom strip carries the chart; globe stays visible)",
+    sOn.stripCount === 1 && sOn.stripVisible === true,
+    { strips: sOn.stripCount, visible: sOn.stripVisible }
+  );
+  check(
+    "ON-chart-and-tab-render-the-same-trace (split mounts stay in lockstep)",
+    typeof sOn.variant === "string" && sOn.variant === sOn.chartVariant,
+    { tab: sOn.variant, chart: sOn.chartVariant }
   );
   check("ON-storage-on (persisted opt-in)", sOn.storedMode === "on", sOn.storedMode);
   check(
@@ -689,7 +731,7 @@ try {
     );
     await waitForCondition(
       `(() => {
-        const m = document.querySelector('[data-estnet-dock="true"] .v4-estnet-trace__mount');
+        const m = document.querySelector('[data-estnet-tab-panel="true"] .v4-estnet-trace__mount');
         return Boolean(m && m.dataset.loading !== "true" && m.dataset.variant === ${JSON.stringify(entry.id)});
       })()`,
       30000,
@@ -785,30 +827,40 @@ try {
     probeOn
   );
 
-  // 6. toggle OFF: the summary card AND the dock DOM are REMOVED (not
-  // display:none), zero estnet nodes remain, and the panel structure returns
-  // to the default.
+  // 6. toggle OFF: the summary card, the ESTNeT tab panel AND the chart
+  // strip are REMOVED (not display:none), the pair panel is visible again,
+  // zero estnet nodes remain, and the panel structure returns to the default.
   check("OFF-click-toggle", await clickEstnetToggle(), null);
   await waitForCondition(
     `document.querySelector('[data-estnet-summary-card="true"]') === null &&
-     document.querySelector('[data-estnet-dock="true"]') === null`,
+     document.querySelector('[data-estnet-tab-panel="true"]') === null &&
+     document.querySelector('[data-estnet-strip="true"]') === null`,
     15000,
-    "estnet card + dock removed"
+    "estnet card + tab panel + strip removed"
   );
   const sOff = await evald(`(() => ({
     card: Boolean(document.querySelector('[data-estnet-summary-card="true"]')),
-    dock: Boolean(document.querySelector('[data-estnet-dock="true"]')),
-    leftoverNodes:
-      document.querySelectorAll('[class*="v4-estnet-trace"]').length +
-      document.querySelectorAll('[class*="v4-estnet-dock"]').length,
+    tab: Boolean(document.querySelector('[data-estnet-tab-panel="true"]')),
+    strip: Boolean(document.querySelector('[data-estnet-strip="true"]')),
+    bodyTabAttr: document.body.getAttribute("data-estnet-tab"),
+    pairPanelDisplayed: (() => {
+      const p = document.querySelector('[data-v4-projection-side-panel="true"]');
+      return p ? window.getComputedStyle(p).display !== "none" : null;
+    })(),
+    leftoverNodes: document.querySelectorAll('[class*="v4-estnet"]').length,
     storedMode: (() => { try { return window.localStorage.getItem("estnet-display-mode"); } catch { return "ERR"; } })(),
     toggleEnabled: document.querySelector('[data-estnet-trace-toggle="true"]')?.dataset.estnetEnabled ?? null
   }))()`);
   const sigOff = await evald(PANEL_SIGNATURE_EXPR);
   check(
-    "OFF-card-and-dock-dom-fully-removed (querySelector null — removal, not display:none)",
-    sOff.card === false && sOff.dock === false,
+    "OFF-card-tab-strip-dom-fully-removed (querySelector null — removal, not display:none)",
+    sOff.card === false && sOff.tab === false && sOff.strip === false && sOff.bodyTabAttr === null,
     sOff
+  );
+  check(
+    "OFF-pair-panel-visible-again (tab teardown restores the default panel)",
+    sOff.pairPanelDisplayed === true,
+    sOff.pairPanelDisplayed
   );
   check("OFF-zero-estnet-node-leftovers", sOff.leftoverNodes === 0, sOff.leftoverNodes);
   check(
@@ -840,14 +892,17 @@ try {
     await waitEstnetLoaded();
     const sCross = await readEstnetState();
     check(
-      "seed-url-opt-in-reveals-card-and-dock (?estnet=1 seeds the mode IN-MEMORY; persistence only on explicit toggle)",
-      sCross.cardCount === 1 && sCross.dockCount === 1 && sCross.storedMode === null,
-      { cards: sCross.cardCount, docks: sCross.dockCount, stored: sCross.storedMode }
+      "seed-url-opt-in-reveals-card-tab-strip (?estnet=1 seeds the mode IN-MEMORY; persistence only on explicit toggle)",
+      sCross.cardCount === 1 &&
+        sCross.tabCount === 1 &&
+        sCross.stripCount === 1 &&
+        sCross.storedMode === null,
+      { cards: sCross.cardCount, tabs: sCross.tabCount, strips: sCross.stripCount, stored: sCross.storedMode }
     );
     check(
-      "seed-dock-auto-opens (deep-link demo route shows the explorer without a manual open)",
-      sCross.dockVisible === true,
-      sCross.dockVisible
+      "seed-tab-auto-activates-and-strip-opens (deep-link demo route shows the explorer without a manual open)",
+      sCross.tabActive === true && sCross.stripVisible === true,
+      { tab: sCross.tabActive, strip: sCross.stripVisible }
     );
     // The expected pre-selection mirrors the tie-breaker on the NEW route —
     // never just "the entry we navigated by" (that diverges when a pair
@@ -887,7 +942,7 @@ try {
       );
       await waitForCondition(
         `(() => {
-          const m = document.querySelector('[data-estnet-dock="true"] .v4-estnet-trace__mount');
+          const m = document.querySelector('[data-estnet-tab-panel="true"] .v4-estnet-trace__mount');
           return Boolean(m && m.dataset.loading !== "true" && m.dataset.variant === ${JSON.stringify(nowCrossEntry.id)});
         })()`,
         30000,
@@ -907,15 +962,16 @@ try {
     }
 
     // 7b. re-render behaviour (dual-review fold 2026-07-02, re-anchored to
-    // the dock 2026-07-03): close the dock via its REAL close button, drag
-    // the rain slider (a full recompute + renderResult pass), and require
-    // (a) the summary card to survive the panel re-render and (b) the dock
-    // to STAY closed — recomputes update dock content but must never
-    // re-open an explicitly closed explorer. Runs on the seed page: nothing
-    // after this step reads this page's panel signature, so the rain change
-    // cannot pollute the earlier structural comparisons.
+    // the tab+strip 2026-07-03): close the chart strip via its REAL close
+    // button, drag the rain slider (a full recompute + renderResult pass),
+    // and require (a) the summary card to survive the panel re-render,
+    // (b) the tab to stay active, and (c) the strip to STAY closed —
+    // recomputes rebuild content but must never re-open an explicitly
+    // closed strip. Runs on the seed page: nothing after this step reads
+    // this page's panel signature, so the rain change cannot pollute the
+    // earlier structural comparisons.
     const rerenderArmed = await evald(`(() => {
-      const closeBtn = document.querySelector('[data-estnet-dock-close="true"]');
+      const closeBtn = document.querySelector('[data-estnet-strip-close="true"]');
       const slider = document.querySelector(".v4-projection-side-panel__rain-slider");
       if (!closeBtn || !slider) return false;
       closeBtn.click();
@@ -923,7 +979,7 @@ try {
       slider.dispatchEvent(new Event("input", { bubbles: true }));
       return true;
     })()`);
-    check("seed-rain-rerender-armed (dock closed via its button + slider drag dispatched)", rerenderArmed === true, rerenderArmed);
+    check("seed-rain-rerender-armed (strip closed via its button + slider drag dispatched)", rerenderArmed === true, rerenderArmed);
     await waitForCondition(
       `(() => {
         const p = document.querySelector('[data-v4-projection-side-panel="true"]');
@@ -935,27 +991,49 @@ try {
     );
     const sRerender = await readEstnetState();
     check(
-      "seed-rain-rerender-keeps-card-and-respects-close (recompute updates content, never re-opens a user-closed dock)",
+      "seed-rain-rerender-keeps-card-tab-and-respects-strip-close (recompute updates content, never re-opens a closed strip)",
       sRerender.cardCount === 1 &&
-        sRerender.dockCount === 1 &&
-        sRerender.dockVisible === false,
-      { cards: sRerender.cardCount, docks: sRerender.dockCount, visible: sRerender.dockVisible }
+        sRerender.tabActive === true &&
+        sRerender.stripVisible === false,
+      { cards: sRerender.cardCount, tab: sRerender.tabActive, strip: sRerender.stripVisible }
     );
-    // Reopening from the card must come back with content bound to the NEW
-    // result (the dock rebuilds from the latest published projection).
+    // Clicking the active ESTNeT tab button is the in-tab affordance that
+    // re-opens the strip; the chart must come back bound to the NEW result.
     const reopened = await evald(`(() => {
-      const b = document.querySelector('[data-estnet-open-dock="true"]');
+      const b = document.querySelector(".v4-estnet-tab-panel__tab--active");
       if (!b) return false;
       b.click();
       return true;
     })()`);
-    check("seed-card-reopens-dock (open button works after a close + recompute)", reopened === true, reopened);
+    check("seed-estnet-tab-click-reopens-strip (affordance after a strip close)", reopened === true, reopened);
     await waitEstnetLoaded();
     const sReopen = await readEstnetState();
     check(
-      "seed-reopened-dock-renders-a-trace (rebuilt from the latest result, not a stale husk)",
-      sReopen.dockVisible === true && typeof sReopen.variant === "string" && sReopen.errorBlock === false,
-      { visible: sReopen.dockVisible, variant: sReopen.variant, error: sReopen.errorBlock }
+      "seed-reopened-strip-renders-the-chart (rebuilt from the latest result, not a stale husk)",
+      sReopen.stripVisible === true &&
+        typeof sReopen.variant === "string" &&
+        sReopen.variant === sReopen.chartVariant &&
+        sReopen.errorBlock === false,
+      { visible: sReopen.stripVisible, variant: sReopen.variant, chart: sReopen.chartVariant, error: sReopen.errorBlock }
+    );
+    // 7c. tab swap back: the "Pair analysis" tab restores the default panel
+    // (DOM was only hidden, never touched) and hides the estnet surfaces.
+    const backClicked = await evald(`(() => {
+      const b = document.querySelector('[data-estnet-tab-back="true"]');
+      if (!b) return false;
+      b.click();
+      return true;
+    })()`);
+    check("seed-back-to-pair-clicked", backClicked === true, backClicked);
+    const sBack = await readEstnetState();
+    check(
+      "seed-back-to-pair-restores-the-panel (estnet tab hidden, strip hidden, pair panel visible)",
+      sBack.tabActive === false &&
+        sBack.stripVisible === false &&
+        sBack.bodyTabAttr === null &&
+        sBack.pairPanelDisplayed === true &&
+        sBack.cardCount === 1,
+      { tab: sBack.tabActive, strip: sBack.stripVisible, attr: sBack.bodyTabAttr, pair: sBack.pairPanelDisplayed, cards: sBack.cardCount }
     );
   } else {
     check("seed-cross-route-step", false, "no cross-pair hinted manifest entry found — cannot exercise the seed/cross-route step");

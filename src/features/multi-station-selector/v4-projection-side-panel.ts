@@ -34,9 +34,9 @@ import { buildReplayControlRow } from "./v4-projection-replay-controls";
 import { buildCsvHelpControl } from "./v4-projection-csv-help";
 import { buildEstnetSummaryCard } from "./estnet-trace-panel-section";
 import {
-  mountEstnetTraceDock,
-  type EstnetTraceDockHandle
-} from "./estnet-trace-dock";
+  mountEstnetSideTab,
+  type EstnetSideTabHandle
+} from "./estnet-side-tab";
 import { createCesiumReplayClock } from "../time/cesium-replay-clock";
 import {
   isEstnetTraceDisplayEnabled,
@@ -2609,50 +2609,51 @@ export function mountV4ProjectionSidePanel(
     }
   }
 
-  // ESTNeT trace dock (panel-density fourth pass): mounted/destroyed with the
-  // display mode; content refreshed on every published runtime result. A LIVE
-  // toggle-on (and the ?estnet=1 seed once the first result lands) auto-opens
-  // it; an explicit user close is respected across later recomputes.
-  let estnetDock: EstnetTraceDockHandle | null = null;
-  let estnetDockUserClosed = false;
+  // ESTNeT side tab + chart strip (panel-density fifth pass): mounted /
+  // destroyed with the display mode; content refreshed on every published
+  // runtime result. A LIVE toggle-on (and the ?estnet=1 seed once the first
+  // result lands) auto-activates the tab; an explicit "Pair analysis" leave
+  // is respected across later recomputes.
+  let estnetTab: EstnetSideTabHandle | null = null;
+  let estnetTabUserLeft = false;
   const estnetReplayClock = () =>
     input.viewer && !input.viewer.isDestroyed()
       ? createCesiumReplayClock(input.viewer)
       : null;
-  const ensureEstnetDock = (): EstnetTraceDockHandle => {
-    if (!estnetDock) {
-      estnetDock = mountEstnetTraceDock({
-        onUserClose: () => {
-          estnetDockUserClosed = true;
+  const ensureEstnetTab = (): EstnetSideTabHandle => {
+    if (!estnetTab) {
+      estnetTab = mountEstnetSideTab({
+        onUserLeave: () => {
+          estnetTabUserLeft = true;
         }
       });
     }
-    return estnetDock;
+    return estnetTab;
   };
   const openEstnetExplorerFromCard = (): void => {
-    const dock = ensureEstnetDock();
-    estnetDockUserClosed = false;
-    dock.update(latestResult, estnetReplayClock());
-    dock.open();
+    const tab = ensureEstnetTab();
+    estnetTabUserLeft = false;
+    tab.update(latestResult, estnetReplayClock());
+    tab.activate();
   };
-  const estnetDockResultListener = (
+  const estnetTabResultListener = (
     result: RuntimeProjectionResult | null
   ): void => {
-    if (!estnetDock) {
+    if (!estnetTab) {
       return;
     }
-    estnetDock.update(result, estnetReplayClock());
+    estnetTab.update(result, estnetReplayClock());
     if (
       result &&
-      !estnetDock.isOpen() &&
-      !estnetDockUserClosed &&
+      !estnetTab.isActive() &&
+      !estnetTabUserLeft &&
       isEstnetTraceDisplayEnabled()
     ) {
       // First result after a toggle-on / URL seed: reveal the explorer once.
-      estnetDock.open();
+      estnetTab.activate();
     }
   };
-  runtimeResultListeners.add(estnetDockResultListener);
+  runtimeResultListeners.add(estnetTabResultListener);
 
   async function recompute(rainRateMmPerHour: number): Promise<void> {
     if (disposed || !tleRecords || !timeWindow || !clearSkyResult || !rainControl) {
@@ -2827,25 +2828,26 @@ export function mountV4ProjectionSidePanel(
     }
   })();
 
-  // React to the ESTNeT display mode: the dock lives and dies with the mode
-  // (OFF = full DOM teardown, zero estnet nodes), and the panel re-renders so
-  // the summary card appears/disappears live. Before the first compute there
-  // is no result yet — the dock idles hidden and the first published result
-  // auto-opens it (estnetDockResultListener). With the mode OFF the render
-  // output stays byte-identical to the default single-link surface.
+  // React to the ESTNeT display mode: the tab + strip live and die with the
+  // mode (OFF = full DOM teardown, zero estnet nodes, pair panel restored),
+  // and the panel re-renders so the summary card appears/disappears live.
+  // Before the first compute there is no result yet — the tab idles hidden
+  // and the first published result auto-activates it
+  // (estnetTabResultListener). With the mode OFF the render output stays
+  // byte-identical to the default single-link surface.
   const unsubscribeEstnetDisplay = subscribeEstnetTraceDisplay((enabled) => {
     if (disposed) {
       return;
     }
     if (enabled) {
-      ensureEstnetDock();
-      // An explicit toggle-on re-arms the auto-open (a previous close was
-      // scoped to that opt-in session, not to the mode itself).
-      estnetDockUserClosed = false;
+      ensureEstnetTab();
+      // An explicit toggle-on re-arms the auto-activate (a previous leave
+      // was scoped to that opt-in session, not to the mode itself).
+      estnetTabUserLeft = false;
     } else {
-      estnetDock?.destroy();
-      estnetDock = null;
-      estnetDockUserClosed = false;
+      estnetTab?.destroy();
+      estnetTab = null;
+      estnetTabUserLeft = false;
     }
     const result = latestResult;
     const clearSky = clearSkyResult;
@@ -2866,10 +2868,10 @@ export function mountV4ProjectionSidePanel(
     // Discoverability: a LIVE toggle-on (result already present) reveals the
     // explorer immediately — without this the toolbar toggle only added a
     // small card and looked like a no-op.
-    if (enabled && estnetDock) {
-      estnetDock.update(result, estnetReplayClock());
-      if (!estnetDock.isOpen()) {
-        estnetDock.open();
+    if (enabled && estnetTab) {
+      estnetTab.update(result, estnetReplayClock());
+      if (!estnetTab.isActive()) {
+        estnetTab.activate();
       }
     }
   });
@@ -2897,8 +2899,8 @@ export function mountV4ProjectionSidePanel(
       }
       disposed = true;
       unsubscribeEstnetDisplay();
-      estnetDock?.destroy();
-      estnetDock = null;
+      estnetTab?.destroy();
+      estnetTab = null;
       if (debounceTimer !== null) {
         clearTimeout(debounceTimer);
         debounceTimer = null;

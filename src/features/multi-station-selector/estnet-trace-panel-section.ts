@@ -1357,8 +1357,17 @@ export function buildEstnetSummaryCard(options: {
 }
 
 export interface EstnetTraceExplorerHandle {
-  /** Root element to mount wherever the explorer lives (the bottom dock). */
+  /**
+   * Narrow column content (intro, trace selector, badges, stat cards, Δ
+   * cards, honesty pointer) — lives in the ESTNeT side-panel tab.
+   */
   readonly element: HTMLElement;
+  /**
+   * Wide content (legend + time-series chart) — lives in the thin bottom
+   * chart strip, the only piece that needs BOTH width and the globe
+   * simultaneously (replay-cursor ↔ handover correspondence).
+   */
+  readonly chartPanel: HTMLElement;
   dispose(): void;
 }
 
@@ -1390,6 +1399,14 @@ export function buildEstnetTraceExplorerContent(
   mount.dataset.loading = "true";
   body.append(mount);
 
+  // Chart mount — same per-trace lifecycle, rendered into the strip.
+  const chartPanel = document.createElement("div");
+  chartPanel.className = "v4-estnet-trace v4-estnet-trace__chart-panel";
+  const chartMount = document.createElement("div");
+  chartMount.className = "v4-estnet-trace__chart-mount";
+  chartMount.dataset.loading = "true";
+  chartPanel.append(chartMount);
+
   let disposed = false;
   let renderToken = 0;
   let activeId: string | null = null;
@@ -1413,6 +1430,8 @@ export function buildEstnetTraceExplorerContent(
     const token = ++renderToken;
     mount.dataset.loading = "true";
     mount.dataset.variant = entry.id;
+    chartMount.dataset.loading = "true";
+    chartMount.dataset.variant = entry.id;
     loadTrace(entry.url)
       .then((trace) => {
         // A newer selection (or disposal) supersedes this render.
@@ -1420,6 +1439,7 @@ export function buildEstnetTraceExplorerContent(
           return;
         }
         delete mount.dataset.loading;
+        delete chartMount.dataset.loading;
         mount.dataset.pathLabel = trace.pathLabel;
         const overlay = computeModelOverlay(trace, options.runtimeResult);
         const pairNote = options.runtimeResult
@@ -1430,14 +1450,22 @@ export function buildEstnetTraceExplorerContent(
         detachReplayCursor = options.replayClock
           ? attachReplayCursor(chart, trace, options.replayClock)
           : null;
+        // Narrow column (side-panel tab): everything except the chart.
         mount.replaceChildren(
           buildBadges(trace),
           ...(pairNote ? [buildPairNote(pairNote)] : []),
           buildCards(trace),
-          buildLegend(trace, overlay),
-          chart.svg,
           ...(overlay ? [buildModelDeltaBlock(overlay)] : []),
           buildFoot(trace)
+        );
+        // Wide strip: path title + legend + the chart itself.
+        const chartTitle = document.createElement("div");
+        chartTitle.className = "v4-estnet-trace__chart-title";
+        chartTitle.textContent = trace.pathLabel;
+        chartMount.replaceChildren(
+          chartTitle,
+          buildLegend(trace, overlay),
+          chart.svg
         );
       })
       .catch((error) => {
@@ -1445,9 +1473,13 @@ export function buildEstnetTraceExplorerContent(
           return;
         }
         delete mount.dataset.loading;
+        delete chartMount.dataset.loading;
         detachReplayCursor?.();
         detachReplayCursor = null;
         mount.replaceChildren(buildErrorBlock(`the "${entry.label}" trace fixture`, error));
+        chartMount.replaceChildren(
+          buildErrorBlock(`the "${entry.label}" trace fixture`, error)
+        );
       });
   };
 
@@ -1481,7 +1513,9 @@ export function buildEstnetTraceExplorerContent(
         return;
       }
       delete mount.dataset.loading;
+      delete chartMount.dataset.loading;
       mount.replaceChildren(buildErrorBlock("the trace manifest", error));
+      chartMount.replaceChildren(buildErrorBlock("the trace manifest", error));
     });
 
   const dispose = (): void => {
@@ -1491,5 +1525,5 @@ export function buildEstnetTraceExplorerContent(
     detachReplayCursor = null;
   };
 
-  return { element: body, dispose };
+  return { element: body, chartPanel, dispose };
 }

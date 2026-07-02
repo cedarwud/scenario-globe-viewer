@@ -205,6 +205,29 @@ Two prior lessons bound the design:
     dock-scoped, OFF removes card+dock with zero leftovers, close-then-
     rain-drag respects the close, card reopen rebuilds a live trace.
 
+    *Revised same day (fifth pass, user feedback: a 44vh dock hides the
+    globe; fullscreen loses it too).* The deciding question became "which
+    piece actually needs the globe?" — only the time-series chart (replay
+    cursor ↔ on-globe handover correspondence); everything else is
+    narrow-friendly stacked cards. Final shape: **(a)** a second side panel
+    in the same rectangle as the pair panel, switched by a "Pair analysis |
+    ESTNeT" tab strip (`estnet-side-tab.ts`; the pair panel is hidden via
+    `body[data-estnet-tab]`, its DOM untouched — the default surface stays
+    byte-identical), holding the narrow content (selector, badges, stat
+    cards, Δ cards, honesty pointer); **(b)** a THIN bottom chart strip
+    (~28vh, stops left of the panel column) holding ONLY the legend +
+    chart, so the globe keeps ~72% of the viewport during the replay
+    demo. The explorer split into two lockstep mounts (one state machine,
+    tab content + chart panel). Lifecycle keeps the dock contract:
+    mode-scoped mount/teardown, first-result auto-activate, recompute
+    never re-opens a user-closed strip nor re-activates a left tab, the
+    active-tab click re-opens the strip, "Pair analysis" restores the
+    default panel. Gate re-anchored to 87 checks (tab/strip split, same
+    trace in both mounts, pair-panel hidden/restored, strip-close +
+    rain-drag + reopen + back-to-pair walk). The bottom-dock shape from
+    the first write-up of this decision lasted one review round —
+    recorded here as the path, not the outcome.
+
 ## Consequences
 
 - The accepted 19/19 surface stays untouched by default — proven by gates,
