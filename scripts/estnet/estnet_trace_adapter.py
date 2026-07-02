@@ -28,7 +28,7 @@ stock 9600 bps cubesat serialization on top of the real GEO propagation.
 Usage:
     python3 scripts/estnet/estnet_trace_adapter.py \
         --vec /home/u24/papers/estnet-bootstrap-kit/estnet-template/simulations/results/General-0.vec \
-        --out public/fixtures/estnet/cht-sansa-abs2a-packet-trace.json
+        --out public/fixtures/estnet/cht-sansa-apstar7-packet-trace.json
 """
 import argparse
 import json
@@ -41,8 +41,8 @@ DOWNLINK_SINK_MODULE = "%cg[1]%appWrapper[0].app"    # SANSA receives sat (leg 2
 UPLINK_SRC_MODULE = "%cg[0]%appWrapper[0].app"       # CHT sends (leg 1 source)
 DOWNLINK_SRC_MODULE = "%sat[0]%appWrapper[0].app"    # sat sends (leg 2 source)
 
-PROPAGATION_PER_HOP_MS = 128.7   # geometry pre-check: ABS-2A <-> CHT/SANSA one-way
-SIM_EPOCH_UTC = "2026-06-13T20:13:00Z"  # ABS-2A TLE epoch = sim t=0
+PROPAGATION_PER_HOP_MS = 128.6   # measured on this window: APSTAR-7 <-> CHT/SANSA one-way (~38,560 km at 00:00Z)
+SIM_EPOCH_UTC = "2026-06-15T00:00:00Z"  # explicit simulationStart = sim t=0 (pinned demo window)
 
 
 def _scale(cur):
@@ -127,7 +127,10 @@ def build_trace(vec_path):
     rfc_jitter = 0.0          # RFC-3550 running jitter estimate (seconds)
     prev_transit = None       # previous end-to-end latency (seconds)
     loss_window = []          # rolling delivered/lost flags (last 10 cycles)
-    t0 = min([t for t in up_sent.values()] + [t for t in dn_sent.values()]) if (up_sent or dn_sent) else 0.0
+    # Absolute sim-time axis: the scenario pins an explicit simulationStart
+    # (t=0 == SIM_EPOCH_UTC), so tMs is absolute like the handover trace —
+    # the panel's replay cursor and window-alignment checks depend on it.
+    t0 = 0.0
 
     delivered_total = 0
     for seq in range(n_sent):
@@ -183,29 +186,31 @@ def build_trace(vec_path):
 
     return {
         "schemaVersion": 1,
-        "pathLabel": "CHT-Yangmingshan → ABS-2A (GEO) → SANSA-Hartebeesthoek",
+        "pathLabel": "CHT-Yangmingshan → APSTAR-7 (GEO) → SANSA-Hartebeesthoek",
         "sourceClass": "external-simulator-derived",
         "toolProvenance": "estnet-inet",
         "assumptionSet": (
-            "ESTNeT v1.0 (OMNeT++/INET) GEO two-leg model: ABS-2A ~75E from the "
-            "pinned commercial-geo snapshot; assumed 20 W sat EIRP to close the link; "
-            "stock 9600 bps GMSK UHF PHY (latency = ~128.7 ms/hop GEO propagation + "
-            "~118 ms/hop serialization); two one-hop unicast RF legs composed "
-            "(uplink+downlink) because stock ESTNeT cannot relay a broadcast via the sat."
+            "ESTNeT v1.0 (OMNeT++/INET) GEO two-leg model: APSTAR-7 ~76.5E from the "
+            "pinned commercial-geo snapshot — the same continuous relay as the handover "
+            "trace, on the same pinned-demo time axis (t=0 == 2026-06-15T00:00:00Z); "
+            "assumed 20 W sat EIRP to close the link; stock 9600 bps GMSK UHF PHY "
+            "(latency = ~128.6 ms/hop GEO propagation + ~118 ms/hop serialization); "
+            "two one-hop unicast RF legs composed (uplink+downlink) because stock "
+            "ESTNeT cannot relay a broadcast via the sat."
         ),
         "nonClaims": [
             "SIMULATION, not operator-measured (not Tier-A).",
             "jitter and loss are adapter-derived, not native ESTNeT signals.",
             "end-to-end is a composition of two independent one-hop RF legs, not a single relayed packet.",
             "RF EIRP/bitrate are assumed link parameters chosen so the GEO link closes.",
-            "ABS-2A sits at ~30.8-31.0 deg CHT elevation — marginally below the viewer demo's "
-            "31 deg effective CHT mask (10 deg base + 21 deg terrain), so the viewer's own "
-            "visibility policy would not select this GEO for the pair; this steady-state "
-            "scenario predates that mask alignment (the handover trace's APSTAR-7 complies).",
+            "relay pick history: the original steady-state GEO (ABS-2A ~75E) sat marginally "
+            "below the viewer demo's 31 deg effective CHT mask and was superseded 2026-07-02 "
+            "by APSTAR-7 — the mask-compliant GEO the viewer's own projection selects and "
+            "the handover trace already uses.",
         ],
         "metadata": {
             "simEpochUtc": SIM_EPOCH_UTC,
-            "satellite": "ABS-2A (MONGOLSAT-1), NORAD 41588, ~75E GEO, incl 0.0256deg",
+            "satellite": "APSTAR-7, NORAD 38107, ~76.5°E GEO",
             "stationA": {"id": "cht-yangmingshan", "lat": 25.155, "lon": 121.55},
             "stationB": {"id": "sansa-hartebeesthoek", "lat": -25.8872, "lon": 27.7075},
             "propagationPerHopMs": PROPAGATION_PER_HOP_MS,

@@ -40,11 +40,11 @@ Checks:
 Usage:
   python3 scripts/estnet/crosscheck_estnet_vs_sgp4.py            # handover fixture
   python3 scripts/estnet/crosscheck_estnet_vs_sgp4.py \
-      --fixture public/fixtures/estnet/cht-sansa-abs2a-packet-trace.json \
-      --tle scripts/estnet/scenario/configs/tles/abs2a_geo.tle
-  (flat v1 fixture: tMs is relative to the first packet, so absolute time is
-   known only to ~tens of seconds; the GEO is quasi-static, so the residual
-   tolerance still holds — disclosed, not hidden.)
+      --fixture public/fixtures/estnet/cht-sansa-apstar7-packet-trace.json \
+      --tle scripts/estnet/scenario/configs/tles/apstar7_geo.tle
+  (flat v1 fixture: since the 2026-07-02 APSTAR-7 re-pick its scenario pins an
+   explicit simulationStart, so tMs is absolute on the same pinned-demo axis as
+   the handover trace.)
 """
 import argparse
 import json
@@ -167,8 +167,8 @@ def main():
     epoch = datetime.strptime(meta["simEpochUtc"], "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=timezone.utc)
     v2 = fx.get("schemaVersion") == 2
     if not v2:
-        print("  note v1 fixture: tMs is relative to the first packet (absolute time ~tens of "
-              "seconds uncertain); GEO quasi-static so tolerances still apply — disclosed.")
+        print("  note v1 fixture: single-sat steady-state trace; tMs is absolute "
+              "(explicit simulationStart == metadata.simEpochUtc).")
 
     # resolve serving satellite per sample
     def sat_for(sample):
@@ -180,7 +180,7 @@ def main():
                 if t.startswith(name):
                     return t
             raise SystemExit(f"sample servingSatellite {name!r} not in TLE file")
-        # v1: single satellite named in metadata.satellite ("ABS-2A (MONGOLSAT-1), NORAD ...")
+        # v1: single satellite named in metadata.satellite ("APSTAR-7, NORAD ...")
         for t in tles:
             if meta["satellite"].startswith(t):
                 return t
@@ -223,9 +223,10 @@ def main():
     # C7 — viewer-mask POLICY comparison (10 deg base + per-station terrain
     # mask). The handover trace claims golden-D1 alignment, so it must comply
     # (within the disclosed 30 s boundary-quantization margin). The flat-GEO
-    # trace may sit below the mask — the ABS-2A pick predates the mask
-    # alignment — but then the fixture itself MUST disclose that in nonClaims;
-    # an undisclosed shortfall fails.
+    # trace may sit below the mask only if the fixture itself DISCLOSES the
+    # shortfall in nonClaims; an undisclosed shortfall fails. (The original
+    # ABS-2A steady-state pick tripped exactly this and was superseded by
+    # APSTAR-7 2026-07-02.)
     mask_ok = min_ea > thr_a - m and min_eb > thr_b - m
     if v2:
         check(mask_ok,

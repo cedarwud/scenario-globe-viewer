@@ -18,7 +18,7 @@ const handoverTrace = JSON.parse(
 const geoTrace = JSON.parse(
   readFileSync(
     new URL(
-      "../../public/fixtures/estnet/cht-sansa-abs2a-packet-trace.json",
+      "../../public/fixtures/estnet/cht-sansa-apstar7-packet-trace.json",
       import.meta.url
     ),
     "utf8"
@@ -96,10 +96,23 @@ test("schemaVersion-1 trace binds its single orbit from the satellite label", ()
   assert.equal(overlay.perOrbit.length, 1);
   assert.equal(overlay.perOrbit[0].orbitClass, "GEO");
   assert.equal(overlay.perOrbit[0].observedMeanMs, geoTrace.summary.meanLatencyMs);
-  // The flat-GEO trace epoch (2026-06-13T20:13Z) is OUTSIDE the pinned demo
-  // window — the overlay must flag the mismatch, not hide it.
+  // Since the APSTAR-7 re-pick the flat trace shares the pinned demo window
+  // (explicit simulationStart 2026-06-15T00:00Z) — aligned, no mismatch flag.
+  assert.equal(overlay.windowAligned, true);
+  assert.match(overlay.traceWindowLabel, /2026-06-15/);
+});
+
+test("window mismatch is flagged when the projection window moves off the trace", () => {
+  const overlay = computeModelOverlay(
+    geoTrace,
+    resultStub({
+      timeWindow: { startUtc: "2026-07-02T00:00:00Z", endUtc: "2026-07-02T06:00:00Z" },
+      byOrbit: { GEO: GEO_ANCHOR }
+    })
+  );
+  assert(overlay);
   assert.equal(overlay.windowAligned, false);
-  assert.match(overlay.traceWindowLabel, /2026-06-13/);
+  assert.match(overlay.traceWindowLabel, /2026-06-15/);
 });
 
 test("windowAligned reflects projection-vs-trace window overlap", () => {

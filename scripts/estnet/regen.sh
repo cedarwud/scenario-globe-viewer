@@ -63,7 +63,7 @@ echo "== 2/5 flat GEO steady-state scenario"
 run_sim omnetpp_cht_sansa.ini
 python3 "$VIEWER_ROOT/scripts/estnet/estnet_trace_adapter.py" \
   --vec "$SIM_DIR/results/General-0.vec" \
-  --out "$FIXTURE_DIR/cht-sansa-abs2a-packet-trace.json"
+  --out "$FIXTURE_DIR/cht-sansa-apstar7-packet-trace.json"
 
 echo "== 3/5 full-6h GEO<->MEO handover scenario"
 run_sim omnetpp_cht_sansa_handover.ini
@@ -73,7 +73,7 @@ python3 "$VIEWER_ROOT/scripts/estnet/estnet_handover_trace_adapter.py" \
 
 echo "== 4/5 fixture drift vs committed state"
 git -C "$VIEWER_ROOT" --no-pager diff --stat -- \
-  public/fixtures/estnet/cht-sansa-abs2a-packet-trace.json \
+  public/fixtures/estnet/cht-sansa-apstar7-packet-trace.json \
   public/fixtures/estnet/cht-sansa-handover-packet-trace.json
 if git -C "$VIEWER_ROOT" diff --quiet -- public/fixtures/estnet/; then
   echo "   fixtures byte-identical to committed state (reproducible)"

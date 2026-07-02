@@ -15,7 +15,7 @@ scenario (ESTNeT .ini/.incl/.tle)         <- scripts/estnet/scenario/   (tracked
 results/General-0.vec  (SQLite)           <- in the kit, gitignored, regenerable
    │  estnet_trace_adapter.py
    ▼
-PacketTrace JSON                          <- public/fixtures/estnet/cht-sansa-abs2a-packet-trace.json
+PacketTrace JSON                          <- public/fixtures/estnet/cht-sansa-apstar7-packet-trace.json
    │  fetch()
    ▼
 2D panel                                  <- public/estnet-trace-panel.html
@@ -30,10 +30,10 @@ never to run the demo. Acceptance opens this repo only.
 | File | Role |
 |---|---|
 | `scenario/omnetpp_cht_sansa.ini` | the scenario (two real RF legs, see its header) |
-| `scenario/configs/orbit_cht_sansa_geo.incl` | single GEO sat ABS-2A from the pinned snapshot |
+| `scenario/configs/orbit_cht_sansa_geo.incl` | single GEO sat APSTAR-7 (same relay as the handover scenario), explicit 2026-06-15T00:00Z sim epoch |
 | `scenario/configs/gs_cht_sansa.incl` | CHT + SANSA, internet off, `TargetTracking` → sat |
-| `scenario/configs/radio_geo_strong.incl` | sat 20 W so the ~38,500 km link closes |
-| `scenario/configs/tles/abs2a_geo.tle` | ABS-2A TLE (verbatim from the pinned commercial-geo snapshot) |
+| `scenario/configs/radio_geo_strong.incl` | sat 20 W so the ~38,600 km link closes |
+| `scenario/configs/tles/apstar7_geo.tle` | APSTAR-7 TLE (verbatim from the pinned commercial-geo snapshot) |
 | `estnet_trace_adapter.py` | `.vec` (SQLite) → PacketTrace JSON; derives jitter (RFC-3550) + loss |
 | **Handover variant (GEO↔MEO):** | |
 | `scenario/omnetpp_cht_sansa_handover.ini` | full-6h GEO↔MEO timeline (6 serving phases / 5 cross-orbit migrations, contact-plan antenna re-point) |
@@ -77,7 +77,7 @@ KIT=/home/u24/papers/estnet-bootstrap-kit
 # 1. copy this scenario into the kit's simulations dir (kit gitignores it)
 cp scripts/estnet/scenario/omnetpp_cht_sansa.ini          "$KIT/estnet-template/simulations/"
 cp scripts/estnet/scenario/configs/*.incl                 "$KIT/estnet-template/simulations/configs/"
-cp scripts/estnet/scenario/configs/tles/abs2a_geo.tle     "$KIT/estnet-template/simulations/configs/tles/"
+cp scripts/estnet/scenario/configs/tles/apstar7_geo.tle   "$KIT/estnet-template/simulations/configs/tles/"
 
 # 2. run the sim (headless, instant wall-clock)
 cd "$KIT" && source ./activate_env.sh
@@ -89,7 +89,7 @@ bash run_sim.sh release omnetpp_cht_sansa.ini General Cmdenv --cmdenv-express-mo
 cd /home/u24/papers/scenario-globe-viewer
 python3 scripts/estnet/estnet_trace_adapter.py \
   --vec "$KIT/estnet-template/simulations/results/General-0.vec" \
-  --out public/fixtures/estnet/cht-sansa-abs2a-packet-trace.json
+  --out public/fixtures/estnet/cht-sansa-apstar7-packet-trace.json
 
 # 4. view: dev server, then open /estnet-trace-panel.html
 ```
@@ -169,13 +169,15 @@ GEO link closes (latency ≈ 257 ms GEO propagation + ~236 ms serialization at
 9600 bps). ESTNeT (published Würzburg v1.0) is used **unmodified**. These
 disclosures are also embedded in the JSON (`nonClaims` / `assumptionSet`).
 
-For the **flat GEO trace** there is one extra disclosure (surfaced by the
-`estnet:crosscheck` C7 mask-policy comparison): ABS-2A sits at ~30.8–31.0°
-CHT elevation, marginally below the viewer demo's 31° effective CHT mask
-(10° base + 21° terrain) — the viewer's own visibility policy would not
-select this GEO for the pair. The pick predates the mask alignment; it is
-kept as the steady-state PHY signature, disclosed in the fixture's
-`nonClaims`, while the handover trace's APSTAR-7 complies with the mask.
+For the **flat GEO trace**, the relay pick history is disclosed in the
+fixture's `nonClaims`: the original steady-state GEO (ABS-2A, ~75°E) sat at
+~30.8–31.0° CHT elevation — marginally below the viewer demo's 31° effective
+CHT mask (10° base + 21° terrain) — which the `estnet:crosscheck` C7
+mask-policy comparison surfaced. It was superseded 2026-07-02 by **APSTAR-7**,
+the mask-compliant GEO the viewer's own projection selects and the handover
+trace already uses, on an explicit `simulationStart` of 2026-06-15T00:00Z so
+both committed traces share the pinned demo time axis (replay cursor and
+model-overlay window checks apply to both).
 
 For the **handover variant** there is one extra disclosure: the GEO↔MEO handover
 is a **showcase route preference** (it mirrors the viewer's `demo-balanced-v1`
@@ -220,7 +222,7 @@ Panel extras on top of the raw trace (all opt-in, disclosure-first):
   handover events and the chart's latency steps/loss clusters cross the same
   instant. Hidden while the replay time is outside the trace's window.
 
-The flat GEO trace (`cht-sansa-abs2a-packet-trace.json` /
+The flat GEO trace (`cht-sansa-apstar7-packet-trace.json` /
 `estnet-trace-panel.html`) is the honest steady-state signature; the **handover
 variant** (`cht-sansa-handover-packet-trace.json` /
 `estnet-handover-trace-panel.html`) is the faithful **full 6-hour timeline** —

@@ -11,7 +11,7 @@
     {
       "id": "geo",
       "label": "GEO steady-state",
-      "url": "/fixtures/estnet/cht-sansa-abs2a-packet-trace.json"
+      "url": "/fixtures/estnet/cht-sansa-apstar7-packet-trace.json"
     }
   ]
 }

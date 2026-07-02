@@ -1,13 +1,23 @@
 # SATELLITE ORBIT — single GEO relay for the CHT x SANSA two-hop scenario.
-# ABS-2A (MONGOLSAT-1), NORAD 41588, ~75 deg E GEO, inclination 0.0256 deg.
-# Picked because it is the lowest-inclination commercial GEO from the pinned
-# scenario-globe-viewer snapshot that is simultaneously visible to both
-# CHT-Yangmingshan (TW) and SANSA-Hartebeesthoek (ZA) at ~30 deg elevation.
+# APSTAR-7, NORAD 38107, ~76.5 deg E GEO — the SAME continuous relay the
+# handover scenario uses: it is the GEO the viewer's own computeRuntimeProjection
+# selects for the demo pair, mutually visible to CHT-Yangmingshan (TW) and
+# SANSA-Hartebeesthoek (ZA) the whole demo window AND compliant with the
+# viewer's effective CHT elevation mask (10 deg base + 21 deg terrain).
+# (The original steady-state pick, ABS-2A ~75E, sat marginally BELOW that mask
+# — flagged by the estnet:crosscheck C7 mask-policy check and superseded
+# 2026-07-02; see scripts/estnet/README.md Honesty.)
 # TLE is lifted verbatim from
 #   scenario-globe-viewer/public/fixtures/satellites/multi-orbit/geo/
 #   commercial-geo-2026-06-15T00-00-00Z.tle  (pinned demo snapshot).
-# Sim epoch anchors to this TLE epoch: 2026-06-13T20:13:00Z.
+#
+# SIM EPOCH: anchored to an EXPLICIT UTC instant (NOT the TLE epoch) so the
+# trace shares the pinned demo window — t=0 == 2026-06-15T00:00:00Z, the same
+# axis as the handover trace, the viewer replay clock and golden D1.
+# globalJulianDate.tleFile MUST be empty, otherwise the TLE's epoch would
+# override simulationStart (GlobalJulianDate.cc:82-95).
 *.numS = 1
 *.sat[*].networkHost.mobility.positionPropagatorType = "PositionPropagatorSGP4File"
-*.sat[*].networkHost.mobility.positionPropagator.tleFile = "./configs/tles/abs2a_geo.tle"
-*.globalJulianDate.tleFile = "./configs/tles/abs2a_geo.tle"
+*.sat[*].networkHost.mobility.positionPropagator.tleFile = "./configs/tles/apstar7_geo.tle"
+*.globalJulianDate.tleFile = ""
+*.globalJulianDate.simulationStart = "2026-06-15T00:00:00.00+00:00Z"

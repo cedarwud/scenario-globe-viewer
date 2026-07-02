@@ -32,7 +32,7 @@
     "verify:tle": "node scripts/verify-tle-first-data-completeness.mjs",
     "verify:estnet": "node scripts/verify-estnet-trace-contract.mjs",
     "estnet:regen": "bash scripts/estnet/regen.sh",
-    "estnet:crosscheck": "python3 scripts/estnet/crosscheck_estnet_vs_sgp4.py && python3 scripts/estnet/crosscheck_estnet_vs_sgp4.py --fixture public/fixtures/estnet/cht-sansa-abs2a-packet-trace.json --tle scripts/estnet/scenario/configs/tles/abs2a_geo.tle",
+    "estnet:crosscheck": "python3 scripts/estnet/crosscheck_estnet_vs_sgp4.py && python3 scripts/estnet/crosscheck_estnet_vs_sgp4.py --fixture public/fixtures/estnet/cht-sansa-apstar7-packet-trace.json --tle scripts/estnet/scenario/configs/tles/apstar7_geo.tle",
     "test:phase1": "node scripts/site-hook-guard.mjs --context=phase1-baseline && npm run build && node tests/smoke/bootstrap-loads-assets-and-workers.mjs --suite=baseline",
     "test:phase1:showcase": "node scripts/phase1-cleanup-orchestration.mjs --flow=showcase",
     "test:phase1:site-dataset": "node scripts/phase1-cleanup-orchestration.mjs --flow=site-dataset",

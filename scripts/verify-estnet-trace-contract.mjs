@@ -29,7 +29,7 @@ import { fileURLToPath } from "node:url";
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const FIXTURES = [
   {
-    file: "public/fixtures/estnet/cht-sansa-abs2a-packet-trace.json",
+    file: "public/fixtures/estnet/cht-sansa-apstar7-packet-trace.json",
     pins: { schemaVersion: 1, samples: 59, overallPacketLossRatio: 0 },
   },
   {
