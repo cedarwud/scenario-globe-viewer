@@ -25,10 +25,18 @@ const geoTrace = JSON.parse(
   )
 );
 
-// Minimal RuntimeProjectionResult stub: the overlay only reads
-// representativeLinkBudgetByOrbit and timeWindow.
-function resultStub({ timeWindow, byOrbit }) {
-  return { timeWindow, representativeLinkBudgetByOrbit: byOrbit };
+// Minimal RuntimeProjectionResult stub: the overlay reads
+// representativeLinkBudgetByOrbit, timeWindow and pair station ids.
+function resultStub({ timeWindow, byOrbit, pair }) {
+  return {
+    timeWindow,
+    representativeLinkBudgetByOrbit: byOrbit,
+    pair:
+      pair ?? {
+        stationA: { id: "cht-yangmingshan" },
+        stationB: { id: "sansa-hartebeesthoek" }
+      }
+  };
 }
 
 const GEO_ANCHOR = {
@@ -125,6 +133,34 @@ test("windowAligned reflects projection-vs-trace window overlap", () => {
   );
   assert(misaligned);
   assert.equal(misaligned.windowAligned, false);
+});
+
+test("pair guard: a trace for another pair gets no overlay; order-agnostic match keeps it", () => {
+  // The current route is a DIFFERENT pair than the trace's declared endpoints
+  // (the handover fixture declares cht-yangmingshan x sansa-hartebeesthoek):
+  // comparing it against that route's model anchors would be a wrong-pair
+  // comparison, so the overlay must be omitted.
+  const otherPair = computeModelOverlay(
+    handoverTrace,
+    resultStub({
+      timeWindow: DEMO_WINDOW,
+      byOrbit: { GEO: GEO_ANCHOR, MEO: MEO_ANCHOR },
+      pair: { stationA: { id: "cht-yangmingshan" }, stationB: { id: "cht-fangshan" } }
+    })
+  );
+  assert.equal(otherPair, null);
+  // Same pair with A/B swapped still matches (latency comparison is
+  // direction-free).
+  const swapped = computeModelOverlay(
+    handoverTrace,
+    resultStub({
+      timeWindow: DEMO_WINDOW,
+      byOrbit: { GEO: GEO_ANCHOR, MEO: MEO_ANCHOR },
+      pair: { stationA: { id: "sansa-hartebeesthoek" }, stationB: { id: "cht-yangmingshan" } }
+    })
+  );
+  assert(swapped);
+  assert.equal(swapped.perOrbit.length, 2);
 });
 
 test("no overlay for rtt/none semantics or when no orbit anchor exists", () => {

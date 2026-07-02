@@ -77,6 +77,8 @@ interface PacketTrace {
     readonly handoverWindowUtc?: ReadonlyArray<string>;
     readonly ingestFormat?: string;
     readonly deliveredBy?: string;
+    readonly stationA?: { readonly id?: string };
+    readonly stationB?: { readonly id?: string };
   };
   readonly segments?: ReadonlyArray<PacketTraceSegment>;
   readonly summary: PacketTraceSummary;
@@ -212,6 +214,26 @@ export function computeModelOverlay(
 ): ModelOverlay | null {
   if (!runtimeResult || latencySemanticOf(trace) !== "one-way") {
     return null;
+  }
+  // Pair guard: when the trace declares its own endpoints, the viewer-model
+  // anchors are only a valid comparison if the panel's CURRENT pair is the
+  // same pair (order-agnostic — the latency comparison is direction-free).
+  // A trace for another pair renders WITHOUT the overlay rather than being
+  // compared against the wrong pair's model.
+  const traceIdA = trace.metadata?.stationA?.id;
+  const traceIdB = trace.metadata?.stationB?.id;
+  const routeIdA = runtimeResult.pair?.stationA?.id;
+  const routeIdB = runtimeResult.pair?.stationB?.id;
+  if (
+    typeof traceIdA === "string" &&
+    typeof traceIdB === "string" &&
+    typeof routeIdA === "string" &&
+    typeof routeIdB === "string"
+  ) {
+    const routeIds = new Set([routeIdA, routeIdB]);
+    if (!routeIds.has(traceIdA) || !routeIds.has(traceIdB)) {
+      return null;
+    }
   }
   const perOrbit: ModelOverlayOrbit[] = [];
   for (const orbitClass of orbitsInTrace(trace)) {
@@ -806,6 +828,11 @@ function buildChart(trace: PacketTrace, overlay: ModelOverlay | null): ChartHand
         : segments
             .slice(1)
             .map((seg, i) => xScale((segments[i].endMs + seg.startMs) / 2));
+    // Label declutter: every marker keeps its line, but the "⇄ handover" text
+    // is skipped when it would overlap the previous label (dense LEO handover
+    // successions put boundaries a few px apart on a 6 h axis).
+    const MIN_LABEL_GAP_PX = 72;
+    let lastLabelX = -Infinity;
     for (const xb of markerXs) {
       svg.append(
         svgEl("line", {
@@ -819,6 +846,8 @@ function buildChart(trace: PacketTrace, overlay: ModelOverlay | null): ChartHand
           class: "v4-estnet-trace__svg-ho-marker"
         })
       );
+      if (xb - lastLabelX < MIN_LABEL_GAP_PX) continue;
+      lastLabelX = xb;
       const tx = svgEl("text", {
         x: xb,
         y: H - MARGIN.b - 4,
