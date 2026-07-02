@@ -213,16 +213,36 @@ for (const r of rows) {
 }
 
 // ---------------------------------------------------------------- stage 3
+const byId = new Map(registry.stations.map((s) => [s.id, s]));
 const candidates = rows.filter((r) => r.triOrbit && !r.coLocated).slice(0, STAGE2_TOP);
 for (const [aId, bId] of FORCED_PAIRS) {
   const found = rows.find(
     (r) => (r.a === aId && r.b === bId) || (r.a === bId && r.b === aId)
   );
-  if (found && !candidates.includes(found)) candidates.push(found);
-  if (!found) console.log(`  (--pair ${aId},${bId} not in the stage-2 feasible set — skipped)`);
+  if (found) {
+    if (!candidates.includes(found)) candidates.push(found);
+    continue;
+  }
+  // Not in the stage-1/2 feasible set — still run the viewer ground truth so
+  // --pair works as a negative control (R12: verify the filter, don't trust it).
+  const a = byId.get(aId);
+  const b = byId.get(bId);
+  if (!a || !b) {
+    console.log(`  (--pair ${aId},${bId}: unknown station id — skipped)`);
+    continue;
+  }
+  const triCapable = [a, b].every((s) => ["LEO", "MEO", "GEO"].every((o) => s.supportedOrbits.includes(o)));
+  const baselineKm = haversineKm(a, b);
+  const boundKm =
+    (psiDeg(effMask(a), LEO_BOUND_ALTITUDE_KM) + psiDeg(effMask(b), LEO_BOUND_ALTITUDE_KM)) *
+    ((EARTH_RADIUS_KM * Math.PI) / 180);
+  console.log(
+    `  (--pair ${aId},${bId}: outside the stage-1/2 feasible set — ` +
+      `${triCapable ? "" : "not both tri-orbit-capable; "}baseline ${baselineKm.toFixed(0)} km vs LEO bound ${boundKm.toFixed(0)} km; running stage 3 anyway as a control)`
+  );
+  candidates.push({ a: aId, b: bId, forced: true });
 }
 console.log(`\n== STAGE 3 == viewer ground truth (computeRuntimeProjection, policy ${SELECTED_PAIR_DEMO_HANDOVER_POLICY_ID}) for top ${candidates.length} non-co-located tri-orbit candidate(s)`);
-const byId = new Map(registry.stations.map((s) => [s.id, s]));
 for (const r of candidates) {
   const result = computeRuntimeProjection({
     stationA: byId.get(r.a),

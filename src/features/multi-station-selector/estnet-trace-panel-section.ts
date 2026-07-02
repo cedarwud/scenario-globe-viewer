@@ -12,9 +12,11 @@
 // fixture itself (`sourceClass`/`nonClaims`/`assumptionSet`), never from the
 // manifest — a manifest entry cannot upgrade a trace's tier, and no trace in
 // this chain is an operator RF measurement (the ingest tool refuses the
-// operator-measured tier). The committed rehearsal traces are ESTNeT-simulated:
-// jitter+loss adapter-derived, end-to-end composed from two one-hop RF legs,
-// handover a showcase route preference (mirrors `demo-balanced-v1`).
+// operator-measured tier). Committed fixtures are either ESTNeT-simulated
+// traces (jitter+loss adapter-derived, end-to-end composed from two one-hop
+// RF legs, handover a showcase route preference mirroring `demo-balanced-v1`)
+// or REAL machine-local network-test captures (loopback ping / iperf3
+// rehearsal, `network-test-derived` — no satellite path involved).
 //
 // Opt-in only: nothing renders unless the ESTNeT display mode is on, so the
 // accepted 19/19 default surface is untouched.
@@ -1135,9 +1137,10 @@ export function buildEstnetTracePanelSection(
   const intro = document.createElement("p");
   intro.className = "v4-estnet-trace__intro";
   intro.textContent =
-    "Packet-trace time series for the demo pair. The trace menu is manifest-driven; " +
-    "each trace renders its own provenance badges and non-claims. No trace in this " +
-    "chain is an operator RF measurement.";
+    "Packet-trace time series from the selected trace fixture — its path, tier and " +
+    "derivations render from the fixture itself (some fixtures are machine-local " +
+    "network-test rehearsals, not satellite-path traces). The trace menu is " +
+    "manifest-driven. No trace in this chain is an operator RF measurement.";
   body.append(intro);
 
   // Trace selector — populated from the manifest.
