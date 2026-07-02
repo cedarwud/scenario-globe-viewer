@@ -5,7 +5,7 @@
   "license": "UNLICENSED",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "node scripts/dev-server.mjs",
     "build": "tsc --noEmit && vite build",
     "test": "npm run verify:selected-pair-route-governance && npm run build && node scripts/verify-phase0.mjs && npm run test:unit && npm run verify:itu",
     "test:unit": "node scripts/run-unit-tests.mjs",
@@ -90,7 +90,8 @@
   },
   "dependencies": {
     "cesium": "1.140.0",
-    "satellite.js": "7.0.0"
+    "satellite.js": "7.0.0",
+    "tall": "^8.0.0"
   },
   "devDependencies": {
     "typescript": "^6.0.2",
