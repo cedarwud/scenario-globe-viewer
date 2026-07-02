@@ -7,6 +7,8 @@ dist/
 output/*
 !output/soak/
 !output/validation/
+!output/g3-60x-2026-07-02.log
+!output/demo-dryrun-2026-07-02/
 output/soak/*
 !output/soak/.gitkeep
 !output/soak/*-phase7-0-full/

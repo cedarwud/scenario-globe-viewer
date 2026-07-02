@@ -1,0 +1,58 @@
+{
+  "startedAt": "2026-07-02T12:03:49.146Z",
+  "routes": {
+    "routeA_default": {
+      "displayState": "replaying",
+      "chipText": "TLE 2026-06-15 · fresh/fresh/fresh",
+      "togglePresent": true,
+      "toggleEnabled": "false",
+      "estnetSectionCount": 0,
+      "estnetVariant": null,
+      "estnetMenu": [],
+      "pairMismatchNote": null,
+      "yAxis": null,
+      "localStorageMode": null
+    },
+    "routeA_estnetOn": {
+      "displayState": "replaying",
+      "chipText": "TLE 2026-06-15 · fresh/fresh/fresh",
+      "togglePresent": true,
+      "toggleEnabled": "true",
+      "estnetSectionCount": 1,
+      "estnetVariant": "handover",
+      "estnetMenu": [
+        "handover",
+        "geo",
+        "cht-domestic",
+        "ping-rehearsal",
+        "iperf3-rehearsal"
+      ],
+      "pairMismatchNote": null,
+      "yAxis": "ms",
+      "localStorageMode": "on"
+    },
+    "routeB_domestic": {
+      "displayState": "replaying",
+      "chipText": "TLE 2026-06-15 · fresh/fresh/fresh",
+      "togglePresent": true,
+      "toggleEnabled": "true",
+      "estnetSectionCount": 1,
+      "estnetVariant": "cht-domestic",
+      "estnetMenu": [
+        "handover",
+        "geo",
+        "cht-domestic",
+        "ping-rehearsal",
+        "iperf3-rehearsal"
+      ],
+      "pairMismatchNote": null,
+      "yAxis": "ms",
+      "localStorageMode": "on"
+    }
+  },
+  "consoleErrorCount": 0,
+  "consoleErrors": [],
+  "pageExceptionCount": 0,
+  "pageExceptions": [],
+  "finishedAt": "2026-07-02T12:04:28.260Z"
+}

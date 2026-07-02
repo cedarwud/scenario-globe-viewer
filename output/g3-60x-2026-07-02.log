@@ -1,0 +1,27 @@
+{
+  "url": "http://127.0.0.1:5173/?stationA=ksat-svalsat-svalbard&stationB=ksat-tromso&startUtc=2026-06-15T00%3A00%3A00.000Z&durationMinutes=360",
+  "fpsAvg": 1.7388888888888876,
+  "fpsP95FromInterval": 1.500150015001487,
+  "maxFrameGapMs": 1550,
+  "fpsMetHardGate": false,
+  "fpsAvgFloorTarget": 45,
+  "fpsP95FloorTarget": 28,
+  "fpsBudgetNote": "Hard FPS thresholds are soft on headless swiftshader (WSL2). The hard gate is no errors, panel ready throughout, and replay clock advanced.",
+  "panelStateSampleCount": 73,
+  "panelAllReady": true,
+  "panelStateNonReadyValues": [],
+  "replayClockSampleCount": 73,
+  "replayClockAdvanced": true,
+  "replayClockStartSeconds": 1781481794982,
+  "replayClockEndSeconds": 1781501180082,
+  "tleSourceModeSampleCount": 73,
+  "tleSourceModeValues": [
+    "local-snapshot"
+  ],
+  "tleSourceModeStable": true,
+  "consoleErrorCount": 0,
+  "consoleErrorMessages": [],
+  "pageErrorCount": 0,
+  "pageErrorMessages": [],
+  "pass": true
+}
