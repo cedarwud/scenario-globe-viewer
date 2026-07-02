@@ -1318,19 +1318,55 @@ function buildErrorBlock(what: string, error: unknown): HTMLElement {
  * chart overlays the viewer's own analytic 2-hop latency prediction plus a
  * delta-decomposition disclosure.
  */
-export function buildEstnetTracePanelSection(
+// Panel summary card (panel-density fourth pass, 2026-07-03): the side panel
+// carries only the CLAIM that simulator/network-test packet evidence exists
+// for this surface, plus the two ways to reach it — the bottom dock explorer
+// and the report appendix. Everything trace-specific (selector, badges, stat
+// cards, chart, Δ cards, honesty pointer) lives in the dock.
+export function buildEstnetSummaryCard(options: {
+  onOpenExplorer: () => void;
+}): HTMLElement {
+  const card = document.createElement("div");
+  card.className = "v4-estnet-trace-card";
+  card.dataset.estnetSummaryCard = "true";
+
+  const title = document.createElement("div");
+  title.className = "v4-estnet-trace-card__title";
+  title.textContent = "Packet trace (ESTNeT / network test)";
+
+  const line = document.createElement("p");
+  line.className = "v4-estnet-trace-card__line";
+  line.textContent =
+    "Simulator / network-test packet evidence — no operator RF measurement.";
+
+  const actions = document.createElement("div");
+  actions.className = "v4-estnet-trace-card__actions";
+  const openButton = document.createElement("button");
+  openButton.type = "button";
+  openButton.className = "v4-estnet-trace-card__open";
+  openButton.dataset.estnetOpenDock = "true";
+  openButton.textContent = "Open trace explorer";
+  openButton.addEventListener("click", options.onOpenExplorer);
+  const hint = document.createElement("span");
+  hint.className = "v4-estnet-trace__expand-hint";
+  hint.textContent = "verbatim → Report · ESTNeT appendix";
+  actions.append(openButton, hint);
+
+  card.append(title, line, actions);
+  return card;
+}
+
+export interface EstnetTraceExplorerHandle {
+  /** Root element to mount wherever the explorer lives (the bottom dock). */
+  readonly element: HTMLElement;
+  dispose(): void;
+}
+
+export function buildEstnetTraceExplorerContent(
   options: EstnetTracePanelSectionOptions = {}
-): HTMLDetailsElement {
-  const details = document.createElement("details");
-  details.className = "v4-projection-side-panel__details v4-estnet-trace";
-  details.dataset.disclosure = "estnet-packet-trace";
-
-  const summary = document.createElement("summary");
-  summary.className = "v4-projection-side-panel__details-summary";
-  summary.textContent = "Packet trace (ESTNeT / network test)";
-
+): EstnetTraceExplorerHandle {
   const body = document.createElement("div");
-  body.className = "v4-projection-side-panel__details-body";
+  body.className = "v4-estnet-trace v4-estnet-trace__explorer";
 
   // One line only (panel-density rule): the tier/derivation specifics render
   // per trace as badges, and the full prose lives in the report's ESTNeT
@@ -1353,8 +1389,6 @@ export function buildEstnetTracePanelSection(
   mount.className = "v4-estnet-trace__mount";
   mount.dataset.loading = "true";
   body.append(mount);
-
-  details.append(summary, body);
 
   let disposed = false;
   let renderToken = 0;
@@ -1450,13 +1484,12 @@ export function buildEstnetTracePanelSection(
       mount.replaceChildren(buildErrorBlock("the trace manifest", error));
     });
 
-  // Disposal hook honoured by the side panel's renderResult/dispose sweep.
-  (details as unknown as { __disposeHelp: () => void }).__disposeHelp = () => {
+  const dispose = (): void => {
     disposed = true;
     renderToken++;
     detachReplayCursor?.();
     detachReplayCursor = null;
   };
 
-  return details;
+  return { element: body, dispose };
 }

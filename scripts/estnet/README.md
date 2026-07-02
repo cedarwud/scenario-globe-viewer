@@ -258,30 +258,36 @@ the chart svg exposes `data-y-axis` for machine assertions) and renders each
 trace's own provenance badges; the `operator-measured` tier is refused
 upstream and never rendered.
 
-**Panel density (2026-07-02, ADR 0015 decision 9 + second pass):** the
-section is visual-first — one-line intro, per-trace badges, stat cards,
-chart, per-orbit model-delta Δ cards; the verbatim honesty text (assumptionSet /
-nonClaims, relay-name lists) renders ONLY in the evidence report's **ESTNeT
-appendix** tab — the panel keeps a single non-expandable pointer line
-("Assumptions & non-claims · N non-claims · verbatim → Report") and the gate
-asserts the verbatim text is absent from the panel DOM. The Report button
-appends `estnet=1` exactly when the display mode is on; without it the
-report HTML is byte-identical to the accepted default. The section renders
-open, and a live toolbar toggle-on scrolls it into view.
+**Panel density (2026-07-02/03, ADR 0015 decisions 9-10):** the side panel
+carries ONE summary card ("Packet trace (ESTNeT / network test)" + one-line
+claim + "Open trace explorer" button + report pointer); the full explorer —
+one-line intro, trace selector, per-trace badges, stat cards, full-width
+chart, per-orbit model-delta Δ cards, honesty pointer line — renders in a
+**full-width bottom dock** (`src/features/multi-station-selector/estnet-trace-dock.ts`),
+where the replay cursor stays synchronized with the globe above it. The
+verbatim honesty text (assumptionSet / nonClaims, relay-name lists) renders
+ONLY in the evidence report's **ESTNeT appendix** tab; the gate asserts it
+is absent from the card and the dock. The Report button appends `estnet=1`
+exactly when the display mode is on; without it the report HTML is
+byte-identical to the accepted default. A live toggle-on (and the
+`?estnet=1` seed, once the first projection lands) auto-opens the dock;
+recomputes never re-open an explicitly closed one.
 
 The whole opt-in surface is gate-guarded by `npm run verify:estnet:panel`
 (`scripts/verify-estnet-panel-invariant.mjs`, standalone CDP browser gate,
-not part of `npm test`): default-off absence with a fresh Chrome profile,
-toggle-ON add-only + open-by-default + scroll-into-view, per-trace
-axis/pair-binding assertions plus the density contract (one-line intro,
-honesty pointer line with the non-claim count, verbatim honesty text
-ABSENT from the panel DOM, per-orbit model-delta Δ cards), the report
-ESTNeT appendix end-to-end (with/without `estnet=1` — the appendix is the
-only place the verbatim text renders, asserted character-exact per
-fixture), the REAL Report button probed in both modes (its URL carries
-`estnet=1` exactly when the mode is on; the async mock-window fallback
-write honors the same opt-in), a rain-drag re-render check (the section's
-open/closed state survives), and toggle-OFF full DOM teardown. Track
+not part of `npm test`): card+dock absence by default with a fresh Chrome
+profile, toggle-ON adds exactly one card row (structural signature) and
+auto-opens the dock, per-trace axis/pair-binding assertions in the dock
+plus the density contract (one-line intro, honesty pointer line with the
+non-claim count, verbatim honesty text ABSENT from the card and dock DOM,
+per-orbit model-delta Δ cards), the report ESTNeT appendix end-to-end
+(with/without `estnet=1` — the appendix is the only place the verbatim
+text renders, asserted character-exact per fixture), the REAL Report
+button probed in both modes (its URL carries `estnet=1` exactly when the
+mode is on; the async mock-window fallback write honors the same opt-in),
+a close-then-rain-drag check (recompute keeps the card, updates dock
+content, never re-opens an explicitly closed dock; the card's button
+reopens it live), and toggle-OFF full card+dock DOM teardown. Track
 decisions are recorded in
 `docs/decisions/0015-estnet-packet-trace-panel.md`.
 

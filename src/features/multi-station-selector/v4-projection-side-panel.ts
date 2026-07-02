@@ -32,7 +32,11 @@ import {
 import { createRuntimeProjectionWorkerClient } from "./runtime-projection-worker-client";
 import { buildReplayControlRow } from "./v4-projection-replay-controls";
 import { buildCsvHelpControl } from "./v4-projection-csv-help";
-import { buildEstnetTracePanelSection } from "./estnet-trace-panel-section";
+import { buildEstnetSummaryCard } from "./estnet-trace-panel-section";
+import {
+  mountEstnetTraceDock,
+  type EstnetTraceDockHandle
+} from "./estnet-trace-dock";
 import { createCesiumReplayClock } from "../time/cesium-replay-clock";
 import {
   isEstnetTraceDisplayEnabled,
@@ -2433,6 +2437,8 @@ interface RenderResultOptions {
   readonly viewer?: Viewer;
   readonly onDurationChange: (durationMinutes: number) => void;
   readonly tleRecords: ReadonlyArray<RuntimeOrbitRecord> | null;
+  /** Opens the ESTNeT trace dock; wired to the summary card's button. */
+  readonly onOpenEstnetExplorer?: () => void;
 }
 
 function renderResult(
@@ -2456,15 +2462,6 @@ function renderResult(
   // not recreated, so the user can keep dragging while the panel recomputes.
   const sliderWasFocused = document.activeElement === rainControl.slider;
   const savedScrollTop = root.scrollTop;
-  // Discoverability (panel-density slice): re-renders (rain drags, recomputes)
-  // preserve whatever open/closed state the user left the ESTNeT section in.
-  // Captured HERE — before replaceChildren() below removes the old node; a
-  // later read would always see undefined and silently force the section back
-  // open. (Since the density third pass the section has no nested
-  // expandables, so this is the only open/closed state to preserve.)
-  const previousEstnetOpen = root.querySelector<HTMLDetailsElement>(
-    '[data-disclosure="estnet-packet-trace"]'
-  )?.open;
 
   for (const child of Array.from(root.children)) {
     if (typeof (child as any).__disposeHelp === "function") {
@@ -2497,23 +2494,14 @@ function renderResult(
     durationMinutes
   );
 
-  // Discoverability (panel-density slice): the section renders OPEN by
-  // default — the pre-slice collapsed-at-panel-bottom default meant clicking
-  // the toolbar toggle visibly changed nothing. `previousEstnetOpen` is
-  // captured at the top of this function, before the old DOM is replaced.
-  const estnetSection = resolveEstnetTraceOptIn()
-    ? buildEstnetTracePanelSection({
-        runtimeResult: result,
-        // Same replay-time source the timeline markers key off: the section's
-        // chart cursor subscribes to the viewer clock via the plain
-        // replay-clock contract and unsubscribes through its __disposeHelp.
-        replayClock:
-          viewer && !viewer.isDestroyed() ? createCesiumReplayClock(viewer) : null
+  // Panel-density fourth pass: the panel renders only the one-line summary
+  // CARD — the full trace explorer (selector, chart, Δ cards, honesty
+  // pointer) lives in the bottom dock the card's button opens.
+  const estnetCard = resolveEstnetTraceOptIn()
+    ? buildEstnetSummaryCard({
+        onOpenExplorer: options.onOpenEstnetExplorer ?? (() => {})
       })
     : null;
-  if (estnetSection) {
-    estnetSection.open = previousEstnetOpen ?? true;
-  }
 
   if (compareMode === PRE_WAVE2_COMPARE_MODE) {
     root.append(
@@ -2524,7 +2512,7 @@ function renderResult(
       buildSummariesRow(result, compareMode),
       buildPolicyDisclosure(result),
       buildSourceConfidenceDisclosure(result),
-      ...(estnetSection ? [estnetSection] : []),
+      ...(estnetCard ? [estnetCard] : []),
       buildEvidenceEntryRow(result, tleRecords),
       buildHiddenMachineEvidenceBlock(result)
     );
@@ -2538,7 +2526,7 @@ function renderResult(
       buildRainImpactMainRow(rainControl, result, rainRateMmPerHour, clearSky),
       buildPolicyDisclosure(result),
       buildSourceConfidenceDisclosure(result),
-      ...(estnetSection ? [estnetSection] : []),
+      ...(estnetCard ? [estnetCard] : []),
       buildEvidenceEntryRow(result, tleRecords),
       buildHiddenMachineEvidenceBlock(result)
     );
@@ -2621,6 +2609,51 @@ export function mountV4ProjectionSidePanel(
     }
   }
 
+  // ESTNeT trace dock (panel-density fourth pass): mounted/destroyed with the
+  // display mode; content refreshed on every published runtime result. A LIVE
+  // toggle-on (and the ?estnet=1 seed once the first result lands) auto-opens
+  // it; an explicit user close is respected across later recomputes.
+  let estnetDock: EstnetTraceDockHandle | null = null;
+  let estnetDockUserClosed = false;
+  const estnetReplayClock = () =>
+    input.viewer && !input.viewer.isDestroyed()
+      ? createCesiumReplayClock(input.viewer)
+      : null;
+  const ensureEstnetDock = (): EstnetTraceDockHandle => {
+    if (!estnetDock) {
+      estnetDock = mountEstnetTraceDock({
+        onUserClose: () => {
+          estnetDockUserClosed = true;
+        }
+      });
+    }
+    return estnetDock;
+  };
+  const openEstnetExplorerFromCard = (): void => {
+    const dock = ensureEstnetDock();
+    estnetDockUserClosed = false;
+    dock.update(latestResult, estnetReplayClock());
+    dock.open();
+  };
+  const estnetDockResultListener = (
+    result: RuntimeProjectionResult | null
+  ): void => {
+    if (!estnetDock) {
+      return;
+    }
+    estnetDock.update(result, estnetReplayClock());
+    if (
+      result &&
+      !estnetDock.isOpen() &&
+      !estnetDockUserClosed &&
+      isEstnetTraceDisplayEnabled()
+    ) {
+      // First result after a toggle-on / URL seed: reveal the explorer once.
+      estnetDock.open();
+    }
+  };
+  runtimeResultListeners.add(estnetDockResultListener);
+
   async function recompute(rainRateMmPerHour: number): Promise<void> {
     if (disposed || !tleRecords || !timeWindow || !clearSkyResult || !rainControl) {
       return;
@@ -2651,7 +2684,8 @@ export function mountV4ProjectionSidePanel(
         compareMode,
         viewer: input.viewer,
         onDurationChange: setProjectionDurationMinutes,
-        tleRecords
+        tleRecords,
+        onOpenEstnetExplorer: openEstnetExplorerFromCard
       });
       publishRuntimeResult(result);
     } catch (error) {
@@ -2722,7 +2756,8 @@ export function mountV4ProjectionSidePanel(
         compareMode,
         viewer: input.viewer,
         onDurationChange: setProjectionDurationMinutes,
-        tleRecords
+        tleRecords,
+        onOpenEstnetExplorer: openEstnetExplorerFromCard
       });
       publishRuntimeResult(result);
     } catch (error) {
@@ -2778,7 +2813,8 @@ export function mountV4ProjectionSidePanel(
         compareMode,
         viewer: input.viewer,
         onDurationChange: setProjectionDurationMinutes,
-        tleRecords
+        tleRecords,
+        onOpenEstnetExplorer: openEstnetExplorerFromCard
       });
       publishRuntimeResult(clearSkyResult);
     } catch (error) {
@@ -2791,15 +2827,29 @@ export function mountV4ProjectionSidePanel(
     }
   })();
 
-  // Re-render (no recompute) when the ESTNeT display mode is toggled, so the
-  // opt-in disclosure section appears/disappears live. Before the first compute
-  // there is no result yet, so this no-ops until a render has happened. Reuses
-  // the same renderResult path as every other render, so with the mode OFF the
-  // output is byte-identical to the default single-link surface.
+  // React to the ESTNeT display mode: the dock lives and dies with the mode
+  // (OFF = full DOM teardown, zero estnet nodes), and the panel re-renders so
+  // the summary card appears/disappears live. Before the first compute there
+  // is no result yet — the dock idles hidden and the first published result
+  // auto-opens it (estnetDockResultListener). With the mode OFF the render
+  // output stays byte-identical to the default single-link surface.
   const unsubscribeEstnetDisplay = subscribeEstnetTraceDisplay((enabled) => {
+    if (disposed) {
+      return;
+    }
+    if (enabled) {
+      ensureEstnetDock();
+      // An explicit toggle-on re-arms the auto-open (a previous close was
+      // scoped to that opt-in session, not to the mode itself).
+      estnetDockUserClosed = false;
+    } else {
+      estnetDock?.destroy();
+      estnetDock = null;
+      estnetDockUserClosed = false;
+    }
     const result = latestResult;
     const clearSky = clearSkyResult;
-    if (disposed || !result || !clearSky || !rainControl) {
+    if (!result || !clearSky || !rainControl) {
       return;
     }
     renderResult(root, pair, result, {
@@ -2810,17 +2860,17 @@ export function mountV4ProjectionSidePanel(
       compareMode,
       viewer: input.viewer,
       onDurationChange: setProjectionDurationMinutes,
-      tleRecords
+      tleRecords,
+      onOpenEstnetExplorer: openEstnetExplorerFromCard
     });
-    // Discoverability: a LIVE toggle-on scrolls the freshly added (open)
-    // section into view — the section sits at the panel bottom, so without
-    // this the toggle appeared to do nothing. Initial loads never reach here
-    // (the immediate subscribe fire happens before the first compute), so
-    // page-load framing is untouched.
-    if (enabled) {
-      root
-        .querySelector('[data-disclosure="estnet-packet-trace"]')
-        ?.scrollIntoView({ block: "start", behavior: "smooth" });
+    // Discoverability: a LIVE toggle-on (result already present) reveals the
+    // explorer immediately — without this the toolbar toggle only added a
+    // small card and looked like a no-op.
+    if (enabled && estnetDock) {
+      estnetDock.update(result, estnetReplayClock());
+      if (!estnetDock.isOpen()) {
+        estnetDock.open();
+      }
     }
   });
 
@@ -2847,6 +2897,8 @@ export function mountV4ProjectionSidePanel(
       }
       disposed = true;
       unsubscribeEstnetDisplay();
+      estnetDock?.destroy();
+      estnetDock = null;
       if (debounceTimer !== null) {
         clearTimeout(debounceTimer);
         debounceTimer = null;

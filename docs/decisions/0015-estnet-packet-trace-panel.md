@@ -156,7 +156,9 @@ Two prior lessons bound the design:
    ABSENT from the panel DOM (plus the pointer line with the count), and
    the character-exact verbatim anchor is the report-appendix E2E. The
    relay-name list follows the same rule (orbit keys in the panel, verbatim
-   descriptors in the appendix provenance table).
+   descriptors in the appendix provenance table). (Since decision 10 the
+   pointer line and the explorer live in the bottom dock; the invariants are
+   unchanged.)
 
    *Third pass (same day): Model ↔ simulator Δ stays in the panel, as
    visuals.* The reconciliation is claim-level evidence (the demo's "our
@@ -174,6 +176,34 @@ Two prior lessons bound the design:
    open/closed state is the only state to preserve. Gate: the
    collapsed-expandable check became `model-delta-cards` (per-orbit,
    orbit-tagged, ms figures present).
+
+10. **The explorer moves out of the side panel entirely — bottom dock +
+    summary card (panel-density fourth pass, 2026-07-03).** After three
+    density passes the user's verdict stood: even all-visual, the section's
+    content (trace selector, badges, stat cards, chart, Δ cards, honesty
+    pointer) is a full analysis view and structurally does not fit a
+    ~400px single-column side panel — the medium was wrong, not just the
+    density (the standing viz-scale-fit rule: time-series density belongs
+    on a 2D wide surface, not a glanceable panel). Now: the side panel
+    renders ONE summary card (title + one-line claim + "Open trace
+    explorer" button + report pointer); the full explorer renders in a
+    full-width bottom dock (`estnet-trace-dock.ts`, fixed, ~44vh, z-48,
+    close button) where the chart's native 1064px viewBox finally gets
+    real width, and the replay cursor stays live because the dock shares
+    the page with the globe (same replay-clock subscription — the
+    globe-above / packet-curve-below simultaneity is the demo moment).
+    Lifecycle: the dock mounts/tears down strictly with the display mode
+    (OFF = zero estnet nodes, structural signature restored); a live
+    toggle-on and the `?estnet=1` seed auto-open it once the first result
+    lands; recomputes (rain drags) rebuild dock content from the latest
+    published result but NEVER re-open an explicitly closed dock; the
+    card's button reopens it rebuilt from the latest result. All honesty
+    invariants carry over verbatim-free: the verbatim text still renders
+    ONLY in the report appendix; the dock carries the pointer line. Gate
+    re-anchored (81 checks): card+dock absence by default, ON adds exactly
+    one card row + auto-open dock, menu walk / density / Δ-card checks
+    dock-scoped, OFF removes card+dock with zero leftovers, close-then-
+    rain-drag respects the close, card reopen rebuilds a live trace.
 
 ## Consequences
 

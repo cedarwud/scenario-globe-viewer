@@ -2687,6 +2687,103 @@ body:has([data-v4-projection-side-panel="true"])
   margin-top: 0.45rem;
   color: rgba(240, 240, 240, 0.85);
 }
+/* --- ESTNeT panel summary card + bottom dock (panel-density fourth pass):
+   the panel carries one claim card; the full explorer renders in a
+   full-width bottom dock where the 1064px-viewBox chart gets real width. --- */
+.v4-estnet-trace-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  border: 1px solid rgba(126, 226, 184, 0.2);
+  border-radius: 0.5rem;
+  padding: 0.55rem 0.75rem;
+  background: rgba(126, 226, 184, 0.04);
+}
+.v4-estnet-trace-card__title {
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  color: #e6f7f1;
+}
+.v4-estnet-trace-card__line {
+  margin: 0;
+  font-size: 0.98rem;
+  color: rgba(157, 196, 232, 0.75);
+}
+.v4-estnet-trace-card__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.55rem;
+  margin-top: 0.15rem;
+}
+.v4-estnet-trace-card__open {
+  font: inherit;
+  font-size: 0.98rem;
+  font-weight: 600;
+  color: #06121b;
+  background: rgba(126, 226, 184, 0.78);
+  border: none;
+  border-radius: 0.4rem;
+  padding: 0.3rem 0.7rem;
+  cursor: pointer;
+}
+.v4-estnet-trace-card__open:hover {
+  background: rgba(126, 226, 184, 0.92);
+}
+.v4-estnet-dock {
+  position: fixed;
+  inset-inline: 0;
+  bottom: 0;
+  z-index: 48;
+  height: clamp(300px, 44vh, 560px);
+  display: flex;
+  flex-direction: column;
+  background: rgba(6, 12, 24, 0.97);
+  border-top: 1px solid rgba(126, 226, 184, 0.28);
+  box-shadow: 0 -12px 32px rgba(0, 0, 0, 0.5);
+  color: rgba(240, 240, 240, 0.9);
+}
+.v4-estnet-dock[hidden] {
+  display: none;
+}
+.v4-estnet-dock__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+  padding: 0.5rem 1rem;
+  border-bottom: 1px solid rgba(126, 226, 184, 0.14);
+}
+.v4-estnet-dock__title {
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  color: #e6f7f1;
+}
+.v4-estnet-dock__close {
+  font: inherit;
+  font-size: 0.95rem;
+  color: rgba(240, 240, 240, 0.85);
+  background: rgba(8, 16, 32, 0.6);
+  border: 1px solid rgba(157, 196, 232, 0.35);
+  border-radius: 0.4rem;
+  padding: 0.25rem 0.65rem;
+  cursor: pointer;
+}
+.v4-estnet-dock__close:hover {
+  border-color: rgba(157, 196, 232, 0.7);
+}
+.v4-estnet-dock__body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0.6rem 1rem 0.9rem;
+}
+.v4-estnet-trace__explorer {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  max-width: 1180px;
+  margin-inline: auto;
+}
 .v4-estnet-trace__model-delta-note {
   margin: 0;
   font-size: 0.95rem;

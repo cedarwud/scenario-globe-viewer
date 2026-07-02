@@ -1,39 +1,46 @@
 #!/usr/bin/env node
 // ESTNeT panel opt-in invariant gate (verify:estnet:panel).
 //
-// Guards the LOAD-BEARING rule that the opt-in ESTNeT packet-trace disclosure
-// section never touches the accepted single-link default surface:
+// Guards the LOAD-BEARING rule that the opt-in ESTNeT packet-trace surface —
+// a one-line summary CARD in the side panel plus a full-width bottom DOCK
+// holding the trace explorer (panel-density fourth pass, 2026-07-03) — never
+// touches the accepted single-link default surface:
 //
-//   - DEFAULT (fresh profile, no ?estnet=1, no stored mode): the section is
-//     ABSENT from the side panel, the toolbar toggle reads off, and the page
-//     loads with ZERO console errors and ZERO uncaught exceptions / unhandled
+//   - DEFAULT (fresh profile, no ?estnet=1, no stored mode): the card and
+//     the dock are ABSENT, the toolbar toggle reads off, and the page loads
+//     with ZERO console errors and ZERO uncaught exceptions / unhandled
 //     promise rejections.
-//   - Toggling ON only ADDS the one disclosure section — every default panel
-//     row survives unchanged (structural signature comparison, no pixels).
-//   - Every manifest trace is selectable without an error block; each trace's
-//     y-axis semantic is asserted via the chart's `data-y-axis` attribute
-//     (never by crawling SVG internals). Panel-density second pass
-//     (2026-07-02): the verbatim assumptionSet/nonClaims text does NOT render
-//     in the panel at all — the panel carries a one-line honesty POINTER
-//     (title + non-claim count + "Report" hint, not an expandable), and the
-//     per-trace checks assert the verbatim text is ABSENT from the panel DOM;
-//     the intro stays a one-liner and the model-delta block renders as
-//     always-visible per-orbit Δ cards (third pass — no collapsed prose).
-//     Badges are label-mapped, so they are presence-checked only.
-//   - Report appendix (the report-density landing, and since the second pass
-//     the ONLY place the verbatim honesty text renders): /report opened WITH
-//     `estnet=1` renders an "ESTNeT appendix" tab carrying every fixture's
-//     assumptionSet + nonClaims verbatim; /report WITHOUT the param has no
-//     estnet tab (the accepted default report surface is untouched).
-//   - Route↔trace pair binding: the section pre-selects the route's own trace
-//     (manifest pair hints); a same-pair trace shows the viewer-model overlay,
-//     a cross-pair trace hides it AND renders the exact one-line disclosure.
-//   - Toggling OFF removes the section's DOM entirely (querySelector null —
-//     removal, not display:none) with zero leftover estnet nodes, and the
-//     panel's structural signature returns to the default exactly.
+//   - Toggling ON only ADDS the one card row to the panel (structural
+//     signature comparison, no pixels) and mounts the dock, which
+//     auto-opens so the toggle visibly does something.
+//   - Every manifest trace is selectable (in the dock) without an error
+//     block; each trace's y-axis semantic is asserted via the chart's
+//     `data-y-axis` attribute (never by crawling SVG internals). Density
+//     contract: the verbatim assumptionSet/nonClaims text does NOT render in
+//     the card or the dock — the explorer carries a one-line honesty POINTER
+//     (title + non-claim count + "Report" hint, not an expandable) and the
+//     per-trace checks assert the verbatim text is ABSENT from that DOM; the
+//     intro stays a one-liner and the model-delta block renders as
+//     always-visible per-orbit Δ cards. Badges are label-mapped, so they are
+//     presence-checked only.
+//   - Report appendix (the report-density landing, and the ONLY place the
+//     verbatim honesty text renders): /report opened WITH `estnet=1` renders
+//     an "ESTNeT appendix" tab carrying every fixture's assumptionSet +
+//     nonClaims verbatim; /report WITHOUT the param has no estnet tab (the
+//     accepted default report surface is untouched).
+//   - Route↔trace pair binding: the explorer pre-selects the route's own
+//     trace (manifest pair hints); a same-pair trace shows the viewer-model
+//     overlay, a cross-pair trace hides it AND renders the exact one-line
+//     disclosure.
+//   - Toggling OFF removes the card AND the dock DOM entirely (querySelector
+//     null — removal, not display:none) with zero leftover estnet nodes, and
+//     the panel's structural signature returns to the default exactly.
 //   - A `?estnet=1` deep link seeds the mode IN-MEMORY for that load only
 //     (nothing persisted until an explicit toggle; storage cleared first —
 //     a stored "off" would win over the URL by design).
+//   - Recomputes (rain drags) keep the card, update dock content, and NEVER
+//     re-open a dock the user explicitly closed; the card's button reopens
+//     it rebuilt from the latest result.
 //
 // A FRESH Chrome profile is mandatory, not an optimization: an explicit
 // toggle persists the display mode in localStorage (`estnet-display-mode`),
@@ -234,7 +241,8 @@ function readDefaultState() {
     const toggle = document.querySelector('[data-estnet-trace-toggle="true"]');
     return {
       panelState: panel ? (panel.dataset.state ?? null) : null,
-      estnetSection: Boolean(document.querySelector('[data-disclosure="estnet-packet-trace"]')),
+      estnetCard: Boolean(document.querySelector('[data-estnet-summary-card="true"]')),
+      estnetDock: Boolean(document.querySelector('[data-estnet-dock="true"]')),
       togglePresent: Boolean(toggle),
       toggleEnabled: toggle ? (toggle.dataset.estnetEnabled ?? null) : null,
       storedMode: (() => {
@@ -275,14 +283,17 @@ const PANEL_SIGNATURE_EXPR = `(() => {
 // One read of everything the estnet section assertions need.
 function readEstnetState() {
   return evald(`(() => {
-    const sections = document.querySelectorAll('[data-disclosure="estnet-packet-trace"]');
-    const mount = sections[0]?.querySelector(".v4-estnet-trace__mount") ?? null;
+    const cards = document.querySelectorAll('[data-estnet-summary-card="true"]');
+    const docks = document.querySelectorAll('[data-estnet-dock="true"]');
+    const dock = docks[0] ?? null;
+    const mount = dock?.querySelector(".v4-estnet-trace__mount") ?? null;
     const note = mount?.querySelector('[data-pair-mismatch="true"]') ?? null;
     const honesty = mount?.querySelector('[data-honesty-pointer="true"]') ?? null;
     const modelDeltaEl = mount?.querySelector('[data-model-delta="true"]') ?? null;
     return {
-      sectionCount: sections.length,
-      sectionOpen: sections[0] ? sections[0].open : null,
+      cardCount: cards.length,
+      dockCount: docks.length,
+      dockVisible: dock ? !dock.hidden : null,
       loading: mount ? mount.dataset.loading === "true" : null,
       variant: mount?.dataset.variant ?? null,
       errorBlock: Boolean(mount?.querySelector(".v4-estnet-trace__error")),
@@ -299,7 +310,7 @@ function readEstnetState() {
       ),
       modelLine: Boolean(mount?.querySelector(".v4-estnet-trace__svg-model-line")),
       introChars:
-        sections[0]?.querySelector(".v4-estnet-trace__intro")?.textContent.length ?? null,
+        dock?.querySelector(".v4-estnet-trace__intro")?.textContent.length ?? null,
       honestyPresent: Boolean(honesty),
       honestyIsExpandable: honesty ? honesty.tagName === "DETAILS" : null,
       honestyLine: honesty ? honesty.textContent : null,
@@ -307,13 +318,17 @@ function readEstnetState() {
         mount?.querySelector(".v4-estnet-trace__assumptions") ||
           mount?.querySelector(".v4-estnet-trace__nonclaims")
       ),
-      panelText: sections[0] ? sections[0].textContent : "",
+      // Verbatim-absence surface: the dock (explorer) AND the panel card.
+      panelText:
+        (dock ? dock.textContent : "") +
+        "\\n" +
+        (cards[0] ? cards[0].textContent : ""),
       buttons: Array.from(
-        sections[0]?.querySelectorAll(".v4-estnet-trace__toggle-btn") ?? [],
+        dock?.querySelectorAll(".v4-estnet-trace__toggle-btn") ?? [],
         (b) => b.dataset.variant
       ),
       activeButton:
-        sections[0]?.querySelector(".v4-estnet-trace__toggle-btn--active")?.dataset.variant ?? null,
+        dock?.querySelector(".v4-estnet-trace__toggle-btn--active")?.dataset.variant ?? null,
       storedMode: (() => {
         try {
           return window.localStorage.getItem("estnet-display-mode");
@@ -340,11 +355,13 @@ async function waitForCondition(expr, timeoutMs, label) {
 function waitEstnetLoaded(timeoutMs = 30000) {
   return waitForCondition(
     `(() => {
-      const m = document.querySelector('[data-disclosure="estnet-packet-trace"] .v4-estnet-trace__mount');
+      const dock = document.querySelector('[data-estnet-dock="true"]');
+      if (!dock || dock.hidden) return false;
+      const m = dock.querySelector(".v4-estnet-trace__mount");
       return Boolean(m && m.dataset.loading !== "true" && m.dataset.variant);
     })()`,
     timeoutMs,
-    "estnet section loaded"
+    "estnet dock open with a loaded trace"
   );
 }
 
@@ -554,8 +571,8 @@ try {
 
   const s0 = await readDefaultState();
   check(
-    "default-estnet-section-absent (opt-in surface must not exist without opt-in)",
-    s0.estnetSection === false,
+    "default-estnet-card-and-dock-absent (opt-in surface must not exist without opt-in)",
+    s0.estnetCard === false && s0.estnetDock === false,
     s0
   );
   check("default-panel-ready", s0.panelState === "ready", s0.panelState);
@@ -628,34 +645,23 @@ try {
   const estnetRowIndex = sigOn.findIndex((sig) => sig.includes("v4-estnet-trace"));
   const sigOnWithoutSection = sigOn.filter((_, i) => i !== estnetRowIndex);
   check(
-    "ON-only-adds-the-section (structural signature: default rows all survive, exactly one estnet row added)",
+    "ON-only-adds-the-card (structural signature: default panel rows all survive, exactly one card row added)",
     estnetRowIndex >= 0 &&
       sigOn.length === sigDefault.length + 1 &&
       JSON.stringify(sigOnWithoutSection) === JSON.stringify(sigDefault),
     { sigDefault, sigOn }
   );
   const sOn = await readEstnetState();
-  check("ON-section-present-once", sOn.sectionCount === 1, sOn.sectionCount);
   check(
-    "ON-section-open-by-default (discoverability: toggling on must visibly show content)",
-    sOn.sectionOpen === true,
-    sOn.sectionOpen
+    "ON-card-present-once (panel carries exactly one summary card)",
+    sOn.cardCount === 1,
+    sOn.cardCount
   );
-  // The section sits at the panel bottom; a live toggle-on also scrolls it
-  // into the panel viewport (smooth scroll — poll until it lands).
-  await waitForCondition(
-    `(() => {
-      const d = document.querySelector('[data-disclosure="estnet-packet-trace"]');
-      const p = document.querySelector('[data-v4-projection-side-panel="true"]');
-      if (!d || !p) return false;
-      const dr = d.getBoundingClientRect();
-      const pr = p.getBoundingClientRect();
-      return dr.top >= pr.top - 8 && dr.top < pr.bottom;
-    })()`,
-    15000,
-    "estnet section scrolled into the panel viewport"
+  check(
+    "ON-dock-present-once-and-auto-open (live toggle-on reveals the explorer, not just a card)",
+    sOn.dockCount === 1 && sOn.dockVisible === true,
+    { docks: sOn.dockCount, visible: sOn.dockVisible }
   );
-  check("ON-section-scrolled-into-view (live toggle reveals, not just appends)", true, null);
   check("ON-storage-on (persisted opt-in)", sOn.storedMode === "on", sOn.storedMode);
   check(
     "ON-menu-lists-every-manifest-trace",
@@ -683,7 +689,7 @@ try {
     );
     await waitForCondition(
       `(() => {
-        const m = document.querySelector('[data-disclosure="estnet-packet-trace"] .v4-estnet-trace__mount');
+        const m = document.querySelector('[data-estnet-dock="true"] .v4-estnet-trace__mount');
         return Boolean(m && m.dataset.loading !== "true" && m.dataset.variant === ${JSON.stringify(entry.id)});
       })()`,
       30000,
@@ -779,22 +785,31 @@ try {
     probeOn
   );
 
-  // 6. toggle OFF: the section's DOM is REMOVED (not display:none), zero
-  // estnet nodes remain, and the panel structure returns to the default.
+  // 6. toggle OFF: the summary card AND the dock DOM are REMOVED (not
+  // display:none), zero estnet nodes remain, and the panel structure returns
+  // to the default.
   check("OFF-click-toggle", await clickEstnetToggle(), null);
   await waitForCondition(
-    `document.querySelector('[data-disclosure="estnet-packet-trace"]') === null`,
+    `document.querySelector('[data-estnet-summary-card="true"]') === null &&
+     document.querySelector('[data-estnet-dock="true"]') === null`,
     15000,
-    "estnet section removed"
+    "estnet card + dock removed"
   );
   const sOff = await evald(`(() => ({
-    section: Boolean(document.querySelector('[data-disclosure="estnet-packet-trace"]')),
-    leftoverNodes: document.querySelectorAll('[class*="v4-estnet-trace"]').length,
+    card: Boolean(document.querySelector('[data-estnet-summary-card="true"]')),
+    dock: Boolean(document.querySelector('[data-estnet-dock="true"]')),
+    leftoverNodes:
+      document.querySelectorAll('[class*="v4-estnet-trace"]').length +
+      document.querySelectorAll('[class*="v4-estnet-dock"]').length,
     storedMode: (() => { try { return window.localStorage.getItem("estnet-display-mode"); } catch { return "ERR"; } })(),
     toggleEnabled: document.querySelector('[data-estnet-trace-toggle="true"]')?.dataset.estnetEnabled ?? null
   }))()`);
   const sigOff = await evald(PANEL_SIGNATURE_EXPR);
-  check("OFF-section-dom-fully-removed (querySelector null — removal, not display:none)", sOff.section === false, sOff);
+  check(
+    "OFF-card-and-dock-dom-fully-removed (querySelector null — removal, not display:none)",
+    sOff.card === false && sOff.dock === false,
+    sOff
+  );
   check("OFF-zero-estnet-node-leftovers", sOff.leftoverNodes === 0, sOff.leftoverNodes);
   check(
     "OFF-panel-structure-restored-to-default (teardown: signature identical)",
@@ -825,14 +840,14 @@ try {
     await waitEstnetLoaded();
     const sCross = await readEstnetState();
     check(
-      "seed-url-opt-in-reveals-section (?estnet=1 seeds the mode IN-MEMORY; persistence only on explicit toggle)",
-      sCross.sectionCount === 1 && sCross.storedMode === null,
-      { sections: sCross.sectionCount, stored: sCross.storedMode }
+      "seed-url-opt-in-reveals-card-and-dock (?estnet=1 seeds the mode IN-MEMORY; persistence only on explicit toggle)",
+      sCross.cardCount === 1 && sCross.dockCount === 1 && sCross.storedMode === null,
+      { cards: sCross.cardCount, docks: sCross.dockCount, stored: sCross.storedMode }
     );
     check(
-      "seed-section-open-by-default (deep-link demo route shows content without a manual expand)",
-      sCross.sectionOpen === true,
-      sCross.sectionOpen
+      "seed-dock-auto-opens (deep-link demo route shows the explorer without a manual open)",
+      sCross.dockVisible === true,
+      sCross.dockVisible
     );
     // The expected pre-selection mirrors the tie-breaker on the NEW route —
     // never just "the entry we navigated by" (that diverges when a pair
@@ -872,7 +887,7 @@ try {
       );
       await waitForCondition(
         `(() => {
-          const m = document.querySelector('[data-disclosure="estnet-packet-trace"] .v4-estnet-trace__mount');
+          const m = document.querySelector('[data-estnet-dock="true"] .v4-estnet-trace__mount');
           return Boolean(m && m.dataset.loading !== "true" && m.dataset.variant === ${JSON.stringify(nowCrossEntry.id)});
         })()`,
         30000,
@@ -891,37 +906,56 @@ try {
       );
     }
 
-    // 7b. re-render state preservation (dual-review fold, 2026-07-02): close
-    // the section, drag the rain slider (a full recompute + renderResult
-    // pass), and require the closed state to survive — the open-state capture
-    // must happen BEFORE the panel's replaceChildren, or every re-render
-    // silently forces the section back open. Runs on the seed page: nothing
+    // 7b. re-render behaviour (dual-review fold 2026-07-02, re-anchored to
+    // the dock 2026-07-03): close the dock via its REAL close button, drag
+    // the rain slider (a full recompute + renderResult pass), and require
+    // (a) the summary card to survive the panel re-render and (b) the dock
+    // to STAY closed — recomputes update dock content but must never
+    // re-open an explicitly closed explorer. Runs on the seed page: nothing
     // after this step reads this page's panel signature, so the rain change
     // cannot pollute the earlier structural comparisons.
     const rerenderArmed = await evald(`(() => {
-      const d = document.querySelector('[data-disclosure="estnet-packet-trace"]');
+      const closeBtn = document.querySelector('[data-estnet-dock-close="true"]');
       const slider = document.querySelector(".v4-projection-side-panel__rain-slider");
-      if (!d || !slider) return false;
-      d.open = false;
+      if (!closeBtn || !slider) return false;
+      closeBtn.click();
       slider.value = "5";
       slider.dispatchEvent(new Event("input", { bubbles: true }));
       return true;
     })()`);
-    check("seed-rain-rerender-armed (section closed + slider drag dispatched)", rerenderArmed === true, rerenderArmed);
+    check("seed-rain-rerender-armed (dock closed via its button + slider drag dispatched)", rerenderArmed === true, rerenderArmed);
     await waitForCondition(
       `(() => {
         const p = document.querySelector('[data-v4-projection-side-panel="true"]');
         return Boolean(p && p.dataset.rainRateMmPerHour === "5" &&
-          document.querySelector('[data-disclosure="estnet-packet-trace"]'));
+          document.querySelector('[data-estnet-summary-card="true"]'));
       })()`,
       120000,
-      "rain re-render completed (rain=5 result rendered)"
+      "rain re-render completed (rain=5 result rendered, card present)"
     );
     const sRerender = await readEstnetState();
     check(
-      "seed-rain-rerender-preserves-closed-state (re-renders must not force the section back open)",
-      sRerender.sectionOpen === false,
-      { open: sRerender.sectionOpen }
+      "seed-rain-rerender-keeps-card-and-respects-close (recompute updates content, never re-opens a user-closed dock)",
+      sRerender.cardCount === 1 &&
+        sRerender.dockCount === 1 &&
+        sRerender.dockVisible === false,
+      { cards: sRerender.cardCount, docks: sRerender.dockCount, visible: sRerender.dockVisible }
+    );
+    // Reopening from the card must come back with content bound to the NEW
+    // result (the dock rebuilds from the latest published projection).
+    const reopened = await evald(`(() => {
+      const b = document.querySelector('[data-estnet-open-dock="true"]');
+      if (!b) return false;
+      b.click();
+      return true;
+    })()`);
+    check("seed-card-reopens-dock (open button works after a close + recompute)", reopened === true, reopened);
+    await waitEstnetLoaded();
+    const sReopen = await readEstnetState();
+    check(
+      "seed-reopened-dock-renders-a-trace (rebuilt from the latest result, not a stale husk)",
+      sReopen.dockVisible === true && typeof sReopen.variant === "string" && sReopen.errorBlock === false,
+      { visible: sReopen.dockVisible, variant: sReopen.variant, error: sReopen.errorBlock }
     );
   } else {
     check("seed-cross-route-step", false, "no cross-pair hinted manifest entry found — cannot exercise the seed/cross-route step");
