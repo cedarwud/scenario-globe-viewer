@@ -122,8 +122,11 @@ export interface TraceRouteIds {
   readonly stationBId: string | null;
 }
 
-// Order-agnostic pair match (the latency comparison is direction-free).
-// FAIL CLOSED: an unidentified route side never matches a declared pair.
+// Order-agnostic pair match (the latency comparison is direction-free), as an
+// exact two-sided assignment — NOT set membership, which would let a
+// degenerate same-id endpoint pair (A == B) match any route containing that
+// one id (Gemini review finding, 2026-07-02). FAIL CLOSED: an unidentified
+// route side never matches a declared pair.
 function pairMatchesRoute(
   endpointIdA: string,
   endpointIdB: string,
@@ -135,8 +138,10 @@ function pairMatchesRoute(
   ) {
     return false;
   }
-  const routeIds = new Set([route.stationAId, route.stationBId]);
-  return routeIds.has(endpointIdA) && routeIds.has(endpointIdB);
+  return (
+    (endpointIdA === route.stationAId && endpointIdB === route.stationBId) ||
+    (endpointIdA === route.stationBId && endpointIdB === route.stationAId)
+  );
 }
 
 function routeIdsOfResult(
@@ -497,9 +502,11 @@ function svgEl(name: string, attrs: Record<string, string | number> = {}): SVGEl
   return node;
 }
 
-// Provenance-tier labels mirror the PACKET-TRACE-CONTRACT §3 enum. Ingestion
-// never upgrades a tier, and the operator-measured tier is refused upstream,
-// so no measured-tier label is ever emitted by this section.
+// Provenance-tier labels mirror the PACKET-TRACE-CONTRACT §3 enum exactly
+// (the operator-measured tier is refused upstream and a legacy
+// synthetic-placeholder label was dead code — nothing in the chain produces
+// either, so neither is labelable here). An unknown tier renders verbatim,
+// never re-labeled.
 function sourceClassLabel(sourceClass: string): string {
   switch (sourceClass) {
     case "external-simulator-derived":
@@ -508,8 +515,6 @@ function sourceClassLabel(sourceClass: string): string {
       return "requirement-delivered ESTNeT (simulation, not operator-measured)";
     case "network-test-derived":
       return "network-test capture (not an operator RF measurement)";
-    case "synthetic-placeholder":
-      return "synthetic placeholder";
     default:
       return sourceClass;
   }

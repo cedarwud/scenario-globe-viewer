@@ -128,6 +128,36 @@ test("tie-breaker without a default among the matches: manifest order, first win
   );
 });
 
+test("degenerate same-id endpoints never match a two-station route (exact two-sided match, not set membership)", () => {
+  // A trace declaring A == B (loopback-style ids) must NOT match a route that
+  // merely CONTAINS that id — set-membership matching would let it.
+  const degenerateTrace = {
+    metadata: {
+      stationA: { id: "cht-yangmingshan" },
+      stationB: { id: "cht-yangmingshan" }
+    }
+  };
+  assert.notEqual(pairCompatibilityDisclosure(degenerateTrace, SANSA_ROUTE), null);
+  assert.notEqual(pairCompatibilityDisclosure(degenerateTrace, DOMESTIC_ROUTE), null);
+  const degenerateManifest = {
+    schemaVersion: 1,
+    traces: [
+      { id: "real", label: "real", url: "/fixtures/estnet/a.json", default: true },
+      {
+        id: "degenerate",
+        label: "deg",
+        url: "/fixtures/estnet/b.json",
+        stationA: "cht-yangmingshan",
+        stationB: "cht-yangmingshan"
+      }
+    ]
+  };
+  assert.equal(
+    selectManifestEntryForRoute(degenerateManifest, SANSA_ROUTE).id,
+    "real"
+  );
+});
+
 test("pair disclosure: null on match (order-agnostic) and on endpoint-less traces", () => {
   assert.equal(pairCompatibilityDisclosure(handoverTrace, SANSA_ROUTE), null);
   assert.equal(

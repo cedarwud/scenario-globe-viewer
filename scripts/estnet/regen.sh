@@ -73,6 +73,10 @@ python3 "$VIEWER_ROOT/scripts/estnet/estnet_handover_trace_adapter.py" \
   --out "$FIXTURE_DIR/cht-sansa-handover-packet-trace.json"
 
 echo "== 4/5 full LEO+MEO+GEO chain scenario (CHT domestic, generated)"
+echo "   pre-sim: independent python-sgp4 re-verification of the generated phase table"
+python3 "$VIEWER_ROOT/scripts/estnet/verify_handover_phases_independent.py" \
+  "$SCENARIO_SRC/cht_domestic_handover_scenario.json" \
+  "$SCENARIO_SRC/configs/tles/cht_domestic_handover.tle"
 run_sim omnetpp_cht_domestic_handover.ini
 python3 "$VIEWER_ROOT/scripts/estnet/estnet_handover_trace_adapter.py" \
   --vec "$SIM_DIR/results/General-0.vec" \

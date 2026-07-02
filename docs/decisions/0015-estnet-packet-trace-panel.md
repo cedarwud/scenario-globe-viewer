@@ -24,9 +24,10 @@ Two prior lessons bound the design:
   globe. The one attempt to animate "physically real flow" on the globe's
   stylized orbit-render layer failed and was reverted; that layer is a
   viewer-owned display projection, not source truth.
-- **Opt-in overlays never replace the accepted surface** (ADR 0013
-  decision 8, R11): the customer-accepted single-link surface (19/19) must
-  stay byte-identical by default.
+- **Opt-in overlays never replace the accepted surface** (the standing
+  delivery-safety rule R11, re-affirmed when ADR 0013 retired the SLS
+  overlay): the customer-accepted single-link surface (19/19) must stay
+  byte-identical by default.
 
 ## Decisions
 
@@ -66,8 +67,11 @@ Two prior lessons bound the design:
    `npm run verify:estnet` gates the contract + manifest + ingest parsers;
    `npm run estnet:crosscheck` re-derives every delivered sample's latency
    from independent python-sgp4 geometry (dual-model consistency) and checks
-   MEO/LEO segments against independently computed co-visibility. Phase
-   tables are independently SGP4-verified BEFORE any sim runs.
+   MEO/LEO segments against independently computed co-visibility.
+   `estnet:regen` re-verifies the generated scenario's phase table with
+   independent python-sgp4 (`verify_handover_phases_independent.py`) before
+   running its sim; the hand-authored CHT×SANSA phase table was locked by
+   the precheck pair (`precheck_2hop_geometry.mjs` + `_independent.py`).
 
 5. **Mask-trim finding (honest boundary).** The viewer's visibility grid is
    30 s; a LEO can drop below a station mask INSIDE the final grid step while

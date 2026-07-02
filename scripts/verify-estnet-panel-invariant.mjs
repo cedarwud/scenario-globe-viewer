@@ -21,14 +21,16 @@
 //   - Toggling OFF removes the section's DOM entirely (querySelector null —
 //     removal, not display:none) with zero leftover estnet nodes, and the
 //     panel's structural signature returns to the default exactly.
-//   - A `?estnet=1` deep link seeds the persisted mode once (storage cleared
-//     first — a stored "off" would win over the URL by design).
+//   - A `?estnet=1` deep link seeds the mode IN-MEMORY for that load only
+//     (nothing persisted until an explicit toggle; storage cleared first —
+//     a stored "off" would win over the URL by design).
 //
-// A FRESH Chrome profile is mandatory, not an optimization: the display mode
-// persists in localStorage (`estnet-display-mode`) and a `?estnet=1` deep link
-// SEEDS that persisted mode once (src/features/multi-station-selector/
-// estnet-display-mode.ts) — a reused profile that ever saw the opt-in would
-// make the default-off assertion vacuously wrong in both directions.
+// A FRESH Chrome profile is mandatory, not an optimization: an explicit
+// toggle persists the display mode in localStorage (`estnet-display-mode`),
+// and a `?estnet=1` deep link seeds the mode in-memory for that load
+// (src/features/multi-station-selector/estnet-display-mode.ts) — a reused
+// profile that ever toggled the opt-in would make the default-off assertion
+// vacuously wrong in both directions.
 //
 // The check navigates the canonical pinned demo route (resolved from the
 // demo-scenario config single source) with NO estnet parameter and reads the
@@ -76,6 +78,11 @@ const delay = (ms) => new Promise((r) => setTimeout(r, ms));
 // unhandled promise rejections, reported as "Uncaught (in promise) …").
 const consoleErrors = [];
 const pageExceptions = [];
+// Set true by Page.loadEventFired; reset before each Page.navigate. CDP's
+// Page.navigate resolves when the command is ACKed, not when the new document
+// is loaded — asserting against the old document is a false-pass race
+// (Gemini review finding, 2026-07-02).
+let loadFired = false;
 
 function send(method, params = {}) {
   return new Promise((resolvePromise, reject) => {
@@ -128,6 +135,10 @@ async function connectToPage(port) {
   ws = new WebSocket(page.webSocketDebuggerUrl);
   ws.addEventListener("message", (event) => {
     const data = JSON.parse(event.data.toString());
+    if (data.method === "Page.loadEventFired") {
+      loadFired = true;
+      return;
+    }
     if (data.method === "Runtime.consoleAPICalled" && data.params?.type === "error") {
       consoleErrors.push(
         (data.params.args ?? [])
@@ -158,6 +169,36 @@ async function connectToPage(port) {
   });
 }
 
+// Navigate and wait for the NEW document: Page.navigate only ACKs the
+// command, so the poll below must anchor to the load event — otherwise the
+// still-live OLD document (readyState "complete", panel "ready") passes the
+// readiness checks and the next evaluate lands in a destroyed context.
+async function navigate(url, timeoutMs = 60000) {
+  loadFired = false;
+  await send("Page.navigate", { url });
+  const start = Date.now();
+  while (!loadFired) {
+    if (Date.now() - start > timeoutMs) {
+      throw new Error(`timed out waiting for load event of ${url}`);
+    }
+    await delay(100);
+  }
+}
+
+// Evaluate that tolerates a navigation tearing down the execution context
+// mid-poll: a destroyed-context error reads as "not ready yet", never a
+// crash. Only the poll loops use this; single-shot asserts keep evald.
+async function evalPoll(expression) {
+  try {
+    return await evald(expression);
+  } catch (error) {
+    if (/Cannot find context|Execution context was destroyed|Inspected target navigated/i.test(String(error))) {
+      return undefined;
+    }
+    throw error;
+  }
+}
+
 // Clean-load wait: the document must be fully loaded AND the side panel must
 // have reached its ready state before any DOM assertion runs — asserting a
 // section "absent" against a panel that has not rendered yet would pass
@@ -166,7 +207,7 @@ async function waitPanelReady(timeoutMs = 60000) {
   const start = Date.now();
   let last = null;
   while (Date.now() - start < timeoutMs) {
-    last = await evald(`(() => {
+    last = await evalPoll(`(() => {
       if (document.readyState !== "complete") return "document:" + document.readyState;
       const p = document.querySelector('[data-v4-projection-side-panel="true"]');
       return p ? (p.dataset.state ?? "no-state") : "no-panel";
@@ -198,12 +239,27 @@ function readDefaultState() {
   })()`);
 }
 
-// Structural signature of the side panel's top-level rows (tag + full class
-// list). "Opt-in only ADDS" and "off restores the default" are asserted as:
-// signature-with-section minus the estnet row === default signature, exactly.
+// Structural signature of the side panel's rows: per top-level row, tag +
+// full class list + descendant element count + a hash of the full descendant
+// tag/class sequence. "Opt-in only ADDS" and "off restores the default" are
+// asserted as: signature-with-section minus the estnet row === default
+// signature, exactly. The descendant hash makes a destructive mutation of a
+// default row's inner DOM visible (codex + Gemini convergent finding) while
+// staying deterministic — the replay clock is paused before the first
+// capture, and text content is deliberately excluded (functional text is
+// verify:g1's job; this check owns STRUCTURE).
 const PANEL_SIGNATURE_EXPR = `(() => {
   const panel = document.querySelector('[data-v4-projection-side-panel="true"]');
-  return panel ? Array.from(panel.children, (el) => el.tagName + ":" + el.className) : null;
+  if (!panel) return null;
+  const hash = (s) => {
+    let h = 5381;
+    for (let i = 0; i < s.length; i++) h = ((h * 33) ^ s.charCodeAt(i)) >>> 0;
+    return h.toString(16);
+  };
+  return Array.from(panel.children, (el) => {
+    const inner = Array.from(el.querySelectorAll("*"), (n) => n.tagName + "." + n.className).join(",");
+    return el.tagName + ":" + el.className + ":" + el.querySelectorAll("*").length + ":" + hash(inner);
+  });
 })()`;
 
 // One read of everything the estnet section assertions need.
@@ -247,7 +303,7 @@ async function waitForCondition(expr, timeoutMs, label) {
   const start = Date.now();
   let last = null;
   while (Date.now() - start < timeoutMs) {
-    last = await evald(expr);
+    last = await evalPoll(expr);
     if (last === true) return;
     await delay(100);
   }
@@ -279,18 +335,55 @@ function latencySemanticOf(fixture) {
     ? fixture.latencySemantic
     : "one-way";
 }
+// Mirrors buildChart's primary-series rule exactly, including the
+// latency-less edge (a one-way trace whose samples all lost their latency
+// falls back to throughput, then to "none") — an axis expectation derived
+// from the semantic alone would diverge there (Gemini review finding).
 function expectedYAxis(fixture) {
   const semantic = latencySemanticOf(fixture);
-  return semantic === "none" ? "mbps" : semantic === "rtt" ? "rtt" : "ms";
+  const hasLatency =
+    semantic !== "none" &&
+    fixture.samples.some(
+      (s) => typeof s.latencyMs === "number" && Number.isFinite(s.latencyMs)
+    );
+  if (hasLatency) {
+    return semantic === "rtt" ? "rtt" : "ms";
+  }
+  const hasThroughput = fixture.samples.some(
+    (s) =>
+      typeof s.throughputMbps === "number" &&
+      Number.isFinite(s.throughputMbps) &&
+      s.throughputMbps > 0
+  );
+  return hasThroughput ? "mbps" : "none";
+}
+// Mirrors selectManifestEntryForRoute's tie-breaker exactly: same-pair
+// matches first (default:true beats manifest order), else the global default.
+function expectedEntryForRoute(manifest, routeA, routeB) {
+  const samePair = manifest.traces.filter(
+    (t) =>
+      typeof t.stationA === "string" &&
+      typeof t.stationB === "string" &&
+      endpointsMatchRoute({ a: t.stationA, b: t.stationB }, routeA, routeB)
+  );
+  if (samePair.length > 0) {
+    return samePair.find((t) => t.default === true) ?? samePair[0];
+  }
+  return manifest.traces.find((t) => t.default === true) ?? manifest.traces[0];
 }
 function declaredEndpoints(fixture) {
   const a = fixture.metadata?.stationA?.id;
   const b = fixture.metadata?.stationB?.id;
   return typeof a === "string" && typeof b === "string" ? { a, b } : null;
 }
+// Exact two-sided assignment, mirroring the src predicate — set membership
+// would let a degenerate same-id endpoint pair match any route containing
+// that id (Gemini review finding).
 function endpointsMatchRoute(endpoints, routeA, routeB) {
-  const ids = new Set([routeA, routeB]);
-  return ids.has(endpoints.a) && ids.has(endpoints.b);
+  return (
+    (endpoints.a === routeA && endpoints.b === routeB) ||
+    (endpoints.a === routeB && endpoints.b === routeA)
+  );
 }
 function expectedPairNote(fixture, routeA, routeB) {
   const endpoints = declaredEndpoints(fixture);
@@ -379,8 +472,13 @@ try {
   if (/[?&]estnet=/.test(defaultUrl)) {
     throw new Error(`pinned demo route unexpectedly carries an estnet param: ${defaultUrl}`);
   }
-  await send("Page.navigate", { url: defaultUrl });
+  await navigate(defaultUrl);
   await waitPanelReady();
+  // Freeze the replay clock so structural signatures (timeline markers) stay
+  // deterministic between the default and opt-in captures.
+  await evald(
+    `(() => { const c = window.__SCENARIO_GLOBE_VIEWER_CAPTURE__?.replayClock; if (c) c.pause(); return true; })()`
+  );
   // Let late async work (fixture fetches, worker responses) surface any error.
   await delay(1500);
 
@@ -453,18 +551,7 @@ try {
     JSON.stringify(sOn.buttons) === JSON.stringify(manifest.traces.map((t) => t.id)),
     { got: sOn.buttons, want: manifest.traces.map((t) => t.id) }
   );
-  // Mirrors selectManifestEntryForRoute exactly: same-pair matches first
-  // (default:true beats manifest order), else the global default entry.
-  const samePairEntries = manifest.traces.filter(
-    (t) =>
-      typeof t.stationA === "string" &&
-      typeof t.stationB === "string" &&
-      endpointsMatchRoute({ a: t.stationA, b: t.stationB }, routeA, routeB)
-  );
-  const expectedPreselect =
-    samePairEntries.length > 0
-      ? (samePairEntries.find((t) => t.default === true) ?? samePairEntries[0])
-      : (manifest.traces.find((t) => t.default === true) ?? manifest.traces[0]);
+  const expectedPreselect = expectedEntryForRoute(manifest, routeA, routeB);
   check(
     "ON-preselects-the-route's-own-trace (pair hints + default tie-break)",
     sOn.variant === expectedPreselect.id && sOn.activeButton === expectedPreselect.id,
@@ -567,7 +654,7 @@ try {
     crossUrl.searchParams.set("stationA", crossEntry.stationA);
     crossUrl.searchParams.set("stationB", crossEntry.stationB);
     crossUrl.searchParams.set("estnet", "1");
-    await send("Page.navigate", { url: crossUrl.toString() });
+    await navigate(crossUrl.toString());
     await waitPanelReady();
     await waitEstnetLoaded();
     const sCross = await readEstnetState();
@@ -576,12 +663,20 @@ try {
       sCross.sectionCount === 1 && sCross.storedMode === null,
       { sections: sCross.sectionCount, stored: sCross.storedMode }
     );
-    check(
-      `seed-route-preselects-its-own-trace (${crossEntry.id}, not the global default)`,
-      sCross.variant === crossEntry.id,
-      { got: sCross.variant, want: crossEntry.id }
+    // The expected pre-selection mirrors the tie-breaker on the NEW route —
+    // never just "the entry we navigated by" (that diverges when a pair
+    // carries several traces and a later one is default:true).
+    const expectedCrossPreselect = expectedEntryForRoute(
+      manifest,
+      crossEntry.stationA,
+      crossEntry.stationB
     );
-    const crossFixture = fixturesByEntryId.get(crossEntry.id);
+    check(
+      `seed-route-preselects-its-own-trace (${expectedCrossPreselect.id}, not the pinned route's default)`,
+      sCross.variant === expectedCrossPreselect.id,
+      { got: sCross.variant, want: expectedCrossPreselect.id }
+    );
+    const crossFixture = fixturesByEntryId.get(expectedCrossPreselect.id);
     check(
       "seed-same-pair-trace-shows-overlay-without-disclosure",
       sCross.pairNote === null &&
@@ -646,6 +741,13 @@ try {
     ws?.close();
   } catch {}
   if (chrome) {
+    // Graceful first: SIGTERM lets the browser shut its child tree (zygote /
+    // GPU / renderers) down itself; a bare SIGKILL on the parent can orphan
+    // them (Gemini review finding). SIGKILL stays as the fallback.
+    try {
+      chrome.kill("SIGTERM");
+    } catch {}
+    await delay(500);
     try {
       chrome.kill("SIGKILL");
     } catch {}

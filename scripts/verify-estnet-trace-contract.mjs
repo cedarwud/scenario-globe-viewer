@@ -356,6 +356,7 @@ section("panel trace manifest");
         check("manifest", hasHintA === hasHintB, `${at}: stationA/stationB hints must be both present or both absent`);
         if (hasHintA && hasHintB) {
           check("manifest", typeof entry.stationA === "string" && entry.stationA.length > 0 && typeof entry.stationB === "string" && entry.stationB.length > 0, `${at}: pair hints must be non-empty strings`);
+          check("manifest", entry.stationA !== entry.stationB, `${at}: pair hints must name two DISTINCT stations (a same-id pair is not a route-matchable link)`);
           check("manifest", entry.stationA === fixtureA, `${at}.stationA hint "${entry.stationA}" != fixture metadata.stationA.id "${fixtureA}"`);
           check("manifest", entry.stationB === fixtureB, `${at}.stationB hint "${entry.stationB}" != fixture metadata.stationB.id "${fixtureB}"`);
           check("manifest", registryIds.has(entry.stationA), `${at}.stationA hint "${entry.stationA}" is not a registry station id`);
