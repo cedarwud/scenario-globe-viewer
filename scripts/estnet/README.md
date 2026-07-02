@@ -185,8 +185,8 @@ grid is 30 s, and a LEO can cross below a station mask INSIDE the final grid
 step while the policy still serves it until the next grid instant. The
 serving phases keep the viewer's geometry-true boundaries, but each phase's
 SEND window is additionally trimmed (1 s sampling, 2 s guard) so every
-transmitted packet is continuously above both masks — 13 LEO phases were
-trimmed by 8–30 s; zero loss remains a scenario design choice (no re-point
+transmitted packet is continuously above both masks — 12 LEO phases were
+trimmed by 3–22 s; zero loss remains a scenario design choice (no re-point
 overrun traffic), not an RF robustness claim.
 
 ```bash

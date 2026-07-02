@@ -161,6 +161,14 @@ test("pair guard: a trace for another pair gets no overlay; order-agnostic match
   );
   assert(swapped);
   assert.equal(swapped.perOrbit.length, 2);
+  // FAIL CLOSED: declared trace endpoints + a result whose pair ids are
+  // missing (stale caller shape) must suppress the overlay too — never
+  // compare against an unidentified pair.
+  const unknownRoute = computeModelOverlay(handoverTrace, {
+    timeWindow: DEMO_WINDOW,
+    representativeLinkBudgetByOrbit: { GEO: GEO_ANCHOR, MEO: MEO_ANCHOR }
+  });
+  assert.equal(unknownRoute, null);
 });
 
 test("no overlay for rtt/none semantics or when no orbit anchor exists", () => {

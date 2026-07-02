@@ -218,18 +218,16 @@ export function computeModelOverlay(
   // Pair guard: when the trace declares its own endpoints, the viewer-model
   // anchors are only a valid comparison if the panel's CURRENT pair is the
   // same pair (order-agnostic — the latency comparison is direction-free).
-  // A trace for another pair renders WITHOUT the overlay rather than being
-  // compared against the wrong pair's model.
+  // FAIL CLOSED: declared trace endpoints with unknown route endpoints also
+  // suppress the overlay — never compare against an unidentified pair.
   const traceIdA = trace.metadata?.stationA?.id;
   const traceIdB = trace.metadata?.stationB?.id;
-  const routeIdA = runtimeResult.pair?.stationA?.id;
-  const routeIdB = runtimeResult.pair?.stationB?.id;
-  if (
-    typeof traceIdA === "string" &&
-    typeof traceIdB === "string" &&
-    typeof routeIdA === "string" &&
-    typeof routeIdB === "string"
-  ) {
+  if (typeof traceIdA === "string" && typeof traceIdB === "string") {
+    const routeIdA = runtimeResult.pair?.stationA?.id;
+    const routeIdB = runtimeResult.pair?.stationB?.id;
+    if (typeof routeIdA !== "string" || typeof routeIdB !== "string") {
+      return null;
+    }
     const routeIds = new Set([routeIdA, routeIdB]);
     if (!routeIds.has(traceIdA) || !routeIds.has(traceIdB)) {
       return null;

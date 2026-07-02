@@ -177,7 +177,7 @@ def _scenario_trace(scenario, vec_path, segments, summary, samples):
         "nonClaims": [
             "SIMULATION, not operator-measured (not Tier-A).",
             f"The handover sequence is a SHOWCASE route preference (mirrors the viewer's {policy} policy), NOT an RF-failure-driven handover.",
-            "Every serving satellite is genuinely mutually visible from both stations for its whole phase (independently python-sgp4-verified, verify_handover_phases_independent.py), but a single dish can only point one way — the re-point IS the modeled handover.",
+            "Every TRANSMITTED sample rides a relay that is mutually visible above both stations' effective elevation masks (send windows are mask-trimmed at 1 s sampling; independently python-sgp4-verified, verify_handover_phases_independent.py). The serving-phase boundaries themselves are the viewer's 30 s-grid handover instants, so a phase tail may dip below a mask AFTER the last transmitted sample. A single dish can only point one way — the re-point IS the modeled handover.",
             "jitter and loss are adapter-derived, not native ESTNeT signals.",
             "each phase's end-to-end is a composition of two independent one-hop RF legs, not a single relayed packet.",
             "RF EIRP/bitrate are assumed link parameters chosen so all links close.",
