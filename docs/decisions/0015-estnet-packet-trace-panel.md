@@ -102,6 +102,31 @@ Two prior lessons bound the design:
    surface and the user gates what lands there on their own schedule. Nothing
    in this track pre-authorizes that merge.
 
+9. **Panel = claim, report = text (panel-density rule, 2026-07-02).** The
+   first live viewing showed the section's verbatim honesty walls
+   (assumptionSet / nonClaims) and decomposition prose destroyed panel
+   legibility. Standing user rule: every side-panel text block either earns
+   a visual presentation (badges, stat cards, chips, one-line summary with
+   on-demand expand) or moves to report density. Applied as: one-line intro;
+   collapsed honesty `<details>` whose summary carries the non-claim count;
+   model-delta as a collapsed `<details>` with per-orbit Δ chips (+ window-
+   mismatch warn chip); relay-name walls keyed by orbit keys only with the
+   verbatim list inside the expandable; and a new **"ESTNeT appendix" report
+   tab** as the report-density landing (per-fixture provenance table, summary
+   metrics, verbatim assumptionSet + nonClaims). The appendix is itself
+   opt-in — the Report button appends `estnet=1` exactly when the display
+   mode is on; without it the report HTML is byte-identical (the report
+   sha256 golden still locks the default). The verbatim honesty invariant
+   MOVED, it was not weakened: `verify:estnet:panel` (56 → 79 checks) keeps
+   asserting assumptionSet/nonClaims verbatim in the (collapsed) DOM, and
+   now also asserts the density contract (one-line intro, collapsed
+   expandables, count in the summary line) and the appendix end-to-end
+   (/report with `estnet=1` carries every fixture's honesty text verbatim;
+   /report without it has no estnet tab). Discoverability: the section
+   renders OPEN and a live toggle-on scrolls it into view (the collapsed
+   bottom-of-panel default made the toolbar toggle look like a no-op);
+   re-renders preserve the user's open/closed state.
+
 ## Consequences
 
 - The accepted 19/19 surface stays untouched by default — proven by gates,

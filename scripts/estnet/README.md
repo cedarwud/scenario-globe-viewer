@@ -258,10 +258,22 @@ the chart svg exposes `data-y-axis` for machine assertions) and renders each
 trace's own provenance badges; the `operator-measured` tier is refused
 upstream and never rendered.
 
+**Panel density (2026-07-02, ADR 0015 decision 9):** the section is
+visual-first — one-line intro, per-trace badges, stat cards, chart, per-orbit
+Δ chips; the verbatim honesty text (assumptionSet / nonClaims, relay-name
+lists) sits behind collapsed `<details>` expandables and lands in full in the
+evidence report's **ESTNeT appendix** tab (the Report button appends
+`estnet=1` exactly when the display mode is on; without it the report HTML is
+byte-identical to the accepted default). The section renders open, and a live
+toolbar toggle-on scrolls it into view.
+
 The whole opt-in surface is gate-guarded by `npm run verify:estnet:panel`
 (`scripts/verify-estnet-panel-invariant.mjs`, standalone CDP browser gate,
 not part of `npm test`): default-off absence with a fresh Chrome profile,
-toggle-ON add-only, per-trace axis/honesty-verbatim/pair-binding assertions,
+toggle-ON add-only + open-by-default + scroll-into-view, per-trace
+axis/honesty-verbatim/pair-binding assertions plus the density contract
+(one-line intro, collapsed expandables, non-claim count in the summary
+line), the report ESTNeT appendix end-to-end (with/without `estnet=1`),
 and toggle-OFF full DOM teardown. Track decisions are recorded in
 `docs/decisions/0015-estnet-packet-trace-panel.md`.
 
