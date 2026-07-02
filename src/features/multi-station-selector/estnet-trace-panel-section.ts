@@ -785,29 +785,48 @@ function buildChart(trace: PacketTrace, overlay: ModelOverlay | null): ChartHand
     }
   }
 
-  // Handover boundary markers (between consecutive segments).
-  for (let i = 1; i < segments.length; i++) {
-    const xb = xScale((segments[i - 1].endMs + segments[i].startMs) / 2);
-    svg.append(
-      svgEl("line", {
-        x1: xb,
-        y1: MARGIN.t,
-        x2: xb,
-        y2: H - MARGIN.b,
-        stroke: HANDOVER_COLOR,
-        "stroke-width": 1.4,
-        "stroke-dasharray": "5 3"
-      })
-    );
-    const tx = svgEl("text", {
-      x: xb,
-      y: H - MARGIN.b - 4,
-      "text-anchor": "middle",
-      fill: HANDOVER_COLOR,
-      class: "v4-estnet-trace__svg-ho-label"
-    });
-    tx.textContent = "⇄ handover";
-    svg.append(tx);
+  // Handover markers. Prefer the fixture's own geometry-true instants
+  // (metadata.handoverWindowUtc = absolute AOS/LOS times, mapped through
+  // simEpochUtc) — the re-point loss clusters START exactly there, so the
+  // marker, the on-globe event pill and the loss band share one instant.
+  // Traces without that metadata fall back to segment-gap midpoints.
+  if (segments.length > 1) {
+    const markerEpochMs = Date.parse(trace.metadata?.simEpochUtc ?? "");
+    const declaredMarkerXs = Number.isFinite(markerEpochMs)
+      ? (trace.metadata?.handoverWindowUtc ?? [])
+          .map((iso) => Date.parse(iso) - markerEpochMs)
+          .filter((tMs) => Number.isFinite(tMs) && tMs > xMin && tMs < xMax)
+          .map((tMs) => xScale(tMs))
+      : [];
+    const markerXs =
+      declaredMarkerXs.length > 0
+        ? declaredMarkerXs
+        : segments
+            .slice(1)
+            .map((seg, i) => xScale((segments[i].endMs + seg.startMs) / 2));
+    for (const xb of markerXs) {
+      svg.append(
+        svgEl("line", {
+          x1: xb,
+          y1: MARGIN.t,
+          x2: xb,
+          y2: H - MARGIN.b,
+          stroke: HANDOVER_COLOR,
+          "stroke-width": 1.4,
+          "stroke-dasharray": "5 3",
+          class: "v4-estnet-trace__svg-ho-marker"
+        })
+      );
+      const tx = svgEl("text", {
+        x: xb,
+        y: H - MARGIN.b - 4,
+        "text-anchor": "middle",
+        fill: HANDOVER_COLOR,
+        class: "v4-estnet-trace__svg-ho-label"
+      });
+      tx.textContent = "⇄ handover";
+      svg.append(tx);
+    }
   }
 
   // Primary polyline. For the handover trace, split the latency line per orbit
