@@ -1,11 +1,18 @@
 # Requirement Presentation Walkthrough (Phase 1 — text content)
 
-Status date: 2026-06-22
+Status date: 2026-06-22; row-level refresh 2026-07-02
 Reconciled against: merge `1496a03` (2026-06-13 public-data-gap closure),
 `docs/data-source-index.md` (the governing honesty contract), and the track-B
 pinned-local-snapshot default (commit `cfc6471`): the default demo geometry is the
 pinned 2026-06-15 snapshots (882 actors); the CelesTrak network catalog is opt-in
 (`?tleSource=network`).
+
+> **2026-07-02 claim-vs-truth pass (codex + agy dual review, folded):** evidence
+> hashes, line anchors, the K-A4 chip date, and the R1-T5 policy count were
+> refreshed against HEAD; ESTNeT-track notes were added to R1-F3 / V-MO1 /
+> irreducible-1 and the gap register. The ESTNeT evidence exists **only on branch
+> `estnet-trace-pipeline` (@`43ca0e1`), not on `main` (`06eabb8`)** — every row
+> citing it says so explicitly.
 
 > Building/maintaining the `.pptx` deck and seeing red spell-check squiggles?
 > See [`pptx-spell-check-squiggles.md`](pptx-spell-check-squiggles.md)
@@ -83,8 +90,8 @@ are added here for the 2026-06-13 merge artifacts.
 | [1] | `requirements-consolidated.md` | Canonical 34-row list, bucket counts, IDs, tier policy. | Runtime proof, packet/RF measurement, acceptance. **Note: the spine's Bucket B rows + standards §-sections were synced to the merged state on 2026-06-14 (both repo + `/home/u24/papers/itri/` copies); `docs/data-source-index.md` [2] remains the governing contract.** |
 | [2] | `docs/data-source-index.md` | Data-source classes, presentation source map, gap repair plan, "models stay models". | Original evidence store, acceptance certificate. **Current authority over [1] on antenna wiring + standards sections.** |
 | [3] | `deliverable/selected-pair-source-evidence/README.md` | Retained selected-pair package, route, generated time, file hashes, package claim boundary. | Packet/RF/operator validation, final written acceptance. |
-| [4] | `…/runtime-projection-evidence-cht-yangmingshan-sansa-hartebeesthoek-20260615T000000Z-360m.html` | Readable report: requirements, sources, models, handover, visibility, audit & evidence, raw data. Regenerated 2026-06-22 from the pinned local-snapshot default (882 actors) on the WS-F propagated-geometry link budget (sha `6e6546e3…`). | Original evidence store, rerun proof, packet/RF measurement, formal acceptance. |
-| [5] | `…/runtime-projection-cht-yangmingshan-sansa-hartebeesthoek-20260615T000000Z-360m.csv` | Row-level export: fields, source tier, station precision, model outputs, gaps, non-claims. Regenerated 2026-06-22 from the pinned local-snapshot default after the WS-F propagated-geometry link budget (sha `17fff9d9…`). | Narrative beyond payload, packet logs, acceptance. |
+| [4] | `…/runtime-projection-evidence-cht-yangmingshan-sansa-hartebeesthoek-20260615T000000Z-360m.html` | Readable report: requirements, sources, models, handover, visibility, audit & evidence, raw data. Regenerated 2026-06-22 from the pinned local-snapshot default (882 actors) on the WS-F propagated-geometry link budget (942241 B, sha `01763cf3…` per `evidence-manifest.json` 2026-06-22T07:47Z; the previously quoted `6e6546e3…` was an earlier same-day generation). | Original evidence store, rerun proof, packet/RF measurement, formal acceptance. |
+| [5] | `…/runtime-projection-cht-yangmingshan-sansa-hartebeesthoek-20260615T000000Z-360m.csv` | Row-level export: fields, source tier, station precision, model outputs, gaps, non-claims. Regenerated 2026-06-22 from the pinned local-snapshot default after the WS-F propagated-geometry link budget (61992 B, sha `17fff9d9…`, matches disk + `evidence-manifest.json`). | Narrative beyond payload, packet logs, acceptance. |
 | [6] | `…/external-source-reconciliation.md` | Public-source reconciliation for CHT/SANSA values, conflicts, verdicts, repair paths, non-observable gaps. | Exact CHT facility coordinate, active route, native RF handover, packet measurement, acceptance. |
 | [7] | `deliverable/3gpp-itu-references/README.md` + PDFs | Retained 3GPP/ITU-R PDF map, section citations, checksums. | Operator-validated data, measured quality, local weather, hardware, packet/RF results. **Note: the README's "38811 §6.7 propagation delay" descriptor was corrected 2026-06-14 to §6.6.2 (slant range) + clause 5.3.1.1 (one-way delay) — see K-A2.** |
 | [8] | `public/fixtures/ground-stations/multi-orbit-public-registry-sources.md` | Public station capability notes, source URLs, coordinate/elevation/band notes, non-claims. | Commercial pair routing, active serving satellite, private facility geometry, RF hardware completeness. |
@@ -231,10 +238,17 @@ telemetry.
 - **Data source:** Model-calculated available time · **geometric-derived /
   standards-derived** · [1] [2] [4] [5].
 - **Boundary:** This is **model-calculated** availability, **not** successful
-  connection time, ping/iperf uptime, or operator availability. The iperf/ping
-  measurement sub-item is a source gap (see irreducible-1).
+  connection time, ping/iperf uptime, or operator availability. The
+  satellite-path iperf/ping measurement sub-item is a source gap (see
+  irreducible-1).
 - **Status note:** Complete at the model/visibility level; the measured-connection
-  portion of the original wording is a gap.
+  portion of the original wording is a gap. **Branch note (2026-07-02):** on
+  `estnet-trace-pipeline` (not on `main`), machine-local WSL2 loopback ping +
+  iperf3 captures are ingested as fixtures
+  (`public/fixtures/estnet/loopback-*.json`, raw artifacts + sha256 under
+  `scripts/estnet/captures/`) and render in the opt-in packet-trace panel — the
+  ingest/display chain exists, but the captures are **local rehearsal** (no
+  satellite path), so the measured-satellite-connection gap stands unchanged.
 
 ### R1-F4 / K-E4 / K-F4 — Handover strategy switching by latency/jitter/speed
 *(Bucket A · complete)*
@@ -252,8 +266,11 @@ telemetry.
 - **Satisfied by:** V4 side-panel CSV export (RFC-4180) via
   `runtime-projection-csv.ts`; standalone HTML report via
   `runtime-projection-evidence-report.ts`; both retained with SHA-256 in [3].
-- **Data source:** Report HTML (1670097 B, sha `9061837b…`) + CSV (104747 B, sha
-  `e07359f8…`) · **display transform / external evidence** · [1] [3] [4] [5].
+- **Data source:** Report HTML (942241 B, sha `01763cf3…`) + CSV (61992 B, sha
+  `17fff9d9…`), per `evidence-manifest.json` regeneration 2026-06-22 (the older
+  1670097 B / `9061837b…` + 104747 B / `e07359f8…` were the superseded 2026-06-15
+  network-snapshot generation) · **display transform / external evidence** ·
+  [1] [3] [4] [5].
 - **Boundary:** HTML/CSV are evidence surfaces, **not** a final acceptance
   certificate.
 
@@ -266,9 +283,11 @@ telemetry.
   snapshot timestamp via `resolveTleDate` in
   `src/features/multi-station-selector/chrome-telemetry.ts`), with a dated filename
   only as fallback.
-- **Data source:** Chip shows `2026-05-31`; live CelesTrak cross-check confirms
-  NORAD 44057 = ONEWEB-0012 in the shipped fixture · **public source** · [1] [4]
-  [5] [13].
+- **Data source:** Chip shows `2026-06-15` under the pinned local-snapshot
+  default (newest `sourceTimestampUtc` = 2026-06-15T00:00:00Z in the retained
+  CSV's TLE-source table; the previously recorded `2026-05-31` was the
+  network-snapshot-era value). Live CelesTrak cross-check confirmed NORAD 44057 =
+  ONEWEB-0012 in the shipped fixture · **public source** · [1] [4] [5] [13].
 - **Boundary:** The browser reads bundled files; it does not prove a live catalog
   connection. No operator-validation claim. (This row was the prior lone G1
   failure; fixed by Task 1 of the merge.)
@@ -347,7 +366,13 @@ telemetry.
   geometry. For the CHT×SANSA demo pair, LEO mutual-visibility is zero
   (`leoCommunicatingMs=0`), so the delivered migration is **GEO⇄MEO** only; the
   full LEO→MEO→GEO chain would need a pair with LEO co-visibility. Demo policy =
-  `demo-balanced-v1`.
+  `demo-balanced-v1`. **Branch note (2026-07-02):** `estnet-trace-pipeline` (not
+  on `main`) ships that pair — a **simulated** full chain for cht-yangmingshan ×
+  cht-fangshan (self-run ESTNeT 25-phase scenario, 1976 samples, 12 cross-orbit
+  migrations, LEO≈247 / MEO≈395 / GEO≈480 ms staircase,
+  `public/fixtures/estnet/cht-domestic-handover-packet-trace.json`, opt-in route
+  `…&estnet=1`). Still simulation over TLE geometry — **not** native RF handover
+  or an operator event log.
 
 ---
 
@@ -386,7 +411,9 @@ its current (post-merge) honest form.
 - **Asks:** Antenna peak gain, beamwidth, and radiation pattern.
 - **Satisfied by:** `src/runtime/link-budget/antenna-pattern.ts`
   (`computeSatelliteAntennaGainDb` + `computeEarthStationAntennaGainDb`) is now
-  **wired into** `runtime-projection.ts` (call sites at lines 610 and 616) via the
+  **wired into** `runtime-projection.ts` (assumed-gain computation ~677-693,
+  applied in the link budget at ~767; anchors re-verified 2026-07-02 after the
+  runtime-tle-sources split shifted line numbers) via the
   disclosed assumption set `runtime-antenna-assumptions.ts`
   (`assumed-tier-b-antenna-params-selected-pair-v1`). Antenna gain feeds
   `combinedAntennaGainDb`, `antennaOffAxisLossDb`, RSRP proxy, and throughput.
@@ -442,12 +469,19 @@ its current (post-merge) honest form.
 ### irreducible-1 — Real packet trace (latency / jitter time series)
 *(Bucket B · source gap)*
 - **Asks:** A real ESTNeT packet trace with latency/jitter time series.
-- **Satisfied by:** Only a synthetic/model baseline from the TR 38.811 generic
-  model; truth-boundary tag `"ESTNeT trace pending"`.
-- **Data source:** Model baseline · **standards-derived (substitute)** · [1] [2]
-  [4] [5] [6].
-- **Boundary:** No retained ping/iperf or equivalent packet-test time series. Do
-  not claim measured latency/jitter.
+- **Satisfied by:** On `main`: only a synthetic/model baseline from the TR 38.811
+  generic model; truth-boundary tag `"ESTNeT trace pending"`. **Branch note
+  (2026-07-02):** `estnet-trace-pipeline` (not on `main`) adds a self-run ESTNeT
+  (OMNeT++/INET) packet-trace pipeline — trace fixtures under
+  `public/fixtures/estnet/` (GEO/MEO handover, domestic full chain, loopback
+  rehearsal), gates `verify:estnet` / `verify:estnet:panel`, ADR 0015.
+- **Data source:** Model baseline (main); self-run simulation traces + local
+  rehearsal captures (branch) · **standards-derived (substitute) /
+  simulation-derived (branch)** · [1] [2] [4] [5] [6].
+- **Boundary:** The branch traces are **self-run simulation / machine-local
+  rehearsal** — provenance stays at its real tier; they do not become customer
+  ESTNeT output or measured satellite latency/jitter. The customer/operator
+  ESTNeT trace remains pending; the truth-boundary tag stands.
 
 ### irreducible-2 — External acceptance scenario script + pass/fail thresholds
 *(Bucket B · source gap)*
@@ -560,7 +594,7 @@ attempted — correctly.
 
 | Gap | Blocks (requirement IDs) | What would close it |
 |---|---|---|
-| Packet latency, jitter, throughput, loss | R1-F3 / K-E3; K-A2; irreducible-1 | Retained ping/iperf logs: endpoints, directions, timestamps, raw output, parsed metrics, reviewer verdict. |
+| Packet latency, jitter, throughput, loss | R1-F3 / K-E3; K-A2; irreducible-1 | Retained **satellite-path** ping/iperf logs: endpoints, directions, timestamps, raw output, parsed metrics, reviewer verdict. (Branch `estnet-trace-pipeline` retains machine-local loopback ping/iperf3 rehearsal captures + self-run ESTNeT simulation traces — neither closes this gap.) |
 | Native RF handover / active serving route | R1-F4 / K-E4 / K-F4; V-MO1 | Operator/RF event logs, terminal logs, lab RF trace, or active-route telemetry. |
 | Operator station RF hardware | R1-T6 / K-D5; K-A3-a; K-F2 | Row-level retained EIRP, gain, beamwidth, polarization, frequency band, antenna model. (Gap `operator-rf-hardware-truth`.) |
 | Surveyed RF horizon / full-registry DEM | Station precision; K-F2 context | Surveyed horizon data, or extend the reviewed DEM sampling algorithm beyond the selected pair (currently CHT + SANSA only). |
@@ -593,8 +627,9 @@ spine `requirements-consolidated.md`, after reconciling with merge `1496a03` and
    operator-stated **1553 m** (Copernicus 1533 m comparison-only).
 4. **K-A4 (TLE chip).** Inventory says complete but does not record the mechanism.
    **Corrected:** chip date now derives from retained TLE timestamp metadata
-   (`resolveTleDate`), shows `2026-05-31`, and is the fix for the prior lone G1
-   failure.
+   (`resolveTleDate`), showed `2026-05-31` under the then-default network
+   snapshot, and is the fix for the prior lone G1 failure. **(Superseded value:
+   under the pinned default it shows `2026-06-15` — see item 12.)**
 5. **R1-F1 satellite count.** Spine previously said "~11015 Starlink+OneWeb."
    **Corrected (2026-06-14 TLE refresh):** 651 OneWeb LEO + 33 Galileo MEO + 574
    GEO group = **1258** loaded (CelesTrak 2026-06-13 snapshot); 11015 is the
@@ -642,9 +677,21 @@ spine `requirements-consolidated.md`, after reconciling with merge `1496a03` and
     refresh source (`?tleSource=network`), so the demo is no longer
     wall-clock-date-dependent (commit `cfc6471`; ADR 0014 #6). The evidence package
     [4]/[5] was regenerated from this pinned default (HTML sha `6e6546e3…`, CSV sha
-    `17fff9d9…`): selected-pair visibility windows **17**, handover events **6** (5
+    `17fff9d9…`; the final same-day HTML generation is `01763cf3…` — see item 12):
+    selected-pair visibility windows **17**, handover events **6** (5
     transitions, 1 acquisition), comm time 360 min, representative MEO GSAT0102 /
     GEO APSTAR-7 link budgets. Supersedes items 5 and 9.
+12. **Claim-vs-truth dual-review fold (2026-07-02).** codex + agy independently
+    audited every row of the spine + this walkthrough against HEAD
+    (`estnet-trace-pipeline` @ `43ca0e1`). Folded: [4]/R1-F5 evidence hashes →
+    current manifest values (HTML 942241 B `01763cf3…`, CSV 61992 B `17fff9d9…`);
+    K-A4 chip date `2026-05-31` → `2026-06-15` (pinned-default value); K-A3-a
+    antenna anchors 610/616 → ~677-693/767 (post-split drift); spine R1-T5
+    "三政策" → 四政策; spine R1-F2 anchor :60-62 → :29-31; spine R1-F1 →
+    pinned 882 (600/33/249); ESTNeT branch notes added to R1-F3 / V-MO1 /
+    irreducible-1 + the gap register (branch-only, provenance tier kept). The
+    "39 Standards-derived + 12 geometric-derived, 0 operator" label scan was
+    re-run against the current HTML and reproduces exactly.
 
 ---
 
@@ -692,3 +739,14 @@ state, and the standards §-citations.
 - Everything else cited above (route, hashes, soak summary, CWA sample fields, DEM
   tile/cell/datum, antenna call sites, presets, report label scan) was read
   directly from the named artifact or code file during this pass.
+
+**2026-07-02 re-verification addendum (claim-vs-truth dual review):** the items
+above dated 2026-06-22 had partially drifted (evidence hashes, antenna anchors,
+K-A4 chip date) and were refreshed in place — see correction item 12. Re-verified
+directly this pass: soak summary (passed=true, 86400000 ms, 1289 samples), pinned
+TLE record counts (600/33/249), per-orbit caps (200/100/60,
+`runtime-projection.ts:68-70`), preset constants (`:29-31`), label scan (39/12/0
+exact), current evidence hashes vs `evidence-manifest.json` (match). Not re-run
+here: G1 (needs dev server; retained record), browser chip rendering (verified
+statically via `resolveTleDate` + CSV `sourceTimestampUtc`; pending a live CDP
+confirmation).

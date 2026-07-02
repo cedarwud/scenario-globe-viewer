@@ -2,8 +2,9 @@ requirements-consolidated.md
 
 # Requirement 需求清單 — 去重整合版
 
-**狀態日期**: 2026-05-17
+**狀態日期**: 2026-05-17 (初版)；列級完成度同步至 **2026-07-02**，見變更歷史
 **Authority**: 本文件為 `r1.docx` + `kickoff.pptx` 去重整合後的 canonical 需求清單，加上 user 口頭追加項目，為日後所有 agent / 工程人員的 single source of truth。
+**Branch 註 (2026-07-02)**: ESTNeT-trace 軌 (R1-F3 攝取鏈、V-MO1 模擬全鏈、irreducible-1 自跑 pipeline) 之證據僅存在於 `estnet-trace-pipeline` branch (@`43ca0e1`)，**尚未併入 main 交付面** (`06eabb8`)；引用該軌時必須註明 branch。
 
 ## 適用範圍
 
@@ -31,11 +32,11 @@ requirements-consolidated.md
 | R1-T2 / K-D1 | r1 + slide 5 | 衛星模型軌道資料整合 | done |
 | R1-T3 / K-D2 | r1 + slide 5 | 視覺化呈現 (Blender 工具或等效) | done (Cesium 為等效方案) |
 | R1-T4 / K-D3 | r1 + slide 5 | UI 互動介面 | done |
-| R1-T5 / K-D4 | r1 + slide 5 | 通訊換手規則模擬等參數設計 | done — `handover-policy.ts` 三政策 + 可調參數 (2026-05-17) |
+| R1-T5 / K-D4 | r1 + slide 5 | 通訊換手規則模擬等參數設計 | done — `handover-policy.ts` 四政策 + 可調參數 (2026-05-17 初版三政策;`demo-balanced-v1` 後加,2026-07-02 本列同步至四) |
 | R1-T6 / K-D5 | r1 + slide 5 | 通訊速率可視化設計 | done — `link-budget/` 五模組接線進 runtime-projection (2026-05-17) |
-| R1-F1 / K-E1 | r1 + slide 5 | 支援 ≥ 500 LEO 模擬 (Starlink、OneWeb) | done — ≥500 LEO 達標：實際載入 600 OneWeb LEO + 33 MEO (GNSS) + 30 GEO，來源 CelesTrak 2026-05 快照 (GROUP=oneweb/gnss/geo)。Starlink 600 筆 fixture 存於 `public/fixtures/satellites/leo-scale/` 但非預設載入 (runtime LEO=OneWeb)。註：先前「~11015 sats」為 CelesTrak 上游母體數，非本地實際載入數 (663)，2026-06-13 更正。 |
-| R1-F2 / K-E2 | r1 + slide 5 | 模擬速度可調 (real time vs 預錄 TLE 情境切換) | done — Operator HUD 三 bounded preset (30x / 60x / 120x，`src/runtime/m8a-v4-product-ux-model.ts:60-62`);real-time / prerecorded 視窗切換完成 |
-| R1-F3 / K-E3 | r1 + slide 5 | 即時顯示可通訊時間 (利用 iperf、ping 等功能測試) | SGP4 + elevation 已實作；iperf / ping 集成未做 |
+| R1-F1 / K-E1 | r1 + slide 5 | 支援 ≥ 500 LEO 模擬 (Starlink、OneWeb) | done — ≥500 LEO 達標：預設載入 pinned 2026-06-15 本地快照 **600 OneWeb LEO + 33 Galileo MEO + 249 commercial GEO = 882 actors** (`src/features/multi-station-selector/demo-scenario-config.json`；track-B `cfc6471` 後為 delivery 預設)。CelesTrak 網路快照 (651/33/574 = 1258) 僅 `?tleSource=network` opt-in 載入。Starlink 600 筆 fixture 存於 `public/fixtures/satellites/leo-scale/` 但非預設載入 (runtime LEO=OneWeb)。註：先前「~11015 sats」為 CelesTrak 上游母體數;「663」「1258」為網路快照時代載入數,2026-06-22 起預設 = pinned 882 (2026-07-02 本列同步)。 |
+| R1-F2 / K-E2 | r1 + slide 5 | 模擬速度可調 (real time vs 預錄 TLE 情境切換) | done — Operator HUD 三 bounded preset (30x / 60x / 120x，`src/runtime/m8a-v4-product-ux-model.ts:29-31`);real-time / prerecorded 視窗切換完成 |
+| R1-F3 / K-E3 | r1 + slide 5 | 即時顯示可通訊時間 (利用 iperf、ping 等功能測試) | SGP4 + elevation 模型可通訊時間已實作 (main)。iperf/ping 攝取+顯示鏈已於 `estnet-trace-pipeline` branch 落地 (2026-07-02,未併 main)：本機 WSL2 loopback ping/iperf3 實測 trace 攝取為 fixture (`public/fixtures/estnet/loopback-*.json`,原始檔+sha256 於 `scripts/estnet/captures/`)、opt-in 封包 trace 面板可檢視 — 屬 **local rehearsal (machine-local,無衛星路徑)**,claim 不升級;衛星路徑/operator 實測仍為 gap (見 irreducible-1) |
 | R1-F4 / K-E4 / K-F4 | r1 + slide 5/6 | 換手策略切換 (依 latency / jitter / network speed 在高/中/低軌間切換) | done — link-budget metric 餵入 handover 引擎 (2026-05-17) |
 | R1-F5 / K-E5 | r1 + slide 5 | 統計報表匯出 | done — V4 side panel CSV 匯出 (RFC-4180，2026-05-17) |
 | K-A4 | slide 2 | 輸入 TLE 資料並追蹤衛星行進 | done |
@@ -52,7 +53,7 @@ A.1 合計：**18 條** (文件來源)。
 
 | ID | 來源 | 需求 | 完成度 | 與文件需求的關係 |
 |---|---|---|---|---|
-| V-MO1 | user 口頭追加，後續展開資料在 `multi-orbit/` | 跨軌道 handover demo 必須是真實 LIVE handover (單一服務連續從 LEO → MEO → GEO 切換)，不是 orbit-type scenario picker | done (模型政策層) — `handover-policy.ts` 四政策已實作;demo route 實採 `demo-balanced-v1` 政策 (`SELECTED_PAIR_DEMO_HANDOVER_POLICY_ID`)，`cross-orbit-live` 為非-demo 泛用 default (`DEFAULT_RUNTIME_HANDOVER_POLICY_ID`)。Demo 換手 = 6 事件 (5 次 GEO⇄MEO 跨軌遷移 + 1 次初始 GEO 取得);**此 pair 之 LEO 互視窗為 0 (`leoCommunicatingMs=0`)，實際呈現 GEO⇄MEO，非完整 LEO→MEO→GEO 全鏈** (全鏈需另選具 LEO 互視幾何的 pair)。模型政策 over TLE 幾何，非 native RF handover;V4 side panel handover events 由此政策產生 | 細化 K-A1 「可於低/中/高軌切換」；K-A1 未明示是 live handover，V-MO1 為 user 補強的解釋 |
+| V-MO1 | user 口頭追加，後續展開資料在 `multi-orbit/` | 跨軌道 handover demo 必須是真實 LIVE handover (單一服務連續從 LEO → MEO → GEO 切換)，不是 orbit-type scenario picker | done (模型政策層) — `handover-policy.ts` 四政策已實作;demo route 實採 `demo-balanced-v1` 政策 (`SELECTED_PAIR_DEMO_HANDOVER_POLICY_ID`)，`cross-orbit-live` 為非-demo 泛用 default (`DEFAULT_RUNTIME_HANDOVER_POLICY_ID`)。Demo 換手 = 6 事件 (5 次 GEO⇄MEO 跨軌遷移 + 1 次初始 GEO 取得);**此 pair 之 LEO 互視窗為 0 (`leoCommunicatingMs=0`)，實際呈現 GEO⇄MEO，非完整 LEO→MEO→GEO 全鏈**。全鏈補充：`estnet-trace-pipeline` branch (2026-07-02,未併 main) 已以具 LEO 互視幾何之 pair cht-yangmingshan × cht-fangshan 交付**模擬全鏈** — 自跑 ESTNeT 25-phase scenario,1976 samples、12 次跨軌遷移、LEO≈247 / MEO≈395 / GEO≈480 ms 延遲階梯 (`public/fixtures/estnet/cht-domestic-handover-packet-trace.json`,demo route `/?stationA=cht-yangmingshan&stationB=cht-fangshan&…&estnet=1`),仍為 simulation over TLE 幾何,非 native RF。模型政策 over TLE 幾何，非 native RF handover;V4 side panel handover events 由此政策產生 | 細化 K-A1 「可於低/中/高軌切換」；K-A1 未明示是 live handover，V-MO1 為 user 補強的解釋 |
 
 A.2 合計：**1 條** (口頭追加)。
 
@@ -66,7 +67,7 @@ A.2 合計：**1 條** (口頭追加)。
 | K-A3-a | slide 2 | 天線參數 (peak gain、beamwidth、pattern) | ITU-R S.1528-0 Annex 1 (LEO/non-GSO) + S.465-6 (Earth station) self-implement — Tier B 替代**已實作且 2026-06-13 接線進 runtime-projection** `src/runtime/link-budget/antenna-pattern.ts` (exports `computeSatelliteAntennaGainDb` + `computeEarthStationAntennaGainDb`),經 `runtime-antenna-assumptions.ts` 之 `assumed-tier-b-antenna-params-selected-pair-v1` 假設參數驅動 selected-pair RSRP/throughput (RSRP 為 `receivedPowerProxyDbm` 相對 proxy,EIRP 未知);bootstrap-physical-input-seeds 仍用既有 `itu-r-f699-antenna-pattern.ts`。operator RF 硬體 (dish/EIRP/polarization/beam) 仍為 gap;待 Requirement operator data swap → Tier A |
 | K-A3-b | slide 2 | 雨天衰減模型 | ITU-R P.618-14 §2.2.1.1 path method (γR=k·R^α + r0.01 + ν0.01) + P.676-13 Annex 2 self-implement — Tier B 替代**已實作** (`rain-attenuation.ts` 全 P.618 path method + `gas-absorption.ts`，2026-05-17;由 instantaneous rain-rate 驅動,非 R0.01;本地雨樣本見 irreducible-3);待 Requirement operator data swap → Tier A |
 | K-F2 | slide 6 | 整合 V 組模擬程式 (天線 + 雨衰 + ITU 規範) | 自寫 ITU calculator wrapping P.618 / P.676 / S.1528 / S.465 — Tier B 替代**已實作** (`src/runtime/link-budget/` 五模組,2026-05-17 FSPL + 雨衰 + 氣衰 + handover-policy 接線進 runtime-projection;antenna-pattern 於 2026-06-13 接線,見 K-A3-a);待 Requirement V 組程式 swap → Tier A |
-| (irreducible-1) | — | Requirement ESTNeT packet trace (真實 latency / jitter time series) | synthetic baseline from TR 38.811 §6.6.2 + clause 5.3.1.1 generic latency model；truth-boundary tag `"Requirement ESTNeT trace pending"` |
+| (irreducible-1) | — | Requirement ESTNeT packet trace (真實 latency / jitter time series) | main：TR 38.811 §6.6.2 + clause 5.3.1.1 generic latency model baseline。另 `estnet-trace-pipeline` branch (2026-07-02,未併 main)：自跑 ESTNeT (OMNeT++/INET) packet-trace pipeline 已落地 — trace fixtures (`public/fixtures/estnet/`,GEO/MEO handover + 內鏈全鏈 + loopback rehearsal)、gates `verify:estnet` / `verify:estnet:panel`、ADR 0015;均為 **self-run simulation / local rehearsal,保持原 provenance tier,不冒充 operator data**。客戶/operator ESTNeT trace 仍 pending;truth-boundary tag `"Requirement ESTNeT trace pending"` 不變 |
 | (irreducible-2) | — | Requirement 驗收測試 scenario 腳本 (哪個 case 該 pass、閾值多少) | 5 組代表性 selected-pair route baseline 保留於 `src/features/multi-station-selector/v4-projection-wave1-baselines.ts`；可支援 demo case 說明，但不是外部 acceptance threshold script。閾值與 pass/fail 腳本仍待 Requirement acceptance script swap；簡報引用邊界見 `docs/data-source-index.md` |
 | (irreducible-3) | — | 台灣本地降雨統計校正常數 (Pingtung / Hsinchu R0.01 實測) | ITU-R P.837 global default;2026-06-13 已留公開 CWA 站點樣本 (46691 Anpu / 46693 Yangmingshan 24hr 觀測 → peak 10-min 0.5mm ×6 → 5 mm/h demo preset,`deliverable/selected-pair-source-evidence/local-rain-calibration-2026-06-13.json`),**仍非** measured-for-link / SANSA / scenario-window / R0.01 校正;truth-boundary tag `"public CWA sample retained; R0.01 local calibration pending"` |
 
@@ -124,7 +125,11 @@ C 合計：**8 條** (其中 R1-D5 + K-F8 為本專案文書層交付，其他 6
 - **2026-06-13 (data-source audit + public-gap closure,merge `1496a03`)**：link-budget §引用校正 (latency §6.7→§6.6.2+clause 5.3.1.1、rain §2.2.1→§2.2.1.1、handover §7.3→§7.3.2.2);rain 升級為全 P.618-14 path method;天線 S.1528/S.465 接線進 runtime-projection (assumed Tier-B 參數,K-A3-a/K-F2,RSRP 為相對 proxy);DEM CHT 489 m + terrain mask CHT 21°/SANSA 1° (selected-pair);本地雨 CWA 公開樣本 → 5 mm/h preset (irreducible-3);R1-F1 衛星數 663 (先前已更正)。詳見 `docs/data-source-index.md` + `docs/requirement-presentation-walkthrough.md`。
 - **2026-06-22 (handover 政策名稱更正 + LEO 邊界澄清)**：更正先前各列「demo route 預設且僅使用 `cross-orbit-live`」之陳述 (2026-05-17 當時為真,後已改)。實況：demo route 採 `demo-balanced-v1` 政策 (`SELECTED_PAIR_DEMO_HANDOVER_POLICY_ID`,dwell-rotation showcase);`cross-orbit-live` 降為非-demo 泛用 default (`DEFAULT_RUNTIME_HANDOVER_POLICY_ID`)。動態程式碼面 (`runtime-projection.ts` truthBoundary、V4 side-panel disclosure、CSV) 早已渲染真實 policy id,僅靜態 audit 引用字串與本散文落後,本次一併更正。另澄清:V-MO1 需求文字為 LEO→MEO→GEO 全鏈,但 **demo pair CHT×SANSA 之 LEO 互視窗為 0,實際交付 GEO⇄MEO 跨軌遷移** (5 次 + 1 次初始 GEO 取得);全 LEO→MEO→GEO 鏈需另具 LEO 互視幾何的 pair。全程為模型政策 over TLE 幾何,非 native RF handover。
 
+- **2026-07-02 (claim-vs-truth 雙審同步,repo copy)**：codex+agy 雙審 34 列宣稱對 repo 真值後折入 — (1) R1-F1 載入數更正為 pinned 2026-06-15 快照 600/33/249=882 (先前「33 MEO (GNSS)+30 GEO,2026-05 快照」為 track-B `cfc6471` 前狀態);(2) R1-F3 註記 estnet branch 之 loopback ping/iperf3 攝取+面板鏈 (local rehearsal,claim 不升級);(3) V-MO1 註記 estnet branch 之 cht-yangmingshan×cht-fangshan 模擬全鏈;(4) irreducible-1 註記自跑 ESTNeT pipeline (self-run,truth-boundary tag 不變);(5) R1-T5 三政策→四政策;(6) R1-F2 錨點 :60-62→:29-31;(7) 相關文件節標註 canonical-only 路徑與 INDEPENDENT-AUDIT 移除事實。ESTNeT 軌各項均僅存 `estnet-trace-pipeline` branch,未併 main。
+
 ## 相關文件
+
+> 路徑註 (2026-07-02)：以下前 8 條為 canonical 目錄 (`/home/u24/papers/itri/`) 之相對路徑,**不存在於本 repo**;本 repo copy 保留清單僅為對照 canonical。repo 內實際存在的只有 `docs/data-source-index.md` 與 `deliverable/3gpp-itu-references/README.md`。
 
 - [r1.docx](r1.docx) — 原始採購規格 (不再直接引用)
 - [kickoff.pptx](kickoff.pptx) — 原始 kickoff 簡報 (不再直接引用)
@@ -134,7 +139,7 @@ C 合計：**8 條** (其中 R1-D5 + K-F8 為本專案文書層交付，其他 6
 - [mineru-pilot-2026-05-13/raw/kickoff/office/kickoff.md](mineru-pilot-2026-05-13/raw/kickoff/office/kickoff.md) — MinerU 文字抽取 (較完整)
 - [multi-orbit/README.md](multi-orbit/README.md) — V-MO1 (口頭追加) 的後續展開 / 研究 baseline
 - [requirement-acceptance-report-2026-04-20/](requirement-acceptance-report-2026-04-20/) — 驗收狀態追蹤
-- [README.md](README.md) — 原始需求 narrative authority (本文件為其去重表格化子集)
+- [README.md](README.md) — 原始需求 narrative authority (canonical 目錄之 README,非本 repo README;本文件為其去重表格化子集)
 - [docs/data-source-index.md](docs/data-source-index.md) — 簡報/審查用 data source map，列出每類數據可支持與不可支持的 claim
-- `scenario-globe-viewer/INDEPENDENT-AUDIT-requirements.md` — 62-req 審計 inventory (含 multi-orbit / 補資料，含本表格未列的 governance / D / V 類擴展)
+- `scenario-globe-viewer/INDEPENDENT-AUDIT-requirements.md` — 62-req 審計 inventory (含 multi-orbit / 補資料，含本表格未列的 governance / D / V 類擴展)。**已於 commit `92cf8f6` 自 repo 移除,僅存 git history** (`git show 92cf8f6^:INDEPENDENT-AUDIT-requirements.md`);審計現況見 `.agent-memory/project_itri_audit_state.md`
 - [deliverable/3gpp-itu-references/README.md](deliverable/3gpp-itu-references/README.md) — Tier B 公開標準 PDF、精確 section 引用與 retained PDF checksum
