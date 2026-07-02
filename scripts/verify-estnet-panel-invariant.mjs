@@ -8,6 +8,21 @@
 //     ABSENT from the side panel, the toolbar toggle reads off, and the page
 //     loads with ZERO console errors and ZERO uncaught exceptions / unhandled
 //     promise rejections.
+//   - Toggling ON only ADDS the one disclosure section — every default panel
+//     row survives unchanged (structural signature comparison, no pixels).
+//   - Every manifest trace is selectable without an error block; each trace's
+//     y-axis semantic is asserted via the chart's `data-y-axis` attribute
+//     (never by crawling SVG internals), and its `assumptionSet` + `nonClaims`
+//     render VERBATIM from the fixture JSON (badges are label-mapped, so they
+//     are presence-checked only).
+//   - Route↔trace pair binding: the section pre-selects the route's own trace
+//     (manifest pair hints); a same-pair trace shows the viewer-model overlay,
+//     a cross-pair trace hides it AND renders the exact one-line disclosure.
+//   - Toggling OFF removes the section's DOM entirely (querySelector null —
+//     removal, not display:none) with zero leftover estnet nodes, and the
+//     panel's structural signature returns to the default exactly.
+//   - A `?estnet=1` deep link seeds the persisted mode once (storage cleared
+//     first — a stored "off" would win over the URL by design).
 //
 // A FRESH Chrome profile is mandatory, not an optimization: the display mode
 // persists in localStorage (`estnet-display-mode`) and a `?estnet=1` deep link
@@ -183,6 +198,111 @@ function readDefaultState() {
   })()`);
 }
 
+// Structural signature of the side panel's top-level rows (tag + full class
+// list). "Opt-in only ADDS" and "off restores the default" are asserted as:
+// signature-with-section minus the estnet row === default signature, exactly.
+const PANEL_SIGNATURE_EXPR = `(() => {
+  const panel = document.querySelector('[data-v4-projection-side-panel="true"]');
+  return panel ? Array.from(panel.children, (el) => el.tagName + ":" + el.className) : null;
+})()`;
+
+// One read of everything the estnet section assertions need.
+function readEstnetState() {
+  return evald(`(() => {
+    const sections = document.querySelectorAll('[data-disclosure="estnet-packet-trace"]');
+    const mount = sections[0]?.querySelector(".v4-estnet-trace__mount") ?? null;
+    const note = mount?.querySelector('[data-pair-mismatch="true"]') ?? null;
+    return {
+      sectionCount: sections.length,
+      loading: mount ? mount.dataset.loading === "true" : null,
+      variant: mount?.dataset.variant ?? null,
+      errorBlock: Boolean(mount?.querySelector(".v4-estnet-trace__error")),
+      yAxis: mount?.querySelector("svg")?.dataset.yAxis ?? null,
+      pairNote: note ? note.textContent : null,
+      modelDelta: Boolean(mount?.querySelector('[data-model-delta="true"]')),
+      modelLine: Boolean(mount?.querySelector(".v4-estnet-trace__svg-model-line")),
+      assumptions: mount?.querySelector(".v4-estnet-trace__assumptions")?.textContent ?? null,
+      nonClaims: Array.from(
+        mount?.querySelectorAll(".v4-estnet-trace__nonclaims li") ?? [],
+        (li) => li.textContent
+      ),
+      buttons: Array.from(
+        sections[0]?.querySelectorAll(".v4-estnet-trace__toggle-btn") ?? [],
+        (b) => b.dataset.variant
+      ),
+      activeButton:
+        sections[0]?.querySelector(".v4-estnet-trace__toggle-btn--active")?.dataset.variant ?? null,
+      storedMode: (() => {
+        try {
+          return window.localStorage.getItem("estnet-display-mode");
+        } catch {
+          return "ERR";
+        }
+      })()
+    };
+  })()`);
+}
+
+async function waitForCondition(expr, timeoutMs, label) {
+  const start = Date.now();
+  let last = null;
+  while (Date.now() - start < timeoutMs) {
+    last = await evald(expr);
+    if (last === true) return;
+    await delay(100);
+  }
+  throw new Error(`timed out waiting for ${label}; last=${JSON.stringify(last)}`);
+}
+
+// Wait until the estnet section exists AND its mount finished loading a trace.
+function waitEstnetLoaded(timeoutMs = 30000) {
+  return waitForCondition(
+    `(() => {
+      const m = document.querySelector('[data-disclosure="estnet-packet-trace"] .v4-estnet-trace__mount');
+      return Boolean(m && m.dataset.loading !== "true" && m.dataset.variant);
+    })()`,
+    timeoutMs,
+    "estnet section loaded"
+  );
+}
+
+function clickEstnetToggle() {
+  return evald(
+    `(() => { const b = document.querySelector('[data-estnet-trace-toggle="true"]'); if (!b) return false; b.click(); return true; })()`
+  );
+}
+
+// Expected-model helpers, computed from the SAME fixtures the page renders
+// (fetched from the same dev server — single source, no duplicated constants).
+function latencySemanticOf(fixture) {
+  return fixture.latencySemantic === "rtt" || fixture.latencySemantic === "none"
+    ? fixture.latencySemantic
+    : "one-way";
+}
+function expectedYAxis(fixture) {
+  const semantic = latencySemanticOf(fixture);
+  return semantic === "none" ? "mbps" : semantic === "rtt" ? "rtt" : "ms";
+}
+function declaredEndpoints(fixture) {
+  const a = fixture.metadata?.stationA?.id;
+  const b = fixture.metadata?.stationB?.id;
+  return typeof a === "string" && typeof b === "string" ? { a, b } : null;
+}
+function endpointsMatchRoute(endpoints, routeA, routeB) {
+  const ids = new Set([routeA, routeB]);
+  return ids.has(endpoints.a) && ids.has(endpoints.b);
+}
+function expectedPairNote(fixture, routeA, routeB) {
+  const endpoints = declaredEndpoints(fixture);
+  if (!endpoints || endpointsMatchRoute(endpoints, routeA, routeB)) {
+    return null;
+  }
+  return (
+    `trace endpoints ${endpoints.a} / ${endpoints.b} ≠ current route ` +
+    `${routeA} / ${routeB} — viewer-model overlay hidden`
+  );
+}
+
 const failures = [];
 const log = [];
 function check(name, cond, detail) {
@@ -288,7 +408,234 @@ try {
     consoleErrors.slice(0, 5)
   );
   check(
-    "no-uncaught-exception-or-unhandled-rejection",
+    "no-uncaught-exception-or-unhandled-rejection (default load)",
+    pageExceptions.length === 0,
+    pageExceptions.slice(0, 5)
+  );
+
+  // Expected-model inputs: the manifest + every fixture, fetched from the same
+  // server the page renders from, plus the pinned route's pair ids.
+  const serverBase = `http://127.0.0.1:${VITE_PORT}`;
+  const manifest = await (
+    await fetch(`${serverBase}/fixtures/estnet/manifest.json`)
+  ).json();
+  const fixturesByEntryId = new Map();
+  for (const entry of manifest.traces) {
+    fixturesByEntryId.set(
+      entry.id,
+      await (await fetch(serverBase + entry.url)).json()
+    );
+  }
+  const pinnedParams = new URL(defaultUrl).searchParams;
+  const routeA = pinnedParams.get("stationA");
+  const routeB = pinnedParams.get("stationB");
+
+  // 4. toggle ON (no reload): only ADDS the one disclosure section.
+  const sigDefault = await evald(PANEL_SIGNATURE_EXPR);
+  check("default-panel-signature-readable", Array.isArray(sigDefault) && sigDefault.length > 0, sigDefault);
+  check("ON-click-toggle", await clickEstnetToggle(), null);
+  await waitEstnetLoaded();
+  const sigOn = await evald(PANEL_SIGNATURE_EXPR);
+  const estnetRowIndex = sigOn.findIndex((sig) => sig.includes("v4-estnet-trace"));
+  const sigOnWithoutSection = sigOn.filter((_, i) => i !== estnetRowIndex);
+  check(
+    "ON-only-adds-the-section (structural signature: default rows all survive, exactly one estnet row added)",
+    estnetRowIndex >= 0 &&
+      sigOn.length === sigDefault.length + 1 &&
+      JSON.stringify(sigOnWithoutSection) === JSON.stringify(sigDefault),
+    { sigDefault, sigOn }
+  );
+  const sOn = await readEstnetState();
+  check("ON-section-present-once", sOn.sectionCount === 1, sOn.sectionCount);
+  check("ON-storage-on (persisted opt-in)", sOn.storedMode === "on", sOn.storedMode);
+  check(
+    "ON-menu-lists-every-manifest-trace",
+    JSON.stringify(sOn.buttons) === JSON.stringify(manifest.traces.map((t) => t.id)),
+    { got: sOn.buttons, want: manifest.traces.map((t) => t.id) }
+  );
+  // Mirrors selectManifestEntryForRoute exactly: same-pair matches first
+  // (default:true beats manifest order), else the global default entry.
+  const samePairEntries = manifest.traces.filter(
+    (t) =>
+      typeof t.stationA === "string" &&
+      typeof t.stationB === "string" &&
+      endpointsMatchRoute({ a: t.stationA, b: t.stationB }, routeA, routeB)
+  );
+  const expectedPreselect =
+    samePairEntries.length > 0
+      ? (samePairEntries.find((t) => t.default === true) ?? samePairEntries[0])
+      : (manifest.traces.find((t) => t.default === true) ?? manifest.traces[0]);
+  check(
+    "ON-preselects-the-route's-own-trace (pair hints + default tie-break)",
+    sOn.variant === expectedPreselect.id && sOn.activeButton === expectedPreselect.id,
+    { got: sOn.variant, want: expectedPreselect.id }
+  );
+
+  // 5. menu walk: every manifest trace selectable; per-trace axis semantics,
+  // verbatim honesty text, pair note and overlay expectations — all computed
+  // from the fixture JSON itself.
+  for (const entry of manifest.traces) {
+    await evald(
+      `(() => { const b = document.querySelector('.v4-estnet-trace__toggle-btn[data-variant="${entry.id}"]'); if (!b) return false; b.click(); return true; })()`
+    );
+    await waitForCondition(
+      `(() => {
+        const m = document.querySelector('[data-disclosure="estnet-packet-trace"] .v4-estnet-trace__mount');
+        return Boolean(m && m.dataset.loading !== "true" && m.dataset.variant === ${JSON.stringify(entry.id)});
+      })()`,
+      30000,
+      `trace ${entry.id} rendered`
+    );
+    const s = await readEstnetState();
+    const fixture = fixturesByEntryId.get(entry.id);
+    check(
+      `menu[${entry.id}]-selectable-without-error`,
+      s.errorBlock === false && s.variant === entry.id && s.activeButton === entry.id,
+      { errorBlock: s.errorBlock, variant: s.variant }
+    );
+    check(
+      `menu[${entry.id}]-y-axis-semantic (data-y-axis == ${expectedYAxis(fixture)})`,
+      s.yAxis === expectedYAxis(fixture),
+      { got: s.yAxis, want: expectedYAxis(fixture) }
+    );
+    check(
+      `menu[${entry.id}]-assumptionSet-verbatim`,
+      s.assumptions === `Assumptions: ${fixture.assumptionSet}`,
+      { got: s.assumptions }
+    );
+    check(
+      `menu[${entry.id}]-nonClaims-verbatim (every line, in order)`,
+      JSON.stringify(s.nonClaims) === JSON.stringify(fixture.nonClaims ?? []),
+      { got: s.nonClaims, want: fixture.nonClaims }
+    );
+    const wantNote = expectedPairNote(fixture, routeA, routeB);
+    check(
+      `menu[${entry.id}]-pair-disclosure-${wantNote ? "shown-verbatim" : "absent"}`,
+      s.pairNote === wantNote,
+      { got: s.pairNote, want: wantNote }
+    );
+    const endpoints = declaredEndpoints(fixture);
+    const wantOverlay =
+      endpoints !== null &&
+      endpointsMatchRoute(endpoints, routeA, routeB) &&
+      latencySemanticOf(fixture) === "one-way";
+    check(
+      `menu[${entry.id}]-viewer-model-overlay-${wantOverlay ? "present" : "absent"} (same-pair one-way only)`,
+      s.modelDelta === wantOverlay && s.modelLine === wantOverlay,
+      { delta: s.modelDelta, line: s.modelLine, want: wantOverlay }
+    );
+  }
+
+  // 6. toggle OFF: the section's DOM is REMOVED (not display:none), zero
+  // estnet nodes remain, and the panel structure returns to the default.
+  check("OFF-click-toggle", await clickEstnetToggle(), null);
+  await waitForCondition(
+    `document.querySelector('[data-disclosure="estnet-packet-trace"]') === null`,
+    15000,
+    "estnet section removed"
+  );
+  const sOff = await evald(`(() => ({
+    section: Boolean(document.querySelector('[data-disclosure="estnet-packet-trace"]')),
+    leftoverNodes: document.querySelectorAll('[class*="v4-estnet-trace"]').length,
+    storedMode: (() => { try { return window.localStorage.getItem("estnet-display-mode"); } catch { return "ERR"; } })(),
+    toggleEnabled: document.querySelector('[data-estnet-trace-toggle="true"]')?.dataset.estnetEnabled ?? null
+  }))()`);
+  const sigOff = await evald(PANEL_SIGNATURE_EXPR);
+  check("OFF-section-dom-fully-removed (querySelector null — removal, not display:none)", sOff.section === false, sOff);
+  check("OFF-zero-estnet-node-leftovers", sOff.leftoverNodes === 0, sOff.leftoverNodes);
+  check(
+    "OFF-panel-structure-restored-to-default (teardown: signature identical)",
+    JSON.stringify(sigOff) === JSON.stringify(sigDefault),
+    { sigOff, sigDefault }
+  );
+  check("OFF-storage-off", sOff.storedMode === "off", sOff.storedMode);
+  check("OFF-toolbar-toggle-reads-off", sOff.toggleEnabled === "false", sOff.toggleEnabled);
+
+  // 7. ?estnet=1 deep-link seed + cross-route pair binding: navigate a SECOND
+  // route (the pair of the first cross-pair hinted trace) with the URL opt-in.
+  // Stored mode is cleared first — a persisted "off" wins over the URL seed by
+  // design, and this gate must test the seed path, not fight it.
+  const crossEntry = manifest.traces.find(
+    (t) =>
+      typeof t.stationA === "string" &&
+      typeof t.stationB === "string" &&
+      !endpointsMatchRoute({ a: t.stationA, b: t.stationB }, routeA, routeB)
+  );
+  if (crossEntry) {
+    await evald(`(() => { try { window.localStorage.removeItem("estnet-display-mode"); return true; } catch { return false; } })()`);
+    const crossUrl = new URL(defaultUrl);
+    crossUrl.searchParams.set("stationA", crossEntry.stationA);
+    crossUrl.searchParams.set("stationB", crossEntry.stationB);
+    crossUrl.searchParams.set("estnet", "1");
+    await send("Page.navigate", { url: crossUrl.toString() });
+    await waitPanelReady();
+    await waitEstnetLoaded();
+    const sCross = await readEstnetState();
+    check(
+      "seed-url-opt-in-reveals-section (?estnet=1 seeds the mode IN-MEMORY; persistence only on explicit toggle)",
+      sCross.sectionCount === 1 && sCross.storedMode === null,
+      { sections: sCross.sectionCount, stored: sCross.storedMode }
+    );
+    check(
+      `seed-route-preselects-its-own-trace (${crossEntry.id}, not the global default)`,
+      sCross.variant === crossEntry.id,
+      { got: sCross.variant, want: crossEntry.id }
+    );
+    const crossFixture = fixturesByEntryId.get(crossEntry.id);
+    check(
+      "seed-same-pair-trace-shows-overlay-without-disclosure",
+      sCross.pairNote === null &&
+        sCross.modelDelta === (latencySemanticOf(crossFixture) === "one-way"),
+      { note: sCross.pairNote, delta: sCross.modelDelta }
+    );
+    // On THIS route the pinned route's traces are the cross-pair ones: pick
+    // one and expect the exact disclosure line.
+    const nowCrossEntry = manifest.traces.find(
+      (t) =>
+        typeof t.stationA === "string" &&
+        typeof t.stationB === "string" &&
+        !endpointsMatchRoute(
+          { a: t.stationA, b: t.stationB },
+          crossEntry.stationA,
+          crossEntry.stationB
+        )
+    );
+    if (nowCrossEntry) {
+      await evald(
+        `(() => { const b = document.querySelector('.v4-estnet-trace__toggle-btn[data-variant="${nowCrossEntry.id}"]'); if (!b) return false; b.click(); return true; })()`
+      );
+      await waitForCondition(
+        `(() => {
+          const m = document.querySelector('[data-disclosure="estnet-packet-trace"] .v4-estnet-trace__mount');
+          return Boolean(m && m.dataset.loading !== "true" && m.dataset.variant === ${JSON.stringify(nowCrossEntry.id)});
+        })()`,
+        30000,
+        `cross trace ${nowCrossEntry.id} rendered`
+      );
+      const sMismatch = await readEstnetState();
+      const wantLine = expectedPairNote(
+        fixturesByEntryId.get(nowCrossEntry.id),
+        crossEntry.stationA,
+        crossEntry.stationB
+      );
+      check(
+        "seed-cross-pair-trace-discloses-and-hides-overlay (verbatim line)",
+        sMismatch.pairNote === wantLine && sMismatch.modelDelta === false && sMismatch.modelLine === false,
+        { got: sMismatch.pairNote, want: wantLine, delta: sMismatch.modelDelta }
+      );
+    }
+  } else {
+    check("seed-cross-route-step", false, "no cross-pair hinted manifest entry found — cannot exercise the seed/cross-route step");
+  }
+
+  // 8. cumulative cleanliness across the whole interaction sequence.
+  check(
+    "console-clean-cumulative (zero console.error across toggle/menu/seed steps)",
+    consoleErrors.length === 0,
+    consoleErrors.slice(0, 5)
+  );
+  check(
+    "no-uncaught-exception-or-unhandled-rejection (cumulative)",
     pageExceptions.length === 0,
     pageExceptions.slice(0, 5)
   );

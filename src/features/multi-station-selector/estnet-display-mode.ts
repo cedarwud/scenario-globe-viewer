@@ -58,9 +58,10 @@ function resolveInitialMode(): EstnetDisplayMode {
   if (stored) {
     return stored;
   }
-  // The legacy `?estnet=1` deep-link opt-in seeds the persisted mode once, so a
-  // shared URL still reveals the trace and the toolbar button can then turn it
-  // back off.
+  // The legacy `?estnet=1` deep-link opt-in seeds the IN-MEMORY mode for this
+  // load only (nothing is persisted until an explicit toggle writes), so a
+  // shared URL reveals the trace and the toolbar button can then turn it back
+  // off — while a later visit without the param stays default-off.
   return urlOptInPresent() ? "on" : "off";
 }
 
