@@ -56,7 +56,8 @@ never to run the demo. Acceptance opens this repo only.
 | `crosscheck_estnet_vs_sgp4.py` | `npm run estnet:crosscheck` — dual-model consistency: every delivered sample's latency must equal independent-SGP4 range/c + one fitted serialization constant; MEO segments must sit inside independently computed co-visibility (agreement = implementation cross-proof, never a measurement claim) |
 | `testdata/` | ingest format samples for the gate (test-only, see its README) |
 | `captures/` | REAL local loopback ping + iperf3 UDP rehearsal captures (R1-F3 tools) — the ingest inputs behind the two committed `loopback-*` fixtures, with their audit chain (see its README) |
-| `../verify-estnet-trace-contract.mjs` | `npm run verify:estnet` — fixture contract + honesty invariants + ingest regression + provenance-refusal guard |
+| `../verify-estnet-trace-contract.mjs` | `npm run verify:estnet` — fixture contract + honesty invariants + manifest pair-hint truth chain + ingest regression + provenance-refusal guard |
+| `../verify-estnet-panel-invariant.mjs` | `npm run verify:estnet:panel` — CDP browser gate for the opt-in panel section (default-off, add-only, pair binding, verbatim honesty, teardown); standalone, not in `npm test` |
 
 The scenario `include`s three more files (`basic.incl`, `antenna_sat_isotropic.incl`,
 `antenna_gs_yagi.incl`, `mac_simple.incl`) that ship **stock** with the ESTNeT
@@ -244,10 +245,25 @@ The in-panel section is **manifest-driven**: the trace menu comes from
 requirement-side delivery ingested via `external_trace_ingest.py`) becomes
 selectable by committing the fixture plus one manifest line — no code change.
 `verify:estnet` gates the manifest (unique ids, one default, every entry
-contract-valid, no orphan fixtures). The renderer is `latencySemantic`-aware
-(`rtt` axes for ping-class traces, throughput-primary charts for iperf3-class
-`none` traces) and renders each trace's own provenance badges; the
-`operator-measured` tier is refused upstream and never rendered.
+contract-valid, no orphan fixtures). Manifest entries additionally carry
+**pair hints** (`stationA`/`stationB` registry ids, menu-level only — the
+fixture's own `metadata.stationA/B` stays the truth; `verify:estnet` enforces
+hint == fixture metadata == registry id, both-or-neither, distinct). The
+section pre-selects the current route's own trace (tie-breaker:
+`default: true`, then manifest order); selecting a cross-pair trace hides the
+viewer-model overlay (fail-closed) and renders an explicit one-line
+disclosure. The renderer is `latencySemantic`-aware (`rtt` axes for
+ping-class traces, throughput-primary charts for iperf3-class `none` traces;
+the chart svg exposes `data-y-axis` for machine assertions) and renders each
+trace's own provenance badges; the `operator-measured` tier is refused
+upstream and never rendered.
+
+The whole opt-in surface is gate-guarded by `npm run verify:estnet:panel`
+(`scripts/verify-estnet-panel-invariant.mjs`, standalone CDP browser gate,
+not part of `npm test`): default-off absence with a fresh Chrome profile,
+toggle-ON add-only, per-trace axis/honesty-verbatim/pair-binding assertions,
+and toggle-OFF full DOM teardown. Track decisions are recorded in
+`docs/decisions/0015-estnet-packet-trace-panel.md`.
 
 Panel extras on top of the raw trace (all opt-in, disclosure-first):
 

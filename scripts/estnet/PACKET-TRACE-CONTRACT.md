@@ -121,6 +121,10 @@ Alongside the artifact, request the context that cannot be recovered from it:
 
 - sim epoch (UTC instant of t = 0) and scenario time window;
 - node ↔ station/satellite mapping (module names or node ids);
+- the two ENDPOINT ground stations as registry station ids (fills
+  `metadata.stationA/B` and the manifest pair hints — this is what binds the
+  trace to a viewer route, pre-selects it there, and lets the viewer-model
+  overlay render; an endpoint-less trace still renders but never reconciles);
 - scenario config (`.ini` + TLE) or at least orbit/station identities;
 - tool/framework version (ESTNeT / OMNeT++ / INET);
 - RF assumptions in force (EIRP, bitrate, antenna model) — needed to label
