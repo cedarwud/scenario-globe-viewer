@@ -14,7 +14,17 @@
 //     y-axis semantic is asserted via the chart's `data-y-axis` attribute
 //     (never by crawling SVG internals), and its `assumptionSet` + `nonClaims`
 //     render VERBATIM from the fixture JSON (badges are label-mapped, so they
-//     are presence-checked only).
+//     are presence-checked only). Panel-density re-anchor (2026-07-02): the
+//     verbatim text now lives inside a collapsed-by-default honesty
+//     <details> — the verbatim checks keep asserting the same selectors (the
+//     text is in the DOM either way) and new checks pin the density contract
+//     itself: intro is a one-liner, the honesty wrapper and the model-delta
+//     block are collapsed expandables, and the honesty summary line carries
+//     the fixture's non-claim count.
+//   - Report appendix (the report-density landing): /report opened WITH
+//     `estnet=1` renders an "ESTNeT appendix" tab carrying every fixture's
+//     assumptionSet + nonClaims verbatim; /report WITHOUT the param has no
+//     estnet tab (the accepted default report surface is untouched).
 //   - Route↔trace pair binding: the section pre-selects the route's own trace
 //     (manifest pair hints); a same-pair trace shows the viewer-model overlay,
 //     a cross-pair trace hides it AND renders the exact one-line disclosure.
@@ -268,6 +278,8 @@ function readEstnetState() {
     const sections = document.querySelectorAll('[data-disclosure="estnet-packet-trace"]');
     const mount = sections[0]?.querySelector(".v4-estnet-trace__mount") ?? null;
     const note = mount?.querySelector('[data-pair-mismatch="true"]') ?? null;
+    const honesty = mount?.querySelector('[data-honesty-disclosure="true"]') ?? null;
+    const modelDeltaEl = mount?.querySelector('[data-model-delta="true"]') ?? null;
     return {
       sectionCount: sections.length,
       loading: mount ? mount.dataset.loading === "true" : null,
@@ -275,8 +287,14 @@ function readEstnetState() {
       errorBlock: Boolean(mount?.querySelector(".v4-estnet-trace__error")),
       yAxis: mount?.querySelector("svg")?.dataset.yAxis ?? null,
       pairNote: note ? note.textContent : null,
-      modelDelta: Boolean(mount?.querySelector('[data-model-delta="true"]')),
+      modelDelta: Boolean(modelDeltaEl),
+      modelDeltaOpen: modelDeltaEl ? modelDeltaEl.open : null,
       modelLine: Boolean(mount?.querySelector(".v4-estnet-trace__svg-model-line")),
+      introChars:
+        sections[0]?.querySelector(".v4-estnet-trace__intro")?.textContent.length ?? null,
+      honestyPresent: Boolean(honesty),
+      honestyOpen: honesty ? honesty.open : null,
+      honestySummary: honesty?.querySelector("summary")?.textContent ?? null,
       assumptions: mount?.querySelector(".v4-estnet-trace__assumptions")?.textContent ?? null,
       nonClaims: Array.from(
         mount?.querySelectorAll(".v4-estnet-trace__nonclaims li") ?? [],
@@ -557,6 +575,11 @@ try {
     sOn.variant === expectedPreselect.id && sOn.activeButton === expectedPreselect.id,
     { got: sOn.variant, want: expectedPreselect.id }
   );
+  check(
+    "ON-intro-is-a-one-liner (panel-density rule: prose walls live in the report)",
+    typeof sOn.introChars === "number" && sOn.introChars > 0 && sOn.introChars <= 160,
+    sOn.introChars
+  );
 
   // 5. menu walk: every manifest trace selectable; per-trace axis semantics,
   // verbatim honesty text, pair note and overlay expectations — all computed
@@ -595,6 +618,17 @@ try {
       JSON.stringify(s.nonClaims) === JSON.stringify(fixture.nonClaims ?? []),
       { got: s.nonClaims, want: fixture.nonClaims }
     );
+    check(
+      `menu[${entry.id}]-honesty-collapsed-expandable (verbatim text behind a closed <details>, never deleted)`,
+      s.honestyPresent === true && s.honestyOpen === false,
+      { present: s.honestyPresent, open: s.honestyOpen }
+    );
+    check(
+      `menu[${entry.id}]-honesty-summary-carries-the-count (${(fixture.nonClaims ?? []).length} non-claims)`,
+      typeof s.honestySummary === "string" &&
+        s.honestySummary.includes(`${(fixture.nonClaims ?? []).length} non-claims`),
+      { got: s.honestySummary }
+    );
     const wantNote = expectedPairNote(fixture, routeA, routeB);
     check(
       `menu[${entry.id}]-pair-disclosure-${wantNote ? "shown-verbatim" : "absent"}`,
@@ -611,6 +645,13 @@ try {
       s.modelDelta === wantOverlay && s.modelLine === wantOverlay,
       { delta: s.modelDelta, line: s.modelLine, want: wantOverlay }
     );
+    if (wantOverlay) {
+      check(
+        `menu[${entry.id}]-model-delta-collapsed-expandable (Δ chips visible, decomposition prose on demand)`,
+        s.modelDeltaOpen === false,
+        { open: s.modelDeltaOpen }
+      );
+    }
   }
 
   // 6. toggle OFF: the section's DOM is REMOVED (not display:none), zero
@@ -723,7 +764,67 @@ try {
     check("seed-cross-route-step", false, "no cross-pair hinted manifest entry found — cannot exercise the seed/cross-route step");
   }
 
-  // 8. cumulative cleanliness across the whole interaction sequence.
+  // 8. report appendix — the report-density landing the panel's honesty
+  // one-liner points at. /report WITH estnet=1 must carry the "ESTNeT
+  // appendix" tab with EVERY fixture's assumptionSet + nonClaims verbatim;
+  // /report WITHOUT the param must not have the tab at all (the accepted
+  // default report surface, locked by the report golden, stays untouched).
+  const reportParams = new URL(defaultUrl).searchParams;
+  const reportBase = `http://127.0.0.1:${VITE_PORT}/report?${reportParams.toString()}`;
+  const waitReportRendered = () =>
+    waitForCondition(
+      `Boolean(document.querySelector('[data-tab-panel="summary"]'))`,
+      120000,
+      "report route rendered"
+    );
+  await navigate(`${reportBase}&estnet=1`);
+  await waitReportRendered();
+  const reportState = await evald(`(() => {
+    const panel = document.querySelector('[data-tab-panel="estnet"]');
+    return {
+      tabButton: Boolean(document.querySelector('[data-tab-target="estnet"]')),
+      panelPresent: Boolean(panel),
+      text: panel ? panel.textContent : ""
+    };
+  })()`);
+  check(
+    "report-with-estnet-param-has-appendix-tab",
+    reportState.tabButton === true && reportState.panelPresent === true,
+    { tabButton: reportState.tabButton, panel: reportState.panelPresent }
+  );
+  for (const entry of manifest.traces) {
+    const fixture = fixturesByEntryId.get(entry.id);
+    const missing = [];
+    if (
+      typeof fixture.assumptionSet === "string" &&
+      !reportState.text.includes(fixture.assumptionSet)
+    ) {
+      missing.push("assumptionSet");
+    }
+    for (const claim of fixture.nonClaims ?? []) {
+      if (!reportState.text.includes(claim)) {
+        missing.push(`nonClaim: ${claim.slice(0, 60)}`);
+      }
+    }
+    check(
+      `report-appendix[${entry.id}]-honesty-text-verbatim (assumptionSet + every non-claim)`,
+      missing.length === 0,
+      missing.slice(0, 4)
+    );
+  }
+  await navigate(reportBase);
+  await waitReportRendered();
+  const reportDefault = await evald(`(() => ({
+    tabButton: Boolean(document.querySelector('[data-tab-target="estnet"]')),
+    panelPresent: Boolean(document.querySelector('[data-tab-panel="estnet"]'))
+  }))()`);
+  check(
+    "report-without-estnet-param-has-no-appendix (default report surface untouched)",
+    reportDefault.tabButton === false && reportDefault.panelPresent === false,
+    reportDefault
+  );
+
+  // 9. cumulative cleanliness across the whole interaction sequence.
   check(
     "console-clean-cumulative (zero console.error across toggle/menu/seed steps)",
     consoleErrors.length === 0,

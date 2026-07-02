@@ -1,3 +1,4 @@
+import { isEstnetTraceDisplayEnabled } from "./estnet-display-mode";
 import type { RuntimeProjectionResult } from "./runtime-projection";
 import {
   buildRuntimeProjectionCsv,
@@ -7,6 +8,22 @@ import {
   buildRuntimeProjectionEvidenceReportFilename,
   buildRuntimeProjectionEvidenceReportHtml
 } from "./runtime-projection-evidence-report";
+import {
+  loadEstnetReportAppendixData,
+  type EstnetReportAppendixData
+} from "./runtime-projection-evidence-report-estnet";
+
+// The report carries the ESTNeT appendix exactly when the surface it was
+// opened from had the ESTNeT display mode on (panel-density rule: the panel's
+// honesty one-liner points at "Report → ESTNeT appendix", so every report
+// entry path — the /report route, the popup-blocked download fallback, and
+// the mock-window test path — must honor the same opt-in, or that pointer
+// would overclaim). loadEstnetReportAppendixData never throws.
+function resolveEstnetAppendix(): Promise<EstnetReportAppendixData | null> {
+  return isEstnetTraceDisplayEnabled()
+    ? loadEstnetReportAppendixData()
+    : Promise.resolve(null);
+}
 
 function downloadTextArtifact(
   ownerDocument: Document,
@@ -54,13 +71,16 @@ function rainRateForReportUrl(result: RuntimeProjectionResult): number | null {
   return null;
 }
 
-export function downloadRuntimeProjectionEvidenceReport(
+export async function downloadRuntimeProjectionEvidenceReport(
   result: RuntimeProjectionResult,
   ownerDocument: Document = document
-): void {
+): Promise<void> {
+  const estnetAppendix = await resolveEstnetAppendix();
   downloadTextArtifact(
     ownerDocument,
-    buildRuntimeProjectionEvidenceReportHtml(result),
+    buildRuntimeProjectionEvidenceReportHtml(result, undefined, {
+      estnetAppendix
+    }),
     "text/html;charset=utf-8",
     buildRuntimeProjectionEvidenceReportFilename(result)
   );
@@ -87,11 +107,17 @@ export function openRuntimeProjectionEvidenceReport(
   if (rainRateMmPerHour !== null) {
     searchParams.set("rainRateMmPerHour", String(rainRateMmPerHour));
   }
+  // Carry the ESTNeT opt-in across the tab boundary: a `?estnet=1` deep link
+  // seeds the mode in-memory only (nothing persisted), so the /report route
+  // cannot read it back from storage — the URL param is the contract.
+  if (isEstnetTraceDisplayEnabled()) {
+    searchParams.set("estnet", "1");
+  }
   const url = `/report?${searchParams.toString()}`;
 
   const reportWindow = ownerWindow.open(url, "_blank");
   if (!reportWindow) {
-    downloadRuntimeProjectionEvidenceReport(result, ownerDocument);
+    void downloadRuntimeProjectionEvidenceReport(result, ownerDocument);
     return;
   }
 
@@ -105,15 +131,22 @@ export function openRuntimeProjectionEvidenceReport(
   // we must write the HTML contents immediately. In a real browser, we let the SPA route /report load naturally.
   const isMockWindow = reportWindow && !("location" in reportWindow);
   if (isMockWindow) {
-    try {
-      const mockWin = reportWindow as any;
-      mockWin.document.open();
-      mockWin.document.write(buildRuntimeProjectionEvidenceReportHtml(result));
-      mockWin.document.close();
-      mockWin.focus?.();
-    } catch {
-      // Best-effort write
-    }
+    void (async () => {
+      try {
+        const estnetAppendix = await resolveEstnetAppendix();
+        const mockWin = reportWindow as any;
+        mockWin.document.open();
+        mockWin.document.write(
+          buildRuntimeProjectionEvidenceReportHtml(result, undefined, {
+            estnetAppendix
+          })
+        );
+        mockWin.document.close();
+        mockWin.focus?.();
+      } catch {
+        // Best-effort write
+      }
+    })();
   } else {
     try {
       reportWindow.focus?.();

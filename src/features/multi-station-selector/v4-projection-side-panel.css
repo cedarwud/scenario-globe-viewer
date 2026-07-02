@@ -2610,17 +2610,68 @@ body:has([data-v4-projection-side-panel="true"])
   background: rgba(240, 240, 240, 0.04);
   border: 1px dashed rgba(240, 240, 240, 0.28);
   border-radius: 0.5rem;
-  padding: 0.6rem 0.75rem;
+  padding: 0.45rem 0.75rem;
+}
+.v4-estnet-trace__model-delta-body {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
+  margin-top: 0.55rem;
 }
-.v4-estnet-trace__model-delta-title {
+/* Compact expandable summary line (panel-density rule): claim visible in one
+   glance — title + chips — prose only on expand. Shared by the model-delta
+   and the assumptions/non-claims honesty disclosures. */
+.v4-estnet-trace__expand-summary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
+  cursor: pointer;
+  list-style: none;
   font-size: 1rem;
+  color: rgba(240, 240, 240, 0.85);
+}
+.v4-estnet-trace__expand-summary::-webkit-details-marker {
+  display: none;
+}
+.v4-estnet-trace__expand-summary::before {
+  content: "▸";
+  font-size: 0.85em;
+  color: rgba(157, 196, 232, 0.65);
+  transition: transform 0.15s ease;
+}
+details[open] > .v4-estnet-trace__expand-summary::before {
+  transform: rotate(90deg);
+}
+.v4-estnet-trace__expand-title {
   font-weight: 600;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: rgba(240, 240, 240, 0.82);
+  letter-spacing: 0.03em;
+}
+.v4-estnet-trace__expand-hint {
+  font-size: 0.92rem;
+  color: rgba(157, 196, 232, 0.55);
+}
+.v4-estnet-trace__delta-chip {
+  font-size: 0.95rem;
+  padding: 0.08rem 0.5rem;
+  border-radius: 999px;
+  border: 1px solid var(--orbit-color, rgba(157, 196, 232, 0.45));
+  color: var(--orbit-color, rgba(157, 196, 232, 0.85));
+  background: rgba(8, 16, 32, 0.5);
+  white-space: nowrap;
+}
+.v4-estnet-trace__delta-chip--warn {
+  --orbit-color: #ffcf5c;
+}
+.v4-estnet-trace__honesty {
+  border: 1px solid rgba(126, 226, 184, 0.14);
+  border-radius: 0.5rem;
+  padding: 0.45rem 0.75rem;
+  background: rgba(126, 226, 184, 0.03);
+  margin-top: 0.45rem;
+}
+.v4-estnet-trace__honesty-body {
+  margin-top: 0.55rem;
 }
 .v4-estnet-trace__model-delta-head {
   font-size: 1.02rem;

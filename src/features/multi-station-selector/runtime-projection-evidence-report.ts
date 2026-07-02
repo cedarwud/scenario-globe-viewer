@@ -19,6 +19,20 @@ import {
   buildRuntimeTab
 } from "./runtime-projection-evidence-report-tabs";
 import { buildAuditTab } from "./runtime-projection-evidence-report-audit";
+import {
+  buildEstnetAppendixTab,
+  type EstnetReportAppendixData
+} from "./runtime-projection-evidence-report-estnet";
+
+export interface EvidenceReportOptions {
+  /**
+   * Opt-in ESTNeT appendix data (panel-density rule: the full verbatim
+   * assumptionSet/nonClaims text lands here, the panel keeps the claim).
+   * Absent/null -> the rendered report is byte-identical to the accepted
+   * default surface, which is exactly what the report golden locks.
+   */
+  readonly estnetAppendix?: EstnetReportAppendixData | null;
+}
 
 export function buildRuntimeProjectionEvidenceReportHtml(
   result: RuntimeProjectionResult,
@@ -27,11 +41,12 @@ export function buildRuntimeProjectionEvidenceReportHtml(
   // test passes a fixed value to make the whole report deterministic. This is
   // the report's only wall-clock input and is excluded from the payload
   // checksum (see the Determinism callout in the Audit & evidence tab).
-  generatedAtUtc: string = new Date().toISOString()
+  generatedAtUtc: string = new Date().toISOString(),
+  options: EvidenceReportOptions = {}
 ): string {
   const title = `${formatReportTitleStation(result.pair.stationA)} - ${formatReportTitleStation(result.pair.stationB)}`;
   const filename = buildRuntimeProjectionEvidenceReportFilename(result);
-  const tabs = [
+  const tabs: Array<readonly [string, string]> = [
     ["summary", "Summary"],
     ["requirements", "Requirements"],
     ["visibility", "Visibility"],
@@ -40,14 +55,8 @@ export function buildRuntimeProjectionEvidenceReportHtml(
     ["models", "Models"],
     ["audit", "Audit & evidence"],
     ["runtime", "Raw data"]
-  ] as const;
-  const tabButtons = tabs
-    .map(
-      ([id, label], index) =>
-        `<button type="button" id="tab-${id}" role="tab" data-tab-target="${id}" aria-controls="${id}" aria-selected="${index === 0 ? "true" : "false"}" tabindex="${index === 0 ? "0" : "-1"}">${escapeHtml(label)}</button>`
-    )
-    .join("");
-  const panels = [
+  ];
+  const panelList = [
     section("summary", "Summary", buildSummaryTab(result), true),
     section("requirements", "Requirements", buildRequirementsTab(result)),
     section("visibility", "Visibility windows", buildVisibilityTab(result)),
@@ -56,7 +65,24 @@ export function buildRuntimeProjectionEvidenceReportHtml(
     section("models", "Assumptions & models", buildModelsTab(result)),
     section("audit", "Audit & evidence", buildAuditTab(result, generatedAtUtc)),
     section("runtime", "Runtime data", buildRuntimeTab(result))
-  ].join("");
+  ];
+  if (options.estnetAppendix) {
+    tabs.push(["estnet", "ESTNeT appendix"]);
+    panelList.push(
+      section(
+        "estnet",
+        "ESTNeT appendix",
+        buildEstnetAppendixTab(options.estnetAppendix)
+      )
+    );
+  }
+  const tabButtons = tabs
+    .map(
+      ([id, label], index) =>
+        `<button type="button" id="tab-${id}" role="tab" data-tab-target="${id}" aria-controls="${id}" aria-selected="${index === 0 ? "true" : "false"}" tabindex="${index === 0 ? "0" : "-1"}">${escapeHtml(label)}</button>`
+    )
+    .join("");
+  const panels = panelList.join("");
 
   return `<!doctype html>
 <html lang="en">

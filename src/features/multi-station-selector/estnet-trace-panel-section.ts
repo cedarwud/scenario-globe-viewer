@@ -27,7 +27,7 @@ import type {
   RuntimeProjectionResult
 } from "./runtime-projection";
 
-interface PacketTraceSample {
+export interface PacketTraceSample {
   readonly tMs: number;
   readonly latencyMs: number | null;
   readonly jitterMs?: number | null;
@@ -39,7 +39,7 @@ interface PacketTraceSample {
   readonly orbitClass?: string;
 }
 
-interface PacketTraceSegment {
+export interface PacketTraceSegment {
   readonly label: string;
   readonly orbitClass: string;
   readonly satellite: string;
@@ -48,7 +48,7 @@ interface PacketTraceSegment {
   readonly deliveredPackets: number;
 }
 
-interface PacketTraceSummary {
+export interface PacketTraceSummary {
   readonly sentPackets: number;
   readonly deliveredEndToEnd: number;
   readonly overallPacketLossRatio: number;
@@ -60,7 +60,7 @@ interface PacketTraceSummary {
   readonly meanLatencyByOrbitMs?: { readonly [orbit: string]: number };
 }
 
-interface PacketTrace {
+export interface PacketTrace {
   readonly schemaVersion: number;
   readonly pathLabel: string;
   readonly sourceClass: string;
@@ -89,7 +89,7 @@ interface PacketTrace {
 // and their end-to-end latency is a composed one-way (uplink + downlink).
 type LatencySemantic = "one-way" | "rtt" | "none";
 
-function latencySemanticOf(trace: PacketTrace): LatencySemantic {
+export function latencySemanticOf(trace: PacketTrace): LatencySemantic {
   return trace.latencySemantic === "rtt" || trace.latencySemantic === "none"
     ? trace.latencySemantic
     : "one-way";
@@ -507,7 +507,7 @@ function svgEl(name: string, attrs: Record<string, string | number> = {}): SVGEl
 // synthetic-placeholder label was dead code — nothing in the chain produces
 // either, so neither is labelable here). An unknown tier renders verbatim,
 // never re-labeled.
-function sourceClassLabel(sourceClass: string): string {
+export function sourceClassLabel(sourceClass: string): string {
   switch (sourceClass) {
     case "external-simulator-derived":
       return "ESTNeT-simulated (not operator-measured)";
@@ -522,7 +522,7 @@ function sourceClassLabel(sourceClass: string): string {
 
 // Metric-derivation badge per ingest format (PACKET-TRACE-CONTRACT §4). The
 // two committed adapters carry no `metadata.ingestFormat` and derive both.
-function derivationBadgeText(trace: PacketTrace): string {
+export function derivationBadgeText(trace: PacketTrace): string {
   switch (trace.metadata?.ingestFormat) {
     case "ping":
       return "derived: jitter (over RTT) · no throughput signal";
@@ -768,7 +768,13 @@ function buildChart(trace: PacketTrace, overlay: ModelOverlay | null): ChartHand
   const xUnitDivisor = handover ? 60000 : 1000;
   const xUnitSuffix = handover ? "m" : "s";
 
-  // Orbit segment bands + labels (handover only).
+  // Orbit segment bands + labels (handover only). Label declutter mirrors the
+  // handover-marker rule: every segment keeps its band, but the text is
+  // skipped when it would overlap the previous label (dense LEO successions
+  // put segment midpoints a few px apart on a 6 h axis and the overlapped
+  // strip was unreadable).
+  const SEG_MIN_LABEL_GAP_PX = 150;
+  let lastSegLabelX = -Infinity;
   for (const seg of segments) {
     const x0 = xScale(seg.startMs);
     const x1 = xScale(seg.endMs);
@@ -782,8 +788,11 @@ function buildChart(trace: PacketTrace, overlay: ModelOverlay | null): ChartHand
         "fill-opacity": 0.06
       })
     );
+    const labelX = (x0 + x1) / 2;
+    if (labelX - lastSegLabelX < SEG_MIN_LABEL_GAP_PX) continue;
+    lastSegLabelX = labelX;
     const label = svgEl("text", {
-      x: (x0 + x1) / 2,
+      x: labelX,
       y: MARGIN.t - 10,
       "text-anchor": "middle",
       fill: ORBIT_COLOR[seg.orbitClass] ?? "#fff",
@@ -908,10 +917,15 @@ function buildChart(trace: PacketTrace, overlay: ModelOverlay | null): ChartHand
       );
     }
     if (spans.length > 0) {
-      const first = spans[0];
+      // Anchor the caption to the HIGHEST dashed level (highest = furthest
+      // from the x-axis), so it never collides with the handover labels that
+      // sit along the chart bottom.
+      const anchorSpan = spans.reduce((best, span) =>
+        span.level.model2HopMs > best.level.model2HopMs ? span : best
+      );
       const tx = svgEl("text", {
-        x: first.x0 + 6,
-        y: yScale(first.level.model2HopMs) - 5,
+        x: anchorSpan.x0 + 6,
+        y: yScale(anchorSpan.level.model2HopMs) - 5,
         "text-anchor": "start",
         fill: MODEL_COLOR,
         class: "v4-estnet-trace__svg-model-label"
@@ -943,7 +957,7 @@ function buildChart(trace: PacketTrace, overlay: ModelOverlay | null): ChartHand
     // Label declutter: every marker keeps its line, but the "⇄ handover" text
     // is skipped when it would overlap the previous label (dense LEO handover
     // successions put boundaries a few px apart on a 6 h axis).
-    const MIN_LABEL_GAP_PX = 72;
+    const MIN_LABEL_GAP_PX = 110;
     let lastLabelX = -Infinity;
     for (const xb of markerXs) {
       svg.append(
@@ -1118,15 +1132,48 @@ function attachReplayCursor(
 // the solid trace, per orbit. Serialization is split out only when the trace's
 // own assumptionSet declares the stock 9600 bps PHY; otherwise the delta stays
 // un-decomposed (honest: no invented terms for an unknown PHY).
+//
+// Panel-density rule: the block is a collapsed <details> whose summary carries
+// the per-orbit Δ as chips (the claim, readable in one glance) plus a warn
+// chip when the comparison crosses windows; the decomposition prose expands
+// on demand. The full text also lands in the report's ESTNeT appendix.
 function buildModelDeltaBlock(overlay: ModelOverlay): HTMLElement {
-  const block = document.createElement("div");
+  const block = document.createElement("details");
   block.className = "v4-estnet-trace__model-delta";
   block.dataset.modelDelta = "true";
 
-  const title = document.createElement("div");
-  title.className = "v4-estnet-trace__model-delta-title";
-  title.textContent = "Model ↔ simulator reconciliation";
-  block.append(title);
+  const summaryLine = document.createElement("summary");
+  summaryLine.className = "v4-estnet-trace__expand-summary";
+  const title = document.createElement("span");
+  title.className = "v4-estnet-trace__expand-title";
+  title.textContent = "Model ↔ simulator Δ";
+  summaryLine.append(title);
+  for (const level of overlay.perOrbit) {
+    const delta =
+      level.observedMeanMs != null
+        ? level.observedMeanMs - level.model2HopMs
+        : null;
+    const chip = document.createElement("span");
+    chip.className = "v4-estnet-trace__delta-chip";
+    chip.style.setProperty(
+      "--orbit-color",
+      ORBIT_COLOR[level.orbitClass] ?? MODEL_COLOR
+    );
+    chip.textContent = `${level.orbitClass} ${
+      delta != null && delta >= 0 ? "+" : ""
+    }${fmt(delta, 1)} ms`;
+    summaryLine.append(chip);
+  }
+  if (overlay.windowAligned === false) {
+    const warn = document.createElement("span");
+    warn.className =
+      "v4-estnet-trace__delta-chip v4-estnet-trace__delta-chip--warn";
+    warn.textContent = "⚠ window mismatch";
+    summaryLine.append(warn);
+  }
+  const bodyWrap = document.createElement("div");
+  bodyWrap.className = "v4-estnet-trace__model-delta-body";
+  block.append(summaryLine, bodyWrap);
 
   for (const level of overlay.perOrbit) {
     const row = document.createElement("div");
@@ -1176,7 +1223,7 @@ function buildModelDeltaBlock(overlay: ModelOverlay): HTMLElement {
       );
     }
     row.append(list);
-    block.append(row);
+    bodyWrap.append(row);
   }
 
   if (overlay.windowAligned === false) {
@@ -1189,7 +1236,7 @@ function buildModelDeltaBlock(overlay: ModelOverlay): HTMLElement {
       `simulated window (${overlay.traceWindowLabel ?? "—"}) — cross-window ` +
       `comparison is orbit-representative only. Open the pinned demo route ` +
       `(startUtc=trace window) for a same-window reconciliation.`;
-    block.append(windowNote);
+    bodyWrap.append(windowNote);
   }
 
   const note = document.createElement("p");
@@ -1197,21 +1244,83 @@ function buildModelDeltaBlock(overlay: ModelOverlay): HTMLElement {
   note.textContent =
     "Both sides are models (analytic geometry vs packet simulation); agreement " +
     "is implementation consistency, not validation against a measurement.";
-  block.append(note);
+  bodyWrap.append(note);
 
   return block;
 }
 
+// Honesty foot. Panel-density rule (2026-07-02): the verbatim assumptionSet /
+// nonClaims walls are report-density content — the panel keeps the honesty
+// CLAIM (a one-line summary with the non-claim count) and the verbatim TEXT
+// moves behind an on-demand expand; the same text also renders in full in the
+// report's ESTNeT appendix. The verbatim invariant is preserved, not deleted:
+// verify:estnet:panel keeps asserting `.v4-estnet-trace__assumptions` and
+// `.v4-estnet-trace__nonclaims li` against the fixture JSON — they now live
+// inside the collapsed <details> (still in the DOM), plus a collapsed-by-
+// default check on the wrapper itself.
 function buildFoot(trace: PacketTrace): HTMLElement {
   const foot = document.createElement("div");
   foot.className = "v4-estnet-trace__foot";
+
+  // Relay identities: the multi-orbit satellites map can be a 20+-name wall
+  // (the domestic chain serves 17 LEO birds), so the visible meta line keys
+  // off the map's orbit KEYS only (structural — no name parsing, the values
+  // are free-form descriptors where a comma is NOT a separator) and the full
+  // verbatim name list moves into the honesty expandable. The chart's segment
+  // labels keep showing each serving satellite in place.
+  const meta = trace.metadata;
+  let relayNamesVerbatim: string | null = null;
+  if (meta) {
+    const metaLine = document.createElement("div");
+    metaLine.className = "v4-estnet-trace__meta";
+    if (meta.satellites) {
+      const orbits = Object.keys(meta.satellites).join(" / ");
+      metaLine.textContent = `relays: ${orbits} · sim epoch ${meta.simEpochUtc ?? "—"}`;
+      relayNamesVerbatim = Object.entries(meta.satellites)
+        .map(([orbit, sat]) => `${orbit}: ${sat}`)
+        .join(" · ");
+    } else if (meta.satellite) {
+      metaLine.textContent = `sat: ${meta.satellite} · sim epoch ${meta.simEpochUtc ?? "—"}`;
+    }
+    if (metaLine.textContent) {
+      foot.append(metaLine);
+    }
+  }
+
+  const honesty = document.createElement("details");
+  honesty.className = "v4-estnet-trace__honesty";
+  honesty.dataset.honestyDisclosure = "true";
+
+  const summaryLine = document.createElement("summary");
+  summaryLine.className = "v4-estnet-trace__expand-summary";
+  const title = document.createElement("span");
+  title.className = "v4-estnet-trace__expand-title";
+  title.textContent = "Assumptions & non-claims";
+  const countChip = document.createElement("span");
+  countChip.className = "v4-estnet-trace__delta-chip";
+  countChip.textContent = `${trace.nonClaims?.length ?? 0} non-claims`;
+  const hint = document.createElement("span");
+  hint.className = "v4-estnet-trace__expand-hint";
+  hint.textContent = "verbatim here · Report → ESTNeT appendix";
+  summaryLine.append(title, countChip, hint);
+
+  const bodyWrap = document.createElement("div");
+  bodyWrap.className = "v4-estnet-trace__honesty-body";
+
+  if (relayNamesVerbatim) {
+    const relayLine = document.createElement("div");
+    relayLine.className = "v4-estnet-trace__meta";
+    relayLine.dataset.relayNames = "true";
+    relayLine.textContent = `relays — ${relayNamesVerbatim}`;
+    bodyWrap.append(relayLine);
+  }
 
   const assumptions = document.createElement("p");
   assumptions.className = "v4-estnet-trace__assumptions";
   const strong = document.createElement("strong");
   strong.textContent = "Assumptions: ";
   assumptions.append(strong, document.createTextNode(trace.assumptionSet ?? "—"));
-  foot.append(assumptions);
+  bodyWrap.append(assumptions);
 
   if (trace.nonClaims && trace.nonClaims.length > 0) {
     const list = document.createElement("ul");
@@ -1221,25 +1330,11 @@ function buildFoot(trace: PacketTrace): HTMLElement {
       li.textContent = claim;
       list.append(li);
     }
-    foot.append(list);
+    bodyWrap.append(list);
   }
 
-  const meta = trace.metadata;
-  if (meta) {
-    const metaLine = document.createElement("div");
-    metaLine.className = "v4-estnet-trace__meta";
-    if (meta.satellites) {
-      const orbits = Object.entries(meta.satellites)
-        .map(([orbit, sat]) => `${orbit}: ${sat}`)
-        .join(" · ");
-      metaLine.textContent = `relays: ${orbits} · sim epoch ${meta.simEpochUtc ?? "—"}`;
-    } else if (meta.satellite) {
-      metaLine.textContent = `sat: ${meta.satellite} · sim epoch ${meta.simEpochUtc ?? "—"}`;
-    }
-    if (metaLine.textContent) {
-      foot.append(metaLine);
-    }
-  }
+  honesty.append(summaryLine, bodyWrap);
+  foot.append(honesty);
 
   return foot;
 }
@@ -1286,13 +1381,14 @@ export function buildEstnetTracePanelSection(
   const body = document.createElement("div");
   body.className = "v4-projection-side-panel__details-body";
 
+  // One line only (panel-density rule): the tier/derivation specifics render
+  // per trace as badges, and the full prose lives in the report's ESTNeT
+  // appendix — the panel keeps the honesty claim, not the honesty text.
   const intro = document.createElement("p");
   intro.className = "v4-estnet-trace__intro";
   intro.textContent =
-    "Packet-trace time series from the selected trace fixture — its path, tier and " +
-    "derivations render from the fixture itself (some fixtures are machine-local " +
-    "network-test rehearsals, not satellite-path traces). The trace menu is " +
-    "manifest-driven. No trace in this chain is an operator RF measurement.";
+    "Everything below renders from the selected trace fixture — no trace here " +
+    "is an operator RF measurement.";
   body.append(intro);
 
   // Trace selector — populated from the manifest.

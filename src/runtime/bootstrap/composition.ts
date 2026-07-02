@@ -39,6 +39,7 @@ import {
 } from "../../features/multi-station-selector/runtime-projection";
 import { createRuntimeProjectionWorkerClient } from "../../features/multi-station-selector/runtime-projection-worker-client";
 import { buildRuntimeProjectionEvidenceReportHtml } from "../../features/multi-station-selector/runtime-projection-evidence-report";
+import { loadEstnetReportAppendixData } from "../../features/multi-station-selector/runtime-projection-evidence-report-estnet";
 import { mountTimelineHelp, TimelineHelpHandle, integrateCesiumHelpButton, CesiumHelpIntegrationHandle } from "../../features/multi-station-selector/operator-guide-modal";
 import {
   mountOptionalOsmBuildingsShowcase,
@@ -615,8 +616,20 @@ export function startBootstrapComposition(app: HTMLDivElement): BootstrapComposi
           policyId
         });
 
-        // Generate full report html
-        const html = buildRuntimeProjectionEvidenceReportHtml(result);
+        // Generate full report html. `estnet=1` (appended by the panel's
+        // Report button exactly when the ESTNeT display mode is on) opts the
+        // report into the ESTNeT appendix tab — the report-density landing
+        // for the packet-trace honesty text. Without the param the report is
+        // byte-identical to the accepted default surface.
+        const estnetAppendix =
+          searchParams.get("estnet") === "1"
+            ? await loadEstnetReportAppendixData()
+            : null;
+        const html = buildRuntimeProjectionEvidenceReportHtml(
+          result,
+          undefined,
+          { estnetAppendix }
+        );
 
         // Safely parse the generated HTML document
         const parser = new DOMParser();
