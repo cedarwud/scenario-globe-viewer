@@ -2488,6 +2488,13 @@ function renderResult(
     durationMinutes
   );
 
+  // Discoverability (panel-density slice): the section renders OPEN by
+  // default — the pre-slice collapsed-at-panel-bottom default meant clicking
+  // the toolbar toggle visibly changed nothing. Re-renders (rain drags,
+  // recomputes) preserve whatever open/closed state the user left it in.
+  const previousEstnetOpen = root.querySelector<HTMLDetailsElement>(
+    '[data-disclosure="estnet-packet-trace"]'
+  )?.open;
   const estnetSection = resolveEstnetTraceOptIn()
     ? buildEstnetTracePanelSection({
         runtimeResult: result,
@@ -2498,6 +2505,9 @@ function renderResult(
           viewer && !viewer.isDestroyed() ? createCesiumReplayClock(viewer) : null
       })
     : null;
+  if (estnetSection) {
+    estnetSection.open = previousEstnetOpen ?? true;
+  }
 
   if (compareMode === PRE_WAVE2_COMPARE_MODE) {
     root.append(
@@ -2780,7 +2790,7 @@ export function mountV4ProjectionSidePanel(
   // there is no result yet, so this no-ops until a render has happened. Reuses
   // the same renderResult path as every other render, so with the mode OFF the
   // output is byte-identical to the default single-link surface.
-  const unsubscribeEstnetDisplay = subscribeEstnetTraceDisplay(() => {
+  const unsubscribeEstnetDisplay = subscribeEstnetTraceDisplay((enabled) => {
     const result = latestResult;
     const clearSky = clearSkyResult;
     if (disposed || !result || !clearSky || !rainControl) {
@@ -2796,6 +2806,16 @@ export function mountV4ProjectionSidePanel(
       onDurationChange: setProjectionDurationMinutes,
       tleRecords
     });
+    // Discoverability: a LIVE toggle-on scrolls the freshly added (open)
+    // section into view — the section sits at the panel bottom, so without
+    // this the toggle appeared to do nothing. Initial loads never reach here
+    // (the immediate subscribe fire happens before the first compute), so
+    // page-load framing is untouched.
+    if (enabled) {
+      root
+        .querySelector('[data-disclosure="estnet-packet-trace"]')
+        ?.scrollIntoView({ block: "start", behavior: "smooth" });
+    }
   });
 
   return {

@@ -282,6 +282,7 @@ function readEstnetState() {
     const modelDeltaEl = mount?.querySelector('[data-model-delta="true"]') ?? null;
     return {
       sectionCount: sections.length,
+      sectionOpen: sections[0] ? sections[0].open : null,
       loading: mount ? mount.dataset.loading === "true" : null,
       variant: mount?.dataset.variant ?? null,
       errorBlock: Boolean(mount?.querySelector(".v4-estnet-trace__error")),
@@ -563,6 +564,26 @@ try {
   );
   const sOn = await readEstnetState();
   check("ON-section-present-once", sOn.sectionCount === 1, sOn.sectionCount);
+  check(
+    "ON-section-open-by-default (discoverability: toggling on must visibly show content)",
+    sOn.sectionOpen === true,
+    sOn.sectionOpen
+  );
+  // The section sits at the panel bottom; a live toggle-on also scrolls it
+  // into the panel viewport (smooth scroll — poll until it lands).
+  await waitForCondition(
+    `(() => {
+      const d = document.querySelector('[data-disclosure="estnet-packet-trace"]');
+      const p = document.querySelector('[data-v4-projection-side-panel="true"]');
+      if (!d || !p) return false;
+      const dr = d.getBoundingClientRect();
+      const pr = p.getBoundingClientRect();
+      return dr.top >= pr.top - 8 && dr.top < pr.bottom;
+    })()`,
+    15000,
+    "estnet section scrolled into the panel viewport"
+  );
+  check("ON-section-scrolled-into-view (live toggle reveals, not just appends)", true, null);
   check("ON-storage-on (persisted opt-in)", sOn.storedMode === "on", sOn.storedMode);
   check(
     "ON-menu-lists-every-manifest-trace",
@@ -703,6 +724,11 @@ try {
       "seed-url-opt-in-reveals-section (?estnet=1 seeds the mode IN-MEMORY; persistence only on explicit toggle)",
       sCross.sectionCount === 1 && sCross.storedMode === null,
       { sections: sCross.sectionCount, stored: sCross.storedMode }
+    );
+    check(
+      "seed-section-open-by-default (deep-link demo route shows content without a manual expand)",
+      sCross.sectionOpen === true,
+      sCross.sectionOpen
     );
     // The expected pre-selection mirrors the tie-breaker on the NEW route —
     // never just "the entry we navigated by" (that diverges when a pair
