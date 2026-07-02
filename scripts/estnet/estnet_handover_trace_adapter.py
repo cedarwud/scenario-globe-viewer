@@ -227,8 +227,8 @@ def build_trace(vec_path):
         "handoverCount": handover_count,
         "meanLatencyMs": _mean([s["latencyMs"] for s in samples if s["latencyMs"] is not None]),
         "meanLatencyByOrbitMs": {k: _mean(v) for k, v in per_orbit_lat.items() if v},
-        "minLatencyMs": round(min(per_orbit_lat["MEO"] or per_orbit_lat["GEO"]), 4),
-        "maxLatencyMs": round(max(per_orbit_lat["GEO"] or per_orbit_lat["MEO"]), 4),
+        "minLatencyMs": round(min(per_orbit_lat["GEO"] + per_orbit_lat["MEO"]), 4),
+        "maxLatencyMs": round(max(per_orbit_lat["GEO"] + per_orbit_lat["MEO"]), 4),
         "finalJitterMs": round(rfc_jitter * 1000.0, 4),
     }
 

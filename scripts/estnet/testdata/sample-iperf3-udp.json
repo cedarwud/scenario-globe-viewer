@@ -1,0 +1,30 @@
+{
+  "start": {
+    "test_start": {
+      "protocol": "UDP",
+      "num_streams": 1,
+      "blksize": 1400,
+      "duration": 5
+    },
+    "note": "SYNTHETIC FORMAT SAMPLE, hand-authored to the iperf3 --json UDP shape (iperf3 not installed on the rehearsal host). Values are arbitrary; this file exists only to regression-test the ingest parser. NEVER present as a real capture."
+  },
+  "intervals": [
+    { "sum": { "start": 0.0, "end": 1.0, "bytes": 131072, "bits_per_second": 1048576.0, "packets": 94, "lost_packets": 0, "jitter_ms": 0.113 } },
+    { "sum": { "start": 1.0, "end": 2.0, "bytes": 131072, "bits_per_second": 1048576.0, "packets": 94, "lost_packets": 1, "jitter_ms": 0.171 } },
+    { "sum": { "start": 2.0, "end": 3.0, "bytes": 122880, "bits_per_second": 983040.0, "packets": 88, "lost_packets": 6, "jitter_ms": 0.512 } },
+    { "sum": { "start": 3.0, "end": 4.0, "bytes": 131072, "bits_per_second": 1048576.0, "packets": 94, "lost_packets": 0, "jitter_ms": 0.204 } },
+    { "sum": { "start": 4.0, "end": 5.0, "bytes": 131072, "bits_per_second": 1048576.0, "packets": 94, "lost_packets": 0, "jitter_ms": 0.129 } }
+  ],
+  "end": {
+    "sum": {
+      "start": 0.0,
+      "end": 5.0,
+      "bytes": 647168,
+      "bits_per_second": 1035468.8,
+      "jitter_ms": 0.226,
+      "lost_packets": 7,
+      "packets": 464,
+      "lost_percent": 1.5086
+    }
+  }
+}

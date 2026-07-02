@@ -1,7 +1,8 @@
 # ESTNeT packet-trace pipeline (CHT × SANSA GEO)
 
-Produces a **real ESTNeT/OMNeT++ packet trace** for the demo's
-GS-A → Satellite → GS-B path and renders it as a 2D time-series panel.
+Produces an **ESTNeT/OMNeT++-generated packet trace** (simulation output, not
+a measurement) for the demo's GS-A → Satellite → GS-B path and renders it as
+a 2D time-series panel.
 
 This directory is the **tracked source-of-truth** for the whole chain. ESTNeT
 itself (the simulator) lives in a separate, un-tracked bootstrap repo; only the
@@ -43,6 +44,13 @@ never to run the demo. Acceptance opens this repo only.
 | `estnet_handover_trace_adapter.py` | composes the 6 phases; tags each sample with serving sat + orbit |
 | `precheck_2hop_geometry.mjs` | viewer-model ground-truth: which sats 2-hop CHT×SANSA + the handover sequence |
 | `precheck_2hop_geometry_independent.py` | independent python-sgp4 co-visibility cross-check (R12) |
+| **Requirement-data readiness layer:** | |
+| `PACKET-TRACE-CONTRACT.md` | the ingestion contract: PacketTrace schema, provenance tiers, mandatory nonClaims, and the delivery checklist to hand the requirement side |
+| `external_trace_ingest.py` | generic multi-format ingestion: ESTNeT `.vec` single-flow / `opp_scavetool` CSV-R / `ping` text / `iperf3 --json` → PacketTrace JSON (refuses `operator-measured`) |
+| `regen.sh` | one command (`npm run estnet:regen`): scenario → kit → both sims → adapters → fixture drift report → gate |
+| `crosscheck_estnet_vs_sgp4.py` | `npm run estnet:crosscheck` — dual-model consistency: every delivered sample's latency must equal independent-SGP4 range/c + one fitted serialization constant; MEO segments must sit inside independently computed co-visibility (agreement = implementation cross-proof, never a measurement claim) |
+| `testdata/` | ingest format samples for the gate (test-only, see its README) |
+| `../verify-estnet-trace-contract.mjs` | `npm run verify:estnet` — fixture contract + honesty invariants + ingest regression + provenance-refusal guard |
 
 The scenario `include`s three more files (`basic.incl`, `antenna_sat_isotropic.incl`,
 `antenna_gs_yagi.incl`, `mac_simple.incl`) that ship **stock** with the ESTNeT
@@ -147,6 +155,14 @@ GEO link closes (latency ≈ 257 ms GEO propagation + ~236 ms serialization at
 9600 bps). ESTNeT (published Würzburg v1.0) is used **unmodified**. These
 disclosures are also embedded in the JSON (`nonClaims` / `assumptionSet`).
 
+For the **flat GEO trace** there is one extra disclosure (surfaced by the
+`estnet:crosscheck` C7 mask-policy comparison): ABS-2A sits at ~30.8–31.0°
+CHT elevation, marginally below the viewer demo's 31° effective CHT mask
+(10° base + 21° terrain) — the viewer's own visibility policy would not
+select this GEO for the pair. The pick predates the mask alignment; it is
+kept as the steady-state PHY signature, disclosed in the fixture's
+`nonClaims`, while the handover trace's APSTAR-7 complies with the mask.
+
 For the **handover variant** there is one extra disclosure: the GEO↔MEO handover
 is a **showcase route preference** (it mirrors the viewer's `demo-balanced-v1`
 policy), NOT an RF-failure-driven handover — the GEO stays visible the whole run.
@@ -172,3 +188,21 @@ variant** (`cht-sansa-handover-packet-trace.json` /
 `estnet-handover-trace-panel.html`) is the faithful **full 6-hour timeline** —
 all 6 demo handover events (5 cross-orbit migrations across GSAT0102/0232/0209 +
 the initial GEO acquisition), aligned exactly to the viewer's golden D1.
+
+## Requirement-data readiness
+
+The requirement side has not yet delivered its own ESTNeT data
+(irreducible-1 "Requirement ESTNeT trace pending"; R1-F3 iperf/ping sub-item;
+K-B1 bridge). This pipeline doubles as the **rehearsal** for that delivery:
+
+- `PACKET-TRACE-CONTRACT.md` — the single JSON contract every producer maps
+  into, the provenance-tier ladder (delivery ≠ measurement, R12), and the
+  checklist of artifacts + context to request from the requirement side.
+- `external_trace_ingest.py` — already ingests the four plausible delivery
+  shapes (`.vec`, scavetool CSV, ping, iperf3). When requirement data lands
+  in one of those shapes, integration should reduce to a gated data-review
+  step — ingest → stage → review → curated fixture commit — subject to the
+  parser gate; an unlisted format still means adapter work.
+- `npm run estnet:regen` regenerates our own traces end-to-end;
+  `npm run verify:estnet` gates the contract, the honesty invariants, and the
+  ingest parsers (including the `operator-measured` refusal guard).

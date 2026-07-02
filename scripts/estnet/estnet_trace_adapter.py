@@ -198,6 +198,10 @@ def build_trace(vec_path):
             "jitter and loss are adapter-derived, not native ESTNeT signals.",
             "end-to-end is a composition of two independent one-hop RF legs, not a single relayed packet.",
             "RF EIRP/bitrate are assumed link parameters chosen so the GEO link closes.",
+            "ABS-2A sits at ~30.8-31.0 deg CHT elevation — marginally below the viewer demo's "
+            "31 deg effective CHT mask (10 deg base + 21 deg terrain), so the viewer's own "
+            "visibility policy would not select this GEO for the pair; this steady-state "
+            "scenario predates that mask alignment (the handover trace's APSTAR-7 complies).",
         ],
         "metadata": {
             "simEpochUtc": SIM_EPOCH_UTC,
