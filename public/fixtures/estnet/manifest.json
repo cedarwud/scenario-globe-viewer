@@ -1,22 +1,28 @@
 {
   "schemaVersion": 1,
-  "note": "Trace menu for the opt-in packet-trace panel section. Each entry points at a PacketTrace fixture (contract: scripts/estnet/PACKET-TRACE-CONTRACT.md). Adding a reviewed fixture + one entry here makes it selectable in the panel. Provenance, honesty badges and non-claims always render from the fixture itself, never from this file — a manifest entry cannot upgrade a trace's tier.",
+  "note": "Trace menu for the opt-in packet-trace panel section. Each entry points at a PacketTrace fixture (contract: scripts/estnet/PACKET-TRACE-CONTRACT.md). Adding a reviewed fixture + one entry here makes it selectable in the panel. Provenance, honesty badges and non-claims always render from the fixture itself, never from this file — a manifest entry cannot upgrade a trace's tier. stationA/stationB are MENU HINTS mirroring the fixture's own metadata endpoints (used only to pre-select a same-pair trace); the fixture stays the truth and verify:estnet fails on any hint that drifts from it or from the station registry.",
   "traces": [
     {
       "id": "handover",
       "label": "GEO↔MEO handover",
       "url": "/fixtures/estnet/cht-sansa-handover-packet-trace.json",
-      "default": true
+      "default": true,
+      "stationA": "cht-yangmingshan",
+      "stationB": "sansa-hartebeesthoek"
     },
     {
       "id": "geo",
       "label": "GEO steady-state",
-      "url": "/fixtures/estnet/cht-sansa-apstar7-packet-trace.json"
+      "url": "/fixtures/estnet/cht-sansa-apstar7-packet-trace.json",
+      "stationA": "cht-yangmingshan",
+      "stationB": "sansa-hartebeesthoek"
     },
     {
       "id": "cht-domestic",
       "label": "LEO+MEO+GEO chain (CHT domestic)",
-      "url": "/fixtures/estnet/cht-domestic-handover-packet-trace.json"
+      "url": "/fixtures/estnet/cht-domestic-handover-packet-trace.json",
+      "stationA": "cht-yangmingshan",
+      "stationB": "cht-fangshan"
     },
     {
       "id": "ping-rehearsal",

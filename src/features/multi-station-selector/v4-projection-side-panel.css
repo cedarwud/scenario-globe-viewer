@@ -2649,6 +2649,13 @@ body:has([data-v4-projection-side-panel="true"])
   font-style: italic;
   color: rgba(157, 196, 232, 0.62);
 }
+.v4-estnet-trace__pair-note {
+  margin: 0;
+  font-size: 0.98rem;
+  color: #ffcf5c;
+  border-left: 3px solid #ffcf5c;
+  padding-left: 0.5rem;
+}
 .v4-estnet-trace__svg-model-label {
   font-size: 12px;
   opacity: 0.85;

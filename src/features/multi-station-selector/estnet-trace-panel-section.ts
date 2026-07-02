@@ -95,16 +95,112 @@ function latencySemanticOf(trace: PacketTrace): LatencySemantic {
     : "one-way";
 }
 
-interface PacketTraceManifestEntry {
+export interface PacketTraceManifestEntry {
   readonly id: string;
   readonly label: string;
   readonly url: string;
   readonly default?: boolean;
+  /**
+   * Menu-level pair HINTS: the registry station ids of the trace's declared
+   * endpoints, mirrored from the fixture so the panel can pre-select a
+   * same-pair trace without fetching every fixture. Hints are never the
+   * truth — the fixture's own `metadata.stationA/B` is (`verify:estnet`
+   * enforces hint == fixture metadata == registry id, both-or-neither).
+   */
+  readonly stationA?: string;
+  readonly stationB?: string;
 }
 
-interface PacketTraceManifest {
+export interface PacketTraceManifest {
   readonly schemaVersion: number;
   readonly traces: ReadonlyArray<PacketTraceManifestEntry>;
+}
+
+/** The current route's endpoint station ids (null when unidentified). */
+export interface TraceRouteIds {
+  readonly stationAId: string | null;
+  readonly stationBId: string | null;
+}
+
+// Order-agnostic pair match (the latency comparison is direction-free).
+// FAIL CLOSED: an unidentified route side never matches a declared pair.
+function pairMatchesRoute(
+  endpointIdA: string,
+  endpointIdB: string,
+  route: TraceRouteIds
+): boolean {
+  if (
+    typeof route.stationAId !== "string" ||
+    typeof route.stationBId !== "string"
+  ) {
+    return false;
+  }
+  const routeIds = new Set([route.stationAId, route.stationBId]);
+  return routeIds.has(endpointIdA) && routeIds.has(endpointIdB);
+}
+
+function routeIdsOfResult(
+  runtimeResult: RuntimeProjectionResult | null | undefined
+): TraceRouteIds {
+  const idA = runtimeResult?.pair?.stationA?.id;
+  const idB = runtimeResult?.pair?.stationB?.id;
+  return {
+    stationAId: typeof idA === "string" ? idA : null,
+    stationBId: typeof idB === "string" ? idB : null
+  };
+}
+
+/**
+ * Picks the manifest entry the section opens with for the current route:
+ * a trace whose pair hints match the route pair (order-agnostic) wins over
+ * the global default. Tie-breaker when several traces share the pair (the
+ * CHT × SANSA pair really carries two): a `default: true` entry first, then
+ * manifest order (first wins). Falls back to the global default entry when
+ * the route is unidentified or no trace declares this pair. Pure — exported
+ * for the unit suite; called once per section build, at manifest load.
+ */
+export function selectManifestEntryForRoute(
+  manifest: PacketTraceManifest,
+  route: TraceRouteIds
+): PacketTraceManifestEntry {
+  const samePair = manifest.traces.filter(
+    (entry) =>
+      typeof entry.stationA === "string" &&
+      typeof entry.stationB === "string" &&
+      pairMatchesRoute(entry.stationA, entry.stationB, route)
+  );
+  if (samePair.length > 0) {
+    return samePair.find((entry) => entry.default === true) ?? samePair[0];
+  }
+  return defaultManifestEntry(manifest);
+}
+
+/**
+ * One-line disclosure for a route↔trace pair mismatch. Returns the line
+ * exactly when the trace declares its own endpoints (fixture metadata — the
+ * truth, never manifest hints) and the current route pair does not match
+ * them order-agnostically — the same predicate that makes
+ * `computeModelOverlay` suppress the viewer-model overlay, so the silence
+ * is always explained. Null when the trace declares no endpoints (nothing
+ * to reconcile) or the pair matches. Pure — exported for the unit suite.
+ */
+export function pairCompatibilityDisclosure(
+  trace: Pick<PacketTrace, "metadata">,
+  route: TraceRouteIds
+): string | null {
+  const traceIdA = trace.metadata?.stationA?.id;
+  const traceIdB = trace.metadata?.stationB?.id;
+  if (typeof traceIdA !== "string" || typeof traceIdB !== "string") {
+    return null;
+  }
+  if (pairMatchesRoute(traceIdA, traceIdB, route)) {
+    return null;
+  }
+  return (
+    `trace endpoints ${traceIdA} / ${traceIdB} ≠ current route ` +
+    `${route.stationAId ?? "unknown"} / ${route.stationBId ?? "unknown"} — ` +
+    `viewer-model overlay hidden`
+  );
 }
 
 const MANIFEST_URL = "/fixtures/estnet/manifest.json";
@@ -219,19 +315,11 @@ export function computeModelOverlay(
   // anchors are only a valid comparison if the panel's CURRENT pair is the
   // same pair (order-agnostic — the latency comparison is direction-free).
   // FAIL CLOSED: declared trace endpoints with unknown route endpoints also
-  // suppress the overlay — never compare against an unidentified pair.
-  const traceIdA = trace.metadata?.stationA?.id;
-  const traceIdB = trace.metadata?.stationB?.id;
-  if (typeof traceIdA === "string" && typeof traceIdB === "string") {
-    const routeIdA = runtimeResult.pair?.stationA?.id;
-    const routeIdB = runtimeResult.pair?.stationB?.id;
-    if (typeof routeIdA !== "string" || typeof routeIdB !== "string") {
-      return null;
-    }
-    const routeIds = new Set([routeIdA, routeIdB]);
-    if (!routeIds.has(traceIdA) || !routeIds.has(traceIdB)) {
-      return null;
-    }
+  // suppress the overlay — never compare against an unidentified pair. The
+  // suppression is exactly `pairCompatibilityDisclosure` returning non-null,
+  // so the panel always explains it (shared pairMatchesRoute predicate).
+  if (pairCompatibilityDisclosure(trace, routeIdsOfResult(runtimeResult)) !== null) {
+    return null;
   }
   const perOrbit: ModelOverlayOrbit[] = [];
   for (const orbitClass of orbitsInTrace(trace)) {
@@ -330,6 +418,23 @@ function assertManifestShape(raw: unknown): PacketTraceManifest {
       throw new Error(`manifest trace id duplicated: ${entry.id}`);
     }
     seenIds.add(entry.id);
+    // Pair hints are both-or-neither, non-empty strings. Deeper truth checks
+    // (hint == fixture metadata == registry id) live in verify:estnet — the
+    // renderer only guards the shape it consumes.
+    const hasHintA = entry.stationA !== undefined;
+    const hasHintB = entry.stationB !== undefined;
+    if (hasHintA !== hasHintB) {
+      throw new Error(`manifest entry ${entry.id}: stationA/stationB hints must be both present or both absent`);
+    }
+    if (
+      hasHintA &&
+      (typeof entry.stationA !== "string" ||
+        entry.stationA.length === 0 ||
+        typeof entry.stationB !== "string" ||
+        entry.stationB.length === 0)
+    ) {
+      throw new Error(`manifest entry ${entry.id}: stationA/stationB hints must be non-empty strings`);
+    }
   }
   return manifest;
 }
@@ -616,10 +721,14 @@ function buildChart(trace: PacketTrace, overlay: ModelOverlay | null): ChartHand
   // Primary y series: latency when the trace has one; else throughput
   // (iperf3-class `latencySemantic: "none"` traces).
   const hasLatency = semantic !== "none" && latencies.length > 0;
+  // Machine-readable y-axis semantic for the panel gate: assert this
+  // attribute, never crawl the SVG internals.
+  svg.dataset.yAxis = hasLatency ? (semantic === "rtt" ? "rtt" : "ms") : "mbps";
   const overlayLevels =
     hasLatency && overlay ? overlay.perOrbit.map((o) => o.model2HopMs) : [];
   const primaryValues = hasLatency ? [...latencies, ...overlayLevels] : throughputs;
   if (primaryValues.length === 0) {
+    svg.dataset.yAxis = "none";
     const empty = svgEl("text", {
       x: W / 2,
       y: H / 2,
@@ -1130,6 +1239,17 @@ function buildFoot(trace: PacketTrace): HTMLElement {
   return foot;
 }
 
+// The route↔trace pair-mismatch disclosure line (pairCompatibilityDisclosure).
+// Renders right under the badges so the missing dashed model line is explained
+// where the reader looks first — never a silent omission.
+function buildPairNote(text: string): HTMLElement {
+  const note = document.createElement("p");
+  note.className = "v4-estnet-trace__pair-note";
+  note.dataset.pairMismatch = "true";
+  note.textContent = text;
+  return note;
+}
+
 function buildErrorBlock(what: string, error: unknown): HTMLElement {
   const block = document.createElement("div");
   block.className = "v4-estnet-trace__error";
@@ -1189,6 +1309,9 @@ export function buildEstnetTracePanelSection(
   let activeId: string | null = null;
   let detachReplayCursor: (() => void) | null = null;
   const buttons = new Map<string, HTMLButtonElement>();
+  // Resolved once per section build: the pre-selection and the mismatch
+  // disclosure both key off this, never off later interactions.
+  const route = routeIdsOfResult(options.runtimeResult);
 
   const syncToggle = (): void => {
     for (const [id, button] of buttons) {
@@ -1213,6 +1336,9 @@ export function buildEstnetTracePanelSection(
         delete mount.dataset.loading;
         mount.dataset.pathLabel = trace.pathLabel;
         const overlay = computeModelOverlay(trace, options.runtimeResult);
+        const pairNote = options.runtimeResult
+          ? pairCompatibilityDisclosure(trace, route)
+          : null;
         const chart = buildChart(trace, overlay);
         detachReplayCursor?.();
         detachReplayCursor = options.replayClock
@@ -1220,6 +1346,7 @@ export function buildEstnetTracePanelSection(
           : null;
         mount.replaceChildren(
           buildBadges(trace),
+          ...(pairNote ? [buildPairNote(pairNote)] : []),
           buildCards(trace),
           buildLegend(trace, overlay),
           chart.svg,
@@ -1258,7 +1385,10 @@ export function buildEstnetTracePanelSection(
         toggle.append(button);
         buttons.set(entry.id, button);
       }
-      renderTrace(defaultManifestEntry(manifest));
+      // Pre-select the route's own trace when one exists (pair hints), else
+      // the global default — computed once here, never re-derived on
+      // interaction.
+      renderTrace(selectManifestEntryForRoute(manifest, route));
     })
     .catch((error) => {
       if (disposed) {

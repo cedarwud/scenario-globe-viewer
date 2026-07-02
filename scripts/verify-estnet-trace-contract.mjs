@@ -307,6 +307,14 @@ section("panel trace manifest");
 {
   const manifestFile = "public/fixtures/estnet/manifest.json";
   const abs = path.join(ROOT, manifestFile);
+  // Registry ids gate the manifest pair HINTS: a hint id that is not a real
+  // registry station could never match a route, so the pre-selection it
+  // promises would silently never fire.
+  const registryIds = new Set(
+    JSON.parse(
+      fs.readFileSync(path.join(ROOT, "public/fixtures/ground-stations/multi-orbit-public-registry.json"), "utf-8"),
+    ).stations.map((s) => s.id),
+  );
   if (!fs.existsSync(abs)) {
     check("manifest", false, "manifest.json missing");
   } else {
@@ -333,6 +341,28 @@ section("panel trace manifest");
       const pinned = FIXTURES.some((f) => path.join(ROOT, f.file) === fixtureAbs);
       if (!pinned && fs.existsSync(fixtureAbs)) {
         validateTrace(`manifest:${entry.id}`, JSON.parse(fs.readFileSync(fixtureAbs, "utf-8")));
+      }
+      // Pair-hint truth chain: manifest stationA/B are MENU HINTS the panel
+      // pre-selects with; the fixture's own metadata endpoints are the truth.
+      // Enforce hint == fixture metadata == registry id, both-or-neither, and
+      // fail when a fixture declares endpoints the manifest does not hint
+      // (the pre-selection would silently skip that trace).
+      if (fs.existsSync(fixtureAbs)) {
+        const fixture = JSON.parse(fs.readFileSync(fixtureAbs, "utf-8"));
+        const fixtureA = fixture.metadata?.stationA?.id;
+        const fixtureB = fixture.metadata?.stationB?.id;
+        const hasHintA = entry.stationA !== undefined;
+        const hasHintB = entry.stationB !== undefined;
+        check("manifest", hasHintA === hasHintB, `${at}: stationA/stationB hints must be both present or both absent`);
+        if (hasHintA && hasHintB) {
+          check("manifest", typeof entry.stationA === "string" && entry.stationA.length > 0 && typeof entry.stationB === "string" && entry.stationB.length > 0, `${at}: pair hints must be non-empty strings`);
+          check("manifest", entry.stationA === fixtureA, `${at}.stationA hint "${entry.stationA}" != fixture metadata.stationA.id "${fixtureA}"`);
+          check("manifest", entry.stationB === fixtureB, `${at}.stationB hint "${entry.stationB}" != fixture metadata.stationB.id "${fixtureB}"`);
+          check("manifest", registryIds.has(entry.stationA), `${at}.stationA hint "${entry.stationA}" is not a registry station id`);
+          check("manifest", registryIds.has(entry.stationB), `${at}.stationB hint "${entry.stationB}" is not a registry station id`);
+        } else {
+          check("manifest", !(typeof fixtureA === "string" && typeof fixtureB === "string"), `${at}: fixture declares endpoints ${fixtureA}/${fixtureB} but the manifest entry carries no pair hints — pre-selection would silently skip it`);
+        }
       }
     }
     check("manifest", defaults === 1, `exactly one default entry required (got ${defaults})`);
