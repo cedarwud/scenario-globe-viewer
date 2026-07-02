@@ -2456,6 +2456,16 @@ function renderResult(
   // not recreated, so the user can keep dragging while the panel recomputes.
   const sliderWasFocused = document.activeElement === rainControl.slider;
   const savedScrollTop = root.scrollTop;
+  // Discoverability (panel-density slice): re-renders (rain drags, recomputes)
+  // preserve whatever open/closed state the user left the ESTNeT section in.
+  // Captured HERE — before replaceChildren() below removes the old node; a
+  // later read would always see undefined and silently force the section back
+  // open. (The nested honesty / model-delta expandables are rebuilt async by
+  // the section itself and reset to collapsed — known limit, ADR 0015
+  // decision 9.)
+  const previousEstnetOpen = root.querySelector<HTMLDetailsElement>(
+    '[data-disclosure="estnet-packet-trace"]'
+  )?.open;
 
   for (const child of Array.from(root.children)) {
     if (typeof (child as any).__disposeHelp === "function") {
@@ -2490,11 +2500,8 @@ function renderResult(
 
   // Discoverability (panel-density slice): the section renders OPEN by
   // default — the pre-slice collapsed-at-panel-bottom default meant clicking
-  // the toolbar toggle visibly changed nothing. Re-renders (rain drags,
-  // recomputes) preserve whatever open/closed state the user left it in.
-  const previousEstnetOpen = root.querySelector<HTMLDetailsElement>(
-    '[data-disclosure="estnet-packet-trace"]'
-  )?.open;
+  // the toolbar toggle visibly changed nothing. `previousEstnetOpen` is
+  // captured at the top of this function, before the old DOM is replaced.
   const estnetSection = resolveEstnetTraceOptIn()
     ? buildEstnetTracePanelSection({
         runtimeResult: result,

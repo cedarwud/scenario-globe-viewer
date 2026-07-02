@@ -274,6 +274,10 @@ toggle-ON add-only + open-by-default + scroll-into-view, per-trace
 axis/honesty-verbatim/pair-binding assertions plus the density contract
 (one-line intro, collapsed expandables, non-claim count in the summary
 line), the report ESTNeT appendix end-to-end (with/without `estnet=1`),
+the REAL Report button probed in both modes (its URL carries `estnet=1`
+exactly when the mode is on; the async mock-window fallback write honors
+the same opt-in), a rain-drag re-render check (the section's open/closed
+state survives; nested expandables reset — known limit, ADR 0015 d9),
 and toggle-OFF full DOM teardown. Track decisions are recorded in
 `docs/decisions/0015-estnet-packet-trace-panel.md`.
 

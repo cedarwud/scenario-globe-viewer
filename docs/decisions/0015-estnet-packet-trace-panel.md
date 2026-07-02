@@ -127,6 +127,23 @@ Two prior lessons bound the design:
    bottom-of-panel default made the toolbar toggle look like a no-op);
    re-renders preserve the user's open/closed state.
 
+   *Dual-review fold (codex + Gemini, 2026-07-02):* the shipped slice read
+   the previous open state AFTER the panel's `replaceChildren()`, so the
+   "re-renders preserve state" sentence above was false as first coded —
+   fixed (capture moved before the DOM swap) and now gate-locked by a
+   rain-drag re-render check. Two more folds: the appendix loader
+   shape-gates each fixture (a malformed-but-parseable fixture degrades to
+   its own error row instead of taking down the whole `estnet=1` report),
+   and the gate now clicks the REAL Report button in both modes (URL must
+   carry `estnet=1` exactly when the mode is on; the async mock-window
+   fallback write must honor the same opt-in) — previously only a
+   hand-built /report URL was exercised. **Known limit:** the nested
+   honesty / model-delta expandables inside the section are rebuilt
+   asynchronously per trace render and reset to collapsed on re-render;
+   only the section-level open/closed state is preserved. Accepted — the
+   fix would need per-trace state plumbing across the section module for a
+   minor annoyance.
+
 ## Consequences
 
 - The accepted 19/19 surface stays untouched by default — proven by gates,

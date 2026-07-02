@@ -71,6 +71,11 @@ function rainRateForReportUrl(result: RuntimeProjectionResult): number | null {
   return null;
 }
 
+// The await below puts the anchor-click download after an async boundary.
+// With the mode OFF that boundary is a single microtask (no fetch); with it ON
+// the fetches are same-origin static fixtures (sub-second), well inside the
+// browsers' transient-activation budget — strict blockers would otherwise
+// drop a download issued outside a user gesture.
 export async function downloadRuntimeProjectionEvidenceReport(
   result: RuntimeProjectionResult,
   ownerDocument: Document = document

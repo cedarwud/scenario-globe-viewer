@@ -80,7 +80,25 @@ export async function loadEstnetReportAppendixData(): Promise<EstnetReportAppend
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}`);
       }
-      entries.push({ entry, trace: (await response.json()) as PacketTrace });
+      const trace = (await response.json()) as PacketTrace;
+      // Minimal shape gate: the renderer dereferences these unconditionally
+      // (`trace.samples.length`, `trace.summary.*`), so a syntactically valid
+      // but malformed fixture must degrade to THIS entry's error row — never
+      // take down the whole estnet=1 report render.
+      if (
+        typeof trace !== "object" ||
+        trace === null ||
+        typeof trace.pathLabel !== "string" ||
+        typeof trace.sourceClass !== "string" ||
+        !Array.isArray(trace.samples) ||
+        typeof trace.summary !== "object" ||
+        trace.summary === null
+      ) {
+        throw new Error(
+          "fixture violates the packet-trace contract (pathLabel/sourceClass/samples/summary)"
+        );
+      }
+      entries.push({ entry, trace });
     } catch (error) {
       entries.push({
         entry,

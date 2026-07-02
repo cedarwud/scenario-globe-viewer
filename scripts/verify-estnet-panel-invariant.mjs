@@ -422,6 +422,50 @@ function check(name, cond, detail) {
   if (!cond) failures.push({ name, detail });
 }
 
+// Report-button probe (dual-review fold, 2026-07-02): stubs window.open,
+// clicks the panel's REAL "Open evidence report" button, and captures the two
+// contract seams the /report-URL E2E below cannot see — the URL the button
+// actually builds (must append estnet=1 exactly when the mode is on) and the
+// mock-window fallback write (the async appendix path must honor the same
+// opt-in). Returns null when the button is missing.
+async function probeReportButton() {
+  const started = await evald(`(() => {
+    const button = document.querySelector('[data-report-action="open-html"]');
+    if (!button) return false;
+    const originalOpen = window.open;
+    const probe = { url: null, writtenHtml: "", done: false };
+    window.__estnetReportProbe = probe;
+    const fakeWindow = {
+      document: {
+        open() { probe.writtenHtml = ""; },
+        write(v) { probe.writtenHtml += String(v); },
+        close() { probe.done = true; }
+      },
+      focus() {},
+      set opener(_) {}
+    };
+    window.open = (url) => { probe.url = String(url); return fakeWindow; };
+    try { button.click(); } finally { window.open = originalOpen; }
+    return true;
+  })()`);
+  if (!started) return null;
+  await waitForCondition(
+    `Boolean(window.__estnetReportProbe) && window.__estnetReportProbe.done === true`,
+    30000,
+    "report-button mock-window write completed"
+  );
+  return evald(`(() => {
+    const probe = window.__estnetReportProbe;
+    delete window.__estnetReportProbe;
+    return {
+      url: probe.url,
+      wroteReport: probe.writtenHtml.includes("data-report-filename"),
+      hasAppendixTab: probe.writtenHtml.includes('data-tab-target="estnet"'),
+      hasAppendixLabel: probe.writtenHtml.includes("ESTNeT appendix")
+    };
+  })()`);
+}
+
 let vite = null;
 let chrome = null;
 try {
@@ -528,6 +572,27 @@ try {
     "no-uncaught-exception-or-unhandled-rejection (default load)",
     pageExceptions.length === 0,
     pageExceptions.slice(0, 5)
+  );
+
+  // 3b. report-button probe while OFF: the REAL button (not a hand-built
+  // /report URL) must neither leak the estnet param nor write an appendix
+  // into the mock-window fallback — the accepted default report delivery
+  // path stays untouched.
+  const probeOff = await probeReportButton();
+  check(
+    "default-report-button-url-has-no-estnet-param (opt-in never leaks into the default report URL)",
+    probeOff !== null &&
+      typeof probeOff.url === "string" &&
+      !probeOff.url.includes("estnet="),
+    probeOff && probeOff.url
+  );
+  check(
+    "default-report-button-fallback-write-has-no-appendix (mock-window write = default surface)",
+    probeOff !== null &&
+      probeOff.wroteReport === true &&
+      probeOff.hasAppendixTab === false &&
+      probeOff.hasAppendixLabel === false,
+    probeOff
   );
 
   // Expected-model inputs: the manifest + every fixture, fetched from the same
@@ -675,6 +740,27 @@ try {
     }
   }
 
+  // 5b. report-button probe while ON: the panel's honesty one-liner points at
+  // "Report → ESTNeT appendix", so the REAL button must append estnet=1 (ADR
+  // 0015 decision 9) and the async mock-window fallback must deliver the
+  // appendix — otherwise that pointer overclaims.
+  const probeOn = await probeReportButton();
+  check(
+    "ON-report-button-url-carries-estnet-param (the button appends estnet=1 exactly when the mode is on)",
+    probeOn !== null &&
+      typeof probeOn.url === "string" &&
+      /[?&]estnet=1(&|$)/.test(probeOn.url),
+    probeOn && probeOn.url
+  );
+  check(
+    "ON-report-button-fallback-write-carries-appendix (async mock-window path honors the opt-in)",
+    probeOn !== null &&
+      probeOn.wroteReport === true &&
+      probeOn.hasAppendixTab === true &&
+      probeOn.hasAppendixLabel === true,
+    probeOn
+  );
+
   // 6. toggle OFF: the section's DOM is REMOVED (not display:none), zero
   // estnet nodes remain, and the panel structure returns to the default.
   check("OFF-click-toggle", await clickEstnetToggle(), null);
@@ -786,6 +872,39 @@ try {
         { got: sMismatch.pairNote, want: wantLine, delta: sMismatch.modelDelta }
       );
     }
+
+    // 7b. re-render state preservation (dual-review fold, 2026-07-02): close
+    // the section, drag the rain slider (a full recompute + renderResult
+    // pass), and require the closed state to survive — the open-state capture
+    // must happen BEFORE the panel's replaceChildren, or every re-render
+    // silently forces the section back open. Runs on the seed page: nothing
+    // after this step reads this page's panel signature, so the rain change
+    // cannot pollute the earlier structural comparisons.
+    const rerenderArmed = await evald(`(() => {
+      const d = document.querySelector('[data-disclosure="estnet-packet-trace"]');
+      const slider = document.querySelector(".v4-projection-side-panel__rain-slider");
+      if (!d || !slider) return false;
+      d.open = false;
+      slider.value = "5";
+      slider.dispatchEvent(new Event("input", { bubbles: true }));
+      return true;
+    })()`);
+    check("seed-rain-rerender-armed (section closed + slider drag dispatched)", rerenderArmed === true, rerenderArmed);
+    await waitForCondition(
+      `(() => {
+        const p = document.querySelector('[data-v4-projection-side-panel="true"]');
+        return Boolean(p && p.dataset.rainRateMmPerHour === "5" &&
+          document.querySelector('[data-disclosure="estnet-packet-trace"]'));
+      })()`,
+      120000,
+      "rain re-render completed (rain=5 result rendered)"
+    );
+    const sRerender = await readEstnetState();
+    check(
+      "seed-rain-rerender-preserves-closed-state (re-renders must not force the section back open)",
+      sRerender.sectionOpen === false,
+      { open: sRerender.sectionOpen }
+    );
   } else {
     check("seed-cross-route-step", false, "no cross-pair hinted manifest entry found — cannot exercise the seed/cross-route step");
   }
