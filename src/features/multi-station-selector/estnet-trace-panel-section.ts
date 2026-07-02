@@ -1249,15 +1249,15 @@ function buildModelDeltaBlock(overlay: ModelOverlay): HTMLElement {
   return block;
 }
 
-// Honesty foot. Panel-density rule (2026-07-02): the verbatim assumptionSet /
-// nonClaims walls are report-density content — the panel keeps the honesty
-// CLAIM (a one-line summary with the non-claim count) and the verbatim TEXT
-// moves behind an on-demand expand; the same text also renders in full in the
-// report's ESTNeT appendix. The verbatim invariant is preserved, not deleted:
-// verify:estnet:panel keeps asserting `.v4-estnet-trace__assumptions` and
-// `.v4-estnet-trace__nonclaims li` against the fixture JSON — they now live
-// inside the collapsed <details> (still in the DOM), plus a collapsed-by-
-// default check on the wrapper itself.
+// Honesty foot. Panel-density rule (2026-07-02, second pass): the verbatim
+// assumptionSet / nonClaims walls are report-density content and do NOT
+// render in the panel at all — the panel keeps only the honesty CLAIM (one
+// line: title + non-claim count + pointer), and the verbatim text lives
+// solely in the report's ESTNeT appendix (opt-in `estnet=1`), where
+// verify:estnet:panel asserts it per fixture, character-exact. The first
+// pass kept the walls in a collapsed <details>; the standing user rule reads
+// stricter — collapsed-but-present is still panel density — so the gate now
+// asserts the verbatim text is ABSENT from the panel DOM.
 function buildFoot(trace: PacketTrace): HTMLElement {
   const foot = document.createElement("div");
   foot.className = "v4-estnet-trace__foot";
@@ -1265,20 +1265,16 @@ function buildFoot(trace: PacketTrace): HTMLElement {
   // Relay identities: the multi-orbit satellites map can be a 20+-name wall
   // (the domestic chain serves 17 LEO birds), so the visible meta line keys
   // off the map's orbit KEYS only (structural — no name parsing, the values
-  // are free-form descriptors where a comma is NOT a separator) and the full
-  // verbatim name list moves into the honesty expandable. The chart's segment
-  // labels keep showing each serving satellite in place.
+  // are free-form descriptors where a comma is NOT a separator). The full
+  // verbatim name list renders in the report appendix's provenance table;
+  // the chart's segment labels keep showing each serving satellite in place.
   const meta = trace.metadata;
-  let relayNamesVerbatim: string | null = null;
   if (meta) {
     const metaLine = document.createElement("div");
     metaLine.className = "v4-estnet-trace__meta";
     if (meta.satellites) {
       const orbits = Object.keys(meta.satellites).join(" / ");
       metaLine.textContent = `relays: ${orbits} · sim epoch ${meta.simEpochUtc ?? "—"}`;
-      relayNamesVerbatim = Object.entries(meta.satellites)
-        .map(([orbit, sat]) => `${orbit}: ${sat}`)
-        .join(" · ");
     } else if (meta.satellite) {
       metaLine.textContent = `sat: ${meta.satellite} · sim epoch ${meta.simEpochUtc ?? "—"}`;
     }
@@ -1287,12 +1283,9 @@ function buildFoot(trace: PacketTrace): HTMLElement {
     }
   }
 
-  const honesty = document.createElement("details");
+  const honesty = document.createElement("div");
   honesty.className = "v4-estnet-trace__honesty";
-  honesty.dataset.honestyDisclosure = "true";
-
-  const summaryLine = document.createElement("summary");
-  summaryLine.className = "v4-estnet-trace__expand-summary";
+  honesty.dataset.honestyPointer = "true";
   const title = document.createElement("span");
   title.className = "v4-estnet-trace__expand-title";
   title.textContent = "Assumptions & non-claims";
@@ -1301,39 +1294,8 @@ function buildFoot(trace: PacketTrace): HTMLElement {
   countChip.textContent = `${trace.nonClaims?.length ?? 0} non-claims`;
   const hint = document.createElement("span");
   hint.className = "v4-estnet-trace__expand-hint";
-  hint.textContent = "verbatim here · Report → ESTNeT appendix";
-  summaryLine.append(title, countChip, hint);
-
-  const bodyWrap = document.createElement("div");
-  bodyWrap.className = "v4-estnet-trace__honesty-body";
-
-  if (relayNamesVerbatim) {
-    const relayLine = document.createElement("div");
-    relayLine.className = "v4-estnet-trace__meta";
-    relayLine.dataset.relayNames = "true";
-    relayLine.textContent = `relays — ${relayNamesVerbatim}`;
-    bodyWrap.append(relayLine);
-  }
-
-  const assumptions = document.createElement("p");
-  assumptions.className = "v4-estnet-trace__assumptions";
-  const strong = document.createElement("strong");
-  strong.textContent = "Assumptions: ";
-  assumptions.append(strong, document.createTextNode(trace.assumptionSet ?? "—"));
-  bodyWrap.append(assumptions);
-
-  if (trace.nonClaims && trace.nonClaims.length > 0) {
-    const list = document.createElement("ul");
-    list.className = "v4-estnet-trace__nonclaims";
-    for (const claim of trace.nonClaims) {
-      const li = document.createElement("li");
-      li.textContent = claim;
-      list.append(li);
-    }
-    bodyWrap.append(list);
-  }
-
-  honesty.append(summaryLine, bodyWrap);
+  hint.textContent = "verbatim → Report · ESTNeT appendix";
+  honesty.append(title, countChip, hint);
   foot.append(honesty);
 
   return foot;

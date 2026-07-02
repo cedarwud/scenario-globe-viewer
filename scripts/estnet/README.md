@@ -258,22 +258,26 @@ the chart svg exposes `data-y-axis` for machine assertions) and renders each
 trace's own provenance badges; the `operator-measured` tier is refused
 upstream and never rendered.
 
-**Panel density (2026-07-02, ADR 0015 decision 9):** the section is
-visual-first — one-line intro, per-trace badges, stat cards, chart, per-orbit
-Δ chips; the verbatim honesty text (assumptionSet / nonClaims, relay-name
-lists) sits behind collapsed `<details>` expandables and lands in full in the
-evidence report's **ESTNeT appendix** tab (the Report button appends
-`estnet=1` exactly when the display mode is on; without it the report HTML is
-byte-identical to the accepted default). The section renders open, and a live
-toolbar toggle-on scrolls it into view.
+**Panel density (2026-07-02, ADR 0015 decision 9 + second pass):** the
+section is visual-first — one-line intro, per-trace badges, stat cards,
+chart, per-orbit Δ chips; the verbatim honesty text (assumptionSet /
+nonClaims, relay-name lists) renders ONLY in the evidence report's **ESTNeT
+appendix** tab — the panel keeps a single non-expandable pointer line
+("Assumptions & non-claims · N non-claims · verbatim → Report") and the gate
+asserts the verbatim text is absent from the panel DOM. The Report button
+appends `estnet=1` exactly when the display mode is on; without it the
+report HTML is byte-identical to the accepted default. The section renders
+open, and a live toolbar toggle-on scrolls it into view.
 
 The whole opt-in surface is gate-guarded by `npm run verify:estnet:panel`
 (`scripts/verify-estnet-panel-invariant.mjs`, standalone CDP browser gate,
 not part of `npm test`): default-off absence with a fresh Chrome profile,
 toggle-ON add-only + open-by-default + scroll-into-view, per-trace
-axis/honesty-verbatim/pair-binding assertions plus the density contract
-(one-line intro, collapsed expandables, non-claim count in the summary
-line), the report ESTNeT appendix end-to-end (with/without `estnet=1`),
+axis/pair-binding assertions plus the density contract (one-line intro,
+honesty pointer line with the non-claim count, verbatim honesty text
+ABSENT from the panel DOM, model-delta collapsed), the report ESTNeT
+appendix end-to-end (with/without `estnet=1` — the appendix is the only
+place the verbatim text renders, asserted character-exact per fixture),
 the REAL Report button probed in both modes (its URL carries `estnet=1`
 exactly when the mode is on; the async mock-window fallback write honors
 the same opt-in), a rain-drag re-render check (the section's open/closed

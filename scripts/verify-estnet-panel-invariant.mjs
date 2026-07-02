@@ -12,16 +12,15 @@
 //     row survives unchanged (structural signature comparison, no pixels).
 //   - Every manifest trace is selectable without an error block; each trace's
 //     y-axis semantic is asserted via the chart's `data-y-axis` attribute
-//     (never by crawling SVG internals), and its `assumptionSet` + `nonClaims`
-//     render VERBATIM from the fixture JSON (badges are label-mapped, so they
-//     are presence-checked only). Panel-density re-anchor (2026-07-02): the
-//     verbatim text now lives inside a collapsed-by-default honesty
-//     <details> — the verbatim checks keep asserting the same selectors (the
-//     text is in the DOM either way) and new checks pin the density contract
-//     itself: intro is a one-liner, the honesty wrapper and the model-delta
-//     block are collapsed expandables, and the honesty summary line carries
-//     the fixture's non-claim count.
-//   - Report appendix (the report-density landing): /report opened WITH
+//     (never by crawling SVG internals). Panel-density second pass
+//     (2026-07-02): the verbatim assumptionSet/nonClaims text does NOT render
+//     in the panel at all — the panel carries a one-line honesty POINTER
+//     (title + non-claim count + "Report" hint, not an expandable), and the
+//     per-trace checks assert the verbatim text is ABSENT from the panel DOM;
+//     the intro stays a one-liner and the model-delta block stays a collapsed
+//     expandable. Badges are label-mapped, so they are presence-checked only.
+//   - Report appendix (the report-density landing, and since the second pass
+//     the ONLY place the verbatim honesty text renders): /report opened WITH
 //     `estnet=1` renders an "ESTNeT appendix" tab carrying every fixture's
 //     assumptionSet + nonClaims verbatim; /report WITHOUT the param has no
 //     estnet tab (the accepted default report surface is untouched).
@@ -278,7 +277,7 @@ function readEstnetState() {
     const sections = document.querySelectorAll('[data-disclosure="estnet-packet-trace"]');
     const mount = sections[0]?.querySelector(".v4-estnet-trace__mount") ?? null;
     const note = mount?.querySelector('[data-pair-mismatch="true"]') ?? null;
-    const honesty = mount?.querySelector('[data-honesty-disclosure="true"]') ?? null;
+    const honesty = mount?.querySelector('[data-honesty-pointer="true"]') ?? null;
     const modelDeltaEl = mount?.querySelector('[data-model-delta="true"]') ?? null;
     return {
       sectionCount: sections.length,
@@ -294,13 +293,13 @@ function readEstnetState() {
       introChars:
         sections[0]?.querySelector(".v4-estnet-trace__intro")?.textContent.length ?? null,
       honestyPresent: Boolean(honesty),
-      honestyOpen: honesty ? honesty.open : null,
-      honestySummary: honesty?.querySelector("summary")?.textContent ?? null,
-      assumptions: mount?.querySelector(".v4-estnet-trace__assumptions")?.textContent ?? null,
-      nonClaims: Array.from(
-        mount?.querySelectorAll(".v4-estnet-trace__nonclaims li") ?? [],
-        (li) => li.textContent
+      honestyIsExpandable: honesty ? honesty.tagName === "DETAILS" : null,
+      honestyLine: honesty ? honesty.textContent : null,
+      wallSelectorsPresent: Boolean(
+        mount?.querySelector(".v4-estnet-trace__assumptions") ||
+          mount?.querySelector(".v4-estnet-trace__nonclaims")
       ),
+      panelText: sections[0] ? sections[0].textContent : "",
       buttons: Array.from(
         sections[0]?.querySelectorAll(".v4-estnet-trace__toggle-btn") ?? [],
         (b) => b.dataset.variant
@@ -694,26 +693,30 @@ try {
       s.yAxis === expectedYAxis(fixture),
       { got: s.yAxis, want: expectedYAxis(fixture) }
     );
+    // Panel-density second pass: the panel carries the honesty CLAIM (one
+    // non-expandable pointer line with the count) and NONE of the verbatim
+    // text — the character-exact assumptionSet/nonClaims anchor is the report
+    // appendix E2E below (report-appendix[id]-honesty-text-verbatim).
     check(
-      `menu[${entry.id}]-assumptionSet-verbatim`,
-      s.assumptions === `Assumptions: ${fixture.assumptionSet}`,
-      { got: s.assumptions }
+      `menu[${entry.id}]-honesty-pointer-line (count + report pointer, not an expandable)`,
+      s.honestyPresent === true &&
+        s.honestyIsExpandable === false &&
+        typeof s.honestyLine === "string" &&
+        s.honestyLine.includes(`${(fixture.nonClaims ?? []).length} non-claims`) &&
+        s.honestyLine.includes("Report"),
+      { got: s.honestyLine, expandable: s.honestyIsExpandable }
     );
     check(
-      `menu[${entry.id}]-nonClaims-verbatim (every line, in order)`,
-      JSON.stringify(s.nonClaims) === JSON.stringify(fixture.nonClaims ?? []),
-      { got: s.nonClaims, want: fixture.nonClaims }
+      `menu[${entry.id}]-assumptionSet-NOT-in-panel (report-density: verbatim lives only in the appendix)`,
+      s.wallSelectorsPresent === false &&
+        (typeof fixture.assumptionSet !== "string" ||
+          !s.panelText.includes(fixture.assumptionSet)),
+      { wallSelectors: s.wallSelectorsPresent }
     );
     check(
-      `menu[${entry.id}]-honesty-collapsed-expandable (verbatim text behind a closed <details>, never deleted)`,
-      s.honestyPresent === true && s.honestyOpen === false,
-      { present: s.honestyPresent, open: s.honestyOpen }
-    );
-    check(
-      `menu[${entry.id}]-honesty-summary-carries-the-count (${(fixture.nonClaims ?? []).length} non-claims)`,
-      typeof s.honestySummary === "string" &&
-        s.honestySummary.includes(`${(fixture.nonClaims ?? []).length} non-claims`),
-      { got: s.honestySummary }
+      `menu[${entry.id}]-nonClaims-NOT-in-panel (report-density: verbatim lives only in the appendix)`,
+      (fixture.nonClaims ?? []).every((claim) => !s.panelText.includes(claim)),
+      null
     );
     const wantNote = expectedPairNote(fixture, routeA, routeB);
     check(

@@ -138,11 +138,25 @@ Two prior lessons bound the design:
    carry `estnet=1` exactly when the mode is on; the async mock-window
    fallback write must honor the same opt-in) — previously only a
    hand-built /report URL was exercised. **Known limit:** the nested
-   honesty / model-delta expandables inside the section are rebuilt
-   asynchronously per trace render and reset to collapsed on re-render;
-   only the section-level open/closed state is preserved. Accepted — the
-   fix would need per-trace state plumbing across the section module for a
-   minor annoyance.
+   model-delta expandable inside the section is rebuilt asynchronously per
+   trace render and resets to collapsed on re-render; only the
+   section-level open/closed state is preserved. Accepted — the fix would
+   need per-trace state plumbing across the section module for a minor
+   annoyance.
+
+   *Second pass (same day, user correction):* the first pass kept the
+   verbatim assumptionSet / nonClaims walls in the panel inside a collapsed
+   `<details>` and called that compliant. The standing rule reads stricter:
+   those walls are report-density content, and collapsed-but-present is
+   still panel density. Now the panel renders ONLY the honesty claim — a
+   single non-expandable pointer line ("Assumptions & non-claims · N
+   non-claims · verbatim → Report · ESTNeT appendix") — and the verbatim
+   text renders solely in the report's ESTNeT appendix. The gate flipped
+   accordingly: the per-trace panel checks assert the verbatim text is
+   ABSENT from the panel DOM (plus the pointer line with the count), and
+   the character-exact verbatim anchor is the report-appendix E2E. The
+   relay-name list follows the same rule (orbit keys in the panel, verbatim
+   descriptors in the appendix provenance table).
 
 ## Consequences
 

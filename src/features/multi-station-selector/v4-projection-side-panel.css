@@ -2574,19 +2574,6 @@ body:has([data-v4-projection-side-panel="true"])
   line-height: 1.42;
   color: rgba(157, 196, 232, 0.72);
 }
-.v4-estnet-trace__assumptions {
-  margin: 0;
-}
-.v4-estnet-trace__assumptions strong {
-  color: #e6f7f1;
-}
-.v4-estnet-trace__nonclaims {
-  margin: 0.35rem 0 0;
-  padding-left: 1.1rem;
-}
-.v4-estnet-trace__nonclaims li {
-  margin: 0.15rem 0;
-}
 .v4-estnet-trace__meta {
   margin-top: 0.4rem;
   color: rgba(157, 196, 232, 0.6);
@@ -2663,15 +2650,21 @@ details[open] > .v4-estnet-trace__expand-summary::before {
 .v4-estnet-trace__delta-chip--warn {
   --orbit-color: #ffcf5c;
 }
+/* Honesty pointer (panel-density rule, second pass): a single non-expandable
+   line — title + non-claim count chip + report pointer. The verbatim
+   assumptionSet / nonClaims text renders ONLY in the report's ESTNeT
+   appendix, never in the panel. */
 .v4-estnet-trace__honesty {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
   border: 1px solid rgba(126, 226, 184, 0.14);
   border-radius: 0.5rem;
   padding: 0.45rem 0.75rem;
   background: rgba(126, 226, 184, 0.03);
   margin-top: 0.45rem;
-}
-.v4-estnet-trace__honesty-body {
-  margin-top: 0.55rem;
+  color: rgba(240, 240, 240, 0.85);
 }
 .v4-estnet-trace__model-delta-head {
   font-size: 1.02rem;
