@@ -33,6 +33,7 @@ import { createRuntimeProjectionWorkerClient } from "./runtime-projection-worker
 import { buildReplayControlRow } from "./v4-projection-replay-controls";
 import { buildCsvHelpControl } from "./v4-projection-csv-help";
 import { buildEstnetTracePanelSection } from "./estnet-trace-panel-section";
+import { createCesiumReplayClock } from "../time/cesium-replay-clock";
 import {
   isEstnetTraceDisplayEnabled,
   subscribeEstnetTraceDisplay
@@ -2488,7 +2489,14 @@ function renderResult(
   );
 
   const estnetSection = resolveEstnetTraceOptIn()
-    ? buildEstnetTracePanelSection()
+    ? buildEstnetTracePanelSection({
+        runtimeResult: result,
+        // Same replay-time source the timeline markers key off: the section's
+        // chart cursor subscribes to the viewer clock via the plain
+        // replay-clock contract and unsubscribes through its __disposeHelp.
+        replayClock:
+          viewer && !viewer.isDestroyed() ? createCesiumReplayClock(viewer) : null
+      })
     : null;
 
   if (compareMode === PRE_WAVE2_COMPARE_MODE) {

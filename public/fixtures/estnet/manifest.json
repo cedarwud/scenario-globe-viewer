@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "note": "Trace menu for the opt-in packet-trace panel section. Each entry points at a PacketTrace fixture (contract: scripts/estnet/PACKET-TRACE-CONTRACT.md). Adding a reviewed fixture + one entry here makes it selectable in the panel. Provenance, honesty badges and non-claims always render from the fixture itself, never from this file — a manifest entry cannot upgrade a trace's tier.",
+  "traces": [
+    {
+      "id": "handover",
+      "label": "GEO↔MEO handover",
+      "url": "/fixtures/estnet/cht-sansa-handover-packet-trace.json",
+      "default": true
+    },
+    {
+      "id": "geo",
+      "label": "GEO steady-state",
+      "url": "/fixtures/estnet/cht-sansa-abs2a-packet-trace.json"
+    }
+  ]
+}

@@ -2599,3 +2599,64 @@ body:has([data-v4-projection-side-panel="true"])
   border-radius: 0.5rem;
   font-size: 1rem;
 }
+.v4-estnet-trace__legend-sw--dashed {
+  background: transparent;
+  border-top: 2px dashed currentColor;
+  height: 0;
+  border-radius: 0;
+  vertical-align: 0.15rem;
+}
+.v4-estnet-trace__model-delta {
+  background: rgba(240, 240, 240, 0.04);
+  border: 1px dashed rgba(240, 240, 240, 0.28);
+  border-radius: 0.5rem;
+  padding: 0.6rem 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.v4-estnet-trace__model-delta-title {
+  font-size: 1rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: rgba(240, 240, 240, 0.82);
+}
+.v4-estnet-trace__model-delta-head {
+  font-size: 1.02rem;
+  color: #e6f7f1;
+}
+.v4-estnet-trace__model-delta-orbit[data-orbit="GEO"] .v4-estnet-trace__model-delta-head {
+  border-left: 3px solid #4cc2ff;
+  padding-left: 0.5rem;
+}
+.v4-estnet-trace__model-delta-orbit[data-orbit="MEO"] .v4-estnet-trace__model-delta-head {
+  border-left: 3px solid #7cffb2;
+  padding-left: 0.5rem;
+}
+.v4-estnet-trace__model-delta-terms {
+  margin: 0.25rem 0 0;
+  padding-left: 1.3rem;
+  font-size: 0.98rem;
+  color: rgba(157, 196, 232, 0.8);
+}
+.v4-estnet-trace__model-delta-terms li {
+  margin: 0.12rem 0;
+}
+.v4-estnet-trace__model-delta-note {
+  margin: 0;
+  font-size: 0.95rem;
+  font-style: italic;
+  color: rgba(157, 196, 232, 0.62);
+}
+.v4-estnet-trace__svg-model-label {
+  font-size: 12px;
+  opacity: 0.85;
+}
+.v4-estnet-trace__svg-cursor-label {
+  font-size: 12px;
+  font-weight: 600;
+  paint-order: stroke;
+  stroke: rgba(6, 18, 27, 0.85);
+  stroke-width: 3px;
+}

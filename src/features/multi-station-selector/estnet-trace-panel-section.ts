@@ -1,31 +1,38 @@
-// ESTNeT packet-trace panel — opt-in (`?estnet=1`) side-panel disclosure section.
+// Packet-trace panel — opt-in side-panel disclosure section (ESTNeT / network test).
 //
-// Ports the two standalone preview pages (`public/estnet-trace-panel.html`,
-// `public/estnet-handover-trace-panel.html`) into the V4 ground-station side
-// panel as a single collapsible `<details>` disclosure with an in-panel toggle
-// that switches between the two real ESTNeT traces for the canonical CHT × SANSA
-// demo pair:
-//   - GEO steady-state (schemaVersion 1, ABS-2A flat ~493.9 ms line)
-//   - GEO↔MEO handover  (schemaVersion 2, APSTAR-7 ⇄ GSAT0102, latency steps)
+// Renders PacketTrace fixtures (contract: scripts/estnet/PACKET-TRACE-CONTRACT.md)
+// as a single collapsible `<details>` disclosure. The trace menu is driven by
+// `public/fixtures/estnet/manifest.json`: each entry points at one reviewed
+// fixture, so a future requirement-side delivery becomes selectable by adding a
+// manifest line — no code change. The renderer is latencySemantic-aware
+// (`one-way` composed / `rtt` / `none`) and tolerates absent metric channels
+// (e.g. ping has no throughput, iperf3 has no latency).
 //
-// Honesty (R12): both fixtures are external-simulator-derived (ESTNeT v1.0,
-// NOT operator-measured), jitter+loss are adapter-derived, the end-to-end is a
-// composition of two one-hop RF legs, and the handover is a showcase route
-// preference (mirrors `demo-balanced-v1`), NOT an RF-failure handover. Those
-// disclosures travel in the fixture (`sourceClass`/`nonClaims`/`assumptionSet`)
-// and are rendered verbatim — this section never upgrades the provenance tier.
+// Honesty (R12): provenance badges and non-claims always render from the
+// fixture itself (`sourceClass`/`nonClaims`/`assumptionSet`), never from the
+// manifest — a manifest entry cannot upgrade a trace's tier, and no trace in
+// this chain is an operator RF measurement (the ingest tool refuses the
+// operator-measured tier). The committed rehearsal traces are ESTNeT-simulated:
+// jitter+loss adapter-derived, end-to-end composed from two one-hop RF legs,
+// handover a showcase route preference (mirrors `demo-balanced-v1`).
 //
-// Opt-in only: nothing renders unless `?estnet=1` is present, so the accepted
-// 19/19 default surface is untouched.
+// Opt-in only: nothing renders unless the ESTNeT display mode is on, so the
+// accepted 19/19 default surface is untouched.
+
+import type { ReplayClock, ReplayClockState } from "../time/replay-clock";
+import type {
+  RepresentativeLinkBudget,
+  RuntimeProjectionResult
+} from "./runtime-projection";
 
 interface PacketTraceSample {
   readonly tMs: number;
   readonly latencyMs: number | null;
-  readonly jitterMs?: number;
-  readonly throughputMbps?: number;
-  readonly packetLossRatio?: number;
+  readonly jitterMs?: number | null;
+  readonly throughputMbps?: number | null;
+  readonly packetLossRatio?: number | null;
   readonly linkUp?: boolean;
-  readonly hops?: number;
+  readonly hops?: number | null;
   readonly servingSatellite?: string;
   readonly orbitClass?: string;
 }
@@ -43,7 +50,7 @@ interface PacketTraceSummary {
   readonly sentPackets: number;
   readonly deliveredEndToEnd: number;
   readonly overallPacketLossRatio: number;
-  readonly meanLatencyMs: number;
+  readonly meanLatencyMs?: number;
   readonly minLatencyMs?: number;
   readonly maxLatencyMs?: number;
   readonly finalJitterMs?: number;
@@ -56,6 +63,7 @@ interface PacketTrace {
   readonly pathLabel: string;
   readonly sourceClass: string;
   readonly toolProvenance?: string;
+  readonly latencySemantic?: string;
   readonly assumptionSet?: string;
   readonly handover?: boolean;
   readonly nonClaims?: ReadonlyArray<string>;
@@ -65,20 +73,197 @@ interface PacketTrace {
     readonly satellites?: { readonly [orbit: string]: string };
     readonly propagationPerHopMs?: number;
     readonly handoverWindowUtc?: ReadonlyArray<string>;
+    readonly ingestFormat?: string;
+    readonly deliveredBy?: string;
   };
   readonly segments?: ReadonlyArray<PacketTraceSegment>;
   readonly summary: PacketTraceSummary;
   readonly samples: ReadonlyArray<PacketTraceSample>;
 }
 
-type TraceVariant = "handover" | "geo";
+// `one-way` is the contract default: the two committed adapters omit the field
+// and their end-to-end latency is a composed one-way (uplink + downlink).
+type LatencySemantic = "one-way" | "rtt" | "none";
 
-const FIXTURE_URLS: Record<TraceVariant, string> = {
-  handover: "/fixtures/estnet/cht-sansa-handover-packet-trace.json",
-  geo: "/fixtures/estnet/cht-sansa-abs2a-packet-trace.json"
-};
+function latencySemanticOf(trace: PacketTrace): LatencySemantic {
+  return trace.latencySemantic === "rtt" || trace.latencySemantic === "none"
+    ? trace.latencySemantic
+    : "one-way";
+}
 
-const DEFAULT_VARIANT: TraceVariant = "handover";
+interface PacketTraceManifestEntry {
+  readonly id: string;
+  readonly label: string;
+  readonly url: string;
+  readonly default?: boolean;
+}
+
+interface PacketTraceManifest {
+  readonly schemaVersion: number;
+  readonly traces: ReadonlyArray<PacketTraceManifestEntry>;
+}
+
+const MANIFEST_URL = "/fixtures/estnet/manifest.json";
+
+// ---------------------------------------------------------------------------
+// Model ↔ simulator overlay (viewer analytic prediction vs packet trace).
+//
+// The viewer's own `computeRuntimeProjection` publishes, per orbit, a
+// representative one-hop link budget (`representativeLinkBudgetByOrbit`):
+// latencyMs = slantRange/c + a fixed per-hop processing add-on, sampled at the
+// midpoint of the dominant mutual-visibility window. The trace's end-to-end is
+// a two-hop composition (uplink + downlink), so the model prediction drawn
+// over the chart is 2 × the representative one-hop latency. The per-hop
+// processing add-on is recovered from the budget's own public fields
+// (latencyMs − slantRange/c) so this module never duplicates the constant.
+//
+// The rehearsal ESTNeT scenario additionally serializes each frame at the
+// stock 9600 bps PHY (100 B payload + 42 B headers = 142 B/leg); that term
+// dominates the model↔trace delta and exists ONLY on the ESTNeT side. The
+// same per-leg constant (118.34 ms) is what `estnet:crosscheck` fits with
+// µs-level residuals. It is applied only when the trace's own assumptionSet
+// declares the 9600 bps PHY — an unknown-PHY delivery gets the total delta
+// without a serialization split (no invented decomposition).
+//
+// R12: both sides are models (analytic geometry vs packet simulation);
+// agreement is implementation consistency, never validation against a
+// measurement. The disclosure block states this verbatim.
+const SPEED_OF_LIGHT_KM_PER_S = 299792.458;
+const ESTNET_FRAME_BYTES = 142;
+const ESTNET_PHY_BPS = 9600;
+const ESTNET_SERIALIZATION_PER_LEG_MS =
+  (ESTNET_FRAME_BYTES * 8 * 1000) / ESTNET_PHY_BPS;
+const TRACE_HOP_COUNT = 2;
+
+export interface EstnetTracePanelSectionOptions {
+  /**
+   * Latest runtime projection result the side panel rendered. Enables the
+   * model↔simulator overlay (dashed analytic step + delta decomposition).
+   * Optional — the section renders without it.
+   */
+  readonly runtimeResult?: RuntimeProjectionResult | null;
+  /**
+   * Replay clock to anchor the chart's vertical time cursor to. The cursor
+   * maps replay wall-time onto the trace via `metadata.simEpochUtc`
+   * (tMs = wallMs − epochMs); while the on-globe replay crosses a handover
+   * event, the cursor crosses the same instant on the latency step. Hidden
+   * whenever the replay time falls outside the trace's simulated window
+   * (e.g. the live wall-clock route vs a pinned trace). Optional.
+   */
+  readonly replayClock?: ReplayClock | null;
+}
+
+interface ModelOverlayOrbit {
+  readonly orbitClass: string;
+  readonly model2HopMs: number;
+  readonly modelPropagationMs: number;
+  readonly modelProcessingMs: number;
+  readonly observedMeanMs: number | null;
+  readonly anchor: RepresentativeLinkBudget;
+}
+
+interface ModelOverlay {
+  readonly perOrbit: ReadonlyArray<ModelOverlayOrbit>;
+  readonly serializationApplicable: boolean;
+  readonly serialization2LegMs: number;
+  /**
+   * True when the panel's projection window overlaps the trace's simulated
+   * window; false when the model anchors were sampled in a different window
+   * (disclosed in the delta block); null when the trace carries no epoch.
+   */
+  readonly windowAligned: boolean | null;
+  readonly projectionWindowLabel: string;
+  readonly traceWindowLabel: string | null;
+}
+
+function orbitsInTrace(trace: PacketTrace): string[] {
+  if (trace.segments && trace.segments.length > 0) {
+    const seen: string[] = [];
+    for (const seg of trace.segments) {
+      if (!seen.includes(seg.orbitClass)) {
+        seen.push(seg.orbitClass);
+      }
+    }
+    return seen;
+  }
+  // schemaVersion 1 carries no per-sample orbit tag; bind from the trace's own
+  // satellite/path description, else skip the overlay (no invented binding).
+  const label = `${trace.metadata?.satellite ?? ""} ${trace.pathLabel}`;
+  const match = label.match(/\b(GEO|MEO|LEO)\b/);
+  return match ? [match[1]] : [];
+}
+
+function observedMeanLatencyMs(trace: PacketTrace, orbit: string): number | null {
+  if (trace.handover && trace.summary.meanLatencyByOrbitMs) {
+    const value = trace.summary.meanLatencyByOrbitMs[orbit];
+    return isFiniteNumber(value) ? value : null;
+  }
+  return isFiniteNumber(trace.summary.meanLatencyMs)
+    ? trace.summary.meanLatencyMs
+    : null;
+}
+
+// Exported for the unit suite (pure function; no DOM access).
+export function computeModelOverlay(
+  trace: PacketTrace,
+  runtimeResult: RuntimeProjectionResult | null | undefined
+): ModelOverlay | null {
+  if (!runtimeResult || latencySemanticOf(trace) !== "one-way") {
+    return null;
+  }
+  const perOrbit: ModelOverlayOrbit[] = [];
+  for (const orbitClass of orbitsInTrace(trace)) {
+    const anchor =
+      runtimeResult.representativeLinkBudgetByOrbit[
+        orbitClass as keyof typeof runtimeResult.representativeLinkBudgetByOrbit
+      ];
+    if (!anchor || !isFiniteNumber(anchor.latencyMs) || !isFiniteNumber(anchor.slantRangeKm)) {
+      continue;
+    }
+    const oneHopPropagationMs =
+      (anchor.slantRangeKm / SPEED_OF_LIGHT_KM_PER_S) * 1000;
+    perOrbit.push({
+      orbitClass,
+      model2HopMs: TRACE_HOP_COUNT * anchor.latencyMs,
+      modelPropagationMs: TRACE_HOP_COUNT * oneHopPropagationMs,
+      modelProcessingMs: TRACE_HOP_COUNT * (anchor.latencyMs - oneHopPropagationMs),
+      observedMeanMs: observedMeanLatencyMs(trace, orbitClass),
+      anchor
+    });
+  }
+  if (perOrbit.length === 0) {
+    return null;
+  }
+  // Window alignment: the anchors are representative samples of the panel's
+  // CURRENT projection window. When that window does not overlap the trace's
+  // simulated window (live wall-clock route vs the pinned trace), the
+  // comparison is orbit-representative only — disclosed, never hidden.
+  const epochMs = Date.parse(trace.metadata?.simEpochUtc ?? "");
+  let windowAligned: boolean | null = null;
+  let traceWindowLabel: string | null = null;
+  if (Number.isFinite(epochMs) && trace.samples.length > 0) {
+    const traceStartMs = epochMs + trace.samples[0].tMs;
+    const traceEndMs = epochMs + trace.samples[trace.samples.length - 1].tMs;
+    const projStartMs = Date.parse(runtimeResult.timeWindow.startUtc);
+    const projEndMs = Date.parse(runtimeResult.timeWindow.endUtc);
+    if (Number.isFinite(projStartMs) && Number.isFinite(projEndMs)) {
+      windowAligned = traceStartMs <= projEndMs && projStartMs <= traceEndMs;
+    }
+    traceWindowLabel = `${new Date(traceStartMs).toISOString().slice(0, 16)}Z..${new Date(
+      traceEndMs
+    )
+      .toISOString()
+      .slice(0, 16)}Z`;
+  }
+  return {
+    perOrbit,
+    serializationApplicable: /9600\s*bps/i.test(trace.assumptionSet ?? ""),
+    serialization2LegMs: TRACE_HOP_COUNT * ESTNET_SERIALIZATION_PER_LEG_MS,
+    windowAligned,
+    projectionWindowLabel: `${runtimeResult.timeWindow.startUtc.slice(0, 16)}Z..${runtimeResult.timeWindow.endUtc.slice(0, 16)}Z`,
+    traceWindowLabel
+  };
+}
 
 const SVGNS = "http://www.w3.org/2000/svg";
 const W = 1064;
@@ -93,23 +278,79 @@ const LATENCY_COLOR = "#4cc2ff";
 const THROUGHPUT_COLOR = "#7cffb2";
 const HANDOVER_COLOR = "#ffcf5c";
 const LOSS_COLOR = "#ff6b6b";
+const MODEL_COLOR = "#f0f0f0";
+
+function isFiniteNumber(value: unknown): value is number {
+  return typeof value === "number" && Number.isFinite(value);
+}
+
+function assertManifestShape(raw: unknown): PacketTraceManifest {
+  const manifest = raw as PacketTraceManifest;
+  if (!manifest || manifest.schemaVersion !== 1) {
+    throw new Error("manifest schemaVersion must be 1");
+  }
+  if (!Array.isArray(manifest.traces) || manifest.traces.length === 0) {
+    throw new Error("manifest.traces must be a non-empty array");
+  }
+  const seenIds = new Set<string>();
+  for (const entry of manifest.traces) {
+    if (
+      typeof entry?.id !== "string" ||
+      entry.id.length === 0 ||
+      typeof entry.label !== "string" ||
+      entry.label.length === 0 ||
+      typeof entry.url !== "string" ||
+      !entry.url.startsWith("/fixtures/estnet/")
+    ) {
+      throw new Error("manifest entry requires id, label, /fixtures/estnet/ url");
+    }
+    if (seenIds.has(entry.id)) {
+      throw new Error(`manifest trace id duplicated: ${entry.id}`);
+    }
+    seenIds.add(entry.id);
+  }
+  return manifest;
+}
+
+function defaultManifestEntry(
+  manifest: PacketTraceManifest
+): PacketTraceManifestEntry {
+  return manifest.traces.find((entry) => entry.default === true) ?? manifest.traces[0];
+}
 
 // Static fixtures — fetched once per URL and cached so the frequent panel
 // re-renders (e.g. rain-slider drags) never re-hit the network.
 const traceCache = new Map<string, Promise<PacketTrace>>();
+let manifestCache: Promise<PacketTraceManifest> | null = null;
+
+function fetchJson<T>(url: string): Promise<T> {
+  return fetch(url).then((response) => {
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}`);
+    }
+    return response.json() as Promise<T>;
+  });
+}
+
+function loadManifest(): Promise<PacketTraceManifest> {
+  if (manifestCache) {
+    return manifestCache;
+  }
+  const promise = fetchJson<unknown>(MANIFEST_URL).then(assertManifestShape);
+  // Drop the cache entry on failure so a later open can retry.
+  promise.catch(() => {
+    manifestCache = null;
+  });
+  manifestCache = promise;
+  return promise;
+}
 
 function loadTrace(url: string): Promise<PacketTrace> {
   const cached = traceCache.get(url);
   if (cached) {
     return cached;
   }
-  const promise = fetch(url).then((response) => {
-    if (!response.ok) {
-      throw new Error(`HTTP ${response.status}`);
-    }
-    return response.json() as Promise<PacketTrace>;
-  });
-  // Drop the cache entry on failure so a later open can retry.
+  const promise = fetchJson<PacketTrace>(url);
   promise.catch(() => traceCache.delete(url));
   traceCache.set(url, promise);
   return promise;
@@ -129,16 +370,34 @@ function svgEl(name: string, attrs: Record<string, string | number> = {}): SVGEl
   return node;
 }
 
+// Provenance-tier labels mirror the PACKET-TRACE-CONTRACT §3 enum. Ingestion
+// never upgrades a tier, and the operator-measured tier is refused upstream,
+// so no measured-tier label is ever emitted by this section.
 function sourceClassLabel(sourceClass: string): string {
   switch (sourceClass) {
     case "external-simulator-derived":
       return "ESTNeT-simulated (not operator-measured)";
+    case "requirement-provided-estnet":
+      return "requirement-delivered ESTNeT (simulation, not operator-measured)";
+    case "network-test-derived":
+      return "network-test capture (not an operator RF measurement)";
     case "synthetic-placeholder":
       return "synthetic placeholder";
     default:
-      // These fixtures are always external-simulator-derived; no measured-tier
-      // label is ever emitted by this section.
       return sourceClass;
+  }
+}
+
+// Metric-derivation badge per ingest format (PACKET-TRACE-CONTRACT §4). The
+// two committed adapters carry no `metadata.ingestFormat` and derive both.
+function derivationBadgeText(trace: PacketTrace): string {
+  switch (trace.metadata?.ingestFormat) {
+    case "ping":
+      return "derived: jitter (over RTT) · no throughput signal";
+    case "iperf3":
+      return "jitter/loss: tool-reported (UDP) · no latency signal";
+    default:
+      return "derived: jitter + loss";
   }
 }
 
@@ -159,10 +418,17 @@ function buildBadges(trace: PacketTrace): HTMLElement {
     buildBadge(sourceClassLabel(trace.sourceClass), "sim"),
     buildBadge(`tool: ${trace.toolProvenance ?? "—"}`)
   );
+  const deliveredBy = trace.metadata?.deliveredBy;
+  if (deliveredBy) {
+    row.append(buildBadge(`delivered by: ${deliveredBy}`));
+  }
+  if (latencySemanticOf(trace) === "rtt") {
+    row.append(buildBadge("latency = RTT (round-trip, not one-way)", "warn"));
+  }
   if (trace.handover) {
     row.append(buildBadge("showcase handover (not RF-failure)", "warn"));
   }
-  row.append(buildBadge("derived: jitter + loss", "warn"));
+  row.append(buildBadge(derivationBadgeText(trace), "warn"));
   return row;
 }
 
@@ -187,10 +453,28 @@ function buildCard(label: string, value: string, unit: string, orbit?: string): 
   return card;
 }
 
+function finiteThroughputsMbps(trace: PacketTrace): number[] {
+  return trace.samples
+    .map((sample) => sample.throughputMbps)
+    .filter((value): value is number => isFiniteNumber(value) && value > 0);
+}
+
+function buildThroughputCard(trace: PacketTrace): HTMLElement | null {
+  const throughputs = finiteThroughputsMbps(trace);
+  if (throughputs.length === 0) {
+    return null;
+  }
+  const meanMbps = throughputs.reduce((a, b) => a + b, 0) / throughputs.length;
+  return meanMbps < 1
+    ? buildCard("throughput", fmt(meanMbps * 1000, 2), "kbps")
+    : buildCard("throughput", fmt(meanMbps, 2), "Mbps");
+}
+
 function buildCards(trace: PacketTrace): HTMLElement {
   const grid = document.createElement("div");
   grid.className = "v4-estnet-trace__cards";
   const s = trace.summary;
+  const semantic = latencySemanticOf(trace);
   if (trace.handover && s.meanLatencyByOrbitMs) {
     const byOrbit = s.meanLatencyByOrbitMs;
     const step =
@@ -204,30 +488,43 @@ function buildCards(trace: PacketTrace): HTMLElement {
       buildCard("delivered", `${s.deliveredEndToEnd}/${s.sentPackets}`, "pkts")
     );
   } else {
-    const firstThroughput = trace.samples.find(
-      (sample) => (sample.throughputMbps ?? 0) > 0
-    );
-    const throughputKbps = (firstThroughput?.throughputMbps ?? 0) * 1000;
+    if (semantic !== "none") {
+      grid.append(
+        buildCard(
+          semantic === "rtt" ? "mean RTT" : "mean latency",
+          fmt(s.meanLatencyMs, 1),
+          "ms"
+        )
+      );
+    }
+    grid.append(buildCard("jitter", fmt(s.finalJitterMs, 2), "ms"));
     grid.append(
-      buildCard("mean latency", fmt(s.meanLatencyMs, 1), "ms"),
-      buildCard("jitter (RFC-3550)", fmt(s.finalJitterMs, 2), "ms"),
-      buildCard("packet loss", fmt((s.overallPacketLossRatio || 0) * 100, 2), "%"),
-      buildCard("throughput", fmt(throughputKbps, 2), "kbps"),
-      buildCard("delivered", `${s.deliveredEndToEnd}/${s.sentPackets}`, "pkts")
+      buildCard("packet loss", fmt((s.overallPacketLossRatio || 0) * 100, 2), "%")
     );
+    const throughputCard = buildThroughputCard(trace);
+    if (throughputCard) {
+      grid.append(throughputCard);
+    }
+    grid.append(buildCard("delivered", `${s.deliveredEndToEnd}/${s.sentPackets}`, "pkts"));
   }
   return grid;
 }
 
-function buildLegend(trace: PacketTrace): HTMLElement {
+function buildLegend(trace: PacketTrace, overlay: ModelOverlay | null): HTMLElement {
   const legend = document.createElement("div");
   legend.className = "v4-estnet-trace__legend";
-  const item = (color: string, text: string): HTMLElement => {
+  const semantic = latencySemanticOf(trace);
+  const item = (color: string, text: string, dashed = false): HTMLElement => {
     const span = document.createElement("span");
     span.className = "v4-estnet-trace__legend-item";
     const sw = document.createElement("span");
     sw.className = "v4-estnet-trace__legend-sw";
-    sw.style.background = color;
+    if (dashed) {
+      sw.classList.add("v4-estnet-trace__legend-sw--dashed");
+      sw.style.borderColor = color;
+    } else {
+      sw.style.background = color;
+    }
     span.append(sw, document.createTextNode(text));
     return span;
   };
@@ -237,12 +534,28 @@ function buildLegend(trace: PacketTrace): HTMLElement {
       item(ORBIT_COLOR.MEO, "latency — MEO relay"),
       item(HANDOVER_COLOR, "handover")
     );
-  } else {
+    if (trace.samples.some((sample) => sample.linkUp === false)) {
+      legend.append(item(LOSS_COLOR, "re-point loss (disclosed)"));
+    }
+  } else if (semantic === "none") {
     legend.append(
-      item(LATENCY_COLOR, "end-to-end latency"),
-      item(THROUGHPUT_COLOR, "throughput"),
+      item(THROUGHPUT_COLOR, "throughput (tool intervals)"),
       item(LOSS_COLOR, "packet loss / outage")
     );
+  } else {
+    legend.append(
+      item(
+        LATENCY_COLOR,
+        semantic === "rtt" ? "RTT (round-trip)" : "end-to-end latency"
+      )
+    );
+    if (finiteThroughputsMbps(trace).length > 0) {
+      legend.append(item(THROUGHPUT_COLOR, "throughput"));
+    }
+    legend.append(item(LOSS_COLOR, "packet loss / outage"));
+  }
+  if (overlay) {
+    legend.append(item(MODEL_COLOR, "viewer model (2-hop analytic)", true));
   }
   const hops = trace.samples.find((sample) => sample.hops != null);
   if (hops) {
@@ -254,7 +567,15 @@ function buildLegend(trace: PacketTrace): HTMLElement {
   return legend;
 }
 
-function buildChart(trace: PacketTrace): SVGSVGElement {
+interface ChartHandle {
+  readonly svg: SVGSVGElement;
+  /** Maps a trace time (tMs) to an SVG x coordinate. */
+  readonly toX: (tMs: number) => number;
+  readonly xMinMs: number;
+  readonly xMaxMs: number;
+}
+
+function buildChart(trace: PacketTrace, overlay: ModelOverlay | null): ChartHandle {
   const svg = svgEl("svg", {
     viewBox: `0 0 ${W} ${H}`,
     preserveAspectRatio: "xMidYMid meet",
@@ -262,19 +583,39 @@ function buildChart(trace: PacketTrace): SVGSVGElement {
   }) as SVGSVGElement;
 
   const samples = trace.samples;
+  const semantic = latencySemanticOf(trace);
   const xs = samples.map((d) => d.tMs);
   const xMin = Math.min(...xs);
   const xMax = Math.max(...xs);
   const latencies = samples
-    .filter((d) => d.latencyMs != null)
-    .map((d) => d.latencyMs as number);
-  let yMin = Math.min(...latencies);
-  let yMax = Math.max(...latencies);
-  if (yMax - yMin < 1) {
+    .map((d) => d.latencyMs)
+    .filter((value): value is number => isFiniteNumber(value));
+  const throughputs = finiteThroughputsMbps(trace);
+  // Primary y series: latency when the trace has one; else throughput
+  // (iperf3-class `latencySemantic: "none"` traces).
+  const hasLatency = semantic !== "none" && latencies.length > 0;
+  const overlayLevels =
+    hasLatency && overlay ? overlay.perOrbit.map((o) => o.model2HopMs) : [];
+  const primaryValues = hasLatency ? [...latencies, ...overlayLevels] : throughputs;
+  if (primaryValues.length === 0) {
+    const empty = svgEl("text", {
+      x: W / 2,
+      y: H / 2,
+      "text-anchor": "middle",
+      class: "v4-estnet-trace__svg-axis"
+    });
+    empty.textContent = "no plottable metric channel in this trace";
+    svg.append(empty);
+    return { svg, toX: () => MARGIN.l, xMinMs: xMin, xMaxMs: xMax };
+  }
+  let yMin = Math.min(...primaryValues);
+  let yMax = Math.max(...primaryValues);
+  if (yMax - yMin < (hasLatency ? 1 : 1e-6)) {
     // Pad a flat line (steady-state GEO) so it sits centred and legible.
     const center = (yMax + yMin) / 2;
-    yMin = center - 5;
-    yMax = center + 5;
+    const pad = hasLatency ? 5 : Math.max(center * 0.5, 1e-6);
+    yMin = center - pad;
+    yMax = center + pad;
   }
   const padY = (yMax - yMin) * 0.15 || 5;
   yMin = Math.max(0, yMin - padY);
@@ -287,7 +628,7 @@ function buildChart(trace: PacketTrace): SVGSVGElement {
 
   const handover = Boolean(trace.handover);
   const segments = trace.segments ?? [];
-  // x-axis unit: minutes for the multi-phase handover, seconds for the GEO line.
+  // x-axis unit: minutes for the multi-phase handover, seconds for short traces.
   const xUnitDivisor = handover ? 60000 : 1000;
   const xUnitSuffix = handover ? "m" : "s";
 
@@ -323,7 +664,7 @@ function buildChart(trace: PacketTrace): SVGSVGElement {
     const y = yScale(yv);
     grid.append(svgEl("line", { x1: MARGIN.l, y1: y, x2: W - MARGIN.r, y2: y }));
     const tx = svgEl("text", { x: MARGIN.l - 8, y: y + 3, "text-anchor": "end" });
-    tx.textContent = fmt(yv, 0);
+    tx.textContent = fmt(yv, hasLatency ? 0 : 2);
     grid.append(tx);
   }
   // x labels.
@@ -335,11 +676,31 @@ function buildChart(trace: PacketTrace): SVGSVGElement {
     grid.append(tx);
   }
   const yUnit = svgEl("text", { x: MARGIN.l - 8, y: MARGIN.t - 10, "text-anchor": "end" });
-  yUnit.textContent = "ms";
+  yUnit.textContent = hasLatency ? (semantic === "rtt" ? "ms (RTT)" : "ms") : "Mbps";
   grid.append(yUnit);
   svg.append(grid);
 
-  if (!handover) {
+  if (handover) {
+    // Lost-packet shading (the disclosed re-point overrun clusters): one crisp
+    // red band per lost sample, so the loss spike sits AT the handover marker.
+    samples.forEach((d, i) => {
+      if (d.linkUp === false) {
+        const x0 = xScale(d.tMs);
+        const x1 = i + 1 < samples.length ? xScale(samples[i + 1].tMs) : x0 + 6;
+        svg.append(
+          svgEl("rect", {
+            x: x0,
+            y: MARGIN.t,
+            width: Math.max(2, x1 - x0),
+            height: H - MARGIN.t - MARGIN.b,
+            fill: LOSS_COLOR,
+            "fill-opacity": 0.3,
+            class: "v4-estnet-trace__svg-loss"
+          })
+        );
+      }
+    });
+  } else {
     // Loss / outage shading.
     samples.forEach((d, i) => {
       if (d.linkUp === false || (d.packetLossRatio ?? 0) > 0) {
@@ -352,25 +713,76 @@ function buildChart(trace: PacketTrace): SVGSVGElement {
             width: Math.max(2, x1 - x0),
             height: H - MARGIN.t - MARGIN.b,
             fill: LOSS_COLOR,
-            "fill-opacity": d.linkUp === false ? 0.28 : 0.14
+            "fill-opacity": d.linkUp === false ? 0.28 : 0.14,
+            class: "v4-estnet-trace__svg-loss"
           })
         );
       }
     });
 
-    // Throughput area (scaled to its own max, drawn low).
-    const throughputs = samples.map((d) => d.throughputMbps ?? 0);
-    const tpMax = Math.max(...throughputs, 1e-9);
-    const baseY = H - MARGIN.b;
-    let area = `M ${xScale(samples[0].tMs)} ${baseY}`;
-    for (const d of samples) {
-      const h = ((d.throughputMbps ?? 0) / tpMax) * ((H - MARGIN.t - MARGIN.b) * 0.28);
-      area += ` L ${xScale(d.tMs)} ${baseY - h}`;
+    // Throughput area (scaled to its own max, drawn low) — only as a secondary
+    // channel under a latency line; when throughput IS the primary series it is
+    // drawn as the main line below instead.
+    if (hasLatency && throughputs.length > 0) {
+      const tpMax = Math.max(...throughputs, 1e-9);
+      const baseY = H - MARGIN.b;
+      let area = `M ${xScale(samples[0].tMs)} ${baseY}`;
+      for (const d of samples) {
+        const tp = isFiniteNumber(d.throughputMbps) ? d.throughputMbps : 0;
+        const h = (tp / tpMax) * ((H - MARGIN.t - MARGIN.b) * 0.28);
+        area += ` L ${xScale(d.tMs)} ${baseY - h}`;
+      }
+      area += ` L ${xScale(samples[samples.length - 1].tMs)} ${baseY} Z`;
+      svg.append(
+        svgEl("path", { d: area, fill: THROUGHPUT_COLOR, "fill-opacity": 0.16, stroke: "none" })
+      );
     }
-    area += ` L ${xScale(samples[samples.length - 1].tMs)} ${baseY} Z`;
-    svg.append(
-      svgEl("path", { d: area, fill: THROUGHPUT_COLOR, "fill-opacity": 0.16, stroke: "none" })
-    );
+  }
+
+  // Viewer-model overlay: dashed analytic step — one level per serving orbit,
+  // spanning each segment (v2) or the whole trace (v1). The gap between the
+  // dashed step and the solid trace is decomposed in the disclosure block.
+  if (hasLatency && overlay) {
+    const byOrbit = new Map(overlay.perOrbit.map((o) => [o.orbitClass, o]));
+    const spans: Array<{ x0: number; x1: number; level: ModelOverlayOrbit }> = [];
+    if (segments.length > 0) {
+      for (const seg of segments) {
+        const level = byOrbit.get(seg.orbitClass);
+        if (level) {
+          spans.push({ x0: xScale(seg.startMs), x1: xScale(seg.endMs), level });
+        }
+      }
+    } else if (overlay.perOrbit.length === 1) {
+      spans.push({ x0: xScale(xMin), x1: xScale(xMax), level: overlay.perOrbit[0] });
+    }
+    for (const span of spans) {
+      const y = yScale(span.level.model2HopMs);
+      svg.append(
+        svgEl("line", {
+          x1: span.x0,
+          y1: y,
+          x2: span.x1,
+          y2: y,
+          stroke: MODEL_COLOR,
+          "stroke-width": 1.8,
+          "stroke-dasharray": "7 4",
+          "stroke-opacity": 0.85,
+          class: "v4-estnet-trace__svg-model-line"
+        })
+      );
+    }
+    if (spans.length > 0) {
+      const first = spans[0];
+      const tx = svgEl("text", {
+        x: first.x0 + 6,
+        y: yScale(first.level.model2HopMs) - 5,
+        "text-anchor": "start",
+        fill: MODEL_COLOR,
+        class: "v4-estnet-trace__svg-model-label"
+      });
+      tx.textContent = "viewer model (2-hop analytic)";
+      svg.append(tx);
+    }
   }
 
   // Handover boundary markers (between consecutive segments).
@@ -398,8 +810,9 @@ function buildChart(trace: PacketTrace): SVGSVGElement {
     svg.append(tx);
   }
 
-  // Latency polyline. For the handover trace, split the line per orbit segment
-  // (and break it across gaps); for the GEO trace draw one continuous line.
+  // Primary polyline. For the handover trace, split the latency line per orbit
+  // segment (and break it across gaps); for flat traces draw one continuous
+  // line — latency when present, else throughput.
   if (handover) {
     let cur: string | null = null;
     let path = "";
@@ -430,28 +843,201 @@ function buildChart(trace: PacketTrace): SVGSVGElement {
     }
     flush();
   } else {
+    const primaryOf = (d: PacketTraceSample): number | null =>
+      hasLatency
+        ? d.latencyMs
+        : isFiniteNumber(d.throughputMbps) && d.throughputMbps > 0
+          ? d.throughputMbps
+          : null;
+    const lineColor = hasLatency ? LATENCY_COLOR : THROUGHPUT_COLOR;
     let path = "";
     for (const d of samples) {
-      if (d.latencyMs == null) {
+      const v = primaryOf(d);
+      if (v == null) {
         path += " ";
         continue;
       }
-      path += `${path === "" ? "M" : "L"} ${xScale(d.tMs)} ${yScale(d.latencyMs)} `;
+      path += `${path === "" ? "M" : "L"} ${xScale(d.tMs)} ${yScale(v)} `;
     }
     svg.append(
-      svgEl("path", { d: path, fill: "none", stroke: LATENCY_COLOR, "stroke-width": 2.2 })
+      svgEl("path", { d: path, fill: "none", stroke: lineColor, "stroke-width": 2.2 })
     );
     for (const d of samples) {
-      if (d.latencyMs == null) {
+      const v = primaryOf(d);
+      if (v == null) {
         continue;
       }
       svg.append(
-        svgEl("circle", { cx: xScale(d.tMs), cy: yScale(d.latencyMs), r: 2.6, fill: LATENCY_COLOR })
+        svgEl("circle", { cx: xScale(d.tMs), cy: yScale(v), r: 2.6, fill: lineColor })
       );
     }
   }
 
-  return svg;
+  return { svg, toX: xScale, xMinMs: xMin, xMaxMs: xMax };
+}
+
+// Replay-time cursor: a vertical line swept across the chart by the replay
+// clock, so the on-globe handover instant and the latency step line up on the
+// same x. Anchoring needs the trace's absolute epoch (metadata.simEpochUtc);
+// without one there is nothing honest to anchor to and no cursor is drawn.
+// Returns an unsubscribe function, or null when no cursor was attached.
+function attachReplayCursor(
+  handle: ChartHandle,
+  trace: PacketTrace,
+  replayClock: ReplayClock
+): (() => void) | null {
+  const epochMs = Date.parse(trace.metadata?.simEpochUtc ?? "");
+  if (!Number.isFinite(epochMs) || trace.samples.length === 0) {
+    return null;
+  }
+  const group = svgEl("g", {
+    class: "v4-estnet-trace__svg-cursor",
+    display: "none"
+  });
+  const line = svgEl("line", {
+    y1: MARGIN.t,
+    y2: H - MARGIN.b,
+    stroke: "#ffffff",
+    "stroke-width": 1.6,
+    "stroke-opacity": 0.85
+  });
+  const label = svgEl("text", {
+    y: MARGIN.t + 14,
+    "text-anchor": "middle",
+    fill: "#ffffff",
+    class: "v4-estnet-trace__svg-cursor-label"
+  });
+  group.append(line, label);
+  handle.svg.append(group);
+  handle.svg.dataset.replayCursor = "outside";
+
+  let lastX = Number.NaN;
+  let lastInside: boolean | null = null;
+  const update = (state: ReplayClockState): void => {
+    const wallMs =
+      typeof state.currentTime === "number"
+        ? state.currentTime
+        : Date.parse(state.currentTime);
+    if (!Number.isFinite(wallMs)) {
+      return;
+    }
+    const tMs = wallMs - epochMs;
+    const inside = tMs >= handle.xMinMs && tMs <= handle.xMaxMs;
+    if (!inside) {
+      if (lastInside !== false) {
+        group.setAttribute("display", "none");
+        handle.svg.dataset.replayCursor = "outside";
+        lastInside = false;
+      }
+      return;
+    }
+    if (lastInside !== true) {
+      group.removeAttribute("display");
+      handle.svg.dataset.replayCursor = "inside";
+      lastInside = true;
+    }
+    const x = handle.toX(tMs);
+    if (Number.isFinite(lastX) && Math.abs(x - lastX) < 0.25) {
+      return;
+    }
+    lastX = x;
+    line.setAttribute("x1", String(x));
+    line.setAttribute("x2", String(x));
+    // Keep the label inside the plot area near the edges.
+    const labelX = Math.min(Math.max(x, MARGIN.l + 34), W - MARGIN.r - 34);
+    label.setAttribute("x", String(labelX));
+    label.textContent = `▶ ${new Date(wallMs).toISOString().slice(11, 19)}Z`;
+  };
+  update(replayClock.getState());
+  return replayClock.onTick(update);
+}
+
+// Delta-decomposition disclosure: reconciles the dashed viewer-model step with
+// the solid trace, per orbit. Serialization is split out only when the trace's
+// own assumptionSet declares the stock 9600 bps PHY; otherwise the delta stays
+// un-decomposed (honest: no invented terms for an unknown PHY).
+function buildModelDeltaBlock(overlay: ModelOverlay): HTMLElement {
+  const block = document.createElement("div");
+  block.className = "v4-estnet-trace__model-delta";
+  block.dataset.modelDelta = "true";
+
+  const title = document.createElement("div");
+  title.className = "v4-estnet-trace__model-delta-title";
+  title.textContent = "Model ↔ simulator reconciliation";
+  block.append(title);
+
+  for (const level of overlay.perOrbit) {
+    const row = document.createElement("div");
+    row.className = "v4-estnet-trace__model-delta-orbit";
+    row.dataset.orbit = level.orbitClass;
+
+    const head = document.createElement("div");
+    head.className = "v4-estnet-trace__model-delta-head";
+    const observed = level.observedMeanMs;
+    const delta = observed != null ? observed - level.model2HopMs : null;
+    head.textContent =
+      `${level.orbitClass}: ESTNeT mean ${fmt(observed, 1)} ms · ` +
+      `viewer model ${fmt(level.model2HopMs, 1)} ms · Δ ${
+        delta != null && delta >= 0 ? "+" : ""
+      }${fmt(delta, 1)} ms`;
+    row.append(head);
+
+    const list = document.createElement("ul");
+    list.className = "v4-estnet-trace__model-delta-terms";
+    const term = (text: string): void => {
+      const li = document.createElement("li");
+      li.textContent = text;
+      list.append(li);
+    };
+    if (overlay.serializationApplicable && delta != null) {
+      const residual =
+        delta - overlay.serialization2LegMs + level.modelProcessingMs;
+      term(
+        `serialization +${fmt(overlay.serialization2LegMs, 1)} ms — ` +
+          `${TRACE_HOP_COUNT} legs × ${ESTNET_FRAME_BYTES} B @ ${ESTNET_PHY_BPS} bps ` +
+          `(ESTNeT stock PHY; not in the viewer model)`
+      );
+      term(
+        `processing −${fmt(level.modelProcessingMs, 1)} ms — viewer-model per-hop ` +
+          `add-on (not in the ESTNeT scenario)`
+      );
+      term(
+        `geometry residual ${residual >= 0 ? "+" : ""}${fmt(residual, 1)} ms — ` +
+          `representative-sample slant (${level.anchor.representativeSatelliteId} @ ` +
+          `${level.anchor.representativeSampleUtc.slice(11, 19)}Z, ` +
+          `${fmt(level.anchor.slantRangeKm, 0)} km/hop) vs per-packet slant over the segment`
+      );
+    } else {
+      term(
+        "delta not decomposed: the trace does not declare the stock 9600 bps PHY, " +
+          "so no serialization term is assumed"
+      );
+    }
+    row.append(list);
+    block.append(row);
+  }
+
+  if (overlay.windowAligned === false) {
+    const windowNote = document.createElement("p");
+    windowNote.className = "v4-estnet-trace__model-delta-note";
+    windowNote.dataset.windowMismatch = "true";
+    windowNote.textContent =
+      `⚠ window mismatch: model anchors are sampled in the panel's current ` +
+      `projection window (${overlay.projectionWindowLabel}), not the trace's ` +
+      `simulated window (${overlay.traceWindowLabel ?? "—"}) — cross-window ` +
+      `comparison is orbit-representative only. Open the pinned demo route ` +
+      `(startUtc=trace window) for a same-window reconciliation.`;
+    block.append(windowNote);
+  }
+
+  const note = document.createElement("p");
+  note.className = "v4-estnet-trace__model-delta-note";
+  note.textContent =
+    "Both sides are models (analytic geometry vs packet simulation); agreement " +
+    "is implementation consistency, not validation against a measurement.";
+  block.append(note);
+
+  return block;
 }
 
 function buildFoot(trace: PacketTrace): HTMLElement {
@@ -496,29 +1082,33 @@ function buildFoot(trace: PacketTrace): HTMLElement {
   return foot;
 }
 
-function buildErrorBlock(variant: TraceVariant, error: unknown): HTMLElement {
+function buildErrorBlock(what: string, error: unknown): HTMLElement {
   const block = document.createElement("div");
   block.className = "v4-estnet-trace__error";
-  block.textContent = `Could not load the ${variant} trace fixture (${
+  block.textContent = `Could not load ${what} (${
     error instanceof Error ? error.message : String(error)
   }). Run the ESTNeT adapter and serve from the dev server.`;
   return block;
 }
 
 /**
- * Builds the opt-in ESTNeT packet-trace disclosure section. Returns a
- * `<details>` element styled like the other side-panel disclosures, with an
- * in-body toggle that switches between the GEO steady-state and GEO↔MEO
- * handover traces. The traces are fetched lazily and cached module-wide.
+ * Builds the opt-in packet-trace disclosure section. Returns a `<details>`
+ * element styled like the other side-panel disclosures. The trace menu comes
+ * from `public/fixtures/estnet/manifest.json`; manifest and traces are fetched
+ * lazily and cached module-wide. When `options.runtimeResult` is provided the
+ * chart overlays the viewer's own analytic 2-hop latency prediction plus a
+ * delta-decomposition disclosure.
  */
-export function buildEstnetTracePanelSection(): HTMLDetailsElement {
+export function buildEstnetTracePanelSection(
+  options: EstnetTracePanelSectionOptions = {}
+): HTMLDetailsElement {
   const details = document.createElement("details");
   details.className = "v4-projection-side-panel__details v4-estnet-trace";
   details.dataset.disclosure = "estnet-packet-trace";
 
   const summary = document.createElement("summary");
   summary.className = "v4-projection-side-panel__details-summary";
-  summary.textContent = "ESTNeT packet trace";
+  summary.textContent = "Packet trace (ESTNeT / network test)";
 
   const body = document.createElement("div");
   body.className = "v4-projection-side-panel__details-body";
@@ -526,72 +1116,65 @@ export function buildEstnetTracePanelSection(): HTMLDetailsElement {
   const intro = document.createElement("p");
   intro.className = "v4-estnet-trace__intro";
   intro.textContent =
-    "Real ESTNeT (OMNeT++/INET) packet trace for the canonical CHT × SANSA demo path, " +
-    "GS-A → satellite → GS-B. Simulation, not operator-measured.";
+    "Packet-trace time series for the demo pair. The trace menu is manifest-driven; " +
+    "each trace renders its own provenance badges and non-claims. No trace in this " +
+    "chain is an operator RF measurement.";
   body.append(intro);
 
-  // Variant toggle.
-  let variant: TraceVariant = DEFAULT_VARIANT;
+  // Trace selector — populated from the manifest.
   const toggle = document.createElement("div");
   toggle.className = "v4-estnet-trace__toggle";
   toggle.setAttribute("role", "tablist");
-  const buttons: Record<TraceVariant, HTMLButtonElement> = {} as Record<
-    TraceVariant,
-    HTMLButtonElement
-  >;
-  const variantLabels: Record<TraceVariant, string> = {
-    handover: "GEO↔MEO handover",
-    geo: "GEO steady-state"
-  };
-  (Object.keys(FIXTURE_URLS) as TraceVariant[]).forEach((key) => {
-    const button = document.createElement("button");
-    button.type = "button";
-    button.className = "v4-estnet-trace__toggle-btn";
-    button.dataset.variant = key;
-    button.textContent = variantLabels[key];
-    button.setAttribute("role", "tab");
-    toggle.append(button);
-    buttons[key] = button;
-  });
   body.append(toggle);
 
-  // Render mount — replaced on each variant switch.
+  // Render mount — replaced on each trace switch.
   const mount = document.createElement("div");
   mount.className = "v4-estnet-trace__mount";
+  mount.dataset.loading = "true";
   body.append(mount);
 
   details.append(summary, body);
 
   let disposed = false;
   let renderToken = 0;
+  let activeId: string | null = null;
+  let detachReplayCursor: (() => void) | null = null;
+  const buttons = new Map<string, HTMLButtonElement>();
 
   const syncToggle = (): void => {
-    (Object.keys(buttons) as TraceVariant[]).forEach((key) => {
-      const active = key === variant;
-      buttons[key].classList.toggle("v4-estnet-trace__toggle-btn--active", active);
-      buttons[key].setAttribute("aria-selected", active ? "true" : "false");
-    });
+    for (const [id, button] of buttons) {
+      const active = id === activeId;
+      button.classList.toggle("v4-estnet-trace__toggle-btn--active", active);
+      button.setAttribute("aria-selected", active ? "true" : "false");
+    }
   };
 
-  const renderVariant = (next: TraceVariant): void => {
-    variant = next;
+  const renderTrace = (entry: PacketTraceManifestEntry): void => {
+    activeId = entry.id;
     syncToggle();
     const token = ++renderToken;
     mount.dataset.loading = "true";
-    mount.dataset.variant = next;
-    loadTrace(FIXTURE_URLS[next])
+    mount.dataset.variant = entry.id;
+    loadTrace(entry.url)
       .then((trace) => {
-        // A newer toggle click (or disposal) supersedes this render.
+        // A newer selection (or disposal) supersedes this render.
         if (disposed || token !== renderToken) {
           return;
         }
         delete mount.dataset.loading;
         mount.dataset.pathLabel = trace.pathLabel;
+        const overlay = computeModelOverlay(trace, options.runtimeResult);
+        const chart = buildChart(trace, overlay);
+        detachReplayCursor?.();
+        detachReplayCursor = options.replayClock
+          ? attachReplayCursor(chart, trace, options.replayClock)
+          : null;
         mount.replaceChildren(
           buildBadges(trace),
           buildCards(trace),
-          buildLegend(trace),
-          buildChart(trace),
+          buildLegend(trace, overlay),
+          chart.svg,
+          ...(overlay ? [buildModelDeltaBlock(overlay)] : []),
           buildFoot(trace)
         );
       })
@@ -600,24 +1183,48 @@ export function buildEstnetTracePanelSection(): HTMLDetailsElement {
           return;
         }
         delete mount.dataset.loading;
-        mount.replaceChildren(buildErrorBlock(next, error));
+        detachReplayCursor?.();
+        detachReplayCursor = null;
+        mount.replaceChildren(buildErrorBlock(`the "${entry.label}" trace fixture`, error));
       });
   };
 
-  (Object.keys(buttons) as TraceVariant[]).forEach((key) => {
-    buttons[key].addEventListener("click", () => {
-      if (key !== variant) {
-        renderVariant(key);
+  loadManifest()
+    .then((manifest) => {
+      if (disposed) {
+        return;
       }
+      for (const entry of manifest.traces) {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "v4-estnet-trace__toggle-btn";
+        button.dataset.variant = entry.id;
+        button.textContent = entry.label;
+        button.setAttribute("role", "tab");
+        button.addEventListener("click", () => {
+          if (entry.id !== activeId) {
+            renderTrace(entry);
+          }
+        });
+        toggle.append(button);
+        buttons.set(entry.id, button);
+      }
+      renderTrace(defaultManifestEntry(manifest));
+    })
+    .catch((error) => {
+      if (disposed) {
+        return;
+      }
+      delete mount.dataset.loading;
+      mount.replaceChildren(buildErrorBlock("the trace manifest", error));
     });
-  });
-
-  renderVariant(DEFAULT_VARIANT);
 
   // Disposal hook honoured by the side panel's renderResult/dispose sweep.
   (details as unknown as { __disposeHelp: () => void }).__disposeHelp = () => {
     disposed = true;
     renderToken++;
+    detachReplayCursor?.();
+    detachReplayCursor = null;
   };
 
   return details;
