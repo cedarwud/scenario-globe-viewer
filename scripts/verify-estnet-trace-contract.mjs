@@ -47,6 +47,23 @@ const FIXTURES = [
       lossTailClustered: true,
     },
   },
+  // Full LEO+MEO+GEO chain, CHT domestic pair (Yangmingshan x Fang-Shan,
+  // 332 km baseline): the tri-orbit handover CHT x SANSA geometrically
+  // cannot serve (its LEO mutual count is 0). Generated scenario
+  // (generate_handover_scenario.mjs), 25 serving phases / 23 relay sats,
+  // loss-free baseline (no re-point overrun traffic modeled).
+  {
+    file: "public/fixtures/estnet/cht-domestic-handover-packet-trace.json",
+    pins: {
+      schemaVersion: 2,
+      samples: 1976,
+      overallPacketLossRatio: 0,
+      handoverCount: 12,
+      distinctMeoSatellites: 3,
+      distinctLeoSatellites: 17,
+      distinctGeoSatellites: 3,
+    },
+  },
   // R1-F3 functional-test rehearsal captures: REAL local loopback runs of the
   // two requirement-named tools (ping / iperf3), ingested via
   // external_trace_ingest.py. network-test tier — a machine-local capture,
@@ -257,6 +274,14 @@ for (const { file, pins } of FIXTURES) {
   if (pins.distinctMeoSatellites !== undefined) {
     const meo = new Set(trace.segments.filter((s) => s.orbitClass === "MEO").map((s) => s.satellite));
     check(target, meo.size === pins.distinctMeoSatellites, `pinned ${pins.distinctMeoSatellites} distinct MEO satellites (got ${meo.size})`);
+  }
+  if (pins.distinctLeoSatellites !== undefined) {
+    const leo = new Set(trace.segments.filter((s) => s.orbitClass === "LEO").map((s) => s.satellite));
+    check(target, leo.size === pins.distinctLeoSatellites, `pinned ${pins.distinctLeoSatellites} distinct LEO satellites (got ${leo.size})`);
+  }
+  if (pins.distinctGeoSatellites !== undefined) {
+    const geo = new Set(trace.segments.filter((s) => s.orbitClass === "GEO").map((s) => s.satellite));
+    check(target, geo.size === pins.distinctGeoSatellites, `pinned ${pins.distinctGeoSatellites} distinct GEO satellites (got ${geo.size})`);
   }
   if (pins.lostSamples !== undefined) {
     const lost = trace.samples.filter((s) => s.linkUp === false);

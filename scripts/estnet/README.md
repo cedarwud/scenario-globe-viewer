@@ -45,6 +45,10 @@ never to run the demo. Acceptance opens this repo only.
 | `precheck_2hop_geometry.mjs` | viewer-model ground-truth: which sats 2-hop CHT×SANSA + the handover sequence |
 | `precheck_2hop_geometry_independent.py` | independent python-sgp4 co-visibility cross-check (R12) |
 | `precheck_leo_pair_scan.mjs` | READ-ONLY registry-wide tri-orbit second-pair scan: which pairs have real LEO mutual visibility (the full LEO+MEO+GEO chain CHT×SANSA lacks); 3 stages — baseline bound → bitmap scan → viewer `computeRuntimeProjection` truth for top candidates / `--pair a,b` |
+| **Full LEO+MEO+GEO chain (CHT domestic, generated):** | |
+| `generate_handover_scenario.mjs` | scenario GENERATOR: viewer projection → phase table → emits .tle/.incl/.cp/.ini + descriptor JSON; 1 s mask-compliance send-window trim; `--emit` writes, default only prints the table |
+| `verify_handover_phases_independent.py` | independent python-sgp4 re-verification of a generated phase table (every serving phase mutually visible above both stations' masks) — run BEFORE the sim (R12) |
+| `scenario/omnetpp_cht_domestic_handover.ini` + `configs/{orbit,gs}_cht_domestic_handover.incl` + `configs/cht_domestic_handover.cp` + `configs/tles/cht_domestic_handover.tle` + `scenario/cht_domestic_handover_scenario.json` | GENERATED (do not hand-edit): CHT-Yangmingshan × CHT-Fang-Shan (332 km), 25 serving phases / 23 relay sats (17 OneWeb LEO + 3 Galileo MEO + 3 GEO), loss-free baseline |
 | **Requirement-data readiness layer:** | |
 | `PACKET-TRACE-CONTRACT.md` | the ingestion contract: PacketTrace schema, provenance tiers, mandatory nonClaims, and the delivery checklist to hand the requirement side |
 | `external_trace_ingest.py` | generic multi-format ingestion: ESTNeT `.vec` single-flow / `opp_scavetool` CSV-R / `ping` text / `iperf3 --json` → PacketTrace JSON (refuses `operator-measured`) |
@@ -158,6 +162,43 @@ python3 scripts/estnet/estnet_handover_trace_adapter.py \
   --vec "$KIT/estnet-template/simulations/results/General-0.vec" \
   --out public/fixtures/estnet/cht-sansa-handover-packet-trace.json
 # view: dev server, then open /estnet-handover-trace-panel.html
+```
+
+## Full LEO+MEO+GEO chain variant (CHT domestic, generated)
+
+CHT × SANSA cannot carry a LEO leg (0 LEO mutual windows — the half-angle
+wall), so the full LEO+MEO+GEO chain of V-MO1's wording needs a second pair.
+`precheck_leo_pair_scan.mjs` found 33 candidates in the registry; the
+**CHT domestic pair (Yangmingshan × Fang-Shan, 332 km)** carries the full
+chain under the same demo policy: **25 serving phases / 12 cross-orbit
+migrations across 17 OneWeb LEO + 3 Galileo MEO + 3 GEO relays**, latency
+stepping ≈ **247 ms (LEO) / 395 ms (MEO) / 480 ms (GEO)** on the same
+assumed PHY. The scenario is **generated, not hand-authored**
+(`generate_handover_scenario.mjs` — at 25 phases the hand-wired node/app
+cross-map is exactly the silent-loss failure mode), verified BEFORE running
+by an independent python-sgp4 pass (`verify_handover_phases_independent.py`),
+and cross-checked after by `estnet:crosscheck` C1–C7 (C5 covers MEO **and
+LEO** segments).
+
+One honesty detail the strict mask check surfaced: the viewer's visibility
+grid is 30 s, and a LEO can cross below a station mask INSIDE the final grid
+step while the policy still serves it until the next grid instant. The
+serving phases keep the viewer's geometry-true boundaries, but each phase's
+SEND window is additionally trimmed (1 s sampling, 2 s guard) so every
+transmitted packet is continuously above both masks — 13 LEO phases were
+trimmed by 8–30 s; zero loss remains a scenario design choice (no re-point
+overrun traffic), not an RF robustness claim.
+
+```bash
+# regenerate everything (all three scenarios; also proves reproducibility)
+npm run estnet:regen
+# regenerate ONLY the scenario files from the viewer's projection
+node --import ./tests/helpers/register-ts-hook.mjs \
+  scripts/estnet/generate_handover_scenario.mjs \
+  --station-a cht-yangmingshan --station-b cht-fangshan --slug cht_domestic --emit
+python3 scripts/estnet/verify_handover_phases_independent.py \
+  scripts/estnet/scenario/cht_domestic_handover_scenario.json \
+  scripts/estnet/scenario/configs/tles/cht_domestic_handover.tle
 ```
 
 ## Honesty (R12)

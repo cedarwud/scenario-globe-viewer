@@ -48,6 +48,16 @@ Usage:
     python3 scripts/estnet/estnet_handover_trace_adapter.py \
         --vec /home/u24/papers/estnet-bootstrap-kit/estnet-template/simulations/results/General-0.vec \
         --out public/fixtures/estnet/cht-sansa-handover-packet-trace.json
+
+GENERIC SCENARIO MODE (--scenario): pass a scenario descriptor JSON emitted by
+generate_handover_scenario.mjs and the phase map + all prose/metadata are built
+from the descriptor instead of the hardcoded CHT x SANSA constants below. The
+default (no --scenario) path is byte-for-byte unchanged.
+
+    python3 scripts/estnet/estnet_handover_trace_adapter.py \
+        --vec .../results/General-0.vec \
+        --scenario scripts/estnet/scenario/cht_domestic_handover_scenario.json \
+        --out public/fixtures/estnet/cht-domestic-handover-packet-trace.json
 """
 import argparse
 import json
@@ -138,17 +148,73 @@ def _tput_at(tput_series, t, tol=0.6):
     return best
 
 
-def build_trace(vec_path):
+def _scenario_trace(scenario, vec_path, segments, summary, samples):
+    """Trace envelope for a generated scenario (descriptor-driven prose/metadata)."""
+    orbits = {}
+    for sat in scenario["satellites"]:
+        orbits.setdefault(sat["orbit"], []).append(sat["satellite"])
+    counts = " / ".join(f"{o} {len(orbits[o])}" for o in ("LEO", "MEO", "GEO") if o in orbits)
+    policy = scenario.get("policyId", "demo-balanced-v1")
+    n_phases = len(scenario["phases"])
+    return {
+        "schemaVersion": 2,
+        "pathLabel": scenario["pathLabel"],
+        "sourceClass": "external-simulator-derived",
+        "toolProvenance": "estnet-inet",
+        "handover": True,
+        "assumptionSet": (
+            f"ESTNeT v1.0 (OMNeT++/INET) handover model, faithful replay of the viewer's "
+            f"{policy} timeline on the pinned demo window: {n_phases} serving phases across "
+            f"{len(scenario['satellites'])} relay satellites ({counts}), TLEs lifted verbatim "
+            f"from the pinned snapshot the viewer itself loads. Each phase is two one-hop "
+            f"unicast RF legs (uplink+downlink) composed in the adapter; the single "
+            f"directional GS yagi re-points at each phase boundary via a non-overlapping "
+            f"contact plan — the re-point IS the modeled handover. Assumed 20 W sat EIRP + "
+            f"9600 bps GMSK UHF PHY (latency ≈ 2× one-way propagation + ~236 ms "
+            f"serialization). LOSS-FREE BASELINE: send windows sit inside each serving phase "
+            f"(start +50 s / stop −10 s guards); no re-point overrun traffic is sent."
+        ),
+        "nonClaims": [
+            "SIMULATION, not operator-measured (not Tier-A).",
+            f"The handover sequence is a SHOWCASE route preference (mirrors the viewer's {policy} policy), NOT an RF-failure-driven handover.",
+            "Every serving satellite is genuinely mutually visible from both stations for its whole phase (independently python-sgp4-verified, verify_handover_phases_independent.py), but a single dish can only point one way — the re-point IS the modeled handover.",
+            "jitter and loss are adapter-derived, not native ESTNeT signals.",
+            "each phase's end-to-end is a composition of two independent one-hop RF legs, not a single relayed packet.",
+            "RF EIRP/bitrate are assumed link parameters chosen so all links close.",
+            "loss-free baseline: no re-point overrun traffic is modeled in this scenario, so zero packet loss is a scenario design choice, not an RF robustness claim.",
+        ],
+        "metadata": {
+            "simEpochUtc": scenario["simEpochUtc"],
+            "policyId": policy,
+            "generatedBy": scenario.get("generatedBy"),
+            "satellites": {o: ", ".join(v) for o, v in orbits.items()},
+            "stationA": {"id": scenario["stationA"]["id"], "lat": scenario["stationA"]["lat"], "lon": scenario["stationA"]["lon"]},
+            "stationB": {"id": scenario["stationB"]["id"], "lat": scenario["stationB"]["lat"], "lon": scenario["stationB"]["lon"]},
+            "handoverWindowUtc": scenario["handoverBoundariesUtc"],
+            "lossModel": scenario.get("lossModel"),
+            "vecSource": vec_path,
+        },
+        "segments": segments,
+        "summary": summary,
+        "samples": samples,
+    }
+
+
+def build_trace(vec_path, scenario=None):
     db = sqlite3.connect(vec_path)
     cur = db.cursor()
     scale = _scale(cur)
 
+    phases = scenario["phases"] if scenario else PHASES
+
     # Build a flat, time-ordered list of composed e2e samples across phases.
     raw = []   # (t_birth_s, sample_dict_without_jitter, orbit, satellite)
     segments = []
-    per_orbit_lat = {"GEO": [], "MEO": []}
+    per_orbit_lat = {}
+    for ph in phases:
+        per_orbit_lat.setdefault(ph["orbit"], [])
 
-    for ph in PHASES:
+    for ph in phases:
         up, up_tput = _leg(cur, ph["uplink_sink"], scale)
         dn, dn_tput = _leg(cur, ph["downlink_sink"], scale)
         sent = _sent_times(cur, ph["uplink_src"], scale)
@@ -231,6 +297,7 @@ def build_trace(vec_path):
         return round(sum(a) / len(a), 4) if a else None
 
     n_sent = len(samples)
+    all_lats = [x for v in per_orbit_lat.values() for x in v]
     summary = {
         "sentPackets": n_sent,
         "deliveredEndToEnd": delivered_total,
@@ -238,10 +305,13 @@ def build_trace(vec_path):
         "handoverCount": handover_count,
         "meanLatencyMs": _mean([s["latencyMs"] for s in samples if s["latencyMs"] is not None]),
         "meanLatencyByOrbitMs": {k: _mean(v) for k, v in per_orbit_lat.items() if v},
-        "minLatencyMs": round(min(per_orbit_lat["GEO"] + per_orbit_lat["MEO"]), 4),
-        "maxLatencyMs": round(max(per_orbit_lat["GEO"] + per_orbit_lat["MEO"]), 4),
+        "minLatencyMs": round(min(all_lats), 4),
+        "maxLatencyMs": round(max(all_lats), 4),
         "finalJitterMs": round(rfc_jitter * 1000.0, 4),
     }
+
+    if scenario:
+        return _scenario_trace(scenario, vec_path, segments, summary, samples)
 
     return {
         "schemaVersion": 2,
@@ -306,8 +376,13 @@ def main():
     ap = argparse.ArgumentParser(description="ESTNeT .vec -> handover PacketTrace JSON")
     ap.add_argument("--vec", required=True)
     ap.add_argument("--out", required=True)
+    ap.add_argument("--scenario", help="scenario descriptor JSON (generate_handover_scenario.mjs output); default = built-in CHT x SANSA phase map")
     args = ap.parse_args()
-    trace = build_trace(args.vec)
+    scenario = None
+    if args.scenario:
+        with open(args.scenario, encoding="utf-8") as f:
+            scenario = json.load(f)
+    trace = build_trace(args.vec, scenario)
     with open(args.out, "w", encoding="utf-8") as f:
         json.dump(trace, f, ensure_ascii=False, indent=2)
         f.write("\n")

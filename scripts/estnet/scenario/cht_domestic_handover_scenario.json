@@ -1,0 +1,702 @@
+{
+  "slug": "cht_domestic",
+  "generatedBy": "scripts/estnet/generate_handover_scenario.mjs",
+  "simEpochUtc": "2026-06-15T00:00:00Z",
+  "simTimeLimitS": 21600,
+  "policyId": "demo-balanced-v1",
+  "sendIntervalS": 10,
+  "stationA": {
+    "id": "cht-yangmingshan",
+    "name": "Chunghwa Telecom Yangmingshan Earth Station",
+    "lat": 25.155,
+    "lon": 121.55,
+    "elevationM": 489,
+    "effectiveElevationMaskDeg": 31
+  },
+  "stationB": {
+    "id": "cht-fangshan",
+    "name": "Chunghwa Telecom Fang-Shan Earth Station",
+    "lat": 22.27,
+    "lon": 120.71,
+    "elevationM": 230,
+    "effectiveElevationMaskDeg": 10
+  },
+  "satellites": [
+    {
+      "satellite": "ONEWEB-0096",
+      "orbit": "LEO",
+      "satIndex": 0,
+      "node": 1
+    },
+    {
+      "satellite": "GSAT0226 (GALILEO 31)",
+      "orbit": "MEO",
+      "satIndex": 1,
+      "node": 2
+    },
+    {
+      "satellite": "ASIASAT 9",
+      "orbit": "GEO",
+      "satIndex": 2,
+      "node": 3
+    },
+    {
+      "satellite": "ONEWEB-0446",
+      "orbit": "LEO",
+      "satIndex": 3,
+      "node": 4
+    },
+    {
+      "satellite": "ONEWEB-0416",
+      "orbit": "LEO",
+      "satIndex": 4,
+      "node": 5
+    },
+    {
+      "satellite": "ONEWEB-0473",
+      "orbit": "LEO",
+      "satIndex": 5,
+      "node": 6
+    },
+    {
+      "satellite": "ONEWEB-0449",
+      "orbit": "LEO",
+      "satIndex": 6,
+      "node": 7
+    },
+    {
+      "satellite": "ONEWEB-0557",
+      "orbit": "LEO",
+      "satIndex": 7,
+      "node": 8
+    },
+    {
+      "satellite": "GSAT0205 (GALILEO 9)",
+      "orbit": "MEO",
+      "satIndex": 8,
+      "node": 9
+    },
+    {
+      "satellite": "JCSAT-17",
+      "orbit": "GEO",
+      "satIndex": 9,
+      "node": 10
+    },
+    {
+      "satellite": "ONEWEB-0607",
+      "orbit": "LEO",
+      "satIndex": 10,
+      "node": 11
+    },
+    {
+      "satellite": "ONEWEB-0559",
+      "orbit": "LEO",
+      "satIndex": 11,
+      "node": 12
+    },
+    {
+      "satellite": "ONEWEB-0582",
+      "orbit": "LEO",
+      "satIndex": 12,
+      "node": 13
+    },
+    {
+      "satellite": "ONEWEB-0608",
+      "orbit": "LEO",
+      "satIndex": 13,
+      "node": 14
+    },
+    {
+      "satellite": "ONEWEB-0236",
+      "orbit": "LEO",
+      "satIndex": 14,
+      "node": 15
+    },
+    {
+      "satellite": "ONEWEB-0246",
+      "orbit": "LEO",
+      "satIndex": 15,
+      "node": 16
+    },
+    {
+      "satellite": "ONEWEB-0215",
+      "orbit": "LEO",
+      "satIndex": 16,
+      "node": 17
+    },
+    {
+      "satellite": "ONEWEB-0240",
+      "orbit": "LEO",
+      "satIndex": 17,
+      "node": 18
+    },
+    {
+      "satellite": "ONEWEB-0241",
+      "orbit": "LEO",
+      "satIndex": 18,
+      "node": 19
+    },
+    {
+      "satellite": "ONEWEB-0007",
+      "orbit": "LEO",
+      "satIndex": 19,
+      "node": 20
+    },
+    {
+      "satellite": "ONEWEB-0368",
+      "orbit": "LEO",
+      "satIndex": 20,
+      "node": 21
+    },
+    {
+      "satellite": "GSAT0233 (GALILEO 33)",
+      "orbit": "MEO",
+      "satIndex": 21,
+      "node": 22
+    },
+    {
+      "satellite": "INTELSAT 25 (IS-25)",
+      "orbit": "GEO",
+      "satIndex": 22,
+      "node": 23
+    }
+  ],
+  "phases": [
+    {
+      "label": "LEO-1",
+      "orbit": "LEO",
+      "satellite": "ONEWEB-0096",
+      "startS": 0,
+      "stopS": 300,
+      "sendStartS": 30,
+      "sendStopS": 290,
+      "startUtc": "2026-06-15T00:00:00Z",
+      "stopUtc": "2026-06-15T00:05:00Z",
+      "reasonKind": "current-link-unavailable",
+      "maskTrimmed": null,
+      "uplink_src": "%cg[0]%appWrapper[0].app",
+      "uplink_sink": "%sat[0]%appWrapper[0].app",
+      "downlink_sink": "%cg[1]%appWrapper[0].app"
+    },
+    {
+      "label": "MEO-2",
+      "orbit": "MEO",
+      "satellite": "GSAT0226 (GALILEO 31)",
+      "startS": 300,
+      "stopS": 600,
+      "sendStartS": 350,
+      "sendStopS": 590,
+      "startUtc": "2026-06-15T00:05:00Z",
+      "stopUtc": "2026-06-15T00:10:00Z",
+      "reasonKind": "cross-orbit-migration",
+      "maskTrimmed": null,
+      "uplink_src": "%cg[0]%appWrapper[1].app",
+      "uplink_sink": "%sat[1]%appWrapper[0].app",
+      "downlink_sink": "%cg[1]%appWrapper[1].app"
+    },
+    {
+      "label": "GEO-3",
+      "orbit": "GEO",
+      "satellite": "ASIASAT 9",
+      "startS": 600,
+      "stopS": 3300,
+      "sendStartS": 650,
+      "sendStopS": 3290,
+      "startUtc": "2026-06-15T00:10:00Z",
+      "stopUtc": "2026-06-15T00:55:00Z",
+      "reasonKind": "cross-orbit-migration",
+      "maskTrimmed": null,
+      "uplink_src": "%cg[0]%appWrapper[2].app",
+      "uplink_sink": "%sat[2]%appWrapper[0].app",
+      "downlink_sink": "%cg[1]%appWrapper[2].app"
+    },
+    {
+      "label": "LEO-4",
+      "orbit": "LEO",
+      "satellite": "ONEWEB-0446",
+      "startS": 3300,
+      "stopS": 3540,
+      "sendStartS": 3350,
+      "sendStopS": 3518,
+      "startUtc": "2026-06-15T00:55:00Z",
+      "stopUtc": "2026-06-15T00:59:00Z",
+      "reasonKind": "cross-orbit-migration",
+      "maskTrimmed": {
+        "from": [
+          3350,
+          3530
+        ],
+        "to": [
+          3350,
+          3518
+        ]
+      },
+      "uplink_src": "%cg[0]%appWrapper[3].app",
+      "uplink_sink": "%sat[3]%appWrapper[0].app",
+      "downlink_sink": "%cg[1]%appWrapper[3].app"
+    },
+    {
+      "label": "LEO-5",
+      "orbit": "LEO",
+      "satellite": "ONEWEB-0416",
+      "startS": 3540,
+      "stopS": 3810,
+      "sendStartS": 3590,
+      "sendStopS": 3800,
+      "startUtc": "2026-06-15T00:59:00Z",
+      "stopUtc": "2026-06-15T01:03:30Z",
+      "reasonKind": "current-link-unavailable",
+      "maskTrimmed": null,
+      "uplink_src": "%cg[0]%appWrapper[4].app",
+      "uplink_sink": "%sat[4]%appWrapper[0].app",
+      "downlink_sink": "%cg[1]%appWrapper[4].app"
+    },
+    {
+      "label": "LEO-6",
+      "orbit": "LEO",
+      "satellite": "ONEWEB-0473",
+      "startS": 3810,
+      "stopS": 4110,
+      "sendStartS": 3860,
+      "sendStopS": 4085,
+      "startUtc": "2026-06-15T01:03:30Z",
+      "stopUtc": "2026-06-15T01:08:30Z",
+      "reasonKind": "current-link-unavailable",
+      "maskTrimmed": {
+        "from": [
+          3860,
+          4100
+        ],
+        "to": [
+          3860,
+          4085
+        ]
+      },
+      "uplink_src": "%cg[0]%appWrapper[5].app",
+      "uplink_sink": "%sat[5]%appWrapper[0].app",
+      "downlink_sink": "%cg[1]%appWrapper[5].app"
+    },
+    {
+      "label": "LEO-7",
+      "orbit": "LEO",
+      "satellite": "ONEWEB-0449",
+      "startS": 4110,
+      "stopS": 4380,
+      "sendStartS": 4160,
+      "sendStopS": 4367,
+      "startUtc": "2026-06-15T01:08:30Z",
+      "stopUtc": "2026-06-15T01:13:00Z",
+      "reasonKind": "current-link-unavailable",
+      "maskTrimmed": {
+        "from": [
+          4160,
+          4370
+        ],
+        "to": [
+          4160,
+          4367
+        ]
+      },
+      "uplink_src": "%cg[0]%appWrapper[6].app",
+      "uplink_sink": "%sat[6]%appWrapper[0].app",
+      "downlink_sink": "%cg[1]%appWrapper[6].app"
+    },
+    {
+      "label": "LEO-8",
+      "orbit": "LEO",
+      "satellite": "ONEWEB-0557",
+      "startS": 4380,
+      "stopS": 4590,
+      "sendStartS": 4430,
+      "sendStopS": 4558,
+      "startUtc": "2026-06-15T01:13:00Z",
+      "stopUtc": "2026-06-15T01:16:30Z",
+      "reasonKind": "current-link-unavailable",
+      "maskTrimmed": {
+        "from": [
+          4430,
+          4580
+        ],
+        "to": [
+          4430,
+          4558
+        ]
+      },
+      "uplink_src": "%cg[0]%appWrapper[7].app",
+      "uplink_sink": "%sat[7]%appWrapper[0].app",
+      "downlink_sink": "%cg[1]%appWrapper[7].app"
+    },
+    {
+      "label": "MEO-9",
+      "orbit": "MEO",
+      "satellite": "GSAT0205 (GALILEO 9)",
+      "startS": 4590,
+      "stopS": 7290,
+      "sendStartS": 4640,
+      "sendStopS": 7280,
+      "startUtc": "2026-06-15T01:16:30Z",
+      "stopUtc": "2026-06-15T02:01:30Z",
+      "reasonKind": "cross-orbit-migration",
+      "maskTrimmed": null,
+      "uplink_src": "%cg[0]%appWrapper[8].app",
+      "uplink_sink": "%sat[8]%appWrapper[0].app",
+      "downlink_sink": "%cg[1]%appWrapper[8].app"
+    },
+    {
+      "label": "GEO-10",
+      "orbit": "GEO",
+      "satellite": "JCSAT-17",
+      "startS": 7290,
+      "stopS": 9990,
+      "sendStartS": 7340,
+      "sendStopS": 9980,
+      "startUtc": "2026-06-15T02:01:30Z",
+      "stopUtc": "2026-06-15T02:46:30Z",
+      "reasonKind": "cross-orbit-migration",
+      "maskTrimmed": null,
+      "uplink_src": "%cg[0]%appWrapper[9].app",
+      "uplink_sink": "%sat[9]%appWrapper[0].app",
+      "downlink_sink": "%cg[1]%appWrapper[9].app"
+    },
+    {
+      "label": "LEO-11",
+      "orbit": "LEO",
+      "satellite": "ONEWEB-0607",
+      "startS": 9990,
+      "stopS": 10170,
+      "sendStartS": 10040,
+      "sendStopS": 10147,
+      "startUtc": "2026-06-15T02:46:30Z",
+      "stopUtc": "2026-06-15T02:49:30Z",
+      "reasonKind": "cross-orbit-migration",
+      "maskTrimmed": {
+        "from": [
+          10040,
+          10160
+        ],
+        "to": [
+          10040,
+          10147
+        ]
+      },
+      "uplink_src": "%cg[0]%appWrapper[10].app",
+      "uplink_sink": "%sat[10]%appWrapper[0].app",
+      "downlink_sink": "%cg[1]%appWrapper[10].app"
+    },
+    {
+      "label": "LEO-12",
+      "orbit": "LEO",
+      "satellite": "ONEWEB-0559",
+      "startS": 10170,
+      "stopS": 10440,
+      "sendStartS": 10220,
+      "sendStopS": 10430,
+      "startUtc": "2026-06-15T02:49:30Z",
+      "stopUtc": "2026-06-15T02:54:00Z",
+      "reasonKind": "current-link-unavailable",
+      "maskTrimmed": null,
+      "uplink_src": "%cg[0]%appWrapper[11].app",
+      "uplink_sink": "%sat[11]%appWrapper[0].app",
+      "downlink_sink": "%cg[1]%appWrapper[11].app"
+    },
+    {
+      "label": "LEO-13",
+      "orbit": "LEO",
+      "satellite": "ONEWEB-0582",
+      "startS": 10440,
+      "stopS": 10590,
+      "sendStartS": 10490,
+      "sendStopS": 10574,
+      "startUtc": "2026-06-15T02:54:00Z",
+      "stopUtc": "2026-06-15T02:56:30Z",
+      "reasonKind": "current-link-unavailable",
+      "maskTrimmed": {
+        "from": [
+          10490,
+          10580
+        ],
+        "to": [
+          10490,
+          10574
+        ]
+      },
+      "uplink_src": "%cg[0]%appWrapper[12].app",
+      "uplink_sink": "%sat[12]%appWrapper[0].app",
+      "downlink_sink": "%cg[1]%appWrapper[12].app"
+    },
+    {
+      "label": "LEO-14",
+      "orbit": "LEO",
+      "satellite": "ONEWEB-0608",
+      "startS": 10590,
+      "stopS": 10740,
+      "sendStartS": 10640,
+      "sendStopS": 10713,
+      "startUtc": "2026-06-15T02:56:30Z",
+      "stopUtc": "2026-06-15T02:59:00Z",
+      "reasonKind": "current-link-unavailable",
+      "maskTrimmed": {
+        "from": [
+          10640,
+          10730
+        ],
+        "to": [
+          10640,
+          10713
+        ]
+      },
+      "uplink_src": "%cg[0]%appWrapper[13].app",
+      "uplink_sink": "%sat[13]%appWrapper[0].app",
+      "downlink_sink": "%cg[1]%appWrapper[13].app"
+    },
+    {
+      "label": "GEO-15",
+      "orbit": "GEO",
+      "satellite": "JCSAT-17",
+      "startS": 10740,
+      "stopS": 13440,
+      "sendStartS": 10790,
+      "sendStopS": 13430,
+      "startUtc": "2026-06-15T02:59:00Z",
+      "stopUtc": "2026-06-15T03:44:00Z",
+      "reasonKind": "cross-orbit-migration",
+      "maskTrimmed": null,
+      "uplink_src": "%cg[0]%appWrapper[14].app",
+      "uplink_sink": "%sat[9]%appWrapper[1].app",
+      "downlink_sink": "%cg[1]%appWrapper[14].app"
+    },
+    {
+      "label": "LEO-16",
+      "orbit": "LEO",
+      "satellite": "ONEWEB-0236",
+      "startS": 13440,
+      "stopS": 13620,
+      "sendStartS": 13490,
+      "sendStopS": 13610,
+      "startUtc": "2026-06-15T03:44:00Z",
+      "stopUtc": "2026-06-15T03:47:00Z",
+      "reasonKind": "cross-orbit-migration",
+      "maskTrimmed": null,
+      "uplink_src": "%cg[0]%appWrapper[15].app",
+      "uplink_sink": "%sat[14]%appWrapper[0].app",
+      "downlink_sink": "%cg[1]%appWrapper[15].app"
+    },
+    {
+      "label": "LEO-17",
+      "orbit": "LEO",
+      "satellite": "ONEWEB-0246",
+      "startS": 13620,
+      "stopS": 13770,
+      "sendStartS": 13670,
+      "sendStopS": 13752,
+      "startUtc": "2026-06-15T03:47:00Z",
+      "stopUtc": "2026-06-15T03:49:30Z",
+      "reasonKind": "current-link-unavailable",
+      "maskTrimmed": {
+        "from": [
+          13670,
+          13760
+        ],
+        "to": [
+          13670,
+          13752
+        ]
+      },
+      "uplink_src": "%cg[0]%appWrapper[16].app",
+      "uplink_sink": "%sat[15]%appWrapper[0].app",
+      "downlink_sink": "%cg[1]%appWrapper[16].app"
+    },
+    {
+      "label": "LEO-18",
+      "orbit": "LEO",
+      "satellite": "ONEWEB-0215",
+      "startS": 13770,
+      "stopS": 14040,
+      "sendStartS": 13820,
+      "sendStopS": 14019,
+      "startUtc": "2026-06-15T03:49:30Z",
+      "stopUtc": "2026-06-15T03:54:00Z",
+      "reasonKind": "current-link-unavailable",
+      "maskTrimmed": {
+        "from": [
+          13820,
+          14030
+        ],
+        "to": [
+          13820,
+          14019
+        ]
+      },
+      "uplink_src": "%cg[0]%appWrapper[17].app",
+      "uplink_sink": "%sat[16]%appWrapper[0].app",
+      "downlink_sink": "%cg[1]%appWrapper[17].app"
+    },
+    {
+      "label": "LEO-19",
+      "orbit": "LEO",
+      "satellite": "ONEWEB-0240",
+      "startS": 14040,
+      "stopS": 14250,
+      "sendStartS": 14090,
+      "sendStopS": 14220,
+      "startUtc": "2026-06-15T03:54:00Z",
+      "stopUtc": "2026-06-15T03:57:30Z",
+      "reasonKind": "current-link-unavailable",
+      "maskTrimmed": {
+        "from": [
+          14090,
+          14240
+        ],
+        "to": [
+          14090,
+          14220
+        ]
+      },
+      "uplink_src": "%cg[0]%appWrapper[18].app",
+      "uplink_sink": "%sat[17]%appWrapper[0].app",
+      "downlink_sink": "%cg[1]%appWrapper[18].app"
+    },
+    {
+      "label": "LEO-20",
+      "orbit": "LEO",
+      "satellite": "ONEWEB-0241",
+      "startS": 14250,
+      "stopS": 14430,
+      "sendStartS": 14300,
+      "sendStopS": 14420,
+      "startUtc": "2026-06-15T03:57:30Z",
+      "stopUtc": "2026-06-15T04:00:30Z",
+      "reasonKind": "current-link-unavailable",
+      "maskTrimmed": null,
+      "uplink_src": "%cg[0]%appWrapper[19].app",
+      "uplink_sink": "%sat[18]%appWrapper[0].app",
+      "downlink_sink": "%cg[1]%appWrapper[19].app"
+    },
+    {
+      "label": "LEO-21",
+      "orbit": "LEO",
+      "satellite": "ONEWEB-0007",
+      "startS": 14430,
+      "stopS": 14580,
+      "sendStartS": 14480,
+      "sendStopS": 14552,
+      "startUtc": "2026-06-15T04:00:30Z",
+      "stopUtc": "2026-06-15T04:03:00Z",
+      "reasonKind": "current-link-unavailable",
+      "maskTrimmed": {
+        "from": [
+          14480,
+          14570
+        ],
+        "to": [
+          14480,
+          14552
+        ]
+      },
+      "uplink_src": "%cg[0]%appWrapper[20].app",
+      "uplink_sink": "%sat[19]%appWrapper[0].app",
+      "downlink_sink": "%cg[1]%appWrapper[20].app"
+    },
+    {
+      "label": "GEO-22",
+      "orbit": "GEO",
+      "satellite": "JCSAT-17",
+      "startS": 14580,
+      "stopS": 17280,
+      "sendStartS": 14630,
+      "sendStopS": 17270,
+      "startUtc": "2026-06-15T04:03:00Z",
+      "stopUtc": "2026-06-15T04:48:00Z",
+      "reasonKind": "cross-orbit-migration",
+      "maskTrimmed": null,
+      "uplink_src": "%cg[0]%appWrapper[21].app",
+      "uplink_sink": "%sat[9]%appWrapper[2].app",
+      "downlink_sink": "%cg[1]%appWrapper[21].app"
+    },
+    {
+      "label": "LEO-23",
+      "orbit": "LEO",
+      "satellite": "ONEWEB-0368",
+      "startS": 17280,
+      "stopS": 17520,
+      "sendStartS": 17330,
+      "sendStopS": 17495,
+      "startUtc": "2026-06-15T04:48:00Z",
+      "stopUtc": "2026-06-15T04:52:00Z",
+      "reasonKind": "cross-orbit-migration",
+      "maskTrimmed": {
+        "from": [
+          17330,
+          17510
+        ],
+        "to": [
+          17330,
+          17495
+        ]
+      },
+      "uplink_src": "%cg[0]%appWrapper[22].app",
+      "uplink_sink": "%sat[20]%appWrapper[0].app",
+      "downlink_sink": "%cg[1]%appWrapper[22].app"
+    },
+    {
+      "label": "MEO-24",
+      "orbit": "MEO",
+      "satellite": "GSAT0233 (GALILEO 33)",
+      "startS": 17520,
+      "stopS": 20220,
+      "sendStartS": 17570,
+      "sendStopS": 20210,
+      "startUtc": "2026-06-15T04:52:00Z",
+      "stopUtc": "2026-06-15T05:37:00Z",
+      "reasonKind": "cross-orbit-migration",
+      "maskTrimmed": null,
+      "uplink_src": "%cg[0]%appWrapper[23].app",
+      "uplink_sink": "%sat[21]%appWrapper[0].app",
+      "downlink_sink": "%cg[1]%appWrapper[23].app"
+    },
+    {
+      "label": "GEO-25",
+      "orbit": "GEO",
+      "satellite": "INTELSAT 25 (IS-25)",
+      "startS": 20220,
+      "stopS": 21600,
+      "sendStartS": 20270,
+      "sendStopS": 21590,
+      "startUtc": "2026-06-15T05:37:00Z",
+      "stopUtc": "2026-06-15T06:00:00Z",
+      "reasonKind": "cross-orbit-migration",
+      "maskTrimmed": null,
+      "uplink_src": "%cg[0]%appWrapper[24].app",
+      "uplink_sink": "%sat[22]%appWrapper[0].app",
+      "downlink_sink": "%cg[1]%appWrapper[24].app"
+    }
+  ],
+  "handoverBoundariesUtc": [
+    "2026-06-15T00:05:00Z",
+    "2026-06-15T00:10:00Z",
+    "2026-06-15T00:55:00Z",
+    "2026-06-15T00:59:00Z",
+    "2026-06-15T01:03:30Z",
+    "2026-06-15T01:08:30Z",
+    "2026-06-15T01:13:00Z",
+    "2026-06-15T01:16:30Z",
+    "2026-06-15T02:01:30Z",
+    "2026-06-15T02:46:30Z",
+    "2026-06-15T02:49:30Z",
+    "2026-06-15T02:54:00Z",
+    "2026-06-15T02:56:30Z",
+    "2026-06-15T02:59:00Z",
+    "2026-06-15T03:44:00Z",
+    "2026-06-15T03:47:00Z",
+    "2026-06-15T03:49:30Z",
+    "2026-06-15T03:54:00Z",
+    "2026-06-15T03:57:30Z",
+    "2026-06-15T04:00:30Z",
+    "2026-06-15T04:03:00Z",
+    "2026-06-15T04:48:00Z",
+    "2026-06-15T04:52:00Z",
+    "2026-06-15T05:37:00Z"
+  ],
+  "pathLabel": "Chunghwa Telecom Yangmingshan Earth Station → [ 17 OneWeb LEO ⇄ 3 Galileo MEO ⇄ 3 GEO relays ] → Chunghwa Telecom Fang-Shan Earth Station",
+  "lossModel": "loss-free baseline: no re-point overrun traffic; send windows sit inside each serving phase and are additionally trimmed (1 s sampling, 2 s guard) so every transmitted packet is continuously above both stations' effective elevation masks — the serving-phase boundaries themselves remain the viewer's 30 s-grid handover instants"
+}

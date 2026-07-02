@@ -12,9 +12,9 @@ where the ranges come from python-sgp4 (own GMST / TEME->ECEF, the same
 independent path as precheck_2hop_geometry_independent.py — NOT the viewer,
 NOT ESTNeT) and `serial` is the single constant per-leg serialization delay of
 the 9600 bps PHY. `serial` is fitted from the GEO samples (one free constant),
-then the SAME constant must explain every MEO segment, including the range
-slope while each Galileo satellite moves. Hundreds of samples, three
-independent MEO geometries, one degree of freedom.
+then the SAME constant must explain every non-GEO (MEO / LEO) segment,
+including the range slope while each satellite moves. Hundreds of samples,
+many independent geometries, one degree of freedom.
 
 What agreement DOES prove: ESTNeT's internal SGP4+timing and our independent
 SGP4 implementation are consistent — an implementation-correctness cross-proof
@@ -28,10 +28,10 @@ Checks:
      at 9600 bps, payload is 100 B).
   C3 per-segment median residual |lat_obs - lat_pred| < 0.5 ms.
   C4 overall p95 |residual| < 1.0 ms.
-  C5 (v2) every MEO segment's DELIVERED span lies inside that satellite's
-     independently computed mutual-visibility window (elevation thresholds
-     mirror the viewer: 10 deg base + terrain mask, CHT 31 / SANSA 11,
-     strict >). Lost samples are exempt BY DESIGN: the deliberate re-point
+  C5 (v2) every non-GEO (MEO / LEO) segment's DELIVERED span lies inside
+     that satellite's independently computed mutual-visibility window
+     (elevation thresholds mirror the viewer: 10 deg base + per-station
+     terrain mask, strict >). Lost samples are exempt BY DESIGN: the deliberate re-point
      overrun sends frames to the previous relay after the dishes re-pointed
      (they are dropped, latency=null), so a segment's raw span may extend a
      few tens of seconds past LOS while its delivered traffic never does —
@@ -66,6 +66,7 @@ C_KM_S = 299792.458
 STATIONS = {
     "cht-yangmingshan":      dict(lat=25.155,  lon=121.55,  alt=489.0,  mask=21),
     "sansa-hartebeesthoek":  dict(lat=-25.8872, lon=27.7075, alt=1553.0, mask=1),
+    "cht-fangshan":          dict(lat=22.27,   lon=120.71,  alt=230.0,  mask=0),
 }
 BASE_ELEV = 10.0
 PHY_BPS = 9600.0
@@ -156,12 +157,19 @@ def main():
         if not cond:
             failures.append(label)
 
-    # C1 — station identity guard
+    # C1 — station identity guard: the fixture names its own endpoints; both
+    # must be known registry constants here and the coords must match.
     meta = fx["metadata"]
-    for key, st in (("stationA", "cht-yangmingshan"), ("stationB", "sansa-hartebeesthoek")):
+    ids = {}
+    for key in ("stationA", "stationB"):
         m = meta[key]
-        ref = STATIONS[st]
-        check(m["id"] == st and abs(m["lat"] - ref["lat"]) < 1e-6 and abs(m["lon"] - ref["lon"]) < 1e-6,
+        st = m.get("id")
+        ids[key] = st
+        ref = STATIONS.get(st)
+        if ref is None:
+            check(False, f"C1 {key} id {st!r} not in this script's registry constants")
+            return finish(failures)
+        check(abs(m["lat"] - ref["lat"]) < 1e-6 and abs(m["lon"] - ref["lon"]) < 1e-6,
               f"C1 {key} == registry {st}")
 
     epoch = datetime.strptime(meta["simEpochUtc"], "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=timezone.utc)
@@ -186,10 +194,11 @@ def main():
                 return t
         raise SystemExit(f"metadata.satellite {meta['satellite']!r} not matched in TLE file")
 
-    st_a = station_ecef(STATIONS["cht-yangmingshan"])
-    st_b = station_ecef(STATIONS["sansa-hartebeesthoek"])
-    thr_a = BASE_ELEV + STATIONS["cht-yangmingshan"]["mask"]
-    thr_b = BASE_ELEV + STATIONS["sansa-hartebeesthoek"]["mask"]
+    id_a, id_b = ids["stationA"], ids["stationB"]
+    st_a = station_ecef(STATIONS[id_a])
+    st_b = station_ecef(STATIONS[id_b])
+    thr_a = BASE_ELEV + STATIONS[id_a]["mask"]
+    thr_b = BASE_ELEV + STATIONS[id_b]["mask"]
 
     # pass 1 — propagate every delivered sample once
     rows = []  # (tMs, satName, orbit, lat_obs_ms, prop_ms)
@@ -218,7 +227,7 @@ def main():
     m = args.elev_margin_deg
     check(min_ea > BASE_ELEV - m and min_eb > BASE_ELEV - m,
           f"C6 every delivered sample above the {BASE_ELEV:.0f} deg base elevation "
-          f"(min CHT {min_ea:.4f}, SANSA {min_eb:.4f})")
+          f"(min A[{id_a}] {min_ea:.4f}, B[{id_b}] {min_eb:.4f})")
 
     # C7 — viewer-mask POLICY comparison (10 deg base + per-station terrain
     # mask). The handover trace claims golden-D1 alignment, so it must comply
@@ -231,16 +240,16 @@ def main():
     if v2:
         check(mask_ok,
               f"C7 viewer-mask policy compliance within {m:.2f} deg margin "
-              f"(min CHT {min_ea:.4f} vs {thr_a:.0f}, SANSA {min_eb:.4f} vs {thr_b:.0f})")
+              f"(min A[{id_a}] {min_ea:.4f} vs {thr_a:.0f}, B[{id_b}] {min_eb:.4f} vs {thr_b:.0f})")
     elif mask_ok:
-        check(True, f"C7 viewer-mask policy compliance (min CHT {min_ea:.4f} vs {thr_a:.0f})")
+        check(True, f"C7 viewer-mask policy compliance (min A[{id_a}] {min_ea:.4f} vs {thr_a:.0f})")
     else:
         disclosed = any("mask" in n.lower() for n in fx.get("nonClaims", []))
         check(disclosed,
-              f"C7 below the viewer-mask policy (min CHT {min_ea:.4f} vs {thr_a:.0f}) — "
+              f"C7 below the viewer-mask policy (min A[{id_a}] {min_ea:.4f} vs {thr_a:.0f}) — "
               "fixture nonClaims MUST disclose the mask shortfall (undisclosed = fail)")
         if disclosed:
-            print(f"  note C7: below viewer-mask policy (min CHT {min_ea:.4f} vs {thr_a:.0f}) "
+            print(f"  note C7: below viewer-mask policy (min A[{id_a}] {min_ea:.4f} vs {thr_a:.0f}) "
                   "and DISCLOSED in the fixture's nonClaims — kept as the steady-state PHY "
                   "signature; the handover trace is the viewer-aligned one.")
 
@@ -269,14 +278,14 @@ def main():
     p95 = percentile(abs_sorted, 0.95)
     check(p95 <= args.p95_tol_ms, f"C4 overall p95 |residual| {p95:.4f} ms within {args.p95_tol_ms}")
 
-    # C5 — (v2) every MEO segment's DELIVERED span must sit inside
+    # C5 — (v2) every non-GEO (MEO/LEO) segment's DELIVERED span must sit inside
     # independently computed co-visibility. Lost samples (the disclosed
     # re-point overrun: frames to the previous relay after the dishes
     # re-pointed) are exempt — but only if the fixture DISCLOSES the overrun.
     if v2:
         for seg in fx.get("segments", []):
-            if seg["orbitClass"] != "MEO":
-                continue
+            if seg["orbitClass"] == "GEO":
+                continue  # GEO co-visibility is continuous; MEO/LEO spans are the real check
             candidates = [t for t in tles if t == seg["satellite"] or t.startswith(seg["satellite"])]
             if not candidates:
                 check(False, f"C5 {seg['label']}: satellite {seg['satellite']!r} not in TLE file")
@@ -321,7 +330,7 @@ def main():
                     _, eb = range_and_elev(st_b, ecef)
                     ok = ea > thr_a - args.elev_margin_deg and eb > thr_b - args.elev_margin_deg
             check(ok, f"C5 {seg['label']} {name}: delivered span inside independent co-visibility "
-                      f"(CHT>{thr_a} SANSA>{thr_b})")
+                      f"(A[{id_a}]>{thr_a} B[{id_b}]>{thr_b})")
 
     return finish(failures)
 
